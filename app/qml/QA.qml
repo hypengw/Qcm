@@ -127,6 +127,11 @@ Item {
         id: m_querier_song
 
         autoReload: ids.length > 0
+        onStatusChanged: {
+            if (status === ApiQuerierBase.Error)
+                m_player.stop();
+
+        }
     }
 
     MediaPlayer {

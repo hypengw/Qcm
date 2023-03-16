@@ -56,25 +56,10 @@ ItemDelegate {
                 Repeater {
                     model: root.modelData.tags
 
-                    delegate: Pane {
-                        Material.foreground: Theme.color.tertiary
-                        padding: 1
-                        horizontalPadding: 2
-
-                        Label {
-                            id: tag_label
-
-                            text: modelData
-                            font.pointSize: Theme.font.small(subtitle_label.font)
-                            font.capitalization: Font.AllUppercase
-                            font.bold: true
-                        }
-
-                        background: Rectangle {
-                            color: 'transparent'
-                            radius: 1
-                            border.width: 1
-                            border.color: Material.foreground
+                    delegate: ColumnLayout {
+                        SongTag {
+                            tag: modelData
+                            pointSize: Theme.font.small(subtitle_label.font)
                         }
 
                     }

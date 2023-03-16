@@ -4,6 +4,7 @@ import QtQuick.Controls.Material
 import QtQuick.Layouts
 import QcmApp
 import "./component"
+import "./part"
 
 Pane {
     Material.elevation: 4
@@ -80,12 +81,30 @@ Pane {
                     elide: Text.ElideRight
                 }
 
-                Label {
-                    Layout.fillWidth: true
-                    elide: Text.ElideRight
-                    font.pointSize: Theme.font.small(Theme.font.label_font)
-                    opacity: 0.6
-                    text: QA.join_name(QA.cur_song.artists, '/')
+                RowLayout {
+                    Repeater {
+                        model: QA.cur_song.tags
+
+                        delegate: ColumnLayout {
+                            SongTag {
+                                tag: modelData
+                                pointSize: Theme.font.small(subtitle_label.font)
+                            }
+
+                        }
+
+                    }
+
+                    Label {
+                        id: subtitle_label
+
+                        Layout.fillWidth: true
+                        elide: Text.ElideRight
+                        font.pointSize: Theme.font.small(Theme.font.label_font)
+                        opacity: 0.6
+                        text: QA.join_name(QA.cur_song.artists, '/')
+                    }
+
                 }
 
             }

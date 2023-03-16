@@ -44,7 +44,12 @@ Page {
                     highlighted: true
                     Material.foreground: Theme.color.on_primary
                     onClicked: {
-                        QA.playlist.switchList(qr_rmd.data.dailySongs);
+                        const songs = qr_rmd.data.dailySongs.filter((s) => {
+                            return s.canPlay;
+                        });
+                        if (songs.length)
+                            QA.playlist.switchList(songs);
+
                     }
 
                     contentItem: IconRowLayout {

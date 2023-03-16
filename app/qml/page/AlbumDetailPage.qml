@@ -157,7 +157,12 @@ Page {
                         highlighted: true
                         Material.foreground: Theme.color.on_primary
                         onClicked: {
-                            QA.playlist.switchList(itemData.songs);
+                            const songs = itemData.songs.filter((s) => {
+                                return s.canPlay;
+                            });
+                            if (songs.length)
+                                QA.playlist.switchList(songs);
+
                         }
 
                         contentItem: IconRowLayout {

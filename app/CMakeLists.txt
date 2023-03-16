@@ -50,6 +50,7 @@ set(QML_FILES
     qml/part/ArtistsPopup.qml
     qml/part/SettingsPopup.qml
     qml/part/SongDelegate.qml
+    qml/part/SongTag.qml
     qml/component/IconRowLayout.qml
     qml/component/RoundImage.qml
     qml/component/Leaflet.qml
