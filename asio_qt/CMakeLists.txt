@@ -1,0 +1,12 @@
+add_library(asio_qt
+
+    include/asio_qt/qt_execution_context.h
+    include/asio_qt/qt_executor.h
+
+    qt_execution_context.cpp
+    qt_executor.cpp
+)
+
+target_include_directories(asio_qt PUBLIC include PRIVATE include/asio_qt)
+target_link_libraries(asio_qt PUBLIC core asio Qt6::Core PRIVATE request fmt::fmt)
+set_property(TARGET asio_qt PROPERTY POSITION_INDEPENDENT_CODE ON)

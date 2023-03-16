@@ -1,0 +1,18 @@
+[submodule "third_party/fmt"]
+	path = third_party/fmt
+	url = https://github.com/fmtlib/fmt.git
+[submodule "third_party/json"]
+	path = third_party/json
+	url = https://github.com/nlohmann/json.git
+[submodule "third_party/random"]
+	path = third_party/random
+	url = https://github.com/effolkronium/random.git
+[submodule "third_party/expected"]
+	path = third_party/expected
+	url = https://github.com/TartanLlama/expected.git
+[submodule "third_party/asio"]
+	path = third_party/asio
+	url = https://github.com/chriskohlhoff/asio.git
+[submodule "third_party/material-color-utilities"]
+	path = third_party/material-color
+	url = https://github.com/material-foundation/material-color-utilities
