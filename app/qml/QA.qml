@@ -97,7 +97,7 @@ Item {
     Settings {
         property alias loop: m_playlist.loopMode
 
-        category: 'Play'
+        category: 'play'
     }
 
     Playlist {
@@ -115,6 +115,12 @@ Item {
 
     UserAccountQuerier {
         id: m_querier_user
+
+        onStatusChanged: {
+            if (status === ApiQuerierBase.Finished)
+                App.loginPost(data);
+
+        }
     }
 
     SongUrlQuerier {

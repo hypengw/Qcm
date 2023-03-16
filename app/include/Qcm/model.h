@@ -162,6 +162,8 @@ public:
     GATGET_PROPERTY(Album, album, album)
     GATGET_PROPERTY(QDateTime, duration, duration)
     GATGET_PROPERTY(std::vector<Artist>, artists, artists)
+    GATGET_PROPERTY(bool, canPlay, canPlay)
+    GATGET_PROPERTY(std::vector<QString>, tags, tags)
 
     std::strong_ordering operator<=>(const Song&) const = default;
 };
@@ -242,6 +244,23 @@ struct To<qcm::model::Song> {
         CONVERT_PROPERTY(o.album.picUrl, in.al.picUrl);
         CONVERT_PROPERTY(o.duration, in.dt);
         CONVERT_PROPERTY(o.artists, in.ar);
+        CONVERT_PROPERTY(o.canPlay, (! in.privilege || in.privilege.value().st >= 0));
+
+        if (in.privilege) {
+            QString tag;
+            auto    fee = in.privilege.value().fee;
+            switch (fee) {
+                using enum ncm::model::SongFee;
+            case Vip: tag = "vip"; break;
+            case OnlyOnlineWithPaid:
+            case OnlyDownloadWithPaid: tag = "pay"; break;
+            case DigitalAlbum: tag = "dg"; break;
+            case Free:
+            case Free128k: break;
+            default: ERROR_LOG("unknown fee: {}", (int)fee);
+            }
+            if (! tag.isEmpty()) o.tags.push_back(tag);
+        }
         return o;
     }
 };

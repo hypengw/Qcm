@@ -69,6 +69,18 @@ struct PlaylistDetail {
     // score	null
     // algTags	null
 };
+
+/*
+specialType 说明
+0           普通歌单
+5           红心歌单
+10          置顶歌单
+20          尾部歌单
+100         官方歌单
+200         视频歌单
+300         分享歌单
+*/
+
 } // namespace model
 
 namespace api_model
@@ -76,12 +88,19 @@ namespace api_model
 
 struct PlaylistDetail {
     static Result<PlaylistDetail> parse(std::span<const byte> bs) {
-        return api_model::parse<PlaylistDetail>(bs);
+        return api_model::parse<PlaylistDetail>(bs).map([](PlaylistDetail in) {
+            auto& tracks = in.playlist.tracks;
+            auto  len    = std::min(tracks.size(), in.privileges.size());
+            for (usize i = 0; i < len; i++) {
+                tracks[i].privilege = in.privileges[i];
+            }
+            return in;
+        });
     }
 
-    i64                   code;
-    model::PlaylistDetail playlist;
-    // privileges	[…]
+    i64                                 code;
+    model::PlaylistDetail               playlist;
+    std::vector<model::Song::Privilege> privileges;
 };
 JSON_DEFINE(PlaylistDetail);
 
@@ -99,11 +118,11 @@ struct PlaylistDetail {
     std::string_view path() const { return "/eapi/v6/playlist/detail"; };
     UrlParams        query() const { return {}; }
     Params           body() const {
-                  Params p;
-                  p["id"] = input.id;
-                  p["n"]  = To<std::string>::from(input.n);
-                  p["s"]  = To<std::string>::from(input.s);
-                  return p;
+        Params p;
+        p["id"] = input.id;
+        p["n"]  = To<std::string>::from(input.n);
+        p["s"]  = To<std::string>::from(input.s);
+        return p;
     }
 
     in_type input;

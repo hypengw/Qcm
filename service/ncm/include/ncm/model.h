@@ -16,6 +16,16 @@ struct Time {
     time_point point;
 };
 
+enum class SongFee
+{
+    Free                 = 0,
+    Vip                  = 1,
+    DigitalAlbum         = 4,
+    Free128k             = 8,
+    OnlyDownloadWithPaid = 16,
+    OnlyOnlineWithPaid   = 32
+};
+
 struct Song {
     struct Ar {
         i64                      id;
@@ -32,6 +42,56 @@ struct Song {
         i64 br;
         i64 size;
         i64 sr;
+    };
+
+    struct Privilege {
+        i64         id;
+        SongFee     fee;
+        i64         payed;
+        i64         st;
+        i64         pl;    // 999000,
+        i64         dl;    // 999000,
+        i64         sp;    // 7,
+        i64         cp;    // 1,
+        i64         subp;  // 1,
+        bool        cs;    // false,
+        i64         maxbr; // 999000,
+        i64         fl;    // 320000,
+        bool        toast;
+        i64         flag; // 128,
+        bool        preSell;
+        i64         playMaxbr;          // 999000,
+        i64         downloadMaxbr;      // 999000,
+        std::string maxBrLevel;         // "lossless",
+        std::string playMaxBrLevel;     // "lossless",
+        std::string downloadMaxBrLevel; // "lossless",
+        std::string plLevel;            // "lossless",
+        std::string dlLevel;            // "lossless",
+        std::string flLevel;            // "exhigh",
+                                        // rscl null,
+
+        /*
+        songMaxBr plLevel       dlLevel
+        值 	      音质 	        比特率
+        dobly     杜比 	        无
+        hires     hires         1999
+        lossless  无损 	        999
+        exhigh    极高 	        320
+        standard  标准 	        128
+        none      不能播放/下载	0
+        */
+
+        /*
+        songFee
+        值 	说明            详细描述
+        0 	免费            免费歌曲
+        1 	会员            普通用户无法免费收听下载；会员可收听和下载所有音质
+        4 	数字专辑        所有用户只能在商城购买数字专辑后，才能收听下载
+        8 	128K            普通用户可免费收听128k音质，但不能下载；会员可收听和下载所有音质
+        16 	只能付费下载
+普通用户只能付费下载后使用，不提供在线收听；会员只能下载后使用，不能在线收听
+        32  只能付费播放 普通用户只能付费后收听，不能下载；会员可以直接收听，但不能下载
+        */
     };
 
     std::vector<Ar> ar;
@@ -61,6 +121,8 @@ struct Song {
     std::string                cd;
     std::string                name;
     i64                        id;
+
+    std::optional<Privilege> privilege;
 
     // a	null
     // rtUrls	[]
@@ -121,17 +183,6 @@ JSON_DEFINE(Artist);
 JSON_DEFINE(Album);
 JSON_DEFINE(Time);
 
-inline std::optional<Error> check_code(const json::njson&) {
-    return std::nullopt;
-    /*
-    if (auto code = json::get<i64>(j, json::make_keys("code")); code.has_value()) {
-        if (code == 200) return std::nullopt;
-        return Error::push(fmt::format("not valied code: {}", code.value()), ERR_CTX);
-    } else {
-        return Error::push(code.error(), ERR_CTX);
-    }
-*/
-}
 } // namespace model
 
 } // namespace ncm

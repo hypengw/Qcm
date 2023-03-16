@@ -179,6 +179,9 @@ ApplicationWindow {
                         font.pointSize: 16
                         flat: true
                         text: Theme.ic.settings
+                        onClicked: {
+                            QA.show_popup('qrc:/QcmApp/qml/part/SettingsPopup.qml');
+                        }
                     }
 
                 }

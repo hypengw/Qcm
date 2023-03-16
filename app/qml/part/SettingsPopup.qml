@@ -2,9 +2,11 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
-import QcmApp
-import ".."
+import "../component"
 
-StackView {
+MPopup {
     id: root
+
+    width: 400
+    title: qsTr('settings')
 }

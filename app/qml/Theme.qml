@@ -69,6 +69,8 @@ Item {
         readonly property string done: '\ue876'
         readonly property string arrow_back: '\ue5c4'
         readonly property string equalizer: '\ue01d'
+        readonly property string favorite: '\ue87d'
+        readonly property string favorite_border: '\ue87e'
     }
 
     readonly property alias color: m_color
@@ -82,7 +84,7 @@ Item {
     Settings {
         property alias color_scheme: m_color.schemeTheme
 
-        category: 'Theme'
+        category: 'theme'
     }
 
 }

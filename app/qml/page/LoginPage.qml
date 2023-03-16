@@ -46,8 +46,6 @@ ColumnLayout {
     }
 
     ColumnLayout {
-        id: test2
-
         Layout.alignment: Qt.AlignHCenter
         Layout.fillWidth: false
         Layout.preferredWidth: 300
@@ -55,7 +53,8 @@ ColumnLayout {
         Label {
             Layout.fillWidth: true
             Layout.bottomMargin: 20
-            text: 'Login'
+            text: qsTr('Login')
+            font.capitalization: Font.Capitalize
             font.pointSize: 18
         }
 
@@ -109,12 +108,23 @@ ColumnLayout {
                     }
 
                     Label {
-                        text: qr_login.error
+                        Material.foreground: Theme.color.error
+                        text: {
+                            switch (qr_login.data.code) {
+                            case 501:
+                                return qsTr('email not exists');
+                            case 502:
+                                return qsTr('wrong password');
+                            default:
+                                return '';
+                            }
+                        }
                     }
 
                     Button {
                         Layout.fillWidth: true
-                        text: 'login in'
+                        text: qsTr('login in')
+                        font.capitalization: Font.Capitalize
                         highlighted: true
                         enabled: qr_login.status !== ApiQuerierBase.Querying
                         onClicked: {

@@ -26,8 +26,6 @@ namespace qcm
 {
 class App : public QObject {
     Q_OBJECT
-    Q_PROPERTY(QString url READ url)
-
 public:
     App();
     virtual ~App();
@@ -43,11 +41,13 @@ public:
     Q_INVOKABLE QString md5(QString) const;
     Q_INVOKABLE model::ArtistId artistId(QString id) const;
     Q_INVOKABLE model::AlbumId albumId(QString id) const;
-    Q_INVOKABLE void           loginPost(model::UserAccount*);
 
-    QString url() const;
+public slots:
+    void loginPost(model::UserAccount*);
 
 private:
+    void load_session();
+    void save_session();
     // up<QQmlApplicationEngine> m_qml_engine;
     QtExecutor                m_qt_ex;
     mutable asio::thread_pool m_pool;

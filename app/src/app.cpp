@@ -4,6 +4,7 @@
 #include <QQuickStyle>
 #include <QGlobalStatic>
 #include <qapplicationstatic.h>
+#include <QSettings>
 
 #include <asio/deferred.hpp>
 
@@ -32,7 +33,7 @@ App::App()
     // QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
 }
 App::~App() {
-    m_session->save_cookie(config_path() / "cookie.txt");
+    save_session();
     m_pool.join();
 }
 
@@ -40,8 +41,9 @@ ncm::Client App::ncm_client() const { return m_client; }
 
 void App::init(QQmlApplicationEngine* engine) {
     qmlRegisterSingletonInstance("QcmApp", 1, 0, "App", this);
-    qcm::init_path(std::vector { config_path(), data_path() });
-    m_session->load_cookie(config_path() / "cookie.txt");
+    qcm::init_path(std::array { config_path() / "session", data_path() });
+
+    load_session();
 
     QQuickStyle::setStyle("Material");
 
@@ -54,23 +56,6 @@ void App::init(QQmlApplicationEngine* engine) {
 model::ArtistId App::artistId(QString id) const { return { id }; }
 model::AlbumId  App::albumId(QString id) const { return { id }; }
 
-QString App::url() const {
-    asio::co_spawn(
-        m_qt_ex,
-        [this]() -> asio::awaitable<void> {
-            ncm::api::ArtistSublist api;
-            auto                    re = co_await m_client.perform(api);
-            if (re.has_value()) {
-                ERROR_LOG("{}", re.value().hasMore);
-            } else {
-                ERROR_LOG("{}", re.error());
-            }
-            co_return;
-        },
-        asio::detached);
-    return u"nihao"_qs;
-}
-
 QString App::md5(QString txt) const {
     auto opt = crypto::digest(crypto::md5(), To<std::vector<byte>>::from(txt.toStdString()))
                    .map([](auto in) {
@@ -80,4 +65,28 @@ QString App::md5(QString txt) const {
     return std::move(opt).value();
 }
 
-void App::loginPost(model::UserAccount*) {}
+void App::loginPost(model::UserAccount* user) {
+    auto& id = user->m_userId;
+    if (id.valid()) {
+        QSettings s;
+        s.setValue("session/user_id", To<QString>::from((fmt::format("ncm-{}", id.id))));
+
+        save_session();
+    }
+}
+
+void App::load_session() {
+    QSettings s;
+    auto      user_id = To<std::string>::from(s.value("session/user_id").toString());
+    if (! user_id.empty()) {
+        m_session->load_cookie(config_path() / "session" / user_id);
+    }
+}
+
+void App::save_session() {
+    QSettings s;
+    auto      user_id = To<std::string>::from(s.value("session/user_id").toString());
+    if (! user_id.empty()) {
+        m_session->save_cookie(config_path() / "session" / user_id);
+    }
+}

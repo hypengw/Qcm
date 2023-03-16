@@ -262,7 +262,6 @@ Page {
                             delegate: SongDelegate {
                                 width: view.width
                                 count: view.count
-                                subtitle: `${QA.join_name(modelData.artists, '/')} - ${modelData.album.name}`
                                 onClicked: {
                                     QA.playlist.switchTo(modelData);
                                 }

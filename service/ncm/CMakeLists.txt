@@ -12,6 +12,7 @@ add_library(
   include/ncm/api/login.h
   include/ncm/api/playlist_detail.h
   include/ncm/api/playlist_detail_dynamic.h
+  include/ncm/api/recommend_songs.h
   include/ncm/api/song_url.h
   include/ncm/api/user_account.h
   include/ncm/api/user_playlist.h

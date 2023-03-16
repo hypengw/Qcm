@@ -9,6 +9,7 @@
 #include "Qcm/model/playlist_detail.h"
 #include "Qcm/model/playlist_detail_dynamic.h"
 #include "Qcm/model/playlist_subscribe.h"
+#include "Qcm/model/recommend_songs.h"
 #include "Qcm/model/song_url.h"
 #include "Qcm/model/user_playlist.h"
 #include "Qcm/model/user_account.h"

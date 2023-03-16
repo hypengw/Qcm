@@ -20,6 +20,7 @@ set(SOURCES
     include/Qcm/model/playlist_detail.h
     include/Qcm/model/playlist_detail_dynamic.h
     include/Qcm/model/playlist_subscribe.h
+    include/Qcm/model/recommend_songs.h
     include/Qcm/model/song_url.h
     include/Qcm/model/user_account.h
     include/Qcm/model/user_playlist.h
@@ -46,10 +47,12 @@ set(QML_FILES
     qml/page/MinePage.qml
     qml/page/TodayPage.qml
     qml/part/ArtistsPopup.qml
+    qml/part/SettingsPopup.qml
     qml/part/SongDelegate.qml
     qml/component/IconRowLayout.qml
     qml/component/RoundImage.qml
     qml/component/Leaflet.qml
+    qml/component/MRoundButton.qml
     qml/component/MItemDelegate.qml
     qml/component/MPane.qml
     qml/component/MPopup.qml

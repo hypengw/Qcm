@@ -11,6 +11,7 @@
 #include "ncm/api/playlist_detail.h"
 #include "ncm/api/playlist_detail_dynamic.h"
 #include "ncm/api/playlist_subscribe.h"
+#include "ncm/api/recommend_songs.h"
 #include "ncm/api/song_url.h"
 #include "ncm/api/user_account.h"
 #include "ncm/api/user_playlist.h"
@@ -33,9 +34,12 @@ void from_json(const nlohmann::json& j, Time& t) {
 JSON_DEFINE_WITH_DEFAULT_IMPL(Song::Ar, id, name, alia);
 JSON_DEFINE_WITH_DEFAULT_IMPL(Song::Al, id, name, picUrl);
 JSON_DEFINE_IMPL(Song::Quality, br, size);
+JSON_DEFINE_IMPL(Song::Privilege, downloadMaxBrLevel, playMaxBrLevel, downloadMaxbr, maxBrLevel,
+                 playMaxbr, preSell, plLevel, flLevel, dlLevel, toast, payed, maxbr, subp, flag, sp,
+                 pl, fl, dl, cs, fee, st, id, cp);
 
 JSON_DEFINE_WITH_DEFAULT_IMPL(Song, ar, al, st, rtype, pst, alia, pop, rt, mst, cp, cf, dt, ftype,
-                              no, fee, mv, t, v, h, m, l, sq, hr, cd, name, id);
+                              no, fee, mv, t, v, h, m, l, sq, hr, cd, name, id, privilege);
 
 JSON_DEFINE_WITH_DEFAULT_IMPL(Artist, followed, alias, trans, musicSize, albumSize, briefDesc,
                               picUrl, img1v1Url, name, id);
@@ -79,10 +83,13 @@ JSON_DEFINE_IMPL(AlbumSublist, code, data, count, hasMore);
 JSON_DEFINE_IMPL(Artist, code, hotSongs, artist, more);
 JSON_DEFINE_IMPL(ArtistSublist, code, data, count, hasMore);
 JSON_DEFINE_IMPL(Login, code);
-JSON_DEFINE_IMPL(PlaylistDetail, code, playlist);
+JSON_DEFINE_IMPL(PlaylistDetail, code, playlist, privileges);
 JSON_DEFINE_IMPL(PlaylistDetailDynamic, code, bookedCount, subscribed, playCount, followed,
                  shareCount);
 JSON_DEFINE_IMPL(PlaylistSubscribe, code);
+
+JSON_DEFINE_IMPL(RecommendSongs::Data, dailySongs);
+JSON_DEFINE_IMPL(RecommendSongs, code, data);
 
 JSON_DEFINE_IMPL(SongUrl, code, data);
 JSON_DEFINE_WITH_DEFAULT_IMPL(UserAccount, code, profile);
@@ -97,7 +104,6 @@ JSON_DEFINE_WITH_DEFAULT_IMPL(QrcodeLogin, code, message, nickname, avatarUrl);
 
 using namespace ncm;
 
-
 JSON_GET_IMPL(api_model::ApiError);
 
 JSON_GET_IMPL(api_model::AlbumDetail);
@@ -110,6 +116,7 @@ JSON_GET_IMPL(api_model::Login);
 JSON_GET_IMPL(api_model::PlaylistDetail);
 JSON_GET_IMPL(api_model::PlaylistDetailDynamic);
 JSON_GET_IMPL(api_model::PlaylistSubscribe);
+JSON_GET_IMPL(api_model::RecommendSongs);
 JSON_GET_IMPL(api_model::SongUrl);
 JSON_GET_IMPL(api_model::UserAccount);
 JSON_GET_IMPL(api_model::UserPlaylist);

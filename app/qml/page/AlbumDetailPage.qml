@@ -61,7 +61,7 @@ Page {
                                 Image {
                                     width: 160
                                     height: width
-                                    source: `image://ncm/${root.itemData.info.picUrl}`
+                                    source: `image://ncm/${root.itemData.picUrl}`
                                     sourceSize.width: 160
                                     sourceSize.height: 160
                                 }
@@ -74,7 +74,7 @@ Page {
 
                                 Label {
                                     Layout.fillWidth: true
-                                    text: root.itemData.info.name
+                                    text: root.itemData.name
                                     maximumLineCount: 2
                                     wrapMode: Text.Wrap
                                     elide: Text.ElideRight
@@ -89,7 +89,7 @@ Page {
                                     Label {
                                         Layout.fillWidth: true
                                         elide: Text.ElideRight
-                                        text: `${root.itemData.info.size} tracks`
+                                        text: `${root.itemData.size} tracks`
                                     }
 
                                 }
@@ -101,7 +101,7 @@ Page {
                                     Label {
                                         Layout.fillWidth: true
                                         elide: Text.ElideRight
-                                        text: QA.join_name(root.itemData.info.artists, '/')
+                                        text: QA.join_name(root.itemData.artists, '/')
                                     }
 
                                 }
@@ -113,7 +113,7 @@ Page {
                                     Label {
                                         Layout.fillWidth: true
                                         elide: Text.ElideRight
-                                        text: Qt.formatDateTime(root.itemData.info.publishTime, 'yyyy')
+                                        text: Qt.formatDateTime(root.itemData.publishTime, 'yyyy')
                                     }
 
                                 }
@@ -126,7 +126,7 @@ Page {
                                     Layout.alignment: Qt.AlignBottom
                                     iconSize: 16
                                     text: Theme.ic.info
-                                    visible: root.itemData.info.description.trim()
+                                    visible: root.itemData.description.trim()
 
                                     Label {
                                         Layout.fillWidth: true
@@ -134,7 +134,7 @@ Page {
                                         wrapMode: Text.Wrap
                                         elide: Text.ElideRight
                                         textFormat: Text.PlainText
-                                        text: `${root.itemData.info.description}`.trim()
+                                        text: `${root.itemData.description}`.trim()
                                     }
 
                                 }
@@ -157,7 +157,7 @@ Page {
                         highlighted: true
                         Material.foreground: Theme.color.on_primary
                         onClicked: {
-                            QA.playlist.switchList(itemData.info.songs);
+                            QA.playlist.switchList(itemData.songs);
                         }
 
                         contentItem: IconRowLayout {
@@ -179,7 +179,7 @@ Page {
                         Material.foreground: Theme.color.on_secondary
                         Material.accent: Theme.color.secondary
                         onClicked: {
-                            QA.playlist.appendList(itemData.info.songs);
+                            QA.playlist.appendList(itemData.songs);
                         }
 
                         contentItem: IconRowLayout {
@@ -259,11 +259,12 @@ Page {
                             boundsBehavior: Flickable.StopAtBounds
                             interactive: flick.atYEnd
                             clip: true
-                            model: itemData.info.songs
+                            model: itemData.songs
 
                             delegate: SongDelegate {
                                 width: view.width
                                 count: view.count
+                                subtitle: QA.join_name(root.itemData.artists, '/')
                                 onClicked: {
                                     QA.playlist.switchTo(modelData);
                                 }

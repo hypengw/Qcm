@@ -13,55 +13,44 @@ namespace qcm
 namespace model
 {
 
-class AlbumDetailInfo {
-    Q_GADGET
-public:
-    GATGET_PROPERTY(QString, name, name)
-    GATGET_PROPERTY(QString, picUrl, picUrl)
-    GATGET_PROPERTY(QString, description, description)
-    GATGET_PROPERTY(QString, company, company)
-    GATGET_PROPERTY(QString, subType, subType)
-    GATGET_PROPERTY(QString, type, type)
-    GATGET_PROPERTY(bool, paid, paid)
-    GATGET_PROPERTY(qint32, size, size)
-    GATGET_PROPERTY(QDateTime, publishTime, publishTime)
-    GATGET_PROPERTY(std::vector<QString>, alias, alias)
-    GATGET_PROPERTY(std::vector<Artist>, artists, artists)
-    GATGET_PROPERTY(std::vector<Song>, songs, songs)
-};
-
 class AlbumDetail : public QObject {
     Q_OBJECT
 public:
     AlbumDetail(QObject* parent = nullptr): QObject(parent) {}
 
-    Q_PROPERTY(AlbumDetailInfo info READ info NOTIFY infoChanged)
+    READ_PROPERTY(QString, name, m_name, infoChanged)
+    READ_PROPERTY(QString, picUrl, m_picUrl, infoChanged)
+    READ_PROPERTY(QString, description, m_description, infoChanged)
+    READ_PROPERTY(QString, company, m_company, infoChanged)
+    READ_PROPERTY(QString, subType, m_subType, infoChanged)
+    READ_PROPERTY(QString, type, m_type, infoChanged)
+    READ_PROPERTY(bool, paid, m_paid, infoChanged)
+    READ_PROPERTY(qint32, size, m_size, infoChanged)
+    READ_PROPERTY(QDateTime, publishTime, m_publishTime, infoChanged)
+    READ_PROPERTY(std::vector<QString>, alias, m_alias, infoChanged)
+    READ_PROPERTY(std::vector<Artist>, artists, m_artists, infoChanged)
+    READ_PROPERTY(std::vector<Song>, songs, m_songs, infoChanged)
 
     using out_type = ncm::api_model::AlbumDetail;
 
     void handle_output(const out_type& in, const auto&) {
-        auto& o = m_info;
-        CONVERT_PROPERTY(o.name, in.album.name);
-        CONVERT_PROPERTY(o.picUrl, in.album.picUrl);
-        CONVERT_PROPERTY(o.description, in.album.description.value_or(""));
-        CONVERT_PROPERTY(o.company, in.album.company.value_or(""));
-        CONVERT_PROPERTY(o.type, in.album.type);
-        CONVERT_PROPERTY(o.subType, in.album.subType);
-        CONVERT_PROPERTY(o.alias, in.album.alias);
-        CONVERT_PROPERTY(o.artists, in.album.artists);
-        CONVERT_PROPERTY(o.size, in.album.size);
-        CONVERT_PROPERTY(o.publishTime, in.album.publishTime);
-        CONVERT_PROPERTY(o.songs, in.songs);
+        auto& o = *this;
+        CONVERT_PROPERTY(o.m_name, in.album.name);
+        CONVERT_PROPERTY(o.m_picUrl, in.album.picUrl);
+        CONVERT_PROPERTY(o.m_description, in.album.description.value_or(""));
+        CONVERT_PROPERTY(o.m_company, in.album.company.value_or(""));
+        CONVERT_PROPERTY(o.m_type, in.album.type);
+        CONVERT_PROPERTY(o.m_subType, in.album.subType);
+        CONVERT_PROPERTY(o.m_alias, in.album.alias);
+        CONVERT_PROPERTY(o.m_artists, in.album.artists);
+        CONVERT_PROPERTY(o.m_size, in.album.size);
+        CONVERT_PROPERTY(o.m_publishTime, in.album.publishTime);
+        CONVERT_PROPERTY(o.m_songs, in.songs);
         emit infoChanged();
     }
 
-    AlbumDetailInfo info() const { return m_info; }
-
 signals:
     void infoChanged();
-
-private:
-    AlbumDetailInfo m_info;
 };
 static_assert(modelable<AlbumDetail, ncm::api::AlbumDetail>);
 

@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Material
 import QtQuick.Layouts
-import QtMultimedia
 import QcmApp
 import "./component"
 
@@ -100,10 +100,10 @@ Pane {
                 onClicked: QA.playlist.prev()
             }
 
-            RoundButton {
+            MRoundButton {
+                highlighted: true
                 font.family: Theme.font.icon_round.family
                 font.pointSize: 20
-                highlighted: true
                 text: {
                     if (QA.player.playing)
                         return Theme.ic.pause;
