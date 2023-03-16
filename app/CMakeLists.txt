@@ -1,4 +1,5 @@
 set(APP_ID com.github.hypengw.Qcm)
+set(APP_VERSION 1.0)
 
 find_package(Qt6 REQUIRED COMPONENTS QuickControls2)
 
@@ -37,9 +38,7 @@ set(SOURCES
     src/qr_image.cpp)
 set(QML_FILES
     main.qml
-    qml/PaneBar.qml
     qml/PlayBar.qml
-    qml/test.qml
     qml/Theme.qml
     qml/QA.qml
     qml/page/LoginPage.qml
@@ -98,30 +97,36 @@ target_link_libraries(
          qr_code
          material_helper
          appplugin)
+target_compile_definitions(app PUBLIC APP_ID="${APP_ID}"
+                                      APP_VERSION="${APP_VERSION}")
 
 qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cpp)
 qt_import_qml_plugins(${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME} PRIVATE app)
 
-
-install(TARGETS ${PROJECT_NAME}
-    BUNDLE  DESTINATION .
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
+install(
+  TARGETS ${PROJECT_NAME}
+  BUNDLE DESTINATION .
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 qt_generate_deploy_qml_app_script(
-    TARGET ${PROJECT_NAME}
-    FILENAME_VARIABLE deploy_script
-    NO_UNSUPPORTED_PLATFORM_ERROR
-    DEPLOY_USER_QML_MODULES_ON_UNSUPPORTED_PLATFORM
-)
+  TARGET ${PROJECT_NAME} FILENAME_VARIABLE deploy_script
+  NO_UNSUPPORTED_PLATFORM_ERROR DEPLOY_USER_QML_MODULES_ON_UNSUPPORTED_PLATFORM)
 install(SCRIPT ${deploy_script})
 
-
-if(UNIX AND NOT APPLE AND NOT ANDROID)
-    install(FILES assets/Qcm.desktop RENAME ${APP_ID}.desktop DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
-    install(FILES assets/Qcm.svg RENAME ${APP_ID}.svg DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps)
-    #install(FILES assets/Qcm.metainfo.xml DESTINATION ${CMAKE_INSTALL_PREFIX}/share/metainfo)
+if(UNIX
+   AND NOT APPLE
+   AND NOT ANDROID)
+  install(
+    FILES assets/Qcm.desktop
+    RENAME ${APP_ID}.desktop
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
+  install(
+    FILES assets/Qcm.svg
+    RENAME ${APP_ID}.svg
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps)
+  # install(FILES assets/Qcm.metainfo.xml DESTINATION
+  # ${CMAKE_INSTALL_PREFIX}/share/metainfo)
 endif()
 
 qt_finalize_target(${PROJECT_NAME})

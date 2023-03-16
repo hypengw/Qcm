@@ -117,7 +117,7 @@ std::size_t Response::Private::write_callback(char* ptr, std::size_t size, std::
     }
 
     if (buffer.size() > 0) {
-        ERROR_LOG("------- pause");
+        DEBUG_LOG("write_callback pause");
         return CURL_WRITEFUNC_PAUSE;
     }
 
@@ -152,7 +152,6 @@ std::size_t Response::Private::read_callback(char* ptr, std::size_t size, std::s
     C_DP(Response, self);
     std::size_t total  = size * nmemb;
     auto        copied = asio::buffer_copy(asio::buffer(ptr, total), d->m_send_buffer.data());
-    ERROR_LOG("upload {}-{}-{}", copied, total, d->m_send_buffer.size());
     d->m_send_buffer.consume(copied);
     return copied;
 }
@@ -267,9 +266,6 @@ rc<Response> Response::get_rc() { return shared_from_this(); }
 void Response::done(int rc_) {
     C_D(Response);
     auto rc = (CURLcode)rc_;
-    if (rc != CURLE_OK) {
-        ERROR_LOG("perform err: {}", curl_easy_strerror(rc));
-    }
 
     auto ec = rc == CURLE_OK ? asio::stream_errc::eof : ::make_error_code(rc);
 

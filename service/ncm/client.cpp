@@ -111,7 +111,7 @@ awaitable<rc<request::Response>> Client::rsp(const request::Request& q) const {
 awaitable<Result<std::vector<byte>>> Client::post(const request::Request& req,
                                                   std::string_view        body) {
     rc<std::string> csrf = m_csrf;
-    ERROR_LOG("do req: {}", req.url());
+    DEBUG_LOG("req: {}", req.url());
 
     rc<Response> rsp;
     EC_RET_CO(rsp, co_await m_session->post(req, asio::buffer(body)));
@@ -125,7 +125,7 @@ awaitable<Result<std::vector<byte>>> Client::post(const request::Request& req,
     asio::cancellation_state cs = co_await asio::this_coro::cancellation_state;
     if (cs.cancelled() != asio::cancellation_type::none) {
         rsp->cancel();
-        ERROR_LOG("--------------- cancelled {}", req.url());
+        DEBUG_LOG("cancelled req: {}", req.url());
         asio::detail::throw_error(asio::error::operation_aborted);
     }
 

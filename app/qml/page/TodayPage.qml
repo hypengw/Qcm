@@ -111,7 +111,7 @@ Page {
                         anchors.fill: parent
                         implicitHeight: contentHeight
                         boundsBehavior: Flickable.StopAtBounds
-                        interactive: flick.atYEnd
+                        interactive: true
                         clip: true
                         model: qr_rmd.data.dailySongs
 

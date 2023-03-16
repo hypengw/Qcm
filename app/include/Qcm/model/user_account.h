@@ -29,7 +29,6 @@ public:
         CONVERT_PROPERTY(o.m_userId, profile.userId);
         CONVERT_PROPERTY(o.m_nickname, profile.nickname);
         CONVERT_PROPERTY(o.m_avatarUrl, profile.avatarUrl);
-        ERROR_LOG("id: {}", o.m_userId.id);
         emit infoChanged();
     }
 

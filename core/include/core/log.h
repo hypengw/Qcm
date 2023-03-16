@@ -1,18 +1,19 @@
 #pragma once
 #include <string_view>
+#include <source_location>
+
 #include "core/fmt.h"
 
 namespace qcm
 {
 enum class LogLevel
 {
-    DEBUG,
+    DEBUG = 0,
     INFO,
     WARN,
     ERROR,
 };
 
-void generic_log(LogLevel level, std::string_view file, int line, std::string_view fmted);
 bool handle_assert(std::string_view func, std::string_view file, int line, std::string_view expr,
                    std::string_view reason);
 void crash();
@@ -25,13 +26,35 @@ constexpr const char* past_last_slash(const char* const path, const int pos = 0,
     else
         return past_last_slash(path, pos + 1, last_slash);
 }
+
+class LogManager {
+public:
+    static LogManager* init();
+    static LogManager* instance();
+
+    LogManager();
+    ~LogManager();
+
+    template<typename... T>
+    void log(LogLevel level, const std::source_location loc, fmt::format_string<T...> fmt,
+             T&&... args) {
+        if (level < m_level) return;
+        log_impl(level, loc, fmt::vformat(fmt, fmt::make_format_args(args...)));
+    }
+
+    void set_level(LogLevel);
+
+private:
+    void     log_impl(LogLevel level, const std::source_location loc, std::string_view);
+    LogLevel m_level;
+};
 } // namespace qcm
 
 #define __FILE_SHORT__ qcm::past_last_slash(__FILE__)
 
 // clang-format off
 
-#define GENERIC_LOG(lv, ...) qcm::generic_log(lv, __FILE_SHORT__, __LINE__, fmt::format(__VA_ARGS__));
+#define GENERIC_LOG(lv, ...) qcm::LogManager::instance()->log(lv, std::source_location::current(), __VA_ARGS__);
 
 #define ERROR_LOG(...)   do { GENERIC_LOG(qcm::LogLevel::ERROR,   __VA_ARGS__) } while (false)
 #define WARN_LOG(...)    do { GENERIC_LOG(qcm::LogLevel::WARN, __VA_ARGS__) } while (false)

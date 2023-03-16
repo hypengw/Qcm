@@ -9,8 +9,8 @@
 #include "curl_easy.h"
 #include "core/log.h"
 
-#define LOG_CURLM(ec) WARN_LOG("curlmcode: {}({})", curl_multi_strerror(ec), (int)ec);
-#define LOG_CURLE(ec) WARN_LOG("curlecode: {}({})", curl_esay_strerror(ec), (int)ec);
+#define LOG_CURLM(ec) ERROR_LOG("curlmcode: {}({})", curl_multi_strerror(ec), (int)ec);
+#define LOG_CURLE(ec) ERROR_LOG("curlecode: {}({})", curl_esay_strerror(ec), (int)ec);
 
 namespace
 {
@@ -146,7 +146,6 @@ CURLMcode CurlMulti::remove_handle(CurlEasy& easy) {
 
 int CurlMulti::socket_callback(CURL* c, curl_socket_t s, int what, SocketMon* socketp) {
     if (what == CURL_POLL_REMOVE) {
-        // ERROR_LOG("delete socket_mon: {}(raw {})", fmt::ptr(socketp), s);
         curl_multi_assign(m_multi, s, nullptr);
         delete socketp;
         return CURLM_OK;
@@ -155,7 +154,6 @@ int CurlMulti::socket_callback(CURL* c, curl_socket_t s, int what, SocketMon* so
     if (socketp == nullptr) {
         socketp = new SocketMon(get_curl_private(c)->get_strand(), s);
         curl_multi_assign(m_multi, s, socketp);
-        // ERROR_LOG("create socket_mon: {}(raw {})", fmt::ptr(socketp), s);
     }
 
     socketp->inner->mon(this, s, what);
@@ -185,7 +183,6 @@ int CurlMulti::static_timer_callback(CURLM*, long time_ms, void* userp) {
 
 void CurlMulti::asio_socket_callback(const asio::error_code& ec, curl_socket_t s, int what,
                                      weak<SocketMon::Inner> inner_weak) {
-    // ERROR_LOG("call CurlMulti::asio_socket_action: {}", curl_select_bit_str(what));
     if (ec == asio::error::operation_aborted) return;
     if (ec) {
         what = CURL_CSELECT_ERR;
@@ -212,7 +209,7 @@ int CurlMulti::socket_action(curl_socket_t s, int event_bitmap) {
     int  running_handles { 0 };
     auto rc = curl_multi_socket_action(m_multi, s, event_bitmap, &running_handles);
     if (rc != CURLM_OK) {
-        WARN_LOG("curlmcode: {}({})", curl_multi_strerror(rc), (int)rc);
+        ERROR_LOG("curlmcode: {}({})", curl_multi_strerror(rc), (int)rc);
         _assert_(false);
     }
 

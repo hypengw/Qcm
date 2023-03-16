@@ -30,6 +30,7 @@ App::App()
       m_client(m_session, m_pool.get_executor()) {
     QGuiApplication::setApplicationName(AppName.data());
     QGuiApplication::setOrganizationName(AppName.data());
+    QGuiApplication::setDesktopFileName(APP_ID);
     // QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
 }
 App::~App() {

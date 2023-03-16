@@ -1,7 +1,10 @@
+#include "core/core.h"
 #include "core/log.h"
 
 #include <cassert>
 #include <cstdio>
+
+using namespace qcm;
 
 namespace
 {
@@ -32,15 +35,37 @@ bool check_stderr(qcm::LogLevel lv) {
 
 } // namespace
 
-void qcm::generic_log(qcm::LogLevel level, std::string_view file, int line,
-                      std::string_view fmted) {
-    bool is_stderr = check_stderr(level);
-    if (is_stderr) {
-        fmt::print(stderr, "{} at {}({}): {}\n", to_sv(level), file, line, fmted);
-        std::fflush(stderr);
-    } else {
-        fmt::print("{} at {}({}): {}\n", to_sv(level), file, line, fmted);
+static up<LogManager> log_manager;
+
+LogManager* LogManager::init() {
+    log_manager = std::make_unique<LogManager>();
+    return LogManager::instance();
+}
+
+LogManager* LogManager::instance() { return log_manager.get(); }
+
+LogManager::LogManager(): m_level(LogLevel::WARN) {}
+LogManager::~LogManager() {}
+
+void LogManager::set_level(LogLevel l) { m_level = l; }
+void LogManager::log_impl(LogLevel level, const std::source_location loc,
+                          std::string_view content) {
+    FILE* out = nullptr;
+    switch (level) {
+        using enum LogLevel;
+    case DEBUG:
+    case INFO: out = stdout; break;
+    case WARN:
+    case ERROR: out = stderr; break;
     }
+    fmt::print(out,
+               "{} {} at {}({}:{})\n",
+               to_sv(level),
+               content,
+               loc.file_name(),
+               loc.column(),
+               loc.line());
+    std::fflush(out);
 }
 
 bool qcm::handle_assert(std::string_view func, std::string_view file, int line,
