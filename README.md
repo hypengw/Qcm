@@ -2,6 +2,10 @@
 Qt client for netease cloud music.  
 Linux only.  
 
+<p align="center" width="100%">
+<img src="https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main.jpg?raw=true" width=70%>
+</p>
+
 ### Require:  
 - Qt 6.4
 - C++ 20
