@@ -98,4 +98,18 @@ qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cpp)
 qt_import_qml_plugins(${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME} PRIVATE app)
 
+
+install(TARGETS ${PROJECT_NAME}
+    BUNDLE  DESTINATION .
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+qt_generate_deploy_qml_app_script(
+    TARGET ${PROJECT_NAME}
+    FILENAME_VARIABLE deploy_script
+    NO_UNSUPPORTED_PLATFORM_ERROR
+    DEPLOY_USER_QML_MODULES_ON_UNSUPPORTED_PLATFORM
+)
+install(SCRIPT ${deploy_script})
+
 qt_finalize_target(${PROJECT_NAME})

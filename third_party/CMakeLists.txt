@@ -1,3 +1,4 @@
+set(FMT_INSTALL OFF)
 add_subdirectory(fmt)
 add_subdirectory(json)
 add_subdirectory(qr_code)
