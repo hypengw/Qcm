@@ -3,5 +3,5 @@ Name=Qcm
 Comment=Qt client for netease cloud music
 Exec=Qcm %U
 Type=Application
-Icon=com.github.hypengw.Qcm
+Icon=io.github.hypengw.Qcm
 Categories=Audio

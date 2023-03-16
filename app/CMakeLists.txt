@@ -1,4 +1,4 @@
-set(APP_ID com.github.hypengw.Qcm)
+set(APP_ID io.github.hypengw.Qcm)
 set(APP_VERSION 1.0)
 
 find_package(Qt6 REQUIRED COMPONENTS QuickControls2)
