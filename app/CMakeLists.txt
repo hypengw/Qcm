@@ -126,8 +126,10 @@ if(UNIX
     FILES assets/Qcm.svg
     RENAME ${APP_ID}.svg
     DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps)
-  # install(FILES assets/Qcm.metainfo.xml DESTINATION
-  # ${CMAKE_INSTALL_PREFIX}/share/metainfo)
+  install(
+    FILES assets/Qcm.metainfo.xml
+    RENAME ${APP_ID}.metainfo.xml
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/metainfo)
 endif()
 
 qt_finalize_target(${PROJECT_NAME})
