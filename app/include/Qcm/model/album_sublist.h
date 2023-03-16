@@ -70,6 +70,13 @@ public:
     };
     Q_ENUM(Role)
 
+    Q_INVOKABLE int index_of(AlbumId id) const {
+        auto it = std::find_if(m_items.begin(), m_items.end(), [&id](auto& el) {
+            return el.id == id;
+        });
+        return it == m_items.end() ? -1 : (int)std::distance(m_items.begin(), it);
+    }
+
     // list model override
     int      rowCount(const QModelIndex& = QModelIndex()) const override { return m_items.size(); }
     QVariant data(const QModelIndex& index, int role = NameRole) const override {

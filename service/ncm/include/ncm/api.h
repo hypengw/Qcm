@@ -8,6 +8,28 @@
 
 namespace ncm
 {
+namespace api_model
+{
+
+struct ApiError {
+    i64                        code;
+    std::optional<std::string> message;
+};
+JSON_DEFINE(ApiError);
+} // namespace api_model
+} // namespace ncm
+
+template<>
+struct fmt::formatter<ncm::api_model::ApiError> : fmt::formatter<std::string> {
+    template<typename FormatContext>
+    auto format(const ncm::api_model::ApiError& a, FormatContext& ctx) const {
+        auto out = fmt::format("code({}) {}", a.code, a.message.value_or(""));
+        return fmt::formatter<std::string>::format(out, ctx);
+    }
+};
+
+namespace ncm
+{
 namespace api
 {
 
@@ -66,6 +88,25 @@ namespace api_model
 template<typename T>
     requires api::ApiOutCp<T>
 Result<T> parse(std::span<const byte> bs) {
+    return json::parse(To<std::string>::from(bs))
+        .map_error([](auto err) {
+            return Error::push(err);
+        })
+        .and_then([](auto j) -> Result<T> {
+            if (auto err_ = json::get<ApiError>(*j, {}); err_) {
+                auto& err = err_.value();
+                if (err.code != 200) return nstd::unexpected(Error::push(err));
+            }
+
+            return json::get<T>(*j, {}).map_error([](auto err) {
+                return Error::push(err);
+            });
+        });
+}
+
+template<typename T>
+    requires api::ApiOutCp<T>
+Result<T> parse_no_apierr(std::span<const byte> bs) {
     return json::parse(To<std::string>::from(bs))
         .and_then([](auto j) {
             return json::get<T>(*j, {});

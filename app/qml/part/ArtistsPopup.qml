@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
 import "../component"
+import ".."
 
 MPopup {
     id: root
@@ -18,12 +19,14 @@ MPopup {
         Layout.fillHeight: true
         implicitHeight: contentHeight
         currentIndex: -1
+        clip: true
         model: root.model
 
         delegate: MItemDelegate {
             width: ListView.view.width
             onClicked: {
                 root.close();
+                QA.route(modelData.itemId);
             }
 
             RowLayout {

@@ -2,11 +2,15 @@
 #include "json_helper/helper.inl"
 
 #include "ncm/api/album_detail.h"
+#include "ncm/api/album_detail_dynamic.h"
+#include "ncm/api/album_sub.h"
 #include "ncm/api/album_sublist.h"
 #include "ncm/api/artist.h"
 #include "ncm/api/artist_sublist.h"
 #include "ncm/api/login.h"
 #include "ncm/api/playlist_detail.h"
+#include "ncm/api/playlist_detail_dynamic.h"
+#include "ncm/api/playlist_subscribe.h"
 #include "ncm/api/song_url.h"
 #include "ncm/api/user_account.h"
 #include "ncm/api/user_playlist.h"
@@ -65,12 +69,21 @@ JSON_DEFINE_IMPL(UserPlaylistItem, tags, description, commentThreadId, id, subsc
 namespace api_model
 {
 
+JSON_DEFINE_WITH_DEFAULT_IMPL(ApiError, code, message);
+
 JSON_DEFINE_IMPL(AlbumDetail, code, songs, album);
+JSON_DEFINE_IMPL(AlbumDetailDynamic, code, shareCount, subCount, subTime, onSale, isSub,
+                 commentCount, likedCount);
+JSON_DEFINE_IMPL(AlbumSub, code);
 JSON_DEFINE_IMPL(AlbumSublist, code, data, count, hasMore);
 JSON_DEFINE_IMPL(Artist, code, hotSongs, artist, more);
 JSON_DEFINE_IMPL(ArtistSublist, code, data, count, hasMore);
 JSON_DEFINE_IMPL(Login, code);
 JSON_DEFINE_IMPL(PlaylistDetail, code, playlist);
+JSON_DEFINE_IMPL(PlaylistDetailDynamic, code, bookedCount, subscribed, playCount, followed,
+                 shareCount);
+JSON_DEFINE_IMPL(PlaylistSubscribe, code);
+
 JSON_DEFINE_IMPL(SongUrl, code, data);
 JSON_DEFINE_WITH_DEFAULT_IMPL(UserAccount, code, profile);
 JSON_DEFINE_IMPL(UserPlaylist, code, playlist, more);
@@ -84,12 +97,19 @@ JSON_DEFINE_WITH_DEFAULT_IMPL(QrcodeLogin, code, message, nickname, avatarUrl);
 
 using namespace ncm;
 
+
+JSON_GET_IMPL(api_model::ApiError);
+
 JSON_GET_IMPL(api_model::AlbumDetail);
+JSON_GET_IMPL(api_model::AlbumDetailDynamic);
+JSON_GET_IMPL(api_model::AlbumSub);
 JSON_GET_IMPL(api_model::AlbumSublist);
 JSON_GET_IMPL(api_model::Artist);
 JSON_GET_IMPL(api_model::ArtistSublist);
 JSON_GET_IMPL(api_model::Login);
 JSON_GET_IMPL(api_model::PlaylistDetail);
+JSON_GET_IMPL(api_model::PlaylistDetailDynamic);
+JSON_GET_IMPL(api_model::PlaylistSubscribe);
 JSON_GET_IMPL(api_model::SongUrl);
 JSON_GET_IMPL(api_model::UserAccount);
 JSON_GET_IMPL(api_model::UserPlaylist);

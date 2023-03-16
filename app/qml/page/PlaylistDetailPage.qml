@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import QcmApp
 import ".."
 import "../component"
+import "../part"
 
 Page {
     id: root
@@ -162,8 +163,9 @@ Page {
                             iconSize: 16
 
                             Label {
-                                text: 'Play all'
+                                text: qsTr('play all')
                                 font.pointSize: 12
+                                font.capitalization: Font.Capitalize
                             }
 
                         }
@@ -183,8 +185,9 @@ Page {
                             iconSize: 16
 
                             Label {
-                                text: 'Add to list'
+                                text: qsTr('add to list')
                                 font.pointSize: 12
+                                font.capitalization: Font.Capitalize
                             }
 
                         }
@@ -192,19 +195,32 @@ Page {
                     }
 
                     Button {
+                        id: btn_fav
+
+                        property bool liked: qr_dynamic.data.subscribed
+
                         highlighted: true
                         Material.foreground: Theme.color.on_secondary
                         Material.accent: Theme.color.secondary
                         onClicked: {
+                            qr_sub.sub = !liked;
+                            qr_sub.itemId = root.itemId;
+                            qr_sub.query();
+                        }
+
+                        Binding on liked {
+                            when: qr_sub.status === ApiQuerierBase.Finished
+                            value: qr_sub.sub
                         }
 
                         contentItem: IconRowLayout {
-                            text: Theme.ic.add
+                            text: btn_fav.liked ? Theme.ic.done : Theme.ic.add
                             iconSize: 16
 
                             Label {
-                                text: 'Fav'
+                                text: qsTr(btn_fav.liked ? 'fav-ed' : 'fav')
                                 font.pointSize: 12
+                                font.capitalization: Font.Capitalize
                             }
 
                         }
@@ -246,6 +262,7 @@ Page {
                             delegate: SongDelegate {
                                 width: view.width
                                 count: view.count
+                                subtitle: `${QA.join_name(modelData.artists, '/')} - ${modelData.album.name}`
                                 onClicked: {
                                     QA.playlist.switchTo(modelData);
                                 }
@@ -275,6 +292,19 @@ Page {
                 console.error(this.error);
 
         }
+    }
+
+    PlaylistDetailDynamicQuerier {
+        id: qr_dynamic
+
+        itemId: qr_pl.itemId
+        autoReload: itemId.valid()
+    }
+
+    PlaylistSubscribeQuerier {
+        id: qr_sub
+
+        autoReload: false
     }
 
 }

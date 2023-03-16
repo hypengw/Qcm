@@ -75,6 +75,8 @@ QQuickImageResponse* NcmImageProvider::requestImageResponse(const QString& id,
         return rsp;
     }
 
+    auto ex = asio::make_strand(m_ex);
+
     ncm::Client cli       = m_cli;
     auto        rsp_guard = QPointer(rsp);
     auto        handle    = [rsp_guard](nstd::expected<QImage, QString> res) {
@@ -98,7 +100,7 @@ QQuickImageResponse* NcmImageProvider::requestImageResponse(const QString& id,
 
     asio::co_spawn(
         m_ex,
-        rsp->wdog().watch(m_ex,
+        rsp->wdog().watch(ex,
                           [handle, cli, requestedSize, req, file_path]() -> asio::awaitable<void> {
                               if (! std::filesystem::exists(file_path)) {
                                   auto file_path_dl = file_path;

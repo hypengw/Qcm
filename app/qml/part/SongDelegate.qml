@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
-import QcmApp
 import ".."
 
 ItemDelegate {
@@ -12,15 +11,36 @@ ItemDelegate {
     required property int count
     required property var modelData
     readonly property int count_len: this.count.toString().length
+    property string subtitle: ''
 
     contentItem: RowLayout {
         spacing: 16
 
-        Label {
+        StackLayout {
+            Layout.fillWidth: false
+            Layout.fillHeight: false
             Layout.minimumWidth: Theme.font.w_unit * root.count_len + 2
-            horizontalAlignment: Qt.AlignRight
-            text: index + 1
-            opacity: 0.6
+            currentIndex: 0
+
+            Label {
+                horizontalAlignment: Qt.AlignRight
+                text: index + 1
+                opacity: 0.6
+            }
+
+            Label {
+                horizontalAlignment: Qt.AlignRight
+                font.family: Theme.font.icon_round.family
+                font.pointSize: 16
+                color: Theme.color.tertiary
+                text: Theme.ic.equalizer
+            }
+
+            Binding on currentIndex {
+                when: QA.playlist.cur.itemId === modelData.itemId
+                value: 1
+            }
+
         }
 
         ColumnLayout {
@@ -35,7 +55,7 @@ ItemDelegate {
                 elide: Text.ElideRight
                 font.pointSize: Theme.font.small(Theme.font.label_font)
                 opacity: 0.6
-                text: QA.join_name(root.modelData.artists, '/')
+                text: root.subtitle ? root.subtitle : QA.join_name(root.modelData.artists, '/')
             }
 
         }
@@ -75,7 +95,7 @@ ItemDelegate {
                 Action {
                     text: qsTr('Show album')
                     onTriggered: {
-                        btn_menu.Window.window.route(modelData.album.itemId);
+                        QA.route(modelData.album.itemId);
                     }
                 }
 
@@ -84,7 +104,7 @@ ItemDelegate {
                     onTriggered: {
                         const artists = modelData.artists;
                         if (artists.length === 1)
-                            btn_menu.Window.window.route(artists[0].itemId);
+                            QA.route(artists[0].itemId);
                         else
                             QA.show_popup('qrc:/QcmApp/qml/part/ArtistsPopup.qml', {
                             "model": artists

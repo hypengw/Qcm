@@ -38,6 +38,9 @@ Page {
                     Layout.fillWidth: true
                     Material.elevation: 2
                     Material.background: Theme.color.surface_2
+                    Component.onCompleted: {
+                        currentIndexChanged();
+                    }
 
                     TabButton {
                         text: qsTr("Playlist")
@@ -53,49 +56,45 @@ Page {
 
                 }
 
-                ListView {
-                    id: view
+                StackLayout {
+                    currentIndex: bar.currentIndex
 
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    clip: true
-                    model: {
-                        switch (bar.currentIndex) {
-                        case 0:
-                            return dgm_playlist;
-                        case 1:
-                            return dgm_albumlist;
-                        case 2:
-                            return dgm_artistlist;
-                        }
-                    }
-                    highlightMoveDuration: 1000
-                    highlightMoveVelocity: -1
-                    onCurrentIndexChanged: {
-                        if (!currentItem)
-                            return ;
-
-                        const itemId = currentItem.itemId;
-                        switch (itemId.type) {
-                        case ItemId.Album:
-                            content.push_page('qrc:/QcmApp/qml/page/AlbumDetailPage.qml', {
-                                "itemId": currentItem.itemId
-                            });
-                            break;
-                        case ItemId.Playlist:
-                            content.push_page('qrc:/QcmApp/qml/page/PlaylistDetailPage.qml', {
-                                "itemId": currentItem.itemId
-                            });
-                            break;
-                        case ItemId.Artist:
-                            content.push_page('qrc:/QcmApp/qml/page/ArtistDetailPage.qml', {
-                                "itemId": currentItem.itemId
-                            });
-                            break;
-                        }
+                    BaseView {
+                        model: qr_playlist.data
+                        delegate: dg_playlist
                     }
 
-                    ScrollBar.vertical: ScrollBar {
+                    BaseView {
+                        model: qr_albumlist.data
+                        delegate: dg_albumlist
+                    }
+
+                    BaseView {
+                        model: qr_artistlist.data
+                        delegate: dg_artistlist
+                    }
+
+                    component BaseView: ListView {
+                        function checkCur() {
+                            if (currentItem && !content.busy) {
+                                if (currentItem.itemId !== content.currentItemId)
+                                    currentIndex = -1;
+
+                            }
+                        }
+
+                        currentIndex: -1
+                        clip: true
+                        highlightMoveDuration: 1000
+                        highlightMoveVelocity: -1
+                        Component.onCompleted: {
+                            bar.currentIndexChanged.connect(checkCur);
+                            content.busyChanged.connect(checkCur);
+                        }
+
+                        ScrollBar.vertical: ScrollBar {
+                        }
+
                     }
 
                 }
@@ -104,16 +103,17 @@ Page {
                     id: qr_albumlist
                 }
 
-                DelegateModel {
-                    id: dgm_albumlist
+                Component {
+                    id: dg_albumlist
 
-                    model: qr_albumlist.data
-
-                    delegate: MItemDelegate {
+                    MItemDelegate {
                         property var itemId: model.itemId
 
-                        width: view.width
-                        onClicked: view.currentIndex = index
+                        width: ListView.view.width
+                        onClicked: {
+                            ListView.view.currentIndex = index;
+                            content.route(itemId);
+                        }
 
                         contentItem: RowLayout {
                             width: parent.width
@@ -154,16 +154,17 @@ Page {
                     id: qr_artistlist
                 }
 
-                DelegateModel {
-                    id: dgm_artistlist
+                Component {
+                    id: dg_artistlist
 
-                    model: qr_artistlist.data
-
-                    delegate: MItemDelegate {
+                    MItemDelegate {
                         property var itemId: model.itemId
 
                         width: ListView.view.width
-                        onClicked: ListView.view.currentIndex = index
+                        onClicked: {
+                            ListView.view.currentIndex = index;
+                            content.route(itemId);
+                        }
 
                         contentItem: RowLayout {
                             width: parent.width
@@ -211,16 +212,17 @@ Page {
                     autoReload: uid.valid()
                 }
 
-                DelegateModel {
-                    id: dgm_playlist
+                Component {
+                    id: dg_playlist
 
-                    model: qr_playlist.data
-
-                    delegate: MItemDelegate {
+                    MItemDelegate {
                         property var itemId: model.itemId
 
                         width: ListView.view.width
-                        onClicked: ListView.view.currentIndex = index
+                        onClicked: {
+                            ListView.view.currentIndex = index;
+                            content.route(itemId);
+                        }
 
                         contentItem: RowLayout {
                             width: parent.width
@@ -257,16 +259,24 @@ Page {
 
                 }
 
-                component HighlightBar: Rectangle {
-                    color: Theme.color.primary_container
-                }
-
             }
 
         }
 
         rightPage: StackView {
             id: content
+
+            readonly property var currentItemId: currentItem.itemId
+            readonly property var lastIndex: ({
+                "tab": 0,
+                "view": -1
+            })
+
+            function route(itemId) {
+                push_page(QA.item_id_url(itemId), {
+                    "itemId": itemId
+                });
+            }
 
             function push_page(item, params, oper) {
                 if (content.depth === 1)

@@ -5,6 +5,7 @@ import QtQuick.Controls.Material
 import QtQuick.Layouts
 import ".."
 import "../component"
+import "../part"
 
 Page {
     id: root
@@ -164,8 +165,9 @@ Page {
                             iconSize: 16
 
                             Label {
-                                text: 'Play all'
+                                text: qsTr('Play all')
                                 font.pointSize: 12
+                                font.capitalization: Font.Capitalize
                             }
 
                         }
@@ -185,8 +187,9 @@ Page {
                             iconSize: 16
 
                             Label {
-                                text: 'Add to list'
+                                text: qsTr('add to list')
                                 font.pointSize: 12
+                                font.capitalization: Font.Capitalize
                             }
 
                         }
@@ -194,19 +197,32 @@ Page {
                     }
 
                     Button {
+                        id: btn_fav
+
+                        property bool liked: qr_dynamic.data.isSub
+
                         highlighted: true
                         Material.foreground: Theme.color.on_secondary
                         Material.accent: Theme.color.secondary
                         onClicked: {
+                            qr_sub.sub = !liked;
+                            qr_sub.itemId = root.itemId;
+                            qr_sub.query();
+                        }
+
+                        Binding on liked {
+                            when: qr_sub.status === ApiQuerierBase.Finished
+                            value: qr_sub.sub
                         }
 
                         contentItem: IconRowLayout {
-                            text: Theme.ic.add
+                            text: btn_fav.liked ? Theme.ic.done : Theme.ic.add
                             iconSize: 16
 
                             Label {
-                                text: 'Fav'
+                                text: qsTr(btn_fav.liked ? 'fav-ed' : 'fav')
                                 font.pointSize: 12
+                                font.capitalization: Font.Capitalize
                             }
 
                         }
@@ -277,6 +293,19 @@ Page {
                 console.error(this.error);
 
         }
+    }
+
+    AlbumDetailDynamicQuerier {
+        id: qr_dynamic
+
+        itemId: al.itemId
+        autoReload: itemId.valid()
+    }
+
+    AlbumSubQuerier {
+        id: qr_sub
+
+        autoReload: false
     }
 
 }

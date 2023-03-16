@@ -11,11 +11,15 @@ set(SOURCES
     include/Qcm/ncm_image.h
     include/Qcm/qr_image.h
     include/Qcm/model/album_detail.h
+    include/Qcm/model/album_detail_dynamic.h
+    include/Qcm/model/album_sub.h
     include/Qcm/model/album_sublist.h
     include/Qcm/model/artist.h
     include/Qcm/model/artist_sublist.h
     include/Qcm/model/login.h
     include/Qcm/model/playlist_detail.h
+    include/Qcm/model/playlist_detail_dynamic.h
+    include/Qcm/model/playlist_subscribe.h
     include/Qcm/model/song_url.h
     include/Qcm/model/user_account.h
     include/Qcm/model/user_playlist.h
@@ -42,13 +46,15 @@ set(QML_FILES
     qml/page/MinePage.qml
     qml/page/TodayPage.qml
     qml/part/ArtistsPopup.qml
+    qml/part/SongDelegate.qml
     qml/component/IconRowLayout.qml
-    qml/component/SongDelegate.qml
     qml/component/RoundImage.qml
     qml/component/Leaflet.qml
     qml/component/MItemDelegate.qml
+    qml/component/MPane.qml
     qml/component/MPopup.qml
-    qml/component/PageContainer.qml)
+    qml/component/PageContainer.qml
+    qml/component/PageStack.qml)
 set(RESOURCES assets/MaterialIconsRound-Regular.otf
               assets/MaterialIconsOutlined-Regular.otf)
 

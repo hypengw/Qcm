@@ -10,33 +10,10 @@ ApplicationWindow {
     id: win
 
     // load QA
-    property string _QA: QA.user_info.nickname
+    readonly property string _QA: QA.user_info.nickname
 
-    function route(dest) {
-        let url = dest;
-        let props = {
-        };
-        switch (dest.type) {
-        case ItemId.Album:
-            url = 'qrc:/QcmApp/qml/page/AlbumDetailPage.qml';
-            props = {
-                "itemId": dest
-            };
-            break;
-        case ItemId.Playlist:
-            url = 'qrc:/QcmApp/qml/page/PlaylistDetailPage.qml';
-            props = {
-                "itemId": dest
-            };
-            break;
-        case ItemId.Artist:
-            url = 'qrc:/QcmApp/qml/page/ArtistDetailPage.qml';
-            props = {
-                "itemId": dest
-            };
-            break;
-        }
-        win_stack.currentItem.page_stack?.push(url, props);
+    function push_page(url, props) {
+        win_stack.currentItem.page_stack.push_page(url, props);
     }
 
     width: 700
@@ -48,9 +25,8 @@ ApplicationWindow {
     Material.foreground: Theme.color.on_background
     Material.theme: Theme.is_dark_theme ? Material.Dark : Material.Light
     color: Material.background
-
     Component.onCompleted: {
-        QA.main_win = win
+        QA.main_win = win;
     }
 
     Settings {
@@ -88,6 +64,7 @@ ApplicationWindow {
 
         RowLayout {
             readonly property alias page_stack: m_page_stack
+
             spacing: 0
 
             Pane {
@@ -111,10 +88,10 @@ ApplicationWindow {
                                 flat: true
                                 text: Theme.ic.arrow_back
                                 onClicked: {
-                                    if (page_container.currentItem.canBack)
+                                    if (m_page_stack.depth > 1)
+                                        m_page_stack.pop_page();
+                                    else if (page_container.currentItem.canBack)
                                         page_container.currentItem.back();
-                                    else
-                                        m_page_stack.pop();
                                 }
                             }
 
@@ -127,7 +104,7 @@ ApplicationWindow {
                         ListView {
                             Layout.fillWidth: true
                             implicitHeight: contentHeight
-                            currentIndex: 1
+                            interactive: false
                             Component.onCompleted: {
                                 [{
                                     "icon": Theme.ic.menu,
@@ -145,6 +122,11 @@ ApplicationWindow {
                                 }].forEach((m) => {
                                     model.append(m);
                                 });
+                                currentIndex = 1;
+                            }
+                            onCurrentIndexChanged: {
+                                const m = model.get(currentIndex);
+                                page_container.switchTo(m.page, m.props, m.cache);
                             }
 
                             model: ListModel {
@@ -154,12 +136,10 @@ ApplicationWindow {
                                 width: ListView.view.width
                                 Material.primary: Theme.color.tertiary
                                 onClicked: {
-                                    if (model.action) {
+                                    if (model.action)
                                         model.action.do();
-                                    } else {
+                                    else
                                         ListView.view.currentIndex = index;
-                                        page_container.switchTo(model.page, model.props, model.cache);
-                                    }
                                 }
 
                                 Label {
@@ -209,7 +189,7 @@ ApplicationWindow {
                 spacing: 0
 
                 // clip: true
-                StackView {
+                PageStack {
                     id: m_page_stack
 
                     Layout.fillWidth: true

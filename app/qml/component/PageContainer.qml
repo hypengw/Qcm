@@ -1,8 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
 import QtQuick.Layouts
-import QcmApp
 import ".."
 
 StackView {
@@ -19,7 +17,7 @@ StackView {
         if (is_cache) {
             let cache = m_page_cache.get(page_url);
             if (!cache) {
-                cache = Qt.createComponent(page_url).createObject(null, props);
+                cache = QA.create_item(page_url, props, null);
                 m_page_cache.set(page_url, cache);
             }
             replace(currentItem, cache);

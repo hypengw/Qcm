@@ -15,4 +15,4 @@
 	url = https://github.com/chriskohlhoff/asio.git
 [submodule "third_party/material-color-utilities"]
 	path = third_party/material-color
-	url = https://github.com/material-foundation/material-color-utilities
+	url = https://github.com/hypengw/material-color-utilities.git

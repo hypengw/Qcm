@@ -18,7 +18,7 @@ namespace api_model
 struct QrcodeLogin {
     static Result<QrcodeLogin> parse(std::span<const byte> bs) {
         ERROR_LOG("{}", bs);
-        return api_model::parse<QrcodeLogin>(bs);
+        return api_model::parse_no_apierr<QrcodeLogin>(bs);
     }
 
     i64         code;

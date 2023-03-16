@@ -71,6 +71,7 @@ void               Playlist::setLoopMode(LoopMode v) {
 }
 
 void Playlist::switchList(const std::vector<model::Song>& songs) {
+    auto old_id = m_cur.id;
     clear();
 
     appendList(songs);
@@ -82,7 +83,6 @@ void Playlist::switchList(const std::vector<model::Song>& songs) {
         sync_list().sync_cur(list);
     }
 
-    auto old_id = m_cur.id;
     emit curIndexChanged();
     if (m_cur.id == old_id) emit curChanged(true);
 }

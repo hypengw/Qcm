@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import QcmApp
 import ".."
 import "../component"
+import "../part"
 
 Page {
     id: root
@@ -49,14 +50,23 @@ Page {
                             anchors.fill: parent
                             spacing: 16
 
-                            RoundImage {
-                                Layout.preferredWidth: 160
-                                Layout.preferredHeight: 160
+                            MPane {
+                                Layout.alignment: Qt.AlignTop
+                                Layout.preferredWidth: 160 + 2 * padding
+                                Layout.preferredHeight: Layout.preferredWidth
+                                Material.elevation: 2
+                                Material.background: Theme.color.surface_2
+                                padding: 4
+                                radius: width / 2
 
-                                image: Image {
-                                    source: `image://ncm/${root.itemData.info.picUrl}`
-                                    sourceSize.width: 160
-                                    sourceSize.height: 160
+                                RoundImage {
+
+                                    image: Image {
+                                        source: `image://ncm/${root.itemData.info.picUrl}`
+                                        sourceSize.width: 160
+                                        sourceSize.height: 160
+                                    }
+
                                 }
 
                             }
@@ -150,6 +160,7 @@ Page {
                             delegate: SongDelegate {
                                 width: view.width
                                 count: view.count
+                                subtitle: `${modelData.album.name}`
                                 onClicked: {
                                     QA.playlist.switchTo(modelData);
                                 }

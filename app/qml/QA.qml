@@ -48,7 +48,7 @@ Item {
     }
 
     function item_id_url(itemId) {
-        switch (itemId) {
+        switch (itemId.type) {
         case ItemId.Album:
             return 'qrc:/QcmApp/qml/page/AlbumDetailPage.qml';
         case ItemId.Playlist:
@@ -65,6 +65,33 @@ Item {
             popup.destroy(1000);
         });
         popup.open();
+    }
+
+    function route(dest) {
+        let url = dest;
+        let props = {
+        };
+        switch (dest.type) {
+        case ItemId.Album:
+            url = 'qrc:/QcmApp/qml/page/AlbumDetailPage.qml';
+            props = {
+                "itemId": dest
+            };
+            break;
+        case ItemId.Playlist:
+            url = 'qrc:/QcmApp/qml/page/PlaylistDetailPage.qml';
+            props = {
+                "itemId": dest
+            };
+            break;
+        case ItemId.Artist:
+            url = 'qrc:/QcmApp/qml/page/ArtistDetailPage.qml';
+            props = {
+                "itemId": dest
+            };
+            break;
+        }
+        main_win.push_page(url, props);
     }
 
     Settings {

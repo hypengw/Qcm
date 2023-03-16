@@ -19,7 +19,7 @@ namespace api_model
 struct Login {
     static Result<Login> parse(std::span<const byte> bs) {
         ERROR_LOG("{}", bs);
-        return api_model::parse<Login>(bs);
+        return api_model::parse_no_apierr<Login>(bs);
     }
 
     i64 code;

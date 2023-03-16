@@ -68,6 +68,7 @@ Item {
         readonly property string close: '\ue5cd'
         readonly property string done: '\ue876'
         readonly property string arrow_back: '\ue5c4'
+        readonly property string equalizer: '\ue01d'
     }
 
     readonly property alias color: m_color

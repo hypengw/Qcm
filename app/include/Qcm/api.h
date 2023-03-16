@@ -155,8 +155,10 @@ public:
     QObject* data() const override { return m_model; }
 
     void reload() override {
+        // co_spawn need strand for cancel
+        auto ex = asio::make_strand(m_client.get_executor());
         this->set_status(Status::Querying);
-        this->spawn(m_client.get_executor(),
+        this->spawn(ex,
                     [cnt = gen_context()]() mutable -> asio::awaitable<void> {
                         auto& self = cnt.self;
                         auto& cli  = cnt.client;

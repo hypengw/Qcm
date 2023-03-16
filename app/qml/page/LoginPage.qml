@@ -156,6 +156,7 @@ ColumnLayout {
                         Pane {
                             Layout.alignment: Qt.AlignCenter
                             Material.elevation: 4
+                            Material.background: 'white'
                             padding: 12
 
                             Image {

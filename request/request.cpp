@@ -12,6 +12,12 @@
 #include <fmt/core.h>
 
 using namespace request;
+
+std::error_code request::global_init() {
+    return ::make_error_code(curl_global_init(CURL_GLOBAL_ALL));
+}
+
+
 Request::Request() noexcept: m_d(std::make_unique<Private>(this)) {}
 Request::Request(std::string_view url) noexcept: Request() { set_url(url); }
 Request::~Request() noexcept {}

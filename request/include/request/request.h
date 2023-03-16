@@ -9,6 +9,9 @@
 namespace request
 {
 
+
+std::error_code global_init();
+
 class Session;
 class Request {
     friend class Session;
