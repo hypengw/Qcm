@@ -25,7 +25,7 @@ Page {
                 anchors.fill: parent
 
                 Label {
-                    text: qsTr('recommand songs')
+                    text: qsTr('recommend songs')
                     font.pointSize: 18
                     font.capitalization: Font.Capitalize
                 }

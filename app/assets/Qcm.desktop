@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Qcm
+Comment=Qt client for netease cloud music
+Exec=Qcm %U
+Type=Application
+Icon=com.github.hypengw.Qcm
+Categories=Audio

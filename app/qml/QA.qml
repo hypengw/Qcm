@@ -132,7 +132,6 @@ Item {
     MediaPlayer {
         id: m_player
 
-        readonly property bool end: duration > 0 && position === duration
         readonly property bool playing: {
             switch (playbackState) {
             case MediaPlayer.PlayingState:
@@ -148,10 +147,9 @@ Item {
 
         source: {
             const songs = m_querier_song.data.songs;
-            if (songs.length) {
-                console.error(songs[0].url);
+            if (songs.length)
                 return songs[0].url;
-            }
+
             return '';
         }
         onSourceChanged: (source) => {
@@ -159,10 +157,12 @@ Item {
                 play();
 
         }
-        onEndChanged: {
-            if (end)
-                m_playlist.next();
+        onPlaybackStateChanged: {
+            if (playbackState === MediaPlayer.StoppedState) {
+                if (position / duration > 0.99)
+                    m_playlist.next();
 
+            }
         }
 
         audioOutput: AudioOutput {

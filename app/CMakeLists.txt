@@ -1,3 +1,5 @@
+set(APP_ID com.github.hypengw.Qcm)
+
 find_package(Qt6 REQUIRED COMPONENTS QuickControls2)
 
 set(SOURCES
@@ -114,5 +116,12 @@ qt_generate_deploy_qml_app_script(
     DEPLOY_USER_QML_MODULES_ON_UNSUPPORTED_PLATFORM
 )
 install(SCRIPT ${deploy_script})
+
+
+if(UNIX AND NOT APPLE AND NOT ANDROID)
+    install(FILES assets/Qcm.desktop RENAME ${APP_ID}.desktop DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
+    install(FILES assets/Qcm.svg RENAME ${APP_ID}.svg DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps)
+    #install(FILES assets/Qcm.metainfo.xml DESTINATION ${CMAKE_INSTALL_PREFIX}/share/metainfo)
+endif()
 
 qt_finalize_target(${PROJECT_NAME})
