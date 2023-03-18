@@ -1,4 +1,4 @@
-add_library(asio_qt
+add_library(asio_qt STATIC
 
     include/asio_qt/qt_execution_context.h
     include/asio_qt/qt_executor.h

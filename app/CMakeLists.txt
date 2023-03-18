@@ -97,6 +97,7 @@ target_link_libraries(
          fmt::fmt
          qr_code
          material_helper
+         mpris
          appplugin)
 target_compile_definitions(app PUBLIC APP_ID="${APP_ID}"
                                       APP_VERSION="${APP_VERSION}")

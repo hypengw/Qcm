@@ -135,6 +135,8 @@ class Playlist : public QAbstractListModel {
     Q_PROPERTY(model::Song cur READ cur NOTIFY curChanged)
     Q_PROPERTY(qint32 curIndex READ curIndex NOTIFY curIndexChanged)
     Q_PROPERTY(LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged)
+    Q_PROPERTY(bool canNext READ canNext NOTIFY canMoveChanged)
+    Q_PROPERTY(bool canPrev READ canPrev NOTIFY canMoveChanged)
 public:
     enum LoopMode
     {
@@ -178,6 +180,8 @@ public:
     qint32             curIndex() const;
     LoopMode           loopMode() const;
     void               setLoopMode(LoopMode);
+    bool               canNext() const;
+    bool               canPrev() const;
 
     // override
     int      rowCount(const QModelIndex& = QModelIndex()) const override;
@@ -188,6 +192,7 @@ signals:
     void curChanged(bool refresh = false);
     void curIndexChanged();
     void loopModeChanged();
+    void canMoveChanged();
     void end();
 
 public slots:
@@ -202,7 +207,11 @@ public slots:
     void appendNext(const model::Song&);
     void appendList(const std::vector<model::Song>&);
 
+private slots:
+    void setCanNext(bool);
+    void setCanPrev(bool);
     void check_cur();
+    void RefreshCanMove();
 
 private:
     detail::PlayList& oper_list();
@@ -213,5 +222,7 @@ private:
     detail::PlayList               m_list;
     detail::PlayList               m_shuffle_list;
     LoopMode                       m_loop_mode;
+    bool                           m_can_next;
+    bool                           m_can_prev;
 };
 } // namespace qcm

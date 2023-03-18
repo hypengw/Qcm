@@ -16,16 +16,17 @@
 #include "asio_qt/qt_executor.h"
 
 #include "ncm/client.h"
-#include "ncm/api/artist_sublist.h"
 
-#include "Qcm/model.h"
 #include "Qcm/model/user_account.h"
-#include "request/response.h"
+#include "mpris/mpris.h"
+#include "mpris/mediaplayer2.h"
 
 namespace qcm
 {
 class App : public QObject {
     Q_OBJECT
+
+    Q_PROPERTY(mpris::MediaPlayer2* mpris READ mpris)
 public:
     App();
     virtual ~App();
@@ -38,6 +39,8 @@ public:
     asio::any_io_executor            get_executor() { return m_qt_ex; }
     asio::thread_pool::executor_type get_pool_executor() { return m_pool.get_executor(); }
 
+    mpris::MediaPlayer2* mpris() const { return m_mpris->mediaplayer2(); };
+
     Q_INVOKABLE QString md5(QString) const;
     Q_INVOKABLE model::ArtistId artistId(QString id) const;
     Q_INVOKABLE model::AlbumId albumId(QString id) const;
@@ -49,10 +52,11 @@ private:
     void load_session();
     void save_session();
     // up<QQmlApplicationEngine> m_qml_engine;
-    QtExecutor                m_qt_ex;
-    mutable asio::thread_pool m_pool;
+    QtExecutor        m_qt_ex;
+    asio::thread_pool m_pool;
 
     rc<request::Session> m_session;
     mutable ncm::Client  m_client;
+    up<mpris::Mpris>     m_mpris;
 };
 } // namespace qcm

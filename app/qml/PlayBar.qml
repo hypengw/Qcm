@@ -113,6 +113,7 @@ Pane {
                 font.family: Theme.font.icon_round.family
                 font.pointSize: 16
                 background.implicitWidth: 32
+                enabled: QA.playlist.canPrev
                 flat: true
                 padding: 8
                 text: Theme.ic.skip_previous
@@ -142,6 +143,7 @@ Pane {
                 font.family: Theme.font.icon_round.family
                 font.pointSize: 16
                 background.implicitWidth: 32
+                enabled: QA.playlist.canNext
                 flat: true
                 padding: 8
                 text: Theme.ic.skip_next

@@ -26,6 +26,7 @@ auto detail::PlayList::random_insert_after(iterator it, const QString& s) {
 
 Playlist::Playlist(QObject* parent): QAbstractListModel(parent), m_loop_mode(LoopMode::NoneLoop) {
     connect(this, &Playlist::curIndexChanged, this, &Playlist::check_cur, Qt::DirectConnection);
+    connect(this, &Playlist::loopModeChanged, this, &Playlist::RefreshCanMove);
 }
 
 int Playlist::rowCount(const QModelIndex&) const { return m_list.size(); }
@@ -70,6 +71,19 @@ void               Playlist::setLoopMode(LoopMode v) {
     }
 }
 
+bool Playlist::canNext() const { return m_can_next; }
+bool Playlist::canPrev() const { return m_can_prev; }
+void Playlist::setCanNext(bool v) {
+    if (std::exchange(m_can_next, v) != v) {
+        emit canMoveChanged();
+    }
+}
+void Playlist::setCanPrev(bool v) {
+    if (std::exchange(m_can_prev, v) != v) {
+        emit canMoveChanged();
+    }
+}
+
 void Playlist::switchList(const std::vector<model::Song>& songs) {
     auto old_id = m_cur.id;
     clear();
@@ -85,6 +99,7 @@ void Playlist::switchList(const std::vector<model::Song>& songs) {
 
     emit curIndexChanged();
     if (m_cur.id == old_id) emit curChanged(true);
+    RefreshCanMove();
 }
 
 void Playlist::switchTo(const model::Song& song) {
@@ -95,6 +110,7 @@ void Playlist::switchTo(const model::Song& song) {
     auto old_id = m_cur.id;
     emit curIndexChanged();
     if (m_cur.id == old_id) emit curChanged(true);
+    RefreshCanMove();
 }
 
 void Playlist::appendNext(const model::Song& song) {
@@ -111,6 +127,7 @@ void Playlist::appendNext(const model::Song& song) {
     m_songs.insert({ sid(song), song });
 
     endInsertRows();
+    RefreshCanMove();
 }
 
 void Playlist::append(const model::Song& song) {
@@ -169,6 +186,7 @@ void Playlist::next() {
     case SingleLoop: emit curChanged(true); break;
     }
     sync_list().sync_cur(list);
+    RefreshCanMove();
 }
 void Playlist::prev() {
     CurGuard gd { *this };
@@ -185,6 +203,7 @@ void Playlist::prev() {
     case SingleLoop: emit curChanged(true); break;
     }
     sync_list().sync_cur(list);
+    RefreshCanMove();
 }
 
 void Playlist::check_cur() {
@@ -198,6 +217,21 @@ void Playlist::check_cur() {
         emit curChanged();
     }
 }
+void Playlist::RefreshCanMove() {
+    auto& list = oper_list();
+    if (list.size() == 0) {
+        setCanNext(false);
+        setCanPrev(false);
+    } else if (m_loop_mode == LoopMode::NoneLoop) {
+        auto it = list.cur_it();
+        setCanNext(it + 1 != list.end());
+        setCanPrev(it != list.begin());
+    } else {
+        setCanNext(true);
+        setCanPrev(true);
+    }
+}
+
 detail::PlayList& Playlist::oper_list() {
     return m_loop_mode == ShuffleLoop ? m_shuffle_list : m_list;
 }

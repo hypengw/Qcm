@@ -27,7 +27,8 @@ App::App()
       m_qt_ex(std::make_shared<QtExecutionContext>(this)),
       m_pool(4),
       m_session(std::make_shared<request::Session>(m_pool.get_executor())),
-      m_client(m_session, m_pool.get_executor()) {
+      m_client(m_session, m_pool.get_executor()),
+      m_mpris(std::make_unique<mpris::Mpris>()) {
     QGuiApplication::setApplicationName(AppName.data());
     QGuiApplication::setOrganizationName(AppName.data());
     QGuiApplication::setDesktopFileName(APP_ID);
@@ -43,6 +44,16 @@ ncm::Client App::ncm_client() const { return m_client; }
 void App::init(QQmlApplicationEngine* engine) {
     qmlRegisterSingletonInstance("QcmApp", 1, 0, "App", this);
     qcm::init_path(std::array { config_path() / "session", data_path() });
+
+    {
+        m_mpris->registerService("Qcm");
+        auto m = mpris();
+        m->setIdentity("Qcm");
+        m->setDesktopEntry(APP_ID ".desktop");
+        m->setCanQuit(true);
+        qmlRegisterUncreatableType<mpris::MediaPlayer2>(
+            "QcmApp", 1, 0, "MprisMediaPlayer", "uncreatable");
+    }
 
     load_session();
 
