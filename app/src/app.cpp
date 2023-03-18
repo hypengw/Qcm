@@ -60,6 +60,7 @@ void App::init(QQmlApplicationEngine* engine) {
     QQuickStyle::setStyle("Material");
 
     auto gui_app = QGuiApplication::instance();
+
     connect(engine, &QQmlApplicationEngine::quit, gui_app, &QGuiApplication::quit);
     
     engine->addImageProvider(u"ncm"_qs, new NcmImageProvider {});

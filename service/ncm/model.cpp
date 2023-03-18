@@ -15,8 +15,10 @@
 #include "ncm/api/song_url.h"
 #include "ncm/api/user_account.h"
 #include "ncm/api/user_playlist.h"
-#include "ncm/api/qrcode_unikey.h"
 #include "ncm/api/qrcode_login.h"
+#include "ncm/api/qrcode_unikey.h"
+#include "ncm/api/radio_like.h"
+#include "ncm/api/song_like.h"
 
 namespace ncm
 {
@@ -97,6 +99,8 @@ JSON_DEFINE_IMPL(UserPlaylist, code, playlist, more);
 
 JSON_DEFINE_IMPL(QrcodeUnikey, code, unikey);
 JSON_DEFINE_WITH_DEFAULT_IMPL(QrcodeLogin, code, message, nickname, avatarUrl);
+JSON_DEFINE_IMPL(RadioLike, code);
+JSON_DEFINE_IMPL(SongLike, code, ids, checkPoint);
 
 } // namespace api_model
 
@@ -122,6 +126,8 @@ JSON_GET_IMPL(api_model::UserAccount);
 JSON_GET_IMPL(api_model::UserPlaylist);
 JSON_GET_IMPL(api_model::QrcodeUnikey);
 JSON_GET_IMPL(api_model::QrcodeLogin);
+JSON_GET_IMPL(api_model::RadioLike);
+JSON_GET_IMPL(api_model::SongLike);
 
 JSON_GET_IMPL(model::Album);
 JSON_GET_IMPL(model::Song);

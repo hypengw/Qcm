@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
 import ".."
+import "../component"
 
 ItemDelegate {
     id: root
@@ -84,54 +85,73 @@ ItemDelegate {
             text: Qt.formatDateTime(root.modelData.duration, 'mm:ss')
         }
 
-        RoundButton {
-            id: btn_menu
+        RowLayout {
+            spacing: 0
 
-            text: Theme.ic.more_vert
-            font.family: Theme.font.icon_round.family
-            font.pointSize: 14
-            flat: true
-            onClicked: {
-                const item = comp_menu.createObject(btn_menu);
-                item.closed.connect(() => {
-                    item.destroy(1000);
-                });
-                item.open();
+            MRoundButton {
+                readonly property bool liked: QA.user_song_set.contains(root.modelData.itemId)
+
+                Material.accent: Theme.color.tertiary
+                highlighted: liked
+                text: liked ? Theme.ic.favorite : Theme.ic.favorite_border
+                font.family: Theme.font.icon_round.family
+                font.pointSize: 14
+                flat: true
+                onClicked: {
+                    QA.querier_user_song.like_song(root.modelData.itemId, !liked);
+                }
             }
 
-            Component {
-                id: comp_menu
+            MRoundButton {
+                id: btn_menu
 
-                Menu {
-                    y: btn_menu.height
-                    modal: true
-                    dim: false
+                text: Theme.ic.more_vert
+                font.family: Theme.font.icon_round.family
+                font.pointSize: 14
+                flat: true
+                onClicked: {
+                    const item = comp_menu.createObject(btn_menu);
+                    item.closed.connect(() => {
+                        item.destroy(1000);
+                    });
+                    item.open();
+                }
 
-                    Action {
-                        text: qsTr('Play next')
-                        onTriggered: {
-                            QA.playlist.appendNext(modelData);
+                Component {
+                    id: comp_menu
+
+                    Menu {
+                        y: btn_menu.height
+                        modal: true
+                        dim: false
+
+                        Action {
+                            text: qsTr('Play next')
+                            onTriggered: {
+                                QA.playlist.appendNext(modelData);
+                            }
                         }
-                    }
 
-                    Action {
-                        text: qsTr('Show album')
-                        onTriggered: {
-                            QA.route(modelData.album.itemId);
+                        Action {
+                            text: qsTr('Show album')
+                            onTriggered: {
+                                QA.route(modelData.album.itemId);
+                            }
                         }
-                    }
 
-                    Action {
-                        text: qsTr('Show artist')
-                        onTriggered: {
-                            const artists = modelData.artists;
-                            if (artists.length === 1)
-                                QA.route(artists[0].itemId);
-                            else
-                                QA.show_popup('qrc:/QcmApp/qml/part/ArtistsPopup.qml', {
-                                "model": artists
-                            });
+                        Action {
+                            text: qsTr('Show artist')
+                            onTriggered: {
+                                const artists = modelData.artists;
+                                if (artists.length === 1)
+                                    QA.route(artists[0].itemId);
+                                else
+                                    QA.show_popup('qrc:/QcmApp/qml/part/ArtistsPopup.qml', {
+                                    "model": artists
+                                });
+                            }
                         }
+
                     }
 
                 }

@@ -116,13 +116,26 @@ Pane {
 
             }
 
+            MRoundButton {
+                readonly property bool liked: QA.user_song_set.contains(QA.cur_song.itemId)
+
+                Material.accent: Theme.color.tertiary
+                enabled: QA.cur_song.itemId.valid()
+                highlighted: liked
+                text: liked ? Theme.ic.favorite : Theme.ic.favorite_border
+                font.family: Theme.font.icon_round.family
+                font.pointSize: 14
+                flat: true
+                onClicked: {
+                    QA.querier_user_song.like_song(QA.cur_song.itemId, !liked);
+                }
+            }
+
             RoundButton {
                 font.family: Theme.font.icon_round.family
                 font.pointSize: 16
-                background.implicitWidth: 32
                 enabled: QA.playlist.canPrev
                 flat: true
-                padding: 8
                 text: Theme.ic.skip_previous
                 onClicked: QA.playlist.prev()
             }
@@ -149,10 +162,8 @@ Pane {
             RoundButton {
                 font.family: Theme.font.icon_round.family
                 font.pointSize: 16
-                background.implicitWidth: 32
                 enabled: QA.playlist.canNext
                 flat: true
-                padding: 8
                 text: Theme.ic.skip_next
                 onClicked: QA.playlist.next()
             }
@@ -160,9 +171,7 @@ Pane {
             RoundButton {
                 font.family: Theme.font.icon_round.family
                 font.pointSize: 16
-                background.implicitWidth: 32
                 flat: true
-                padding: 8
                 text: QA.loop_icon
                 onClicked: {
                     let mode = QA.playlist.loopMode;
@@ -187,9 +196,7 @@ Pane {
             RoundButton {
                 font.family: Theme.font.icon_round.family
                 font.pointSize: 16
-                background.implicitWidth: 32
                 flat: true
-                padding: 8
                 text: Theme.ic.queue_music
                 onClicked: {
                     pop_playlist.open();
@@ -198,6 +205,7 @@ Pane {
                 MPopup {
                     id: pop_playlist
 
+                    width: 400
                     title: 'Playlist'
 
                     Pane {

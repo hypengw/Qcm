@@ -6,7 +6,7 @@ import ".."
 RoundButton {
     id: root
 
-    Material.foreground: highlighted ? Theme.color.getOn(Material.accent) : Theme.color.on_background
+    Material.foreground: highlighted ? (flat ? Material.accent : Theme.color.getOn(Material.accent)) : Theme.color.on_background
 
     Binding {
         target: root

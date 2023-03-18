@@ -15,3 +15,6 @@
 #include "Qcm/model/user_account.h"
 #include "Qcm/model/qrcode_login.h"
 #include "Qcm/model/qrcode_unikey.h"
+#include "Qcm/model/radio_like.h"
+#include "Qcm/model/song_like.h"
+

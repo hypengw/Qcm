@@ -29,6 +29,8 @@ set(SOURCES
     include/Qcm/model/user_playlist.h
     include/Qcm/model/qrcode_login.h
     include/Qcm/model/qrcode_unikey.h
+    include/Qcm/model/radio_like.h
+    include/Qcm/model/song_like.h
     src/app.cpp
     src/api.cpp
     src/color.cpp

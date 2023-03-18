@@ -11,6 +11,7 @@ Item {
     property QtObject main_win: null
     readonly property string title: 'Qcm'
     readonly property alias user_info: m_querier_user.data
+    readonly property alias user_song_set: m_querier_user_songlike.data
     readonly property bool is_login: m_querier_user.data.userId.valid()
     readonly property string loop_icon: switch (m_playlist.loopMode) {
     case Playlist.SingleLoop:
@@ -25,6 +26,7 @@ Item {
     }
     property alias querier_song: m_querier_song
     property alias querier_user: m_querier_user
+    property alias querier_user_song: m_querier_user_songlike
     property alias player: m_player
     property alias playlist: m_playlist
     readonly property t_song cur_song: m_playlist.cur
@@ -124,6 +126,34 @@ Item {
                 App.loginPost(data);
 
         }
+    }
+
+    SongLikeQuerier {
+        id: m_querier_user_songlike
+
+        function like_song(song_id, is_like) {
+            const qu = m_querier_radio_like;
+            qu.trackId = song_id;
+            qu.like = is_like;
+            qu.query();
+        }
+
+        autoReload: m_querier_user.status === ApiQuerierBase.Finished
+    }
+
+    RadioLikeQuerier {
+        id: m_querier_radio_like
+
+        onStatusChanged: {
+            if (status === ApiQuerierBase.Finished) {
+                if (like)
+                    m_querier_user_songlike.data.insert(trackId);
+                else
+                    m_querier_user_songlike.data.remove(trackId);
+                m_querier_user_songlike.dataChanged();
+            }
+        }
+        autoReload: false
     }
 
     SongUrlQuerier {
