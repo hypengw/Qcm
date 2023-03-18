@@ -6,6 +6,8 @@ import Qt.labs.settings
 import QcmApp
 
 Item {
+    id: root
+
     property QtObject main_win: null
     readonly property string title: 'Qcm'
     readonly property alias user_info: m_querier_user.data
@@ -26,6 +28,7 @@ Item {
     property alias player: m_player
     property alias playlist: m_playlist
     readonly property t_song cur_song: m_playlist.cur
+    property string song_cover: ''
 
     function join_name(objs, split) {
         const names = objs.map((o) => {
@@ -135,23 +138,6 @@ Item {
     }
 
     MediaPlayer {
-        /*
-            void loopStatusRequested(Loop_Status loopStatus);
-            void rateRequested(double rate);
-            void shuffleRequested(bool shuffle);
-            void volumeRequested(double volume);
-            void nextRequested();
-            void openUriRequested(const QUrl& url);
-            void pauseRequested();
-            void playRequested();
-            void playPauseRequested();
-            void previousRequested();
-            void seekRequested(qlonglong offset);
-            void seeked(qlonglong position);
-            void setPositionRequested(const QDBusObjectPath& trackId, qlonglong position);
-            void stopRequested();
-            */
-
         id: m_player
 
         readonly property bool playing: {
@@ -163,15 +149,19 @@ Item {
             }
         }
 
-        function setPos(pos) {
+        signal seeked(real position)
+
+        function seek(pos) {
             position = pos * duration;
+            seeked(position * 1000);
         }
 
         function bindMpris() {
-            App.mpris.canPlay = true;
-            App.mpris.canPause = true;
-            App.mpris.canControl = true;
-            App.mpris.playbackStatus = Qt.binding(() => {
+            const mpris = App.mpris;
+            mpris.canPlay = true;
+            mpris.canPause = true;
+            mpris.canControl = true;
+            mpris.playbackStatus = Qt.binding(() => {
                 switch (playbackState) {
                 case MediaPlayer.PlayingState:
                     return MprisMediaPlayer.Playing;
@@ -181,7 +171,7 @@ Item {
                     return MprisMediaPlayer.Stopped;
                 }
             });
-            App.mpris.loopStatus = Qt.binding(() => {
+            mpris.loopStatus = Qt.binding(() => {
                 switch (m_playlist.loopMode) {
                 case Playlist.NoneLoop:
                     return MprisMediaPlayer.None;
@@ -192,50 +182,54 @@ Item {
                     return MprisMediaPlayer.Playlist;
                 }
             });
-            App.mpris.shuffle = Qt.binding(() => {
+            mpris.shuffle = Qt.binding(() => {
                 return m_playlist.loopMode === Playlist.ShuffleLoop;
             });
-            App.mpris.volume = Qt.binding(() => {
+            mpris.volume = Qt.binding(() => {
                 return audioOutput.volume;
             });
-            App.mpris.position = Qt.binding(() => {
+            mpris.position = Qt.binding(() => {
                 return position * 1000;
             });
-            App.mpris.canSeek = Qt.binding(() => {
+            mpris.canSeek = Qt.binding(() => {
                 return seekable;
             });
-            App.mpris.canGoNext = Qt.binding(() => {
+            mpris.canGoNext = Qt.binding(() => {
                 return m_playlist.canNext;
             });
-            App.mpris.canGoPrevious = Qt.binding(() => {
+            mpris.canGoPrevious = Qt.binding(() => {
                 return m_playlist.canPrev;
             });
             const key = App.mpris.metakey;
-            App.mpris.metadata = Qt.binding(() => {
+            mpris.metadata = Qt.binding(() => {
                 const meta = {
                 };
                 const song = m_playlist.cur;
                 if (song.itemId.valid())
                     meta[key(MprisMediaPlayer.MetaTrackId)] = song.itemId.sid;
 
+                if (root.song_cover)
+                    meta[key(MprisMediaPlayer.MetaArtUrl)] = root.song_cover;
+
                 meta[key(MprisMediaPlayer.MetaTitle)] = song.name;
                 meta[key(MprisMediaPlayer.MetaAlbum)] = song.album.name;
+                meta[key(MprisMediaPlayer.MetaArtist)] = root.join_name(song.artists);
                 meta[key(MprisMediaPlayer.MetaLength)] = duration * 1000;
                 return meta;
             });
             // connect back
-            App.mpris.playRequested.connect(play);
-            App.mpris.pauseRequested.connect(pause);
-            App.mpris.stopRequested.connect(stop);
-            App.mpris.playPauseRequested.connect(() => {
+            mpris.playRequested.connect(play);
+            mpris.pauseRequested.connect(pause);
+            mpris.stopRequested.connect(stop);
+            mpris.playPauseRequested.connect(() => {
                 if (playbackState === MediaPlayer.PlayingState)
                     pause();
                 else
                     play();
             });
-            App.mpris.nextRequested.connect(m_playlist.next);
-            App.mpris.previousRequested.connect(m_playlist.prev);
-            App.mpris.loopStatusRequested.connect((s) => {
+            mpris.nextRequested.connect(m_playlist.next);
+            mpris.previousRequested.connect(m_playlist.prev);
+            mpris.loopStatusRequested.connect((s) => {
                 switch (s) {
                 case MprisMediaPlayer.None:
                     m_playlist.loopMode = Playlist.NoneLoop;
@@ -248,15 +242,24 @@ Item {
                     break;
                 }
             });
-            App.mpris.shuffleRequested.connect((shuffle) => {
+            mpris.shuffleRequested.connect((shuffle) => {
                 if (shuffle)
                     m_playlist.loopMode = Playlist.ShuffleLoop;
                 else
                     m_playlist.loopMode = Playlist.ListLoop;
             });
-            App.mpris.setPositionRequested.connect((_, pos) => {
+            mpris.setPositionRequested.connect((_, pos) => {
                 position = pos / 1000;
+                mpris.seeked(pos);
             });
+            mpris.seekRequested.connect((offset) => {
+                position = position + offset / 1000;
+                mpris.seeked(position * 1000);
+            });
+            mpris.quitRequested.connect(() => {
+                Qt.callLater(Qt.quit);
+            });
+            seeked.connect(mpris.seeked);
         }
 
         source: {

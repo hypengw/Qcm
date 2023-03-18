@@ -49,7 +49,7 @@ void App::init(QQmlApplicationEngine* engine) {
         m_mpris->registerService("Qcm");
         auto m = mpris();
         m->setIdentity("Qcm");
-        m->setDesktopEntry(APP_ID ".desktop");
+        m->setDesktopEntry(APP_ID); // no ".desktop"
         m->setCanQuit(true);
         qmlRegisterUncreatableType<mpris::MediaPlayer2>(
             "QcmApp", 1, 0, "MprisMediaPlayer", "uncreatable");
@@ -59,6 +59,9 @@ void App::init(QQmlApplicationEngine* engine) {
 
     QQuickStyle::setStyle("Material");
 
+    auto gui_app = QGuiApplication::instance();
+    connect(engine, &QQmlApplicationEngine::quit, gui_app, &QGuiApplication::quit);
+    
     engine->addImageProvider(u"ncm"_qs, new NcmImageProvider {});
     engine->addImageProvider(u"qr"_qs, new QrImageProvider {});
 
@@ -67,6 +70,12 @@ void App::init(QQmlApplicationEngine* engine) {
 
 model::ArtistId App::artistId(QString id) const { return { id }; }
 model::AlbumId  App::albumId(QString id) const { return { id }; }
+
+QUrl App::getImageCache(QString url, QSize reqSize) const {
+    auto path =
+        NcmImageProvider::genImageCachePath(NcmImageProvider::makeReq(url, reqSize, m_client));
+    return QUrl::fromLocalFile(path.native().c_str());
+}
 
 QString App::md5(QString txt) const {
     auto opt = crypto::digest(crypto::md5(), To<std::vector<byte>>::from(txt.toStdString()))

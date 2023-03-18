@@ -53,7 +53,7 @@ Pane {
                 interval: 500
                 onTriggered: {
                     if (pos > 0) {
-                        QA.player.setPos(pos);
+                        QA.player.seek(pos);
                         pos = -1;
                     }
                 }
@@ -67,11 +67,18 @@ Pane {
             Layout.bottomMargin: 8
 
             Image {
+                readonly property string picUrl: QA.cur_song.album.picUrl
+
                 Layout.preferredWidth: sourceSize.width
                 Layout.preferredHeight: sourceSize.height
                 sourceSize.width: 48
                 sourceSize.height: 48
-                source: `image://ncm/${QA.cur_song.album.picUrl}`
+                source: `image://ncm/${picUrl}`
+                onStatusChanged: {
+                    if (status == Image.Ready)
+                        QA.song_cover = App.getImageCache(picUrl, sourceSize);
+
+                }
             }
 
             ColumnLayout {

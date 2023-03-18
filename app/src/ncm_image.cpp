@@ -42,12 +42,6 @@ inline std::string gen_file_name(const request::Url& url) {
         .value();
 }
 
-inline std::filesystem::path get_dl_path(const request::Request& req) {
-    auto path = cache_path() / "image";
-    std::filesystem::create_directories(path);
-    return path / gen_file_name(req.url_info());
-}
-
 asio::awaitable<void> dl_image(ncm::Client cli, const request::Request& req,
                                std::filesystem::path p) {
     helper::SyncFile file { std::fstream(p, std::ios::out | std::ios::binary) };
@@ -60,6 +54,20 @@ asio::awaitable<void> dl_image(ncm::Client cli, const request::Request& req,
 }
 
 } // namespace
+
+request::Request NcmImageProvider::makeReq(const QString& id, const QSize& requestedSize,
+                                           ncm::Client& cli) {
+    auto               down_size = get_down_size(requestedSize);
+    request::UrlParams query;
+    query.set_param("param", fmt::format("{}y{}", down_size.width(), down_size.height()));
+    auto req = cli.make_req<ncm::api::CryptoType::NONE>(id.toStdString(), query);
+    return req;
+}
+std::filesystem::path NcmImageProvider::genImageCachePath(const request::Request& req) {
+    auto path = cache_path() / "image";
+    std::filesystem::create_directories(path);
+    return path / gen_file_name(req.url_info());
+}
 
 NcmImageProvider::NcmImageProvider()
     : QQuickAsyncImageProvider(),
@@ -88,15 +96,8 @@ QQuickImageResponse* NcmImageProvider::requestImageResponse(const QString& id,
                 rsp_guard, "handle_error", Qt::QueuedConnection, Q_ARG(QString, res.error()));
         }
     };
-    request::Request req;
-    {
-        auto               down_size = get_down_size(requestedSize);
-        request::UrlParams query;
-        query.set_param("param", fmt::format("{}y{}", down_size.width(), down_size.height()));
-        req = cli.make_req<ncm::api::CryptoType::NONE>(id.toStdString(), query);
-    }
-
-    std::filesystem::path file_path = get_dl_path(req);
+    request::Request      req       = NcmImageProvider::makeReq(id, requestedSize, cli);
+    std::filesystem::path file_path = NcmImageProvider::genImageCachePath(req);
 
     asio::co_spawn(
         m_ex,

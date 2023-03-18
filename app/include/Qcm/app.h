@@ -44,6 +44,7 @@ public:
     Q_INVOKABLE QString md5(QString) const;
     Q_INVOKABLE model::ArtistId artistId(QString id) const;
     Q_INVOKABLE model::AlbumId albumId(QString id) const;
+    Q_INVOKABLE QUrl getImageCache(QString url, QSize reqSize) const;
 
 public slots:
     void loginPost(model::UserAccount*);

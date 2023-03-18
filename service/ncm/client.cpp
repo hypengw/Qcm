@@ -21,6 +21,10 @@ using namespace request;
 namespace
 {
 
+std::string concat_query(std::string_view url, std::string_view query) {
+    return fmt::format("{}{}{}", url, query.empty() ? "" : "?", query);
+}
+
 } // namespace
 // ""
 
@@ -29,8 +33,7 @@ Client::Client(rc<Session> sess, asio::any_io_executor ex)
       m_csrf(std::make_shared<std::string>()),
       m_crypto(std::make_shared<Crypto>()),
       m_ex(std::make_shared<executor_type>(ex)) {
-    m_req_common
-        .set_connect_timeout(30)
+    m_req_common.set_connect_timeout(30)
         .set_header("Referer", "https://music.163.com")
         .set_header("User-Agent",
                     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, "
@@ -41,46 +44,25 @@ Client::~Client() {}
 
 Client::executor_type& Client::get_executor() { return *m_ex; }
 
-/*
-awaitable<Result<std::string>> Client::login(std::string_view email, std::string_view pass) {
-    using namespace qcm;
-    Request req = make_req("/weapi/login");
-    req.set_header("Cookie", "os=ios; appver=8.7.01");
-
-    Params p;
-    p["username"] = email;
-    {
-        auto opt =
-            crypto::digest(crypto::md5(), To<std::vector<byte>>::from(pass)).map([](auto in) {
-                return To<std::string>::from(crypto::hex::encode_low(in));
-            });
-        _assert_(opt.has_value());
-        p["password"] = opt.value();
-    }
-    p["rememberLogin"] = "true";
-    co_return co_await do_req(req, p);
-}
-*/
-
 template<>
 request::Request Client::make_req<api::CryptoType::WEAPI>(std::string_view          path,
                                                           const request::UrlParams& q) const {
     Request req { m_req_common };
-    req.set_url(fmt::format("{}?{}", path, q.encode()));
+    req.set_url(concat_query(path, q.encode()));
     return req;
 }
 template<>
 request::Request Client::make_req<api::CryptoType::EAPI>(std::string_view          path,
                                                          const request::UrlParams& q) const {
     Request req { m_req_common };
-    req.set_url(fmt::format("{}?{}", path, q.encode()))
+    req.set_url(concat_query(path, q.encode()))
         .set_header("Cookie", "os=pc; appver=2.10.6; versioncode=200601;");
     return req;
 }
 template<>
 request::Request Client::make_req<api::CryptoType::NONE>(std::string_view          path,
                                                          const request::UrlParams& q) const {
-    return Request { m_req_common }.set_url(fmt::format("{}?{}", path, q.encode()));
+    return Request { m_req_common }.set_url(concat_query(path, q.encode()));
 }
 
 template<>

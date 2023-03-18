@@ -49,6 +49,9 @@ public:
     QQuickImageResponse* requestImageResponse(const QString& id,
                                               const QSize&   requestedSize) override;
 
+    static request::Request makeReq(const QString& id, const QSize& requestedSize, ncm::Client&);
+    static std::filesystem::path genImageCachePath(const request::Request&);
+
 private:
     asio::any_io_executor m_ex;
     ncm::Client           m_cli;
