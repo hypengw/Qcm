@@ -20,3 +20,11 @@ cmake .. -GNinja -DCMAKE_BUILD_TYPE=Release
 ninja
 ./app/QcmApp
 ```
+
+### Todo:
+- [ ] sql
+- [ ] drop qtmultimedia
+- [ ] toast
+- [ ] playlist page
+- [ ] playing page
+- [ ] search page
