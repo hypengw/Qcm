@@ -52,7 +52,6 @@ asio::awaitable<std::optional<rc<Response>>> Session::post(const Request&     re
     rc<Response> res = Response::make_response(req, Operation::PostOperation, shared_from_this());
     res->add_send_buffer(buf);
 
-    d->rsps.insert(res);
     if (co_await perform(res)) co_return res;
     co_return std::nullopt;
 }
