@@ -269,7 +269,7 @@ Page {
                             delegate: SongDelegate {
                                 width: view.width
                                 count: view.count
-                                subtitle: QA.join_name(root.itemData.artists, '/')
+                                subtitle: QA.join_name(modelData.artists, '/')
                                 onClicked: {
                                     QA.playlist.switchTo(modelData);
                                 }

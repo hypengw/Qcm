@@ -100,7 +100,7 @@ QQuickImageResponse* NcmImageProvider::requestImageResponse(const QString& id,
     std::filesystem::path file_path = NcmImageProvider::genImageCachePath(req);
 
     asio::co_spawn(
-        m_ex,
+        ex,
         rsp->wdog().watch(ex,
                           [handle, cli, requestedSize, req, file_path]() -> asio::awaitable<void> {
                               if (! std::filesystem::exists(file_path)) {

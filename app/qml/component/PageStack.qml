@@ -39,7 +39,6 @@ StackView {
                 pages.delete(el[0]);
                 item.destroy(1000);
             });
-            console.error(pages.size, Array.from(pages.entries()));
         }
     }
 
