@@ -116,5 +116,5 @@ struct fmt::formatter<error::Error> : fmt::formatter<std::string> {
 
 inline std::string error::Error::what() const {
     if (m_msg_stack.empty()) return {};
-    return fmt::format("{}", m_msg_stack.back());
+    return m_msg_stack.back().what;
 }

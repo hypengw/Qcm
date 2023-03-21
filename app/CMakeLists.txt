@@ -49,15 +49,21 @@ set(QML_FILES
     qml/page/PlaylistDetailPage.qml
     qml/page/MinePage.qml
     qml/page/TodayPage.qml
+    qml/part/ApiContainer.qml
     qml/part/ArtistsPopup.qml
     qml/part/SettingsPopup.qml
+    qml/part/SnakeBar.qml
+    qml/part/SnakeView.qml
     qml/part/SongDelegate.qml
     qml/part/SongTag.qml
     qml/component/IconRowLayout.qml
     qml/component/RoundImage.qml
     qml/component/Leaflet.qml
+    qml/component/MButton.qml
     qml/component/MRoundButton.qml
     qml/component/MItemDelegate.qml
+    qml/component/MMenu.qml
+    qml/component/MMenuItem.qml
     qml/component/MPane.qml
     qml/component/MPopup.qml
     qml/component/PageContainer.qml

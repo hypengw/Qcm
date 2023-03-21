@@ -10,8 +10,8 @@ import "../part"
 Page {
     id: root
 
-    property alias itemId: al.itemId
-    property alias itemData: al.data
+    property alias itemId: qr_al.itemId
+    property alias itemData: qr_al.data
 
     padding: 16
     verticalPadding: 0
@@ -153,83 +153,62 @@ Page {
                 RowLayout {
                     anchors.fill: parent
 
-                    Button {
+                    MButton {
                         highlighted: true
-                        Material.foreground: Theme.color.on_primary
-                        onClicked: {
-                            const songs = itemData.songs.filter((s) => {
-                                return s.canPlay;
-                            });
-                            if (songs.length)
-                                QA.playlist.switchList(songs);
+                        font.capitalization: Font.Capitalize
 
-                        }
+                        action: Action {
+                            icon.name: Theme.ic.play_arrow
+                            text: qsTr('play all')
+                            onTriggered: {
+                                const songs = itemData.songs.filter((s) => {
+                                    return s.canPlay;
+                                });
+                                if (songs.length)
+                                    QA.playlist.switchList(songs);
 
-                        contentItem: IconRowLayout {
-                            text: Theme.ic.play_arrow
-                            iconSize: 16
-
-                            Label {
-                                text: qsTr('Play all')
-                                font.pointSize: 12
-                                font.capitalization: Font.Capitalize
                             }
-
                         }
 
                     }
 
-                    Button {
+                    MButton {
                         highlighted: true
-                        Material.foreground: Theme.color.on_secondary
                         Material.accent: Theme.color.secondary
-                        onClicked: {
-                            QA.playlist.appendList(itemData.songs);
-                        }
+                        font.capitalization: Font.Capitalize
 
-                        contentItem: IconRowLayout {
-                            text: Theme.ic.playlist_add
-                            iconSize: 16
-
-                            Label {
-                                text: qsTr('add to list')
-                                font.pointSize: 12
-                                font.capitalization: Font.Capitalize
+                        action: Action {
+                            icon.name: Theme.ic.playlist_add
+                            text: qsTr('add to list')
+                            onTriggered: {
+                                QA.playlist.appendList(itemData.songs);
                             }
-
                         }
 
                     }
 
-                    Button {
+                    MButton {
                         id: btn_fav
 
                         property bool liked: qr_dynamic.data.isSub
 
                         highlighted: true
-                        Material.foreground: Theme.color.on_secondary
                         Material.accent: Theme.color.secondary
-                        onClicked: {
-                            qr_sub.sub = !liked;
-                            qr_sub.itemId = root.itemId;
-                            qr_sub.query();
-                        }
+                        font.capitalization: Font.Capitalize
 
                         Binding on liked {
                             when: qr_sub.status === ApiQuerierBase.Finished
                             value: qr_sub.sub
                         }
 
-                        contentItem: IconRowLayout {
-                            text: btn_fav.liked ? Theme.ic.done : Theme.ic.add
-                            iconSize: 16
-
-                            Label {
-                                text: qsTr(btn_fav.liked ? 'fav-ed' : 'fav')
-                                font.pointSize: 12
-                                font.capitalization: Font.Capitalize
+                        action: Action {
+                            icon.name: btn_fav.liked ? Theme.ic.done : Theme.ic.add
+                            text: qsTr(btn_fav.liked ? 'fav-ed' : 'fav')
+                            onTriggered: {
+                                qr_sub.sub = !btn_fav.liked;
+                                qr_sub.itemId = root.itemId;
+                                qr_sub.query();
                             }
-
                         }
 
                     }
@@ -275,6 +254,19 @@ Page {
                                 }
                             }
 
+                            footer: ColumnLayout {
+                                width: view.width
+                                implicitHeight: busy_footer.running ? busy_footer.implicitHeight : 0
+
+                                BusyIndicator {
+                                    id: busy_footer
+
+                                    Layout.alignment: Qt.AlignCenter
+                                    running: qr_al.status === ApiQuerierBase.Querying
+                                }
+
+                            }
+
                             ScrollBar.vertical: ScrollBar {
                             }
 
@@ -290,28 +282,31 @@ Page {
 
     }
 
-    AlbumDetailQuerier {
-        id: al
+    ApiContainer {
+        AlbumDetailQuerier {
+            id: qr_al
 
-        autoReload: root.itemId.valid()
-        onStatusChanged: {
-            if (ApiQuerierBase.Error === this.status)
-                console.error(this.error);
+            autoReload: root.itemId.valid()
+            onStatusChanged: {
+                if (ApiQuerierBase.Error === this.status)
+                    console.error(this.error);
 
+            }
         }
-    }
 
-    AlbumDetailDynamicQuerier {
-        id: qr_dynamic
+        AlbumDetailDynamicQuerier {
+            id: qr_dynamic
 
-        itemId: al.itemId
-        autoReload: itemId.valid()
-    }
+            itemId: qr_al.itemId
+            autoReload: itemId.valid()
+        }
 
-    AlbumSubQuerier {
-        id: qr_sub
+        AlbumSubQuerier {
+            id: qr_sub
 
-        autoReload: false
+            autoReload: false
+        }
+
     }
 
 }

@@ -49,11 +49,9 @@ Popup {
                     font.capitalization: Font.Capitalize
                 }
 
-                RoundButton {
+                MRoundButton {
                     flat: true
-                    font.pointSize: 16
-                    font.family: Theme.font.icon_round.family
-                    text: Theme.ic.close
+                    icon.name: Theme.ic.close
                     onClicked: {
                         root.close();
                     }

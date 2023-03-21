@@ -40,50 +40,36 @@ Page {
             RowLayout {
                 anchors.fill: parent
 
-                Button {
+                MButton {
                     highlighted: true
-                    Material.foreground: Theme.color.on_primary
-                    onClicked: {
-                        const songs = qr_rmd.data.dailySongs.filter((s) => {
-                            return s.canPlay;
-                        });
-                        if (songs.length)
-                            QA.playlist.switchList(songs);
+                    font.capitalization: Font.Capitalize
 
-                    }
+                    action: Action {
+                        icon.name: Theme.ic.play_arrow
+                        text: qsTr('play all')
+                        onTriggered: {
+                            const songs = qr_rmd.data.dailySongs.filter((s) => {
+                                return s.canPlay;
+                            });
+                            if (songs.length)
+                                QA.playlist.switchList(songs);
 
-                    contentItem: IconRowLayout {
-                        text: Theme.ic.play_arrow
-                        iconSize: 16
-
-                        Label {
-                            text: qsTr('play all')
-                            font.pointSize: 12
-                            font.capitalization: Font.Capitalize
                         }
-
                     }
 
                 }
 
-                Button {
+                MButton {
                     highlighted: true
-                    Material.foreground: Theme.color.on_secondary
                     Material.accent: Theme.color.secondary
-                    onClicked: {
-                        QA.playlist.appendList(qr_rmd.data.dailySongs);
-                    }
+                    font.capitalization: Font.Capitalize
 
-                    contentItem: IconRowLayout {
-                        text: Theme.ic.playlist_add
-                        iconSize: 16
-
-                        Label {
-                            text: qsTr('add to list')
-                            font.pointSize: 12
-                            font.capitalization: Font.Capitalize
+                    action: Action {
+                        icon.name: Theme.ic.playlist_add
+                        text: qsTr('add to list')
+                        onTriggered: {
+                            QA.playlist.appendList(qr_rmd.data.dailySongs);
                         }
-
                     }
 
                 }
@@ -141,8 +127,11 @@ Page {
 
     }
 
-    RecommandSongsQuerier {
-        id: qr_rmd
+    ApiContainer {
+        RecommandSongsQuerier {
+            id: qr_rmd
+        }
+
     }
 
 }

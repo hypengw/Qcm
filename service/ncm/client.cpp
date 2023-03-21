@@ -34,6 +34,7 @@ Client::Client(rc<Session> sess, asio::any_io_executor ex)
       m_crypto(std::make_shared<Crypto>()),
       m_ex(std::make_shared<executor_type>(ex)) {
     m_req_common.set_connect_timeout(30)
+        .set_transfer_timeout(60)
         .set_header("Referer", "https://music.163.com")
         .set_header("User-Agent",
                     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, "

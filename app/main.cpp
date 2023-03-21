@@ -8,7 +8,7 @@
 
 int main(int argc, char* argv[]) {
     // qputenv("QT_SCALE_FACTOR", "1");
-    // qputenv("QT_FONT_DPI", "96");
+     qputenv("QT_FONT_DPI", "96");
     // qputenv("QT_MEDIA_BACKEND", "ffmpeg");
     auto logger = qcm::LogManager::init();
     request::global_init();

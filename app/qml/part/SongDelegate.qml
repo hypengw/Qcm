@@ -120,12 +120,13 @@ ItemDelegate {
                 Component {
                     id: comp_menu
 
-                    Menu {
+                    MMenu {
                         y: btn_menu.height
                         modal: true
                         dim: false
 
                         Action {
+                            icon.name: Theme.ic.play_arrow
                             text: qsTr('Play next')
                             onTriggered: {
                                 QA.playlist.appendNext(modelData);
@@ -133,6 +134,7 @@ ItemDelegate {
                         }
 
                         Action {
+                            icon.name: Theme.ic.album
                             text: qsTr('Show album')
                             onTriggered: {
                                 QA.route(modelData.album.itemId);
@@ -140,6 +142,7 @@ ItemDelegate {
                         }
 
                         Action {
+                            icon.name: Theme.ic.person
                             text: qsTr('Show artist')
                             onTriggered: {
                                 const artists = modelData.artists;

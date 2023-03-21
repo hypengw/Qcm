@@ -11,11 +11,9 @@ constexpr QRgb base_color { qRgb(190, 231, 253) };
 namespace
 {
 std::map<QColor, QColor, QColorCompare> gen_on_map(const MdScheme& sh) {
-    return { { sh.primary, sh.on_primary },
-             { sh.secondary, sh.on_secondary },
-             { sh.tertiary, sh.on_tertiary },
-             { sh.error, sh.on_error },
-             { sh.background, sh.on_background } };
+    return { { sh.primary, sh.on_primary },       { sh.secondary, sh.on_secondary },
+             { sh.tertiary, sh.on_tertiary },     { sh.error, sh.on_error },
+             { sh.background, sh.on_background }, { sh.inverse_surface, sh.inverse_on_surface } };
 }
 } // namespace
 

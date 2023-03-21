@@ -166,6 +166,19 @@ Page {
                                 }
                             }
 
+                            footer: ColumnLayout {
+                                width: view.width
+                                implicitHeight: busy_footer.running ? busy_footer.implicitHeight : 0
+
+                                BusyIndicator {
+                                    id: busy_footer
+
+                                    Layout.alignment: Qt.AlignCenter
+                                    running: qr_artist.status === ApiQuerierBase.Querying
+                                }
+
+                            }
+
                             ScrollBar.vertical: ScrollBar {
                             }
 
@@ -181,15 +194,18 @@ Page {
 
     }
 
-    ArtistQuerier {
-        id: qr_artist
+    ApiContainer {
+        ArtistQuerier {
+            id: qr_artist
 
-        autoReload: root.itemId.valid()
-        onStatusChanged: {
-            if (ApiQuerierBase.Error === this.status)
-                console.error(this.error);
+            autoReload: root.itemId.valid()
+            onStatusChanged: {
+                if (ApiQuerierBase.Error === this.status)
+                    console.error(this.error);
 
+            }
         }
+
     }
 
 }

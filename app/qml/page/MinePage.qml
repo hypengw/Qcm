@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import QcmApp
 import ".."
 import "../component"
+import "../part"
 
 Page {
     id: root
@@ -99,8 +100,22 @@ Page {
 
                 }
 
-                AlbumSublistQuerier {
-                    id: qr_albumlist
+                ApiContainer {
+                    AlbumSublistQuerier {
+                        id: qr_albumlist
+                    }
+
+                    ArtistSublistQuerier {
+                        id: qr_artistlist
+                    }
+
+                    UserPlaylistQuerier {
+                        id: qr_playlist
+
+                        uid: QA.user_info.userId
+                        autoReload: uid.valid()
+                    }
+
                 }
 
                 Component {
@@ -148,10 +163,6 @@ Page {
 
                     }
 
-                }
-
-                ArtistSublistQuerier {
-                    id: qr_artistlist
                 }
 
                 Component {
@@ -203,13 +214,6 @@ Page {
 
                     }
 
-                }
-
-                UserPlaylistQuerier {
-                    id: qr_playlist
-
-                    uid: QA.user_info.userId
-                    autoReload: uid.valid()
                 }
 
                 Component {

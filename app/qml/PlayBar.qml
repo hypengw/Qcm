@@ -122,29 +122,23 @@ Pane {
                 Material.accent: Theme.color.tertiary
                 enabled: QA.cur_song.itemId.valid()
                 highlighted: liked
-                text: liked ? Theme.ic.favorite : Theme.ic.favorite_border
-                font.family: Theme.font.icon_round.family
-                font.pointSize: 14
+                icon.name: liked ? Theme.ic.favorite : Theme.ic.favorite_border
                 flat: true
                 onClicked: {
                     QA.querier_user_song.like_song(QA.cur_song.itemId, !liked);
                 }
             }
 
-            RoundButton {
-                font.family: Theme.font.icon_round.family
-                font.pointSize: 16
+            MRoundButton {
                 enabled: QA.playlist.canPrev
                 flat: true
-                text: Theme.ic.skip_previous
+                icon.name: Theme.ic.skip_previous
                 onClicked: QA.playlist.prev()
             }
 
             MRoundButton {
                 highlighted: true
-                font.family: Theme.font.icon_round.family
-                font.pointSize: 20
-                text: {
+                icon.name: {
                     if (QA.player.playing)
                         return Theme.ic.pause;
                     else
@@ -159,20 +153,16 @@ Pane {
                 }
             }
 
-            RoundButton {
-                font.family: Theme.font.icon_round.family
-                font.pointSize: 16
+            MRoundButton {
                 enabled: QA.playlist.canNext
                 flat: true
-                text: Theme.ic.skip_next
+                icon.name: Theme.ic.skip_next
                 onClicked: QA.playlist.next()
             }
 
-            RoundButton {
-                font.family: Theme.font.icon_round.family
-                font.pointSize: 16
+            MRoundButton {
                 flat: true
-                text: QA.loop_icon
+                icon.name: QA.loop_icon
                 onClicked: {
                     let mode = QA.playlist.loopMode;
                     switch (mode) {
@@ -193,11 +183,9 @@ Pane {
                 }
             }
 
-            RoundButton {
-                font.family: Theme.font.icon_round.family
-                font.pointSize: 16
+            MRoundButton {
                 flat: true
-                text: Theme.ic.queue_music
+                icon.name: Theme.ic.queue_music
                 onClicked: {
                     pop_playlist.open();
                 }
@@ -248,12 +236,9 @@ Pane {
                                         text: model.song.name
                                     }
 
-                                    RoundButton {
-                                        font.family: Theme.font.icon_round.family
-                                        font.pointSize: 16
+                                    MRoundButton {
                                         flat: true
-                                        padding: 8
-                                        text: Theme.ic.remove
+                                        icon.name: Theme.ic.remove
                                         onClicked: {
                                             QA.playlist.remove(model.song.itemId);
                                         }

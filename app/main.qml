@@ -11,6 +11,7 @@ ApplicationWindow {
 
     // load QA
     readonly property string _QA: QA.user_info.nickname
+    readonly property alias snake: m_snake
 
     function push_page(url, props) {
         win_stack.currentItem.page_stack.push_page(url, props);
@@ -23,7 +24,7 @@ ApplicationWindow {
     Material.accent: Material.primary
     Material.background: Theme.color.background
     Material.foreground: Theme.color.on_background
-    Material.theme: Theme.is_dark_theme ? Material.Dark : Material.Light
+    Material.theme: Theme.toMatTheme(Theme.theme)
     color: Material.background
     Component.onCompleted: {
         QA.main_win = win;
@@ -59,6 +60,19 @@ ApplicationWindow {
 
     }
 
+    SnakeView {
+        /*
+        anchors.top: parent.top
+        anchors.topMargin: 24
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: Math.min(Math.max(implicitWidth, 350), parent.width)
+        */
+
+        id: m_snake
+
+        anchors.fill: parent
+    }
+
     Component {
         id: main_view
 
@@ -82,17 +96,19 @@ ApplicationWindow {
                         currentIndex: 1
 
                         ColumnLayout {
-                            RoundButton {
-                                font.family: Theme.font.icon_round.family
-                                font.pointSize: 16
+                            MRoundButton {
                                 flat: true
-                                text: Theme.ic.arrow_back
-                                onClicked: {
-                                    if (m_page_stack.depth > 1)
-                                        m_page_stack.pop_page();
-                                    else if (page_container.currentItem.canBack)
-                                        page_container.currentItem.back();
+
+                                action: Action {
+                                    icon.name: Theme.ic.arrow_back
+                                    onTriggered: {
+                                        if (m_page_stack.depth > 1)
+                                            m_page_stack.pop_page();
+                                        else if (page_container.currentItem.canBack)
+                                            page_container.currentItem.back();
+                                    }
                                 }
+
                             }
 
                             Item {
@@ -110,6 +126,7 @@ ApplicationWindow {
                                     "icon": Theme.ic.menu,
                                     "action": {
                                         "do": function() {
+                                            m_snake.show("tttttttttttttttttttttttttttttttttttttttt", 5000);
                                         }
                                     }
                                 }, {
@@ -164,24 +181,28 @@ ApplicationWindow {
                         Layout.fillHeight: true
                     }
 
-                    RoundButton {
-                        font.family: Theme.font.icon_round.family
-                        font.pointSize: 16
+                    MRoundButton {
                         flat: true
-                        text: Theme.is_dark_theme ? Theme.ic.dark_mode : Theme.ic.light_mode
-                        onClicked: {
-                            Theme.theme = Theme.is_dark_theme ? MdColorMgr.Light : MdColorMgr.Dark;
+
+                        action: Action {
+                            icon.name: Theme.is_dark_theme ? Theme.ic.dark_mode : Theme.ic.light_mode
+                            onTriggered: {
+                                Theme.theme = Theme.is_dark_theme ? MdColorMgr.Light : MdColorMgr.Dark;
+                            }
                         }
+
                     }
 
-                    RoundButton {
-                        font.family: Theme.font.icon_round.family
-                        font.pointSize: 16
+                    MRoundButton {
                         flat: true
-                        text: Theme.ic.settings
-                        onClicked: {
-                            QA.show_popup('qrc:/QcmApp/qml/part/SettingsPopup.qml');
+
+                        action: Action {
+                            icon.name: Theme.ic.settings
+                            onTriggered: {
+                                QA.show_popup('qrc:/QcmApp/qml/part/SettingsPopup.qml');
+                            }
                         }
+
                     }
 
                 }

@@ -2,11 +2,13 @@ pragma Singleton
 import QtQml
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Material
 import Qt.labs.settings
 import QcmApp
 
 Item {
-    readonly property string ttt: '123'
+    // typescale
+
     readonly property var
     font: QtObject {
         readonly property var icon_round: this.fontload_material_round.font
@@ -73,9 +75,56 @@ Item {
         readonly property string favorite_border: '\ue87e'
     }
 
+    readonly property var ts: ({
+        "title_small": {
+            "size": 14
+        },
+        "title_medium": {
+            "size": 16
+        },
+        "title_large": {
+            "size": 22
+        },
+        "label_small": {
+            "size": 11
+        },
+        "label_medium": {
+            "size": 12
+        },
+        "label_large": {
+            "size": 14
+        },
+        "body_small": {
+            "size": 12
+        },
+        "body_medium": {
+            "size": 14
+        },
+        "body_large": {
+            "size": 16
+        }
+    })
     readonly property alias color: m_color
-    property alias theme: m_color.schemeTheme
+    readonly property alias theme: m_color.schemeTheme
     readonly property bool is_dark_theme: theme === MdColorMgr.Dark
+
+    // seems icon font size need map
+    function ic_size(s) {
+        switch (Math.floor(s)) {
+        case 24:
+            return 18;
+        default:
+            return s;
+        }
+    }
+
+    function toMatTheme(th, inverse = false) {
+        function fn_inverse(v, iv) {
+            return iv ? !v : v;
+        }
+
+        return fn_inverse(th === MdColorMgr.Dark, inverse) ? Material.Dark : Material.Light;
+    }
 
     MdColorMgr {
         id: m_color

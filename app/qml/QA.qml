@@ -4,6 +4,7 @@ import QtQuick
 import QtMultimedia
 import Qt.labs.settings
 import QcmApp
+import "./part"
 
 Item {
     id: root
@@ -99,6 +100,10 @@ Item {
         main_win.push_page(url, props);
     }
 
+    function toast(text, duration) {
+        main_win.snake.show(text, duration);
+    }
+
     Settings {
         property alias loop: m_playlist.loopMode
 
@@ -118,53 +123,56 @@ Item {
         }
     }
 
-    UserAccountQuerier {
-        id: m_querier_user
+    ApiContainer {
+        UserAccountQuerier {
+            id: m_querier_user
 
-        onStatusChanged: {
-            if (status === ApiQuerierBase.Finished)
-                App.loginPost(data);
+            onStatusChanged: {
+                if (status === ApiQuerierBase.Finished)
+                    App.loginPost(data);
 
-        }
-    }
-
-    SongLikeQuerier {
-        id: m_querier_user_songlike
-
-        function like_song(song_id, is_like) {
-            const qu = m_querier_radio_like;
-            qu.trackId = song_id;
-            qu.like = is_like;
-            qu.query();
-        }
-
-        autoReload: m_querier_user.status === ApiQuerierBase.Finished
-    }
-
-    RadioLikeQuerier {
-        id: m_querier_radio_like
-
-        onStatusChanged: {
-            if (status === ApiQuerierBase.Finished) {
-                if (like)
-                    m_querier_user_songlike.data.insert(trackId);
-                else
-                    m_querier_user_songlike.data.remove(trackId);
-                m_querier_user_songlike.dataChanged();
             }
         }
-        autoReload: false
-    }
 
-    SongUrlQuerier {
-        id: m_querier_song
+        SongLikeQuerier {
+            id: m_querier_user_songlike
 
-        autoReload: ids.length > 0
-        onStatusChanged: {
-            if (status === ApiQuerierBase.Error)
-                m_player.stop();
+            function like_song(song_id, is_like) {
+                const qu = m_querier_radio_like;
+                qu.trackId = song_id;
+                qu.like = is_like;
+                qu.query();
+            }
 
+            autoReload: m_querier_user.status === ApiQuerierBase.Finished
         }
+
+        RadioLikeQuerier {
+            id: m_querier_radio_like
+
+            onStatusChanged: {
+                if (status === ApiQuerierBase.Finished) {
+                    if (like)
+                        m_querier_user_songlike.data.insert(trackId);
+                    else
+                        m_querier_user_songlike.data.remove(trackId);
+                    m_querier_user_songlike.dataChanged();
+                }
+            }
+            autoReload: false
+        }
+
+        SongUrlQuerier {
+            id: m_querier_song
+
+            autoReload: ids.length > 0
+            onStatusChanged: {
+                if (status === ApiQuerierBase.Error)
+                    m_player.stop();
+
+            }
+        }
+
     }
 
     MediaPlayer {
