@@ -230,10 +230,19 @@ Pane {
                                     anchors.fill: parent
                                     anchors.leftMargin: 12
                                     anchors.rightMargin: 12
+                                    spacing: 12
+
+                                    Label {
+                                        Layout.minimumWidth: Theme.font.w_unit * view_playlist.count.toString().length + 2
+                                        horizontalAlignment: Qt.AlignRight
+                                        text: index + 1
+                                        opacity: 0.6
+                                    }
 
                                     Label {
                                         Layout.fillWidth: true
                                         text: model.song.name
+                                        elide: Text.ElideRight
                                     }
 
                                     MRoundButton {

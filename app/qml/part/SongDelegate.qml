@@ -34,7 +34,7 @@ ItemDelegate {
             Label {
                 horizontalAlignment: Qt.AlignRight
                 font.family: Theme.font.icon_round.family
-                font.pointSize: 16
+                font.pointSize: 18
                 color: Theme.color.tertiary
                 text: Theme.ic.equalizer
             }

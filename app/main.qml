@@ -126,7 +126,6 @@ ApplicationWindow {
                                     "icon": Theme.ic.menu,
                                     "action": {
                                         "do": function() {
-                                            m_snake.show("tttttttttttttttttttttttttttttttttttttttt", 5000);
                                         }
                                     }
                                 }, {
