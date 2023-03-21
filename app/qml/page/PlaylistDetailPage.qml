@@ -284,11 +284,6 @@ Page {
             id: qr_pl
 
             autoReload: root.itemId.valid()
-            onStatusChanged: {
-                if (ApiQuerierBase.Error === this.status)
-                    console.error(this.error);
-
-            }
         }
 
         PlaylistDetailDynamicQuerier {

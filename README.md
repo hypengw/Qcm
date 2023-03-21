@@ -25,7 +25,6 @@ ninja
 ### Todo:
 - [ ] sql
 - [ ] drop qtmultimedia
-- [ ] toast
 - [ ] playlist page
 - [ ] playing page
 - [ ] search page

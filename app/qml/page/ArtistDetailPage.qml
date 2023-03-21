@@ -199,11 +199,6 @@ Page {
             id: qr_artist
 
             autoReload: root.itemId.valid()
-            onStatusChanged: {
-                if (ApiQuerierBase.Error === this.status)
-                    console.error(this.error);
-
-            }
         }
 
     }

@@ -287,11 +287,6 @@ Page {
             id: qr_al
 
             autoReload: root.itemId.valid()
-            onStatusChanged: {
-                if (ApiQuerierBase.Error === this.status)
-                    console.error(this.error);
-
-            }
         }
 
         AlbumDetailDynamicQuerier {

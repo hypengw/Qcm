@@ -90,17 +90,20 @@ struct PlaylistDetail {
     static Result<PlaylistDetail> parse(std::span<const byte> bs) {
         return api_model::parse<PlaylistDetail>(bs).map([](PlaylistDetail in) {
             auto& tracks = in.playlist.tracks;
-            auto  len    = std::min(tracks.size(), in.privileges.size());
-            for (usize i = 0; i < len; i++) {
-                tracks[i].privilege = in.privileges[i];
+            if (in.privileges) {
+                auto& privileges = in.privileges.value();
+                auto  len        = std::min(tracks.size(), privileges.size());
+                for (usize i = 0; i < len; i++) {
+                    tracks[i].privilege = privileges[i];
+                }
             }
             return in;
         });
     }
 
-    i64                                 code;
-    model::PlaylistDetail               playlist;
-    std::vector<model::Song::Privilege> privileges;
+    i64                                                code;
+    model::PlaylistDetail                              playlist;
+    std::optional<std::vector<model::Song::Privilege>> privileges;
 };
 JSON_DEFINE(PlaylistDetail);
 
