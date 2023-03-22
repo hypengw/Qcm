@@ -251,7 +251,9 @@ Item {
 
                 meta[key(MprisMediaPlayer.MetaTitle)] = song.name;
                 meta[key(MprisMediaPlayer.MetaAlbum)] = song.album.name;
-                meta[key(MprisMediaPlayer.MetaArtist)] = root.join_name(song.artists);
+                meta[key(MprisMediaPlayer.MetaAlbumArtist)] = song.artists.map((a) => {
+                    return a.name;
+                });
                 meta[key(MprisMediaPlayer.MetaLength)] = duration * 1000;
                 return meta;
             });

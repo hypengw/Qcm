@@ -148,6 +148,7 @@ public:
     GATGET_PROPERTY(AlbumId, itemId, id)
     GATGET_PROPERTY(QString, name, name)
     GATGET_PROPERTY(QString, picUrl, picUrl)
+    GATGET_PROPERTY(QDateTime, publishTime, publishTime)
     GATGET_PROPERTY(std::vector<Artist>, artists, artists)
 
     std::strong_ordering operator<=>(const Album&) const = default;
@@ -229,6 +230,7 @@ struct To<qcm::model::Album> {
         CONVERT_PROPERTY(o.name, in.name);
         CONVERT_PROPERTY(o.picUrl, in.picUrl);
         CONVERT_PROPERTY(o.artists, in.artists);
+        CONVERT_PROPERTY(o.publishTime, in.publishTime);
         return o;
     }
 };

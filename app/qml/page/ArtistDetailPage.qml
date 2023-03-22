@@ -223,7 +223,7 @@ Page {
                                 interactive: flick.atYEnd
                                 clip: true
                                 model: qr_artist_albums.data
-                                cellHeight: 240
+                                cellHeight: 250
                                 cellWidth: width > 0 ? width / Math.floor((width / cellWidth_)) : 0
 
                                 delegate: Pane {
@@ -239,8 +239,6 @@ Page {
                                         }
 
                                         contentItem: ColumnLayout {
-                                            spacing: 12
-
                                             Image {
                                                 Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
                                                 Layout.preferredWidth: 160
@@ -251,11 +249,19 @@ Page {
                                             }
 
                                             Label {
+                                                Layout.topMargin: 8
                                                 Layout.preferredWidth: 160
                                                 text: model.name
                                                 maximumLineCount: 2
                                                 wrapMode: Text.Wrap
                                                 elide: Text.ElideRight
+                                            }
+
+                                            Label {
+                                                visible: !!text
+                                                Layout.alignment: Qt.AlignHCenter
+                                                text: Qt.formatDateTime(model.publishTime, 'yyyy')
+                                                opacity: 0.6
                                             }
 
                                             Item {
