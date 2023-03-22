@@ -86,6 +86,18 @@ Page {
                                 }
 
                                 IconRowLayout {
+                                    text: Theme.ic.album
+                                    iconSize: 16
+
+                                    Label {
+                                        Layout.fillWidth: true
+                                        elide: Text.ElideRight
+                                        text: `${root.itemData.info.albumSize} albums`
+                                    }
+
+                                }
+
+                                IconRowLayout {
                                     text: Theme.ic.music_note
                                     iconSize: 16
 
@@ -141,45 +153,133 @@ Page {
                     spacing: 0
 
                     Pane {
+                        padding: 0
+                        Layout.fillWidth: true
+                        Material.elevation: 1
+
+                        TabBar {
+                            id: bar
+
+                            anchors.fill: parent
+                            Material.elevation: 0
+                            Material.background: Theme.color.surface_2
+                            Component.onCompleted: {
+                                currentIndexChanged();
+                            }
+
+                            TabButton {
+                                text: qsTr("Hot Song")
+                            }
+
+                            TabButton {
+                                text: qsTr("Album")
+                            }
+
+                        }
+
+                    }
+
+                    Pane {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         Material.elevation: 1
                         Material.background: Theme.color.surface_1
                         padding: 0
 
-                        ListView {
-                            id: view
-
+                        StackLayout {
+                            currentIndex: bar.currentIndex
                             anchors.fill: parent
-                            implicitHeight: contentHeight
-                            boundsBehavior: Flickable.StopAtBounds
-                            interactive: flick.atYEnd
-                            clip: true
-                            model: itemData.hotSongs
 
-                            delegate: SongDelegate {
-                                width: view.width
-                                count: view.count
-                                subtitle: `${modelData.album.name}`
-                                onClicked: {
-                                    QA.playlist.switchTo(modelData);
-                                }
-                            }
+                            ListView {
+                                implicitHeight: contentHeight
+                                boundsBehavior: Flickable.StopAtBounds
+                                interactive: flick.atYEnd
+                                clip: true
+                                model: itemData.hotSongs
 
-                            footer: ColumnLayout {
-                                width: view.width
-                                implicitHeight: busy_footer.running ? busy_footer.implicitHeight : 0
-
-                                BusyIndicator {
-                                    id: busy_footer
-
-                                    Layout.alignment: Qt.AlignCenter
-                                    running: qr_artist.status === ApiQuerierBase.Querying
+                                delegate: SongDelegate {
+                                    width: ListView.view.width
+                                    count: ListView.view.count
+                                    subtitle: `${modelData.album.name}`
+                                    onClicked: {
+                                        QA.playlist.switchTo(modelData);
+                                    }
                                 }
 
+                                footer: ColumnLayout {
+                                    width: ListView.view.width
+                                    implicitHeight: busy_footer.running ? busy_footer.implicitHeight : 0
+
+                                    BusyIndicator {
+                                        id: busy_footer
+
+                                        Layout.alignment: Qt.AlignCenter
+                                        running: qr_artist.status === ApiQuerierBase.Querying
+                                    }
+
+                                }
+
+                                ScrollBar.vertical: ScrollBar {
+                                }
+
                             }
 
-                            ScrollBar.vertical: ScrollBar {
+                            GridView {
+                                property int cellWidth_: 180
+
+                                implicitHeight: contentHeight
+                                boundsBehavior: Flickable.StopAtBounds
+                                interactive: flick.atYEnd
+                                clip: true
+                                model: qr_artist_albums.data
+                                cellHeight: 240
+                                cellWidth: width / Math.floor((width / cellWidth_))
+
+                                delegate: Pane {
+                                    width: GridView.view.cellWidth
+                                    height: GridView.view.cellHeight
+
+                                    MItemDelegate {
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        clip: true
+                                        padding: 8
+                                        onClicked: {
+                                            QA.route(model.itemId);
+                                        }
+
+                                        contentItem: ColumnLayout {
+                                            spacing: 12
+
+                                            Image {
+                                                Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
+                                                Layout.preferredWidth: 160
+                                                Layout.preferredHeight: 160
+                                                source: `image://ncm/${model.picUrl}`
+                                                sourceSize.width: 160
+                                                sourceSize.height: 160
+                                            }
+
+                                            Label {
+                                                Layout.preferredWidth: 160
+                                                text: model.name
+                                                maximumLineCount: 2
+                                                wrapMode: Text.Wrap
+                                                elide: Text.ElideRight
+                                            }
+
+                                            Item {
+                                                Layout.fillHeight: true
+                                            }
+
+                                        }
+
+                                    }
+
+                                }
+
+                                ScrollBar.vertical: ScrollBar {
+                                }
+
                             }
 
                         }
@@ -198,7 +298,14 @@ Page {
         ArtistQuerier {
             id: qr_artist
 
-            autoReload: root.itemId.valid()
+            autoReload: itemId.valid()
+        }
+
+        ArtistAlbumsQuerier {
+            id: qr_artist_albums
+
+            artistId: qr_artist.itemId
+            autoReload: artistId.valid()
         }
 
     }

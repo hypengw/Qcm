@@ -6,6 +6,7 @@
 #include "ncm/api/album_sub.h"
 #include "ncm/api/album_sublist.h"
 #include "ncm/api/artist.h"
+#include "ncm/api/artist_albums.h"
 #include "ncm/api/artist_sublist.h"
 #include "ncm/api/login.h"
 #include "ncm/api/playlist_detail.h"
@@ -83,6 +84,7 @@ JSON_DEFINE_IMPL(AlbumDetailDynamic, code, shareCount, subCount, subTime, onSale
 JSON_DEFINE_IMPL(AlbumSub, code);
 JSON_DEFINE_IMPL(AlbumSublist, code, data, count, hasMore);
 JSON_DEFINE_IMPL(Artist, code, hotSongs, artist, more);
+JSON_DEFINE_IMPL(ArtistAlbums, code, hotAlbums, more);
 JSON_DEFINE_IMPL(ArtistSublist, code, data, count, hasMore);
 JSON_DEFINE_IMPL(Login, code);
 JSON_DEFINE_IMPL(PlaylistDetail, code, playlist, privileges);
@@ -115,6 +117,7 @@ JSON_GET_IMPL(api_model::AlbumDetailDynamic);
 JSON_GET_IMPL(api_model::AlbumSub);
 JSON_GET_IMPL(api_model::AlbumSublist);
 JSON_GET_IMPL(api_model::Artist);
+JSON_GET_IMPL(api_model::ArtistAlbums);
 JSON_GET_IMPL(api_model::ArtistSublist);
 JSON_GET_IMPL(api_model::Login);
 JSON_GET_IMPL(api_model::PlaylistDetail);

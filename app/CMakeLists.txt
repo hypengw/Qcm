@@ -18,6 +18,7 @@ set(SOURCES
     include/Qcm/model/album_sub.h
     include/Qcm/model/album_sublist.h
     include/Qcm/model/artist.h
+    include/Qcm/model/artist_albums.h
     include/Qcm/model/artist_sublist.h
     include/Qcm/model/login.h
     include/Qcm/model/playlist_detail.h
@@ -105,6 +106,7 @@ target_link_libraries(
          fmt::fmt
          qr_code
          material_helper
+         meta_model
          mpris
          appplugin)
 target_compile_definitions(app PUBLIC APP_ID="${APP_ID}"

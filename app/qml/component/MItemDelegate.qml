@@ -2,13 +2,18 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
-import QcmApp
 import ".."
 
 ItemDelegate {
     id: root
 
-    highlighted: ListView.isCurrentItem
+    highlighted: {
+        if (ListView)
+            return ListView.isCurrentItem;
+        else if (GridView)
+            return GridView.isCurrentItem;
+        return false;
+    }
     Material.foreground: highlighted ? Theme.color.getOn(background.color) : Theme.color.on_background
 
     Binding {
