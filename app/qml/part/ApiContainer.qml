@@ -9,8 +9,10 @@ QtObject {
 
     function status_slot() {
         // 'this' binded to api
-        if (this.status === ApiQuerierBase.Error)
-            QA.toast(this.error, 5000);
+        if (this.status === ApiQuerierBase.Error) {
+            if(this.error !== 'Operation aborted.')
+                QA.toast(this.error, 5000);
+        }
 
     }
 

@@ -93,8 +93,8 @@ public:
     explicit MediaPlayer2(QObject* parent = nullptr);
     virtual ~MediaPlayer2() override;
 
+    static QString static_metakey(MetaKey); 
     Q_INVOKABLE QString metakey(MetaKey) const;
-
     // Mpris2 Root Interface
     bool canQuit() const;
     void setCanQuit(bool canQuit);

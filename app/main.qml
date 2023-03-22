@@ -17,8 +17,8 @@ ApplicationWindow {
         win_stack.currentItem.page_stack.push_page(url, props);
     }
 
-    width: 700
-    height: 450
+    width: 900
+    height: 600
     visible: true
     Material.primary: Theme.color.primary
     Material.accent: Material.primary

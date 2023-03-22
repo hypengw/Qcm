@@ -5,6 +5,7 @@ import QtQuick.Controls.Material
 import QcmApp
 import ".."
 import "../component"
+import "../part"
 
 ColumnLayout {
     id: root

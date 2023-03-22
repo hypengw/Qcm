@@ -1,8 +1,11 @@
 #include "mpris/mediaplayer2.h"
 #include "mpris/mediaplayer2_adaptor.h"
 
+#include <span>
+
 #include <QDBusConnection>
 #include <QDBusMessage>
+#include <QUrl>
 
 using namespace mpris;
 
@@ -47,7 +50,7 @@ MediaPlayer2::MediaPlayer2(QObject* parent)
 
 MediaPlayer2::~MediaPlayer2() {}
 
-QString MediaPlayer2::metakey(MetaKey k) const {
+QString MediaPlayer2::static_metakey(MetaKey k) {
     constexpr std::array keys { "mpris:trackid",     "mpris:length",      "mpris:artUrl",
                                 "xesam:album",       "xesam:albumArtist", "xesam:artist",
                                 "xesam:asText",      "xesam:audioBPM",    "xesam:autoRating",
@@ -62,6 +65,8 @@ QString MediaPlayer2::metakey(MetaKey k) const {
     }
     return "";
 };
+
+QString MediaPlayer2::metakey(MetaKey k) const { return MediaPlayer2::static_metakey(k); };
 
 // Mpris2 Root Interface
 bool MediaPlayer2::canQuit() const { return m_canQuit; }
@@ -203,6 +208,19 @@ void MediaPlayer2::setMaximumRate(double v) {
 
 QVariantMap MediaPlayer2::metadata() const { return m_typedMetadata; }
 
+namespace
+{
+
+template<typename Fn>
+void metadata_type_map(QVariantMap& meta, std::span<const MediaPlayer2::MetaKey> keys, Fn&& fn) {
+    for (auto& k : keys) {
+        auto k_s = MediaPlayer2::static_metakey(k);
+        if (meta.contains(k_s)) meta[k_s] = fn(meta[k_s]);
+    }
+}
+
+} // namespace
+
 void MediaPlayer2::setMetadata(const QVariantMap& metadata) {
     if (m_metadata == metadata) {
         return;
@@ -215,6 +233,18 @@ void MediaPlayer2::setMetadata(const QVariantMap& metadata) {
         m_typedMetadata[key_trackid] = QVariant::fromValue(
             QDBusObjectPath(u"/trackid/"_qs + m_metadata[key_trackid].toString()));
     }
+    metadata_type_map(m_typedMetadata,
+                      std::array {
+                          MetaAlbumArtist,
+                          MetaArtist,
+                          MetaComment,
+                          MetaComposer,
+                          MetaGenre,
+                          MetaLyricist,
+                      },
+                      [](auto& v) {
+                          return QVariant::fromValue(v).toStringList();
+                      });
     Q_EMIT metadataChanged();
 }
 
@@ -267,51 +297,47 @@ void MediaPlayer2::setVolume(double v) {
 }
 
 // Private
-
 /*
 QVariantMap MediaPlayer2::typeMetadata(const QVariantMap& aMetadata) {
     QVariantMap                 metadata;
     QVariantMap::const_iterator i = aMetadata.constBegin();
     while (i != aMetadata.constEnd()) {
-        switch (Mpris::enumerationFromString<Mpris::Metadata>(i.key())) {
-        case Mpris::TrackId:
-            metadata.insert(i.key(),
-QVariant::fromValue(QDBusObjectPath(i.value().toString()))); break; case Mpris::Length:
+        switch (MetaenumerationFromString<MetaMetadata>(i.key())) {
+        case MetaTrackId:
+            metadata.insert(i.key(), QVariant::fromValue(QDBusObjectPath(i.value().toString())));
+            break;
+        case MetaLength:
             metadata.insert(i.key(), QVariant::fromValue(i.value().toLongLong()));
             break;
-        case Mpris::ArtUrl:
-        case Mpris::Url:
+        case MetaArtUrl:
+        case MetaUrl:
             metadata.insert(i.key(), QVariant::fromValue(i.value().toUrl().toString()));
             break;
-        case Mpris::Album:
-        case Mpris::AsText:
-        case Mpris::Title:
-            metadata.insert(i.key(), QVariant::fromValue(i.value().toString()));
-            break;
-        case Mpris::AlbumArtist:
-        case Mpris::Artist:
-        case Mpris::Comment:
-        case Mpris::Composer:
-        case Mpris::Genre:
-        case Mpris::Lyricist:
+        case MetaAlbum:
+        case MetaAsText:
+        case MetaTitle: metadata.insert(i.key(), QVariant::fromValue(i.value().toString())); break;
+        case MetaAlbumArtist:
+        case MetaArtist:
+        case MetaComment:
+        case MetaComposer:
+        case MetaGenre:
+        case MetaLyricist:
             metadata.insert(i.key(), QVariant::fromValue(i.value().toStringList()));
             break;
-        case Mpris::AudioBPM:
-        case Mpris::DiscNumber:
-        case Mpris::TrackNumber:
-        case Mpris::UseCount:
-            metadata.insert(i.key(), QVariant::fromValue(i.value().toInt()));
-            break;
-        case Mpris::AutoRating:
-        case Mpris::UserRating:
+        case MetaAudioBPM:
+        case MetaDiscNumber:
+        case MetaTrackNumber:
+        case MetaUseCount: metadata.insert(i.key(), QVariant::fromValue(i.value().toInt())); break;
+        case MetaAutoRating:
+        case MetaUserRating:
             metadata.insert(i.key(), QVariant::fromValue(i.value().toFloat()));
             break;
-        case Mpris::ContentCreated:
-        case Mpris::FirstUsed:
-        case Mpris::LastUsed:
-            metadata.insert(i.key(),
-QVariant::fromValue(i.value().toDate().toString(Qt::ISODate))); break; case
-Mpris::InvalidMetadata:
+        case MetaContentCreated:
+        case MetaFirstUsed:
+        case MetaLastUsed:
+            metadata.insert(i.key(), QVariant::fromValue(i.value().toDate().toString(Qt::ISODate)));
+            break;
+        case MetaInvalidMetadata:
             // Passing with the original type and hoping the user used
             // a type supported by DBus
             metadata.insert(i.key(), i.value());

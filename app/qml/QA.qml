@@ -127,8 +127,10 @@ Item {
         UserAccountQuerier {
             id: m_querier_user
 
-            onStatusChanged: {
-                if (status === ApiQuerierBase.Finished)
+            readonly property bool loginOk: data.userId.valid()
+
+            onLoginOkChanged: {
+                if (loginOk)
                     App.loginPost(data);
 
             }
@@ -144,7 +146,7 @@ Item {
                 qu.query();
             }
 
-            autoReload: m_querier_user.status === ApiQuerierBase.Finished
+            autoReload: m_querier_user.loginOk
         }
 
         RadioLikeQuerier {
