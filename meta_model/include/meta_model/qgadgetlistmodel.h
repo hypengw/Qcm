@@ -7,12 +7,6 @@
 namespace meta_model
 {
 
-struct Test {
-    Q_GADGET
-    Q_PROPERTY(QString id MEMBER id)
-    QString id;
-};
-
 template<typename T>
 concept cp_is_gadget = requires() { typename T::QtGadgetHelper; };
 template<typename T>
@@ -32,6 +26,13 @@ public:
             m_role_names.insert(roleIndex++, prop.name());
         }
     }
+
+    void insert(int index, const TGadget& gad) {
+        beginInsertRows({}, index, index);
+        m_items.insert(index, gad);
+        endInsertRows();
+    }
+
     // override
     int      rowCount(const QModelIndex& = QModelIndex()) const override { return m_items.size(); }
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override {
@@ -52,7 +53,5 @@ private:
 
     QMetaObject m_meta_object;
 };
-
-using tt = QGadgetListModel<Test>;
 
 } // namespace meta_model

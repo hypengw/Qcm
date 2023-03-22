@@ -28,13 +28,9 @@ public:
         }
         if (! in.hotAlbums.empty()) {
             auto in_      = To<std::vector<model::Album>>::from(in.hotAlbums);
-            auto in_count = in_.size();
-            auto count    = rowCount();
-            beginInsertRows({}, count, count + in_count - 1);
             for (auto& el : in_) {
-                items().append(el);
+                insert(rowCount(), el);
             }
-            endInsertRows();
         }
         m_has_more = in.more;
     }

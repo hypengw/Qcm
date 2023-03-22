@@ -7,6 +7,8 @@
 #include "Qcm/model.h"
 #include "ncm/api/user_playlist.h"
 
+#include "meta_model/qgadgetlistmodel.h"
+
 #include "core/log.h"
 
 namespace qcm
@@ -14,12 +16,13 @@ namespace qcm
 namespace model
 {
 struct UserPlaylistItem {
+    Q_GADGET
 public:
-    PlaylistId id;
-    QString    name;
-    QString    picUrl;
-    qint32     playCount;
-    qint32     trackCount;
+    GATGET_PROPERTY(PlaylistId, itemId, itemId)
+    GATGET_PROPERTY(QString, name, name)
+    GATGET_PROPERTY(QString, picUrl, picUrl)
+    GATGET_PROPERTY(qint32, playCount, playCount)
+    GATGET_PROPERTY(qint32, trackCount, trackCount)
 };
 } // namespace model
 } // namespace qcm
@@ -28,7 +31,7 @@ template<>
 struct To<qcm::model::UserPlaylistItem> {
     static auto from(const ncm::model::UserPlaylistItem& in) {
         qcm::model::UserPlaylistItem o;
-        CONVERT_PROPERTY(o.id, in.id);
+        CONVERT_PROPERTY(o.itemId, in.id);
         CONVERT_PROPERTY(o.name, in.name);
         CONVERT_PROPERTY(o.picUrl, in.coverImgUrl);
         CONVERT_PROPERTY(o.playCount, in.playCount);
@@ -42,10 +45,11 @@ namespace qcm
 namespace model
 {
 
-class UserPlaylist : public QAbstractListModel {
+class UserPlaylist : public meta_model::QGadgetListModel<UserPlaylistItem> {
     Q_OBJECT
 public:
-    UserPlaylist(QObject* parent = nullptr): QAbstractListModel(parent), m_has_more(true) {}
+    UserPlaylist(QObject* parent = nullptr)
+        : meta_model::QGadgetListModel<UserPlaylistItem>(parent), m_has_more(true) {}
     using out_type = ncm::api_model::UserPlaylist;
 
     void handle_output(const out_type& re, const auto& input) {
@@ -53,44 +57,14 @@ public:
             return;
         }
         if (! re.playlist.empty()) {
-            auto in_      = To<std::vector<UserPlaylistItem>>::from(re.playlist);
-            auto in_count = in_.size();
-            auto count    = rowCount();
-            beginInsertRows({}, count, count + in_count - 1);
-            m_items.insert(m_items.end(), in_.begin(), in_.end());
-            endInsertRows();
+            auto in_ = To<std::vector<UserPlaylistItem>>::from(re.playlist);
+            for (auto& el : in_) {
+                insert(rowCount(), el);
+            }
         }
         m_has_more = re.more;
     }
 
-    enum Role
-    {
-        IdRole,
-        NameRole,
-        PicRole,
-        TrackCountRole,
-    };
-    Q_ENUM(Role)
-
-    // list model override
-    int      rowCount(const QModelIndex& = QModelIndex()) const override { return m_items.size(); }
-    QVariant data(const QModelIndex& index, int role = NameRole) const override {
-        auto  row = index.row();
-        auto& d   = m_items.at(row);
-        switch (role) {
-        case IdRole: return QVariant::fromValue(d.id);
-        case PicRole: return d.picUrl;
-        case TrackCountRole: return d.trackCount;
-        case NameRole:
-        default: return d.name;
-        }
-    };
-    QHash<int, QByteArray> roleNames() const override {
-        return { { IdRole, "itemId" },
-                 { NameRole, "name" },
-                 { PicRole, "picUrl" },
-                 { TrackCountRole, "trackCount" } };
-    }
     bool canFetchMore(const QModelIndex&) const override { return m_has_more; }
     void fetchMore(const QModelIndex&) override {
         m_has_more = false;

@@ -6,6 +6,7 @@
 #include "Qcm/api.h"
 #include "Qcm/model.h"
 #include "ncm/api/artist_sublist.h"
+#include "meta_model/qgadgetlistmodel.h"
 
 #include "core/log.h"
 
@@ -14,11 +15,12 @@ namespace qcm
 namespace model
 {
 struct ArtistSublistItem {
+    Q_GADGET
 public:
-    ArtistId id;
-    QString  name;
-    QString  picUrl;
-    qint32   albumSize;
+    GATGET_PROPERTY(ArtistId, itemId, itemId)
+    GATGET_PROPERTY(QString, name, name)
+    GATGET_PROPERTY(QString, picUrl, picUrl)
+    GATGET_PROPERTY(qint32, albumSize, albumSize)
 };
 } // namespace model
 } // namespace qcm
@@ -27,7 +29,7 @@ template<>
 struct To<qcm::model::ArtistSublistItem> {
     static auto from(const ncm::model::ArtistSublistItem& in) {
         qcm::model::ArtistSublistItem o;
-        CONVERT_PROPERTY(o.id, in.id);
+        CONVERT_PROPERTY(o.itemId, in.id);
         CONVERT_PROPERTY(o.name, in.name);
         CONVERT_PROPERTY(o.picUrl, in.picUrl);
         CONVERT_PROPERTY(o.albumSize, in.albumSize);
@@ -40,10 +42,11 @@ namespace qcm
 namespace model
 {
 
-class ArtistSublist : public QAbstractListModel {
+class ArtistSublist : public meta_model::QGadgetListModel<ArtistSublistItem> {
     Q_OBJECT
 public:
-    ArtistSublist(QObject* parent = nullptr): QAbstractListModel(parent), m_has_more(true) {}
+    ArtistSublist(QObject* parent = nullptr)
+        : meta_model::QGadgetListModel<ArtistSublistItem>(parent), m_has_more(true) {}
     using out_type = ncm::api_model::ArtistSublist;
 
     void handle_output(const out_type& re, const auto& input) {
@@ -51,44 +54,14 @@ public:
             return;
         }
         if (! re.data.empty()) {
-            auto in_      = To<std::vector<ArtistSublistItem>>::from(re.data);
-            auto in_count = in_.size();
-            auto count    = rowCount();
-            beginInsertRows({}, count, count + in_count - 1);
-            m_items.insert(m_items.end(), in_.begin(), in_.end());
-            endInsertRows();
+            auto in_ = To<std::vector<ArtistSublistItem>>::from(re.data);
+            for (auto& el : in_) {
+                insert(rowCount(), el);
+            }
         }
         m_has_more = re.hasMore;
     }
 
-    enum Role
-    {
-        IdRole,
-        NameRole,
-        PicRole,
-        AlbumSizeRole,
-    };
-    Q_ENUM(Role)
-
-    // list model override
-    int      rowCount(const QModelIndex& = QModelIndex()) const override { return m_items.size(); }
-    QVariant data(const QModelIndex& index, int role = NameRole) const override {
-        auto  row = index.row();
-        auto& d   = m_items.at(row);
-        switch (role) {
-        case IdRole: return QVariant::fromValue(d.id);
-        case PicRole: return d.picUrl;
-        case AlbumSizeRole: return d.albumSize;
-        case NameRole:
-        default: return d.name;
-        }
-    };
-    QHash<int, QByteArray> roleNames() const override {
-        return { { IdRole, "itemId" },
-                 { NameRole, "name" },
-                 { PicRole, "picUrl" },
-                 { AlbumSizeRole, "albumSize" } };
-    }
     bool canFetchMore(const QModelIndex&) const override { return m_has_more; }
     void fetchMore(const QModelIndex&) override {
         m_has_more = false;
