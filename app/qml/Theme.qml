@@ -77,31 +77,31 @@ Item {
 
     readonly property var ts: ({
         "title_small": {
-            "size": 14
+            "size": 12
         },
         "title_medium": {
-            "size": 16
+            "size": 14
         },
         "title_large": {
-            "size": 22
+            "size": 20
         },
         "label_small": {
-            "size": 11
+            "size": 8.5
         },
         "label_medium": {
-            "size": 12
+            "size": 10.5
         },
         "label_large": {
-            "size": 14
+            "size": 12.5
         },
         "body_small": {
-            "size": 12
+            "size": 10
         },
         "body_medium": {
-            "size": 14
+            "size": 12
         },
         "body_large": {
-            "size": 16
+            "size": 14
         }
     })
     readonly property alias color: m_color

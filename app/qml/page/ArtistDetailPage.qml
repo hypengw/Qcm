@@ -81,7 +81,7 @@ Page {
                                     maximumLineCount: 2
                                     wrapMode: Text.Wrap
                                     elide: Text.ElideRight
-                                    font.pointSize: 20
+                                    font.pointSize: Theme.ts.title_medium.size
                                     font.bold: true
                                 }
 
@@ -261,6 +261,7 @@ Page {
                                                 visible: !!text
                                                 Layout.alignment: Qt.AlignHCenter
                                                 text: Qt.formatDateTime(model.publishTime, 'yyyy')
+                                                font.pointSize: Theme.ts.label_small.size
                                                 opacity: 0.6
                                             }
 

@@ -26,7 +26,7 @@ Page {
 
                 Label {
                     text: qsTr('recommend songs')
-                    font.pointSize: 18
+                    font.pointSize: Theme.ts.title_large.size
                     font.capitalization: Font.Capitalize
                 }
 

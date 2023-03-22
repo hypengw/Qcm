@@ -72,7 +72,7 @@ ItemDelegate {
 
                     Layout.fillWidth: true
                     elide: Text.ElideRight
-                    font.pointSize: Theme.font.small(Theme.font.label_font)
+                    font.pointSize: Theme.ts.label_small.size
                     opacity: 0.6
                     text: root.subtitle ? root.subtitle : `${QA.join_name(root.modelData.artists, '/')} - ${root.modelData.album.name}`
                 }
@@ -95,7 +95,7 @@ ItemDelegate {
                 highlighted: liked
                 text: liked ? Theme.ic.favorite : Theme.ic.favorite_border
                 font.family: Theme.font.icon_round.family
-                font.pointSize: 14
+                font.pointSize: 12
                 flat: true
                 onClicked: {
                     QA.querier_user_song.like_song(root.modelData.itemId, !liked);
@@ -107,7 +107,7 @@ ItemDelegate {
 
                 text: Theme.ic.more_vert
                 font.family: Theme.font.icon_round.family
-                font.pointSize: 14
+                font.pointSize: 12
                 flat: true
                 onClicked: {
                     const item = comp_menu.createObject(btn_menu);

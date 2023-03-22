@@ -82,6 +82,8 @@ Pane {
             }
 
             ColumnLayout {
+                Layout.leftMargin: 4
+
                 Label {
                     Layout.fillWidth: true
                     text: QA.cur_song.name
@@ -107,7 +109,7 @@ Pane {
 
                         Layout.fillWidth: true
                         elide: Text.ElideRight
-                        font.pointSize: Theme.font.small(Theme.font.label_font)
+                        font.pointSize: Theme.ts.label_small.size
                         opacity: 0.6
                         text: QA.join_name(QA.cur_song.artists, '/')
                     }

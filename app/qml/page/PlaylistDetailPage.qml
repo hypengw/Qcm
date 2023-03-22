@@ -76,7 +76,7 @@ Page {
                                     maximumLineCount: 2
                                     wrapMode: Text.Wrap
                                     elide: Text.ElideRight
-                                    font.pointSize: 20
+                                    font.pointSize: Theme.ts.title_medium.size
                                     font.bold: true
                                 }
 

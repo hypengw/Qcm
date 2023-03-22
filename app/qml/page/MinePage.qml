@@ -154,7 +154,7 @@ Page {
                                     text: QA.join_name(model.artists, '/')
                                     elide: Text.ElideRight
                                     opacity: 0.6
-                                    font.pointSize: Theme.font.small(Theme.font.label_font)
+                                    font.pointSize: Theme.ts.label_small.size
                                 }
 
                             }
