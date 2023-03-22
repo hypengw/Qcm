@@ -40,7 +40,6 @@ public:
     }
 
     // list model override
-    //
     bool canFetchMore(const QModelIndex&) const override { return m_has_more; }
     void fetchMore(const QModelIndex&) override {
         m_has_more = false;

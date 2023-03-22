@@ -114,6 +114,11 @@ Page {
                             }
                         }
 
+                        footer: ListBusyFooter {
+                            width: ListView.view.width
+                            running: qr_rmd.status === ApiQuerierBase.Querying
+                        }
+
                         ScrollBar.vertical: ScrollBar {
                         }
 

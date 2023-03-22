@@ -56,6 +56,7 @@ set(QML_FILES
     qml/part/SnakeBar.qml
     qml/part/SnakeView.qml
     qml/part/SongDelegate.qml
+    qml/part/ListBusyFooter.qml
     qml/part/SongTag.qml
     qml/component/IconRowLayout.qml
     qml/component/RoundImage.qml

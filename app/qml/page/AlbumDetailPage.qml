@@ -254,17 +254,9 @@ Page {
                                 }
                             }
 
-                            footer: ColumnLayout {
-                                width: view.width
-                                implicitHeight: busy_footer.running ? busy_footer.implicitHeight : 0
-
-                                BusyIndicator {
-                                    id: busy_footer
-
-                                    Layout.alignment: Qt.AlignCenter
-                                    running: qr_al.status === ApiQuerierBase.Querying
-                                }
-
+                            footer: ListBusyFooter {
+                                width: ListView.view.width
+                                running: qr_al.status === ApiQuerierBase.Querying
                             }
 
                             ScrollBar.vertical: ScrollBar {

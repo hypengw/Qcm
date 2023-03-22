@@ -206,17 +206,9 @@ Page {
                                     }
                                 }
 
-                                footer: ColumnLayout {
+                                footer: ListBusyFooter {
                                     width: ListView.view.width
-                                    implicitHeight: busy_footer.running ? busy_footer.implicitHeight : 0
-
-                                    BusyIndicator {
-                                        id: busy_footer
-
-                                        Layout.alignment: Qt.AlignCenter
-                                        running: qr_artist.status === ApiQuerierBase.Querying
-                                    }
-
+                                    running: qr_artist.status === ApiQuerierBase.Querying
                                 }
 
                                 ScrollBar.vertical: ScrollBar {
@@ -227,13 +219,12 @@ Page {
                             GridView {
                                 property int cellWidth_: 180
 
-                                implicitHeight: contentHeight
                                 boundsBehavior: Flickable.StopAtBounds
                                 interactive: flick.atYEnd
                                 clip: true
                                 model: qr_artist_albums.data
                                 cellHeight: 240
-                                cellWidth: width / Math.floor((width / cellWidth_))
+                                cellWidth: width > 0 ? width / Math.floor((width / cellWidth_)) : 0
 
                                 delegate: Pane {
                                     width: GridView.view.cellWidth
