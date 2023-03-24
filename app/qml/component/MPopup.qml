@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
-import QcmApp
 import ".."
 
 Popup {
@@ -31,6 +30,7 @@ Popup {
         Pane {
             id: head_pane
 
+            z: 1
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignTop
             Material.background: Theme.color.surface_1

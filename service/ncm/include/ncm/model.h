@@ -178,9 +178,63 @@ struct Album {
     // info	{…}
 };
 
+struct Playlist {
+    i64         id;
+    std::string name;
+    // coverImgId	109951167805071570
+    std::string coverImgUrl;
+    // coverImgId_str	"109951167805071571"
+    // adType	0
+    i64  userId;
+    Time createTime;
+    i64  status;
+    // opRecommend	false
+    // highQuality	false
+    // newImported	false
+    Time updateTime;
+    i64  trackCount;
+    i64  specialType;
+    // privacy	0
+    // trackUpdateTime	1678022963095
+    std::string commentThreadId;
+    i64         playCount;
+    // trackNumberUpdateTime	1678018138230
+    // subscribedCount	4
+    // cloudTrackCount	1
+    // ordered	true
+    std::optional<std::string> description;
+    std::vector<std::string>   tags;
+    // updateFrequency	null
+    // backgroundCoverId	0
+    // backgroundCoverUrl	null
+    // titleImage	0
+    // titleImageUrl	null
+    // englishTitle	null
+    // officialPlaylistType	null
+    // copied	false
+    // relateResType	null
+    // subscribers	[…]
+    bool subscribed;
+    // creator	{…}
+    std::optional<std::vector<Song>> tracks;
+    // videoIds	null
+    // videos	null
+    // trackIds	[…]
+    // bannedTrackIds	null
+    i64 shareCount;
+    i64 commentCount;
+    // remixVideo	null
+    // sharedUsers	null
+    // historySharedUsers	null
+    // gradeStatus	"NONE"
+    // score	null
+    // algTags	null
+};
+
 JSON_DEFINE(Song);
 JSON_DEFINE(Artist);
 JSON_DEFINE(Album);
+JSON_DEFINE(Playlist);
 JSON_DEFINE(Time);
 
 } // namespace model

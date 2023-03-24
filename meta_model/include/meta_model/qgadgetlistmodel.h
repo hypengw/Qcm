@@ -33,6 +33,18 @@ public:
         endInsertRows();
     }
 
+    void remove(int index) {
+        beginRemoveRows({}, index, index);
+        m_items.remove(index);
+        endRemoveRows();
+    }
+
+    void resetModel(QList<TGadget> items) {
+        beginResetModel();
+        m_items = std::move(items);
+        endResetModel();
+    }
+
     // override
     int      rowCount(const QModelIndex& = QModelIndex()) const override { return m_items.size(); }
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override {

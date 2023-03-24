@@ -15,6 +15,7 @@ RowLayout {
     Label {
         id: icon
 
+        visible: !!text
         Layout.alignment: root.firstline ? Qt.AlignTop : Qt.AlignVCenter
         Layout.preferredHeight: root.lineHeight
         font.family: Theme.font.icon_round.family

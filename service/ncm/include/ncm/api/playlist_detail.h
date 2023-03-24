@@ -15,61 +15,6 @@ struct PlaylistDetail {
 };
 } // namespace params
 
-namespace model
-{
-struct PlaylistDetail {
-    i64         id;
-    std::string name;
-    // coverImgId	109951167805071570
-    std::string coverImgUrl;
-    // coverImgId_str	"109951167805071571"
-    // adType	0
-    i64  userId;
-    Time createTime;
-    i64  status;
-    // opRecommend	false
-    // highQuality	false
-    // newImported	false
-    Time updateTime;
-    i64  trackCount;
-    i64  specialType;
-    // privacy	0
-    // trackUpdateTime	1678022963095
-    std::string commentThreadId;
-    i64         playCount;
-    // trackNumberUpdateTime	1678018138230
-    // subscribedCount	4
-    // cloudTrackCount	1
-    // ordered	true
-    std::optional<std::string> description;
-    std::vector<std::string>   tags;
-    // updateFrequency	null
-    // backgroundCoverId	0
-    // backgroundCoverUrl	null
-    // titleImage	0
-    // titleImageUrl	null
-    // englishTitle	null
-    // officialPlaylistType	null
-    // copied	false
-    // relateResType	null
-    // subscribers	[…]
-    bool subscribed;
-    // creator	{…}
-    std::vector<Song> tracks;
-    // videoIds	null
-    // videos	null
-    // trackIds	[…]
-    // bannedTrackIds	null
-    i64 shareCount;
-    i64 commentCount;
-    // remixVideo	null
-    // sharedUsers	null
-    // historySharedUsers	null
-    // gradeStatus	"NONE"
-    // score	null
-    // algTags	null
-};
-
 /*
 specialType 说明
 0           普通歌单
@@ -81,16 +26,14 @@ specialType 说明
 300         分享歌单
 */
 
-} // namespace model
-
 namespace api_model
 {
 
 struct PlaylistDetail {
     static Result<PlaylistDetail> parse(std::span<const byte> bs) {
         return api_model::parse<PlaylistDetail>(bs).map([](PlaylistDetail in) {
-            auto& tracks = in.playlist.tracks;
-            if (in.privileges) {
+            if (in.playlist.tracks && in.privileges) {
+                auto& tracks     = in.playlist.tracks.value();
                 auto& privileges = in.privileges.value();
                 auto  len        = std::min(tracks.size(), privileges.size());
                 for (usize i = 0; i < len; i++) {
@@ -102,7 +45,7 @@ struct PlaylistDetail {
     }
 
     i64                                                code;
-    model::PlaylistDetail                              playlist;
+    model::Playlist                                    playlist;
     std::optional<std::vector<model::Song::Privilege>> privileges;
 };
 JSON_DEFINE(PlaylistDetail);

@@ -154,6 +154,19 @@ public:
     std::strong_ordering operator<=>(const Album&) const = default;
 };
 
+class Playlist {
+    Q_GADGET
+public:
+    GATGET_PROPERTY(PlaylistId, itemId, id)
+    GATGET_PROPERTY(QString, name, name)
+    GATGET_PROPERTY(QString, picUrl, picUrl)
+    GATGET_PROPERTY(QString, description, description)
+    GATGET_PROPERTY(QDateTime, updateTime, updateTime)
+    GATGET_PROPERTY(qint32, playCount, playCount)
+
+    std::strong_ordering operator<=>(const Playlist&) const = default;
+};
+
 class Song {
     Q_GADGET
     QML_VALUE_TYPE(t_song)
@@ -231,6 +244,20 @@ struct To<qcm::model::Album> {
         CONVERT_PROPERTY(o.picUrl, in.picUrl);
         CONVERT_PROPERTY(o.artists, in.artists);
         CONVERT_PROPERTY(o.publishTime, in.publishTime);
+        return o;
+    }
+};
+
+template<>
+struct To<qcm::model::Playlist> {
+    static qcm::model::Playlist from(const ncm::model::Playlist& in) {
+        qcm::model::Playlist o;
+        CONVERT_PROPERTY(o.id, in.id);
+        CONVERT_PROPERTY(o.name, in.name);
+        CONVERT_PROPERTY(o.picUrl, in.coverImgUrl);
+        CONVERT_PROPERTY(o.description, in.description.value_or(""));
+        CONVERT_PROPERTY(o.updateTime, in.updateTime);
+        CONVERT_PROPERTY(o.playCount, in.playCount);
         return o;
     }
 };

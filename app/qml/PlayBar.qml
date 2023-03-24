@@ -187,7 +187,7 @@ Pane {
 
             MRoundButton {
                 flat: true
-                icon.name: Theme.ic.queue_music
+                icon.name: Theme.ic.playlist_play
                 onClicked: {
                     pop_playlist.open();
                 }

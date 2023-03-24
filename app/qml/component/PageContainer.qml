@@ -11,20 +11,24 @@ StackView {
     readonly property var m_page_cache: new Map()
 
     function switchTo(page_url, props, is_cache = true) {
-        if (page_url === m_current_page)
+        const key = JSON.stringify({
+            "url": page_url,
+            "props": props
+        });
+        if (key === m_current_page)
             return ;
 
         if (is_cache) {
-            let cache = m_page_cache.get(page_url);
+            let cache = m_page_cache.get(key);
             if (!cache) {
                 cache = QA.create_item(page_url, props, null);
-                m_page_cache.set(page_url, cache);
+                m_page_cache.set(key, cache);
             }
             replace(currentItem, cache);
         } else {
             replace(currentItem, page_url, props);
         }
-        m_current_page = page_url;
+        m_current_page = key;
     }
 
     Component.onDestruction: {

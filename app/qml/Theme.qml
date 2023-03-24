@@ -73,6 +73,8 @@ Item {
         readonly property string equalizer: '\ue01d'
         readonly property string favorite: '\ue87d'
         readonly property string favorite_border: '\ue87e'
+        readonly property string edit: '\ue3c9'
+        readonly property string playlist_play: '\ue05f'
     }
 
     readonly property var ts: ({

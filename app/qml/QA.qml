@@ -12,6 +12,7 @@ Item {
     property QtObject main_win: null
     readonly property string title: 'Qcm'
     readonly property alias user_info: m_querier_user.data
+    readonly property string user_setting_category: `user_${user_info.userId.sid}`
     readonly property alias user_song_set: m_querier_user_songlike.data
     readonly property bool is_login: m_querier_user.data.userId.valid()
     readonly property string loop_icon: switch (m_playlist.loopMode) {
@@ -71,6 +72,14 @@ Item {
             popup.destroy(1000);
         });
         popup.open();
+        return popup;
+    }
+
+    function show_page_popup(url, props) {
+        return show_popup('qrc:/QcmApp/qml/component/PagePopup.qml', {
+            "source": url,
+            "props": props
+        });
     }
 
     function route(dest) {

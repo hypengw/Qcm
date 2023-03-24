@@ -21,8 +21,10 @@ set(SOURCES
     include/Qcm/model/artist_albums.h
     include/Qcm/model/artist_sublist.h
     include/Qcm/model/login.h
+    include/Qcm/model/playlist_catalogue.h
     include/Qcm/model/playlist_detail.h
     include/Qcm/model/playlist_detail_dynamic.h
+    include/Qcm/model/playlist_list.h
     include/Qcm/model/playlist_subscribe.h
     include/Qcm/model/recommend_songs.h
     include/Qcm/model/song_url.h
@@ -47,7 +49,9 @@ set(QML_FILES
     qml/page/LoginPage.qml
     qml/page/AlbumDetailPage.qml
     qml/page/ArtistDetailPage.qml
+    qml/page/PlaylistCataloguePage.qml
     qml/page/PlaylistDetailPage.qml
+    qml/page/PlaylistListPage.qml
     qml/page/MinePage.qml
     qml/page/TodayPage.qml
     qml/part/ApiContainer.qml
@@ -57,6 +61,8 @@ set(QML_FILES
     qml/part/SnakeView.qml
     qml/part/SongDelegate.qml
     qml/part/ListBusyFooter.qml
+    qml/part/PicGridDelegate.qml
+    qml/part/PlaylistListView.qml
     qml/part/SongTag.qml
     qml/component/IconRowLayout.qml
     qml/component/RoundImage.qml
@@ -66,9 +72,11 @@ set(QML_FILES
     qml/component/MItemDelegate.qml
     qml/component/MMenu.qml
     qml/component/MMenuItem.qml
+    qml/component/MPage.qml
     qml/component/MPane.qml
     qml/component/MPopup.qml
     qml/component/PageContainer.qml
+    qml/component/PagePopup.qml
     qml/component/PageStack.qml)
 set(RESOURCES assets/MaterialIconsRound-Regular.otf
               assets/MaterialIconsOutlined-Regular.otf)

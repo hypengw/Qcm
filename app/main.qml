@@ -133,6 +133,9 @@ ApplicationWindow {
                                     "page": 'qrc:/QcmApp/qml/page/MinePage.qml',
                                     "cache": true
                                 }, {
+                                    "icon": Theme.ic.queue_music,
+                                    "page": 'qrc:/QcmApp/qml/page/PlaylistListPage.qml'
+                                }, {
                                     "icon": Theme.ic.today,
                                     "page": 'qrc:/QcmApp/qml/page/TodayPage.qml'
                                 }].forEach((m) => {
@@ -142,7 +145,9 @@ ApplicationWindow {
                             }
                             onCurrentIndexChanged: {
                                 const m = model.get(currentIndex);
-                                page_container.switchTo(m.page, m.props, m.cache);
+                                if (m.page)
+                                    page_container.switchTo(m.page, m.props, m.cache);
+
                             }
 
                             model: ListModel {
