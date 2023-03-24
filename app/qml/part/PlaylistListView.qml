@@ -9,6 +9,8 @@ import "../component"
 Pane {
     property alias cat: qr_pl.cat
 
+    verticalPadding: 0
+
     GridView {
         property int cellWidth_: 180
 
@@ -26,6 +28,11 @@ Pane {
             onClicked: {
                 QA.route(model.itemId);
             }
+        }
+
+        footer: ListBusyFooter {
+            width: GridView.view.width
+            running: qr_pl.status === ApiQuerierBase.Querying
         }
 
         ScrollBar.vertical: ScrollBar {

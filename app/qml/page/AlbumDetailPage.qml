@@ -264,6 +264,7 @@ Page {
                             boundsBehavior: Flickable.StopAtBounds
                             interactive: flick.atYEnd
                             clip: true
+                            reuseItems: true
                             model: itemData.songs
 
                             delegate: SongDelegate {

@@ -232,6 +232,7 @@ Page {
                             interactive: flick.atYEnd
                             clip: true
                             model: itemData.songs
+                            reuseItems: true
 
                             delegate: SongDelegate {
                                 width: view.width

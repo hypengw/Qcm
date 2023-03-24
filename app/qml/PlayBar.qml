@@ -220,6 +220,7 @@ Pane {
                             highlightMoveVelocity: -1
                             currentIndex: model.curIndex
                             model: QA.playlist
+                            reuseItems: true
 
                             delegate: MItemDelegate {
                                 width: ListView.view.width
