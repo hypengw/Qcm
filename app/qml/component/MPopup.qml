@@ -10,14 +10,15 @@ Popup {
     default property alias m_content: colu.children
     property string title
     property alias titleCapitalization: label_title.font.capitalization
-    readonly property int leftHeight: height - head_pane.implicitHeight
+    readonly property int headHeight: head_pane.implicitHeight
+    readonly property int contentMaxHeight: Math.max(maxHeight - headHeight, 0)
     readonly property int maxHeight: parent.height * 0.8
 
     parent: Overlay.overlay
     x: Math.round((parent.width - width) / 2)
     y: Math.round((parent.height - height) / 2)
     width: parent.width / 2
-    height: maxHeight
+    height: Math.min(implicitHeight, maxHeight)
     modal: true
     padding: 0
 

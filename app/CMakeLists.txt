@@ -49,6 +49,7 @@ set(QML_FILES
     qml/page/LoginPage.qml
     qml/page/AlbumDetailPage.qml
     qml/page/ArtistDetailPage.qml
+    qml/page/DescriptionPage.qml
     qml/page/PlaylistCataloguePage.qml
     qml/page/PlaylistDetailPage.qml
     qml/page/PlaylistListPage.qml
@@ -56,6 +57,7 @@ set(QML_FILES
     qml/page/TodayPage.qml
     qml/part/ApiContainer.qml
     qml/part/ArtistsPopup.qml
+    qml/part/InfoRow.qml
     qml/part/SettingsPopup.qml
     qml/part/SnakeBar.qml
     qml/part/SnakeView.qml
@@ -72,6 +74,7 @@ set(QML_FILES
     qml/component/MItemDelegate.qml
     qml/component/MMenu.qml
     qml/component/MMenuItem.qml
+    qml/component/MFlickable.qml
     qml/component/MPage.qml
     qml/component/MPane.qml
     qml/component/MPopup.qml

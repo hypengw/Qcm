@@ -75,11 +75,13 @@ Item {
         return popup;
     }
 
-    function show_page_popup(url, props) {
-        return show_popup('qrc:/QcmApp/qml/component/PagePopup.qml', {
+    function show_page_popup(url, props, popup_props = {
+    }) {
+        return show_popup('qrc:/QcmApp/qml/component/PagePopup.qml', Object.assign({
+        }, {
             "source": url,
             "props": props
-        });
+        }, popup_props));
     }
 
     function route(dest) {

@@ -51,6 +51,7 @@ Page {
                             spacing: 16
 
                             MPane {
+                                z: 1
                                 Layout.alignment: Qt.AlignTop
                                 Layout.preferredWidth: 160 + 2 * padding
                                 Layout.preferredHeight: Layout.preferredWidth
@@ -73,7 +74,7 @@ Page {
 
                             ColumnLayout {
                                 Layout.alignment: Qt.AlignTop
-                                spacing: 12
+                                spacing: 4
 
                                 Label {
                                     Layout.fillWidth: true
@@ -85,48 +86,49 @@ Page {
                                     font.bold: true
                                 }
 
-                                IconRowLayout {
-                                    text: Theme.ic.album
-                                    iconSize: 16
-
-                                    Label {
-                                        Layout.fillWidth: true
-                                        elide: Text.ElideRight
-                                        text: `${root.itemData.info.albumSize} albums`
-                                    }
-
+                                InfoRow {
+                                    icon_name: Theme.ic.album
+                                    label_text: `${root.itemData.info.albumSize} albums`
                                 }
 
-                                IconRowLayout {
-                                    text: Theme.ic.music_note
-                                    iconSize: 16
-
-                                    Label {
-                                        Layout.fillWidth: true
-                                        elide: Text.ElideRight
-                                        text: `${root.itemData.info.musicSize} songs`
-                                    }
-
+                                InfoRow {
+                                    icon_name: Theme.ic.music_note
+                                    label_text: `${root.itemData.info.musicSize} songs`
                                 }
 
                                 Item {
                                     Layout.fillHeight: true
                                 }
 
-                                IconRowLayout {
+                                MButton {
+                                    id: btn_desc
+
+                                    readonly property string description: `${root.itemData.info.briefDesc}`.trim()
+
                                     Layout.alignment: Qt.AlignBottom
-                                    text: Theme.ic.info
-                                    iconSize: 16
+                                    Layout.fillWidth: true
+                                    font.pointSize: Theme.ts.label_medium.size
+                                    flat: true
+                                    visible: !!btn_desc.description
+                                    onClicked: {
+                                        QA.show_page_popup('qrc:/QcmApp/qml/page/DescriptionPage.qml', {
+                                            "text": description
+                                        });
+                                    }
 
-                                    Label {
-                                        id: ttt
+                                    contentItem: IconRowLayout {
+                                        iconSize: 16
+                                        text: Theme.ic.info
 
-                                        Layout.fillWidth: true
-                                        maximumLineCount: 2
-                                        wrapMode: Text.Wrap
-                                        elide: Text.ElideRight
-                                        textFormat: Text.PlainText
-                                        text: `${root.itemData.info.briefDesc}`.trim()
+                                        Label {
+                                            Layout.fillWidth: true
+                                            maximumLineCount: 2
+                                            wrapMode: Text.Wrap
+                                            elide: Text.ElideRight
+                                            textFormat: Text.PlainText
+                                            text: btn_desc.description
+                                        }
+
                                     }
 
                                 }

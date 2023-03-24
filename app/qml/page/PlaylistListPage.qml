@@ -79,6 +79,8 @@ Page {
                         icon.name: Theme.ic.edit
                         onTriggered: {
                             const popup = QA.show_page_popup('qrc:/QcmApp/qml/page/PlaylistCataloguePage.qml', {
+                            }, {
+                                "fillHeight": true
                             });
                             popup.closed.connect(() => {
                                 settings.read();

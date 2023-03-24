@@ -8,29 +8,24 @@ import ".."
 import "../component"
 import "../part"
 
-Page {
+MPage {
     property list<string> mine_cats: []
 
     id: root
 
     padding: 0
-    title: qsTr('Playlist Tags')
+    title: qsTr('playlist tags')
 
-    Flickable {
+    MFlickable {
         id: flick
 
         anchors.fill: parent
-        topMargin: 16
-        bottomMargin: 16
-        contentWidth: width
-        contentHeight: content.implicitHeight
-        clip: true
-        boundsBehavior: Flickable.StopAtBounds
+
+        leftMargin: 4
+        rightMargin: 4
 
         ColumnLayout {
             id: content
-
-            signal catClicked(string group, string cat)
 
             anchors.fill: parent
             anchors.leftMargin: 12

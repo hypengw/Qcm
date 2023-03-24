@@ -200,7 +200,7 @@ Pane {
 
                     Pane {
                         Layout.fillWidth: true
-                        Layout.fillHeight: implicitHeight > pop_playlist.leftHeight
+                        Layout.fillHeight: implicitHeight > pop_playlist.contentMaxHeight
                         Layout.alignment: Qt.AlignTop
                         Layout.topMargin: 12
                         Material.background: Theme.color.surface_1

@@ -32,11 +32,13 @@ Button {
                 visible: root.display !== AbstractButton.TextOnly && root.icon.name
                 text: root.icon.name
                 font.family: Theme.font.icon_round.family
-                font.pointSize: Theme.ic_size(root.icon.width)
+                font.pointSize: Theme.ic_size(Math.min(root.icon.width, root.icon.height))
                 color: Material.foreground
             }
 
             Label {
+                id: label
+
                 visible: root.display !== AbstractButton.IconOnly
                 text: root.text
                 font: root.font

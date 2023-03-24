@@ -70,7 +70,7 @@ Page {
 
                             ColumnLayout {
                                 Layout.alignment: Qt.AlignTop
-                                spacing: 12
+                                spacing: 0
 
                                 Label {
                                     Layout.fillWidth: true
@@ -82,59 +82,80 @@ Page {
                                     font.bold: true
                                 }
 
-                                IconRowLayout {
-                                    text: Theme.ic.album
-                                    iconSize: 16
+                                InfoRow {
+                                    icon_name: Theme.ic.album
+                                    label_text: `${root.itemData.size} tracks`
+                                }
 
-                                    Label {
-                                        Layout.fillWidth: true
-                                        elide: Text.ElideRight
-                                        text: `${root.itemData.size} tracks`
+                                MButton {
+                                    font.pointSize: Theme.ts.label_medium.size
+                                    flat: true
+                                    verticalPadding: 0
+                                    topInset: 0
+                                    bottomInset: 0
+                                    Layout.fillWidth: true
+                                    onClicked: {
+                                        const artists = root.itemData.artists;
+                                        if (artists.length === 1)
+                                            QA.route(artists[0].itemId);
+                                        else
+                                            QA.show_popup('qrc:/QcmApp/qml/part/ArtistsPopup.qml', {
+                                            "model": artists
+                                        });
+                                    }
+
+                                    contentItem: IconRowLayout {
+                                        text: Theme.ic.person
+                                        iconSize: 16
+
+                                        Label {
+                                            Layout.fillWidth: true
+                                            elide: Text.ElideRight
+                                            text: QA.join_name(root.itemData.artists, '/')
+                                        }
+
                                     }
 
                                 }
 
-                                IconRowLayout {
-                                    text: Theme.ic.person
-                                    iconSize: 16
-
-                                    Label {
-                                        Layout.fillWidth: true
-                                        elide: Text.ElideRight
-                                        text: QA.join_name(root.itemData.artists, '/')
-                                    }
-
-                                }
-
-                                IconRowLayout {
-                                    text: Theme.ic.today
-                                    iconSize: 16
-
-                                    Label {
-                                        Layout.fillWidth: true
-                                        elide: Text.ElideRight
-                                        text: Qt.formatDateTime(root.itemData.publishTime, 'yyyy')
-                                    }
-
+                                InfoRow {
+                                    icon_name: Theme.ic.today
+                                    label_text: Qt.formatDateTime(root.itemData.publishTime, 'yyyy')
                                 }
 
                                 Item {
                                     Layout.fillHeight: true
                                 }
 
-                                IconRowLayout {
-                                    Layout.alignment: Qt.AlignBottom
-                                    iconSize: 16
-                                    text: Theme.ic.info
-                                    visible: root.itemData.description.trim()
+                                MButton {
+                                    id: btn_desc
 
-                                    Label {
-                                        Layout.fillWidth: true
-                                        maximumLineCount: 2
-                                        wrapMode: Text.Wrap
-                                        elide: Text.ElideRight
-                                        textFormat: Text.PlainText
-                                        text: `${root.itemData.description}`.trim()
+                                    readonly property string description: root.itemData.description.trim()
+
+                                    Layout.alignment: Qt.AlignBottom
+                                    Layout.fillWidth: true
+                                    font.pointSize: Theme.ts.label_medium.size
+                                    flat: true
+                                    visible: !!btn_desc.description
+                                    onClicked: {
+                                        QA.show_page_popup('qrc:/QcmApp/qml/page/DescriptionPage.qml', {
+                                            "text": description
+                                        });
+                                    }
+
+                                    contentItem: IconRowLayout {
+                                        iconSize: 16
+                                        text: Theme.ic.info
+
+                                        Label {
+                                            Layout.fillWidth: true
+                                            maximumLineCount: 2
+                                            wrapMode: Text.Wrap
+                                            elide: Text.ElideRight
+                                            textFormat: Text.PlainText
+                                            text: btn_desc.description
+                                        }
+
                                     }
 
                                 }

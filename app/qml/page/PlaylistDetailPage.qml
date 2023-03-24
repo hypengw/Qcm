@@ -68,7 +68,7 @@ Page {
 
                             ColumnLayout {
                                 Layout.alignment: Qt.AlignTop
-                                spacing: 12
+                                spacing: 4
 
                                 Label {
                                     Layout.fillWidth: true
@@ -80,59 +80,49 @@ Page {
                                     font.bold: true
                                 }
 
-                                IconRowLayout {
-                                    text: Theme.ic.music_note
-                                    iconSize: 16
-
-                                    Label {
-                                        Layout.fillWidth: true
-                                        elide: Text.ElideRight
-                                        text: `${root.itemData.songs.length} songs`
-                                    }
-
+                                InfoRow {
+                                    icon_name: Theme.ic.music_note
+                                    label_text: `${root.itemData.songs.length} songs`
                                 }
 
-                                /*
-                                IconRowLayout {
-                                    text: Theme.ic.person
-                                    Label {
-                                        Layout.fillWidth: true
-                                        elide: Text.ElideRight
-                                        text: QA.join_name(
-                                                  root.itemData.artists,
-                                                  '/')
-                                    }
-                                }
-                                */
-                                IconRowLayout {
-                                    text: Theme.ic.today
-                                    iconSize: 16
-
-                                    Label {
-                                        Layout.fillWidth: true
-                                        elide: Text.ElideRight
-                                        text: Qt.formatDateTime(root.itemData.updateTime, 'yyyy.MM.dd')
-                                    }
-
+                                InfoRow {
+                                    icon_name: Theme.ic.today
+                                    label_text: Qt.formatDateTime(root.itemData.updateTime, 'yyyy.MM.dd')
                                 }
 
                                 Item {
                                     Layout.fillHeight: true
                                 }
 
-                                IconRowLayout {
-                                    Layout.alignment: Qt.AlignBottom
-                                    text: Theme.ic.info
-                                    iconSize: 16
-                                    visible: root.itemData.description.trim()
+                                MButton {
+                                    id: btn_desc
 
-                                    Label {
-                                        Layout.fillWidth: true
-                                        maximumLineCount: 2
-                                        wrapMode: Text.Wrap
-                                        elide: Text.ElideRight
-                                        textFormat: Text.PlainText
-                                        text: `${root.itemData.description}`.trim()
+                                    readonly property string description: root.itemData.description.trim()
+
+                                    Layout.alignment: Qt.AlignBottom
+                                    Layout.fillWidth: true
+                                    font.pointSize: Theme.ts.label_medium.size
+                                    flat: true
+                                    visible: !!btn_desc.description
+                                    onClicked: {
+                                        QA.show_page_popup('qrc:/QcmApp/qml/page/DescriptionPage.qml', {
+                                            "text": description
+                                        });
+                                    }
+
+                                    contentItem: IconRowLayout {
+                                        iconSize: 16
+                                        text: Theme.ic.info
+
+                                        Label {
+                                            Layout.fillWidth: true
+                                            maximumLineCount: 2
+                                            wrapMode: Text.Wrap
+                                            elide: Text.ElideRight
+                                            textFormat: Text.PlainText
+                                            text: btn_desc.description
+                                        }
+
                                     }
 
                                 }

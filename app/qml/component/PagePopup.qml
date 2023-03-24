@@ -9,6 +9,7 @@ MPopup {
 
     required property string source
     required property var props
+    property bool fillHeight: false
 
     width: 400
     title: loader.item.title
@@ -21,6 +22,11 @@ MPopup {
 
         Layout.fillWidth: true
         Layout.fillHeight: true
+    }
+
+    Binding on height {
+        when: fillHeight
+        value: maxHeight
     }
 
 }
