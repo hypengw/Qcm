@@ -7,7 +7,7 @@ Currently linux only.
 </p>
 
 ### Require:  
-- Qt 6.4
+- Qt 6.4 (quick, multimedia, dbus)
 - C++ 20
 - Openssl 3
 - Curl
@@ -24,6 +24,7 @@ ninja
 
 ### Todo:
 - [ ] sql
-- [ ] drop qtmultimedia
+- [ ] audio cache using http proxy(AndroidVideoCache)
+- [ ] cache limit
 - [ ] playing page
 - [ ] search page

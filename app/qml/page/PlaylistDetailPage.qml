@@ -33,7 +33,7 @@ Page {
             id: content
 
             anchors.fill: parent
-            spacing: 16
+            spacing: 4
 
             Pane {
                 Layout.fillWidth: true
