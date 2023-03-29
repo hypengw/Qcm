@@ -53,14 +53,28 @@ public:
     using out_type = ncm::api_model::UserPlaylist;
 
     void handle_output(const out_type& re, const auto& input) {
-        if (input.offset != (int)rowCount()) {
+        if (input.offset == 0) {
+            auto& list       = re.playlist;
+            bool  need_reset = list.size() > (usize)rowCount();
+            if (! need_reset) {
+                for (usize i = 0; i < list.size(); i++) {
+                    auto id = To<PlaylistId>::from(list[i].id);
+                    if (id != items()[i].itemId) {
+                        need_reset = true;
+                        break;
+                    }
+                }
+            }
+            if (need_reset)
+                resetModel({});
+            else
+                return;
+        } else if (input.offset != (int)rowCount()) {
             return;
         }
-        if (! re.playlist.empty()) {
-            auto in_ = To<std::vector<UserPlaylistItem>>::from(re.playlist);
-            for (auto& el : in_) {
-                insert(rowCount(), el);
-            }
+
+        for (auto& el : re.playlist) {
+            insert(rowCount(), To<UserPlaylistItem>::from(el));
         }
         m_has_more = re.more;
     }
@@ -74,8 +88,7 @@ signals:
     void fetchMoreReq(qint32);
 
 private:
-    std::vector<UserPlaylistItem> m_items;
-    bool                          m_has_more;
+    bool m_has_more;
 };
 static_assert(modelable<UserPlaylist, ncm::api::UserPlaylist>);
 } // namespace model
@@ -93,6 +106,11 @@ public:
 
 public:
     void fetch_more(qint32 cur_count) override { set_offset(cur_count); }
+public slots:
+    void reset() {
+        api().input.offset = 0;
+        reload();
+    }
 };
 
 } // namespace qcm

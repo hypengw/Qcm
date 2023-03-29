@@ -101,6 +101,18 @@ Page {
                 }
 
                 ApiContainer {
+                    Connections {
+                        function onSig_like_album() {
+                            qr_albumlist.reset();
+                        }
+
+                        function onSig_like_playlist() {
+                            qr_playlist.reset();
+                        }
+
+                        target: QA
+                    }
+
                     AlbumSublistQuerier {
                         id: qr_albumlist
                     }

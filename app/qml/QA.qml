@@ -34,6 +34,9 @@ Item {
     readonly property t_song cur_song: m_playlist.cur
     property string song_cover: ''
 
+    signal sig_like_album()
+    signal sig_like_playlist()
+
     function join_name(objs, split) {
         const names = objs.map((o) => {
             return o.name;

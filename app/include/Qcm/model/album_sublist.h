@@ -51,9 +51,25 @@ public:
     using out_type = ncm::api_model::AlbumSublist;
 
     void handle_output(const out_type& re, const auto& input) {
-        if (input.offset != (int)rowCount()) {
+        if (input.offset == 0) {
+            bool need_reset = re.data.size() > (usize)rowCount();
+            if (! need_reset) {
+                for (usize i = 0; i < re.data.size(); i++) {
+                    auto id = To<AlbumId>::from(re.data[i].id);
+                    if (id != items()[i].id) {
+                        need_reset = true;
+                        break;
+                    }
+                }
+            }
+            if (need_reset)
+                resetModel({});
+            else
+                return;
+        } else if (input.offset != (int)rowCount()) {
             return;
         }
+
         if (! re.data.empty()) {
             auto in_ = To<std::vector<AlbumSublistItem>>::from(re.data);
             for (auto& el : in_) {
@@ -61,13 +77,6 @@ public:
             }
         }
         m_has_more = re.hasMore;
-    }
-
-    Q_INVOKABLE int index_of(AlbumId id) const {
-        auto it = std::find_if(m_items.begin(), m_items.end(), [&id](auto& el) {
-            return el.id == id;
-        });
-        return it == m_items.end() ? -1 : (int)std::distance(m_items.begin(), it);
     }
 
     bool canFetchMore(const QModelIndex&) const override { return m_has_more; }
@@ -97,6 +106,11 @@ public:
 
 public:
     void fetch_more(qint32 cur_count) override { set_offset(cur_count); }
+public slots:
+    void reset() {
+        api().input.offset = 0;
+        reload();
+    }
 };
 
 } // namespace qcm

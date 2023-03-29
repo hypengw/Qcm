@@ -120,9 +120,10 @@ QQuickImageResponse* NcmImageProvider::requestImageResponse(const QString& id,
             ex,
             [handle, cli, requestedSize, req, file_path, cache]() -> asio::awaitable<void> {
                 auto key = file_path.filename().native();
-                if (! (co_await cache->get(key)) && ! std::filesystem::exists(file_path)) {
+                asio::co_spawn(cache->get_executor(), cache->get(key), asio::detached);
+                if (! std::filesystem::exists(file_path)) {
                     CacheSql::Item db_it;
-                    db_it.key = file_path.filename();
+                    db_it.key = key;
 
                     auto file_path_dl = file_path;
                     file_path_dl.replace_extension(

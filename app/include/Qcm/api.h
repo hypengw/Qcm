@@ -152,7 +152,7 @@ public:
         }
     }
 
-    QObject* data() const override { return m_model; }
+    model_type* data() const override { return m_model; }
 
     void reload() override {
         // co_spawn need strand for cancel

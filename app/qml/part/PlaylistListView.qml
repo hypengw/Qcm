@@ -9,7 +9,7 @@ import "../component"
 Pane {
     property alias cat: qr_pl.cat
 
-    verticalPadding: 0
+    padding: 0
 
     GridView {
         property int cellWidth_: 180

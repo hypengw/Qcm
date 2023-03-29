@@ -314,6 +314,11 @@ Page {
             id: qr_sub
 
             autoReload: false
+            onStatusChanged: {
+                if (status === ApiQuerierBase.Finished)
+                    QA.sig_like_album();
+
+            }
         }
 
     }
