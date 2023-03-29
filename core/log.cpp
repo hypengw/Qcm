@@ -63,8 +63,8 @@ void LogManager::log_impl(LogLevel level, const std::source_location loc,
                to_sv(level),
                content,
                loc.file_name(),
-               loc.column(),
-               loc.line());
+               loc.line(),
+               loc.column());
     std::fflush(out);
 }
 

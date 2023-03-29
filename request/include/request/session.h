@@ -32,6 +32,8 @@ public:
     void load_cookie(std::filesystem::path);
     void save_cookie(std::filesystem::path) const;
 
+    void stop();
+
     void test();
 
 private:

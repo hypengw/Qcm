@@ -1,7 +1,8 @@
 set(APP_ID io.github.hypengw.Qcm)
+set(APP_NAME Qcm)
 set(APP_VERSION 1.0)
 
-find_package(Qt6 REQUIRED COMPONENTS QuickControls2)
+find_package(Qt6 REQUIRED COMPONENTS QuickControls2 Sql)
 
 set(SOURCES
     include/Qcm/app.h
@@ -10,9 +11,11 @@ set(SOURCES
     include/Qcm/info.h
     include/Qcm/type.h
     include/Qcm/model.h
+    include/Qcm/path.h
     include/Qcm/playlist.h
     include/Qcm/ncm_image.h
     include/Qcm/qr_image.h
+    include/Qcm/cache_sql.h
     include/Qcm/model/album_detail.h
     include/Qcm/model/album_detail_dynamic.h
     include/Qcm/model/album_sub.h
@@ -38,11 +41,15 @@ set(SOURCES
     src/api.cpp
     src/color.cpp
     src/model.cpp
+    src/path.cpp
     src/playlist.cpp
     src/ncm_image.cpp
-    src/qr_image.cpp)
+    src/qr_image.cpp
+    src/cache_sql.cpp)
+
 set(QML_FILES
     main.qml
+    qml/js/util.mjs
     qml/PlayBar.qml
     qml/Theme.qml
     qml/QA.qml
@@ -54,11 +61,11 @@ set(QML_FILES
     qml/page/PlaylistDetailPage.qml
     qml/page/PlaylistListPage.qml
     qml/page/MinePage.qml
+    qml/page/SettingsPage.qml
     qml/page/TodayPage.qml
     qml/part/ApiContainer.qml
     qml/part/ArtistsPopup.qml
     qml/part/InfoRow.qml
-    qml/part/SettingsPopup.qml
     qml/part/SnakeBar.qml
     qml/part/SnakeView.qml
     qml/part/SongDelegate.qml
@@ -112,6 +119,7 @@ target_link_libraries(
   PUBLIC Qt6::Core
          Qt6::Quick
          Qt6::QuickControls2
+         Qt6::Sql
          asio_qt
          sv_ncm
          request
@@ -120,9 +128,12 @@ target_link_libraries(
          material_helper
          meta_model
          mpris
+         media_cache
+         ctre
          appplugin)
-target_compile_definitions(app PUBLIC APP_ID="${APP_ID}"
-                                      APP_VERSION="${APP_VERSION}")
+target_compile_definitions(
+  app PUBLIC APP_ID="${APP_ID}" APP_VERSION="${APP_VERSION}"
+             APP_NAME="${APP_NAME}")
 
 qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cpp)
 qt_import_qml_plugins(${PROJECT_NAME})

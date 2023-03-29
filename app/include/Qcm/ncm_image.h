@@ -4,6 +4,7 @@
 #include "asio_helper/helper.h"
 #include "asio_helper/watch_dog.h"
 #include "ncm/client.h"
+#include "Qcm/cache_sql.h"
 
 namespace qcm
 {
@@ -44,7 +45,7 @@ private:
 
 class NcmImageProvider : public QQuickAsyncImageProvider {
 public:
-    NcmImageProvider();
+    NcmImageProvider(rc<CacheSql>);
 
     QQuickImageResponse* requestImageResponse(const QString& id,
                                               const QSize&   requestedSize) override;
@@ -55,6 +56,7 @@ public:
 private:
     asio::any_io_executor m_ex;
     ncm::Client           m_cli;
+    rc<CacheSql>          m_cache_sql;
 };
 
 } // namespace qcm

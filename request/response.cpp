@@ -91,10 +91,6 @@ std::size_t Response::Private::write_callback(char* ptr, std::size_t size, std::
                                               Response* self) {
     C_DP(Response, self);
 
-    if (d->m_header_handler) {
-        d->m_header_handler(d->m_header);
-    }
-
     asio::const_buffer buffer { ptr, size * nmemb };
     if (buffer.size() == 0) return 0;
 
@@ -142,6 +138,11 @@ std::size_t Response::Private::header_callback(char* ptr, std::size_t size, std:
             } else {
                 d->m_header.insert({ std::string { name }, std::string { value } });
             }
+        }
+    }
+    if (header == "\r\n" || header == "\n") {
+        if (d->m_header_handler) {
+            d->m_header_handler(asio::error_code {}, d->m_header);
         }
     }
     return header.size();
@@ -205,7 +206,7 @@ void Response::async_read_some_impl(
 void Response::async_get_header_impl(asio::any_completion_handler<ret_header> handler) {
     C_D(Response);
     if (is_finished()) {
-        handler(d->m_header);
+        handler(asio::error_code {}, d->m_header);
     } else {
         d->m_header_handler = std::move(handler);
     }
@@ -271,7 +272,7 @@ void Response::done(int rc_) {
 
     d->m_finished = true;
     if (d->m_header_handler) {
-        d->m_header_handler(d->m_header);
+        d->m_header_handler(ec, d->m_header);
     }
 
     if (d->m_recv_handler) {

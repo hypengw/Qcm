@@ -21,6 +21,7 @@ Popup {
     height: Math.min(implicitHeight, maxHeight)
     modal: true
     padding: 0
+    font.pointSize: Theme.ts.label_medium.size
 
     ColumnLayout {
         id: colu

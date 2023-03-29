@@ -317,9 +317,11 @@ Item {
 
         source: {
             const songs = m_querier_song.data.songs;
-            if (songs.length)
+            if (songs.length) {
+                const url = songs[0].url;
+                return App.media_url(url, Qt.md5(songs[0].itemId.sid));
                 return songs[0].url;
-
+            }
             return '';
         }
         onSourceChanged: (source) => {

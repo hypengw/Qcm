@@ -61,6 +61,7 @@ private:
 };
 
 std::string url_encode(std::string_view);
+std::string url_decode(std::string_view);
 
 struct Cookie {};
 struct CookieJar {

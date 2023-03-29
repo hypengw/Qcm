@@ -13,6 +13,14 @@ std::string request::url_encode(std::string_view c) {
     curl_free(curl_out);
     return out;
 }
+std::string request::url_decode(std::string_view c) {
+    int         len { 0 };
+    char*       curl_out = curl_easy_unescape(NULL, c.data(), c.size(), &len);
+    usize       slen     = len > 0 ? (usize)len : 0u;
+    std::string out { curl_out, slen };
+    curl_free(curl_out);
+    return out;
+}
 
 bool CaseInsensitiveCompare::operator()(std::string_view a, std::string_view b) const noexcept {
     return helper::case_insensitive_compare(a, b) < 0;

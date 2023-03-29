@@ -7,8 +7,6 @@ add_library(
   include/core/variant_helper.h
   include/core/vec_helper.h
   include/core/log.h
-  include/core/path.h
-  path.cpp
   log.cpp)
 
 target_include_directories(core PUBLIC include)

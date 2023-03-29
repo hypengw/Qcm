@@ -4,12 +4,14 @@
 #include <cstdio>
 #include <fstream>
 
+#include <ctre.hpp>
 #include <QPointer>
 
 #include "Qcm/app.h"
 #include "Qcm/type.h"
+#include "Qcm/path.h"
+
 #include "core/expected_helper.h"
-#include "core/path.h"
 #include "request/response.h"
 #include "asio_helper/sync_file.h"
 #include "crypto/crypto.h"
@@ -42,8 +44,8 @@ inline std::string gen_file_name(const request::Url& url) {
         .value();
 }
 
-asio::awaitable<void> dl_image(ncm::Client cli, const request::Request& req,
-                               std::filesystem::path p) {
+asio::awaitable<request::Header> dl_image(ncm::Client cli, const request::Request& req,
+                                          std::filesystem::path p) {
     helper::SyncFile file { std::fstream(p, std::ios::out | std::ios::binary) };
     file.handle().exceptions(std::ios_base::failbit | std::ios_base::badbit);
 
@@ -51,6 +53,17 @@ asio::awaitable<void> dl_image(ncm::Client cli, const request::Request& req,
     co_await rsp_http->read_to_stream(file);
 
     file.handle().close();
+    co_return co_await rsp_http->async_get_header(asio::use_awaitable);
+}
+
+void header_record_db(const request::Header& h, CacheSql::Item& db_it) {
+    static constexpr auto DigitPattern = ctll::fixed_string { "\\d*" };
+    if (h.contains("content-type")) db_it.content_type = h.at("content-type");
+    if (h.contains("content-length")) {
+        if (auto whole = ctre::starts_with<DigitPattern>(h.at("content-length")); whole) {
+            db_it.content_length = whole.to_number();
+        }
+    }
 }
 
 } // namespace
@@ -64,15 +77,16 @@ request::Request NcmImageProvider::makeReq(const QString& id, const QSize& reque
     return req;
 }
 std::filesystem::path NcmImageProvider::genImageCachePath(const request::Request& req) {
-    auto path = cache_path() / "image";
+    auto path = cache_path() / "cache";
     std::filesystem::create_directories(path);
     return path / gen_file_name(req.url_info());
 }
 
-NcmImageProvider::NcmImageProvider()
+NcmImageProvider::NcmImageProvider(rc<CacheSql> cache)
     : QQuickAsyncImageProvider(),
       m_ex(App::instance()->get_pool_executor()),
-      m_cli(App::instance()->ncm_client()) {}
+      m_cli(App::instance()->ncm_client()),
+      m_cache_sql(cache) {}
 
 QQuickImageResponse* NcmImageProvider::requestImageResponse(const QString& id,
                                                             const QSize&   requestedSize) {
@@ -98,26 +112,34 @@ QQuickImageResponse* NcmImageProvider::requestImageResponse(const QString& id,
     };
     request::Request      req       = NcmImageProvider::makeReq(id, requestedSize, cli);
     std::filesystem::path file_path = NcmImageProvider::genImageCachePath(req);
+    auto                  cache     = m_cache_sql;
 
     asio::co_spawn(
         ex,
-        rsp->wdog().watch(ex,
-                          [handle, cli, requestedSize, req, file_path]() -> asio::awaitable<void> {
-                              if (! std::filesystem::exists(file_path)) {
-                                  auto file_path_dl = file_path;
-                                  file_path_dl.replace_extension(fmt::format(
-                                      "dl{}x{}", requestedSize.width(), requestedSize.height()));
+        rsp->wdog().watch(
+            ex,
+            [handle, cli, requestedSize, req, file_path, cache]() -> asio::awaitable<void> {
+                auto key = file_path.filename().native();
+                if (! (co_await cache->get(key)) && ! std::filesystem::exists(file_path)) {
+                    CacheSql::Item db_it;
+                    db_it.key = file_path.filename();
 
-                                  co_await dl_image(cli, req, file_path_dl);
-                                  std::filesystem::rename(file_path_dl, file_path);
-                              }
-                              auto img = QImage(file_path.c_str());
-                              if (requestedSize.isValid()) {
-                                  img = img.scaled(requestedSize);
-                              }
-                              handle(img);
-                              co_return;
-                          }),
+                    auto file_path_dl = file_path;
+                    file_path_dl.replace_extension(
+                        fmt::format("dl{}x{}", requestedSize.width(), requestedSize.height()));
+
+                    auto header = co_await dl_image(cli, req, file_path_dl);
+                    std::filesystem::rename(file_path_dl, file_path);
+                    header_record_db(header, db_it);
+                    co_await cache->insert(db_it);
+                }
+                auto img = QImage(file_path.c_str());
+                if (requestedSize.isValid()) {
+                    img = img.scaled(requestedSize);
+                }
+                handle(img);
+                co_return;
+            }),
         [handle, file_path](std::exception_ptr p) {
             if (p) {
                 try {

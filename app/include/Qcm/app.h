@@ -20,9 +20,11 @@
 #include "Qcm/model/user_account.h"
 #include "mpris/mpris.h"
 #include "mpris/mediaplayer2.h"
+#include "media_cache/media_cache.h"
 
 namespace qcm
 {
+class CacheSql;
 class App : public QObject {
     Q_OBJECT
 
@@ -41,13 +43,15 @@ public:
 
     mpris::MediaPlayer2* mpris() const { return m_mpris->mediaplayer2(); };
 
+    Q_INVOKABLE QString media_url(const QString& ori, const QString& id) const;
     Q_INVOKABLE QString md5(QString) const;
     Q_INVOKABLE model::ArtistId artistId(QString id) const;
     Q_INVOKABLE model::AlbumId albumId(QString id) const;
-    Q_INVOKABLE QUrl getImageCache(QString url, QSize reqSize) const;
+    Q_INVOKABLE QUrl           getImageCache(QString url, QSize reqSize) const;
 
 public slots:
     void loginPost(model::UserAccount*);
+    void triggerCacheLimit();
 
 private:
     void load_session();
@@ -56,8 +60,12 @@ private:
     QtExecutor        m_qt_ex;
     asio::thread_pool m_pool;
 
-    rc<request::Session> m_session;
-    mutable ncm::Client  m_client;
-    up<mpris::Mpris>     m_mpris;
+    rc<request::Session>        m_session;
+    mutable ncm::Client         m_client;
+    up<mpris::Mpris>            m_mpris;
+    rc<media_cache::MediaCache> m_media_cache;
+
+    rc<CacheSql> m_media_cache_sql;
+    rc<CacheSql> m_cache_sql;
 };
 } // namespace qcm

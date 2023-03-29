@@ -203,7 +203,8 @@ ApplicationWindow {
                         action: Action {
                             icon.name: Theme.ic.settings
                             onTriggered: {
-                                QA.show_popup('qrc:/QcmApp/qml/part/SettingsPopup.qml');
+                                QA.show_page_popup('qrc:/QcmApp/qml/page/SettingsPage.qml', {
+                                });
                             }
                         }
 

@@ -23,6 +23,14 @@ public:
     F& handle() { return m_f; }
 
     template<typename MB>
+        requires asio::is_mutable_buffer_sequence<MB>::value
+    auto read_some(MB buffer) {
+        auto size = buffer.size();
+        m_f.read((char*)buffer.data(), size);
+        return size;
+    }
+
+    template<typename MB>
         requires asio::is_const_buffer_sequence<MB>::value
     auto write_some(const MB& buffer) {
         auto size = buffer.size();

@@ -33,3 +33,6 @@ add_library(
   ${md_dir}/blend/blend.cc)
 target_include_directories(material_color PUBLIC material-color)
 set_property(TARGET material_color PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+add_library(ctre INTERFACE)
+target_include_directories(ctre INTERFACE ctre/include)

@@ -79,4 +79,14 @@ void Session::done(const rc<Response>& rsp) {
     });
 }
 
+void Session::stop() {
+    C_D(Session);
+    auto self = shared_from_this();
+    asio::dispatch(d->ex, [self, d]() {
+        for (auto& rsp : d->rsps) {
+            rsp->cancel();
+        }
+    });
+}
+
 void Session::test() { C_D(Session); }

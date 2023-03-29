@@ -16,3 +16,6 @@
 [submodule "third_party/material-color-utilities"]
 	path = third_party/material-color
 	url = https://github.com/hypengw/material-color-utilities.git
+[submodule "third_party/compile-time-regular-expressions"]
+	path = third_party/ctre
+	url = https://github.com/hanickadot/compile-time-regular-expressions

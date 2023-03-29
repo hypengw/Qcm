@@ -44,7 +44,7 @@ public:
 
     attr_value attribute(Attribute) const;
 
-    using ret_header = void(tl::expected<Header, asio::error_code>);
+    using ret_header = void(asio::error_code, Header);
     template<typename CompletionToken>
     auto async_get_header(CompletionToken&& token) {
         return asio::async_initiate<CompletionToken, ret_header>(
@@ -117,8 +117,6 @@ private:
     void async_get_header_impl(asio::any_completion_handler<ret_header>);
 
     void done(int);
-
-    void set_cancel_slot();
 
 private:
     C_DECLARE_PRIVATE(Response, m_d)

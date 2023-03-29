@@ -16,6 +16,7 @@ namespace model
 class SongUrlItem {
     Q_GADGET
 public:
+    GATGET_PROPERTY(SongId, itemId, id)
     GATGET_PROPERTY(QString, url, url)
     GATGET_PROPERTY(QString, md5, md5)
 };
@@ -25,6 +26,7 @@ template<>
 struct To<qcm::model::SongUrlItem> {
     static auto from(const ncm::model::SongUrl& in) {
         qcm::model::SongUrlItem o;
+        CONVERT_PROPERTY(o.id, in.id);
         CONVERT_PROPERTY(o.url, in.url);
         CONVERT_PROPERTY(o.md5, in.md5);
         return o;
