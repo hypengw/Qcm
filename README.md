@@ -23,8 +23,14 @@ ninja
 ```
 
 ### Todo:
-- [ ] sql
-- [ ] audio cache using http proxy(AndroidVideoCache)
-- [ ] cache limit
 - [ ] playing page
 - [ ] search page
+- [ ] sidebar popup
+- [ ] sql api cache
+- [x] audio cache using http proxy(AndroidVideoCache)
+- [x] cache limit
+- [x] sql cache
+- [x] mpris
+- [x] api
+- [x] json
+- [x] http lib(libcurl)
