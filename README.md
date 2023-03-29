@@ -6,6 +6,9 @@ Currently linux only.
 <img src="https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main.jpg?raw=true" width=70%>
 </p>
 
+### Download
+<a href='https://flathub.org/apps/details/io.github.hypengw.Qcm'><img width='240' alt='Download on Flathub' src='https://dl.flathub.org/assets/badges/flathub-badge-en.png'/></a>
+
 ### Require:  
 - Qt 6.4 (quick, multimedia, dbus)
 - C++ 20
