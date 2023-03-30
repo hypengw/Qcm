@@ -88,6 +88,19 @@ Pane {
                     Layout.fillWidth: true
                     text: QA.cur_song.name
                     elide: Text.ElideRight
+                    Material.foreground: ma_name.containsMouse ? Theme.color.primary : Theme.color.on_background
+
+                    MouseArea {
+                        id: ma_name
+
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            QA.route(QA.cur_song.album.itemId);
+                        }
+                    }
+
                 }
 
                 RowLayout {
@@ -112,6 +125,25 @@ Pane {
                         font.pointSize: Theme.ts.label_small.size
                         opacity: 0.6
                         text: QA.join_name(QA.cur_song.artists, '/')
+                        Material.foreground: ma_subtitle.containsMouse ? Theme.color.primary : Theme.color.on_background
+
+                        MouseArea {
+                            id: ma_subtitle
+
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                const artists = QA.cur_song.artists;
+                                if (artists.length === 1)
+                                    QA.route(artists[0].itemId);
+                                else
+                                    QA.show_popup('qrc:/QcmApp/qml/part/ArtistsPopup.qml', {
+                                    "model": artists
+                                });
+                            }
+                        }
+
                     }
 
                 }

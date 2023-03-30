@@ -72,7 +72,9 @@ Item {
     function show_popup(url, props) {
         const popup = create_item(url, props, main_win);
         popup.closed.connect(() => {
-            popup.destroy(1000);
+            if (popup.destroy)
+                popup.destroy(1000);
+
         });
         popup.open();
         return popup;
@@ -119,6 +121,8 @@ Item {
     }
 
     Settings {
+        id: settings_play
+
         property alias loop: m_playlist.loopMode
 
         category: 'play'
@@ -127,13 +131,52 @@ Item {
     Playlist {
         id: m_playlist
 
+        property var song_url_slot: null
+
+        function songUrlSlot(key) {
+            const status = m_querier_song.status;
+            const songs = m_querier_song.data.songs;
+            if (status === ApiQuerierBase.Finished) {
+                const song = songs.length ? songs[0] : null;
+                if (song)
+                    m_player.source = App.media_url(song.url, key);
+
+            } else if (status === ApiQuerierBase.Error) {
+                m_player.stop();
+            }
+        }
+
         onCurChanged: function(refresh) {
+            const song_url_sig = m_querier_song.statusChanged;
+            if (song_url_slot)
+                song_url_sig.disconnect(song_url_slot);
+
             if (refresh)
-                m_querier_song.ids = [];
+                m_player.source = '';
 
-            if (cur.itemId.valid())
-                m_querier_song.ids = [cur.itemId.sid];
+            if (!cur.itemId.valid())
+                return ;
 
+            const quality = parseInt(settings_play.value('play_quality', m_querier_song.level.toString()));
+            const key = Qt.md5(`${cur.itemId.sid}, quality: ${quality}`);
+            const file = App.media_file(key);
+            // seems empty url is true, use string
+            if (file.toString()) {
+                m_player.source = file;
+            } else {
+                song_url_slot = () => {
+                    songUrlSlot(key);
+                };
+                song_url_sig.connect(song_url_slot);
+                const songId = cur.itemId;
+                if (refresh)
+                    m_querier_song.ids = [];
+
+                m_querier_song.level = quality;
+                if (songId.valid())
+                    m_querier_song.ids = [songId];
+
+            }
         }
     }
 
@@ -182,11 +225,6 @@ Item {
             id: m_querier_song
 
             autoReload: ids.length > 0
-            onStatusChanged: {
-                if (status === ApiQuerierBase.Error)
-                    m_player.stop();
-
-            }
         }
 
     }

@@ -141,6 +141,15 @@ QUrl App::getImageCache(QString url, QSize reqSize) const {
     return QUrl::fromLocalFile(path.native().c_str());
 }
 
+QUrl App::media_file(const QString& id_) const {
+    auto id              = To<std::string>::from(id_);
+    auto media_cache_dir = cache_path() / "media";
+    asio::co_spawn(m_media_cache_sql->get_executor(), m_media_cache_sql->get(id), asio::detached);
+    auto file = media_cache_dir / id;
+    if (std::filesystem::exists(file)) return QUrl::fromLocalFile(To<QString>::from(file.native()));
+    return {};
+}
+
 QString App::media_url(const QString& ori, const QString& id) const {
     return To<QString>::from(
         m_media_cache->get_url(To<std::string>::from(ori), To<std::string>::from(id)));

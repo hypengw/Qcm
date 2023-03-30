@@ -11,7 +11,7 @@ namespace params
 struct SongUrl {
     enum class Level
     {
-        Standard,
+        Standard = 0,
         Higher,
         Exhigh,
         Lossless,
@@ -33,9 +33,10 @@ struct fmt::formatter<ncm::params::SongUrl::Level> : fmt::formatter<std::string_
             using enum ncm::params::SongUrl::Level;
         case Standard: out = "standard"; break;
         case Higher: out = "higher"; break;
-        case Exhigh: out = "exhigh"; break;
         case Lossless: out = "lossless"; break;
         case Hires: out = "hires"; break;
+        case Exhigh:
+        default: out = "exhigh"; break;
         }
         return fmt::formatter<std::string_view>::format(out, ctx);
     }

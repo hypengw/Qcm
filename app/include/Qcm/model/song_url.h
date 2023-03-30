@@ -69,9 +69,38 @@ class SongUrlQuerier : public SongUrlQuerier_base {
     Q_OBJECT
     QML_ELEMENT
 public:
+    enum Level
+    {
+        LevelStandard = 0,
+        LevelHigher,
+        LevelExhigh,
+        LevelLossless,
+        LevelHires
+    };
+    Q_ENUM(Level)
+
+public:
     SongUrlQuerier(QObject* parent = nullptr): SongUrlQuerier_base(parent) {}
 
-    FORWARD_PROPERTY(std::vector<QString>, ids, ids)
+    FORWARD_PROPERTY(std::vector<model::SongId>, ids, ids)
+    FORWARD_PROPERTY_DECLARE(Level, level, level)
+};
+} // namespace qcm
+
+template<>
+struct To<qcm::SongUrlQuerier::Level> {
+    static auto from(ncm::params::SongUrl::Level l) {
+        return static_cast<qcm::SongUrlQuerier::Level>(l);
+    }
+};
+template<>
+struct To<ncm::params::SongUrl::Level> {
+    static auto from(qcm::SongUrlQuerier::Level l) {
+        return static_cast<ncm::params::SongUrl::Level>(l);
+    }
 };
 
-} // namespace qcm
+namespace qcm
+{
+FORWARD_PROPERTY_IMPL(SongUrlQuerier, SongUrlQuerier::Level, level, level)
+}

@@ -43,6 +43,7 @@ public:
 
     mpris::MediaPlayer2* mpris() const { return m_mpris->mediaplayer2(); };
 
+    Q_INVOKABLE QUrl media_file(const QString& id) const;
     Q_INVOKABLE QString media_url(const QString& ori, const QString& id) const;
     Q_INVOKABLE QString md5(QString) const;
     Q_INVOKABLE model::ArtistId artistId(QString id) const;

@@ -36,6 +36,27 @@ public:                                                                         
 Q_SIGNALS:                                                                           \
     void changed_##_prop_();
 
+#define FORWARD_PROPERTY_DECLARE(_type_, _prop_, _input_)                            \
+public:                                                                              \
+    Q_PROPERTY(_type_ _prop_ READ _prop_ WRITE set_##_prop_ NOTIFY changed_##_prop_) \
+    _type_ _prop_() const;                                                           \
+    void   set_##_prop_(_type_ v);                                                   \
+Q_SIGNALS:                                                                           \
+    void changed_##_prop_();
+
+#define FORWARD_PROPERTY_IMPL(_class_, _type_, _prop_, _input_)                                   \
+    inline _type_ _class_::_prop_() const { return To<_type_>::from(this->api().input._input_); } \
+    inline void   _class_::set_##_prop_(_type_ v) {                                               \
+        auto& cur = this->api().input._input_;                                                  \
+        auto  v_  = To<std::decay_t<decltype(cur)>>::from(v);                                   \
+        if (cur != v_) {                                                                        \
+            cur = v_;                                                                           \
+            this->mark_dirty();                                                                 \
+            emit changed_##_prop_();                                                            \
+            this->reload_if_needed();                                                           \
+        }                                                                                       \
+    }
+
 #define CONVERT_PROPERTY(_out_, _in_) _out_ = To<std::decay_t<decltype(_out_)>>::from(_in_)
 
 namespace qcm

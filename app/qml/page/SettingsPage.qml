@@ -19,14 +19,65 @@ Page {
         anchors.fill: parent
 
         SettingSection {
+            id: sec_play
+
+            Layout.fillWidth: true
+            title: qsTr('play')
+
+            SettingRow {
+                Layout.fillWidth: true
+                text: qsTr('playing quality')
+
+                actionItem: ComboBox {
+                    id: comb_quality
+
+                    signal clicked()
+
+                    textRole: "text"
+                    valueRole: "value"
+                    onClicked: {
+                        popup.open();
+                    }
+                    popup.modal: true
+
+                    model: ListModel {
+                        ListElement {
+                            text: qsTr('Standard')
+                            value: SongUrlQuerier.LevelStandard
+                        }
+
+                        ListElement {
+                            text: qsTr('Higher')
+                            value: SongUrlQuerier.LevelHigher
+                        }
+
+                        ListElement {
+                            text: qsTr('Exhigh')
+                            value: SongUrlQuerier.LevelExhigh
+                        }
+
+                        ListElement {
+                            text: qsTr('Lossless')
+                            value: SongUrlQuerier.LevelLossless
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        SettingSection {
             id: sec_cache
 
             Layout.fillWidth: true
             title: qsTr('cache')
 
             ColumnLayout {
-                Layout.leftMargin: 12
-                Layout.rightMargin: 12
+                Layout.leftMargin: 16
+                Layout.rightMargin: 16
 
                 ColumnLayout {
                     spacing: 0
@@ -81,7 +132,7 @@ Page {
     }
 
     Settings {
-        id: settings
+        id: settings_cache
 
         property real total_cache_limit
         property real media_cache_limit
@@ -100,6 +151,20 @@ Page {
         Component.onDestruction: {
             sync();
             App.triggerCacheLimit();
+        }
+    }
+
+    Settings {
+        id: settings_play
+
+        property int play_quality: SongUrlQuerier.LevelExhigh
+
+        category: 'play'
+        Component.onCompleted: {
+            comb_quality.currentIndex = comb_quality.indexOfValue(play_quality);
+            play_quality = Qt.binding(() => {
+                return comb_quality.currentValue;
+            });
         }
     }
 
@@ -148,6 +213,12 @@ Page {
         property alias actionItem: sr_action.contentItem
 
         MItemDelegate {
+            Layout.fillWidth: true
+            Component.onCompleted: {
+                if (actionItem.clicked)
+                    clicked.connect(actionItem.clicked);
+
+            }
 
             contentItem: RowLayout {
                 Label {
