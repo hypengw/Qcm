@@ -154,9 +154,10 @@ Item {
             if (refresh)
                 m_player.source = '';
 
-            if (!cur.itemId.valid())
+            if (!cur.itemId.valid()) {
+                m_player.stop();
                 return ;
-
+            }
             const quality = parseInt(settings_play.value('play_quality', m_querier_song.level.toString()));
             const key = Qt.md5(`${cur.itemId.sid}, quality: ${quality}`);
             const file = App.media_file(key);

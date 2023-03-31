@@ -206,16 +206,19 @@ public:
 } // namespace model
 } // namespace qcm
 
+template<qcm::model::ItemIdCP I>
+struct fmt::formatter<I> : fmt::formatter<std::string> {
+    template<typename FormatContext>
+    auto format(const I& it, FormatContext& ctx) const {
+        return fmt::formatter<std::string>::format(it.id.toStdString(), ctx);
+    }
+};
+
 template<typename T>
     requires qcm::model::ItemIdCP<T>
 struct To<T> {
     static auto from(i64 s) { return T { QString::fromStdString(To<std::string>::from(s)) }; }
     static auto from(const std::string& s) { return T { QString::fromStdString(s) }; }
-};
-
-template<qcm::model::ItemIdCP I>
-struct To<std::string>::From<I> {
-    static auto from(const I& v) { return v.id.toStdString(); }
 };
 
 template<>

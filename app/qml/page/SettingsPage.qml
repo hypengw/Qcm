@@ -17,6 +17,7 @@ Page {
 
     ColumnLayout {
         anchors.fill: parent
+        spacing: 12
 
         SettingSection {
             id: sec_play

@@ -2,6 +2,7 @@
 
 #include <QQmlEngine>
 #include <QAbstractListModel>
+#include <set>
 
 #include "Qcm/api.h"
 #include "Qcm/model.h"
@@ -22,6 +23,8 @@ public:
     GATGET_PROPERTY(QString, name, name)
     GATGET_PROPERTY(QString, picUrl, picUrl)
     GATGET_PROPERTY(std::vector<Artist>, artists, artists)
+
+    std::strong_ordering operator<=>(const AlbumSublistItem&) const = default;
 };
 } // namespace model
 } // namespace qcm
@@ -52,31 +55,20 @@ public:
 
     void handle_output(const out_type& re, const auto& input) {
         if (input.offset == 0) {
-            bool need_reset = re.data.size() > (usize)rowCount();
-            if (! need_reset) {
-                for (usize i = 0; i < re.data.size(); i++) {
-                    auto id = To<AlbumId>::from(re.data[i].id);
-                    if (id != items()[i].id) {
-                        need_reset = true;
-                        break;
-                    }
+            auto in_ = To<std::vector<AlbumSublistItem>>::from(re.data);
+            convertModel(in_, [](const AlbumSublistItem& it) -> std::string {
+                return To<std::string>::from(it.id);
+            });
+            m_has_more = re.hasMore;
+        } else if (input.offset == (int)rowCount()) {
+            if (! re.data.empty()) {
+                auto in_ = To<std::vector<AlbumSublistItem>>::from(re.data);
+                for (auto& el : in_) {
+                    insert(rowCount(), el);
                 }
             }
-            if (need_reset)
-                resetModel({});
-            else
-                return;
-        } else if (input.offset != (int)rowCount()) {
-            return;
+            m_has_more = re.hasMore;
         }
-
-        if (! re.data.empty()) {
-            auto in_ = To<std::vector<AlbumSublistItem>>::from(re.data);
-            for (auto& el : in_) {
-                insert(rowCount(), el);
-            }
-        }
-        m_has_more = re.hasMore;
     }
 
     bool canFetchMore(const QModelIndex&) const override { return m_has_more; }

@@ -3,6 +3,9 @@
 #include <QObject>
 #include <QAbstractListModel>
 #include <QMetaProperty>
+#include <set>
+#include <span>
+#include <type_traits>
 
 namespace meta_model
 {
@@ -39,10 +42,49 @@ public:
         endRemoveRows();
     }
 
+    void replace(int idx, const TGadget& gad) {
+        m_items[idx] = gad;
+        dataChanged(index(idx), index(idx));
+    }
+
     void resetModel(QList<TGadget> items) {
         beginResetModel();
         m_items = std::move(items);
         endResetModel();
+    }
+
+    template<typename IdFn>
+        requires std::convertible_to<std::invoke_result_t<IdFn, TGadget>, std::string>
+    void convertModel(std::span<TGadget> items, IdFn&& id_fn) {
+        std::set<std::string> id_set;
+        for (auto& el : items) {
+            id_set.insert(id_fn(el));
+        }
+
+        for (int i = 0; i < m_items.size();) {
+            auto id = id_fn(m_items[i]);
+            if (id_set.contains(id))
+                i++;
+            else
+                remove(i);
+        }
+
+        for (std::size_t i = 0; i < items.size(); i++) {
+            auto in = items[i];
+            if ((std::size_t)rowCount() == i) {
+                insert(i, in);
+            } else {
+                auto& out = m_items[i];
+                if (id_fn(in) != id_fn(out))
+                    insert(i, in);
+                else if (in != out)
+                    replace(i, in);
+            }
+        }
+
+        for (int i = items.size(); i < m_items.size(); i++) {
+            remove(i);
+        }
     }
 
     // override

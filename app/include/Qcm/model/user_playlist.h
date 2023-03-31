@@ -23,6 +23,8 @@ public:
     GATGET_PROPERTY(QString, picUrl, picUrl)
     GATGET_PROPERTY(qint32, playCount, playCount)
     GATGET_PROPERTY(qint32, trackCount, trackCount)
+
+    std::strong_ordering operator<=>(const UserPlaylistItem&) const = default;
 };
 } // namespace model
 } // namespace qcm
@@ -54,29 +56,17 @@ public:
 
     void handle_output(const out_type& re, const auto& input) {
         if (input.offset == 0) {
-            auto& list       = re.playlist;
-            bool  need_reset = list.size() > (usize)rowCount();
-            if (! need_reset) {
-                for (usize i = 0; i < list.size(); i++) {
-                    auto id = To<PlaylistId>::from(list[i].id);
-                    if (id != items()[i].itemId) {
-                        need_reset = true;
-                        break;
-                    }
-                }
+            auto in_ = To<std::vector<UserPlaylistItem>>::from(re.playlist);
+            convertModel(in_, [](const UserPlaylistItem& it) {
+                return To<std::string>::from(it.itemId);
+            });
+            m_has_more = re.more;
+        } else if (input.offset == (int)rowCount()) {
+            for (auto& el : re.playlist) {
+                insert(rowCount(), To<UserPlaylistItem>::from(el));
             }
-            if (need_reset)
-                resetModel({});
-            else
-                return;
-        } else if (input.offset != (int)rowCount()) {
-            return;
+            m_has_more = re.more;
         }
-
-        for (auto& el : re.playlist) {
-            insert(rowCount(), To<UserPlaylistItem>::from(el));
-        }
-        m_has_more = re.more;
     }
 
     bool canFetchMore(const QModelIndex&) const override { return m_has_more; }

@@ -61,13 +61,41 @@ Page {
                     currentIndex: bar.currentIndex
 
                     BaseView {
+                        id: view_playlist
+
                         model: qr_playlist.data
                         delegate: dg_playlist
+                        refresh: function() {
+                            api_container.refresh_list(qr_playlist);
+                        }
+
+                        Connections {
+                            function onSig_like_playlist() {
+                                view_playlist.dirty = true;
+                            }
+
+                            target: QA
+                        }
+
                     }
 
                     BaseView {
+                        id: view_albumlist
+
                         model: qr_albumlist.data
                         delegate: dg_albumlist
+                        refresh: function() {
+                            api_container.refresh_list(qr_albumlist);
+                        }
+
+                        Connections {
+                            function onSig_like_album() {
+                                view_albumlist.dirty = true;
+                            }
+
+                            target: QA
+                        }
+
                     }
 
                     BaseView {
@@ -76,11 +104,22 @@ Page {
                     }
 
                     component BaseView: ListView {
+                        property var refresh: function() {
+                        }
+                        property bool dirty: false
+
                         function checkCur() {
-                            if (currentItem && !content.busy) {
+                            if (currentItem) {
                                 if (currentItem.itemId !== content.currentItemId)
                                     currentIndex = -1;
 
+                            }
+                        }
+
+                        function checkDirty() {
+                            if (visible && dirty) {
+                                refresh();
+                                dirty = false;
                             }
                         }
 
@@ -89,8 +128,10 @@ Page {
                         highlightMoveDuration: 1000
                         highlightMoveVelocity: -1
                         Component.onCompleted: {
-                            bar.currentIndexChanged.connect(checkCur);
-                            content.busyChanged.connect(checkCur);
+                            visibleChanged.connect(checkCur);
+                            currentItemChanged.connect(checkCur);
+                            visibleChanged.connect(checkDirty);
+                            dirtyChanged.connect(visibleChanged);
                         }
 
                         ScrollBar.vertical: ScrollBar {
@@ -101,31 +142,32 @@ Page {
                 }
 
                 ApiContainer {
-                    Connections {
-                        function onSig_like_album() {
-                            qr_albumlist.reset();
-                        }
+                    id: api_container
 
-                        function onSig_like_playlist() {
-                            qr_playlist.reset();
-                        }
-
-                        target: QA
+                    function refresh_list(qr) {
+                        const old_limit = qr.limit;
+                        qr.limit = 0;
+                        qr.offset = 0;
+                        qr.limit = Math.max(old_limit, qr.data.rowCount());
                     }
 
                     AlbumSublistQuerier {
                         id: qr_albumlist
+
+                        autoReload: limit > 0
                     }
 
                     ArtistSublistQuerier {
                         id: qr_artistlist
+
+                        autoReload: limit > 0
                     }
 
                     UserPlaylistQuerier {
                         id: qr_playlist
 
                         uid: QA.user_info.userId
-                        autoReload: uid.valid()
+                        autoReload: uid.valid() && limit > 0
                     }
 
                 }
@@ -138,8 +180,8 @@ Page {
 
                         width: ListView.view.width
                         onClicked: {
-                            ListView.view.currentIndex = index;
                             content.route(itemId);
+                            ListView.view.currentIndex = index;
                         }
 
                         contentItem: RowLayout {
@@ -185,8 +227,8 @@ Page {
 
                         width: ListView.view.width
                         onClicked: {
-                            ListView.view.currentIndex = index;
                             content.route(itemId);
+                            ListView.view.currentIndex = index;
                         }
 
                         contentItem: RowLayout {
@@ -236,8 +278,8 @@ Page {
 
                         width: ListView.view.width
                         onClicked: {
-                            ListView.view.currentIndex = index;
                             content.route(itemId);
+                            ListView.view.currentIndex = index;
                         }
 
                         contentItem: RowLayout {
@@ -282,13 +324,10 @@ Page {
         rightPage: StackView {
             id: content
 
-            readonly property var currentItemId: currentItem.itemId
-            readonly property var lastIndex: ({
-                "tab": 0,
-                "view": -1
-            })
+            property var currentItemId: null
 
             function route(itemId) {
+                currentItemId = itemId;
                 push_page(QA.item_id_url(itemId), {
                     "itemId": itemId
                 });
