@@ -137,7 +137,8 @@ ApplicationWindow {
                                     "page": 'qrc:/QcmApp/qml/page/PlaylistListPage.qml'
                                 }, {
                                     "icon": Theme.ic.today,
-                                    "page": 'qrc:/QcmApp/qml/page/TodayPage.qml'
+                                    "page": 'qrc:/QcmApp/qml/page/TodayPage.qml',
+                                    "cache": true
                                 }].forEach((m) => {
                                     model.append(m);
                                 });

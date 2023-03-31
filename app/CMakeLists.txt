@@ -30,6 +30,7 @@ set(SOURCES
     include/Qcm/model/playlist_list.h
     include/Qcm/model/playlist_subscribe.h
     include/Qcm/model/recommend_songs.h
+    include/Qcm/model/recommend_resource.h
     include/Qcm/model/song_url.h
     include/Qcm/model/user_account.h
     include/Qcm/model/user_playlist.h

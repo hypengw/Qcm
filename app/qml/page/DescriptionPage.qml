@@ -22,7 +22,8 @@ MPage {
         ColumnLayout {
             id: content
 
-            anchors.fill: parent
+            height: implicitHeight
+            width: parent.width
             spacing: 12
 
             Label {
@@ -32,7 +33,6 @@ MPage {
                 wrapMode: Text.Wrap
                 elide: Text.ElideRight
                 textFormat: Text.PlainText
-                font.pointSize: Theme.ts.label_medium.size
             }
 
         }

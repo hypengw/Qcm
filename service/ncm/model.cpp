@@ -15,6 +15,7 @@
 #include "ncm/api/playlist_list.h"
 #include "ncm/api/playlist_subscribe.h"
 #include "ncm/api/recommend_songs.h"
+#include "ncm/api/recommend_resource.h"
 #include "ncm/api/song_url.h"
 #include "ncm/api/user_account.h"
 #include "ncm/api/user_playlist.h"
@@ -65,6 +66,9 @@ JSON_DEFINE_IMPL(Playlist, id, commentCount, specialType, shareCount, tracks, st
                  commentThreadId, updateTime, subscribed, name, coverImgUrl, playCount, description,
                  createTime, userId, trackCount);
 
+JSON_DEFINE_IMPL(RecommendResourceItem, copywriter, playcount, picUrl, type, name, id, trackCount,
+                 createTime);
+
 JSON_DEFINE_IMPL(SongUrl, id, level, encodeType, size, br, fee, md5, url, time);
 
 JSON_DEFINE_WITH_DEFAULT_IMPL(UserAccountProfile, defaultAvatar, accountStatus, accountType,
@@ -102,6 +106,8 @@ JSON_DEFINE_IMPL(PlaylistSubscribe, code);
 JSON_DEFINE_IMPL(RecommendSongs::Data, dailySongs);
 JSON_DEFINE_IMPL(RecommendSongs, code, data);
 
+JSON_DEFINE_IMPL(RecommendResource, code, recommend);
+
 JSON_DEFINE_IMPL(SongUrl, code, data);
 JSON_DEFINE_WITH_DEFAULT_IMPL(UserAccount, code, profile);
 JSON_DEFINE_IMPL(UserPlaylist, code, playlist, more);
@@ -133,6 +139,7 @@ JSON_GET_IMPL(api_model::PlaylistDetailDynamic);
 JSON_GET_IMPL(api_model::PlaylistList);
 JSON_GET_IMPL(api_model::PlaylistSubscribe);
 JSON_GET_IMPL(api_model::RecommendSongs);
+JSON_GET_IMPL(api_model::RecommendResource);
 JSON_GET_IMPL(api_model::SongUrl);
 JSON_GET_IMPL(api_model::UserAccount);
 JSON_GET_IMPL(api_model::UserPlaylist);

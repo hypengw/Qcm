@@ -13,10 +13,10 @@ namespace qcm
 namespace model
 {
 
-class RecommandSongs : public QObject {
+class RecommendSongs : public QObject {
     Q_OBJECT
 public:
-    RecommandSongs(QObject* parent = nullptr): QObject(parent) {}
+    RecommendSongs(QObject* parent = nullptr): QObject(parent) {}
     using out_type = ncm::api_model::RecommendSongs;
 
     READ_PROPERTY(std::vector<Song>, dailySongs, m_dailySongs, infoChanged)
@@ -30,15 +30,15 @@ public:
 signals:
     void infoChanged();
 };
-static_assert(modelable<RecommandSongs, ncm::api::RecommendSongs>);
+static_assert(modelable<RecommendSongs, ncm::api::RecommendSongs>);
 
 } // namespace model
 
-using RecommandSongsQuerier_base = ApiQuerier<ncm::api::RecommendSongs, model::RecommandSongs>;
-class RecommandSongsQuerier : public RecommandSongsQuerier_base {
+using RecommendSongsQuerier_base = ApiQuerier<ncm::api::RecommendSongs, model::RecommendSongs>;
+class RecommendSongsQuerier : public RecommendSongsQuerier_base {
     Q_OBJECT
     QML_ELEMENT
 public:
-    RecommandSongsQuerier(QObject* parent = nullptr): RecommandSongsQuerier_base(parent) {}
+    RecommendSongsQuerier(QObject* parent = nullptr): RecommendSongsQuerier_base(parent) {}
 };
 } // namespace qcm

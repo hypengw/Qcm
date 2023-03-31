@@ -27,9 +27,14 @@ MPage {
         ColumnLayout {
             id: content
 
-            anchors.fill: parent
-            anchors.leftMargin: 12
-            anchors.rightMargin: 12
+            height: implicitHeight
+            anchors {
+                leftMargin: 12
+                rightMargin: 12
+                left: parent.left
+                right: parent.right
+            }
+
             spacing: 12
 
             CatalogueSection {

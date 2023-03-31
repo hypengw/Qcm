@@ -84,7 +84,7 @@ Page {
                     spacing: 0
 
                     Label {
-                        text: `${qsTr('total cache limit')}: ${Util.prettyBytes(slider_total_cache.byteValue)}`
+                        text: `${qsTr('total cache limit')}: ${Util.pretty_bytes(slider_total_cache.byteValue)}`
                     }
 
                     ByteSlider {
@@ -107,7 +107,7 @@ Page {
                     spacing: 0
 
                     Label {
-                        text: `${qsTr('media cache limit')}: ${Util.prettyBytes(slider_media_cache.byteValue)}`
+                        text: `${qsTr('media cache limit')}: ${Util.pretty_bytes(slider_media_cache.byteValue)}`
                     }
 
                     ByteSlider {

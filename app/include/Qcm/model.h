@@ -274,17 +274,20 @@ struct To<qcm::model::Album> {
 
 template<>
 struct To<qcm::model::Playlist> {
-    static qcm::model::Playlist from(const ncm::model::Playlist& in) {
-        qcm::model::Playlist o;
-        CONVERT_PROPERTY(o.id, in.id);
-        CONVERT_PROPERTY(o.name, in.name);
-        CONVERT_PROPERTY(o.picUrl, in.coverImgUrl);
-        CONVERT_PROPERTY(o.description, in.description.value_or(""));
-        CONVERT_PROPERTY(o.updateTime, in.updateTime);
-        CONVERT_PROPERTY(o.playCount, in.playCount);
-        return o;
-    }
+    template<typename T>
+    static auto from(const T&);
 };
+template<>
+inline auto To<qcm::model::Playlist>::from(const ncm::model::Playlist& in) {
+    qcm::model::Playlist o;
+    CONVERT_PROPERTY(o.id, in.id);
+    CONVERT_PROPERTY(o.name, in.name);
+    CONVERT_PROPERTY(o.picUrl, in.coverImgUrl);
+    CONVERT_PROPERTY(o.description, in.description.value_or(""));
+    CONVERT_PROPERTY(o.updateTime, in.updateTime);
+    CONVERT_PROPERTY(o.playCount, in.playCount);
+    return o;
+}
 
 template<>
 struct To<qcm::model::Song> {
@@ -310,7 +313,7 @@ struct To<qcm::model::Song> {
             case DigitalAlbum: tag = "dg"; break;
             case Free:
             case Free128k: break;
-            default: ERROR_LOG("unknown fee: {}", (int)fee);
+            default: WARN_LOG("unknown fee: {}, {}", (i64)fee, in.name);
             }
             if (! tag.isEmpty()) o.tags.push_back(tag);
         }

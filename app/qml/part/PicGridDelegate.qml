@@ -7,14 +7,14 @@ import "../component"
 import "../part"
 
 MPane {
+    id: root
+
     property alias image: image
     property alias text: label.text
     property alias subText: label_sub.text
 
     signal clicked()
 
-    width: GridView.view.cellWidth
-    height: GridView.view.cellHeight
     Component.onCompleted: {
         item_dg.clicked.connect(clicked);
     }
@@ -62,6 +62,16 @@ MPane {
 
         }
 
+    }
+
+    Binding on width {
+        when: root.GridView && root.GridView.view
+        value: root.GridView.view.cellWidth
+    }
+
+    Binding on height {
+        when: root.GridView && root.GridView.view
+        value: root.GridView.view.cellHeight
     }
 
 }

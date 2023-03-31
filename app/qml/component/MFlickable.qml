@@ -10,9 +10,9 @@ Flickable {
     rightMargin: 16
     leftMargin: 16
     contentWidth: width - rightMargin - leftMargin
-    contentHeight: content.implicitHeight
+    contentHeight: contentItem.childrenRect.height
     implicitHeight: contentHeight + topMargin + bottomMargin
-    implicitWidth: contentHeight + rightMargin + leftMargin
+    implicitWidth: contentWidth + rightMargin + leftMargin
     clip: true
     boundsBehavior: Flickable.StopAtBounds
 }
