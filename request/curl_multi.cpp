@@ -54,6 +54,7 @@ struct SocketMonInner : public std::enable_shared_from_this<SocketMonInner> {
 
     ~SocketMonInner() {
         // asio always own descriptor, need release it as actually owned by curl
+        native_socket->cancel();
         native_socket->release();
     }
 

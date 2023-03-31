@@ -4,4 +4,4 @@ Comment=Qt client for netease cloud music
 Exec=Qcm %U
 Type=Application
 Icon=io.github.hypengw.Qcm
-Categories=Audio
+Categories=Audio;AudioVideo

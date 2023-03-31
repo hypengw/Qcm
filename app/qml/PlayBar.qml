@@ -86,6 +86,7 @@ Pane {
 
                 Label {
                     Layout.fillWidth: true
+                    Layout.maximumWidth: implicitWidth
                     text: QA.cur_song.name
                     elide: Text.ElideRight
                     Material.foreground: ma_name.containsMouse ? Theme.color.primary : Theme.color.on_background
@@ -121,6 +122,7 @@ Pane {
                         id: subtitle_label
 
                         Layout.fillWidth: true
+                        Layout.maximumWidth: implicitWidth
                         elide: Text.ElideRight
                         font.pointSize: Theme.ts.label_small.size
                         opacity: 0.6
@@ -148,6 +150,10 @@ Pane {
 
                 }
 
+            }
+
+            Item {
+                Layout.fillWidth: true
             }
 
             MRoundButton {
