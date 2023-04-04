@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
+import QcmApp
 
 Flickable {
     id: root
@@ -15,4 +16,9 @@ Flickable {
     implicitWidth: contentWidth + rightMargin + leftMargin
     clip: true
     boundsBehavior: Flickable.StopAtBounds
+
+    FlickableScrollHandler {
+        enabled: true
+    }
+
 }

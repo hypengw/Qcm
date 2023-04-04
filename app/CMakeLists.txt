@@ -38,6 +38,7 @@ set(SOURCES
     include/Qcm/model/qrcode_unikey.h
     include/Qcm/model/radio_like.h
     include/Qcm/model/song_like.h
+    include/Qcm/util/flickable_scroll_handler.hpp
     src/app.cpp
     src/api.cpp
     src/color.cpp
@@ -46,7 +47,9 @@ set(SOURCES
     src/playlist.cpp
     src/ncm_image.cpp
     src/qr_image.cpp
-    src/cache_sql.cpp)
+    src/cache_sql.cpp
+    src/util/flickable_scroll_handler.cpp
+    )
 
 set(QML_FILES
     main.qml
@@ -79,7 +82,9 @@ set(QML_FILES
     qml/component/Leaflet.qml
     qml/component/MButton.qml
     qml/component/MRoundButton.qml
+    qml/component/MGridView.qml
     qml/component/MItemDelegate.qml
+    qml/component/MListView.qml
     qml/component/MMenu.qml
     qml/component/MMenuItem.qml
     qml/component/MFlickable.qml
@@ -114,7 +119,7 @@ qt_add_qml_module(
 target_include_directories(
   app
   PUBLIC include
-  PRIVATE src/ include/Qcm include/Qcm/model)
+  PRIVATE src/ include/Qcm include/Qcm/model include/Qcm/util)
 target_link_libraries(
   app
   PUBLIC Qt6::Core

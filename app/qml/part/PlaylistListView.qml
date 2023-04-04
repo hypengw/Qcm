@@ -11,7 +11,7 @@ Pane {
 
     padding: 0
 
-    GridView {
+    MGridView {
         property int cellWidth_: 180
 
         anchors.fill: parent

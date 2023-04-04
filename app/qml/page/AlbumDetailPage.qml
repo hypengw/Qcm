@@ -256,7 +256,7 @@ Page {
                         Material.background: Theme.color.surface_1
                         padding: 0
 
-                        ListView {
+                        MListView {
                             id: view
 
                             anchors.fill: parent

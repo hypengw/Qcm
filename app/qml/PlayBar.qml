@@ -245,7 +245,7 @@ Pane {
                         Material.elevation: 1
                         padding: 0
 
-                        ListView {
+                        MListView {
                             id: view_playlist
 
                             anchors.fill: parent

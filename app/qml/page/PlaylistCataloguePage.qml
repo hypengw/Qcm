@@ -24,6 +24,9 @@ MPage {
         leftMargin: 4
         rightMargin: 4
 
+        ScrollBar.vertical: ScrollBar {
+        }
+
         ColumnLayout {
             id: content
 

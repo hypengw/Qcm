@@ -103,7 +103,7 @@ Page {
                         delegate: dg_artistlist
                     }
 
-                    component BaseView: ListView {
+                    component BaseView: MListView {
                         property var refresh: function() {
                         }
                         property bool dirty: false

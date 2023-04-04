@@ -23,24 +23,26 @@
 #include <QPointer>
 #include <QQuickItem>
 
-class FlickableScrollHandler : public QObject
-{
+class FlickableScrollHandler : public QObject {
     Q_OBJECT
+    QML_ELEMENT
 
     Q_PROPERTY(QObject* parent READ parent NOTIFY initialized FINAL)
 
-    Q_PROPERTY(qreal scaleFactor READ scaleFactor WRITE setScaleFactor NOTIFY scaleFactorChanged FINAL)
-    Q_PROPERTY(qreal effectiveScaleFactor READ effectiveScaleFactor NOTIFY effectiveScaleFactorChanged FINAL)
+    Q_PROPERTY(
+        qreal scaleFactor READ scaleFactor WRITE setScaleFactor NOTIFY scaleFactorChanged FINAL)
+    Q_PROPERTY(qreal effectiveScaleFactor READ effectiveScaleFactor NOTIFY
+                   effectiveScaleFactorChanged FINAL)
     Q_PROPERTY(bool enabled READ enabled WRITE setEnabled NOTIFY enabledChanged FINAL)
     Q_PROPERTY(bool fallbackScroll MEMBER m_fallbackScroll NOTIFY fallbackScrollChanged FINAL)
 
 public:
-    explicit FlickableScrollHandler(QObject *parent = nullptr);
+    explicit FlickableScrollHandler(QObject* parent = nullptr);
     ~FlickableScrollHandler();
 
     qreal scaleFactor() const;
     qreal effectiveScaleFactor() const;
-    bool enabled() const;
+    bool  enabled() const;
 
     void setScaleFactor(qreal newScaleFactor);
     void setEnabled(bool newEnabled);
@@ -59,30 +61,33 @@ private slots:
     void adjustScrollBarV();
     void adjustScrollBarH();
 
+    void refreshAttach();
+
 private:
     void attach();
     void detach();
 
-    bool eventFilter(QObject *watched, QEvent *event) override;
+    bool eventFilter(QObject* watched, QEvent* event) override;
 
 private:
     QPointer<QQuickItem> m_target = nullptr;
-    qreal m_scaleFactor;
-    qreal m_effectiveScaleFactor;
-    bool m_enabled = true;
-    bool m_fallbackScroll = false;
+    qreal                m_scaleFactor;
+    qreal                m_effectiveScaleFactor;
+    bool                 m_enabled        = true;
+    bool                 m_fallbackScroll = false;
 
     QQmlProperty m_propertyContentX, m_propertyContentY;
     QQmlProperty m_propertyContentHeight, m_propertyContentWidth;
     QQmlProperty m_propertyHeight, m_propertyWidth;
+    QQmlProperty m_propertyInteractive;
 
     struct ScrollBar {
         QQmlProperty scrollBar;
         QQmlProperty stepSize;
-        QMetaMethod increaseMethod;
-        QMetaMethod decreaseMethod;
-        QQuickItem* item = nullptr;
-        bool valid() const { return item != nullptr; };
+        QMetaMethod  increaseMethod;
+        QMetaMethod  decreaseMethod;
+        QQuickItem*  item = nullptr;
+        bool         valid() const { return item != nullptr; };
     } m_scrollBarV, m_scrollBarH;
 
     void adjustScrollBar(ScrollBar& scrollBar);

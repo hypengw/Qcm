@@ -192,7 +192,7 @@ Page {
                             currentIndex: bar.currentIndex
                             anchors.fill: parent
 
-                            ListView {
+                            MListView {
                                 implicitHeight: contentHeight
                                 boundsBehavior: Flickable.StopAtBounds
                                 interactive: flick.atYEnd
@@ -218,7 +218,7 @@ Page {
 
                             }
 
-                            GridView {
+                            MGridView {
                                 property int cellWidth_: 180
 
                                 boundsBehavior: Flickable.StopAtBounds
