@@ -50,6 +50,8 @@ public:
     Q_INVOKABLE model::AlbumId albumId(QString id) const;
     Q_INVOKABLE QUrl           getImageCache(QString url, QSize reqSize) const;
 
+    Q_INVOKABLE void           test();
+
 public slots:
     void loginPost(model::UserAccount*);
     void triggerCacheLimit();

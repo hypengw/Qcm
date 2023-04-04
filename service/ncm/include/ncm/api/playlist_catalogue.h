@@ -35,10 +35,10 @@ struct PlaylistCatalogue {
         return api_model::parse<PlaylistCatalogue>(bs);
     }
 
-    i64                                   code;
-    model::PlaylistCatalogue              all;
-    std::vector<model::PlaylistCatalogue> sub;
-    std::map<std::string, std::string>            categories;
+    i64                                          code;
+    model::PlaylistCatalogue                     all;
+    std::vector<model::PlaylistCatalogue>        sub;
+    // std::unordered_map<std::string, std::string> categories;
 };
 JSON_DEFINE(PlaylistCatalogue);
 

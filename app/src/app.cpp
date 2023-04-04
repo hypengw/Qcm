@@ -19,6 +19,9 @@
 #include "Qcm/info.h"
 #include "Qcm/cache_sql.h"
 
+#include "request/response.h"
+#include "asio_helper/sync_file.h"
+
 using namespace qcm;
 
 namespace
@@ -72,7 +75,7 @@ App::App()
 App::~App() {
     save_session();
     m_media_cache->stop();
-    m_session->stop();
+    m_session->about_to_stop();
     m_pool.join();
 }
 
@@ -208,4 +211,25 @@ void App::save_session() {
     if (! user_id.empty()) {
         m_session->save_cookie(config_path() / "session" / user_id);
     }
+}
+
+void App::test() {
+    /*
+    asio::co_spawn(
+        m_session->get_strand(),
+        [this]() -> asio::awaitable<void> {
+            helper::SyncFile file { std::fstream("/var/tmp/test.iso",
+                                                 std::ios::out | std::ios::binary) };
+            file.handle().exceptions(std::ios_base::failbit | std::ios_base::badbit);
+
+            request::Request req;
+            req.set_url("https://mirrors.aliyun.com/ubuntu-releases/jammy/"
+                        "ubuntu-22.04.2-desktop-amd64.iso")
+                .set_header("user-agent", "curl/7.87.0");
+            auto rsp = co_await m_session->get(req);
+            co_await rsp.value()->read_to_stream(file);
+            co_return;
+        },
+        asio::detached);
+    */
 }

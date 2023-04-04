@@ -99,7 +99,7 @@ JSON_DEFINE_IMPL(PlaylistDetail, code, playlist, privileges);
 JSON_DEFINE_IMPL(PlaylistDetailDynamic, code, bookedCount, subscribed, playCount, followed,
                  shareCount);
 
-JSON_DEFINE_IMPL(PlaylistCatalogue, code, categories, sub, all);
+JSON_DEFINE_IMPL(PlaylistCatalogue, code, sub, all);
 JSON_DEFINE_IMPL(PlaylistList, code, playlists, total, more, cat);
 JSON_DEFINE_IMPL(PlaylistSubscribe, code);
 

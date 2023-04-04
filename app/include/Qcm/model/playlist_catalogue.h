@@ -53,10 +53,12 @@ public:
         auto& o = *this;
         for (auto el : in.sub) {
             auto cat_id = To<std::string>::from(el.category);
+            /*
             if (! in.categories.contains(cat_id)) continue;
             auto cat = To<QString>::from(in.categories.at(cat_id));
             if (! m_cats.contains(cat)) m_cats[cat] = {};
             m_cats[cat].emplace_back(To<PlaylistCatalogueItem>::from(el));
+                */
         }
         emit infoChanged();
     }

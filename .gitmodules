@@ -19,3 +19,6 @@
 [submodule "third_party/compile-time-regular-expressions"]
 	path = third_party/ctre
 	url = https://github.com/hanickadot/compile-time-regular-expressions
+[submodule "third_party/magic_enum"]
+	path = third_party/magic_enum
+	url = https://github.com/Neargye/magic_enum

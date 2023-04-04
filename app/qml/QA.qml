@@ -164,6 +164,7 @@ Item {
             // seems empty url is true, use string
             if (file.toString()) {
                 m_player.source = file;
+                m_querier_song.ids = [];
             } else {
                 song_url_slot = () => {
                     songUrlSlot(key);

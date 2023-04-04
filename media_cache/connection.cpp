@@ -66,7 +66,7 @@ asio::awaitable<void> Connection::file_source(std::filesystem::path file_path) {
     }
 
     std::vector<std::byte> buf;
-    buf.resize(1024 * 1024);
+    buf.resize(16 * 1024);
 
     for (;;) {
         file.read_some(asio::mutable_buffer((unsigned char*)buf.data(), buf.size()));
@@ -108,7 +108,7 @@ asio::awaitable<void> Connection::http_source(std::filesystem::path file_path,
     db_item.key = proxy_id;
 
     {
-        auto header = co_await rsp->async_get_header(asio::use_awaitable);
+        auto& header = rsp->header();
 
         std::string rsp_header;
 
@@ -156,7 +156,7 @@ asio::awaitable<void> Connection::http_source(std::filesystem::path file_path,
     };
 
     std::vector<std::byte> buf;
-    buf.resize(1024 * 1024);
+    buf.resize(16 * 1024);
     auto buf_data = (unsigned char*)buf.data();
 
     for (;;) {
@@ -169,6 +169,7 @@ asio::awaitable<void> Connection::http_source(std::filesystem::path file_path,
             auto [ec, size] = co_await asio::async_read(*rsp,
                                                         asio::mutable_buffer(buf_data, buf.size()),
                                                         asio::as_tuple(asio::use_awaitable));
+
             co_await asio::async_write(m_s, asio::buffer(buf_data, size), asio::use_awaitable);
 
             file.write_some(asio::buffer(buf_data, size));

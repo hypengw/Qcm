@@ -53,7 +53,7 @@ asio::awaitable<request::Header> dl_image(ncm::Client cli, const request::Reques
     co_await rsp_http->read_to_stream(file);
 
     file.handle().close();
-    co_return co_await rsp_http->async_get_header(asio::use_awaitable);
+    co_return rsp_http->header();
 }
 
 void header_record_db(const request::Header& h, CacheSql::Item& db_it) {

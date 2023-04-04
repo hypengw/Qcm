@@ -4,80 +4,121 @@
 #include <filesystem>
 #include <mutex>
 #include <set>
+#include <thread>
+#include <chrono>
 
 #include <curl/curl.h>
 #include <asio/steady_timer.hpp>
+#include <asio/thread_pool.hpp>
+#include <asio/experimental/channel.hpp>
+#include <asio/experimental/concurrent_channel.hpp>
 
 #include "curl_easy.h"
 #include "curl_error.h"
 
 #include "core/core.h"
-#include "response.h"
-#include "curl_easy.h"
+#include "request/response.h"
 
 namespace request
 {
 
-struct SocketMon;
-struct SocketMonInner;
-
 class CurlMulti : NoCopy {
-    friend struct SocketMonInner;
-
 public:
-    CurlMulti(asio::any_io_executor ex) noexcept;
-    ~CurlMulti();
+    struct InfoMsg {
+        CURLMSG  msg;
+        CURL*    easy_handle;
+        CURLcode result;
+    };
 
-    auto& get_executor() { return m_ex; }
-    auto& get_strand() { return m_strand; }
+    CurlMulti() noexcept: m_multi(curl_multi_init()), m_share(curl_share_init()) {
+        // curl_multi_setopt(m_multi, CURLMOPT_SOCKETFUNCTION, CurlMulti::curl_socket_func);
+        // curl_multi_setopt(m_multi, CURLMOPT_SOCKETDATA, this);
 
-    template<typename CompletionToken>
-    auto async_perform(CurlEasy& easy, CompletionToken&& token) {
-        return asio::async_initiate<CompletionToken, void(asio::error_code)>(
-            [this](auto&& handler, CurlEasy& easy) {
-                asio::dispatch(get_strand(), [this, &easy, handler = std::move(handler)]() mutable {
-                    auto      ex = asio::get_associated_executor(handler, get_strand());
-                    CURLMcode rc;
-                    do {
-                        auto ex = asio::get_associated_executor(handler, get_strand());
-                        easy.setopt(CURLOPT_SHARE, m_share);
-                        if (rc = add_handle(easy); rc != CURLM_OK) break;
-                    } while (false);
-                    asio::post(ex, std::bind(std::move(handler), ::make_error_code(rc)));
-                });
-            },
-            token,
-            std::ref(easy));
+        // curl_multi_setopt(m_multi, CURLMOPT_TIMERFUNCTION, CurlMulti::curl_timer_func);
+        // curl_multi_setopt(m_multi, CURLMOPT_TIMERDATA, this);
+
+        curl_share_setopt(m_share, CURLSHOPT_SHARE, CURL_LOCK_DATA_COOKIE);
+        curl_share_setopt(m_share, CURLSHOPT_LOCKFUNC, CurlMulti::static_share_lock);
+        curl_share_setopt(m_share, CURLSHOPT_UNLOCKFUNC, CurlMulti::static_share_unlock);
+        curl_share_setopt(m_share, CURLSHOPT_USERDATA, this);
     }
 
-    CURLMcode add_handle(CurlEasy&);
-    CURLMcode remove_handle(CurlEasy&);
+    ~CurlMulti() {
+        curl_multi_cleanup(m_multi);
+        curl_share_cleanup(m_share);
+    }
 
-    void load_cookie(std::filesystem::path);
-    void save_cookie(std::filesystem::path) const;
+    std::error_code add_handle(CurlEasy& easy) {
+        std::error_code cm = easy.setopt(CURLOPT_SHARE, m_share);
+        if (cm) return cm;
+        cm = curl_multi_add_handle(m_multi, easy.handle());
+        return cm;
+    }
+
+    std::error_code remove_handle(CurlEasy& easy) {
+        return curl_multi_remove_handle(m_multi, easy.handle());
+    }
+    std::error_code remove_handle(CURL* easy) { return curl_multi_remove_handle(m_multi, easy); }
+
+    std::error_code wakeup() { return curl_multi_wakeup(m_multi); }
+
+    std::error_code perform(int& still_running) {
+        return curl_multi_perform(m_multi, &still_running);
+    }
+
+    std::error_code poll(std::chrono::milliseconds timeout) {
+        return curl_multi_poll(m_multi, NULL, 0, (int)timeout.count(), NULL);
+    }
+
+    std::vector<InfoMsg> query_info_msg() {
+        std::vector<InfoMsg> out;
+        int                  message_left { 0 };
+        while (CURLMsg* msg = curl_multi_info_read(m_multi, &message_left)) {
+            out.push_back(InfoMsg {
+                .msg         = msg->msg,
+                .easy_handle = msg->easy_handle,
+                .result      = msg->data.result,
+            });
+        }
+        return out;
+    }
+
+    void load_cookie(std::filesystem::path p) {
+        CurlEasy x;
+        x.setopt(CURLOPT_SHARE, m_share);
+        // append filename
+        x.setopt(CURLOPT_COOKIEFILE, p.c_str());
+        // actually load
+        x.setopt(CURLOPT_COOKIELIST, "RELOAD");
+    }
+
+    void save_cookie(std::filesystem::path p) const {
+        CurlEasy x;
+        x.setopt(CURLOPT_SHARE, m_share);
+        x.setopt(CURLOPT_COOKIEJAR, p.c_str());
+        // save when x destruct
+    }
 
 private:
-    static int static_socket_callback(CURL* easy, curl_socket_t s, int what, void* userp,
-                                      SocketMon* socketp);
-    static int static_timer_callback(CURLM* multi, long time_ms, void* userp);
+    static void static_share_lock(CURL*, curl_lock_data data, curl_lock_access, void* clientp) {
+        auto info = static_cast<CurlMulti*>(clientp);
+        if (data == curl_lock_data::CURL_LOCK_DATA_COOKIE) {
+            info->m_share_mutex.lock();
+        }
+    }
 
-    static void static_share_lock(CURL* handle, curl_lock_data data, curl_lock_access access,
-                                  void* clientp);
-    static void static_share_unlock(CURL* handle, curl_lock_data data, void* clientp);
-
-    int socket_callback(CURL* easy, curl_socket_t s, int what, SocketMon* socketp);
-
-    void asio_socket_callback(const asio::error_code& ec, curl_socket_t s, int what,
-                              weak<SocketMonInner>);
-    int  socket_action(curl_socket_t, int event_bitmap);
+    static void static_share_unlock(CURL*, curl_lock_data data, void* clientp) {
+        auto info = static_cast<CurlMulti*>(clientp);
+        if (data == curl_lock_data::CURL_LOCK_DATA_COOKIE) {
+            info->m_share_mutex.unlock();
+        }
+    }
 
 private:
     CURLM*  m_multi;
     CURLSH* m_share;
 
-    asio::any_io_executor               m_ex;
-    asio::strand<asio::any_io_executor> m_strand;
-    asio::steady_timer                  m_timer;
-    std::mutex                          m_share_mutex;
+    asio::thread_pool m_poll_thread;
+    std::mutex        m_share_mutex;
 };
 } // namespace request

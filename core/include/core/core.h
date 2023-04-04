@@ -61,6 +61,12 @@ concept to_able = requires(F f) {
                       { To<T>::from(f) } -> std::same_as<T>;
                   };
 
+template<typename IMPL>
+struct CRTP {
+    IMPL&       crtp_impl() { return *static_cast<IMPL*>(this); }
+    const IMPL& crtp_impl() const { return *static_cast<const IMPL*>(this); }
+};
+
 #define C_DECLARE_PRIVATE(Class, DName)                                            \
     inline Class::Private* d_func() {                                              \
         return reinterpret_cast<Class::Private*>(core::GetPtrHelper(DName));       \

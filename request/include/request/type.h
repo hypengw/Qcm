@@ -2,8 +2,10 @@
 
 #include <string_view>
 #include <map>
-#include <variant>
 
+#include <asio/experimental/concurrent_channel.hpp>
+
+#include "core/variant_helper.h"
 #include "core/core.h"
 
 namespace request
@@ -83,4 +85,25 @@ public:
     std::string fragment;
 };
 
+class Connection;
+namespace session_message
+{
+struct Stop {};
+
+struct ConnectAction {
+    enum class Action
+    {
+        Add,
+        Cancel,
+        Pause,
+        UnPause,
+    };
+    rc<Connection> con;
+    Action         action;
+};
+
+using msg = std::variant<Stop, ConnectAction>;
+} // namespace session_message
+
+using SessionMessage = session_message::msg;
 } // namespace request

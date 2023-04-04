@@ -126,6 +126,7 @@ ApplicationWindow {
                                     "icon": Theme.ic.menu,
                                     "action": {
                                         "do": function() {
+                                            App.test();
                                         }
                                     }
                                 }, {
@@ -133,12 +134,12 @@ ApplicationWindow {
                                     "page": 'qrc:/QcmApp/qml/page/MinePage.qml',
                                     "cache": true
                                 }, {
-                                    "icon": Theme.ic.queue_music,
-                                    "page": 'qrc:/QcmApp/qml/page/PlaylistListPage.qml'
-                                }, {
                                     "icon": Theme.ic.today,
                                     "page": 'qrc:/QcmApp/qml/page/TodayPage.qml',
                                     "cache": true
+                                }, {
+                                    "icon": Theme.ic.queue_music,
+                                    "page": 'qrc:/QcmApp/qml/page/PlaylistListPage.qml'
                                 }].forEach((m) => {
                                     model.append(m);
                                 });
