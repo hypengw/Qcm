@@ -48,8 +48,7 @@ set(SOURCES
     src/ncm_image.cpp
     src/qr_image.cpp
     src/cache_sql.cpp
-    src/util/flickable_scroll_handler.cpp
-    )
+    src/util/flickable_scroll_handler.cpp)
 
 set(QML_FILES
     main.qml
@@ -100,11 +99,11 @@ set(RESOURCES assets/MaterialIconsRound-Regular.otf
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 set_source_files_properties(qml/QA.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
-add_library(app STATIC)
 qt_add_qml_module(
   app
   URI
   QcmApp
+  STATIC
   RESOURCE_PREFIX
   /
   VERSION
@@ -114,7 +113,8 @@ qt_add_qml_module(
   SOURCES
   ${SOURCES}
   RESOURCES
-  ${RESOURCES})
+  ${RESOURCES}
+  NO_PLUGIN_OPTIONAL)
 
 target_include_directories(
   app
@@ -140,6 +140,7 @@ target_link_libraries(
 target_compile_definitions(
   app PUBLIC APP_ID="${APP_ID}" APP_VERSION="${APP_VERSION}"
              APP_NAME="${APP_NAME}")
+
 
 qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cpp)
 qt_import_qml_plugins(${PROJECT_NAME})

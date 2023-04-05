@@ -7,4 +7,3 @@ target_include_directories(
   PRIVATE include/json_helper .)
 
 target_link_libraries(json_helper PUBLIC core nlohmann_json::nlohmann_json)
-set_property(TARGET json_helper PROPERTY POSITION_INDEPENDENT_CODE ON)

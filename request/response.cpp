@@ -36,7 +36,7 @@ attr_value attr_from_easy(CurlEasy& easy) {
         .map([](auto a) {
             return attr_value(a);
         })
-        .value_or(attr_value {});
+        .value_or(attr_value { std::monostate {} });
 }
 
 } // namespace

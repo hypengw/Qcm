@@ -23,4 +23,3 @@ target_include_directories(
   PRIVATE include/request)
 target_link_libraries(request PRIVATE ${CURL_LIBRARIES} asio_helper core
                                       fmt::fmt)
-set_property(TARGET request PROPERTY POSITION_INDEPENDENT_CODE ON)

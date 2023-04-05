@@ -3,7 +3,6 @@ add_subdirectory(fmt)
 add_subdirectory(json)
 add_subdirectory(qr_code)
 
-set_property(TARGET fmt PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 add_library(random INTERFACE)
 target_include_directories(random INTERFACE random/include)
@@ -32,7 +31,6 @@ add_library(
   ${md_dir}/cam/viewing_conditions.cc
   ${md_dir}/blend/blend.cc)
 target_include_directories(material_color PUBLIC material-color)
-set_property(TARGET material_color PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 add_library(ctre INTERFACE)
 target_include_directories(ctre INTERFACE ctre/include)

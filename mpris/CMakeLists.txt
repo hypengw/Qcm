@@ -8,4 +8,3 @@ add_library(
 
 target_include_directories(mpris PUBLIC include)
 target_link_libraries(mpris PUBLIC core Qt6::Core Qt6::DBus)
-set_property(TARGET mpris PROPERTY POSITION_INDEPENDENT_CODE ON)

@@ -34,4 +34,3 @@ target_include_directories(sv_ncm PUBLIC include .)
 target_link_libraries(sv_ncm PUBLIC core asio_helper crypto request json_helper
                                     error)
 
-set_property(TARGET sv_ncm PROPERTY POSITION_INDEPENDENT_CODE ON)

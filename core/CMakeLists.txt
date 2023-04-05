@@ -11,4 +11,3 @@ add_library(
 
 target_include_directories(core PUBLIC include)
 target_link_libraries(core PUBLIC expected random fmt::fmt)
-set_property(TARGET core PROPERTY POSITION_INDEPENDENT_CODE ON)

@@ -15,4 +15,3 @@ target_link_libraries(
   media_cache
   PUBLIC core asio_helper
   PRIVATE ctre request)
-set_property(TARGET media_cache PROPERTY POSITION_INDEPENDENT_CODE ON)

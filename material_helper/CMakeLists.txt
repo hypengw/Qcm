@@ -6,4 +6,3 @@ target_link_libraries(
   material_helper
   PUBLIC Qt6::Core core
   PRIVATE material_color)
-set_property(TARGET material_helper PROPERTY POSITION_INDEPENDENT_CODE ON)
