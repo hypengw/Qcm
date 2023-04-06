@@ -6,10 +6,10 @@
 
 using namespace qcm;
 
-constexpr QRgb base_color { qRgb(190, 231, 253) };
-
 namespace
 {
+constexpr QRgb BASE_COLOR { qRgb(190, 231, 253) };
+
 std::map<QColor, QColor, QColorCompare> gen_on_map(const MdScheme& sh) {
     return {
         { sh.primary, sh.on_primary },       { sh.secondary, sh.on_secondary },
@@ -22,16 +22,25 @@ std::map<QColor, QColor, QColorCompare> gen_on_map(const MdScheme& sh) {
 }
 } // namespace
 
-MdColorMgr::MdColorMgr(QObject* parent): QObject(parent), m_scheme_theme(SchemeTheme::Light) {
-    gen_scheme(SchemeTheme::Light);
+MdColorMgr::MdColorMgr(QObject* parent)
+    : QObject(parent), m_accent_color(BASE_COLOR), m_scheme_theme(SchemeTheme::Light) {
+    gen_scheme();
 }
 
 MdColorMgr::SchemeTheme MdColorMgr::schemeTheme() const { return m_scheme_theme; }
 void                    MdColorMgr::set_schemeTheme(SchemeTheme v) {
     if (std::exchange(m_scheme_theme, v) != v) {
-        gen_scheme(v);
+        gen_scheme();
         emit schemeThemeChanged();
-        emit schemeChanged();
+    }
+}
+
+QColor MdColorMgr::accentColor() const { return m_accent_color; }
+
+void MdColorMgr::set_accentColor(QColor v) {
+    if (std::exchange(m_accent_color, v) != v) {
+        gen_scheme();
+        emit accentColorChanged();
     }
 }
 
@@ -42,11 +51,12 @@ QColor MdColorMgr::getOn(QColor in) const {
     return m_scheme.on_background;
 }
 
-void MdColorMgr::gen_scheme(SchemeTheme th) {
-    if (th == SchemeTheme::Light)
-        m_scheme = MaterialLightColorScheme(base_color);
+void MdColorMgr::gen_scheme() {
+    if (m_scheme_theme == SchemeTheme::Light)
+        m_scheme = MaterialLightColorScheme(m_accent_color.rgb());
     else
-        m_scheme = MaterialDarkColorScheme(base_color);
+        m_scheme = MaterialDarkColorScheme(m_accent_color.rgb());
 
     m_on_map = gen_on_map(m_scheme);
+    emit schemeChanged();
 }

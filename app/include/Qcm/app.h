@@ -40,17 +40,18 @@ public:
     ncm::Client                      ncm_client() const;
     asio::any_io_executor            get_executor() { return m_qt_ex; }
     asio::thread_pool::executor_type get_pool_executor() { return m_pool.get_executor(); }
+    auto                             get_cache_sql() { return m_cache_sql; }
 
     mpris::MediaPlayer2* mpris() const { return m_mpris->mediaplayer2(); };
 
-    Q_INVOKABLE QUrl media_file(const QString& id) const;
+    Q_INVOKABLE QUrl    media_file(const QString& id) const;
     Q_INVOKABLE QString media_url(const QString& ori, const QString& id) const;
     Q_INVOKABLE QString md5(QString) const;
     Q_INVOKABLE model::ArtistId artistId(QString id) const;
     Q_INVOKABLE model::AlbumId albumId(QString id) const;
     Q_INVOKABLE QUrl           getImageCache(QString url, QSize reqSize) const;
 
-    Q_INVOKABLE void           test();
+    Q_INVOKABLE void test();
 
 public slots:
     void loginPost(model::UserAccount*);

@@ -184,7 +184,7 @@ asio::awaitable<void> Session::Private::run() {
         for (auto& m : infos) {
             if (m.msg != CURLMSG_DONE) continue;
             auto con = get_curl_private<Connection*>(m.easy_handle)->get_rc();
-            con->finish();
+            con->finish(m.result);
             remove_connect(con);
             running_connect--;
         }

@@ -73,5 +73,6 @@ Thumbs.db
 
 # cm
 build
+build_release
 .cache
 CMakeLists.txt.*

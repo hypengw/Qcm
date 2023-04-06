@@ -67,6 +67,8 @@ set(QML_FILES
     qml/page/SettingsPage.qml
     qml/page/TodayPage.qml
     qml/part/ApiContainer.qml
+    qml/page/PlayingPage.qml
+    qml/page/MainPage.qml
     qml/part/ArtistsPopup.qml
     qml/part/InfoRow.qml
     qml/part/SnakeBar.qml
@@ -76,6 +78,8 @@ set(QML_FILES
     qml/part/PicGridDelegate.qml
     qml/part/PlaylistListView.qml
     qml/part/SongTag.qml
+    qml/part/RouteMsg.qml
+    qml/part/PlaySlider.qml
     qml/component/IconRowLayout.qml
     qml/component/RoundImage.qml
     qml/component/Leaflet.qml
@@ -92,7 +96,8 @@ set(QML_FILES
     qml/component/MPopup.qml
     qml/component/PageContainer.qml
     qml/component/PagePopup.qml
-    qml/component/PageStack.qml)
+    qml/component/PageStack.qml
+    )
 set(RESOURCES assets/MaterialIconsRound-Regular.otf
               assets/MaterialIconsOutlined-Regular.otf)
 
@@ -140,7 +145,6 @@ target_link_libraries(
 target_compile_definitions(
   app PUBLIC APP_ID="${APP_ID}" APP_VERSION="${APP_VERSION}"
              APP_NAME="${APP_NAME}")
-
 
 qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cpp)
 qt_import_qml_plugins(${PROJECT_NAME})

@@ -1,10 +1,19 @@
+#pragma once
+
+#include <filesystem>
+
 #include <QQuickImageProvider>
 #include <QQuickAsyncImageProvider>
 
 #include "asio_helper/helper.h"
 #include "asio_helper/watch_dog.h"
-#include "ncm/client.h"
-#include "Qcm/cache_sql.h"
+
+#include "request/request.h"
+
+namespace ncm
+{
+class Client;
+}
 
 namespace qcm
 {
@@ -43,9 +52,11 @@ private:
     helper::WatchDog m_wdog;
 };
 
+class NcmImageProviderInner;
 class NcmImageProvider : public QQuickAsyncImageProvider {
 public:
-    NcmImageProvider(rc<CacheSql>);
+    NcmImageProvider();
+    ~NcmImageProvider();
 
     QQuickImageResponse* requestImageResponse(const QString& id,
                                               const QSize&   requestedSize) override;
@@ -54,9 +65,7 @@ public:
     static std::filesystem::path genImageCachePath(const request::Request&);
 
 private:
-    asio::any_io_executor m_ex;
-    ncm::Client           m_cli;
-    rc<CacheSql>          m_cache_sql;
+    rc<NcmImageProviderInner> m_inner;
 };
 
 } // namespace qcm

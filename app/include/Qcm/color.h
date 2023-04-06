@@ -31,6 +31,7 @@ public:
 
     Q_PROPERTY(
         SchemeTheme schemeTheme READ schemeTheme WRITE set_schemeTheme NOTIFY schemeThemeChanged)
+    Q_PROPERTY(QColor accentColor READ accentColor WRITE set_accentColor NOTIFY accentColorChanged)
 
 #define X(_n_)                                           \
     Q_PROPERTY(QColor _n_ READ _n_ NOTIFY schemeChanged) \
@@ -74,21 +75,25 @@ public:
 
 public:
     SchemeTheme schemeTheme() const;
+    QColor      accentColor() const;
 
     Q_INVOKABLE QColor getOn(QColor) const;
 
 public slots:
     void set_schemeTheme(SchemeTheme);
+    void set_accentColor(QColor);
 
 signals:
     void schemeThemeChanged();
     void schemeChanged();
+    void accentColorChanged();
 
 private:
-    void gen_scheme(SchemeTheme);
+    void gen_scheme();
 
-    SchemeTheme          m_scheme_theme;
-    MdScheme             m_scheme;
+    QColor                                  m_accent_color;
+    SchemeTheme                             m_scheme_theme;
+    MdScheme                                m_scheme;
     std::map<QColor, QColor, QColorCompare> m_on_map;
 };
 

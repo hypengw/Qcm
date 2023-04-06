@@ -129,7 +129,7 @@ void App::init(QQmlApplicationEngine* engine) {
 
     connect(engine, &QQmlApplicationEngine::quit, gui_app, &QGuiApplication::quit);
 
-    engine->addImageProvider(u"ncm"_qs, new NcmImageProvider { m_cache_sql });
+    engine->addImageProvider(u"ncm"_qs, new NcmImageProvider {});
     engine->addImageProvider(u"qr"_qs, new QrImageProvider {});
 
     engine->load(u"qrc:/QcmApp/main.qml"_qs);

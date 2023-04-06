@@ -4,6 +4,7 @@
 #include <asio/streambuf.hpp>
 #include <asio/any_completion_handler.hpp>
 
+#include "curl_error.h"
 #include "curl_easy.h"
 #include "session.h"
 
@@ -57,7 +58,8 @@ public:
     };
 
     Connection(executor_type::inner_executor_type ex, rc<Session::channel_type> session_channel)
-        : m_state(State::NotStarted),
+        : m_finish_ec(CURLE_OK),
+          m_state(State::NotStarted),
           m_recv_paused(false),
           m_ex(ex),
           m_easy(std::make_unique<CurlEasy>()),
@@ -176,13 +178,15 @@ private:
                                      Connection* self);
 
     // need to remove easy handler after
-    void finish() {
+    void finish(CURLcode ec) {
         auto self = get_rc();
 
         // after write_callback and make callback alive
-        asio::post(m_ex, [this, self]() {
-            m_state = State::Finished;
+        asio::post(m_ex, [this, self, ec]() {
+            m_finish_ec = ec;
+            m_state     = State::Finished;
             try_read_some_handler();
+            try_wait_header_handler();
         });
     }
 
@@ -196,6 +200,7 @@ private:
         }
         asio::post(m_ex, [this, self]() {
             try_read_some_handler();
+            try_wait_header_handler();
         });
     }
 
@@ -220,17 +225,24 @@ private:
                 about_to_pause(false);
             }
         } else if (m_state == State::Finished) {
-            m_read_some_handler(asio::error::eof);
+            asio::error_code ec { asio::error::eof };
+            if (m_finish_ec != CURLE_OK) ec = m_finish_ec;
+            m_read_some_handler(ec);
         }
     }
 
     void try_wait_header_handler() {
         if (! m_wait_header_handler) return;
-        m_wait_header_handler(asio::error_code {});
+        std::error_code ec {};
+        if (m_state == State::Canceled) {
+            ec = asio::error::operation_aborted;
+        }
+        m_wait_header_handler(ec);
     }
 
     std::string m_url;
 
+    CURLcode           m_finish_ec;
     std::atomic<State> m_state;
     std::atomic<bool>  m_recv_paused;
 
