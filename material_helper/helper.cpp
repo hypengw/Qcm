@@ -5,6 +5,8 @@
 
 #include "core/core.h"
 
+#include "cpp/palettes/core.h"
+
 using MdScheme = qcm::MdScheme;
 namespace md   = material_color_utilities;
 
@@ -53,21 +55,41 @@ struct To<MdScheme> {
         o.inverse_surface        = in.inverse_surface;
         o.inverse_on_surface     = in.inverse_on_surface;
         o.inverse_primary        = in.inverse_primary;
-        o.surface_1              = blend(in.surface, in.primary, 0.05);
-        o.surface_2              = blend(in.surface, in.primary, 0.08);
-        o.surface_3              = blend(in.surface, in.primary, 0.11);
-        o.surface_4              = blend(in.surface, in.primary, 0.12);
-        o.surface_5              = blend(in.surface, in.primary, 0.14);
+        o.surface_1              = blend(o.surface, o.primary, 0.05);
+        o.surface_2              = blend(o.surface, o.primary, 0.08);
+        o.surface_3              = blend(o.surface, o.primary, 0.11);
+        o.surface_4              = blend(o.surface, o.primary, 0.12);
+        o.surface_5              = blend(o.surface, o.primary, 0.14);
         return o;
     }
 };
 
 MdScheme qcm::MaterialLightColorScheme(QRgb rgb) {
-    return To<MdScheme>::from(md::MaterialLightColorScheme(rgb));
+    auto palette             = md::CorePalette::Of(rgb);
+    auto scheme              = To<MdScheme>::from(md::MaterialLightColorSchemeFromPalette(palette));
+    scheme.surface           = palette.neutral().get(98);
+    scheme.surface_dim       = palette.neutral().get(87);
+    scheme.surface_bright    = palette.neutral().get(98);
+    scheme.surface_container = palette.neutral().get(94);
+    scheme.surface_container_low     = palette.neutral().get(96);
+    scheme.surface_container_lowest  = palette.neutral().get(100);
+    scheme.surface_container_high    = palette.neutral().get(92);
+    scheme.surface_container_highest = palette.neutral().get(90);
+    return scheme;
 }
 
 MdScheme qcm::MaterialDarkColorScheme(QRgb rgb) {
-    return To<MdScheme>::from(md::MaterialDarkColorScheme(rgb));
+    auto palette             = md::CorePalette::Of(rgb);
+    auto scheme              = To<MdScheme>::from(md::MaterialDarkColorSchemeFromPalette(palette));
+    scheme.surface           = palette.neutral().get(6);
+    scheme.surface_dim       = palette.neutral().get(6);
+    scheme.surface_bright    = palette.neutral().get(24);
+    scheme.surface_container = palette.neutral().get(12);
+    scheme.surface_container_low     = palette.neutral().get(10);
+    scheme.surface_container_lowest  = palette.neutral().get(4);
+    scheme.surface_container_high    = palette.neutral().get(17);
+    scheme.surface_container_highest = palette.neutral().get(22);
+    return scheme;
 }
 
 QRgb qcm::MaterialBlendHctHue(const QRgb design_color, const QRgb key_color, const double mount) {

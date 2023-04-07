@@ -8,7 +8,7 @@ import "../component"
 import "../part"
 import "../js/util.mjs" as Util
 
-Page {
+MPage {
     id: root
     header: RowLayout {
         MRoundButton {
@@ -25,7 +25,7 @@ Page {
         }
     }
 
-    Page {
+    MPage {
         anchors.fill: parent
 
         ColumnLayout {

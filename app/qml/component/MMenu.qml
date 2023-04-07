@@ -6,8 +6,8 @@ import ".."
 
 Menu {
     id: root
+    Material.background: Theme.color.surface_container
 
     delegate: MMenuItem {
     }
-
 }

@@ -5,8 +5,6 @@ import QcmApp
 
 ListView {
     id: root
-
     FlickableScrollHandler {
     }
-
 }

@@ -15,7 +15,7 @@ ApplicationWindow {
 
     Material.accent: Material.primary
     Material.background: Theme.color.background
-    Material.foreground: Theme.color.on_background
+    Material.foreground: Theme.color.getOn(Material.background)
     Material.primary: Theme.color.primary
     Material.theme: Theme.toMatTheme(Theme.theme)
     color: Material.background
@@ -70,6 +70,7 @@ ApplicationWindow {
         id: comp_main
         StackLayout {
             id: sl_main
+            Material.background: Theme.color.surface
             clip: true
 
             Connections {

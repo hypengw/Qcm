@@ -5,20 +5,17 @@ import QcmApp
 
 Flickable {
     id: root
-
-    topMargin: 16
     bottomMargin: 16
-    rightMargin: 16
-    leftMargin: 16
-    contentWidth: width - rightMargin - leftMargin
+    boundsBehavior: Flickable.StopAtBounds
+    clip: true
     contentHeight: contentItem.childrenRect.height
+    contentWidth: width - rightMargin - leftMargin
     implicitHeight: contentHeight + topMargin + bottomMargin
     implicitWidth: contentWidth + rightMargin + leftMargin
-    clip: true
-    boundsBehavior: Flickable.StopAtBounds
+    leftMargin: 16
+    rightMargin: 16
+    topMargin: 16
 
     FlickableScrollHandler {
-        enabled: true
     }
-
 }

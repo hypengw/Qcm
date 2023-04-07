@@ -26,7 +26,7 @@ Page {
 
         Pane {
             Layout.fillHeight: true
-            Material.background: Theme.color.surface_2
+            Material.background: Theme.color.surface_container
             Material.elevation: 2
             padding: 0
             z: 1
@@ -68,7 +68,7 @@ Page {
                         interactive: false
 
                         delegate: MItemDelegate {
-                            Material.primary: Theme.color.tertiary
+                            Material.primary: Theme.color.secondary_container
                             width: ListView.view.width
 
                             onClicked: {
@@ -154,6 +154,7 @@ Page {
                 id: m_page_stack
                 Layout.fillHeight: true
                 Layout.fillWidth: true
+                Material.background: Theme.color.surface
 
                 initialItem: PageContainer {
                     id: page_container
@@ -163,6 +164,7 @@ Page {
             }
             PlayBar {
                 Layout.fillWidth: true
+                Material.background: Theme.color.surface_container
             }
         }
     }

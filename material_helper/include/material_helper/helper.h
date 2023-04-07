@@ -42,6 +42,15 @@ struct MdScheme {
     QRgb surface_3;
     QRgb surface_4;
     QRgb surface_5;
+
+    // surface v2
+    QRgb surface_dim;
+    QRgb surface_bright;
+    QRgb surface_container;
+    QRgb surface_container_low;
+    QRgb surface_container_lowest;
+    QRgb surface_container_high;
+    QRgb surface_container_highest;
 };
 
 MdScheme MaterialLightColorScheme(QRgb);

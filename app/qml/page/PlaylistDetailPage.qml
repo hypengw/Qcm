@@ -10,28 +10,26 @@ import "../part"
 Page {
     id: root
 
-    property alias itemId: qr_pl.itemId
     property alias itemData: qr_pl.data
+    property alias itemId: qr_pl.itemId
 
     padding: 16
     verticalPadding: 0
 
     Flickable {
         id: flick
-
         anchors.horizontalCenter: parent.horizontalCenter
-        topMargin: 16
         bottomMargin: 16
-        width: Math.min(800, parent.width)
-        height: parent.height
-        contentWidth: width
-        contentHeight: content.implicitHeight
-        clip: true
         boundsBehavior: Flickable.StopAtBounds
+        clip: true
+        contentHeight: content.implicitHeight
+        contentWidth: width
+        height: parent.height
+        topMargin: 16
+        width: Math.min(800, parent.width)
 
         ColumnLayout {
             id: content
-
             anchors.fill: parent
             spacing: 4
 
@@ -43,8 +41,8 @@ Page {
                     anchors.fill: parent
 
                     Pane {
-                        Layout.fillWidth: true
                         Layout.fillHeight: true
+                        Layout.fillWidth: true
 
                         RowLayout {
                             anchors.fill: parent
@@ -52,48 +50,42 @@ Page {
 
                             Pane {
                                 Layout.alignment: Qt.AlignTop
-                                Layout.preferredWidth: 160 + 2 * padding
                                 Layout.preferredHeight: Layout.preferredWidth
-                                Material.elevation: 4
+                                Layout.preferredWidth: 160 + 2 * padding
                                 Material.background: Theme.color.surface_2
+                                Material.elevation: 4
                                 padding: 4
 
                                 Image {
                                     source: `image://ncm/${root.itemData.picUrl}`
-                                    sourceSize.width: 160
                                     sourceSize.height: 160
+                                    sourceSize.width: 160
                                 }
-
                             }
-
                             ColumnLayout {
                                 Layout.alignment: Qt.AlignTop
                                 spacing: 4
 
                                 Label {
                                     Layout.fillWidth: true
-                                    text: root.itemData.name
-                                    maximumLineCount: 2
-                                    wrapMode: Text.Wrap
                                     elide: Text.ElideRight
-                                    font.pointSize: Theme.ts.title_medium.size
                                     font.bold: true
+                                    font.pointSize: Theme.ts.title_medium.size
+                                    maximumLineCount: 2
+                                    text: root.itemData.name
+                                    wrapMode: Text.Wrap
                                 }
-
                                 InfoRow {
                                     icon_name: Theme.ic.music_note
                                     label_text: `${root.itemData.songs.length} songs`
                                 }
-
                                 InfoRow {
                                     icon_name: Theme.ic.today
                                     label_text: Qt.formatDateTime(root.itemData.updateTime, 'yyyy.MM.dd')
                                 }
-
                                 Item {
                                     Layout.fillHeight: true
                                 }
-
                                 MButton {
                                     id: btn_desc
 
@@ -101,14 +93,9 @@ Page {
 
                                     Layout.alignment: Qt.AlignBottom
                                     Layout.fillWidth: true
-                                    font.pointSize: Theme.ts.label_medium.size
                                     flat: true
+                                    font.pointSize: Theme.ts.label_medium.size
                                     visible: !!btn_desc.description
-                                    onClicked: {
-                                        QA.show_page_popup('qrc:/QcmApp/qml/page/DescriptionPage.qml', {
-                                            "text": description
-                                        });
-                                    }
 
                                     contentItem: IconRowLayout {
                                         iconSize: 16
@@ -116,65 +103,60 @@ Page {
 
                                         Label {
                                             Layout.fillWidth: true
-                                            maximumLineCount: 2
-                                            wrapMode: Text.Wrap
                                             elide: Text.ElideRight
-                                            textFormat: Text.PlainText
+                                            maximumLineCount: 2
                                             text: btn_desc.description
+                                            textFormat: Text.PlainText
+                                            wrapMode: Text.Wrap
                                         }
-
                                     }
 
+                                    onClicked: {
+                                        QA.show_page_popup('qrc:/QcmApp/qml/page/DescriptionPage.qml', {
+                                                "text": description
+                                            });
+                                    }
                                 }
-
                             }
-
                         }
-
                     }
-
                 }
-
             }
-
             Pane {
                 RowLayout {
                     anchors.fill: parent
 
                     MButton {
-                        highlighted: true
                         font.capitalization: Font.Capitalize
+                        highlighted: true
 
                         action: Action {
                             icon.name: Theme.ic.play_arrow
                             text: qsTr('play all')
+
                             onTriggered: {
-                                const songs = itemData.songs.filter((s) => {
-                                    return s.canPlay;
-                                });
+                                const songs = itemData.songs.filter(s => {
+                                        return s.canPlay;
+                                    });
                                 if (songs.length)
                                     QA.playlist.switchList(songs);
-
                             }
                         }
-
                     }
-
                     MButton {
                         Material.accent: Theme.color.secondary
-                        highlighted: true
                         font.capitalization: Font.Capitalize
+                        highlighted: true
 
                         action: Action {
                             icon.name: Theme.ic.playlist_add
                             text: qsTr('add to list')
+
                             onTriggered: {
                                 QA.playlist.appendList(itemData.songs);
                             }
                         }
-
                     }
-
                     MButton {
                         id: btn_fav
 
@@ -184,109 +166,86 @@ Page {
                         font.capitalization: Font.Capitalize
                         highlighted: true
 
-                        Binding on liked {
-                            when: qr_sub.status === ApiQuerierBase.Finished
-                            value: qr_sub.sub
-                        }
-
                         action: Action {
                             icon.name: btn_fav.liked ? Theme.ic.done : Theme.ic.add
                             text: qsTr(btn_fav.liked ? 'fav-ed' : 'fav')
+
                             onTriggered: {
                                 qr_sub.sub = !btn_fav.liked;
                                 qr_sub.itemId = root.itemId;
                                 qr_sub.query();
                             }
                         }
-
+                        Binding on liked  {
+                            value: qr_sub.sub
+                            when: qr_sub.status === ApiQuerierBase.Finished
+                        }
                     }
-
                 }
-
             }
-
             Pane {
                 Layout.fillWidth: true
-                padding: 0
                 implicitHeight: Math.min(root.height * 0.75, pane_view_column.implicitHeight)
+                padding: 0
 
                 ColumnLayout {
                     id: pane_view_column
-
                     anchors.fill: parent
                     spacing: 0
 
                     Pane {
-                        Layout.fillWidth: true
                         Layout.fillHeight: true
-                        Material.elevation: 1
-                        Material.background: Theme.color.surface_1
+                        Layout.fillWidth: true
                         padding: 0
 
                         MListView {
                             id: view
-
                             anchors.fill: parent
-                            implicitHeight: contentHeight
                             boundsBehavior: Flickable.StopAtBounds
-                            interactive: flick.atYEnd
                             clip: true
+                            implicitHeight: contentHeight
+                            interactive: flick.atYEnd
                             model: itemData.songs
                             reuseItems: true
 
+                            ScrollBar.vertical: ScrollBar {
+                            }
                             delegate: SongDelegate {
-                                width: view.width
                                 count: view.count
+                                width: view.width
+
                                 onClicked: {
                                     QA.playlist.switchTo(modelData);
                                 }
                             }
-
                             footer: ListBusyFooter {
-                                width: ListView.view.width
                                 running: qr_pl.status === ApiQuerierBase.Querying
+                                width: ListView.view.width
                             }
-
-                            ScrollBar.vertical: ScrollBar {
-                            }
-
                         }
-
                     }
-
                 }
-
             }
-
         }
-
     }
-
     ApiContainer {
         PlaylistDetailQuerier {
             id: qr_pl
-
             autoReload: root.itemId.valid()
         }
-
         PlaylistDetailDynamicQuerier {
             id: qr_dynamic
-
-            itemId: qr_pl.itemId
             autoReload: itemId.valid()
+            itemId: qr_pl.itemId
         }
-
         PlaylistSubscribeQuerier {
             id: qr_sub
-
             autoReload: false
+
             onStatusChanged: {
                 if (status === ApiQuerierBase.Finished)
                     QA.sig_like_playlist();
-
             }
         }
-
     }
-
 }

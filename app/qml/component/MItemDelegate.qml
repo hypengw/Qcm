@@ -6,7 +6,8 @@ import ".."
 
 ItemDelegate {
     id: root
-
+    Material.foreground: highlighted ? Theme.color.getOn(Material.primary) : Theme.color.getOn(Material.background)
+    Material.primary: Theme.color.secondary_container
     highlighted: {
         if (ListView)
             return ListView.isCurrentItem;
@@ -14,13 +15,11 @@ ItemDelegate {
             return GridView.isCurrentItem;
         return false;
     }
-    Material.foreground: highlighted ? Theme.color.getOn(background.color) : Theme.color.on_background
 
     Binding {
-        target: root
         property: 'background.color'
-        when: highlighted
+        target: root
         value: root.Material.primary
+        when: highlighted
     }
-
 }

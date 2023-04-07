@@ -5,9 +5,6 @@ import QcmApp
 
 GridView {
     id: root
-
     FlickableScrollHandler {
-        enabled: true
     }
-
 }

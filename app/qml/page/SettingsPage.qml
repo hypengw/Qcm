@@ -20,6 +20,9 @@ Page {
         leftMargin: 0
         rightMargin: 0
 
+        ScrollBar.vertical: ScrollBar {
+        }
+
         ColumnLayout {
             height: implicitHeight
             spacing: 12

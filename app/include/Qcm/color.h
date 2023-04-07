@@ -71,6 +71,13 @@ public:
     X(surface_3)
     X(surface_4)
     X(surface_5)
+    X(surface_dim)
+    X(surface_bright)
+    X(surface_container)
+    X(surface_container_low)
+    X(surface_container_lowest)
+    X(surface_container_high)
+    X(surface_container_highest)
 #undef X
 
 public:
