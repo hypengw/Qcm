@@ -107,7 +107,7 @@ MPage {
             Repeater {
                 id: flow_repeater
                 delegate: MButton {
-                    Material.accent: Theme.color.surface_1
+                    Material.accent: Theme.color.surface_container_lowest
                     Material.elevation: 0
                     enabled: cat_section.is_mine || !mine_section.set.has(modelData.name)
                     highlighted: true

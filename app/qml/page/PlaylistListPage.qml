@@ -11,23 +11,24 @@ import "../part"
 Page {
     id: root
 
-    property string cur: '全部歌单'
     // list<string>
     readonly property var cat_list: ['全部歌单', '官方'].concat(custom_cat_list)
+    property string cur: '全部歌单'
     property var custom_cat_list: ['华语', '流行', '电子', 'ACG', '欧美', '运动']
 
     function switchCat(cat) {
         view_container.switchTo('qrc:/QcmApp/qml/part/PlaylistListView.qml', {
-            "cat": cat
-        }, true);
+                "cat": cat
+            }, true);
     }
 
-    onCurChanged: {
-        switchCat(cur);
-    }
     padding: 16
+
     Component.onCompleted: {
         curChanged();
+    }
+    onCurChanged: {
+        switchCat(cur);
     }
 
     Settings {
@@ -41,7 +42,6 @@ Page {
 
         category: QA.user_setting_category
     }
-
     ColumnLayout {
         anchors.fill: parent
 
@@ -56,63 +56,52 @@ Page {
                     model: root.cat_list
 
                     delegate: MButton {
+                        Material.accent: modelData === cur ? Theme.color.secondary_container : Theme.color.surface_container_low
                         highlighted: true
-                        Material.accent: modelData === cur ? Theme.color.primary : Theme.color.surface_2
 
                         action: Action {
                             text: modelData
+
                             onTriggered: {
                                 cur = modelData;
                             }
                         }
-
                     }
-
                 }
-
                 MRoundButton {
-                    highlighted: true
-                    Material.elevation: 1
                     Material.accent: Theme.color.secondary
+                    Material.elevation: 1
+                    highlighted: true
 
                     action: Action {
                         icon.name: Theme.ic.edit
+
                         onTriggered: {
-                            const popup = QA.show_page_popup('qrc:/QcmApp/qml/page/PlaylistCataloguePage.qml', {
-                            }, {
-                                "fillHeight": true
-                            });
+                            const popup = QA.show_page_popup('qrc:/QcmApp/qml/page/PlaylistCataloguePage.qml', {}, {
+                                    "fillHeight": true
+                                });
                             popup.closed.connect(() => {
-                                settings.read();
-                            });
+                                    settings.read();
+                                });
                         }
                     }
-
                 }
-
             }
-
         }
-
         Pane {
-            Layout.fillWidth: true
             Layout.fillHeight: true
+            Layout.fillWidth: true
+            Material.background: Theme.color.surface_container_low
             Material.elevation: 1
-            Material.background: Theme.color.surface_1
             padding: 0
 
             PageContainer {
                 id: view_container
-
                 anchors.fill: parent
 
                 initialItem: Item {
                 }
-
             }
-
         }
-
     }
-
 }

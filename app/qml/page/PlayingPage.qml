@@ -30,6 +30,7 @@ MPage {
 
         ColumnLayout {
             anchors.centerIn: parent
+            spacing: 12
             width: parent.width
 
             MPane {
@@ -84,7 +85,7 @@ MPage {
                 MRoundButton {
                     readonly property bool liked: QA.user_song_set.contains(QA.cur_song.itemId)
 
-                    Material.accent: Theme.color.tertiary
+                    Material.accent: Theme.color.secondary
                     enabled: QA.cur_song.itemId.valid()
                     flat: true
                     highlighted: liked

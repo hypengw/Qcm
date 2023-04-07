@@ -113,7 +113,7 @@ Pane {
             MRoundButton {
                 readonly property bool liked: QA.user_song_set.contains(QA.cur_song.itemId)
 
-                Material.accent: Theme.color.tertiary
+                Material.accent: Theme.color.secondary
                 enabled: QA.cur_song.itemId.valid()
                 flat: true
                 highlighted: liked
@@ -174,9 +174,6 @@ Pane {
                         Layout.alignment: Qt.AlignTop
                         Layout.fillHeight: implicitHeight > pop_playlist.contentMaxHeight
                         Layout.fillWidth: true
-                        Layout.topMargin: 12
-                        Material.background: Theme.color.surface_1
-                        Material.elevation: 1
                         padding: 0
 
                         MListView {

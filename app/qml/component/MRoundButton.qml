@@ -5,7 +5,6 @@ import ".."
 
 RoundButton {
     id: root
-
     Material.foreground: {
         if (!enabled)
             return Material.hintTextColor;
@@ -14,15 +13,14 @@ RoundButton {
         else if (highlighted)
             return Theme.color.getOn(Material.accentColor);
         else
-            return parent.Material.foreground;
+            return Theme.color.on_surface_variant;
     }
 
     contentItem: Label {
-        visible: root.display !== AbstractButton.TextOnly
-        text: root.icon.name || root.text
+        color: Material.foreground
         font.family: Theme.font.icon_round.family
         font.pointSize: Theme.ic_size(root.icon.width)
-        color: Material.foreground
+        text: root.icon.name || root.text
+        visible: root.display !== AbstractButton.TextOnly
     }
-
 }

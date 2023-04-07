@@ -38,7 +38,6 @@ MItemDelegate {
                 text: index + 1
             }
             Label {
-                color: Theme.color.tertiary
                 font.family: Theme.font.icon_round.family
                 font.pointSize: 18
                 horizontalAlignment: Qt.AlignRight
@@ -81,7 +80,7 @@ MItemDelegate {
             MRoundButton {
                 readonly property bool liked: QA.user_song_set.contains(root.modelData.itemId)
 
-                Material.accent: Theme.color.tertiary
+                Material.accent: Theme.color.secondary
                 flat: true
                 font.family: Theme.font.icon_round.family
                 font.pointSize: 12

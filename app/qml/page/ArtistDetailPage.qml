@@ -10,96 +10,87 @@ import "../part"
 Page {
     id: root
 
-    property alias itemId: qr_artist.itemId
     property alias itemData: qr_artist.data
+    property alias itemId: qr_artist.itemId
 
     padding: 16
     verticalPadding: 0
 
     Flickable {
         id: flick
-
         anchors.horizontalCenter: parent.horizontalCenter
-        topMargin: 16
         bottomMargin: 16
-        width: Math.min(800, parent.width)
-        height: parent.height
-        contentWidth: width
-        contentHeight: content.implicitHeight
-        clip: false
         boundsBehavior: Flickable.StopAtBounds
+        clip: false
+        contentHeight: content.implicitHeight
+        contentWidth: width
+        height: parent.height
+        topMargin: 16
+        width: Math.min(800, parent.width)
 
         ColumnLayout {
             id: content
-
             anchors.fill: parent
             spacing: 4
 
             Pane {
                 Layout.fillWidth: true
                 padding: 0
+                z: 1
 
                 ColumnLayout {
                     anchors.fill: parent
 
                     Pane {
-                        Layout.fillWidth: true
                         Layout.fillHeight: true
+                        Layout.fillWidth: true
 
                         RowLayout {
                             anchors.fill: parent
                             spacing: 16
 
                             MPane {
-                                z: 1
                                 Layout.alignment: Qt.AlignTop
-                                Layout.preferredWidth: 160 + 2 * padding
                                 Layout.preferredHeight: Layout.preferredWidth
-                                Material.elevation: 2
+                                Layout.preferredWidth: 160 + 2 * padding
                                 Material.background: Theme.color.surface_2
+                                Material.elevation: 2
                                 padding: 4
                                 radius: width / 2
+                                z: 1
 
                                 RoundImage {
-
                                     image: Image {
                                         source: `image://ncm/${root.itemData.info.picUrl}`
-                                        sourceSize.width: 160
                                         sourceSize.height: 160
+                                        sourceSize.width: 160
                                     }
-
                                 }
-
                             }
-
                             ColumnLayout {
                                 Layout.alignment: Qt.AlignTop
                                 spacing: 4
 
                                 Label {
                                     Layout.fillWidth: true
-                                    text: root.itemData.info.name
-                                    maximumLineCount: 2
-                                    wrapMode: Text.Wrap
                                     elide: Text.ElideRight
-                                    font.pointSize: Theme.ts.title_medium.size
                                     font.bold: true
+                                    font.pointSize: Theme.ts.title_medium.size
+                                    maximumLineCount: 2
+                                    text: root.itemData.info.name
+                                    wrapMode: Text.Wrap
                                 }
-
                                 InfoRow {
                                     icon_name: Theme.ic.album
                                     label_text: `${root.itemData.info.albumSize} albums`
                                 }
-
                                 InfoRow {
                                     icon_name: Theme.ic.music_note
                                     label_text: `${root.itemData.info.musicSize} songs`
                                 }
-
                                 Item {
                                     Layout.fillHeight: true
                                 }
-
                                 MButton {
                                     id: btn_desc
 
@@ -107,14 +98,9 @@ Page {
 
                                     Layout.alignment: Qt.AlignBottom
                                     Layout.fillWidth: true
-                                    font.pointSize: Theme.ts.label_medium.size
                                     flat: true
+                                    font.pointSize: Theme.ts.label_medium.size
                                     visible: !!btn_desc.description
-                                    onClicked: {
-                                        QA.show_page_popup('qrc:/QcmApp/qml/page/DescriptionPage.qml', {
-                                            "text": description
-                                        });
-                                    }
 
                                     contentItem: IconRowLayout {
                                         iconSize: 16
@@ -122,27 +108,25 @@ Page {
 
                                         Label {
                                             Layout.fillWidth: true
-                                            maximumLineCount: 2
-                                            wrapMode: Text.Wrap
                                             elide: Text.ElideRight
-                                            textFormat: Text.PlainText
+                                            maximumLineCount: 2
                                             text: btn_desc.description
+                                            textFormat: Text.PlainText
+                                            wrapMode: Text.Wrap
                                         }
-
                                     }
 
+                                    onClicked: {
+                                        QA.show_page_popup('qrc:/QcmApp/qml/page/DescriptionPage.qml', {
+                                                "text": description
+                                            });
+                                    }
                                 }
-
                             }
-
                         }
-
                     }
-
                 }
-
             }
-
             Pane {
                 Layout.fillWidth: true
                 implicitHeight: Math.min(root.height * 0.75, pane_view_column.implicitHeight)
@@ -150,21 +134,18 @@ Page {
 
                 ColumnLayout {
                     id: pane_view_column
-
                     anchors.fill: parent
                     spacing: 0
 
                     Pane {
-                        padding: 0
                         Layout.fillWidth: true
-                        Material.elevation: 1
+                        padding: 0
 
                         TabBar {
                             id: bar
-
-                            anchors.fill: parent
                             Material.elevation: 0
-                            Material.background: Theme.color.surface_2
+                            anchors.fill: parent
+
                             Component.onCompleted: {
                                 currentIndexChanged();
                             }
@@ -172,142 +153,115 @@ Page {
                             TabButton {
                                 text: qsTr("Hot Song")
                             }
-
                             TabButton {
                                 text: qsTr("Album")
                             }
-
                         }
-
                     }
-
                     Pane {
-                        Layout.fillWidth: true
                         Layout.fillHeight: true
-                        Material.elevation: 1
-                        Material.background: Theme.color.surface_1
+                        Layout.fillWidth: true
+                        Material.elevation: 0
                         padding: 0
 
                         StackLayout {
-                            currentIndex: bar.currentIndex
                             anchors.fill: parent
+                            currentIndex: bar.currentIndex
 
                             MListView {
-                                implicitHeight: contentHeight
                                 boundsBehavior: Flickable.StopAtBounds
-                                interactive: flick.atYEnd
                                 clip: true
+                                implicitHeight: contentHeight
+                                interactive: flick.atYEnd
                                 model: itemData.hotSongs
 
+                                ScrollBar.vertical: ScrollBar {
+                                }
                                 delegate: SongDelegate {
-                                    width: ListView.view.width
                                     count: ListView.view.count
                                     subtitle: `${modelData.album.name}`
+                                    width: ListView.view.width
+
                                     onClicked: {
                                         QA.playlist.switchTo(modelData);
                                     }
                                 }
-
                                 footer: ListBusyFooter {
-                                    width: ListView.view.width
                                     running: qr_artist.status === ApiQuerierBase.Querying
+                                    width: ListView.view.width
                                 }
-
-                                ScrollBar.vertical: ScrollBar {
-                                }
-
                             }
-
                             MGridView {
                                 property int cellWidth_: 180
 
                                 boundsBehavior: Flickable.StopAtBounds
-                                interactive: flick.atYEnd
-                                clip: true
-                                model: qr_artist_albums.data
                                 cellHeight: 250
                                 cellWidth: width > 0 ? width / Math.floor((width / cellWidth_)) : 0
+                                clip: true
+                                interactive: flick.atYEnd
+                                model: qr_artist_albums.data
 
+                                ScrollBar.vertical: ScrollBar {
+                                }
                                 delegate: Pane {
-                                    width: GridView.view.cellWidth
                                     height: GridView.view.cellHeight
+                                    width: GridView.view.cellWidth
 
                                     MItemDelegate {
                                         anchors.horizontalCenter: parent.horizontalCenter
                                         clip: true
                                         padding: 8
-                                        onClicked: {
-                                            QA.route(model.itemId);
-                                        }
 
                                         contentItem: ColumnLayout {
                                             Image {
                                                 Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
-                                                Layout.preferredWidth: 160
                                                 Layout.preferredHeight: 160
-                                                source: `image://ncm/${model.picUrl}`
-                                                sourceSize.width: 160
-                                                sourceSize.height: 160
-                                            }
-
-                                            Label {
-                                                Layout.topMargin: 8
                                                 Layout.preferredWidth: 160
-                                                text: model.name
-                                                maximumLineCount: 2
-                                                wrapMode: Text.Wrap
-                                                elide: Text.ElideRight
+                                                source: `image://ncm/${model.picUrl}`
+                                                sourceSize.height: 160
+                                                sourceSize.width: 160
                                             }
-
                                             Label {
-                                                visible: !!text
+                                                Layout.preferredWidth: 160
+                                                Layout.topMargin: 8
+                                                elide: Text.ElideRight
+                                                maximumLineCount: 2
+                                                text: model.name
+                                                wrapMode: Text.Wrap
+                                            }
+                                            Label {
                                                 Layout.alignment: Qt.AlignHCenter
-                                                text: Qt.formatDateTime(model.publishTime, 'yyyy')
                                                 font.pointSize: Theme.ts.label_small.size
                                                 opacity: 0.6
+                                                text: Qt.formatDateTime(model.publishTime, 'yyyy')
+                                                visible: !!text
                                             }
-
                                             Item {
                                                 Layout.fillHeight: true
                                             }
-
                                         }
 
+                                        onClicked: {
+                                            QA.route(model.itemId);
+                                        }
                                     }
-
                                 }
-
-                                ScrollBar.vertical: ScrollBar {
-                                }
-
                             }
-
                         }
-
                     }
-
                 }
-
             }
-
         }
-
     }
-
     ApiContainer {
         ArtistQuerier {
             id: qr_artist
-
             autoReload: itemId.valid()
         }
-
         ArtistAlbumsQuerier {
             id: qr_artist_albums
-
             artistId: qr_artist.itemId
             autoReload: artistId.valid()
         }
-
     }
-
 }

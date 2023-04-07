@@ -10,17 +10,19 @@ import "../js/util.mjs" as Util
 
 Page {
     id: root
-
     padding: 0
 
     MFlickable {
         anchors.fill: parent
 
+        ScrollBar.vertical: ScrollBar {
+        }
+
         ColumnLayout {
-            height: implicitHeight
-            width: Math.min(800, parent.width)
             anchors.horizontalCenter: parent.horizontalCenter
+            height: implicitHeight
             spacing: 12
+            width: Math.min(800, parent.width)
 
             ColumnLayout {
                 spacing: 4
@@ -30,28 +32,23 @@ Page {
                         anchors.fill: parent
 
                         Label {
-                            text: qsTr('recommend playlists')
-                            font.pointSize: Theme.ts.title_large.size
                             font.capitalization: Font.Capitalize
+                            font.pointSize: Theme.ts.title_large.size
+                            text: qsTr('recommend playlists')
                         }
-
                     }
-
                 }
-
                 Pane {
-                    padding: 0
-                    Material.elevation: 1
-                    Material.background: Theme.color.surface_1
                     Layout.fillWidth: true
+                    padding: 0
 
                     SwipeView {
                         id: swipe_playlist
 
                         readonly property int cellWidth: 180
                         readonly property int column: 2
-                        readonly property int row: Math.max(2, Math.floor(width / cellWidth))
                         readonly property int itemCount: column * row
+                        readonly property int row: Math.max(2, Math.floor(width / cellWidth))
 
                         anchors.fill: parent
                         clip: true
@@ -61,171 +58,139 @@ Page {
                             model: Util.array_split(qr_rmd_res.data.dailyPlaylists, swipe_playlist.itemCount)
 
                             GridView {
-                                clip: true
-                                interactive: false
-                                model: modelData
-                                implicitHeight: contentHeight
                                 cellHeight: 250
                                 cellWidth: width / swipe_playlist.row
+                                clip: true
+                                implicitHeight: contentHeight
+                                interactive: false
+                                model: modelData
 
                                 delegate: PicGridDelegate {
-                                    text: modelData.name
                                     // subText:
                                     image.source: `image://ncm/${modelData.picUrl}`
+                                    text: modelData.name
+
                                     onClicked: QA.route(modelData.itemId)
                                 }
-
                                 footer: ListBusyFooter {
-                                    width: GridView.view.width
                                     running: qr_rmd_res.status === ApiQuerierBase.Querying
+                                    width: GridView.view.width
                                 }
-
                             }
-
                         }
-
                     }
-
                 }
-
                 PageIndicator {
                     id: swipe_indicator
-
                     Layout.alignment: Qt.AlignHCenter
-                    interactive: true
                     count: swipe_playlist.count
                     currentIndex: swipe_playlist.currentIndex
+                    interactive: true
                 }
-
             }
-
             ColumnLayout {
                 spacing: 4
 
                 Pane {
                     id: title_pane
-
                     ColumnLayout {
                         anchors.fill: parent
 
                         Label {
-                            text: qsTr('recommend songs')
-                            font.pointSize: Theme.ts.title_large.size
                             font.capitalization: Font.Capitalize
+                            font.pointSize: Theme.ts.title_large.size
+                            text: qsTr('recommend songs')
                         }
-
                     }
-
                 }
-
                 Pane {
                     id: tool_pane
-
                     RowLayout {
                         anchors.fill: parent
 
                         MButton {
-                            highlighted: true
                             font.capitalization: Font.Capitalize
+                            highlighted: true
 
                             action: Action {
                                 icon.name: Theme.ic.play_arrow
                                 text: qsTr('play all')
+
                                 onTriggered: {
-                                    const songs = qr_rmd_songs.data.dailySongs.filter((s) => {
-                                        return s.canPlay;
-                                    });
+                                    const songs = qr_rmd_songs.data.dailySongs.filter(s => {
+                                            return s.canPlay;
+                                        });
                                     if (songs.length)
                                         QA.playlist.switchList(songs);
-
                                 }
                             }
-
                         }
-
                         MButton {
-                            highlighted: true
                             Material.accent: Theme.color.secondary
                             font.capitalization: Font.Capitalize
+                            highlighted: true
 
                             action: Action {
                                 icon.name: Theme.ic.playlist_add
                                 text: qsTr('add to list')
+
                                 onTriggered: {
                                     QA.playlist.appendList(qr_rmd_songs.data.dailySongs);
                                 }
                             }
-
                         }
-
                     }
-
                 }
-
                 Pane {
-                    Layout.fillWidth: true
                     Layout.fillHeight: true
+                    Layout.fillWidth: true
                     padding: 0
 
                     ColumnLayout {
                         id: pane_view_column
-
                         anchors.fill: parent
                         spacing: 0
 
                         Pane {
-                            Layout.fillWidth: true
                             Layout.fillHeight: true
-                            Material.elevation: 1
-                            Material.background: Theme.color.surface_1
+                            Layout.fillWidth: true
                             padding: 0
 
                             ListView {
                                 id: view
-
                                 anchors.fill: parent
-                                implicitHeight: contentHeight
                                 boundsBehavior: Flickable.StopAtBounds
-                                interactive: false
                                 clip: true
+                                implicitHeight: contentHeight
+                                interactive: false
                                 model: qr_rmd_songs.data.dailySongs
 
                                 delegate: SongDelegate {
-                                    width: view.width
                                     count: view.count
+                                    width: view.width
+
                                     onClicked: {
                                         QA.playlist.switchTo(modelData);
                                     }
                                 }
-
                                 footer: ListBusyFooter {
-                                    width: ListView.view.width
                                     running: qr_rmd_songs.status === ApiQuerierBase.Querying
+                                    width: ListView.view.width
                                 }
-
                             }
-
                         }
-
                     }
-
                 }
-
             }
-
         }
-
         ApiContainer {
             RecommendSongsQuerier {
                 id: qr_rmd_songs
             }
-
             RecommendResourceQuerier {
                 id: qr_rmd_res
             }
-
         }
-
         Timer {
             id: timer_refresh
 
@@ -242,16 +207,12 @@ Page {
             interval: 15 * 60 * 1000
             repeat: true
             running: true
-            onTriggered: dirty = true
+
             Component.onCompleted: {
                 root.visibleChanged.connect(refreshSlot);
                 dirtyChanged.connect(refreshSlot);
             }
+            onTriggered: dirty = true
         }
-
-        ScrollBar.vertical: ScrollBar {
-        }
-
     }
-
 }
