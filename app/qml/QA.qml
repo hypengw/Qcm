@@ -240,6 +240,7 @@ Item {
     MediaPlayer {
         id: m_player
 
+        readonly property date duration_date: new Date(duration)
         readonly property bool playing: {
             switch (playbackState) {
             case MediaPlayer.PlayingState:

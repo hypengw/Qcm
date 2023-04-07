@@ -2,25 +2,33 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
+import QtQuick.Shapes
 import QcmApp
 import "./component"
 import "./part"
 
 Pane {
+    id: root
+
+    readonly property bool is_small: root.width > 0 && root.width < 650
+
     Material.elevation: 4
     padding: 0
 
     ColumnLayout {
         anchors.fill: parent
+        spacing: 0
 
         PlaySlider {
             id: slider
             Layout.fillWidth: true
+            visible: !is_small
         }
         RowLayout {
             Layout.bottomMargin: 8
             Layout.leftMargin: 12
             Layout.rightMargin: 12
+            Layout.topMargin: 8
 
             Image {
                 readonly property string picUrl: QA.cur_song.album.picUrl
@@ -110,136 +118,178 @@ Pane {
             Item {
                 Layout.fillWidth: true
             }
-            MRoundButton {
-                readonly property bool liked: QA.user_song_set.contains(QA.cur_song.itemId)
+            Component {
+                id: comp_ctl
+                RowLayout {
+                    MRoundButton {
+                        readonly property bool liked: QA.user_song_set.contains(QA.cur_song.itemId)
 
-                Material.accent: Theme.color.secondary
-                enabled: QA.cur_song.itemId.valid()
-                flat: true
-                highlighted: liked
-                icon.name: liked ? Theme.ic.favorite : Theme.ic.favorite_border
+                        Material.accent: Theme.color.secondary
+                        enabled: QA.cur_song.itemId.valid()
+                        flat: true
+                        highlighted: liked
+                        icon.name: liked ? Theme.ic.favorite : Theme.ic.favorite_border
 
-                onClicked: {
-                    QA.querier_user_song.like_song(QA.cur_song.itemId, !liked);
+                        onClicked: {
+                            QA.querier_user_song.like_song(QA.cur_song.itemId, !liked);
+                        }
+                    }
+                    MRoundButton {
+                        enabled: QA.playlist.canPrev
+                        flat: true
+                        icon.name: Theme.ic.skip_previous
+
+                        onClicked: QA.playlist.prev()
+                    }
+                    MRoundButton {
+                        highlighted: true
+                        icon.name: QA.player.playing ? Theme.ic.pause : Theme.ic.play_arrow
+
+                        onClicked: {
+                            const player = QA.player;
+                            if (player.playing)
+                                player.pause();
+                            else
+                                player.play();
+                        }
+                    }
+                    MRoundButton {
+                        enabled: QA.playlist.canNext
+                        flat: true
+                        icon.name: Theme.ic.skip_next
+
+                        onClicked: QA.playlist.next()
+                    }
+                    MRoundButton {
+                        flat: true
+                        icon.name: QA.loop_icon
+
+                        onClicked: {
+                            QA.playlist.iterLoopMode();
+                        }
+                    }
+                    MRoundButton {
+                        flat: true
+                        icon.name: Theme.ic.playlist_play
+
+                        onClicked: {
+                            pop_playlist.open();
+                        }
+                    }
+                    Label {
+                        readonly property date position: new Date(QA.player.duration * slider.position)
+
+                        text: `${Qt.formatDateTime(position, 'mm:ss')} / ${Qt.formatDateTime(QA.player.duration_date, 'mm:ss')}`
+                    }
                 }
             }
-            MRoundButton {
-                enabled: QA.playlist.canPrev
-                flat: true
-                icon.name: Theme.ic.skip_previous
+            Component {
+                id: comp_ctl_small
+                RowLayout {
+                    MRoundButton {
+                        flat: true
+                        icon.name: QA.player.playing ? Theme.ic.pause : Theme.ic.play_arrow
 
-                onClicked: QA.playlist.prev()
-            }
-            MRoundButton {
-                highlighted: true
-                icon.name: QA.player.playing ? Theme.ic.pause : Theme.ic.play_arrow
+                        onClicked: {
+                            const player = QA.player;
+                            if (player.playing)
+                                player.pause();
+                            else
+                                player.play();
+                        }
 
-                onClicked: {
-                    const player = QA.player;
-                    if (player.playing)
-                        player.pause();
-                    else
-                        player.play();
-                }
-            }
-            MRoundButton {
-                enabled: QA.playlist.canNext
-                flat: true
-                icon.name: Theme.ic.skip_next
-
-                onClicked: QA.playlist.next()
-            }
-            MRoundButton {
-                flat: true
-                icon.name: QA.loop_icon
-
-                onClicked: {
-                    QA.playlist.iterLoopMode();
-                }
-            }
-            MRoundButton {
-                flat: true
-                icon.name: Theme.ic.playlist_play
-
-                onClicked: {
-                    pop_playlist.open();
-                }
-
-                MPopup {
-                    id: pop_playlist
-                    title: 'Playlist'
-                    width: 400
-
-                    Pane {
-                        Layout.alignment: Qt.AlignTop
-                        Layout.fillHeight: implicitHeight > pop_playlist.contentMaxHeight
-                        Layout.fillWidth: true
-                        padding: 0
-
-                        MListView {
-                            id: view_playlist
+                        Item {
                             anchors.fill: parent
-                            bottomMargin: 8
-                            boundsBehavior: Flickable.StopAtBounds
-                            clip: true
-                            currentIndex: model.curIndex
-                            highlightMoveDuration: 1000
-                            highlightMoveVelocity: -1
-                            implicitHeight: contentHeight + 2 * topMargin
-                            model: QA.playlist
-                            reuseItems: true
-                            topMargin: 8
+                            layer.enabled: true
+                            layer.samples: 8
 
-                            ScrollBar.vertical: ScrollBar {
-                            }
-                            delegate: MItemDelegate {
-                                width: ListView.view.width
+                            Shape {
+                                id: shape_play_arc
+                                anchors.centerIn: parent
 
-                                // highlighted: model.song.itemId === QA.playlist.cur.itemId
-                                onClicked: {
-                                    QA.playlist.switchTo(model.song);
-                                }
+                                ShapePath {
+                                    capStyle: ShapePath.RoundCap
+                                    fillColor: "transparent"
+                                    startX: 0
+                                    startY: 0
+                                    strokeColor: Theme.color.primary
+                                    strokeWidth: 4
 
-                                RowLayout {
-                                    anchors.fill: parent
-                                    anchors.leftMargin: 12
-                                    anchors.rightMargin: 12
-                                    spacing: 12
-
-                                    Label {
-                                        Layout.minimumWidth: Theme.font.w_unit * view_playlist.count.toString().length + 2
-                                        horizontalAlignment: Qt.AlignRight
-                                        opacity: 0.6
-                                        text: index + 1
-                                    }
-                                    Label {
-                                        Layout.fillWidth: true
-                                        elide: Text.ElideRight
-                                        text: model.song.name
-                                    }
-                                    MRoundButton {
-                                        flat: true
-                                        icon.name: Theme.ic.remove
-
-                                        onClicked: {
-                                            QA.playlist.remove(model.song.itemId);
-                                        }
+                                    PathAngleArc {
+                                        centerX: 0
+                                        centerY: 0
+                                        radiusX: 16
+                                        radiusY: radiusX
+                                        startAngle: -90
+                                        sweepAngle: 360 * (QA.player.position / QA.player.duration)
                                     }
                                 }
                             }
                         }
                     }
-                    Item {
-                        Layout.fillHeight: true
+                    MRoundButton {
+                        flat: true
+                        icon.name: Theme.ic.playlist_play
+
+                        onClicked: {
+                            pop_playlist.open();
+                        }
                     }
                 }
             }
-            Label {
-                readonly property date duration: new Date(QA.player.duration)
-                readonly property date position: new Date(QA.player.duration * slider.position)
+            StackView {
+                id: ctl_stack
+                function switch_to() {
+                    replace(currentItem, root.is_small ? comp_ctl_small : comp_ctl);
+                }
 
-                text: `${Qt.formatDateTime(position, 'mm:ss')} / ${Qt.formatDateTime(duration, 'mm:ss')}`
+                Layout.fillHeight: true
+
+                Binding on implicitWidth  {
+                    value: ctl_stack.currentItem.implicitWidth
+                    when: ctl_stack.currentItem
+                }
+                initialItem: Item {
+                }
+                replaceEnter: Transition {
+                    LineAnimation {
+                        from: 0.5 * ctl_stack.height
+                        property: 'y'
+                        to: 0
+                    }
+                    FadeIn {
+                    }
+                }
+                replaceExit: Transition {
+                    FadeOut {
+                    }
+                }
+
+                Component.onCompleted: {
+                    root.is_smallChanged.connect(switch_to);
+                    root.is_smallChanged();
+                }
+
+                PagePopup {
+                    id: pop_playlist
+                    source: 'qrc:/QcmApp/qml/page/PlayQueuePage.qml'
+                }
             }
         }
+    }
+
+    component FadeIn: LineAnimation {
+        from: 0.0
+        property: "opacity"
+        to: 1.0
+    }
+    component FadeOut: LineAnimation {
+        from: 1.0
+        property: "opacity"
+        to: 0.0
+    }
+    component LineAnimation: NumberAnimation {
+        duration: 200
+        easing.type: Easing.OutCubic
     }
 }

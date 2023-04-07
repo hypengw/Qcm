@@ -278,7 +278,7 @@ Page {
         default property alias m_children: sec_column.children
         property alias title: sec_title.text
 
-        Material.background: Theme.color.surface_1
+        Material.background: Theme.color.surface_container_lowest
         Material.elevation: 1
         horizontalPadding: 0
 

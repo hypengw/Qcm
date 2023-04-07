@@ -7,26 +7,25 @@ import ".."
 MPopup {
     id: root
 
-    required property string source
-    required property var props
     property bool fillHeight: false
+    property var props
+    required property string source
 
-    width: 400
     title: loader.item.title
+    width: 400
+
+    Binding on height  {
+        value: maxHeight
+        when: fillHeight
+    }
+
     onSourceChanged: {
-        loader.setSource(source, props);
+        loader.setSource(source, props ? props : {});
     }
 
     Loader {
         id: loader
-
-        Layout.fillWidth: true
         Layout.fillHeight: true
+        Layout.fillWidth: true
     }
-
-    Binding on height {
-        when: fillHeight
-        value: maxHeight
-    }
-
 }

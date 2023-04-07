@@ -99,8 +99,8 @@ public:
         co_await m_cache_sql->insert(db_it);
     }
 
-    asio::awaitable<QImage> request_image(request::Request req, std::filesystem::path cache_path,
-                                          QSize req_size) {
+    asio::awaitable<QImage> request_image(const request::Request& req,
+                                          std::filesystem::path cache_path, QSize req_size) {
         std::string key = cache_path.filename().native();
         asio::co_spawn(m_cache_sql->get_executor(), m_cache_sql->get(key), asio::detached);
         if (! std::filesystem::exists(cache_path)) {
@@ -112,6 +112,25 @@ public:
         }
         co_return img;
     }
+
+    asio::awaitable<void> handle_request(QPointer<NcmAsyncImageResponse> rsp_guard,
+                                         request::Request req, std::filesystem::path cache_path,
+                                         QSize req_size) {
+        auto img = co_await request_image(req, cache_path, req_size);
+        NcmImageProviderInner::handle_res(rsp_guard, img);
+        co_return;
+    }
+
+    static void handle_res(QPointer<NcmAsyncImageResponse> rsp_guard,
+                           nstd::expected<QImage, QString> res) {
+        if (res.has_value()) {
+            QMetaObject::invokeMethod(
+                rsp_guard, "handle", Qt::QueuedConnection, Q_ARG(QImage, res.value()));
+        } else {
+            QMetaObject::invokeMethod(
+                rsp_guard, "handle_error", Qt::QueuedConnection, Q_ARG(QString, res.error()));
+        }
+    };
 
 private:
     executor_type m_ex;
@@ -149,16 +168,7 @@ QQuickImageResponse* NcmImageProvider::requestImageResponse(const QString& id,
 
     auto ex = asio::make_strand(m_inner->get_executor());
 
-    auto rsp_guard = QPointer(rsp);
-    auto handle    = [rsp_guard](nstd::expected<QImage, QString> res) {
-        if (res.has_value()) {
-            QMetaObject::invokeMethod(
-                rsp_guard, "handle", Qt::QueuedConnection, Q_ARG(QImage, res.value()));
-        } else {
-            QMetaObject::invokeMethod(
-                rsp_guard, "handle_error", Qt::QueuedConnection, Q_ARG(QString, res.error()));
-        }
-    };
+    auto                  rsp_guard = QPointer(rsp);
     request::Request      req = NcmImageProvider::makeReq(id, requestedSize, m_inner->get_client());
     std::filesystem::path file_path = NcmImageProvider::genImageCachePath(req);
 
@@ -166,12 +176,11 @@ QQuickImageResponse* NcmImageProvider::requestImageResponse(const QString& id,
         ex,
         rsp->wdog().watch(
             ex,
-            [handle, requestedSize, req, file_path, inner = m_inner]() -> asio::awaitable<void> {
-                auto img = co_await inner->request_image(req, file_path, requestedSize);
-                handle(img);
+            [rsp_guard, requestedSize, req, file_path, inner = m_inner]() -> asio::awaitable<void> {
+                co_await inner->handle_request(rsp_guard, req, file_path, requestedSize);
                 co_return;
             }),
-        [handle, file_path, id](std::exception_ptr p) {
+        [rsp_guard, file_path, id](std::exception_ptr p) {
             if (p) {
                 try {
                     if (std::filesystem::exists(file_path)) {
@@ -179,8 +188,10 @@ QQuickImageResponse* NcmImageProvider::requestImageResponse(const QString& id,
                     }
                     std::rethrow_exception(p);
                 } catch (const std::exception& e) {
-                    handle(nstd::unexpected(To<QString>::from(
-                        fmt::format("NcmImageProvider, id: {}, error: {}", id, e.what()))));
+                    NcmImageProviderInner::handle_res(
+                        rsp_guard,
+                        nstd::unexpected(To<QString>::from(
+                            fmt::format("NcmImageProvider, id: {}, error: {}", id, e.what()))));
                 }
             }
         });

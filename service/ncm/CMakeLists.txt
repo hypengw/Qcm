@@ -18,6 +18,7 @@ add_library(
   include/ncm/api/recommend_songs.h
   include/ncm/api/recommend_resource.h
   include/ncm/api/song_url.h
+  include/ncm/api/song_lyric.h
   include/ncm/api/user_account.h
   include/ncm/api/user_playlist.h
   include/ncm/api/qrcode_unikey.h

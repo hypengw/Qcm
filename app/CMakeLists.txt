@@ -68,6 +68,7 @@ set(QML_FILES
     qml/page/TodayPage.qml
     qml/part/ApiContainer.qml
     qml/page/PlayingPage.qml
+    qml/page/PlayQueuePage.qml
     qml/page/MainPage.qml
     qml/part/ArtistsPopup.qml
     qml/part/InfoRow.qml
