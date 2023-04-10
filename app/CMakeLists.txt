@@ -16,6 +16,7 @@ set(SOURCES
     include/Qcm/ncm_image.h
     include/Qcm/qr_image.h
     include/Qcm/cache_sql.h
+    include/Qcm/lyric.h
     include/Qcm/model/album_detail.h
     include/Qcm/model/album_detail_dynamic.h
     include/Qcm/model/album_sub.h
@@ -32,6 +33,7 @@ set(SOURCES
     include/Qcm/model/recommend_songs.h
     include/Qcm/model/recommend_resource.h
     include/Qcm/model/song_url.h
+    include/Qcm/model/song_lyric.h
     include/Qcm/model/user_account.h
     include/Qcm/model/user_playlist.h
     include/Qcm/model/qrcode_login.h
@@ -48,6 +50,7 @@ set(SOURCES
     src/ncm_image.cpp
     src/qr_image.cpp
     src/cache_sql.cpp
+    src/lyric.cpp
     src/util/flickable_scroll_handler.cpp)
 
 set(QML_FILES

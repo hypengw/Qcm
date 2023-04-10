@@ -26,10 +26,10 @@ ninja
 ```
 
 ### Todo:
-- [ ] playing page
 - [ ] search page
 - [ ] sidebar popup
 - [ ] sql api cache
+- [x] lyric
 - [x] audio cache using http proxy(AndroidVideoCache)
 - [x] cache limit
 - [x] sql cache

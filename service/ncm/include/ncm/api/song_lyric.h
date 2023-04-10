@@ -37,7 +37,7 @@ struct SongLyric {
     model::SongLyricItem lrc;
     model::SongLyricItem klyric;
     model::SongLyricItem tlyric;
-    model::SongLyricItem romalrc;
+    // model::SongLyricItem romalrc;
 };
 JSON_DEFINE(SongLyric);
 
