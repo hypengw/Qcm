@@ -33,6 +33,11 @@ MPage {
     ApiContainer {
         SongLyricQuerier {
             id: querier_lyric
+
+            readonly property string combined_lrc: {
+                return data.lrc + data.transLrc;
+            }
+
             autoReload: songId.valid()
             songId: QA.cur_song.itemId
         }
@@ -182,10 +187,10 @@ MPage {
                     LrcLyric {
                         id: lrc
                         position: QA.player.position
-                        source: querier_lyric.data.lrc
+                        source: querier_lyric.combined_lrc
 
                         onCurrentIndexChanged: {
-                            lyric_view.posTo(currentIndex);
+                            lyric_view.posTo(currentIndex < 0 ? 0 : currentIndex);
                         }
                     }
                     Pane {
@@ -218,7 +223,7 @@ MPage {
                             SmoothedAnimation on contentY  {
                                 id: anim_scroll
                                 duration: 1000
-                                velocity: 96
+                                velocity: 128
                             }
                             delegate: Pane {
                                 readonly property bool highlighted: lrc.currentIndex === index

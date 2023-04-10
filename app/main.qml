@@ -72,7 +72,9 @@ ApplicationWindow {
             id: sv_main
 
             readonly property var playing_page: {
-                return QA.create_item(comp_playing, {}, sv_main);
+                const page = QA.create_item(comp_playing, {}, sv_main);
+                page.visible = false;
+                return page;
             }
 
             Material.background: Theme.color.surface

@@ -1,9 +1,26 @@
 #pragma once
 
-#include "helper.h"
-
+#include <optional>
 #include <nlohmann/json.hpp>
+
+#include "helper.h"
 #include "core/variant_helper.h"
+
+#define JSON_FROM_OPTIONAL(v1) from_json_opt(nlohmann_json_t.v1, nlohmann_json_j, #v1);
+
+namespace
+{
+
+template<typename Type>
+void from_json_opt(Type& out, const nlohmann::json& j, std::string_view name) {
+    if constexpr (core::is_specialization_of<Type, std::optional>) {
+        out = j.value<Type>(name, std::nullopt);
+    } else {
+        j.at(name).get_to(out);
+    }
+}
+
+} // namespace
 
 #define JSON_GET_IMPL(_TYPE_)                                                 \
     template nstd::expected<_TYPE_, qcm::json::Error> qcm::json::get<_TYPE_>( \
@@ -14,7 +31,7 @@
         NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_TO, __VA_ARGS__))   \
     }                                                                              \
     void from_json(const nlohmann::json& nlohmann_json_j, Type& nlohmann_json_t) { \
-        NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_FROM, __VA_ARGS__)) \
+        NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(JSON_FROM_OPTIONAL, __VA_ARGS__)) \
     }
 #define JSON_DEFINE_WITH_DEFAULT_IMPL(Type, ...)                                                \
     void to_json(nlohmann::json& nlohmann_json_j, const Type& nlohmann_json_t) {                \

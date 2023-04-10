@@ -111,7 +111,7 @@ JSON_DEFINE_IMPL(RecommendSongs, code, data);
 JSON_DEFINE_IMPL(RecommendResource, code, recommend);
 
 JSON_DEFINE_IMPL(SongUrl, code, data);
-JSON_DEFINE_IMPL(SongLyric, code, lrc);
+JSON_DEFINE_IMPL(SongLyric, code, lrc, romalrc, tlyric, klyric);
 JSON_DEFINE_WITH_DEFAULT_IMPL(UserAccount, code, profile);
 JSON_DEFINE_IMPL(UserPlaylist, code, playlist, more);
 

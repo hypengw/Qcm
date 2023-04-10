@@ -15,6 +15,7 @@ StackView {
             let cache = m_page_cache.get(key);
             if (!cache) {
                 cache = QA.create_item(url_or_comp, props, null);
+                cache.visible = false;
                 m_page_cache.set(key, cache);
             }
             replace(currentItem, cache);
