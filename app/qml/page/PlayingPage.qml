@@ -247,6 +247,10 @@ MPage {
                                 if (moving)
                                     anim_scroll.running = false;
                             }
+                            onVisibleChanged: {
+                                if (visible)
+                                    lrc.currentIndexChanged();
+                            }
                         }
                     }
                 }
