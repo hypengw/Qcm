@@ -195,12 +195,18 @@ MPage {
                         ListView {
                             id: lyric_view
                             function posTo(idx) {
-                                anim_scroll.running = false;
-                                anim_scroll.from = contentY;
-                                positionViewAtIndex(idx, ListView.Center);
-                                anim_scroll.to = contentY;
-                                contentY = anim_scroll.from;
-                                anim_scroll.running = !moving;
+                                if (visible) {
+                                    anim_scroll.running = false;
+                                    anim_scroll.from = contentY;
+                                    positionViewAtIndex(idx, ListView.Center);
+                                    anim_scroll.to = contentY;
+                                    contentY = anim_scroll.from;
+                                    anim_scroll.running = !moving;
+                                } else {
+                                    // seem when not visible, this is not accurate
+                                    // use a timer to sync
+                                    positionViewAtIndex(idx, ListView.Center);
+                                }
                             }
 
                             anchors.fill: parent
@@ -211,11 +217,7 @@ MPage {
 
                             SmoothedAnimation on contentY  {
                                 id: anim_scroll
-
-                                property bool needRunning: false
-
                                 duration: 1000
-                                // running: needRunning && !target.moving
                                 velocity: 96
                             }
                             delegate: Pane {
@@ -249,7 +251,16 @@ MPage {
                             }
                             onVisibleChanged: {
                                 if (visible)
-                                    lrc.currentIndexChanged();
+                                    timer_scroll.restart();
+                            }
+
+                            Timer {
+                                id: timer_scroll
+                                interval: 400
+                                repeat: false
+                                running: true
+
+                                onTriggered: lrc.currentIndexChanged()
                             }
                         }
                     }

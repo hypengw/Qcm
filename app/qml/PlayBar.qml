@@ -181,10 +181,11 @@ Pane {
                         text: Theme.ic.more_vert
 
                         onClicked: {
-                            QA.show_popup('qrc:/QcmApp/qml/part/SongMenu.qml', {
+                            const popup = QA.show_popup('qrc:/QcmApp/qml/part/SongMenu.qml', {
                                     "song": QA.cur_song,
                                     "y": 0
                                 }, this);
+                            popup.y = -popup.height;
                         }
                     }
                     Label {
