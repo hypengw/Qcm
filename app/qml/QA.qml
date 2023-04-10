@@ -39,8 +39,8 @@ Item {
     signal sig_route(RouteMsg msg)
     signal sig_route_special(string name)
 
-    function create_item(url, props, parent) {
-        const com = Qt.createComponent(url);
+    function create_item(url_or_comp, props, parent) {
+        const com = (url_or_comp instanceof Component) ? url_or_comp : Qt.createComponent(url_or_comp);
         if (com.status === Component.Ready) {
             try {
                 return com.createObject(parent, props);
@@ -105,8 +105,8 @@ Item {
                     "props": props
                 }, popup_props));
     }
-    function show_popup(url, props) {
-        const popup = create_item(url, props, main_win);
+    function show_popup(url, props, parent) {
+        const popup = create_item(url, props, parent ? parent : main_win);
         popup.closed.connect(() => {
                 if (popup.destroy)
                     popup.destroy(1000);

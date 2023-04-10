@@ -176,6 +176,17 @@ Pane {
                             pop_playlist.open();
                         }
                     }
+                    MRoundButton {
+                        flat: true
+                        text: Theme.ic.more_vert
+
+                        onClicked: {
+                            QA.show_popup('qrc:/QcmApp/qml/part/SongMenu.qml', {
+                                    "song": QA.cur_song,
+                                    "y": 0
+                                }, this);
+                        }
+                    }
                     Label {
                         readonly property date position: new Date(QA.player.duration * slider.position)
 

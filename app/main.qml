@@ -68,25 +68,33 @@ ApplicationWindow {
     }
     Component {
         id: comp_main
-        StackLayout {
-            id: sl_main
+        StackView {
+            id: sv_main
+
+            readonly property var playing_page: {
+                return QA.create_item(comp_playing, {}, sv_main);
+            }
+
             Material.background: Theme.color.surface
             clip: true
+
+            initialItem: MainPage {
+            }
 
             Connections {
                 function onSig_route_special(name) {
                     if (name === 'main')
-                        sl_main.currentIndex = 0;
+                        sv_main.pop(null);
                     else if (name === 'playing')
-                        sl_main.currentIndex = 1;
+                        sv_main.push(playing_page);
                 }
 
                 target: QA
             }
-            MainPage {
-            }
-            PlayingPage {
-                Layout.fillWidth: true
+            Component {
+                id: comp_playing
+                PlayingPage {
+                }
             }
         }
     }

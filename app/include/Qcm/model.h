@@ -120,6 +120,10 @@ struct SongId : public ItemIdBase<ItemId::Song> {
 public:
     using ItemIdBase<ItemId::Song>::ItemIdBase;
     virtual ~SongId() = default;
+
+    Q_INVOKABLE QUrl url() const {
+        return QUrl(To<QString>::from(fmt::format("https://music.163.com/song?id={}", id)));
+    }
 };
 
 struct AlbumId : public ItemIdBase<ItemId::Album> {

@@ -92,58 +92,15 @@ MItemDelegate {
                 }
             }
             MRoundButton {
-                id: btn_menu
                 flat: true
-                font.family: Theme.font.icon_round.family
                 font.pointSize: 12
                 text: Theme.ic.more_vert
 
                 onClicked: {
-                    const item = comp_menu.createObject(btn_menu);
-                    item.closed.connect(() => {
-                            item.destroy(1000);
-                        });
-                    item.open();
-                }
-
-                Component {
-                    id: comp_menu
-                    MMenu {
-                        dim: false
-                        modal: true
-                        y: btn_menu.height
-
-                        Action {
-                            icon.name: Theme.ic.play_arrow
-                            text: qsTr('Play next')
-
-                            onTriggered: {
-                                QA.playlist.appendNext(modelData);
-                            }
-                        }
-                        Action {
-                            icon.name: Theme.ic.album
-                            text: qsTr('Show album')
-
-                            onTriggered: {
-                                QA.route(modelData.album.itemId);
-                            }
-                        }
-                        Action {
-                            icon.name: Theme.ic.person
-                            text: qsTr('Show artist')
-
-                            onTriggered: {
-                                const artists = modelData.artists;
-                                if (artists.length === 1)
-                                    QA.route(artists[0].itemId);
-                                else
-                                    QA.show_popup('qrc:/QcmApp/qml/part/ArtistsPopup.qml', {
-                                            "model": artists
-                                        });
-                            }
-                        }
-                    }
+                    QA.show_popup('qrc:/QcmApp/qml/part/SongMenu.qml', {
+                            "song": modelData,
+                            "y": height
+                        }, this);
                 }
             }
         }
