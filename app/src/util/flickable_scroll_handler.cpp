@@ -51,6 +51,14 @@ void FlickableScrollHandler::init() {
     const auto qCtx = qmlContext(m_target);
     assert(qCtx);
 
+    m_propertyOriginX = QQmlProperty(m_target, "originX", qCtx);
+    m_propertyOriginY = QQmlProperty(m_target, "originY", qCtx);
+
+    m_propertyLeftMargin   = QQmlProperty(m_target, "leftMargin", qCtx);
+    m_propertyRightMargin  = QQmlProperty(m_target, "rightMargin", qCtx);
+    m_propertyTopMargin    = QQmlProperty(m_target, "topMargin", qCtx);
+    m_propertyBottomMargin = QQmlProperty(m_target, "bottomMargin", qCtx);
+
     m_propertyContentX      = QQmlProperty(m_target, "contentX", qCtx);
     m_propertyContentY      = QQmlProperty(m_target, "contentY", qCtx);
     m_propertyContentHeight = QQmlProperty(m_target, "contentHeight", qCtx);
@@ -158,7 +166,14 @@ bool FlickableScrollHandler::eventFilter(QObject* watched, QEvent* event) {
                 else
                     newPos -= delta;
 
-                newPos = qBound<qreal>(0, newPos, contentSize - size);
+                const auto origin     = vertical ? m_propertyOriginY.read().toReal()
+                                                 : m_propertyOriginX.read().toReal();
+                const auto low_margin = vertical ? m_propertyTopMargin.read().toReal()
+                                                 : m_propertyLeftMargin.read().toReal();
+                const auto up_margin  = vertical ? m_propertyBottomMargin.read().toReal()
+                                                 : m_propertyRightMargin.read().toReal();
+
+                newPos = qBound<qreal>(origin - low_margin, newPos, contentSize + up_margin - size);
 
                 if (vertical)
                     m_propertyContentY.write(newPos);
@@ -185,6 +200,7 @@ bool FlickableScrollHandler::eventFilter(QObject* watched, QEvent* event) {
 
         if (_delta != 0 && handler(_delta, _type)) {
             wheel->accept();
+            emit moved();
             return true;
         }
 

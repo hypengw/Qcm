@@ -13,25 +13,24 @@ Page {
     property alias itemData: qr_pl.data
     property alias itemId: qr_pl.itemId
 
-    padding: 16
-    verticalPadding: 0
+    padding: 0
 
-    Flickable {
+    MFlickable {
         id: flick
-        anchors.horizontalCenter: parent.horizontalCenter
-        bottomMargin: 16
-        boundsBehavior: Flickable.StopAtBounds
+        anchors.fill: parent
         clip: true
         contentHeight: content.implicitHeight
-        contentWidth: width
-        height: parent.height
-        topMargin: 16
-        width: Math.min(800, parent.width)
+
+        ScrollBar.vertical: ScrollBar {
+            visible: false
+        }
 
         ColumnLayout {
             id: content
-            anchors.fill: parent
+            anchors.horizontalCenter: parent.horizontalCenter
+            height: parent.height
             spacing: 4
+            width: Math.min(800, parent.width)
 
             Pane {
                 Layout.fillWidth: true

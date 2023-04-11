@@ -44,6 +44,7 @@ signals:
 private slots:
     void parseLrc();
     void refreshIndex();
+    void setCurrentIndex(qlonglong);
 
 private:
     qlonglong m_cur_idx;

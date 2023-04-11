@@ -1,5 +1,6 @@
 #include "Qcm/lyric.h"
 
+#include <limits>
 #include <ctre.hpp>
 
 #include "Qcm/type.h"
@@ -37,7 +38,7 @@ QList<LrcLyricLine> parse_lrc(const QString& source) {
             last_milli = milli_total;
         } else if (auto [whole, tag, tag_v] = ctre::match<RE_LrcTagLine>(line); whole) {
             // to do
-        } else {
+        } else if (! line.isEmpty()) {
             // add this to previous
             if (lrc_map.contains(last_milli)) {
                 lrc_map.at(last_milli).content.append('\n').append(QString::fromUtf8(line));
@@ -71,9 +72,16 @@ void      LrcLyric::setPosition(qlonglong v) {
 
 qlonglong LrcLyric::currentIndex() const { return m_cur_idx; }
 
+void LrcLyric::setCurrentIndex(qlonglong v) {
+    if (std::exchange(m_cur_idx, v) != v) {
+        emit currentIndexChanged();
+    }
+}
+
 QString LrcLyric::source() const { return m_source; }
 void    LrcLyric::setSource(QString v) {
     if (std::exchange(m_source, v) != v) {
+        setCurrentIndex(-1);
         emit sourceChanged();
     }
 }
@@ -88,27 +96,33 @@ void LrcLyric::refreshIndex() {
     auto begin = items().begin();
     auto end   = items().end();
 
-    if (m_cur_idx < 0 || m_cur_idx >= rowCount()) {
-        auto it = std::upper_bound(begin, end, m_position, [](const auto& val, const auto& el) {
-            return val < el.milliseconds;
-        });
-        if (it == begin) {
-            m_cur_idx = -1;
-        } else {
-            m_cur_idx = std::distance(begin, it - 1);
-        }
-    } else {
+    if (begin < end) {
         auto it = begin + m_cur_idx;
-        while (it != end && (*it).milliseconds < m_position) {
-            it++;
-        }
 
-        while (it != begin && (*it).milliseconds > m_position) {
+        auto pos = m_position < 0 ? 0 : m_position;
+
+        auto milli = [begin, end](auto it) -> qlonglong {
+            if (it < begin)
+                return -1;
+            else if (it >= end)
+                return std::numeric_limits<qlonglong>::max();
+            else
+                return it->milliseconds;
+        };
+
+        // check left
+        while (milli(it) > pos) {
             it--;
         }
 
+        // check right
+        while (milli(it + 1) <= pos) {
+            it++;
+        }
         m_cur_idx = std::distance(begin, it);
-    }
+    } else
+        m_cur_idx = -1;
+
     if (old != m_cur_idx) {
         emit currentIndexChanged();
     }

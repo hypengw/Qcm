@@ -197,43 +197,73 @@ MPage {
                         Layout.fillHeight: true
                         Layout.fillWidth: true
 
-                        ListView {
+                        MListView {
                             id: lyric_view
                             function posTo(idx) {
                                 if (visible) {
-                                    anim_scroll.running = false;
                                     anim_scroll.from = contentY;
                                     positionViewAtIndex(idx, ListView.Center);
                                     anim_scroll.to = contentY;
                                     contentY = anim_scroll.from;
                                     anim_scroll.running = !moving;
-                                } else {
-                                    // seem when not visible, this is not accurate
-                                    // use a timer to sync
-                                    positionViewAtIndex(idx, ListView.Center);
                                 }
+                            // seem when not visible, this is not accurate
+                            // use a timer to sync
+                            }
+                            function timer_restart() {
+                                if (visible)
+                                    timer_scroll.restart();
                             }
 
                             anchors.fill: parent
+                            boundsBehavior: Flickable.StopAtBounds
+                            boundsMovement: Flickable.StopAtBounds
                             highlightFollowsCurrentItem: false
                             model: lrc
                             reuseItems: true
                             spacing: 4
 
+                            ScrollBar.vertical: ScrollBar {
+                                visible: false
+                            }
                             SmoothedAnimation on contentY  {
                                 id: anim_scroll
-                                duration: 1000
-                                velocity: 128
-                            }
-                            delegate: Pane {
-                                readonly property bool highlighted: lrc.currentIndex === index
 
-                                Material.foreground: highlighted ? Theme.color.tertiary : root.Material.foreground
+                                property bool manual_stopped: false
+
+                                function manual_stop() {
+                                    manual_stopped = true;
+                                    stop();
+                                }
+
+                                duration: 1000
+                                velocity: 200
+
+                                onStopped: {
+                                    if (manual_stopped) {
+                                        manual_stopped = false;
+                                        return;
+                                    }
+                                    if (lyric_view.count === 0)
+                                        return;
+                                    const cur = lyric_view.itemAtIndex(lrc.currentIndex);
+                                    if (cur) {
+                                        const center = cur.y + cur.height / 2;
+                                        const list_center = lyric_view.contentY + lyric_view.height / 2;
+                                        const diff = Math.abs(center - list_center);
+                                        if (diff > 10) {
+                                            timer_scroll.triggered();
+                                        }
+                                    } else {
+                                        lyric_view.timer_restart();
+                                    }
+                                }
+                            }
+                            delegate: MItemDelegate {
+                                Material.foreground: lrc.currentIndex === index ? Theme.color.tertiary : root.Material.foreground
                                 width: ListView.view.width
 
-                                ColumnLayout {
-                                    anchors.fill: parent
-
+                                contentItem: ColumnLayout {
                                     Label {
                                         Layout.fillWidth: true
                                         font.pointSize: Theme.ts.title_medium.size
@@ -241,6 +271,10 @@ MPage {
                                         text: model.content
                                         wrapMode: Text.Wrap
                                     }
+                                }
+
+                                onClicked: {
+                                    QA.player.position = model.milliseconds;
                                 }
                             }
                             footer: Item {
@@ -250,14 +284,14 @@ MPage {
                                 height: ListView.view.height / 2
                             }
 
+                            onHeightChanged: timer_restart()
                             onMovingChanged: {
                                 if (moving)
-                                    anim_scroll.running = false;
+                                    anim_scroll.manual_stop();
                             }
-                            onVisibleChanged: {
-                                if (visible)
-                                    timer_scroll.restart();
-                            }
+                            onVisibleChanged: timer_restart()
+                            onWheelMoved: anim_scroll.manual_stop()
+                            onWidthChanged: timer_restart()
 
                             Timer {
                                 id: timer_scroll

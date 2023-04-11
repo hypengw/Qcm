@@ -55,6 +55,8 @@ signals:
     void effectiveScaleFactorChanged();
     void fallbackScrollChanged();
 
+    void moved();
+
 private slots:
     void init();
 
@@ -76,6 +78,9 @@ private:
     bool                 m_enabled        = true;
     bool                 m_fallbackScroll = false;
 
+    QQmlProperty m_propertyOriginX, m_propertyOriginY;
+    QQmlProperty m_propertyLeftMargin, m_propertyRightMargin;
+    QQmlProperty m_propertyTopMargin, m_propertyBottomMargin;
     QQmlProperty m_propertyContentX, m_propertyContentY;
     QQmlProperty m_propertyContentHeight, m_propertyContentWidth;
     QQmlProperty m_propertyHeight, m_propertyWidth;

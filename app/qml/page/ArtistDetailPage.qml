@@ -13,25 +13,20 @@ Page {
     property alias itemData: qr_artist.data
     property alias itemId: qr_artist.itemId
 
-    padding: 16
-    verticalPadding: 0
+    padding: 0
 
-    Flickable {
+    MFlickable {
         id: flick
-        anchors.horizontalCenter: parent.horizontalCenter
-        bottomMargin: 16
-        boundsBehavior: Flickable.StopAtBounds
-        clip: false
+        anchors.fill: parent
+        clip: true
         contentHeight: content.implicitHeight
-        contentWidth: width
-        height: parent.height
-        topMargin: 16
-        width: Math.min(800, parent.width)
 
         ColumnLayout {
             id: content
-            anchors.fill: parent
+            anchors.horizontalCenter: parent.horizontalCenter
+            height: parent.height
             spacing: 4
+            width: Math.min(800, parent.width)
 
             Pane {
                 Layout.fillWidth: true
@@ -129,7 +124,7 @@ Page {
             }
             Pane {
                 Layout.fillWidth: true
-                implicitHeight: Math.min(root.height * 0.75, pane_view_column.implicitHeight)
+                implicitHeight: Math.min(root.height * 0.75 + pane_tab_bar.implicitHeight, pane_view_column.implicitHeight)
                 padding: 0
 
                 ColumnLayout {
@@ -138,6 +133,7 @@ Page {
                     spacing: 0
 
                     Pane {
+                        id: pane_tab_bar
                         Layout.fillWidth: true
                         padding: 0
 
