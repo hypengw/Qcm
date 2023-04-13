@@ -3,6 +3,8 @@ add_subdirectory(fmt)
 add_subdirectory(json)
 add_subdirectory(qr_code)
 
+set(QAPPLICATION_CLASS QGuiApplication CACHE STRING "Inheritance class for SingleApplication")
+add_subdirectory(SingleApplication)
 
 add_library(random INTERFACE)
 target_include_directories(random INTERFACE random/include)

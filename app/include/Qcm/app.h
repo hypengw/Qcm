@@ -53,6 +53,9 @@ public:
 
     Q_INVOKABLE void test();
 
+signals:
+    void instanceStarted();
+
 public slots:
     void loginPost(model::UserAccount*);
     void triggerCacheLimit();

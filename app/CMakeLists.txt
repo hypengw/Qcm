@@ -103,8 +103,7 @@ set(QML_FILES
     qml/component/MPopup.qml
     qml/component/PageContainer.qml
     qml/component/PagePopup.qml
-    qml/component/PageStack.qml
-    )
+    qml/component/PageStack.qml)
 set(RESOURCES assets/MaterialIconsRound-Regular.otf
               assets/MaterialIconsOutlined-Regular.otf)
 
@@ -155,7 +154,9 @@ target_compile_definitions(
 
 qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cpp)
 qt_import_qml_plugins(${PROJECT_NAME})
-target_link_libraries(${PROJECT_NAME} PRIVATE app)
+
+target_link_libraries(${PROJECT_NAME}
+                      PRIVATE app SingleApplication::SingleApplication)
 
 install(
   TARGETS ${PROJECT_NAME}

@@ -27,6 +27,14 @@ ApplicationWindow {
         QA.main_win = win;
     }
 
+    Connections {
+        function onInstanceStarted() {
+            win.raise();
+            win.requestActivate();
+        }
+
+        target: App
+    }
     Settings {
         property alias height: win.height
         property alias width: win.width

@@ -6,13 +6,15 @@
 #include "request/request.h"
 #include "core/log.h"
 
+#include <SingleApplication>
+
 int main(int argc, char* argv[]) {
     // qputenv("QT_FONT_DPI", "96");
     // qputenv("QT_MEDIA_BACKEND", "ffmpeg");
     auto logger = qcm::LogManager::init();
     request::global_init();
 
-    QGuiApplication gui_app(argc, argv);
+    SingleApplication gui_app(argc, argv);
     QCoreApplication::setApplicationName("Qcm");
     QCoreApplication::setApplicationVersion(APP_VERSION);
 
@@ -29,6 +31,9 @@ int main(int argc, char* argv[]) {
         QQmlApplicationEngine engine;
 
         qcm::App* app = qcm::App::instance();
+        QObject::connect(
+            &gui_app, &SingleApplication::instanceStarted, app, &qcm::App::instanceStarted);
+
         app->init(&engine);
 
         re = gui_app.exec();
