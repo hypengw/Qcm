@@ -53,8 +53,17 @@ template<template<typename...> class T, typename... Args>
 constexpr bool is_specialization_of<T<Args...>, T> = true;
 } // namespace core
 
-template<typename T>
-struct To;
+template<typename TType>
+struct To {
+    using out_type = TType;
+    template<typename T>
+    struct From;
+
+    template<typename T>
+    static TType from(const T& t) {
+        return From<T>::from(t);
+    }
+};
 
 template<typename F, typename T>
 concept to_able = requires(F f) {

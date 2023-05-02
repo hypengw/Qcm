@@ -31,39 +31,42 @@ asio::awaitable<bool> Connection::check_cache(std::string_view      key,
     co_return has_entry&& std::filesystem::exists(file_path);
 }
 
+asio::awaitable<void> Connection::send_file_header(std::optional<DataBase::Item> db_item,
+                                                   i64 offset, usize size) {
+    std::string rsp_header;
+
+    rsp_header.append(m_req->partial() ? "HTTP/1.1 206 PARTIAL CONTENT\n" : "HTTP/1.1 200 OK\n");
+    rsp_header.append(fmt::format("Content-Length: {}\n", size - offset));
+    if (db_item) {
+        rsp_header.append(fmt::format("Content-Type: {}\n", db_item->content_type));
+    }
+    if (m_req->partial()) {
+        rsp_header.append(fmt::format("Content-Range: bytes {}-{}/{}\n", offset, size - 1, size));
+        rsp_header.append("Accept-Ranges: bytes\n");
+    }
+
+    rsp_header.append("\r\n");
+    co_await asio::async_write(
+        m_s, asio::buffer(rsp_header.c_str(), rsp_header.size()), asio::use_awaitable);
+    co_return;
+}
+
 asio::awaitable<void> Connection::file_source(std::filesystem::path file_path) {
     helper::SyncFile file { std::fstream(file_path.native(), std::ios::in | std::ios::binary) };
     file.handle().exceptions(std::ios_base::badbit);
-    auto size      = std::filesystem::file_size(file_path);
-    auto offset    = m_req->range_start.value_or(0);
-    auto left_size = size - offset;
+    auto size   = std::filesystem::file_size(file_path);
+    auto offset = m_req->range_start.value_or(0);
+    if (size <= (usize)offset) {
+        ERROR_LOG("wrong range start {}", offset);
+        co_return;
+    }
+
+    if (m_req->partial()) {
+        file.handle().seekg(offset);
+    }
 
     auto db_item = co_await m_db->get(m_req->proxy_id.value());
-
-    {
-        std::string rsp_header;
-        if (left_size <= 0) {
-            ERROR_LOG("wrong range start {}", offset);
-            co_return;
-        }
-
-        rsp_header.append(m_req->partial() ? "HTTP/1.1 206 PARTIAL CONTENT\n"
-                                           : "HTTP/1.1 200 OK\n");
-        rsp_header.append(fmt::format("Content-Length: {}\n", left_size));
-        if (db_item) {
-            rsp_header.append(fmt::format("Content-Type: {}\n", db_item->content_type));
-        }
-        if (m_req->partial()) {
-            rsp_header.append(
-                fmt::format("Content-Range: bytes {}-{}/{}\n", offset, size - 1, size));
-            rsp_header.append("Accept-Ranges: bytes\n");
-            file.handle().seekg(offset);
-        }
-
-        rsp_header.append("\r\n");
-        co_await asio::async_write(
-            m_s, asio::buffer(rsp_header.c_str(), rsp_header.size()), asio::use_awaitable);
-    }
+    co_await send_file_header(db_item, offset, size);
 
     std::vector<std::byte> buf;
     buf.resize(16 * 1024);
@@ -81,6 +84,36 @@ asio::awaitable<void> Connection::file_source(std::filesystem::path file_path) {
     co_return;
 }
 
+asio::awaitable<void> Connection::send_http_header(DataBase::Item&         db_item,
+                                                   const request::Header&  header,
+                                                   const request::Request& proxy_req) {
+    std::string rsp_header;
+
+    rsp_header.append(header.contains("content-range") ? "HTTP/1.1 206 PARTIAL CONTENT\n"
+                                                       : "HTTP/1.1 200 OK\n");
+    if (header.contains("content-Length")) {
+        auto len_str = header.at("content-length");
+        rsp_header.append(fmt::format("Content-Length: {}\n", len_str));
+        if (auto whole = ctre::starts_with<DigitPattern>(len_str); whole) {
+            db_item.content_length = whole.to_number();
+        }
+    }
+    if (header.contains("content-type")) {
+        rsp_header.append(fmt::format("Content-Type: {}\n", header.at("content-type")));
+        db_item.content_type = header.at("content-type");
+    }
+    if (header.contains("content-range")) {
+        rsp_header.append(fmt::format("Content-Range: {}\n", header.at("content-range")));
+        rsp_header.append("Accept-Ranges: bytes\n");
+    }
+    rsp_header.append("\r\n");
+
+    DEBUG_LOG("rsp header, {}:\n{}", proxy_req.url(), rsp_header);
+
+    co_await asio::async_write(
+        m_s, asio::buffer(rsp_header.c_str(), rsp_header.size()), asio::use_awaitable);
+}
+
 asio::awaitable<void> Connection::http_source(std::filesystem::path file_path,
                                               rc<request::Session>  ses) {
     const auto& req      = m_req.value();
@@ -88,10 +121,10 @@ asio::awaitable<void> Connection::http_source(std::filesystem::path file_path,
 
     auto file_dl_path = get_dl_path(file_path);
 
-    bool             dl_exists = std::filesystem::exists(file_dl_path);
     helper::SyncFile file { std::fstream(
         file_dl_path.native(),
-        (dl_exists ? std::ios::in | std::ios::out : std::ios::out) | std::ios::binary) };
+        (std::filesystem::exists(file_dl_path) ? std::ios::in | std::ios::out : std::ios::out) |
+            std::ios::binary) };
     file.handle().exceptions(std::ios_base::badbit);
 
     request::Request proxy_req;
@@ -106,36 +139,7 @@ asio::awaitable<void> Connection::http_source(std::filesystem::path file_path,
 
     DataBase::Item db_item;
     db_item.key = proxy_id;
-
-    {
-        auto& header = rsp->header();
-
-        std::string rsp_header;
-
-        rsp_header.append(header.contains("content-range") ? "HTTP/1.1 206 PARTIAL CONTENT\n"
-                                                           : "HTTP/1.1 200 OK\n");
-        if (header.contains("content-Length")) {
-            auto len_str = header.at("content-length");
-            rsp_header.append(fmt::format("Content-Length: {}\n", len_str));
-            if (auto whole = ctre::starts_with<DigitPattern>(len_str); whole) {
-                db_item.content_length = whole.to_number();
-            }
-        }
-        if (header.contains("content-type")) {
-            rsp_header.append(fmt::format("Content-Type: {}\n", header.at("content-type")));
-            db_item.content_type = header.at("content-type");
-        }
-        if (header.contains("content-range")) {
-            rsp_header.append(fmt::format("Content-Range: {}\n", header.at("content-range")));
-            rsp_header.append("Accept-Ranges: bytes\n");
-        }
-        rsp_header.append("\r\n");
-
-        DEBUG_LOG("rsp header, {}:\n{}", proxy_req.url(), rsp_header);
-
-        co_await asio::async_write(
-            m_s, asio::buffer(rsp_header.c_str(), rsp_header.size()), asio::use_awaitable);
-    }
+    co_await send_http_header(db_item, rsp->header(), proxy_req);
 
     bool finished { false };
 
@@ -177,6 +181,7 @@ asio::awaitable<void> Connection::http_source(std::filesystem::path file_path,
             if (ec) {
                 if (ec != asio::error::eof) {
                     ERROR_LOG("{}", ec.message());
+                    m_s.cancel();
                 }
                 if (check_finished()) {
                     co_await m_db->insert(db_item);
@@ -198,6 +203,8 @@ asio::awaitable<void> Connection::run(rc<request::Session> ses, std::filesystem:
     auto req = co_await GetRequest::read(m_s);
     m_req    = req;
 
+    DEBUG_LOG("connection started: {}", m_req->proxy_id.value_or(""));
+
     if (req.proxy_id) {
         auto proxy_id = req.proxy_id.value();
         std::filesystem::create_directories(cache_dir);
@@ -212,6 +219,7 @@ asio::awaitable<void> Connection::run(rc<request::Session> ses, std::filesystem:
         ERROR_LOG("wrong path {}", req.path);
     }
 
+    DEBUG_LOG("connection ended: {}", m_req->proxy_id.value_or(""));
     co_return;
 }
 

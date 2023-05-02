@@ -7,6 +7,7 @@
 #include <QGlobalStatic>
 #include <qapplicationstatic.h>
 #include <QSettings>
+#include <QJSValueIterator>
 
 #include <asio/deferred.hpp>
 
@@ -211,6 +212,12 @@ void App::save_session() {
     if (! user_id.empty()) {
         m_session->save_cookie(config_path() / "session" / user_id);
     }
+}
+
+bool App::is_item_id(const QJSValue& v) const {
+    bool meta_ok = v.hasProperty("metaObject");
+    auto meta = v.property("metaObject").toQMetaObject();
+    return meta != nullptr && meta->inherits(&model::ItemId::staticMetaObject);
 }
 
 void App::test() {

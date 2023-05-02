@@ -7,19 +7,9 @@
 #include "core/fmt.h"
 
 template<>
-struct To<QString> {
-    template<typename T>
-    struct From;
-
-    template<typename T>
-    static QString from(const T& t) {
-        return From<T>::from(t);
-    }
-
-    template<fmt::formattable Fmt>
-    struct From<Fmt> {
-        static auto from(const Fmt& fmt) { return QString::fromStdString(fmt::format("{}", fmt)); }
-    };
+template<fmt::formattable Fmt>
+struct To<QString>::From<Fmt> {
+    static auto from(const Fmt& fmt) { return QString::fromStdString(fmt::format("{}", fmt)); }
 };
 
 template<>

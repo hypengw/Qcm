@@ -29,19 +29,9 @@ struct fmt::formatter<Bytes> : fmt::formatter<std::string> {
 };
 
 template<>
-struct To<std::string> {
-    template<typename T>
-    struct From;
-
-    template<typename T>
-    static auto from(const T& t) {
-        return From<T>::from(t);
-    }
-
-    template<fmt::formattable T>
-    struct From<T> {
-        static auto from(const T& fmt) { return fmt::format("{}", fmt); }
-    };
+template<fmt::formattable T>
+struct To<std::string>::From<T> {
+    static auto from(const T& fmt) { return fmt::format("{}", fmt); }
 };
 
 namespace helper

@@ -64,12 +64,14 @@ namespace qcm
 namespace model
 {
 
-struct ItemId : public QObject {
+struct ItemIdType : public QObject {
     Q_OBJECT
     QML_ELEMENT
+    QML_UNCREATABLE("")
 public:
     enum Type
     {
+        Unknown,
         Song,
         Album,
         Artist,
@@ -79,34 +81,42 @@ public:
     Q_ENUM(Type)
 };
 
-struct ItemIdGad {
+struct ItemId {
     Q_GADGET
 public:
+    using Type = ItemIdType::Type;
+
     Q_PROPERTY(ItemId::Type type READ type)
     Q_PROPERTY(QString sid READ id_)
+    Q_PROPERTY(ItemIdType* objectType READ objectType)
 
     Q_INVOKABLE bool valid() const {
         auto& id = id_();
         return ! id.isEmpty() && id != "0";
     }
 
-    virtual ItemId::Type   type() const = 0;
-    virtual const QString& id_() const  = 0;
+    ItemId(QString id = ""): id(id) {}
+    virtual ~ItemId() = default;
 
-    std::strong_ordering operator<=>(const ItemIdGad&) const = default;
-};
+    const QString&       id_() const { return id; }
+    virtual ItemId::Type type() const { return Type::Unknown; }
+    ItemIdType*          objectType() const {
+        static ItemIdType t;
+        return &t;
+    }
 
-template<ItemId::Type Type>
-struct ItemIdBase : public ItemIdGad {
-    ItemIdBase(QString id = ""): id(id) {}
-    virtual ~ItemIdBase() = default;
-
-    ItemId::Type   type() const override { return Type; }
-    const QString& id_() const override { return id; }
+    std::strong_ordering operator<=>(const ItemId&) const = default;
 
     QString id;
+};
 
-    std::strong_ordering operator<=>(const ItemIdBase<Type>&) const = default;
+template<ItemId::Type TType>
+struct ItemIdBase : public ItemId {
+    using ItemId::ItemId;
+    virtual ~ItemIdBase() = default;
+
+    Type                 type() const override { return TType; }
+    std::strong_ordering operator<=>(const ItemIdBase<TType>&) const = default;
 };
 
 template<typename T>
@@ -115,10 +125,10 @@ concept ItemIdCP = requires(T t) {
                        { t.type() } -> std::same_as<ItemId::Type>;
                    };
 
-struct SongId : public ItemIdBase<ItemId::Song> {
+struct SongId : public ItemIdBase<ItemId::Type::Song> {
     Q_GADGET
 public:
-    using ItemIdBase<ItemId::Song>::ItemIdBase;
+    using ItemIdBase<ItemId::Type::Song>::ItemIdBase;
     virtual ~SongId() = default;
 
     Q_INVOKABLE QUrl url() const {
@@ -126,30 +136,30 @@ public:
     }
 };
 
-struct AlbumId : public ItemIdBase<ItemId::Album> {
+struct AlbumId : public ItemIdBase<ItemId::Type::Album> {
     Q_GADGET
 public:
-    using ItemIdBase<ItemId::Album>::ItemIdBase;
+    using ItemIdBase<ItemId::Type::Album>::ItemIdBase;
     virtual ~AlbumId() = default;
 };
 
-struct ArtistId : public ItemIdBase<ItemId::Artist> {
+struct ArtistId : public ItemIdBase<ItemId::Type::Artist> {
     Q_GADGET
 public:
-    using ItemIdBase<ItemId::Artist>::ItemIdBase;
+    using ItemIdBase<ItemId::Type::Artist>::ItemIdBase;
     virtual ~ArtistId() = default;
 };
-struct PlaylistId : public ItemIdBase<ItemId::Playlist> {
+struct PlaylistId : public ItemIdBase<ItemId::Type::Playlist> {
     Q_GADGET
 public:
-    using ItemIdBase<ItemId::Playlist>::ItemIdBase;
+    using ItemIdBase<ItemId::Type::Playlist>::ItemIdBase;
     virtual ~PlaylistId() = default;
 };
 
-struct UserId : public ItemIdBase<ItemId::User> {
+struct UserId : public ItemIdBase<ItemId::Type::User> {
     Q_GADGET
 public:
-    using ItemIdBase<ItemId::User>::ItemIdBase;
+    using ItemIdBase<ItemId::Type::User>::ItemIdBase;
     virtual ~UserId() = default;
 };
 
@@ -226,101 +236,29 @@ struct To<T> {
 };
 
 template<>
-struct To<QDateTime> {
-    template<typename T>
-    struct From;
-
-    template<typename T>
-    static QDateTime from(const T& t) {
-        return From<T>::from(t);
-    }
-};
 template<>
 struct To<QDateTime>::From<ncm::model::Time> {
-    static auto from(const ncm::model::Time& t) {
-        return QDateTime::fromMSecsSinceEpoch(t.milliseconds);
-    }
+    static QDateTime from(const ncm::model::Time& t);
 };
 
 template<>
 struct To<qcm::model::Artist> {
-    static qcm::model::Artist from(const ncm::model::Artist& in) {
-        qcm::model::Artist o;
-        CONVERT_PROPERTY(o.id, in.id);
-        CONVERT_PROPERTY(o.name, in.name);
-        CONVERT_PROPERTY(o.picUrl, in.picUrl);
-        CONVERT_PROPERTY(o.briefDesc, in.briefDesc.value_or(""));
-        CONVERT_PROPERTY(o.musicSize, in.musicSize);
-        CONVERT_PROPERTY(o.albumSize, in.albumSize);
-        return o;
-    }
-    static qcm::model::Artist from(const ncm::model::Song::Ar& in) {
-        qcm::model::Artist o;
-        CONVERT_PROPERTY(o.id, in.id);
-        CONVERT_PROPERTY(o.name, in.name);
-        CONVERT_PROPERTY(o.alias, in.alia);
-        return o;
-    }
+    static qcm::model::Artist from(const ncm::model::Artist& in);
+    static qcm::model::Artist from(const ncm::model::Song::Ar& in);
 };
 
 template<>
 struct To<qcm::model::Album> {
-    static qcm::model::Album from(const ncm::model::Album& in) {
-        qcm::model::Album o;
-        CONVERT_PROPERTY(o.id, in.id);
-        CONVERT_PROPERTY(o.name, in.name);
-        CONVERT_PROPERTY(o.picUrl, in.picUrl);
-        CONVERT_PROPERTY(o.artists, in.artists);
-        CONVERT_PROPERTY(o.publishTime, in.publishTime);
-        return o;
-    }
+    static qcm::model::Album from(const ncm::model::Album& in);
 };
 
 template<>
-struct To<qcm::model::Playlist> {
-    template<typename T>
-    static auto from(const T&);
-};
 template<>
-inline auto To<qcm::model::Playlist>::from(const ncm::model::Playlist& in) {
-    qcm::model::Playlist o;
-    CONVERT_PROPERTY(o.id, in.id);
-    CONVERT_PROPERTY(o.name, in.name);
-    CONVERT_PROPERTY(o.picUrl, in.coverImgUrl);
-    CONVERT_PROPERTY(o.description, in.description.value_or(""));
-    CONVERT_PROPERTY(o.updateTime, in.updateTime);
-    CONVERT_PROPERTY(o.playCount, in.playCount);
-    return o;
-}
+struct To<qcm::model::Playlist>::From<ncm::model::Playlist> {
+    static out_type from(const ncm::model::Playlist&);
+};
 
 template<>
 struct To<qcm::model::Song> {
-    static qcm::model::Song from(const ncm::model::Song& in) {
-        qcm::model::Song o;
-        CONVERT_PROPERTY(o.id, in.id);
-        CONVERT_PROPERTY(o.name, in.name);
-        CONVERT_PROPERTY(o.album.id, in.al.id);
-        CONVERT_PROPERTY(o.album.name, in.al.name);
-        CONVERT_PROPERTY(o.album.picUrl, in.al.picUrl);
-        CONVERT_PROPERTY(o.duration, in.dt);
-        CONVERT_PROPERTY(o.artists, in.ar);
-        CONVERT_PROPERTY(o.canPlay, (! in.privilege || in.privilege.value().st >= 0));
-
-        if (in.privilege) {
-            QString tag;
-            auto    fee = in.privilege.value().fee;
-            switch (fee) {
-                using enum ncm::model::SongFee;
-            case Vip: tag = "vip"; break;
-            case OnlyOnlineWithPaid:
-            case OnlyDownloadWithPaid: tag = "pay"; break;
-            case DigitalAlbum: tag = "dg"; break;
-            case Free:
-            case Free128k: break;
-            default: WARN_LOG("unknown fee: {}, {}", (i64)fee, in.name);
-            }
-            if (! tag.isEmpty()) o.tags.push_back(tag);
-        }
-        return o;
-    }
+    static qcm::model::Song from(const ncm::model::Song& in);
 };

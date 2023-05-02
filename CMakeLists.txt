@@ -21,19 +21,14 @@ set(QML_IMPORT_PATH
 
 # -Wconversion -Wsign-conversion
 add_compile_options(-Wall -Wextra -Wpedantic -Wno-unused-variable
-                    -Wno-unused-function)
-
+                    -Wno-unused-function -Wno-dangling-reference)
 
 add_compile_options(
-    $<$<CONFIG:Debug>:-ggdb>
-    $<$<CONFIG:Debug>:-fno-omit-frame-pointer>
-#    $<$<CONFIG:Debug>:-fsanitize=address>
+  $<$<CONFIG:Debug>:-ggdb> $<$<CONFIG:Debug>:-fno-omit-frame-pointer>
+  # $<$<CONFIG:Debug>:-fsanitize=address>
 )
 
-#add_link_options(
-#    $<$<CONFIG:Debug>:-fsanitize=address>
-#)
-
+# add_link_options( $<$<CONFIG:Debug>:-fsanitize=address> )
 
 add_subdirectory(third_party)
 add_subdirectory(core)

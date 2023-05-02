@@ -50,6 +50,7 @@ public:
     Q_INVOKABLE model::ArtistId artistId(QString id) const;
     Q_INVOKABLE model::AlbumId albumId(QString id) const;
     Q_INVOKABLE QUrl           getImageCache(QString url, QSize reqSize) const;
+    Q_INVOKABLE bool           is_item_id(const QJSValue&) const;
 
     Q_INVOKABLE void test();
 

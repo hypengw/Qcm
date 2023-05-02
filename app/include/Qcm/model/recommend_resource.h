@@ -8,7 +8,8 @@
 #include "core/log.h"
 
 template<>
-inline auto To<qcm::model::Playlist>::from(const ncm::model::RecommendResourceItem& in) {
+template<>
+inline qcm::model::Playlist To<qcm::model::Playlist>::from(const ncm::model::RecommendResourceItem& in) {
     qcm::model::Playlist o;
     CONVERT_PROPERTY(o.id, in.id);
     CONVERT_PROPERTY(o.name, in.name);

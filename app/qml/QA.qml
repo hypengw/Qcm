@@ -53,11 +53,11 @@ Item {
     }
     function item_id_url(itemId) {
         switch (itemId.type) {
-        case ItemId.Album:
+        case ItemIdType.Album:
             return 'qrc:/QcmApp/qml/page/AlbumDetailPage.qml';
-        case ItemId.Playlist:
+        case ItemIdType.Playlist:
             return 'qrc:/QcmApp/qml/page/PlaylistDetailPage.qml';
-        case ItemId.Artist:
+        case ItemIdType.Artist:
             return 'qrc:/QcmApp/qml/page/ArtistDetailPage.qml';
         }
         return '';
@@ -71,25 +71,11 @@ Item {
     function route(dest) {
         let url = dest;
         let props = {};
-        switch (dest.type) {
-        case ItemId.Album:
-            url = 'qrc:/QcmApp/qml/page/AlbumDetailPage.qml';
+        if (dest.objectType instanceof ItemIdType) {
+            url = item_id_url(dest);
             props = {
                 "itemId": dest
             };
-            break;
-        case ItemId.Playlist:
-            url = 'qrc:/QcmApp/qml/page/PlaylistDetailPage.qml';
-            props = {
-                "itemId": dest
-            };
-            break;
-        case ItemId.Artist:
-            url = 'qrc:/QcmApp/qml/page/ArtistDetailPage.qml';
-            props = {
-                "itemId": dest
-            };
-            break;
         }
         QA.sig_route_special('main');
         const msg = m_comp_route_msg.createObject(root, {
@@ -158,8 +144,8 @@ Item {
             const songs = m_querier_song.data.songs;
             if (status === ApiQuerierBase.Finished) {
                 const song = songs.length ? songs[0] : null;
-                if (song)
-                    m_player.source = App.media_url(song.url, key);
+                const media_url = song ? App.media_url(song.url, key) : '';
+                m_player.source = media_url;
             } else if (status === ApiQuerierBase.Error) {
                 m_player.stop();
             }
@@ -361,15 +347,7 @@ Item {
             seeked(position * 1000);
         }
 
-        source: {
-            const songs = m_querier_song.data.songs;
-            if (songs.length) {
-                const url = songs[0].url;
-                return App.media_url(url, Qt.md5(songs[0].itemId.sid));
-                return songs[0].url;
-            }
-            return '';
-        }
+        source: ''
 
         audioOutput: AudioOutput {
         }
@@ -385,6 +363,7 @@ Item {
             }
         }
         onSourceChanged: source => {
+            console.error(source);
             if (source)
                 play();
         }
