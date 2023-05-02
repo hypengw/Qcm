@@ -1,6 +1,7 @@
 set(APP_ID io.github.hypengw.Qcm)
 set(APP_NAME Qcm)
 set(APP_VERSION 1.0)
+set(APP_SUMMARY "A Qt client for netease cloud music")
 
 find_package(Qt6 REQUIRED COMPONENTS QuickControls2 Sql)
 
@@ -158,6 +159,12 @@ qt_import_qml_plugins(${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME}
                       PRIVATE app SingleApplication::SingleApplication)
 
+set(APP_DESKTOP assets/Qcm.desktop)
+set(APP_METAINFO assets/Qcm.metainfo.xml)
+set(APP_SVG assets/Qcm.svg)
+configure_file(${APP_DESKTOP}.in ${APP_DESKTOP} @ONLY)
+configure_file(${APP_METAINFO}.in ${APP_METAINFO} @ONLY)
+
 install(
   TARGETS ${PROJECT_NAME}
   BUNDLE DESTINATION .
@@ -168,21 +175,19 @@ qt_generate_deploy_qml_app_script(
   NO_UNSUPPORTED_PLATFORM_ERROR DEPLOY_USER_QML_MODULES_ON_UNSUPPORTED_PLATFORM)
 install(SCRIPT ${deploy_script})
 
-if(UNIX
-   AND NOT APPLE
-   AND NOT ANDROID)
+if(LINUX AND NOT ANDROID)
   install(
-    FILES assets/Qcm.desktop
+    FILES "${CMAKE_CURRENT_BINARY_DIR}/${APP_DESKTOP}"
     RENAME ${APP_ID}.desktop
     DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
   install(
-    FILES assets/Qcm.svg
-    RENAME ${APP_ID}.svg
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps)
-  install(
-    FILES assets/Qcm.metainfo.xml
+    FILES "${CMAKE_CURRENT_BINARY_DIR}/${APP_METAINFO}"
     RENAME ${APP_ID}.metainfo.xml
     DESTINATION ${CMAKE_INSTALL_PREFIX}/share/metainfo)
+  install(
+    FILES ${APP_SVG}
+    RENAME ${APP_ID}.svg
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps)
 endif()
 
 qt_finalize_target(${PROJECT_NAME})

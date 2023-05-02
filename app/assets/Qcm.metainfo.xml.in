@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop">
-  <id>io.github.hypengw.Qcm</id>
-  <name>Qcm</name>
-  <summary>A Qt client for netease cloud music</summary>
+  <id>@APP_ID@</id>
+  <name>@APP_NAME@</name>
+  <summary>@APP_SUMMARY@</summary>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-2.0</project_license>
-  <launchable type="desktop-id">io.github.hypengw.Qcm.desktop</launchable>
+  <launchable type="desktop-id">@APP_ID@.desktop</launchable>
   <description>
     <p>
         A Qt client for netease cloud music

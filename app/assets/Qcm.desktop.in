@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=@APP_NAME@
+Comment=@APP_SUMMARY@
+Exec=@PROJECT_NAME@ %U
+Type=Application
+Icon=@APP_ID@
+Categories=Audio;AudioVideo;Qt;
+Terminal=false
+SingleMainWindow=true
+X-GNOME-SingleWindow=true
