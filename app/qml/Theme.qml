@@ -68,7 +68,7 @@ Item {
         readonly property string trending_flat: '\ue8e4'
     }
     readonly property bool is_dark_theme: theme === MdColorMgr.Dark
-    readonly property alias theme: m_color.schemeTheme
+    property alias theme: m_color.schemeTheme
     readonly property var ts: ({
             "title_small": {
                 "size": 12
