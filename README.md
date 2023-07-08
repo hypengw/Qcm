@@ -10,10 +10,11 @@ Currently linux only.
 <a href='https://flathub.org/apps/details/io.github.hypengw.Qcm'><img width='240' alt='Download on Flathub' src='https://dl.flathub.org/assets/badges/flathub-badge-en.png'/></a>
 
 ### Require:  
-- Qt 6.4 (quick, multimedia, dbus)
+- Qt 6.4 (quick, dbus)
 - C++ 20
 - Openssl 3
 - Curl
+- FFmpeg
 
 ### Build:  
 ```

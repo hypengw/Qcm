@@ -20,6 +20,7 @@ add_library(
 target_include_directories(
   request
   PUBLIC include
-  PRIVATE include/request)
-target_link_libraries(request PRIVATE ${CURL_LIBRARIES} asio_helper core
+  PRIVATE include/request
+  )
+target_link_libraries(request PRIVATE CURL::libcurl asio_helper core
                                       fmt::fmt)

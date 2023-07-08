@@ -76,3 +76,4 @@ build
 build_release
 .cache
 CMakeLists.txt.*
+compile_commands.json

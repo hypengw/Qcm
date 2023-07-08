@@ -5,6 +5,7 @@
 #include <cstring>
 #include <memory>
 #include <span>
+#include <utility>
 
 using i8  = std::int8_t;
 using i16 = std::int16_t;
@@ -29,6 +30,15 @@ using weak = std::weak_ptr<T>;
 
 template<typename T, typename D = std::default_delete<T>>
 using up = std::unique_ptr<T, D>;
+
+template<typename T, typename... Args>
+auto make_up(Args&&... args) {
+    return std::make_unique<T>(std::forward<Args>(args)...);
+}
+template<typename T, typename... Args>
+auto make_rc(Args&&... args) {
+    return std::make_shared<T>(std::forward<Args>(args)...);
+}
 
 struct NoCopy {
 protected:
@@ -67,11 +77,12 @@ struct To {
 
 template<typename F, typename T>
 concept to_able = requires(F f) {
-                      { To<T>::from(f) } -> std::same_as<T>;
-                  };
+    { To<T>::from(f) } -> std::same_as<T>;
+};
 
 template<typename IMPL>
 struct CRTP {
+protected:
     IMPL&       crtp_impl() { return *static_cast<IMPL*>(this); }
     const IMPL& crtp_impl() const { return *static_cast<const IMPL*>(this); }
 };

@@ -31,6 +31,8 @@
             _RES_ = std::move(_exp).value();                          \
     } while (false)
 
+#define UNEXPECTED(_V_) nstd::unexpected(_V_)
+
 namespace nstd
 {
 template<typename T, typename F>
@@ -42,7 +44,7 @@ auto unexpected(T&& v) {
 }
 
 template<typename T>
-concept is_expected = core::is_specialization_of<T, nstd::expected>;
+concept is_expected = core::is_specialization_of<T, tl::expected>;
 
 namespace detail_expected
 {
@@ -80,6 +82,17 @@ nstd::expected<R, F> expected_unpack(nstd::expected<T, F>&& expr) {
 
 namespace helper
 {
+
+template<typename T>
+concept is_expected = core::is_specialization_of<T, nstd::expected>;
+template<typename T>
+concept is_optional = core::is_specialization_of<T, std::optional>;
+
+template<typename T, typename Fn>
+auto map(T&& t, Fn&& fn) -> std::optional<decltype(fn(t.value()))> {
+    if (t) return fn(t.value());
+    return std::nullopt;
+}
 
 template<typename T, typename F>
 std::optional<T> to_optional(tl::expected<T, F> res) {

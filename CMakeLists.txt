@@ -9,6 +9,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+if(UNIX AND NOT APPLE)
+    set(LINUX CACHE INTERNAL TRUE "")
+endif()
+
+find_package(PkgConfig REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Core Quick)
 qt_standard_project_setup()
 
@@ -43,4 +48,5 @@ add_subdirectory(service/ncm)
 add_subdirectory(mpris)
 add_subdirectory(meta_model)
 add_subdirectory(media_cache)
+add_subdirectory(player)
 add_subdirectory(app)

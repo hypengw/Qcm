@@ -118,7 +118,6 @@ private:
     CURLM*  m_multi;
     CURLSH* m_share;
 
-    asio::thread_pool m_poll_thread;
     std::mutex        m_share_mutex;
 };
 } // namespace request

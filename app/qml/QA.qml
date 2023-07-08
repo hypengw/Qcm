@@ -1,8 +1,7 @@
 pragma Singleton
+import QtCore
 import QtQml
 import QtQuick
-import QtMultimedia
-import Qt.labs.settings
 import QcmApp
 import "./part"
 
@@ -223,13 +222,21 @@ Item {
             autoReload: ids.length > 0
         }
     }
-    MediaPlayer {
+
+    Mpris {
+        id: m_mpris
+        player: m_player
+        playlist: m_playlist
+    }
+
+    QcmPlayer {
         id: m_player
 
+        readonly property bool seekable: true
         readonly property date duration_date: new Date(duration)
         readonly property bool playing: {
             switch (playbackState) {
-            case MediaPlayer.PlayingState:
+            case QcmPlayer.PlayingState:
                 return true;
             default:
                 return false;
@@ -237,135 +244,22 @@ Item {
         }
 
         signal seeked(real position)
-
-        function bindMpris() {
-            const mpris = App.mpris;
-            mpris.canPlay = true;
-            mpris.canPause = true;
-            mpris.canControl = true;
-            mpris.playbackStatus = Qt.binding(() => {
-                    switch (playbackState) {
-                    case MediaPlayer.PlayingState:
-                        return MprisMediaPlayer.Playing;
-                    case MediaPlayer.PausedState:
-                        return MprisMediaPlayer.Paused;
-                    case MediaPlayer.StoppedState:
-                        return MprisMediaPlayer.Stopped;
-                    }
-                });
-            mpris.loopStatus = Qt.binding(() => {
-                    switch (m_playlist.loopMode) {
-                    case Playlist.NoneLoop:
-                        return MprisMediaPlayer.None;
-                    case Playlist.SingleLoop:
-                        return MprisMediaPlayer.Track;
-                    case Playlist.ListLoop:
-                    case Playlist.ShuffleLoop:
-                        return MprisMediaPlayer.Playlist;
-                    }
-                });
-            mpris.shuffle = Qt.binding(() => {
-                    return m_playlist.loopMode === Playlist.ShuffleLoop;
-                });
-            mpris.volume = Qt.binding(() => {
-                    return audioOutput.volume;
-                });
-            mpris.position = Qt.binding(() => {
-                    return position * 1000;
-                });
-            mpris.canSeek = Qt.binding(() => {
-                    return seekable;
-                });
-            mpris.canGoNext = Qt.binding(() => {
-                    return m_playlist.canNext;
-                });
-            mpris.canGoPrevious = Qt.binding(() => {
-                    return m_playlist.canPrev;
-                });
-            const key = App.mpris.metakey;
-            mpris.metadata = Qt.binding(() => {
-                    const meta = {};
-                    const song = m_playlist.cur;
-                    if (song.itemId.valid())
-                        meta[key(MprisMediaPlayer.MetaTrackId)] = song.itemId.sid;
-                    if (root.song_cover)
-                        meta[key(MprisMediaPlayer.MetaArtUrl)] = root.song_cover;
-                    meta[key(MprisMediaPlayer.MetaTitle)] = song.name;
-                    meta[key(MprisMediaPlayer.MetaAlbum)] = song.album.name;
-                    meta[key(MprisMediaPlayer.MetaAlbumArtist)] = song.artists.map(a => {
-                            return a.name;
-                        });
-                    meta[key(MprisMediaPlayer.MetaLength)] = duration * 1000;
-                    return meta;
-                });
-            // connect back
-            mpris.playRequested.connect(play);
-            mpris.pauseRequested.connect(pause);
-            mpris.stopRequested.connect(stop);
-            mpris.playPauseRequested.connect(() => {
-                    if (playbackState === MediaPlayer.PlayingState)
-                        pause();
-                    else
-                        play();
-                });
-            mpris.nextRequested.connect(m_playlist.next);
-            mpris.previousRequested.connect(m_playlist.prev);
-            mpris.loopStatusRequested.connect(s => {
-                    switch (s) {
-                    case MprisMediaPlayer.None:
-                        m_playlist.loopMode = Playlist.NoneLoop;
-                        break;
-                    case MprisMediaPlayer.Track:
-                        m_playlist.loopMode = Playlist.SingleLoop;
-                        break;
-                    case MprisMediaPlayer.Playlist:
-                        m_playlist.loopMode = Playlist.ListLoop;
-                        break;
-                    }
-                });
-            mpris.shuffleRequested.connect(shuffle => {
-                    if (shuffle)
-                        m_playlist.loopMode = Playlist.ShuffleLoop;
-                    else
-                        m_playlist.loopMode = Playlist.ListLoop;
-                });
-            mpris.setPositionRequested.connect((_, pos) => {
-                    position = pos / 1000;
-                    mpris.seeked(pos);
-                });
-            mpris.seekRequested.connect(offset => {
-                    position = position + offset / 1000;
-                    mpris.seeked(position * 1000);
-                });
-            mpris.quitRequested.connect(() => {
-                    Qt.callLater(Qt.quit);
-                });
-            seeked.connect(mpris.seeked);
-        }
         function seek(pos) {
             position = pos * duration;
             seeked(position * 1000);
         }
 
         source: ''
-
-        audioOutput: AudioOutput {
-        }
-
-        Component.onCompleted: {
-            if (App.mpris)
-                bindMpris();
-        }
-        onPlaybackStateChanged: {
-            if (playbackState === MediaPlayer.StoppedState) {
-                if (position / duration > 0.99)
-                    m_playlist.next();
-            }
-        }
         onSourceChanged: source => {
             console.error(source);
             if (source)
                 play();
+        }
+        onPlaybackStateChanged: {
+            if (playbackState === QcmPlayer.StoppedState) {
+                if (position / duration > 0.99)
+                    m_playlist.next();
+            }
         }
     }
 }

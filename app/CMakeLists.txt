@@ -19,6 +19,7 @@ set(SOURCES
     include/Qcm/cache_sql.h
     include/Qcm/lyric.h
     include/Qcm/clipboard.h
+    include/Qcm/player.h
     include/Qcm/model/album_detail.h
     include/Qcm/model/album_detail_dynamic.h
     include/Qcm/model/album_sub.h
@@ -54,6 +55,7 @@ set(SOURCES
     src/cache_sql.cpp
     src/lyric.cpp
     src/clipboard.cpp
+    src/player.cpp
     src/util/flickable_scroll_handler.cpp)
 
 set(QML_FILES
@@ -83,6 +85,7 @@ set(QML_FILES
     qml/part/SongDelegate.qml
     qml/part/SongMenu.qml
     qml/part/ListBusyFooter.qml
+    qml/part/Mpris.qml
     qml/part/PicGridDelegate.qml
     qml/part/PlaylistListView.qml
     qml/part/SongTag.qml
@@ -148,6 +151,7 @@ target_link_libraries(
          mpris
          media_cache
          ctre
+         player
          appplugin)
 target_compile_definitions(
   app PUBLIC APP_ID="${APP_ID}" APP_VERSION="${APP_VERSION}"

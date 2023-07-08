@@ -30,6 +30,9 @@ class App : public QObject {
 
     Q_PROPERTY(mpris::MediaPlayer2* mpris READ mpris)
 public:
+    using pool_executor_t = asio::thread_pool::executor_type;
+    using qt_executor_t = QtExecutor;
+
     App();
     virtual ~App();
 
@@ -38,8 +41,8 @@ public:
     static App* instance();
 
     ncm::Client                      ncm_client() const;
-    asio::any_io_executor            get_executor() { return m_qt_ex; }
-    asio::thread_pool::executor_type get_pool_executor() { return m_pool.get_executor(); }
+    auto                             get_executor() { return m_qt_ex; }
+    pool_executor_t get_pool_executor() { return m_pool.get_executor(); }
     auto                             get_cache_sql() { return m_cache_sql; }
 
     mpris::MediaPlayer2* mpris() const { return m_mpris->mediaplayer2(); };
@@ -65,7 +68,7 @@ private:
     void load_session();
     void save_session();
     // up<QQmlApplicationEngine> m_qml_engine;
-    QtExecutor        m_qt_ex;
+    qt_executor_t     m_qt_ex;
     asio::thread_pool m_pool;
 
     rc<request::Session>        m_session;

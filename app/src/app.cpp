@@ -60,7 +60,7 @@ App* App::instance() { return app; }
 App::App()
     : QObject(nullptr),
       m_qt_ex(std::make_shared<QtExecutionContext>(this)),
-      m_pool(4),
+      m_pool(6),
       m_session(std::make_shared<request::Session>(m_pool.get_executor())),
       m_client(m_session, m_pool.get_executor()),
       m_mpris(std::make_unique<mpris::Mpris>()),

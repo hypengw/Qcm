@@ -24,8 +24,36 @@
             co_return nstd::unexpected(error::Error::push(opt.value())); \
     } while (false)
 
+#define RECORD(_EXP_) error::record(_EXP_)
+
 namespace error
 {
+
+template<typename T>
+class ErrorBase : public CRTP<T> {
+public:
+    T& record(const std::source_location loc = std::source_location::current()) {
+        T& err = this->crtp_impl();
+        if (static_cast<bool>(err)) {
+            m_loc_stack.push_back(loc);
+        }
+        return err;
+    }
+    std::span<const std::source_location> location_stack() const { return m_loc_stack; }
+
+private:
+    std::vector<std::source_location> m_loc_stack;
+};
+
+template<typename T>
+    requires nstd::is_expected<T> && requires(T::error_type err, std::source_location loc) {
+        { err.record(loc) };
+    }
+auto record(T&& exp, const std::source_location loc = std::source_location::current()) {
+    return std::forward<T>(exp).map_error([&loc](auto err) {
+        return err.record(loc);
+    });
+}
 
 struct Msg {
     std::string          what;

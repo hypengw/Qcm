@@ -1,9 +1,9 @@
 pragma Singleton
+import QtCore
 import QtQml
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
-import Qt.labs.settings
 import QcmApp
 
 Item {

@@ -3,7 +3,9 @@ add_subdirectory(fmt)
 add_subdirectory(json)
 add_subdirectory(qr_code)
 
-set(QAPPLICATION_CLASS QGuiApplication CACHE STRING "Inheritance class for SingleApplication")
+set(QAPPLICATION_CLASS
+    QGuiApplication
+    CACHE STRING "Inheritance class for SingleApplication")
 add_subdirectory(SingleApplication)
 
 add_library(random INTERFACE)
@@ -36,3 +38,15 @@ target_include_directories(material_color PUBLIC material-color)
 
 add_library(ctre INTERFACE)
 target_include_directories(ctre INTERFACE ctre/include)
+
+option(BUILD_TESTS "" OFF)
+option(BUILD_TOOLS "" OFF)
+option(BUNDLE_SPEEX "" OFF)
+option(USE_SANITIZERS "" OFF)
+set(USE_WINMM
+    OFF
+    CACHE BOOL "")
+add_subdirectory(cubeb EXCLUDE_FROM_ALL)
+set_property(TARGET cubeb PROPERTY MSVC_RUNTIME_LIBRARY
+                                   "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+add_library(cubeb::cubeb ALIAS cubeb)
