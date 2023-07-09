@@ -184,12 +184,10 @@ public:
 
     bool paused() const { return m_paused; }
     void set_pause(bool v) {
-        bool expected = ! v;
-        if (m_paused.compare_exchange_strong(expected, v)) {
-            notify::playstate s;
-            s.value = v ? PlayState::Paused : PlayState::Playing;
-            m_notifier.send(s).wait();
-        };
+        m_paused = v;
+        notify::playstate s;
+        s.value = v ? PlayState::Paused : PlayState::Playing;
+        m_notifier.send(s).wait();
     }
 
     void mark_pos(i32 p) {

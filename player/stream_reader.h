@@ -170,6 +170,11 @@ private:
             }
             pkt.unref();
         }
+        if (m_eof) {
+            notify::playstate s;
+            s.value = PlayState::Stopped;
+            m_notifier.send(s).wait();
+        }
     }
 
     static int decode_interrupt_cb(void* self_) {

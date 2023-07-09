@@ -1,6 +1,7 @@
 #include <cubeb/cubeb.h>
 #include <cassert>
 
+#include "player/notify.h"
 #include "player/player.h"
 #include "stream_reader.h"
 #include "player/player_p.h"
@@ -23,9 +24,7 @@ Player::Private::~Private() {}
 
 void Player::set_source(std::string_view v) {
     C_D(Player);
-    d->m_ctx->set_aborted(true);
-    d->m_reader->stop();
-    d->m_dec->stop();
+    stop();
 
     d->m_ctx->set_aborted(false);
     d->m_dev->set_output(d->m_ctx->audio_frame_queue);
@@ -45,7 +44,18 @@ void Player::pause() {
     C_D(Player);
     d->m_dev->set_pause(true);
 }
-void Player::stop() {}
+void Player::stop() {
+    C_D(Player);
+    d->m_ctx->set_aborted(true);
+    d->m_reader->stop();
+    d->m_dec->stop();
+
+    {
+        notify::playstate p;
+        p.value = PlayState::Stopped;
+        d->m_notifier.send(p).wait();
+    }
+}
 
 void Player::seek(i32 p) {
     C_D(Player);
