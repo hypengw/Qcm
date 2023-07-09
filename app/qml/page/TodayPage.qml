@@ -70,7 +70,10 @@ Page {
                                     image.source: `image://ncm/${modelData.picUrl}`
                                     text: modelData.name
 
-                                    onClicked: QA.route(modelData.itemId)
+                                    onClicked:  {
+                                        console.error(modelData)
+                                        QA.route(modelData.itemId)
+                                    }
                                 }
                                 footer: ListBusyFooter {
                                     running: qr_rmd_res.status === ApiQuerierBase.Querying

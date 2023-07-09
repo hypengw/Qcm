@@ -19,7 +19,7 @@ public:
     void play();
     void pause();
     void stop();
-    void seek(float);
+    void seek(i32);
 
     void set_source(std::string_view);
 

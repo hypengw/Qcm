@@ -1,7 +1,9 @@
 #pragma once
 
+#include <atomic>
 #include <cmath>
 #include <cubeb/cubeb.h>
+#include <optional>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -134,6 +136,8 @@ public:
           m_channels(channels),
           m_volume(1.0f),
           m_paused(false),
+          m_mark_pos(0),
+          m_mark_serial(-1),
           m_notifier(notifier),
           m_last_pts(0) {
         cubeb_stream_params output_params;
@@ -180,12 +184,17 @@ public:
 
     bool paused() const { return m_paused; }
     void set_pause(bool v) {
-        bool expected = !v;
-        if(m_paused.compare_exchange_strong(expected, v)) {
+        bool expected = ! v;
+        if (m_paused.compare_exchange_strong(expected, v)) {
             notify::playstate s;
             s.value = v ? PlayState::Paused : PlayState::Playing;
             m_notifier.send(s).wait();
         };
+    }
+
+    void mark_pos(i32 p) {
+        m_mark_pos = p;
+        if (p >= 0) m_mark_serial = m_output_queue->serial();
     }
 
 private:
@@ -205,10 +214,12 @@ private:
         notify::position pos;
         auto             time_base = av_q2d(frame.frame.ff->time_base) * 1000;
         pos.value                  = frame.frame.ff->pts * time_base;
-        auto diff                  = pos.value - m_last_pts;
-        if (diff <= 0 || diff > 100) {
-            m_notifier.try_send(pos);
-            m_last_pts = pos.value;
+        if (pos.value >= m_mark_pos) {
+            auto diff = pos.value - m_last_pts;
+            if (diff <= 0 || diff > 100) {
+                m_notifier.try_send(pos);
+                m_last_pts = pos.value;
+            }
         }
     }
 
@@ -217,25 +228,29 @@ private:
         const auto size =
             (usize)nframes * self->m_channels * self->m_audio_params.bytes_per_sample();
         std::span<byte> output { (byte*)outputbuffer, size };
-
-        auto& frame = self->m_cached_frame;
-        if (! frame) {
-            frame = Frame::from(self->m_output_queue->try_pop());
-        }
-
-        while (frame && !self->paused()) {
-            if (! frame->notified) self->notify(frame.value());
-
-            auto copied = std::min(output.size(), frame->data.size());
-            std::copy_n(frame->data.begin(), copied, output.begin());
-            output      = output.subspan(copied);
-            frame->data = frame->data.subspan(copied);
-
-            if (frame->data.empty()) {
+        if (self->m_output_queue->serial() != (usize)self->m_mark_serial) {
+            auto& frame = self->m_cached_frame;
+            if (! frame) {
                 frame = Frame::from(self->m_output_queue->try_pop());
             }
-            if (output.empty()) break;
-        };
+
+            while (frame && ! self->paused()) {
+                if (! frame->notified) self->notify(frame.value());
+
+                auto copied = std::min(output.size(), frame->data.size());
+                std::copy_n(frame->data.begin(), copied, output.begin());
+                output      = output.subspan(copied);
+                frame->data = frame->data.subspan(copied);
+
+                if (frame->data.empty()) {
+                    frame = Frame::from(self->m_output_queue->try_pop());
+                }
+                if (output.empty()) break;
+            };
+        } else {
+            self->m_output_queue->try_pop();
+            self->m_cached_frame = std::nullopt;
+        }
 
         // silence
         std::fill(output.begin(), output.end(), byte {});
@@ -263,6 +278,8 @@ private:
 
     std::optional<Frame> m_cached_frame;
     std::atomic<bool>    m_paused;
+    std::atomic<i32>     m_mark_pos;
+    std::atomic<i32>     m_mark_serial;
 
     AudioParams         m_audio_params;
     rc<AudioFrameQueue> m_output_queue;

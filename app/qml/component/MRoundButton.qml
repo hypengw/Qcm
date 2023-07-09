@@ -22,5 +22,7 @@ RoundButton {
         font.pointSize: Theme.ic_size(root.icon.width)
         text: root.icon.name || root.text
         visible: root.display !== AbstractButton.TextOnly
+        verticalAlignment: Text.AlignVCenter
+        horizontalAlignment: Text.AlignHCenter
     }
 }

@@ -90,11 +90,8 @@ void Player::pause() { m_player->pause(); }
 void Player::stop() { m_player->stop(); }
 
 void Player::set_position(int v) {
-    if (v != std::exchange(m_position, v)) {
-        if (m_duration > 0) {
-            m_player->seek((double)m_position / m_duration);
-        }
-        positionChanged();
+    if (m_duration > 0) {
+        m_player->seek(v + 200);
     }
 }
 

@@ -15,7 +15,7 @@ Player::Private::Private(std::string_view name, Notifier notifier)
     : m_notifier(notifier),
       m_reader(std::make_shared<StreamReader>(notifier)),
       m_dec(std::make_unique<Decoder>()),
-      m_dev(std::make_unique<Device>(std::make_shared<DeviceContext>(name), nullptr, 2, 48000,
+      m_dev(std::make_unique<Device>(std::make_shared<DeviceContext>(name), nullptr, 2, 44100,
                                      notifier)),
       m_ctx(std::make_shared<Context>()) {}
 
@@ -32,6 +32,7 @@ void Player::set_source(std::string_view v) {
     d->m_reader->start(v, d->m_ctx->audio_pkt_queue);
     d->m_dec->start(d->m_reader, d->m_ctx->audio_pkt_queue, d->m_ctx->audio_frame_queue);
 
+    d->m_dev->mark_pos(-1);
     d->m_dev->start();
     play();
 }
@@ -46,7 +47,8 @@ void Player::pause() {
 }
 void Player::stop() {}
 
-void Player::seek(float p) {
+void Player::seek(i32 p) {
     C_D(Player);
+    d->m_dev->mark_pos(p);
     d->m_reader->seek(p);
 }

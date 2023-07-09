@@ -16,7 +16,9 @@ MPane {
     signal clicked()
 
     Component.onCompleted: {
-        item_dg.clicked.connect(clicked);
+        item_dg.clicked.connect(() => {
+            root.clicked();
+        });
     }
 
     MItemDelegate {

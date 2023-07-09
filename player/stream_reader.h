@@ -70,7 +70,7 @@ public:
 
     int best_stream(AVMediaType t) const { return m_st_idx[(int)t]; }
 
-    void seek(float pos) { m_seek_pos = pos; }
+    void seek(i32 pos) { m_seek_pos = pos; }
 
 private:
     void read_thread(rc<FFmpegFormatContext> rc_fmt_ctx, PacketQueue& pkt_queue) {
@@ -122,16 +122,14 @@ private:
             // pause
             // seek req
             if (auto seek = m_seek_pos.exchange(-1.0); seek > 0) {
-                i64         target = av_rescale_q((double)seek * fmt_ctx->duration,
-                                          AV_TIME_BASE_Q,
-                                          fmt_ctx->streams[audio_idx]->time_base);
+                i64 target = av_rescale_q(
+                    (double)seek, av_make_q(1, 1000), fmt_ctx->streams[audio_idx]->time_base);
                 FFmpegError err = fmt_ctx.seek_file(audio_idx, target - 2, target, target + 2, 0);
                 if (err) {
                     ERROR_LOG("{}", err);
-                } else {
-                    pkt_queue.clear();
-                    pkt_queue.refresh_serial();
                 }
+                pkt_queue.clear();
+                pkt_queue.refresh_serial();
             }
 
             if (! pkt.has_ref()) {
@@ -210,10 +208,10 @@ private:
     std::promise<StreamInfo>       m_promise_stream_info;
     std::shared_future<StreamInfo> m_future_stream_info;
 
-    std::atomic<bool>  m_aborted;
-    std::atomic<float> m_seek_pos;
-    bool               m_eof;
-    std::string        m_url;
+    std::atomic<bool> m_aborted;
+    std::atomic<i32>  m_seek_pos;
+    bool              m_eof;
+    std::string       m_url;
 
     Notifier m_notifier;
 };
