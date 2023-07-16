@@ -7,22 +7,42 @@ import ".."
 Slider {
     id: root
 
-    readonly property double playing_pos: QA.player.duration > 0 ? QA.player.position / QA.player.duration : 0
+    readonly property double playing_pos: (QA.player.duration > 0 ? QA.player.position / QA.player.duration : 0)
 
     background.implicitHeight: 8
     live: false
     padding: 0
     to: 1
 
+    NumberAnimation on value  {
+        id: anim_v
+    }
+
     onPlaying_posChanged: {
-        if (!pressed)
-            value = playing_pos;
+        if (!pressed) {
+            const max_dur = 1000.0;
+            const pre = 200.0;
+            const duration = QA.player.duration;
+            const to = playing_pos + pre / duration;
+            const pos = position;
+            {
+                anim_v.from = pos;
+                anim_v.to = to;
+                anim_v.duration = duration * Math.abs(playing_pos - pos) + pre;
+                if(anim_v.duration > max_dur) {
+                    const x = anim_v.duration - max_dur;
+                    anim_v.duration = Math.max(max_dur - x, pre);
+                }
+                anim_v.restart();
+            }
+        }
     }
     onPositionChanged: {
         if (pressed)
             slider_timer.recordPos(position);
     }
     onPressedChanged: {
+        anim_v.stop();
         if (!pressed) {
             slider_timer.stop();
             slider_timer.triggered();

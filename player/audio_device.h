@@ -199,8 +199,12 @@ private:
     struct Frame {
         static std::optional<Frame> from(std::optional<AudioFrame> f) {
             return helper::map(f, [](AudioFrame& f_) {
-                auto data = f_.channel_data(0);
-                return Frame { .frame = std::move(f_), .data = data };
+                if (f_.eof()) {
+                    return Frame { .frame = std::move(f_), .data = {} };
+                } else {
+                    auto data = f_.channel_data(0);
+                    return Frame { .frame = std::move(f_), .data = data };
+                }
             });
         }
         AudioFrame            frame;
@@ -209,14 +213,19 @@ private:
     };
 
     void notify(Frame& frame) {
-        notify::position pos;
-        auto             time_base = av_q2d(frame.frame.ff->time_base) * 1000;
-        pos.value                  = frame.frame.ff->pts * time_base;
-        if (pos.value >= m_mark_pos) {
-            auto diff = pos.value - m_last_pts;
-            if (diff <= 0 || diff > 100) {
-                m_notifier.try_send(pos);
-                m_last_pts = pos.value;
+        if (frame.frame.eof()) {
+            notify::playstate p { PlayState::Stopped };
+            m_notifier.send(p);
+        } else {
+            notify::position pos;
+            auto             time_base = av_q2d(frame.frame.ff->time_base) * 1000;
+            pos.value                  = frame.frame.ff->pts * time_base;
+            if (pos.value >= m_mark_pos) {
+                auto diff = pos.value - m_last_pts;
+                if (diff <= 0 || diff > 50) {
+                    m_notifier.try_send(pos);
+                    m_last_pts = pos.value;
+                }
             }
         }
     }
@@ -226,6 +235,7 @@ private:
         const auto size =
             (usize)nframes * self->m_channels * self->m_audio_params.bytes_per_sample();
         std::span<byte> output { (byte*)outputbuffer, size };
+
         if (self->m_output_queue->serial() != (usize)self->m_mark_serial) {
             auto& frame = self->m_cached_frame;
             if (! frame) {

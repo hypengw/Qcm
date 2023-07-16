@@ -57,6 +57,9 @@ struct AudioFrame : NoCopy {
         return std::span<const byte>((const byte*)ff->extended_data[idx], buffer_size_);
     }
 
+    void set_eof() { ff->pts = -2; }
+    bool eof() const { return ff->pts == -2; }
+
     FFmpegFrame ff;
 
 private:

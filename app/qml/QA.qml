@@ -81,7 +81,6 @@ Item {
                 "qml": url,
                 "props": props
             });
-        console.error(msg);
         sig_route(msg);
         msg.destroy(3000);
     }

@@ -71,7 +71,6 @@ Page {
                                     text: modelData.name
 
                                     onClicked:  {
-                                        console.error(modelData)
                                         QA.route(modelData.itemId)
                                     }
                                 }

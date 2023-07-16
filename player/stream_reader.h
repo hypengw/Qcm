@@ -12,6 +12,7 @@ extern "C" {
 
 #include "ffmpeg_format_context.h"
 #include "core/log.h"
+#include "core/platform.h"
 #include "ffmpeg_error.h"
 #include "packet_queue.h"
 #include "player/notify.h"
@@ -74,6 +75,7 @@ public:
 
 private:
     void read_thread(rc<FFmpegFormatContext> rc_fmt_ctx, PacketQueue& pkt_queue) {
+        qcm::set_thread_name("qcm stream reader");
         auto&       fmt_ctx = *rc_fmt_ctx;
         FFmpegError err     = fmt_ctx.open_input(m_url.c_str());
         if (err) {
@@ -138,15 +140,15 @@ private:
                     if (err == AVERROR_EOF) {
                         ERROR_LOG("eof");
                         m_eof = true;
-                        break;
-                    }
-                    if (fmt_ctx->pb && fmt_ctx->pb->error) {
+                        pkt.set_eof();
+                    } else if (fmt_ctx->pb && fmt_ctx->pb->error) {
                         ERROR_LOG("error");
                         break;
+                    } else {
+                        // wait cond
+                        pkt.unref();
+                        continue;
                     }
-                    // wait cond
-                    pkt.unref();
-                    continue;
                 } else {
                     m_eof = false;
                 }
@@ -169,11 +171,7 @@ private:
                 ERROR_LOG("{}", pkt_ref.error().what());
             }
             pkt.unref();
-        }
-        if (m_eof) {
-            notify::playstate s;
-            s.value = PlayState::Stopped;
-            m_notifier.send(s).wait();
+            if (m_eof) break;
         }
     }
 

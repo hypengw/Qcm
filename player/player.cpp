@@ -26,7 +26,9 @@ void Player::set_source(std::string_view v) {
     C_D(Player);
     stop();
 
+    d->m_ctx->clear();
     d->m_ctx->set_aborted(false);
+
     d->m_dev->set_output(d->m_ctx->audio_frame_queue);
     d->m_reader->start(v, d->m_ctx->audio_pkt_queue);
     d->m_dec->start(d->m_reader, d->m_ctx->audio_pkt_queue, d->m_ctx->audio_frame_queue);
@@ -34,6 +36,7 @@ void Player::set_source(std::string_view v) {
     d->m_dev->mark_pos(-1);
     d->m_dev->start();
     play();
+    d->m_notifier.send(notify::position { 0 });
 }
 
 void Player::play() {
@@ -50,11 +53,7 @@ void Player::stop() {
     d->m_reader->stop();
     d->m_dec->stop();
 
-    {
-        notify::playstate p;
-        p.value = PlayState::Stopped;
-        d->m_notifier.send(p).wait();
-    }
+    d->m_notifier.send(notify::playstate { PlayState::Stopped }).wait();
 }
 
 void Player::seek(i32 p) {

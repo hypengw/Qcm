@@ -48,6 +48,9 @@ public:
     auto raw() const { return m_pkt; }
     auto praw() { return &m_pkt; }
 
+    void set_eof() { m_pkt->pts = -2; }
+    bool eof() const { return m_pkt->pts == -2; }
+
 private:
     AVPacket* m_pkt;
 };

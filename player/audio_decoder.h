@@ -1,5 +1,6 @@
 #pragma once
 
+#include "audio_frame.h"
 #include "ffmpeg_error.h"
 
 extern "C" {
@@ -7,6 +8,7 @@ extern "C" {
 }
 
 #include "core/core.h"
+#include "core/platform.h"
 #include "ffmpeg_frame.h"
 #include "stream_reader.h"
 #include "audio_frame_queue.h"
@@ -87,6 +89,7 @@ private:
     }
 
     void audio_thread(AVCodecContext* ctx, PacketQueue& pkt_queue, AudioFrameQueue& queue) {
+        qcm::set_thread_name("qcm decoder");
         FFmpegFrame   frame;
         FFmpegError   err       = AVERROR(EAGAIN);
         up<Resampler> resampler = make_up<Resampler>();
@@ -100,22 +103,26 @@ private:
             }
 
             err = decode_frame(ctx, pkt_queue, frame.raw());
-            if (err) continue;
-
-            auto out_frame = AudioFrame();
-            out_frame.ff.copy_props(frame);
-            queue.prepare_item(out_frame);
-            auto in_frame = AudioFrame::from(frame);
-            // resampler
-            {
-                err = resampler->resampler(out_frame, in_frame.value());
-                if (err == AVERROR_INPUT_CHANGED || err == AVERROR_OUTPUT_CHANGED) {
-                    resampler->close();
+            if (! err) {
+                auto out_frame = AudioFrame();
+                out_frame.ff.copy_props(frame);
+                queue.prepare_item(out_frame);
+                auto in_frame = AudioFrame::from(frame);
+                // resampler
+                {
                     err = resampler->resampler(out_frame, in_frame.value());
+                    if (err == AVERROR_INPUT_CHANGED || err == AVERROR_OUTPUT_CHANGED) {
+                        resampler->close();
+                        err = resampler->resampler(out_frame, in_frame.value());
+                    }
                 }
+                if (err) continue;
+                queue.push(std::move(out_frame));
+            } else if (err == AVERROR_EOF) {
+                AudioFrame eof_frame;
+                eof_frame.set_eof();
+                queue.push(std::move(eof_frame));
             }
-            if (err) continue;
-            queue.push(std::move(out_frame));
         } while ((! err || err == AVERROR(EAGAIN) || err == AVERROR_EOF));
         if (err && err != FFmpegError::EABORTED) {
             ERROR_LOG("{}", err.what());
@@ -138,6 +145,10 @@ private:
 
             do {
                 if (auto pkt = pkt_queue.pop()) {
+                    if (pkt->eof()) {
+                        avcodec_flush_buffers(ctx);
+                        return AVERROR_EOF;
+                    }
                     err = avcodec_send_packet(ctx, pkt->raw());
                     if (! err)
                         break;
@@ -151,9 +162,6 @@ private:
             } while (true);
         }
         return err;
-
-        // seek or switch
-        // avcodec_flush_buffers();
     }
 
 private:
