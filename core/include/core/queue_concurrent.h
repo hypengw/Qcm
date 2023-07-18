@@ -8,6 +8,7 @@
 #include <list>
 #include <deque>
 #include <vector>
+#include <cmath>
 
 #include "core/core.h"
 
@@ -23,6 +24,8 @@ concept queue_cp =
         { t.push_waiter(num) } -> std::convertible_to<bool>;
         { t.pop_waiter(num) } -> std::convertible_to<bool>;
         { t.clear() };
+        { t.size() } -> std::same_as<usize>;
+        { t.is_notify_pop() } -> std::same_as<bool>;
     };
 
 template<typename Queue>
@@ -36,7 +39,8 @@ public:
     using value_type     = Queue::value_type;
 
     template<typename... TArg>
-    QueueConcurrent(TArg... args): m_data(make_up<Data>()), m_queue(std::forward<TArg>(args)...) {}
+    QueueConcurrent(TArg... args)
+        : m_data(make_up<Data>()), m_temp_push(true), m_queue(std::forward<TArg>(args)...) {}
     ~QueueConcurrent() {}
 
     QueueConcurrent(Self&& o) { *this = std::move(o); }
@@ -52,10 +56,11 @@ public:
         requires std::ranges::forward_range<T> && std::ranges::sized_range<T>
     auto push(T&& v) {
         lock_type lock { m_data->mutex };
-        while (m_queue.push_waiter(v.size())) {
+        while (m_queue.push_waiter(v.size()) && m_temp_push) {
             m_data->not_full.wait(lock);
         }
-        auto ret = m_queue.push(std::forward<T>(v));
+        m_temp_push = true;
+        auto ret    = m_queue.push(std::forward<T>(v));
         notify_add(v.size());
         return ret;
     }
@@ -66,7 +71,7 @@ public:
             m_data->not_empty.wait(lock);
         }
         auto ret = m_queue.pop();
-        notify_remove(1);
+        if (queue().is_notify_pop()) notify_remove(1);
         return ret;
     }
 
@@ -76,7 +81,7 @@ public:
             m_data->not_empty.wait(lock);
         }
         auto ret = m_queue.pop(num);
-        notify_remove(num);
+        if (queue().is_notify_pop()) notify_remove(num);
         return ret;
     }
 
@@ -89,7 +94,7 @@ public:
     auto try_pop() {
         lock_type lock { m_data->mutex };
         auto      ret = m_queue.pop();
-        notify_remove(1);
+        if (queue().is_notify_pop()) notify_remove(1);
         return ret;
     }
 
@@ -97,6 +102,17 @@ public:
         lock_type lock { m_data->mutex };
         queue().clear();
         clear_wait();
+    }
+
+    usize size() {
+        lock_type lock { m_data->mutex };
+        return queue().size();
+    }
+
+    void wake_one_pusher() {
+        lock_type lock { m_data->mutex };
+        m_temp_push = false;
+        notify_remove(1);
     }
 
 protected:
@@ -127,6 +143,7 @@ private:
         condition_type not_empty;
         condition_type not_full;
     };
+    bool     m_temp_push;
     up<Data> m_data;
     Queue    m_queue;
 };
@@ -168,6 +185,9 @@ public:
     bool pop_waiter(usize num) { return num > queue.size() && ! aborted; }
 
     void clear() { queue.clear(); }
+
+    usize size() const { return queue.size(); }
+    bool  is_notify_pop() const { return queue.size() < std::max(max_size / 2, (usize)1); }
 
     std::deque<value_type> queue;
     usize                  max_size;

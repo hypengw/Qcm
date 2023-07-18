@@ -7,11 +7,9 @@ namespace player
 {
 
 struct Context {
-    static constexpr usize MaxQueueSize { 32 };
-
     Context()
-        : audio_pkt_queue(make_rc<PacketQueue>(MaxQueueSize)),
-          audio_frame_queue(make_rc<AudioFrameQueue>(MaxQueueSize)) {}
+        : audio_pkt_queue(make_rc<PacketQueue>(4096)),
+          audio_frame_queue(make_rc<AudioFrameQueue>(32)) {}
 
     ~Context() { set_aborted(true); }
 

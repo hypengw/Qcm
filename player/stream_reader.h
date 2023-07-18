@@ -52,7 +52,9 @@ public:
     }
 
     void stop() {
+        m_eof     = false;
         m_aborted = true;
+        m_waiter.notify_all();
         if (m_thread.joinable()) m_thread.join();
         m_promise_stream_info = {};
         m_future_stream_info  = m_promise_stream_info.get_future();
@@ -71,7 +73,11 @@ public:
 
     int best_stream(AVMediaType t) const { return m_st_idx[(int)t]; }
 
-    void seek(i32 pos) { m_seek_pos = pos; }
+    void seek(i32 pos) {
+        m_seek_pos = pos;
+        m_eof      = false;
+        m_waiter.notify_all();
+    }
 
 private:
     void read_thread(rc<FFmpegFormatContext> rc_fmt_ctx, PacketQueue& pkt_queue) {
@@ -79,7 +85,7 @@ private:
         auto&       fmt_ctx = *rc_fmt_ctx;
         FFmpegError err     = fmt_ctx.open_input(m_url.c_str());
         if (err) {
-            ERROR_LOG("{}", err.what());
+            ERROR_LOG("{}, url: {}", err.what(), m_url);
             return;
         }
         err = fmt_ctx.find_stream_info(NULL);
@@ -120,6 +126,10 @@ private:
         Packet pkt;
         // read pkt
         for (;;) {
+            while (m_eof && ! m_aborted) {
+                std::unique_lock<std::mutex> lock { m_mutex };
+                m_waiter.wait(lock);
+            }
             if (m_aborted) break;
             // pause
             // seek req
@@ -171,7 +181,6 @@ private:
                 ERROR_LOG("{}", pkt_ref.error().what());
             }
             pkt.unref();
-            if (m_eof) break;
         }
     }
 
@@ -201,6 +210,7 @@ private:
 private:
     std::thread             m_thread;
     std::mutex              m_mutex;
+    std::condition_variable m_waiter;
     rc<FFmpegFormatContext> m_fmt_ctx;
 
     std::array<int, AVMEDIA_TYPE_NB> m_st_idx;
@@ -213,7 +223,7 @@ private:
 
     std::atomic<bool> m_aborted;
     std::atomic<i32>  m_seek_pos;
-    bool              m_eof;
+    std::atomic<bool> m_eof;
     std::string       m_url;
 
     Notifier m_notifier;

@@ -60,4 +60,5 @@ void Player::seek(i32 p) {
     C_D(Player);
     d->m_dev->mark_pos(p);
     d->m_reader->seek(p);
+    d->m_ctx->audio_pkt_queue->wake_one_pusher();
 }
