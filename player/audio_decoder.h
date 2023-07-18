@@ -93,8 +93,12 @@ private:
         FFmpegFrame   frame;
         FFmpegError   err       = AVERROR(EAGAIN);
         up<Resampler> resampler = make_up<Resampler>();
+
+        auto err_skip = [](auto err) {
+            return ! err || err == AVERROR(EAGAIN) || err == AVERROR_EOF;
+        };
         do {
-            if (err) {
+            if (! err_skip(err)) {
                 ERROR_LOG("{}", err.what());
             }
             if (pkt_queue.serial() != queue.serial()) {
@@ -123,7 +127,8 @@ private:
                 eof_frame.set_eof();
                 queue.push(std::move(eof_frame));
             }
-        } while ((! err || err == AVERROR(EAGAIN) || err == AVERROR_EOF));
+        } while (err_skip(err));
+
         if (err && err != FFmpegError::EABORTED) {
             ERROR_LOG("{}", err.what());
         }

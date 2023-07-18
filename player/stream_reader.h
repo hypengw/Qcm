@@ -43,7 +43,7 @@ public:
         m_url     = url;
         m_aborted = false;
         m_thread  = std::thread([this, pkt_queue] {
-            DEBUG_LOG("ffmpeg read thread start");
+            DEBUG_LOG("ffmpeg read thread start, url: {}", m_url);
             auto fmt_ctx = make_rc<FFmpegFormatContext>();
             read_thread(fmt_ctx, *pkt_queue);
             fmt_ctx->set_aborted(true);
@@ -148,7 +148,7 @@ private:
                 FFmpegError err = fmt_ctx.read_frame(pkt.raw());
                 if (err) {
                     if (err == AVERROR_EOF) {
-                        ERROR_LOG("eof");
+                        INFO_LOG("stream eof");
                         m_eof = true;
                         pkt.set_eof();
                     } else if (fmt_ctx->pb && fmt_ctx->pb->error) {
