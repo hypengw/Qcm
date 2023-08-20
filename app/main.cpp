@@ -6,6 +6,10 @@
 #include "request/request.h"
 #include "core/log.h"
 
+#include <QtQml/QQmlExtensionPlugin>
+Q_IMPORT_QML_PLUGIN(Qcm_AppPlugin)
+Q_IMPORT_QML_PLUGIN(Qcm_MaterialPlugin)
+
 #include <SingleApplication>
 
 int main(int argc, char* argv[]) {
@@ -29,6 +33,7 @@ int main(int argc, char* argv[]) {
     int re;
     {
         QQmlApplicationEngine engine;
+        engine.addImportPath(u"qrc:/"_qs);
 
         qcm::App* app = qcm::App::instance();
         QObject::connect(

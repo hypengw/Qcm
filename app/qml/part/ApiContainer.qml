@@ -1,5 +1,5 @@
 import QtQuick
-import QcmApp
+import Qcm.App
 import ".."
 
 QtObject {

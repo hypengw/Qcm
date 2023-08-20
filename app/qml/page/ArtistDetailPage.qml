@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
-import QcmApp
+import Qcm.App
 import ".."
 import "../component"
 import "../part"
@@ -112,7 +112,7 @@ Page {
                                     }
 
                                     onClicked: {
-                                        QA.show_page_popup('qrc:/QcmApp/qml/page/DescriptionPage.qml', {
+                                        QA.show_page_popup('qrc:/Qcm/App/qml/page/DescriptionPage.qml', {
                                                 "text": description
                                             });
                                     }

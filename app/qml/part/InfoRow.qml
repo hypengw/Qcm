@@ -27,7 +27,5 @@ Pane {
             verticalAlignment: Text.AlignVCenter
             elide: Text.ElideRight
         }
-
     }
-
 }

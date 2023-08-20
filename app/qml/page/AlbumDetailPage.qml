@@ -1,4 +1,4 @@
-import QcmApp
+import Qcm.App
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
@@ -102,7 +102,7 @@ Page {
                                         if (artists.length === 1)
                                             QA.route(artists[0].itemId);
                                         else
-                                            QA.show_popup('qrc:/QcmApp/qml/part/ArtistsPopup.qml', {
+                                            QA.show_popup('qrc:/Qcm/App/qml/part/ArtistsPopup.qml', {
                                                     "model": artists
                                                 });
                                     }
@@ -140,7 +140,7 @@ Page {
                                     }
 
                                     onClicked: {
-                                        QA.show_page_popup('qrc:/QcmApp/qml/page/DescriptionPage.qml', {
+                                        QA.show_page_popup('qrc:/Qcm/App/qml/page/DescriptionPage.qml', {
                                                 "text": description
                                             });
                                     }

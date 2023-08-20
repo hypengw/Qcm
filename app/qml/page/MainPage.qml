@@ -3,11 +3,12 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
 import Qt.labs.settings
-import QcmApp
+import Qcm.App
 import ".."
 import "../component"
 import "../part"
 import "../js/util.mjs" as Util
+import Qcm.Material as MD
 
 Page {
     id: root
@@ -23,6 +24,12 @@ Page {
     RowLayout {
         anchors.fill: parent
         spacing: 0
+
+        MD.Button {
+            text: "test"
+        }
+        MD.Card {
+        }
 
         Pane {
             Layout.fillHeight: true
@@ -98,15 +105,15 @@ Page {
                                     }
                                 }, {
                                     "icon": Theme.ic.library_music,
-                                    "page": 'qrc:/QcmApp/qml/page/MinePage.qml',
+                                    "page": 'qrc:/Qcm/App/qml/page/MinePage.qml',
                                     "cache": true
                                 }, {
                                     "icon": Theme.ic.today,
-                                    "page": 'qrc:/QcmApp/qml/page/TodayPage.qml',
+                                    "page": 'qrc:/Qcm/App/qml/page/TodayPage.qml',
                                     "cache": true
                                 }, {
                                     "icon": Theme.ic.queue_music,
-                                    "page": 'qrc:/QcmApp/qml/page/PlaylistListPage.qml'
+                                    "page": 'qrc:/Qcm/App/qml/page/PlaylistListPage.qml'
                                 }].forEach(m => {
                                     model.append(m);
                                 });
@@ -140,7 +147,7 @@ Page {
                         icon.name: Theme.ic.settings
 
                         onTriggered: {
-                            QA.show_page_popup('qrc:/QcmApp/qml/page/SettingsPage.qml', {});
+                            QA.show_page_popup('qrc:/Qcm/App/qml/page/SettingsPage.qml', {});
                         }
                     }
                 }

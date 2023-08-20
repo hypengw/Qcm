@@ -2,7 +2,8 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
-import QcmApp
+import Qcm.App
+import Qcm.Material as MD
 import ".."
 import "../component"
 import "../part"
@@ -27,10 +28,8 @@ Page {
 
         ColumnLayout {
             id: content
-            anchors.horizontalCenter: parent.horizontalCenter
-            height: parent.height
+            anchors.fill: parent
             spacing: 4
-            width: Math.min(800, parent.width)
 
             Pane {
                 Layout.fillWidth: true
@@ -111,7 +110,7 @@ Page {
                                     }
 
                                     onClicked: {
-                                        QA.show_page_popup('qrc:/QcmApp/qml/page/DescriptionPage.qml', {
+                                        QA.show_page_popup('qrc:/Qcm/App/qml/page/DescriptionPage.qml', {
                                                 "text": description
                                             });
                                     }
@@ -125,28 +124,8 @@ Page {
                 RowLayout {
                     anchors.fill: parent
 
-                    MButton {
+                    MD.Button {
                         font.capitalization: Font.Capitalize
-                        highlighted: true
-
-                        action: Action {
-                            icon.name: Theme.ic.play_arrow
-                            text: qsTr('play all')
-
-                            onTriggered: {
-                                const songs = itemData.songs.filter(s => {
-                                        return s.canPlay;
-                                    });
-                                if (songs.length)
-                                    QA.playlist.switchList(songs);
-                            }
-                        }
-                    }
-                    MButton {
-                        Material.accent: Theme.color.secondary
-                        font.capitalization: Font.Capitalize
-                        highlighted: true
-
                         action: Action {
                             icon.name: Theme.ic.playlist_add
                             text: qsTr('add to list')
@@ -156,15 +135,10 @@ Page {
                             }
                         }
                     }
-                    MButton {
+                    MD.Button {
                         id: btn_fav
-
                         property bool liked: qr_dynamic.data.subscribed
-
-                        Material.accent: Theme.color.secondary
                         font.capitalization: Font.Capitalize
-                        highlighted: true
-
                         action: Action {
                             icon.name: btn_fav.liked ? Theme.ic.done : Theme.ic.add
                             text: qsTr(btn_fav.liked ? 'fav-ed' : 'fav')
@@ -227,6 +201,19 @@ Page {
             }
         }
     }
+    MD.FAB {
+        action: Action {
+            icon.name: Theme.ic.play_arrow
+            onTriggered: {
+                const songs = itemData.songs.filter(s => {
+                        return s.canPlay;
+                    });
+                if (songs.length)
+                    QA.playlist.switchList(songs);
+            }
+        }
+    }
+
     ApiContainer {
         PlaylistDetailQuerier {
             id: qr_pl

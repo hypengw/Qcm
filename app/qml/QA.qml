@@ -2,7 +2,7 @@ pragma Singleton
 import QtCore
 import QtQml
 import QtQuick
-import QcmApp
+import Qcm.App
 import "./part"
 
 Item {
@@ -53,11 +53,11 @@ Item {
     function item_id_url(itemId) {
         switch (itemId.type) {
         case ItemIdType.Album:
-            return 'qrc:/QcmApp/qml/page/AlbumDetailPage.qml';
+            return 'qrc:/Qcm/App/qml/page/AlbumDetailPage.qml';
         case ItemIdType.Playlist:
-            return 'qrc:/QcmApp/qml/page/PlaylistDetailPage.qml';
+            return 'qrc:/Qcm/App/qml/page/PlaylistDetailPage.qml';
         case ItemIdType.Artist:
-            return 'qrc:/QcmApp/qml/page/ArtistDetailPage.qml';
+            return 'qrc:/Qcm/App/qml/page/ArtistDetailPage.qml';
         }
         return '';
     }
@@ -85,7 +85,7 @@ Item {
         msg.destroy(3000);
     }
     function show_page_popup(url, props, popup_props = {}) {
-        return show_popup('qrc:/QcmApp/qml/component/PagePopup.qml', Object.assign({}, {
+        return show_popup('qrc:/Qcm/App/qml/component/PagePopup.qml', Object.assign({}, {
                     "source": url,
                     "props": props
                 }, popup_props));

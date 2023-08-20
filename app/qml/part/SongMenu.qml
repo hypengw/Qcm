@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
-import QcmApp
+import Qcm.App
 import ".."
 import "../component"
 
@@ -41,7 +41,7 @@ MMenu {
             if (artists.length === 1)
                 QA.route(artists[0].itemId);
             else
-                QA.show_popup('qrc:/QcmApp/qml/part/ArtistsPopup.qml', {
+                QA.show_popup('qrc:/Qcm/App/qml/part/ArtistsPopup.qml', {
                         "model": artists
                     });
         }

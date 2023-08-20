@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
-import QcmApp
+import Qcm.App
 
 Flickable {
     id: root

@@ -2,36 +2,21 @@ pragma Singleton
 import QtCore
 import QtQml
 import QtQuick
-import QtQuick.Controls
-import QtQuick.Controls.Material
-import Qcm.App
-import Qcm.Material
+import Qcm.Material as MD
 
 Item {
     readonly property alias color: m_color
     // typescale
-    readonly property var font: QtObject {
+    readonly property QtObject font: QtObject {
         readonly property var default_font: Qt.application.font
-        readonly property var fontload_material_outline: FontLoader {
-            source: 'qrc:/Qcm/App/assets/MaterialIconsOutlined-Regular.otf'
+        readonly property FontLoader fontload_material_outline: FontLoader {
+            source: 'qrc:/Qcm/Material/assets/MaterialIconsOutlined-Regular.otf'
         }
-        readonly property var fontload_material_round: FontLoader {
-            source: 'qrc:/Qcm/App/assets/MaterialIconsRound-Regular.otf'
+        readonly property FontLoader fontload_material_round: FontLoader {
+            source: 'qrc:/Qcm/Material/assets/MaterialIconsRound-Regular.otf'
         }
         readonly property var icon_outline: this.fontload_material_outline.font
         readonly property var icon_round: this.fontload_material_round.font
-        readonly property var label_font: this.label_item.font
-        readonly property var label_item: Label {
-            text: '0'
-        }
-        readonly property var text_item: Text {
-            text: '0'
-        }
-        readonly property int w_unit: this.text_item.implicitWidth
-
-        function small(s) {
-            return s.pointSize * 0.8;
-        }
     }
     readonly property QtObject ic: QtObject {
         readonly property string add: '\ue145'
@@ -68,8 +53,35 @@ Item {
         readonly property string today: '\ue8df'
         readonly property string trending_flat: '\ue8e4'
     }
-    readonly property bool is_dark_theme: theme === MdColorMgr.Dark
+    readonly property bool is_dark_theme: theme === MD.MdColorMgr.Dark
     property alias theme: m_color.schemeTheme
+
+    //  Font.Thin	0
+    //  Font.ExtraLight	12
+    //  Font.Light	25
+    //  Font.Normal	50
+    //  Font.Medium	57
+    //  Font.DemiBold	63
+    //  Font.Bold	75
+    //  Font.ExtraBold	81
+    //  Font.Black	87
+
+    readonly property QtObject typescale: QtObject {
+        readonly property QtObject label_large: QtObject {
+            readonly property int size: 14
+            readonly property int line_height: 20
+            readonly property int weight: Font.Medium // 500
+        }
+    }
+    readonly property QtObject elevation: QtObject {
+        readonly property int level0: 0
+        readonly property int level1: 1
+        readonly property int level2: 3
+        readonly property int level3: 6
+        readonly property int level4: 8
+        readonly property int level5: 12
+    }
+
     readonly property var ts: ({
             "title_small": {
                 "size": 12
@@ -100,6 +112,9 @@ Item {
             }
         })
 
+    function button_color() {
+    }
+
     // seems icon font size need map
     function ic_size(s) {
         switch (Math.floor(s)) {
@@ -116,13 +131,7 @@ Item {
         return fn_inverse(th === MdColorMgr.Dark, inverse) ? Material.Dark : Material.Light;
     }
 
-    MdColorMgr {
+    MD.MdColorMgr {
         id: m_color
-    }
-    Settings {
-        property alias color_scheme: m_color.schemeTheme
-        property alias primary_color: m_color.accentColor
-
-        category: 'theme'
     }
 }

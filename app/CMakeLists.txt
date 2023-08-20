@@ -3,12 +3,11 @@ set(APP_NAME Qcm)
 set(APP_VERSION 1.0)
 set(APP_SUMMARY "A Qt client for netease cloud music")
 
-find_package(Qt6 REQUIRED COMPONENTS QuickControls2 Sql)
+find_package(Qt6 REQUIRED COMPONENTS QuickControls2 Sql Core5Compat)
 
 set(SOURCES
     include/Qcm/app.h
     include/Qcm/api.h
-    include/Qcm/color.h
     include/Qcm/info.h
     include/Qcm/type.h
     include/Qcm/model.h
@@ -46,7 +45,6 @@ set(SOURCES
     include/Qcm/util/flickable_scroll_handler.hpp
     src/app.cpp
     src/api.cpp
-    src/color.cpp
     src/model.cpp
     src/path.cpp
     src/playlist.cpp
@@ -56,10 +54,11 @@ set(SOURCES
     src/lyric.cpp
     src/clipboard.cpp
     src/player.cpp
-    src/util/flickable_scroll_handler.cpp)
+    src/util/flickable_scroll_handler.cpp
+    src/util/QmlStackTraceHelper.cpp
+    )
 
 set(QML_FILES
-    main.qml
     qml/js/util.mjs
     qml/PlayBar.qml
     qml/Theme.qml
@@ -117,7 +116,7 @@ set_source_files_properties(qml/QA.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(
   app
   URI
-  QcmApp
+  Qcm.App
   STATIC
   RESOURCE_PREFIX
   /
@@ -141,6 +140,7 @@ target_link_libraries(
          Qt6::Quick
          Qt6::QuickControls2
          Qt6::Sql
+         Qt6::Core5Compat
          asio_qt
          sv_ncm
          request
@@ -151,17 +151,26 @@ target_link_libraries(
          mpris
          media_cache
          ctre
-         player
-         appplugin)
+         player)
 target_compile_definitions(
   app PUBLIC APP_ID="${APP_ID}" APP_VERSION="${APP_VERSION}"
              APP_NAME="${APP_NAME}")
 
 qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cpp)
-qt_import_qml_plugins(${PROJECT_NAME})
 
-target_link_libraries(${PROJECT_NAME}
-                      PRIVATE app SingleApplication::SingleApplication)
+qt_add_qml_module(
+  ${PROJECT_NAME}
+  URI
+  main
+  QML_FILES
+  main.qml
+  SOURCES
+  RESOURCE_PREFIX
+  /)
+
+target_link_libraries(
+  ${PROJECT_NAME} PRIVATE app appplugin qml_materialplugin
+                          SingleApplication::SingleApplication)
 
 set(APP_DESKTOP assets/Qcm.desktop)
 set(APP_METAINFO assets/Qcm.metainfo.xml)
@@ -174,10 +183,10 @@ install(
   BUNDLE DESTINATION .
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-#qt_generate_deploy_qml_app_script(
-#  TARGET ${PROJECT_NAME} FILENAME_VARIABLE deploy_script
-#  NO_UNSUPPORTED_PLATFORM_ERROR DEPLOY_USER_QML_MODULES_ON_UNSUPPORTED_PLATFORM)
-#install(SCRIPT ${deploy_script})
+# qt_generate_deploy_qml_app_script( TARGET ${PROJECT_NAME} FILENAME_VARIABLE
+# deploy_script NO_UNSUPPORTED_PLATFORM_ERROR
+# DEPLOY_USER_QML_MODULES_ON_UNSUPPORTED_PLATFORM) install(SCRIPT
+# ${deploy_script})
 
 if(LINUX AND NOT ANDROID)
   install(

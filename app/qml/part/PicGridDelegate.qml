@@ -2,51 +2,46 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
+import Qcm.Material as MD
 import ".."
 import "../component"
 import "../part"
 
-MPane {
+MD.Card {
     id: root
 
     property alias image: image
-    property alias text: label.text
-    property alias subText: label_sub.text
+    property string subText
+    property int picWidth: 160
 
-    signal clicked()
+    horizontalPadding: 0
 
-    Component.onCompleted: {
-        item_dg.clicked.connect(() => {
-            root.clicked();
-        });
-    }
+    contentItem: ColumnLayout {
+        MD.Image {
+            id: image
+            radius: root.background.radius
+            implicitWidth: root.picWidth
+            implicitHeight: root.picWidth
 
-    MItemDelegate {
-        id: item_dg
+            sourceSize.width: root.picWidth
+            sourceSize.height: root.picWidth
+        }
 
-        anchors.horizontalCenter: parent.horizontalCenter
-        clip: true
-        padding: 8
-
-        contentItem: ColumnLayout {
-            Image {
-                id: image
-
-                Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
-                Layout.preferredWidth: 160
-                Layout.preferredHeight: 160
-                sourceSize.width: 160
-                sourceSize.height: 160
-            }
+        ColumnLayout {
+            Layout.leftMargin: 16
+            Layout.rightMargin: 16
+            Layout.topMargin: 8
+            Layout.bottomMargin: 8
+            Layout.fillWidth: true
 
             Label {
                 id: label
-
-                Layout.topMargin: 8
-                Layout.preferredWidth: 160
+                Layout.fillWidth: true
                 maximumLineCount: 2
                 wrapMode: Text.Wrap
                 elide: Text.ElideRight
+
+                text: root.text
             }
 
             Label {
@@ -57,23 +52,6 @@ MPane {
                 font.pointSize: Theme.ts.label_small.size
                 opacity: 0.6
             }
-
-            Item {
-                Layout.fillHeight: true
-            }
-
         }
-
     }
-
-    Binding on width {
-        when: root.GridView && root.GridView.view
-        value: root.GridView.view.cellWidth
-    }
-
-    Binding on height {
-        when: root.GridView && root.GridView.view
-        value: root.GridView.view.cellHeight
-    }
-
 }

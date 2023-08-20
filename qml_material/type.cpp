@@ -1,0 +1,1 @@
+#include "qml_material/type.h"

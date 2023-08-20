@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
+import Qcm.Material as MD
 import ".."
 import "../component"
 
@@ -77,27 +78,19 @@ MItemDelegate {
         RowLayout {
             spacing: 0
 
-            MRoundButton {
-                readonly property bool liked: QA.user_song_set.contains(root.modelData.itemId)
-
-                Material.accent: Theme.color.secondary
-                flat: true
-                font.family: Theme.font.icon_round.family
-                font.pointSize: 12
-                highlighted: liked
-                text: liked ? Theme.ic.favorite : Theme.ic.favorite_border
+            MD.IconButton {
+                checked: QA.user_song_set.contains(root.modelData.itemId)
+                icon.name: checked ? Theme.ic.favorite : Theme.ic.favorite_border
 
                 onClicked: {
-                    QA.querier_user_song.like_song(root.modelData.itemId, !liked);
+                    QA.querier_user_song.like_song(root.modelData.itemId, !checked);
                 }
             }
-            MRoundButton {
-                flat: true
-                font.pointSize: 12
-                text: Theme.ic.more_vert
+            MD.IconButton {
+                icon.name: Theme.ic.more_vert
 
                 onClicked: {
-                    QA.show_popup('qrc:/QcmApp/qml/part/SongMenu.qml', {
+                    QA.show_popup('qrc:/Qcm/App/qml/part/SongMenu.qml', {
                             "song": modelData,
                             "y": height
                         }, this);

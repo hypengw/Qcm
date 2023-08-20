@@ -3,7 +3,8 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
 import QtQuick.Shapes
-import QcmApp
+import Qcm.App
+import Qcm.Material as MD
 import "./component"
 import "./part"
 
@@ -107,7 +108,7 @@ Pane {
                                 if (artists.length === 1)
                                     QA.route(artists[0].itemId);
                                 else
-                                    QA.show_popup('qrc:/QcmApp/qml/part/ArtistsPopup.qml', {
+                                    QA.show_popup('qrc:/Qcm/App/qml/part/ArtistsPopup.qml', {
                                             "model": artists
                                         });
                             }
@@ -121,28 +122,23 @@ Pane {
             Component {
                 id: comp_ctl
                 RowLayout {
-                    MRoundButton {
-                        readonly property bool liked: QA.user_song_set.contains(QA.cur_song.itemId)
-
-                        Material.accent: Theme.color.secondary
+                    MD.IconButton {
+                        checked: QA.user_song_set.contains(QA.cur_song.itemId)
                         enabled: QA.cur_song.itemId.valid()
-                        flat: true
-                        highlighted: liked
-                        icon.name: liked ? Theme.ic.favorite : Theme.ic.favorite_border
+                        icon.name: checked ? Theme.ic.favorite : Theme.ic.favorite_border
 
                         onClicked: {
-                            QA.querier_user_song.like_song(QA.cur_song.itemId, !liked);
+                            QA.querier_user_song.like_song(QA.cur_song.itemId, !checked);
                         }
                     }
-                    MRoundButton {
+                    MD.IconButton {
                         enabled: QA.playlist.canPrev
-                        flat: true
                         icon.name: Theme.ic.skip_previous
 
                         onClicked: QA.playlist.prev()
                     }
-                    MRoundButton {
-                        highlighted: true
+                    MD.IconButton {
+                        type: MD.Enum.IBtFilled
                         icon.name: QA.player.playing ? Theme.ic.pause : Theme.ic.play_arrow
 
                         onClicked: {
@@ -153,35 +149,31 @@ Pane {
                                 player.play();
                         }
                     }
-                    MRoundButton {
+                    MD.IconButton {
                         enabled: QA.playlist.canNext
-                        flat: true
                         icon.name: Theme.ic.skip_next
 
                         onClicked: QA.playlist.next()
                     }
-                    MRoundButton {
-                        flat: true
+                    MD.IconButton {
                         icon.name: QA.loop_icon
 
                         onClicked: {
                             QA.playlist.iterLoopMode();
                         }
                     }
-                    MRoundButton {
-                        flat: true
+                    MD.IconButton {
                         icon.name: Theme.ic.playlist_play
 
                         onClicked: {
                             pop_playlist.open();
                         }
                     }
-                    MRoundButton {
-                        flat: true
+                    MD.IconButton {
                         text: Theme.ic.more_vert
 
                         onClicked: {
-                            const popup = QA.show_popup('qrc:/QcmApp/qml/part/SongMenu.qml', {
+                            const popup = QA.show_popup('qrc:/Qcm/App/qml/part/SongMenu.qml', {
                                     "song": QA.cur_song,
                                     "y": 0
                                 }, this);
@@ -284,7 +276,7 @@ Pane {
 
                 PagePopup {
                     id: pop_playlist
-                    source: 'qrc:/QcmApp/qml/page/PlayQueuePage.qml'
+                    source: 'qrc:/Qcm/App/qml/page/PlayQueuePage.qml'
                 }
             }
         }

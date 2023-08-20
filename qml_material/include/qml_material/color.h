@@ -8,7 +8,7 @@
 #include "core/core.h"
 #include "material_helper/helper.h"
 
-namespace qcm
+namespace qcm_material
 {
 
 struct QColorCompare {
@@ -100,7 +100,7 @@ private:
 
     QColor                                  m_accent_color;
     SchemeTheme                             m_scheme_theme;
-    MdScheme                                m_scheme;
+    qcm::MdScheme                                m_scheme;
     std::map<QColor, QColor, QColorCompare> m_on_map;
 };
 

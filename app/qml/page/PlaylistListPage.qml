@@ -1,9 +1,9 @@
 import QtQuick
+import QtCore
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
-import Qt.labs.settings
-import QcmApp
+import Qcm.App
 import ".."
 import "../component"
 import "../part"
@@ -17,7 +17,7 @@ Page {
     property var custom_cat_list: ['华语', '流行', '电子', 'ACG', '欧美', '运动']
 
     function switchCat(cat) {
-        view_container.switchTo('qrc:/QcmApp/qml/part/PlaylistListView.qml', {
+        view_container.switchTo('qrc:/Qcm/App/qml/part/PlaylistListView.qml', {
                 "cat": cat
             }, true);
     }
@@ -77,7 +77,7 @@ Page {
                         icon.name: Theme.ic.edit
 
                         onTriggered: {
-                            const popup = QA.show_page_popup('qrc:/QcmApp/qml/page/PlaylistCataloguePage.qml', {}, {
+                            const popup = QA.show_page_popup('qrc:/Qcm/App/qml/page/PlaylistCataloguePage.qml', {}, {
                                     "fillHeight": true
                                 });
                             popup.closed.connect(() => {
@@ -91,7 +91,7 @@ Page {
         Pane {
             Layout.fillHeight: true
             Layout.fillWidth: true
-            Material.background: Theme.color.surface_container_low
+            Material.background: Theme.color.surface
             Material.elevation: 1
             padding: 0
 

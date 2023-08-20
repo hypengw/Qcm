@@ -25,8 +25,10 @@ Player::Private::~Private() {}
 void Player::set_source(std::string_view v) {
     C_D(Player);
     stop();
-
     d->m_ctx->clear();
+
+    if (v.empty()) return;
+
     d->m_ctx->set_aborted(false);
 
     d->m_dev->set_output(d->m_ctx->audio_frame_queue);

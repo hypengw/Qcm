@@ -1,10 +1,11 @@
-#include "Qcm/color.h"
+#include "qml_material/color.h"
 
 #include "core/log.h"
 
 #include "material_helper/helper.h"
 
 using namespace qcm;
+using namespace qcm_material;
 
 namespace
 {
@@ -22,6 +23,7 @@ std::map<QColor, QColor, QColorCompare> gen_on_map(const MdScheme& sh) {
         { sh.background, sh.on_background },
         { sh.inverse_surface, sh.inverse_on_surface },
         { sh.surface, sh.on_surface },
+        { sh.surface_variant, sh.on_surface_variant },
         { sh.surface_1, sh.on_surface },
         { sh.surface_2, sh.on_surface },
         { sh.surface_3, sh.on_surface },

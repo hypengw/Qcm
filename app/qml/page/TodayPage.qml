@@ -1,8 +1,9 @@
-import QcmApp
+import Qcm.App
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
+import Qcm.Material as MD
 import ".."
 import "../component"
 import "../part"
@@ -22,7 +23,7 @@ Page {
             anchors.horizontalCenter: parent.horizontalCenter
             height: implicitHeight
             spacing: 12
-            width: Math.min(800, parent.width)
+            width: parent.width
 
             ColumnLayout {
                 spacing: 4
@@ -65,13 +66,19 @@ Page {
                                 interactive: false
                                 model: modelData
 
-                                delegate: PicGridDelegate {
-                                    // subText:
-                                    image.source: `image://ncm/${modelData.picUrl}`
-                                    text: modelData.name
+                                delegate: Item {
+                                    width: GridView.view.cellWidth
+                                    height: GridView.view.cellHeight
+                                    PicGridDelegate {
+                                        anchors.centerIn: parent
+                                        width: picWidth
+                                        height: Math.min(implicitHeight, parent.height)
+                                        image.source: `image://ncm/${modelData.picUrl}`
+                                        text: modelData.name
 
-                                    onClicked:  {
-                                        QA.route(modelData.itemId)
+                                        onClicked:  {
+                                            QA.route(modelData.itemId)
+                                        }
                                     }
                                 }
                                 footer: ListBusyFooter {
@@ -110,28 +117,8 @@ Page {
                     RowLayout {
                         anchors.fill: parent
 
-                        MButton {
+                        MD.Button {
                             font.capitalization: Font.Capitalize
-                            highlighted: true
-
-                            action: Action {
-                                icon.name: Theme.ic.play_arrow
-                                text: qsTr('play all')
-
-                                onTriggered: {
-                                    const songs = qr_rmd_songs.data.dailySongs.filter(s => {
-                                            return s.canPlay;
-                                        });
-                                    if (songs.length)
-                                        QA.playlist.switchList(songs);
-                                }
-                            }
-                        }
-                        MButton {
-                            Material.accent: Theme.color.secondary
-                            font.capitalization: Font.Capitalize
-                            highlighted: true
-
                             action: Action {
                                 icon.name: Theme.ic.playlist_add
                                 text: qsTr('add to list')
@@ -215,6 +202,20 @@ Page {
                 dirtyChanged.connect(refreshSlot);
             }
             onTriggered: dirty = true
+        }
+    }
+
+    MD.FAB {
+        action: Action {
+            icon.name: Theme.ic.play_arrow
+
+            onTriggered: {
+                const songs = qr_rmd_songs.data.dailySongs.filter(s => {
+                        return s.canPlay;
+                    });
+                if (songs.length)
+                    QA.playlist.switchList(songs);
+            }
         }
     }
 }

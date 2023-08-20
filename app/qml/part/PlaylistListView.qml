@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
-import QcmApp
+import Qcm.App
 import ".."
 import "../component"
 
@@ -21,12 +21,19 @@ Pane {
         cellHeight: 250
         cellWidth: width > 0 ? width / Math.floor((width / cellWidth_)) : 0
 
-        delegate: PicGridDelegate {
-            text: model.name
-            // subText:
-            image.source: `image://ncm/${model.picUrl}`
-            onClicked: {
-                QA.route(model.itemId);
+        delegate: Item {
+            width: GridView.view.cellWidth
+            height: GridView.view.cellHeight
+            PicGridDelegate {
+                anchors.centerIn: parent
+                width: picWidth
+                height: Math.min(implicitHeight, parent.height)
+                text: model.name
+                // subText:
+                image.source: `image://ncm/${model.picUrl}`
+                onClicked: {
+                    QA.route(model.itemId);
+                }
             }
         }
 

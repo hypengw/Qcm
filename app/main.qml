@@ -4,7 +4,8 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
 import QtQuick.Window
-import QcmApp
+import Qcm.App
+import Qcm.Material as QM
 
 ApplicationWindow {
     id: win

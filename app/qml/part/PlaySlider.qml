@@ -8,6 +8,7 @@ Slider {
     id: root
 
     readonly property double playing_pos: (QA.player.duration > 0 ? QA.player.position / QA.player.duration : 0)
+    property bool in_anim: false
 
     background.implicitHeight: 8
     live: false
@@ -19,6 +20,8 @@ Slider {
     }
 
     onPlaying_posChanged: {
+        if (!anim_v.running && in_anim)
+            in_anim = false;
         if (!pressed) {
             const max_dur = 1000.0;
             const pre = 200.0;
@@ -29,12 +32,17 @@ Slider {
                 anim_v.from = pos;
                 anim_v.to = to;
                 anim_v.duration = duration * Math.abs(playing_pos - pos) + pre;
-                if(anim_v.duration > max_dur) {
+                if (anim_v.duration > max_dur) {
                     const x = anim_v.duration - max_dur;
                     anim_v.duration = Math.max(max_dur - x, pre);
+                    if (!in_anim) {
+                        anim_v.restart();
+                        in_anim = true;
+                    }
                 }
-                anim_v.restart();
             }
+            if (!in_anim)
+                anim_v.restart();
         }
     }
     onPositionChanged: {
@@ -42,6 +50,8 @@ Slider {
             slider_timer.recordPos(position);
     }
     onPressedChanged: {
+        anim_v.from = position;
+        in_anim = false;
         anim_v.stop();
         if (!pressed) {
             slider_timer.stop();
