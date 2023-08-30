@@ -13,8 +13,7 @@ Q_IMPORT_QML_PLUGIN(Qcm_MaterialPlugin)
 #include <SingleApplication>
 
 int main(int argc, char* argv[]) {
-    // qputenv("QT_FONT_DPI", "96");
-    // qputenv("QT_MEDIA_BACKEND", "ffmpeg");
+    qputenv("QT_FONT_DPI", "96");
     auto logger = qcm::LogManager::init();
     request::global_init();
 

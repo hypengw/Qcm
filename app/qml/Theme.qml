@@ -5,7 +5,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import Qcm.App
-import Qcm.Material
+import Qcm.Material as MD
 
 Item {
     readonly property alias color: m_color
@@ -116,7 +116,7 @@ Item {
         return fn_inverse(th === MdColorMgr.Dark, inverse) ? Material.Dark : Material.Light;
     }
 
-    MdColorMgr {
+    MD.MdColorMgr {
         id: m_color
     }
     Settings {

@@ -6,14 +6,13 @@ import Qcm.Material as MD
 T.Button {
     id: control
 
-    property int type: MD.Enum.BtElevated
-    property int iconStyle: hasIcon ? MD.Enum.IconAndText : MD.Enum.TextOnly
-    readonly property bool hasIcon: MD.Util.hasIcon(icon)
+    property int type: MD.Enum.FABNormal
+    property int color: MD.Enum.FABColorPrimary
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset, implicitContentWidth + leftPadding + rightPadding)
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset, implicitContentHeight + topPadding + bottomPadding)
 
-    flat: type == MD.Enum.BtText || type == MD.Enum.BtOutlined
+    flat: false
 
     anchors.right: parent.right
     anchors.bottom: parent.bottom
@@ -25,11 +24,11 @@ T.Button {
     leftInset: 0
     rightInset: 0
 
-    padding: 16
+    padding: _size(type, 8, 16, 30)
     spacing: 0
 
-    icon.width: 24
-    icon.height: 24
+    icon.width: _size(type, 24, 24, 36)
+    icon.height: _size(type, 24, 24, 36)
 
     font.weight: MD.Token.typescale.label_large.weight
     font.pixelSize: Math.min(icon.width, icon.height)
@@ -46,13 +45,13 @@ T.Button {
             lineHeight: font.pixelSize
             lineHeightMode: Text.FixedHeight
         }
-    } 
+    }
 
     background: Rectangle {
-        implicitWidth: 56
-        implicitHeight: 56
+        implicitWidth: _size(type, 40, 56, 96)
+        implicitHeight: _size(type, 40, 56, 96)
 
-        radius: 16
+        radius: _size(type, 12, 16, 28)
         color: MD.MatProp.backgroundColor
 
         border.width: control.type == MD.Enum.BtOutlined ? 1 : 0
@@ -79,6 +78,10 @@ T.Button {
         }
     }
 
+    function _size(t, small, normal, large) {
+        return t == MD.Enum.FABSmall ? small : (t == MD.Enum.FABLarge ? large : normal);
+    }
+
     Item {
         id: item_btn_state
 
@@ -87,33 +90,33 @@ T.Button {
         states: [
             State {
                 name: "Base"
-                when: control.enabled && !control.hovered && !control.down
+                when: !control.hovered && !control.down
                 PropertyChanges {
-                    MD.MatProp.elevation: MD.Token.elevation.level1
+                    MD.MatProp.elevation: MD.Token.elevation.level3
                     MD.MatProp.textColor: {
-                        switch (control.type) {
-                        case MD.Enum.BtFilled:
-                        case MD.Enum.BtFilledTonal:
-                            return MD.Token.color.getOn(control.MD.MatProp.backgroundColor);
-                        case MD.Enum.BtOutlined:
-                        case MD.Enum.BtText:
-                        case MD.Enum.BtElevated:
-                        default:
+                        switch (control.color) {
+                        case MD.Enum.FABColorSurfaec:
                             return MD.Token.color.primary;
+                        case MD.Enum.FABColorSecondary:
+                            return MD.Token.color.on_secondary_container;
+                        case MD.Enum.FABColorTertiary:
+                            return MD.Token.color.on_tertiary_container;
+                        case MD.Enum.FABColorPrimary:
+                        default:
+                            return MD.Token.color.on_primary_container;
                         }
                     }
                     MD.MatProp.backgroundColor: {
-                        switch (control.type) {
-                        case MD.Enum.BtFilled:
-                            return MD.Token.color.primary;
-                        case MD.Enum.BtFilledTonal:
+                        switch (control.color) {
+                        case MD.Enum.FABColorSurfaec:
+                            return MD.Token.color.surface_container_high;
+                        case MD.Enum.FABColorSecondary:
                             return MD.Token.color.secondary_container;
-                        case MD.Enum.BtOutlined:
-                        case MD.Enum.BtText:
-                            return MD.Token.color.surface;
-                        case MD.Enum.BtElevated:
+                        case MD.Enum.FABColorTertiary:
+                            return MD.Token.color.tertiary_container;
+                        case MD.Enum.FABColorPrimary:
                         default:
-                            return MD.Token.color.surface_container_low;
+                            return MD.Token.color.primary_container;
                         }
                     }
                     MD.MatProp.stateLayerColor: "#00000000"
@@ -122,60 +125,22 @@ T.Button {
                 }
             },
             State {
-                name: "Disabled"
-                when: !enabled
-                PropertyChanges {
-                    MD.MatProp.elevation: MD.Token.elevation.level0
-                    MD.MatProp.textColor: MD.Token.color.on_surface
-                    MD.MatProp.backgroundColor: MD.Token.color.on_surface
-                    contentItem.opacity: 0.38
-                    background.opacity: 0.12
-                    target: control
-                }
-            },
-            State {
                 name: "Hovered"
-                when: control.enabled && control.hovered && !control.down
+                extend: "Base"
+                when: control.hovered && !control.down
                 PropertyChanges {
-                    MD.MatProp.elevation: MD.Token.elevation.level2
-                    MD.MatProp.stateLayerColor: {
-                        let c = null;
-                        switch (control.type) {
-                        case MD.Enum.BtFilled:
-                        case MD.Enum.BtFilledTonal:
-                            c = MD.Token.color.getOn(control.MD.MatProp.backgroundColor);
-                            break;
-                        case MD.Enum.BtOutlined:
-                        case MD.Enum.BtText:
-                        case MD.Enum.BtElevated:
-                        default:
-                            c = MD.Token.color.primary;
-                        }
-                        return Qt.rgba(c.r, c.g, c.b, 0.08);
-                    }
+                    MD.MatProp.elevation: MD.Token.elevation.level4
+                    MD.MatProp.stateLayerColor: MD.Util.hoverColor(MD.MatProp.textColor)
                     target: control
                 }
             },
             State {
                 name: "Pressed"
-                when: control.enabled && control.down
+                extend: "Base"
+                when: control.down
                 PropertyChanges {
-                    MD.MatProp.elevation: MD.Token.elevation.level1
-                    MD.MatProp.stateLayerColor: {
-                        let c = null;
-                        switch (control.type) {
-                        case MD.Enum.BtFilled:
-                        case MD.Enum.BtFilledTonal:
-                            c = MD.Token.color.getOn(control.MD.MatProp.backgroundColor);
-                            break;
-                        case MD.Enum.BtOutlined:
-                        case MD.Enum.BtText:
-                        case MD.Enum.BtElevated:
-                        default:
-                            c = MD.Token.color.primary;
-                        }
-                        return Qt.rgba(c.r, c.g, c.b, 0.18);
-                    }
+                    MD.MatProp.elevation: MD.Token.elevation.level3
+                    MD.MatProp.stateLayerColor: MD.Util.pressColor(MD.MatProp.textColor)
                     target: control
                 }
             }

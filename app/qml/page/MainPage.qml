@@ -25,12 +25,6 @@ Page {
         anchors.fill: parent
         spacing: 0
 
-        MD.Button {
-            text: "test"
-        }
-        MD.Card {
-        }
-
         Pane {
             Layout.fillHeight: true
             Material.background: Theme.color.surface_container
@@ -129,20 +123,17 @@ Page {
                 Item {
                     Layout.fillHeight: true
                 }
-                MRoundButton {
-                    flat: true
-
+                MD.IconButton {
                     action: Action {
-                        icon.name: Theme.is_dark_theme ? Theme.ic.dark_mode : Theme.ic.light_mode
+                        readonly property bool is_dark_theme: MD.Token.color.schemeTheme == MD.MdColorMgr.Dark
+                        icon.name: is_dark_theme ? Theme.ic.dark_mode : Theme.ic.light_mode
 
                         onTriggered: {
-                            Theme.theme = Theme.is_dark_theme ? MdColorMgr.Light : MdColorMgr.Dark;
+                            MD.Token.color.schemeTheme = is_dark_theme ? MD.MdColorMgr.Light : MD.MdColorMgr.Dark;
                         }
                     }
                 }
-                MRoundButton {
-                    flat: true
-
+                MD.IconButton {
                     action: Action {
                         icon.name: Theme.ic.settings
 

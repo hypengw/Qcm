@@ -5,6 +5,7 @@ using namespace qml_material;
 namespace
 {
 static QColor global_textColor {};
+static QColor global_supportTextColor {};
 static QColor global_backgroundColor {};
 static int    global_elevation { 0 };
 static QColor global_stateLayerColor {};
@@ -66,6 +67,7 @@ void reset_prop(Theme* self, F&& get_prop, const T& init_v) {
 Theme::Theme(QObject* parent)
     : QQuickAttachedPropertyPropagator(parent),
       m_textColor(&Theme::textColorChanged),
+      m_supportTextColor(&Theme::supportTextColorChanged),
       m_backgroundColor(&Theme::backgroundColorChanged),
       m_stateLayerColor(&Theme::stateLayerColorChanged),
       m_elevation(&Theme::elevationChanged) {
@@ -89,6 +91,7 @@ Theme* Theme::qmlAttachedProperties(QObject* object) { return new Theme(object);
     }
 
 IMPL_ATTACH_PROP(QColor, textColor, m_textColor)
+IMPL_ATTACH_PROP(QColor, supportTextColor, m_supportTextColor)
 IMPL_ATTACH_PROP(QColor, backgroundColor, m_backgroundColor)
 IMPL_ATTACH_PROP(int, elevation, m_elevation)
 IMPL_ATTACH_PROP(QColor, stateLayerColor, m_stateLayerColor)
@@ -100,6 +103,7 @@ void Theme::attachedParentChange(QQuickAttachedPropertyPropagator* newParent,
     if (attachedParentStyle) {
         #define X(_name_) inherit_attach_prop(this, &Theme::get_##_name_, attachedParentStyle->_name_())
         X(textColor);
+        X(supportTextColor);
         X(backgroundColor);
         X(stateLayerColor);
         X(elevation);

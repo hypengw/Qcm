@@ -67,9 +67,29 @@ Item {
     //  Font.Black	87
 
     readonly property QtObject typescale: QtObject {
+        readonly property QtObject body_large: QtObject {
+            readonly property int size: 16
+            readonly property int line_height: 24
+            readonly property int weight: Font.Normal // 400
+        }
+        readonly property QtObject body_medium: QtObject {
+            readonly property int size: 14
+            readonly property int line_height: 20
+            readonly property int weight: Font.Normal // 400
+        }
         readonly property QtObject label_large: QtObject {
             readonly property int size: 14
             readonly property int line_height: 20
+            readonly property int weight: Font.Medium // 500
+        }
+        readonly property QtObject label_medium: QtObject {
+            readonly property int size: 12
+            readonly property int line_height: 16
+            readonly property int weight: Font.Medium // 500
+        }
+        readonly property QtObject label_small: QtObject {
+            readonly property int size: 11
+            readonly property int line_height: 16
             readonly property int weight: Font.Medium // 500
         }
     }

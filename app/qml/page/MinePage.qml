@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Qcm.App
+import Qcm.Material as MD
 import ".."
 import "../component"
 import "../part"
@@ -117,38 +118,18 @@ Page {
                 }
                 Component {
                     id: dg_albumlist
-                    MItemDelegate {
+                    MD.ListItem {
                         property var itemId: model.itemId
 
                         width: ListView.view.width
-
-                        contentItem: RowLayout {
-                            spacing: 8
-                            width: parent.width
-
-                            Image {
-                                source: `image://ncm/${model.picUrl}`
-                                sourceSize.height: 48
-                                sourceSize.width: 48
-                            }
-                            ColumnLayout {
-                                Label {
-                                    Layout.fillWidth: true
-                                    elide: Text.ElideRight
-                                    maximumLineCount: 4
-                                    text: model.name
-                                    wrapMode: Text.Wrap
-                                }
-                                Label {
-                                    Layout.fillWidth: true
-                                    elide: Text.ElideRight
-                                    font.pointSize: Theme.ts.label_small.size
-                                    opacity: 0.6
-                                    text: QA.join_name(model.artists, '/')
-                                }
-                            }
+                        text: model.name
+                        maximumLineCount: 2
+                        supportText: QA.join_name(model.artists, '/')
+                        leader: MD.Image {
+                            source: `image://ncm/${model.picUrl}`
+                            sourceSize.height: 48
+                            sourceSize.width: 48
                         }
-
                         onClicked: {
                             content.route(itemId);
                             ListView.view.currentIndex = index;
@@ -157,40 +138,19 @@ Page {
                 }
                 Component {
                     id: dg_artistlist
-                    MItemDelegate {
+                    MD.ListItem {
                         property var itemId: model.itemId
 
                         width: ListView.view.width
-
-                        contentItem: RowLayout {
-                            spacing: 8
-                            width: parent.width
-
-                            RoundImage {
-                                image: Image {
-                                    source: `image://ncm/${model.picUrl}`
-                                    sourceSize.height: 48
-                                    sourceSize.width: 48
-                                }
-                            }
-                            ColumnLayout {
-                                Label {
-                                    Layout.fillWidth: true
-                                    elide: Text.ElideRight
-                                    maximumLineCount: 4
-                                    text: model.name
-                                    wrapMode: Text.Wrap
-                                }
-                                Label {
-                                    Layout.fillWidth: true
-                                    elide: Text.ElideRight
-                                    font.pointSize: Theme.font.small(Theme.font.label_font)
-                                    opacity: 0.6
-                                    text: `${model.albumSize} albums`
-                                }
-                            }
+                        text: model.name
+                        maximumLineCount: 2
+                        supportText: `${model.albumSize} albums`
+                        leader: MD.Image {
+                            radius: 24
+                            source: `image://ncm/${model.picUrl}`
+                            sourceSize.height: 48
+                            sourceSize.width: 48
                         }
-
                         onClicked: {
                             content.route(itemId);
                             ListView.view.currentIndex = index;
@@ -199,38 +159,18 @@ Page {
                 }
                 Component {
                     id: dg_playlist
-                    MItemDelegate {
+                    MD.ListItem {
                         property var itemId: model.itemId
 
                         width: ListView.view.width
-
-                        contentItem: RowLayout {
-                            spacing: 8
-                            width: parent.width
-
-                            Image {
-                                source: `image://ncm/${model.picUrl}`
-                                sourceSize.height: 48
-                                sourceSize.width: 48
-                            }
-                            ColumnLayout {
-                                Label {
-                                    Layout.fillWidth: true
-                                    elide: Text.ElideRight
-                                    maximumLineCount: 4
-                                    text: model.name
-                                    wrapMode: Text.Wrap
-                                }
-                                Label {
-                                    Layout.fillWidth: true
-                                    elide: Text.ElideRight
-                                    font.pointSize: Theme.font.small(Theme.font.label_font)
-                                    opacity: 0.6
-                                    text: `${model.trackCount} songs`
-                                }
-                            }
+                        text: model.name
+                        maximumLineCount: 2
+                        supportText: `${model.trackCount} songs`
+                        leader: MD.Image {
+                            source: `image://ncm/${model.picUrl}`
+                            sourceSize.height: 48
+                            sourceSize.width: 48
                         }
-
                         onClicked: {
                             content.route(itemId);
                             ListView.view.currentIndex = index;

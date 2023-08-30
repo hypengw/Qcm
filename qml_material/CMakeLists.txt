@@ -10,16 +10,18 @@ set(SOURCES
     color.cpp
     util.cpp
     theme.cpp
-    round_item.cpp
-    )
+    round_item.cpp)
 set(QML_FILES
     qml/Button.qml
+    qml/Control.qml
     qml/Token.qml
     qml/IconLabel.qml
     qml/IconButton.qml
     qml/FAB.qml
     qml/Card.qml
     qml/Image.qml
+    qml/ListItem.qml
+    qml/Icon.qml
     qml/impl/Ripple.qml
     qml/impl/RoundedElevationEffect.qml)
 set(RESOURCES assets/MaterialIconsRound-Regular.otf

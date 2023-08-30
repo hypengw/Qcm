@@ -20,5 +20,15 @@ public:
         }
         return false;
     }
+
+    Q_INVOKABLE QColor hoverColor(QColor in) {
+        in.setAlphaF(0.08);
+        return in;
+    }
+
+    Q_INVOKABLE QColor pressColor(QColor in) {
+        in.setAlphaF(0.18);
+        return in;
+    }
 };
 } // namespace qml_material
