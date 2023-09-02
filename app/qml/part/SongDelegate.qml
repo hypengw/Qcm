@@ -3,10 +3,11 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
 import Qcm.Material as MD
+
 import ".."
 import "../component"
 
-MItemDelegate {
+MD.ListItem {
     id: root
 
     required property int count
@@ -18,6 +19,7 @@ MItemDelegate {
 
     enabled: modelData.canPlay
     highlighted: is_playing
+    heightMode: MD.Enum.ListItemTwoLine
 
     contentItem: RowLayout {
         spacing: 16
@@ -33,23 +35,25 @@ MItemDelegate {
                 when: root.is_playing
             }
 
-            Label {
+            MD.Text {
                 horizontalAlignment: Qt.AlignRight
+                typescale: MD.Token.typescale.body_medium
                 opacity: 0.6
                 text: index + 1
             }
-            Label {
-                font.family: Theme.font.icon_round.family
-                font.pointSize: 18
+            MD.Icon {
+                name: Theme.ic.equalizer
+                size: 24
+                MD.MatProp.textColor: MD.Token.color.primary
                 horizontalAlignment: Qt.AlignRight
-                text: Theme.ic.equalizer
             }
         }
         ColumnLayout {
-            Label {
+            spacing: 0
+            MD.Text {
                 Layout.fillWidth: true
-                elide: Text.ElideRight
                 text: root.modelData.name
+                typescale: MD.Token.typescale.body_large
             }
             RowLayout {
                 Repeater {
@@ -62,17 +66,17 @@ MItemDelegate {
                         }
                     }
                 }
-                Label {
+                MD.Text {
                     id: subtitle_label
                     Layout.fillWidth: true
-                    elide: Text.ElideRight
-                    font.pointSize: Theme.ts.label_small.size
-                    opacity: 0.6
+                    typescale: MD.Token.typescale.body_medium
+                    color: MD.MatProp.supportTextColor
                     text: root.subtitle ? root.subtitle : `${QA.join_name(root.modelData.artists, '/')} - ${root.modelData.album.name}`
                 }
             }
         }
-        Label {
+        MD.Text {
+            typescale: MD.Token.typescale.body_medium
             text: Qt.formatDateTime(root.modelData.duration, 'mm:ss')
         }
         RowLayout {

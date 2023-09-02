@@ -68,5 +68,13 @@ public:
         CardOutlined
     };
     Q_ENUM(CardType)
+
+    enum class ListItemHeightMode
+    {
+        ListItemOneLine = 0,
+        ListItemTwoLine,
+        ListItemThreeine
+    };
+    Q_ENUM(ListItemHeightMode)
 };
 } // namespace qml_material

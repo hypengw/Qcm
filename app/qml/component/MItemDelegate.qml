@@ -16,10 +16,12 @@ ItemDelegate {
         return false;
     }
 
+/*
     Binding {
         property: 'background.color'
         target: root
         value: root.Material.primary
         when: highlighted
     }
+*/
 }

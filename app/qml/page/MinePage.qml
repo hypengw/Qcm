@@ -126,6 +126,7 @@ Page {
                         maximumLineCount: 2
                         supportText: QA.join_name(model.artists, '/')
                         leader: MD.Image {
+                            radius: 8
                             source: `image://ncm/${model.picUrl}`
                             sourceSize.height: 48
                             sourceSize.width: 48
@@ -167,6 +168,7 @@ Page {
                         maximumLineCount: 2
                         supportText: `${model.trackCount} songs`
                         leader: MD.Image {
+                            radius: 8
                             source: `image://ncm/${model.picUrl}`
                             sourceSize.height: 48
                             sourceSize.width: 48

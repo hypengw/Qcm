@@ -55,7 +55,6 @@ set(SOURCES
     src/clipboard.cpp
     src/player.cpp
     src/util/flickable_scroll_handler.cpp
-    src/util/QmlStackTraceHelper.cpp
     )
 
 set(QML_FILES
@@ -130,6 +129,10 @@ qt_add_qml_module(
   ${RESOURCES}
   NO_PLUGIN_OPTIONAL)
 
+target_sources(app PRIVATE
+$<$<CONFIG:Debug>:src/util/QmlStackTraceHelper.cpp>
+)
+
 target_include_directories(
   app
   PUBLIC include
@@ -192,15 +195,15 @@ if(LINUX AND NOT ANDROID)
   install(
     FILES "${CMAKE_CURRENT_BINARY_DIR}/${APP_DESKTOP}"
     RENAME ${APP_ID}.desktop
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
+    DESTINATION share/applications)
   install(
     FILES "${CMAKE_CURRENT_BINARY_DIR}/${APP_METAINFO}"
     RENAME ${APP_ID}.metainfo.xml
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/metainfo)
+    DESTINATION share/metainfo)
   install(
     FILES ${APP_SVG}
     RENAME ${APP_ID}.svg
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps)
+    DESTINATION share/icons/hicolor/scalable/apps)
 endif()
 
 qt_finalize_target(${PROJECT_NAME})

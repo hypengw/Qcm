@@ -34,22 +34,18 @@ MD.Card {
             Layout.bottomMargin: 8
             Layout.fillWidth: true
 
-            Label {
+            MD.Text {
                 id: label
                 Layout.fillWidth: true
-                maximumLineCount: 2
-                wrapMode: Text.Wrap
-                elide: Text.ElideRight
-
                 text: root.text
+                maximumLineCount: 2
+                typescale: MD.Token.typescale.body_medium
             }
 
-            Label {
+            MD.Text {
                 id: label_sub
-
-                visible: !!text
                 Layout.alignment: Qt.AlignHCenter
-                font.pointSize: Theme.ts.label_small.size
+                visible: !!text
                 opacity: 0.6
             }
         }

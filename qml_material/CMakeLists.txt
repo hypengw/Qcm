@@ -22,7 +22,9 @@ set(QML_FILES
     qml/Image.qml
     qml/ListItem.qml
     qml/Icon.qml
+    qml/Text.qml
     qml/impl/Ripple.qml
+    qml/impl/State.qml
     qml/impl/RoundedElevationEffect.qml)
 set(RESOURCES assets/MaterialIconsRound-Regular.otf
               assets/MaterialIconsOutlined-Regular.otf)

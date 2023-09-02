@@ -98,7 +98,7 @@ IMPL_ATTACH_PROP(QColor, stateLayerColor, m_stateLayerColor)
 
 void Theme::attachedParentChange(QQuickAttachedPropertyPropagator* newParent,
                                  QQuickAttachedPropertyPropagator* oldParent) {
-    Q_UNUSED(oldParent);
+    Propagator::attachedParentChange(newParent, oldParent);
     Theme* attachedParentStyle = qobject_cast<Theme*>(newParent);
     if (attachedParentStyle) {
         #define X(_name_) inherit_attach_prop(this, &Theme::get_##_name_, attachedParentStyle->_name_())

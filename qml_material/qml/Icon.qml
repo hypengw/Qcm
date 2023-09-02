@@ -10,6 +10,7 @@ Item {
 
     property string name
     property int size
+    property alias horizontalAlignment: item_text_icon.horizontalAlignment
 
     property int lineHeight: MD.Token.typescale.label_large.line_height
     property int iconStyle: MD.Enum.IconRound

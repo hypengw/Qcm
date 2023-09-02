@@ -26,6 +26,14 @@ T.ItemDelegate {
     property string supportText
     property int maximumLineCount: 1
     property alias leader: item_holder_leader.contentItem
+    property alias trailing: item_holder_trailing.contentItem
+
+    property int heightMode: {
+        if(supportText.length > 0)
+            return MD.Enum.ListItemTwoLine;
+        else
+            return MD.Enum.ListItemOneLine;
+    }
 
     contentItem: RowLayout {
         spacing: 16
@@ -39,40 +47,30 @@ T.ItemDelegate {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignVCenter
             spacing: 0
-            Text {
+            MD.Text {
                 Layout.fillWidth: true
                 text: control.text
-                color: MD.MatProp.textColor
-                font.pixelSize: MD.Token.typescale.body_large.size
-                font.weight: MD.Token.typescale.body_large.weight
-                lineHeight: MD.Token.typescale.body_large.line_height
-                lineHeightMode: Text.FixedHeight
-                wrapMode: Text.Wrap
-                elide: Text.ElideRight
+                typescale: MD.Token.typescale.body_large
                 maximumLineCount: control.maximumLineCount
-                textFormat: Text.PlainText
             }
-            Text {
+            MD.Text {
                 Layout.fillWidth: true
                 text: control.supportText
                 color: MD.MatProp.supportTextColor
-                font.pixelSize: MD.Token.typescale.body_medium.size
-                font.weight: MD.Token.typescale.body_medium.weight
-                lineHeight: MD.Token.typescale.body_medium.line_height
-                lineHeightMode: Text.FixedHeight
-                elide: Text.ElideRight
-                textFormat: Text.PlainText
+                typescale: MD.Token.typescale.body_medium
             }
         }
-        Text {
+        MD.Text {
             id: item_text_trailing_support
             Layout.alignment: Qt.AlignVCenter
             visible: text.length
-            color: MD.MatProp.supportTextColor
-            font.pointSize: MD.Token.typescale.label_small.size
-            font.weight: MD.Token.typescale.label_small.weight
-            lineHeight: MD.Token.typescale.label_small.line_height
-            lineHeightMode: Text.FixedHeight
+            typescale: MD.Token.typescale.label_small
+        }
+
+        MD.Control {
+            id: item_holder_trailing
+            Layout.alignment: Qt.AlignVCenter
+            visible: contentItem
         }
 
         MD.Icon {
@@ -86,14 +84,19 @@ T.ItemDelegate {
     background: Rectangle {
         implicitWidth: 64
         implicitHeight: {
-            if(control.supportText.length) {
-                return 72
+            switch(control.heightMode) {
+            case MD.Enum.ListItemThreeLine:
+                return 96;
+            case MD.Enum.ListItemTwoLine:
+                return 72;
+            case MD.Enum.ListItemOneLine:
+            default:
+                return 56;
             }
-            return 56;
         }
 
         radius: 0
-        color: MD.MatProp.backgroundColor
+        color: control.backgroundColor
 
         layer.enabled: control.enabled && color.a > 0
         layer.effect: MD.RoundedElevationEffect {
@@ -111,53 +114,52 @@ T.ItemDelegate {
             active: enabled && (control.down || control.visualFocus || control.hovered)
             color: MD.MatProp.stateLayerColor
         }
-    }
 
-    Item {
-        id: item_btn_state
+    }
+    MD.MatProp.elevation: item_state.elevation
+    MD.MatProp.textColor: item_state.textColor
+    MD.MatProp.supportTextColor: item_state.supportTextColor
+    MD.MatProp.backgroundColor: item_state.backgroundColor
+    MD.MatProp.stateLayerColor: item_state.stateLayerColor
+
+    // TODO: workaround
+    property color backgroundColor: MD.MatProp.backgroundColor
+
+    MD.State {
+        id: item_state
         visible: false
-        state: "Base"
+
+        elevation: MD.Token.elevation.level0
+        textColor: MD.Token.color.on_surface
+        backgroundColor: MD.Token.color.surface
+        supportTextColor: MD.Token.color.on_surface_variant
+        stateLayerColor: "#00000000"
+
         states: [
-            State {
-                name: "Base"
-                when: control.enabled && !control.hovered && !control.down
-                PropertyChanges {
-                    MD.MatProp.elevation: MD.Token.elevation.level0
-                    MD.MatProp.textColor: MD.Token.color.on_surface
-                    MD.MatProp.supportTextColor: MD.Token.color.on_surface_variant
-                    MD.MatProp.backgroundColor: MD.Token.color.surface
-                    MD.MatProp.stateLayerColor: "#00000000"
-                    target: control
-                    restoreEntryValues: false
-                }
-            },
             State {
                 name: "Disabled"
                 when: !enabled
                 PropertyChanges {
-                    MD.MatProp.elevation: MD.Token.elevation.level0
-                    MD.MatProp.textColor: MD.Token.color.on_surface
-                    MD.MatProp.supportTextColor: MD.Token.color.on_surface
-                    MD.MatProp.backgroundColor: MD.Token.color.on_surface
-                    contentItem.opacity: 0.38
-                    background.opacity: 0.38
-                    target: control
+                    item_state.elevation: MD.Token.elevation.level0
+                    item_state.textColor: MD.Token.color.on_surface
+                    item_state.supportTextColor: MD.Token.color.on_surface
+                    item_state.backgroundColor: MD.Token.color.on_surface
+                    control.contentItem.opacity: 0.38
+                    control.background.opacity: 0.38
                 }
             },
             State {
                 name: "Hovered"
                 when: control.enabled && control.hovered && !control.down
                 PropertyChanges {
-                    MD.MatProp.stateLayerColor: MD.Util.hoverColor(MD.Token.color.on_surface)
-                    target: control
+                    item_state.stateLayerColor: MD.Util.hoverColor(MD.Token.color.on_surface)
                 }
             },
             State {
                 name: "Pressed"
                 when: control.enabled && control.down
                 PropertyChanges {
-                    MD.MatProp.stateLayerColor: MD.Util.pressColor(MD.Token.color.on_surface)
-                    target: control
+                    item_state.stateLayerColor: MD.Util.pressColor(MD.Token.color.on_surface)
                 }
             }
         ]

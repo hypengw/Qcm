@@ -15,6 +15,7 @@ Slider {
     padding: 0
     to: 1
 
+    /*
     NumberAnimation on value  {
         id: anim_v
     }
@@ -45,14 +46,20 @@ Slider {
                 anim_v.restart();
         }
     }
+    */
+    onPlaying_posChanged: {
+        if (!pressed) {
+            const to = playing_pos;
+            value =  to;
+        }
+    }
     onPositionChanged: {
         if (pressed)
             slider_timer.recordPos(position);
     }
     onPressedChanged: {
-        anim_v.from = position;
-        in_anim = false;
-        anim_v.stop();
+        // anim_v.from = position;
+        // anim_v.stop();
         if (!pressed) {
             slider_timer.stop();
             slider_timer.triggered();

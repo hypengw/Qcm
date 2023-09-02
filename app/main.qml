@@ -5,7 +5,7 @@ import QtQuick.Controls.Material
 import QtQuick.Layouts
 import QtQuick.Window
 import Qcm.App
-import Qcm.Material as QM
+import Qcm.Material as MD
 
 ApplicationWindow {
     id: win
@@ -19,6 +19,10 @@ ApplicationWindow {
     Material.foreground: Theme.color.getOn(Material.background)
     Material.primary: Theme.color.primary
     Material.theme: Theme.toMatTheme(Theme.theme)
+
+    MD.MatProp.backgroundColor: MD.Token.color.background
+    MD.MatProp.textColor: MD.Token.color.getOn(MD.MatProp.backgroundColor)
+
     color: Material.background
     height: 600
     visible: true

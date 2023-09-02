@@ -7,7 +7,7 @@ ListView {
     id: root
     signal wheelMoved
 
-    FlickableScrollHandler {
-        onMoved: root.wheelMoved()
-    }
+    //FlickableScrollHandler {
+    //    onMoved: root.wheelMoved()
+    //}
 }
