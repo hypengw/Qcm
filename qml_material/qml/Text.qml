@@ -10,6 +10,7 @@ Text {
         root.lineHeight: typescale.line_height
         root.font.pixelSize: typescale.size
         root.font.weight: typescale.weight
+        root.font.letterSpacing: typescale.tracking
     }
 
     color: MD.MatProp.textColor

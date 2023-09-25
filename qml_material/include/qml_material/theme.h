@@ -2,10 +2,10 @@
 
 #include <functional>
 
-#include <QObject>
-#include <QQmlEngine>
-#include <QQuickAttachedPropertyPropagator>
-#include <QColor>
+#include <QtCore/QObject>
+#include <QtQml/QQmlEngine>
+#include <QtQuickControls2/QQuickAttachedPropertyPropagator>
+#include <QtGui/QColor>
 
 #define ATTACH_PROPERTY(_type_, _name_)                                                 \
 private:                                                                                \

@@ -1,16 +1,15 @@
+import QtCore
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
-import Qt.labs.settings
-import Qcm.App
-import ".."
-import "../component"
-import "../part"
-import "../js/util.mjs" as Util
+
+import Qcm.App as QA
 import Qcm.Material as MD
 
-Page {
+import "../js/util.mjs" as Util
+
+MD.Page {
     id: root
     padding: 0
 
@@ -19,16 +18,16 @@ Page {
             m_page_stack.push_page(msg.qml, msg.props);
         }
 
-        target: QA
+        target: QA.Global
     }
     RowLayout {
         anchors.fill: parent
         spacing: 0
 
-        Pane {
+        MD.Pane {
             Layout.fillHeight: true
-            Material.background: Theme.color.surface_container
-            Material.elevation: 2
+            MD.MatProp.elevation: MD.Token.elevation.level2
+            // Material.background: Theme.color.surface_container
             padding: 0
             z: 1
 
@@ -45,11 +44,9 @@ Page {
                     }
 
                     ColumnLayout {
-                        MRoundButton {
-                            flat: true
-
+                        MD.IconButton {
                             action: Action {
-                                icon.name: Theme.ic.arrow_back
+                                icon.name: MD.Token.icon.arrow_back
 
                                 onTriggered: {
                                     if (m_page_stack.depth > 1)
@@ -68,8 +65,8 @@ Page {
                         implicitHeight: contentHeight
                         interactive: false
 
-                        delegate: MItemDelegate {
-                            Material.primary: Theme.color.secondary_container
+                        delegate: QA.MItemDelegate {
+                            // Material.primary: Theme.color.secondary_container
                             width: ListView.view.width
 
                             onClicked: {
@@ -79,11 +76,10 @@ Page {
                                     ListView.view.currentIndex = index;
                             }
 
-                            Label {
+                            MD.Icon {
                                 anchors.centerIn: parent
-                                font.family: Theme.font.icon_round.family
-                                font.pointSize: 16
-                                text: model.icon
+                                name: model.icon
+                                size: 24
                             }
                         }
                         model: ListModel {
@@ -91,22 +87,22 @@ Page {
 
                         Component.onCompleted: {
                             [{
-                                    "icon": Theme.ic.menu,
+                                    "icon": MD.Token.icon.menu,
                                     "action": {
                                         "do": function () {
                                             App.test();
                                         }
                                     }
                                 }, {
-                                    "icon": Theme.ic.library_music,
+                                    "icon": MD.Token.icon.library_music,
                                     "page": 'qrc:/Qcm/App/qml/page/MinePage.qml',
                                     "cache": true
                                 }, {
-                                    "icon": Theme.ic.today,
+                                    "icon": MD.Token.icon.today,
                                     "page": 'qrc:/Qcm/App/qml/page/TodayPage.qml',
                                     "cache": true
                                 }, {
-                                    "icon": Theme.ic.queue_music,
+                                    "icon": MD.Token.icon.queue_music,
                                     "page": 'qrc:/Qcm/App/qml/page/PlaylistListPage.qml'
                                 }].forEach(m => {
                                     model.append(m);
@@ -126,7 +122,7 @@ Page {
                 MD.IconButton {
                     action: Action {
                         readonly property bool is_dark_theme: MD.Token.color.schemeTheme == MD.MdColorMgr.Dark
-                        icon.name: is_dark_theme ? Theme.ic.dark_mode : Theme.ic.light_mode
+                        icon.name: is_dark_theme ? MD.Token.icon.dark_mode : MD.Token.icon.light_mode
 
                         onTriggered: {
                             MD.Token.color.schemeTheme = is_dark_theme ? MD.MdColorMgr.Light : MD.MdColorMgr.Dark;
@@ -135,10 +131,10 @@ Page {
                 }
                 MD.IconButton {
                     action: Action {
-                        icon.name: Theme.ic.settings
+                        icon.name: MD.Token.icon.settings
 
                         onTriggered: {
-                            QA.show_page_popup('qrc:/Qcm/App/qml/page/SettingsPage.qml', {});
+                            QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/SettingsPage.qml', {});
                         }
                     }
                 }
@@ -148,21 +144,21 @@ Page {
             spacing: 0
 
             // clip: true
-            PageStack {
+            QA.PageStack {
                 id: m_page_stack
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                Material.background: Theme.color.surface
+                //Material.background: Theme.color.surface
 
-                initialItem: PageContainer {
+                initialItem: QA.PageContainer {
                     id: page_container
                     initialItem: Item {
                     }
                 }
             }
-            PlayBar {
+            QA.PlayBar {
                 Layout.fillWidth: true
-                Material.background: Theme.color.surface_container
+                // Material.background: Theme.color.surface_container
             }
         }
     }

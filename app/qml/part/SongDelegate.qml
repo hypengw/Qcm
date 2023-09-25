@@ -1,11 +1,10 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
 import QtQuick.Layouts
+
+import Qcm.App as QA
 import Qcm.Material as MD
 
-import ".."
-import "../component"
 
 MD.ListItem {
     id: root
@@ -13,7 +12,7 @@ MD.ListItem {
     required property int count
     readonly property int count_len: this.count.toString().length
     required property int index
-    readonly property bool is_playing: QA.playlist.cur.itemId === modelData.itemId
+    readonly property bool is_playing: QA.Global.playlist.cur.itemId === modelData.itemId
     required property var modelData
     property string subtitle: ''
 
@@ -27,7 +26,7 @@ MD.ListItem {
         StackLayout {
             Layout.fillHeight: false
             Layout.fillWidth: false
-            Layout.minimumWidth: Theme.font.w_unit * root.count_len + 2
+            Layout.minimumWidth: QA.Theme.font.w_unit * root.count_len + 2
             currentIndex: 0
 
             Binding on currentIndex  {
@@ -42,7 +41,7 @@ MD.ListItem {
                 text: index + 1
             }
             MD.Icon {
-                name: Theme.ic.equalizer
+                name: MD.Token.icon.equalizer
                 size: 24
                 MD.MatProp.textColor: MD.Token.color.primary
                 horizontalAlignment: Qt.AlignRight
@@ -61,7 +60,6 @@ MD.ListItem {
 
                     delegate: ColumnLayout {
                         SongTag {
-                            pointSize: Theme.font.small(subtitle_label.font)
                             tag: modelData
                         }
                     }
@@ -71,7 +69,7 @@ MD.ListItem {
                     Layout.fillWidth: true
                     typescale: MD.Token.typescale.body_medium
                     color: MD.MatProp.supportTextColor
-                    text: root.subtitle ? root.subtitle : `${QA.join_name(root.modelData.artists, '/')} - ${root.modelData.album.name}`
+                    text: root.subtitle ? root.subtitle : `${QA.Global.join_name(root.modelData.artists, '/')} - ${root.modelData.album.name}`
                 }
             }
         }
@@ -83,18 +81,18 @@ MD.ListItem {
             spacing: 0
 
             MD.IconButton {
-                checked: QA.user_song_set.contains(root.modelData.itemId)
-                icon.name: checked ? Theme.ic.favorite : Theme.ic.favorite_border
+                checked: QA.Global.user_song_set.contains(root.modelData.itemId)
+                icon.name: checked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
 
                 onClicked: {
-                    QA.querier_user_song.like_song(root.modelData.itemId, !checked);
+                    QA.Global.querier_user_song.like_song(root.modelData.itemId, !checked);
                 }
             }
             MD.IconButton {
-                icon.name: Theme.ic.more_vert
+                icon.name: MD.Token.icon.more_vert
 
                 onClicked: {
-                    QA.show_popup('qrc:/Qcm/App/qml/part/SongMenu.qml', {
+                    QA.Global.show_popup('qrc:/Qcm/App/qml/part/SongMenu.qml', {
                             "song": modelData,
                             "y": height
                         }, this);

@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import ".."
+import Qcm.App as QA
 
 StackView {
     id: root
@@ -14,7 +14,7 @@ StackView {
         if (is_cache) {
             let cache = m_page_cache.get(key);
             if (!cache) {
-                cache = QA.create_item(url_or_comp, props, null);
+                cache = QA.Global.create_item(url_or_comp, props, null);
                 cache.visible = false;
                 m_page_cache.set(key, cache);
             }

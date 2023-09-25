@@ -2,36 +2,32 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
-import Qcm.App
-import ".."
-import "../component"
-import "../part"
+import Qcm.App as QA
+import Qcm.Material as MD
 import "../js/util.mjs" as Util
 
-MPage {
+MD.Page {
     id: root
-    header: Pane {
+    header: MD.Pane {
         clip: false
         implicitHeight: 0
 
         RowLayout {
-            MRoundButton {
+            MD.IconButton {
                 Layout.alignment: Qt.AlignLeft
-                flat: true
-
                 action: Action {
-                    icon.name: Theme.ic.arrow_back
+                    icon.name: MD.Token.icon.arrow_back
 
                     onTriggered: {
-                        QA.sig_route_special('main');
+                        QA.Global.sig_route_special('main');
                     }
                 }
             }
         }
     }
 
-    ApiContainer {
-        SongLyricQuerier {
+    QA.ApiContainer {
+        QA.SongLyricQuerier {
             id: querier_lyric
 
             readonly property string combined_lrc: {
@@ -39,16 +35,16 @@ MPage {
             }
 
             autoReload: songId.valid()
-            songId: QA.cur_song.itemId
+            songId: QA.Global.cur_song.itemId
         }
     }
-    MPage {
+    MD.Page {
         anchors.fill: parent
 
         RowLayout {
             anchors.fill: parent
 
-            Pane {
+            MD.Pane {
                 id: play_pane
                 Layout.fillWidth: true
 
@@ -57,117 +53,97 @@ MPage {
                     spacing: 12
                     width: parent.width
 
-                    MPane {
-                        id: pane_cover
-
-                        readonly property int img_size: 240
-
+                    MD.Image {
                         Layout.alignment: Qt.AlignHCenter
-                        Layout.preferredHeight: Layout.preferredWidth
-                        Layout.preferredWidth: img_size + 2 * padding
-                        Material.background: Theme.color.surface_2
-                        Material.elevation: 4
-                        padding: 4
-
-                        Image {
-                            height: width
-                            source: `image://ncm/${QA.cur_song.album.picUrl}`
-                            sourceSize.height: pane_cover.img_size
-                            sourceSize.width: pane_cover.img_size
-                        }
+                        MD.MatProp.elevation: MD.Token.elevation.level2
+                        source: `image://ncm/${QA.Global.cur_song.album.picUrl}`
+                        sourceSize.height: 240
+                        sourceSize.width: 240
+                        radius: 16
                     }
-                    Label {
+                    MD.Text {
                         Layout.alignment: Qt.AlignHCenter
                         Layout.bottomMargin: 12
                         Layout.fillWidth: true
                         Layout.topMargin: 12
-                        elide: Text.ElideRight
                         font.bold: true
-                        font.pointSize: Theme.ts.label_large.size
+                        typescale: MD.Token.typescale.label_large
                         horizontalAlignment: Text.AlignHCenter
-                        text: QA.cur_song.name
+                        text: QA.Global.cur_song.name
                     }
-                    Label {
+                    MD.Text {
                         Layout.alignment: Qt.AlignHCenter
                         Layout.fillWidth: true
-                        elide: Text.ElideRight
-                        font.pointSize: Theme.ts.label_medium.size
+                        typescale: MD.Token.typescale.label_medium
                         horizontalAlignment: Text.AlignHCenter
-                        text: QA.cur_song.album.name
+                        text: QA.Global.cur_song.album.name
                     }
-                    Label {
+                    MD.Text {
                         Layout.alignment: Qt.AlignHCenter
                         Layout.fillWidth: true
-                        elide: Text.ElideRight
-                        font.pointSize: Theme.ts.label_medium.size
+                        typescale: MD.Token.typescale.label_medium
                         horizontalAlignment: Text.AlignHCenter
-                        text: QA.join_name(QA.cur_song.artists, '/')
+                        text: QA.Global.join_name(QA.Global.cur_song.artists, '/')
                     }
                     RowLayout {
                         Layout.alignment: Qt.AlignHCenter
 
-                        MRoundButton {
-                            readonly property bool liked: QA.user_song_set.contains(QA.cur_song.itemId)
+                        MD.IconButton {
+                            readonly property bool liked: QA.Global.user_song_set.contains(QA.Global.cur_song.itemId)
 
-                            Material.accent: Theme.color.secondary
-                            enabled: QA.cur_song.itemId.valid()
-                            flat: true
-                            highlighted: liked
-                            icon.name: liked ? Theme.ic.favorite : Theme.ic.favorite_border
+                            enabled: QA.Global.cur_song.itemId.valid()
+                            icon.name: liked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
 
                             onClicked: {
-                                QA.querier_user_song.like_song(QA.cur_song.itemId, !liked);
+                                QA.Global.querier_user_song.like_song(QA.Global.cur_song.itemId, !liked);
                             }
                         }
-                        MRoundButton {
-                            enabled: QA.playlist.canPrev
-                            flat: true
-                            icon.name: Theme.ic.skip_previous
+                        MD.IconButton {
+                            enabled: QA.Global.playlist.canPrev
+                            icon.name: MD.Token.icon.skip_previous
 
-                            onClicked: QA.playlist.prev()
+                            onClicked: QA.Global.playlist.prev()
                         }
-                        MRoundButton {
-                            highlighted: true
-                            icon.name: QA.player.playing ? Theme.ic.pause : Theme.ic.play_arrow
+                        MD.IconButton {
+                            icon.name: QA.Global.player.playing ? MD.Token.icon.pause : MD.Token.icon.play_arrow
 
                             onClicked: {
-                                const player = QA.player;
+                                const player = QA.Global.player;
                                 if (player.playing)
                                     player.pause();
                                 else
                                     player.play();
                             }
                         }
-                        MRoundButton {
-                            enabled: QA.playlist.canNext
-                            flat: true
-                            icon.name: Theme.ic.skip_next
+                        MD.IconButton {
+                            enabled: QA.Global.playlist.canNext
+                            icon.name: MD.Token.icon.skip_next
 
-                            onClicked: QA.playlist.next()
+                            onClicked: QA.Global.playlist.next()
                         }
-                        MRoundButton {
+                        MD.IconButton {
                             flat: true
-                            icon.name: QA.loop_icon
+                            icon.name: QA.Global.loop_icon
 
-                            onClicked: QA.playlist.iterLoopMode()
+                            onClicked: QA.Global.playlist.iterLoopMode()
                         }
                     }
                     RowLayout {
                         Layout.alignment: Qt.AlignHCenter
 
                         Label {
-                            readonly property date position: new Date(QA.player.duration * slider.position)
+                            readonly property date position: new Date(QA.Global.player.duration * slider.position)
 
-                            opacity: QA.player.duration > 0 ? 1 : 0
+                            opacity: QA.Global.player.duration > 0 ? 1 : 0
                             text: `${Qt.formatDateTime(position, 'mm:ss')}`
                         }
-                        PlaySlider {
+                        QA.PlaySlider {
                             id: slider
                             Layout.preferredWidth: 220
                         }
                         Label {
-                            opacity: QA.player.duration > 0 ? 1 : 0
-                            text: `${Qt.formatDateTime(QA.player.duration_date, 'mm:ss')}`
+                            opacity: QA.Global.player.duration > 0 ? 1 : 0
+                            text: `${Qt.formatDateTime(QA.Global.player.duration_date, 'mm:ss')}`
                         }
                     }
                     Item {
@@ -175,7 +151,7 @@ MPage {
                     }
                 }
             }
-            Pane {
+            MD.Pane {
                 id: lyric_pane
                 Layout.fillHeight: true
                 Layout.fillWidth: true
@@ -184,20 +160,20 @@ MPage {
                 ColumnLayout {
                     anchors.fill: parent
 
-                    LrcLyric {
+                    QA.LrcLyric {
                         id: lrc
-                        position: QA.player.position
+                        position: QA.Global.player.position
                         source: querier_lyric.combined_lrc
 
                         onCurrentIndexChanged: {
                             lyric_view.posTo(currentIndex < 0 ? 0 : currentIndex);
                         }
                     }
-                    Pane {
+                    MD.Pane {
                         Layout.fillHeight: true
                         Layout.fillWidth: true
 
-                        MListView {
+                        QA.MListView {
                             id: lyric_view
                             function posTo(idx) {
                                 if (visible) {
@@ -259,22 +235,21 @@ MPage {
                                     }
                                 }
                             }
-                            delegate: MItemDelegate {
-                                Material.foreground: lrc.currentIndex === index ? Theme.color.tertiary : root.Material.foreground
+                            delegate: QA.MItemDelegate {
+                                // Material.foreground: lrc.currentIndex === index ? MD.Token.color.tertiary : root.Material.foreground
                                 width: ListView.view.width
 
                                 contentItem: ColumnLayout {
-                                    Label {
+                                    MD.Text {
                                         Layout.fillWidth: true
-                                        font.pointSize: Theme.ts.title_medium.size
+                                        typescale: MD.Token.typescale.title_medium
                                         horizontalAlignment: Text.AlignHCenter
                                         text: model.content
-                                        wrapMode: Text.Wrap
                                     }
                                 }
 
                                 onClicked: {
-                                    QA.player.position = model.milliseconds;
+                                    QA.Global.player.position = model.milliseconds;
                                 }
                             }
                             footer: Item {

@@ -45,18 +45,17 @@ T.Button {
         implicitHeight: 40
 
         radius: height / 2
-        color: MD.MatProp.backgroundColor
+        color: control.MD.MatProp.backgroundColor
 
         border.width: control.type == MD.Enum.BtOutlined ? 1 : 0
-        border.color: MD.Token.color.outline
+        border.color: control.MD.Token.color.outline
 
         // The layer is disabled when the button color is transparent so you can do
         // Material.background: "transparent" and get a proper flat button without needing
         // to set Material.elevation as well
         layer.enabled: control.enabled && color.a > 0 && !control.flat
         layer.effect: MD.RoundedElevationEffect {
-            elevation: MD.MatProp.elevation
-            roundedScale: control.background.radius
+            elevation: MD.Token.elevation.level1//control.MD.MatProp.elevation
         }
 
         MD.Ripple {
@@ -67,70 +66,67 @@ T.Button {
             pressed: control.pressed
             anchor: control
             active: enabled && (control.down || control.visualFocus || control.hovered)
-            color: MD.MatProp.stateLayerColor
+            color: control.MD.MatProp.stateLayerColor
         }
     }
 
-    Item {
-        id: item_btn_state
+    MD.MatProp.elevation: item_state.elevation
+    MD.MatProp.textColor: item_state.textColor
+    MD.MatProp.supportTextColor: item_state.supportTextColor
+    MD.MatProp.backgroundColor: item_state.backgroundColor
+    MD.MatProp.stateLayerColor: item_state.stateLayerColor
 
+    MD.State {
+        id: item_state
         visible: false
-        state: "Base"
+
+        elevation: MD.Token.elevation.level1
+        textColor: {
+            switch (control.type) {
+            case MD.Enum.BtFilled:
+            case MD.Enum.BtFilledTonal:
+                return MD.Token.color.getOn(control.MD.MatProp.backgroundColor);
+            case MD.Enum.BtOutlined:
+            case MD.Enum.BtText:
+            case MD.Enum.BtElevated:
+            default:
+                return MD.Token.color.primary;
+            }
+        }
+        backgroundColor: {
+            switch (control.type) {
+            case MD.Enum.BtFilled:
+                return MD.Token.color.primary;
+            case MD.Enum.BtFilledTonal:
+                return MD.Token.color.secondary_container;
+            case MD.Enum.BtOutlined:
+            case MD.Enum.BtText:
+                return MD.Token.color.surface;
+            case MD.Enum.BtElevated:
+            default:
+                return MD.Token.color.surface_container_low;
+            }
+        }
+        stateLayerColor: "#00000000"
+
         states: [
-            State {
-                name: "Base"
-                when: control.enabled && !control.hovered && !control.down
-                PropertyChanges {
-                    MD.MatProp.elevation: MD.Token.elevation.level1
-                    MD.MatProp.textColor: {
-                        switch (control.type) {
-                        case MD.Enum.BtFilled:
-                        case MD.Enum.BtFilledTonal:
-                            return MD.Token.color.getOn(control.MD.MatProp.backgroundColor);
-                        case MD.Enum.BtOutlined:
-                        case MD.Enum.BtText:
-                        case MD.Enum.BtElevated:
-                        default:
-                            return MD.Token.color.primary;
-                        }
-                    }
-                    MD.MatProp.backgroundColor: {
-                        switch (control.type) {
-                        case MD.Enum.BtFilled:
-                            return MD.Token.color.primary;
-                        case MD.Enum.BtFilledTonal:
-                            return MD.Token.color.secondary_container;
-                        case MD.Enum.BtOutlined:
-                        case MD.Enum.BtText:
-                            return MD.Token.color.surface;
-                        case MD.Enum.BtElevated:
-                        default:
-                            return MD.Token.color.surface_container_low;
-                        }
-                    }
-                    MD.MatProp.stateLayerColor: "#00000000"
-                    target: control
-                    restoreEntryValues: false
-                }
-            },
             State {
                 name: "Disabled"
                 when: !enabled
                 PropertyChanges {
-                    MD.MatProp.elevation: MD.Token.elevation.level0
-                    MD.MatProp.textColor: MD.Token.color.on_surface
-                    MD.MatProp.backgroundColor: MD.Token.color.on_surface
-                    contentItem.opacity: 0.38
-                    background.opacity: 0.12
-                    target: control
+                    item_state.elevation: MD.Token.elevation.level0
+                    item_state.textColor: MD.Token.color.on_surface
+                    item_state.backgroundColor: MD.Token.color.on_surface
+                    control.contentItem.opacity: 0.38
+                    control.background.opacity: 0.12
                 }
             },
             State {
                 name: "Hovered"
                 when: control.enabled && control.hovered && !control.down
                 PropertyChanges {
-                    MD.MatProp.elevation: MD.Token.elevation.level2
-                    MD.MatProp.stateLayerColor: {
+                    item_state.elevation: MD.Token.elevation.level2
+                    item_state.stateLayerColor: {
                         let c = null;
                         switch (control.type) {
                         case MD.Enum.BtFilled:
@@ -143,17 +139,16 @@ T.Button {
                         default:
                             c = MD.Token.color.primary;
                         }
-                        return Qt.rgba(c.r, c.g, c.b, 0.08);
+                        return MD.Util.transparent(c, MD.Token.state.hover.state_layer_opacity);
                     }
-                    target: control
                 }
             },
             State {
                 name: "Pressed"
                 when: control.enabled && control.down
                 PropertyChanges {
-                    MD.MatProp.elevation: MD.Token.elevation.level1
-                    MD.MatProp.stateLayerColor: {
+                    item_state.elevation: MD.Token.elevation.level1
+                    item_state.stateLayerColor: {
                         let c = null;
                         switch (control.type) {
                         case MD.Enum.BtFilled:
@@ -166,9 +161,8 @@ T.Button {
                         default:
                             c = MD.Token.color.primary;
                         }
-                        return Qt.rgba(c.r, c.g, c.b, 0.18);
+                        return MD.Util.transparent(c, MD.Token.state.pressed.state_layer_opacity);
                     }
-                    target: control
                 }
             }
         ]

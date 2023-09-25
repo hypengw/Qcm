@@ -1,5 +1,6 @@
-import QtQuick.Controls.Material.impl as MDImpl
+import QtQuick.Controls.Material as MT
+import QtQuick.Controls.Material.impl as MTImpl
 
-MDImpl.RoundedElevationEffect {
-
+MTImpl.RoundedElevationEffect {
+    roundedScale: MT.Material.FullScale
 }

@@ -2,12 +2,10 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
-import Qcm.App
-import ".."
-import "../component"
-import "../part"
+import Qcm.App as QA
+import Qcm.Material as MD
 
-Page {
+MD.Page {
     id: root
 
     property alias itemData: qr_artist.data
@@ -15,7 +13,7 @@ Page {
 
     padding: 0
 
-    MFlickable {
+    QA.MFlickable {
         id: flick
         anchors.fill: parent
         clip: true
@@ -23,223 +21,133 @@ Page {
 
         ColumnLayout {
             id: content
-            anchors.horizontalCenter: parent.horizontalCenter
-            height: parent.height
-            spacing: 4
-            width: Math.min(800, parent.width)
+            anchors.left: parent.left
+            anchors.right: parent.right
+            spacing: 8
 
-            Pane {
-                Layout.fillWidth: true
-                padding: 0
-                z: 1
+            RowLayout {
+                id: ly_header
+                spacing: 16
+                Layout.leftMargin: 8
+                Layout.rightMargin: 8
+                Layout.topMargin: 8
+
+                MD.Image {
+                    MD.MatProp.elevation: MD.Token.elevation.level2
+                    source: `image://ncm/${root.itemData.info.picUrl}`
+                    sourceSize.height: 240
+                    sourceSize.width: 240
+                    radius: width / 2
+                }
 
                 ColumnLayout {
-                    anchors.fill: parent
+                    Layout.alignment: Qt.AlignTop
+                    spacing: 12
 
-                    Pane {
-                        Layout.fillHeight: true
+                    MD.Text {
                         Layout.fillWidth: true
-
-                        RowLayout {
-                            anchors.fill: parent
-                            spacing: 16
-
-                            MPane {
-                                Layout.alignment: Qt.AlignTop
-                                Layout.preferredHeight: Layout.preferredWidth
-                                Layout.preferredWidth: 160 + 2 * padding
-                                Material.background: Theme.color.surface_2
-                                Material.elevation: 2
-                                padding: 4
-                                radius: width / 2
-                                z: 1
-
-                                RoundImage {
-                                    image: Image {
-                                        source: `image://ncm/${root.itemData.info.picUrl}`
-                                        sourceSize.height: 160
-                                        sourceSize.width: 160
-                                    }
-                                }
-                            }
-                            ColumnLayout {
-                                Layout.alignment: Qt.AlignTop
-                                spacing: 4
-
-                                Label {
-                                    Layout.fillWidth: true
-                                    elide: Text.ElideRight
-                                    font.bold: true
-                                    font.pointSize: Theme.ts.title_medium.size
-                                    maximumLineCount: 2
-                                    text: root.itemData.info.name
-                                    wrapMode: Text.Wrap
-                                }
-                                InfoRow {
-                                    icon_name: Theme.ic.album
-                                    label_text: `${root.itemData.info.albumSize} albums`
-                                }
-                                InfoRow {
-                                    icon_name: Theme.ic.music_note
-                                    label_text: `${root.itemData.info.musicSize} songs`
-                                }
-                                Item {
-                                    Layout.fillHeight: true
-                                }
-                                MButton {
-                                    id: btn_desc
-
-                                    readonly property string description: `${root.itemData.info.briefDesc}`.trim()
-
-                                    Layout.alignment: Qt.AlignBottom
-                                    Layout.fillWidth: true
-                                    flat: true
-                                    font.pointSize: Theme.ts.label_medium.size
-                                    visible: !!btn_desc.description
-
-                                    contentItem: IconRowLayout {
-                                        iconSize: 16
-                                        text: Theme.ic.info
-
-                                        Label {
-                                            Layout.fillWidth: true
-                                            elide: Text.ElideRight
-                                            maximumLineCount: 2
-                                            text: btn_desc.description
-                                            textFormat: Text.PlainText
-                                            wrapMode: Text.Wrap
-                                        }
-                                    }
-
-                                    onClicked: {
-                                        QA.show_page_popup('qrc:/Qcm/App/qml/page/DescriptionPage.qml', {
-                                                "text": description
-                                            });
-                                    }
-                                }
-                            }
+                        maximumLineCount: 2
+                        text: root.itemData.info.name
+                        typescale: MD.Token.typescale.headline_large
+                    }
+                    RowLayout {
+                        spacing: 12
+                        MD.Text {
+                            typescale: MD.Token.typescale.body_medium
+                            text: `${root.itemData.info.albumSize} albums`
                         }
+                        MD.Text {
+                            typescale: MD.Token.typescale.body_medium
+                            text: `${root.itemData.info.musicSize} songs`
+                        }
+                    }
+                    QA.ListDescription {
+                        description: root.itemData.info.briefDesc.trim()
+                        Layout.fillWidth: true
                     }
                 }
             }
-            Pane {
-                Layout.fillWidth: true
-                implicitHeight: Math.min(root.height * 0.75 + pane_tab_bar.implicitHeight, pane_view_column.implicitHeight)
-                padding: 0
 
-                ColumnLayout {
-                    id: pane_view_column
-                    anchors.fill: parent
-                    spacing: 0
+            ColumnLayout {
+                id: pane_view_column
+                spacing: 0
 
-                    Pane {
-                        id: pane_tab_bar
-                        Layout.fillWidth: true
-                        padding: 0
+                MD.TabBar {
+                    id: bar
+                    Layout.fillWidth: true
 
-                        TabBar {
-                            id: bar
-                            Material.elevation: 0
-                            anchors.fill: parent
+                    Component.onCompleted: {
+                        currentIndexChanged();
+                    }
 
-                            Component.onCompleted: {
-                                currentIndexChanged();
+                    MD.TabButton {
+                        text: qsTr("Hot Song")
+                    }
+                    MD.TabButton {
+                        text: qsTr("Album")
+                    }
+                }
+                MD.Pane {
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    implicitHeight: Math.min(Math.max(root.height - ly_header.implicitHeight - bar.implicitHeight, 0), item_stack.implicitHeight)
+                    padding: 0
+
+                    MD.MatProp.backgroundColor: MD.Token.color.surface
+
+                    StackLayout {
+                        id: item_stack
+                        anchors.fill: parent
+                        currentIndex: bar.currentIndex
+
+                        QA.MListView {
+                            boundsBehavior: Flickable.StopAtBounds
+                            clip: true
+                            implicitHeight: contentHeight
+                            interactive: flick.atYEnd
+                            model: itemData.hotSongs
+
+                            ScrollBar.vertical: ScrollBar {
                             }
+                            delegate: QA.SongDelegate {
+                                count: ListView.view.count
+                                subtitle: `${modelData.album.name}`
+                                width: ListView.view.width
 
-                            TabButton {
-                                text: qsTr("Hot Song")
+                                onClicked: {
+                                    QA.Global.playlist.switchTo(modelData);
+                                }
                             }
-                            TabButton {
-                                text: qsTr("Album")
+                            footer: QA.ListBusyFooter {
+                                running: qr_artist.status === QA.ApiQuerierBase.Querying
+                                width: ListView.view.width
                             }
                         }
-                    }
-                    Pane {
-                        Layout.fillHeight: true
-                        Layout.fillWidth: true
-                        Material.elevation: 0
-                        padding: 0
+                        QA.MGridView {
+                            property int cellWidth_: 180
 
-                        StackLayout {
-                            anchors.fill: parent
-                            currentIndex: bar.currentIndex
+                            boundsBehavior: Flickable.StopAtBounds
+                            cellHeight: 264
+                            cellWidth: width > 0 ? width / Math.floor((width / cellWidth_)) : 0
+                            clip: true
+                            interactive: flick.atYEnd
+                            model: qr_artist_albums.data
 
-                            MListView {
-                                boundsBehavior: Flickable.StopAtBounds
-                                clip: true
-                                implicitHeight: contentHeight
-                                interactive: flick.atYEnd
-                                model: itemData.hotSongs
-
-                                ScrollBar.vertical: ScrollBar {
-                                }
-                                delegate: SongDelegate {
-                                    count: ListView.view.count
-                                    subtitle: `${modelData.album.name}`
-                                    width: ListView.view.width
+                            ScrollBar.vertical: ScrollBar {
+                            }
+                            delegate: Item {
+                                width: GridView.view.cellWidth
+                                height: GridView.view.cellHeight
+                                QA.PicGridDelegate {
+                                    anchors.centerIn: parent
+                                    width: picWidth
+                                    height: Math.min(implicitHeight, parent.height)
+                                    image.source: `image://ncm/${model.picUrl}`
+                                    text: model.name
+                                    subText: Qt.formatDateTime(model.publishTime, 'yyyy')
 
                                     onClicked: {
-                                        QA.playlist.switchTo(modelData);
-                                    }
-                                }
-                                footer: ListBusyFooter {
-                                    running: qr_artist.status === ApiQuerierBase.Querying
-                                    width: ListView.view.width
-                                }
-                            }
-                            MGridView {
-                                property int cellWidth_: 180
-
-                                boundsBehavior: Flickable.StopAtBounds
-                                cellHeight: 250
-                                cellWidth: width > 0 ? width / Math.floor((width / cellWidth_)) : 0
-                                clip: true
-                                interactive: flick.atYEnd
-                                model: qr_artist_albums.data
-
-                                ScrollBar.vertical: ScrollBar {
-                                }
-                                delegate: Pane {
-                                    height: GridView.view.cellHeight
-                                    width: GridView.view.cellWidth
-
-                                    MItemDelegate {
-                                        anchors.horizontalCenter: parent.horizontalCenter
-                                        clip: true
-                                        padding: 8
-
-                                        contentItem: ColumnLayout {
-                                            Image {
-                                                Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
-                                                Layout.preferredHeight: 160
-                                                Layout.preferredWidth: 160
-                                                source: `image://ncm/${model.picUrl}`
-                                                sourceSize.height: 160
-                                                sourceSize.width: 160
-                                            }
-                                            Label {
-                                                Layout.preferredWidth: 160
-                                                Layout.topMargin: 8
-                                                elide: Text.ElideRight
-                                                maximumLineCount: 2
-                                                text: model.name
-                                                wrapMode: Text.Wrap
-                                            }
-                                            Label {
-                                                Layout.alignment: Qt.AlignHCenter
-                                                font.pointSize: Theme.ts.label_small.size
-                                                opacity: 0.6
-                                                text: Qt.formatDateTime(model.publishTime, 'yyyy')
-                                                visible: !!text
-                                            }
-                                            Item {
-                                                Layout.fillHeight: true
-                                            }
-                                        }
-
-                                        onClicked: {
-                                            QA.route(model.itemId);
-                                        }
+                                        QA.Global.route(model.itemId);
                                     }
                                 }
                             }
@@ -249,12 +157,12 @@ Page {
             }
         }
     }
-    ApiContainer {
-        ArtistQuerier {
+    QA.ApiContainer {
+        QA.ArtistQuerier {
             id: qr_artist
             autoReload: itemId.valid()
         }
-        ArtistAlbumsQuerier {
+        QA.ArtistAlbumsQuerier {
             id: qr_artist_albums
             artistId: qr_artist.itemId
             autoReload: artistId.valid()

@@ -5,32 +5,34 @@
 #include <fstream>
 
 #include <ctre.hpp>
-#include <QPointer>
+#include <QtCore/QPointer>
 
 #include "Qcm/app.h"
 #include "Qcm/type.h"
 #include "Qcm/path.h"
+#include "Qcm/cache_sql.h"
 
 #include "core/expected_helper.h"
 #include "request/response.h"
 #include "asio_helper/sync_file.h"
 #include "crypto/crypto.h"
 #include "ncm/client.h"
-#include "Qcm/cache_sql.h"
 
 using namespace qcm;
 
 namespace
 {
-constexpr int DEF_SIZE = 500;
+constexpr int DEF_SIZE { 240 };
 
 inline QSize get_down_size(const QSize& req) {
-    if (req.width() <= DEF_SIZE) {
+    const int def_size = DEF_SIZE * qApp->devicePixelRatio();
+
+    if (req.width() <= def_size) {
         double rate = req.height() / (double)req.width();
         if (rate < 1.0) {
-            return { DEF_SIZE, (int)(DEF_SIZE * rate) };
+            return { def_size, (int)(def_size * rate) };
         } else {
-            return { (int)(DEF_SIZE / rate), DEF_SIZE };
+            return { (int)(def_size / rate), DEF_SIZE };
         }
     }
     return req;

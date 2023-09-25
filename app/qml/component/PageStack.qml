@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
 import QtQuick.Layouts
-import ".."
+
+import Qcm.App as QA
 
 StackView {
     id: root
@@ -18,7 +18,7 @@ StackView {
         if (item) {
             popup(item);
         } else {
-            item = QA.create_item(url, props, null);
+            item = QA.Global.create_item(url, props, null);
             pages.set(key, item);
             push(item);
         }

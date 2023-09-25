@@ -1,8 +1,9 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
 
-Pane {
+import Qcm.Material as MD
+
+MD.Pane {
     property alias running: m_busy.running
 
     visible: running
@@ -10,7 +11,7 @@ Pane {
     padding: 4
     clip: true
 
-    BusyIndicator {
+    MD.CircularIndicator {
         id: m_busy
 
         anchors.centerIn: parent

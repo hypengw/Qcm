@@ -4,6 +4,7 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
 import Qcm.App
+import Qcm.Material as MD
 import ".."
 import "../component"
 import "../part"
@@ -95,7 +96,8 @@ Page {
                                             hoverEnabled: true
 
                                             onClicked: {
-                                                Theme.color.accentColor = modelData.value;
+                                                MD.Token.color.accentColor = modelData.value;
+                                                //Theme.color.accentColor = modelData.value;
                                             }
                                         }
                                     }

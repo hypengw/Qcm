@@ -1,9 +1,9 @@
 #pragma once
 
-#include <QQmlEngine>
-#include <QtGui/qcolor.h>
-
 #include <unordered_map>
+
+#include <QtQml/QQmlEngine>
+#include <QtGui/QColor>
 
 #include "core/core.h"
 #include "material_helper/helper.h"

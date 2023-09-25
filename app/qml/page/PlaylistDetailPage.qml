@@ -1,14 +1,11 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
 import QtQuick.Layouts
-import Qcm.App
-import Qcm.Material as MD
-import ".."
-import "../component"
-import "../part"
 
-Page {
+import Qcm.App as QA
+import Qcm.Material as MD
+
+MD.Page {
     id: root
 
     property alias itemData: qr_pl.data
@@ -16,221 +13,143 @@ Page {
 
     padding: 0
 
-    MFlickable {
-        id: flick
+    ListView {
+        id: view
         anchors.fill: parent
+        boundsBehavior: Flickable.StopAtBounds
+        reuseItems: true
         clip: true
-        contentHeight: content.implicitHeight
+        contentY: 0
 
-        ScrollBar.vertical: ScrollBar {
-            visible: false
-        }
+        topMargin: 8
 
-        ColumnLayout {
-            id: content
-            anchors.fill: parent
+        model: itemData.songs
+
+        header: ColumnLayout {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottomMargin: 8
+            anchors.leftMargin: 8
+            anchors.rightMargin: 8
+
             spacing: 4
 
-            Pane {
-                Layout.fillWidth: true
-                padding: 0
+            RowLayout {
+                spacing: 16
+
+                MD.Image {
+                    MD.MatProp.elevation: MD.Token.elevation.level2
+                    source: `image://ncm/${root.itemData.picUrl}`
+                    sourceSize.height: 240
+                    sourceSize.width: 240
+                    radius: 16
+                }
 
                 ColumnLayout {
-                    anchors.fill: parent
+                    Layout.alignment: Qt.AlignTop
+                    spacing: 12
 
-                    Pane {
-                        Layout.fillHeight: true
+                    MD.Text {
                         Layout.fillWidth: true
+                        maximumLineCount: 2
+                        text: root.itemData.name
+                        typescale: MD.Token.typescale.headline_large
+                    }
 
-                        RowLayout {
-                            anchors.fill: parent
-                            spacing: 16
-
-                            Pane {
-                                Layout.alignment: Qt.AlignTop
-                                Layout.preferredHeight: Layout.preferredWidth
-                                Layout.preferredWidth: 160 + 2 * padding
-                                Material.background: Theme.color.surface_2
-                                Material.elevation: 4
-                                padding: 4
-
-                                Image {
-                                    source: `image://ncm/${root.itemData.picUrl}`
-                                    sourceSize.height: 160
-                                    sourceSize.width: 160
-                                }
-                            }
-                            ColumnLayout {
-                                Layout.alignment: Qt.AlignTop
-                                spacing: 4
-
-                                Label {
-                                    Layout.fillWidth: true
-                                    elide: Text.ElideRight
-                                    font.bold: true
-                                    font.pointSize: Theme.ts.title_medium.size
-                                    maximumLineCount: 2
-                                    text: root.itemData.name
-                                    wrapMode: Text.Wrap
-                                }
-                                InfoRow {
-                                    icon_name: Theme.ic.music_note
-                                    label_text: `${root.itemData.songs.length} songs`
-                                }
-                                InfoRow {
-                                    icon_name: Theme.ic.today
-                                    label_text: Qt.formatDateTime(root.itemData.updateTime, 'yyyy.MM.dd')
-                                }
-                                Item {
-                                    Layout.fillHeight: true
-                                }
-                                MButton {
-                                    id: btn_desc
-
-                                    readonly property string description: root.itemData.description.trim()
-
-                                    Layout.alignment: Qt.AlignBottom
-                                    Layout.fillWidth: true
-                                    flat: true
-                                    font.pointSize: Theme.ts.label_medium.size
-                                    visible: !!btn_desc.description
-
-                                    contentItem: IconRowLayout {
-                                        iconSize: 16
-                                        text: Theme.ic.info
-
-                                        Label {
-                                            Layout.fillWidth: true
-                                            elide: Text.ElideRight
-                                            maximumLineCount: 2
-                                            text: btn_desc.description
-                                            textFormat: Text.PlainText
-                                            wrapMode: Text.Wrap
-                                        }
-                                    }
-
-                                    onClicked: {
-                                        QA.show_page_popup('qrc:/Qcm/App/qml/page/DescriptionPage.qml', {
-                                                "text": description
-                                            });
-                                    }
-                                }
-                            }
+                    RowLayout {
+                        spacing: 12
+                        MD.Text {
+                            typescale: MD.Token.typescale.body_medium
+                            text: `${root.itemData.songs.length} tracks`
+                        }
+                        MD.Text {
+                            typescale: MD.Token.typescale.body_medium
+                            text: Qt.formatDateTime(root.itemData.updateTime, 'yyyy.MM.dd')
                         }
                     }
-                }
-            }
-            Pane {
-                RowLayout {
-                    anchors.fill: parent
-
-                    MD.Button {
-                        font.capitalization: Font.Capitalize
-                        action: Action {
-                            icon.name: Theme.ic.playlist_add
-                            text: qsTr('add to list')
-
-                            onTriggered: {
-                                QA.playlist.appendList(itemData.songs);
-                            }
-                        }
-                    }
-                    MD.Button {
-                        id: btn_fav
-                        property bool liked: qr_dynamic.data.subscribed
-                        font.capitalization: Font.Capitalize
-                        action: Action {
-                            icon.name: btn_fav.liked ? Theme.ic.done : Theme.ic.add
-                            text: qsTr(btn_fav.liked ? 'fav-ed' : 'fav')
-
-                            onTriggered: {
-                                qr_sub.sub = !btn_fav.liked;
-                                qr_sub.itemId = root.itemId;
-                                qr_sub.query();
-                            }
-                        }
-                        Binding on liked  {
-                            value: qr_sub.sub
-                            when: qr_sub.status === ApiQuerierBase.Finished
-                        }
-                    }
-                }
-            }
-            Pane {
-                Layout.fillWidth: true
-                implicitHeight: Math.min(root.height * 0.75, pane_view_column.implicitHeight)
-                padding: 0
-
-                ColumnLayout {
-                    id: pane_view_column
-                    anchors.fill: parent
-                    spacing: 0
-
-                    Pane {
-                        Layout.fillHeight: true
+                    QA.ListDescription {
+                        description: root.itemData.description.trim()
                         Layout.fillWidth: true
-                        padding: 0
-
-                        MListView {
-                            id: view
-                            anchors.fill: parent
-                            boundsBehavior: Flickable.StopAtBounds
-                            clip: true
-                            implicitHeight: contentHeight
-                            interactive: flick.atYEnd
-                            model: itemData.songs
-                            reuseItems: true
-
-                            ScrollBar.vertical: ScrollBar {
-                            }
-                            delegate: SongDelegate {
-                                count: view.count
-                                width: view.width
-
-                                onClicked: {
-                                    QA.playlist.switchTo(modelData);
-                                }
-                            }
-                            footer: ListBusyFooter {
-                                running: qr_pl.status === ApiQuerierBase.Querying
-                                width: ListView.view.width
-                            }
-                        }
                     }
                 }
             }
+            RowLayout {
+                Layout.alignment: Qt.AlignHCenter
+                MD.IconButton {
+                    action: Action {
+                        icon.name: MD.Token.icon.playlist_add
+                        // text: qsTr('add to list')
+                        onTriggered: {
+                            QA.playlist.appendList(itemData.songs);
+                        }
+                    }
+                }
+                MD.IconButton {
+                    id: btn_fav
+                    property bool liked: qr_dynamic.data.subscribed
+                    action: Action {
+                        icon.name: btn_fav.liked ? MD.Token.icon.done : MD.Token.icon.add
+
+                        // text: qsTr(btn_fav.liked ? 'fav-ed' : 'fav')
+
+                        onTriggered: {
+                            qr_sub.sub = !btn_fav.liked;
+                            qr_sub.itemId = root.itemId;
+                            qr_sub.query();
+                        }
+                    }
+                    Binding on liked  {
+                        value: qr_sub.sub
+                        when: qr_sub.status === QA.ApiQuerierBase.Finished
+                    }
+                }
+            }
+        }
+        delegate: QA.SongDelegate {
+            count: view.count
+            width: view.width
+
+            onClicked: {
+                QA.Global.playlist.switchTo(modelData);
+            }
+        }
+        footer: QA.ListBusyFooter {
+            running: qr_pl.status === QA.ApiQuerierBase.Querying
+            width: ListView.view.width
+        }
+        ScrollBar.vertical: ScrollBar {
         }
     }
     MD.FAB {
         action: Action {
-            icon.name: Theme.ic.play_arrow
+            icon.name: MD.Token.icon.play_arrow
             onTriggered: {
                 const songs = itemData.songs.filter(s => {
                         return s.canPlay;
                     });
                 if (songs.length)
-                    QA.playlist.switchList(songs);
+                    QA.Global.playlist.switchList(songs);
             }
         }
     }
 
-    ApiContainer {
-        PlaylistDetailQuerier {
+    QA.ApiContainer {
+        QA.PlaylistDetailQuerier {
             id: qr_pl
             autoReload: root.itemId.valid()
         }
-        PlaylistDetailDynamicQuerier {
+        QA.PlaylistDetailDynamicQuerier {
             id: qr_dynamic
             autoReload: itemId.valid()
             itemId: qr_pl.itemId
         }
-        PlaylistSubscribeQuerier {
+        QA.PlaylistSubscribeQuerier {
             id: qr_sub
             autoReload: false
 
             onStatusChanged: {
-                if (status === ApiQuerierBase.Finished)
-                    QA.sig_like_playlist();
+                if (status === QA.ApiQuerierBase.Finished)
+                    QA.Global.sig_like_playlist();
             }
         }
     }

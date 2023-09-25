@@ -4,10 +4,12 @@ set(SOURCES
     include/qml_material/util.h
     include/qml_material/theme.h
     include/qml_material/color.h
+    include/qml_material/icon.h
     include/qml_material/type.h
     include/qml_material/round_item.h
     type.cpp
     color.cpp
+    icon.cpp
     util.cpp
     theme.cpp
     round_item.cpp)
@@ -19,12 +21,21 @@ set(QML_FILES
     qml/IconButton.qml
     qml/FAB.qml
     qml/Card.qml
+    qml/CircularIndicator.qml
     qml/Image.qml
     qml/ListItem.qml
     qml/Icon.qml
     qml/Text.qml
+    qml/Pane.qml
+    qml/Page.qml
+    qml/StackView.qml
+    qml/SplitView.qml
+    qml/Slider.qml
+    qml/TabBar.qml
+    qml/TabButton.qml
     qml/impl/Ripple.qml
     qml/impl/State.qml
+    qml/impl/SliderHandle.qml
     qml/impl/RoundedElevationEffect.qml)
 set(RESOURCES assets/MaterialIconsRound-Regular.otf
               assets/MaterialIconsOutlined-Regular.otf)

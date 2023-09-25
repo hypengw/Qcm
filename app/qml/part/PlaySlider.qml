@@ -1,13 +1,13 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
-import QtQuick.Layouts
-import ".."
 
-Slider {
+import Qcm.App as QA
+import Qcm.Material as MD
+
+MD.Slider {
     id: root
 
-    readonly property double playing_pos: (QA.player.duration > 0 ? QA.player.position / QA.player.duration : 0)
+    readonly property double playing_pos: (QA.Global.player.duration > 0 ? QA.Global.player.position / QA.Global.player.duration : 0)
     property bool in_anim: false
 
     background.implicitHeight: 8
@@ -80,7 +80,7 @@ Slider {
 
         onTriggered: {
             if (pos > 0) {
-                QA.player.seek(pos);
+                QA.Global.player.seek(pos);
                 pos = -1;
             }
         }

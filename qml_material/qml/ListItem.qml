@@ -96,12 +96,11 @@ T.ItemDelegate {
         }
 
         radius: 0
-        color: control.backgroundColor
+        color: control.MD.MatProp.backgroundColor
 
         layer.enabled: control.enabled && color.a > 0
         layer.effect: MD.RoundedElevationEffect {
-            elevation: MD.MatProp.elevation
-            roundedScale: control.background.radius
+            elevation: control.MD.MatProp.elevation
         }
 
         MD.Ripple {
@@ -112,7 +111,7 @@ T.ItemDelegate {
             pressed: control.pressed
             anchor: control
             active: enabled && (control.down || control.visualFocus || control.hovered)
-            color: MD.MatProp.stateLayerColor
+            color: control.MD.MatProp.stateLayerColor
         }
 
     }
@@ -121,9 +120,6 @@ T.ItemDelegate {
     MD.MatProp.supportTextColor: item_state.supportTextColor
     MD.MatProp.backgroundColor: item_state.backgroundColor
     MD.MatProp.stateLayerColor: item_state.stateLayerColor
-
-    // TODO: workaround
-    property color backgroundColor: MD.MatProp.backgroundColor
 
     MD.State {
         id: item_state

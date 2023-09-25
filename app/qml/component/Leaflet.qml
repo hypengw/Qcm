@@ -2,10 +2,13 @@ import QtQml.Models
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+
+import Qcm.Material as MD
+
 import ".."
 import "../component"
 
-StackView {
+MD.StackView {
     // fold:
     // split: 1, stack: 1
     // split: 1, stack: 2
@@ -103,7 +106,7 @@ StackView {
         rightPage.SplitView.minimumWidth = rightMin;
     }
 
-    initialItem: SplitView {
+    initialItem: MD.SplitView {
         id: split
     }
 

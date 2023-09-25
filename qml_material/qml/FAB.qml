@@ -63,7 +63,6 @@ T.Button {
         layer.enabled: control.enabled && color.a > 0 && !control.flat
         layer.effect: MD.RoundedElevationEffect {
             elevation: MD.MatProp.elevation
-            roundedScale: control.background.radius
         }
 
         MD.Ripple {

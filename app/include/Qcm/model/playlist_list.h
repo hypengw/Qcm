@@ -29,6 +29,8 @@ public:
         }
         auto in_ = To<std::vector<Playlist>>::from(re.playlists);
         for (auto& el : in_) {
+            // remove query
+            el.picUrl = el.picUrl.split('?').front();
             insert(rowCount(), el);
         }
         m_has_more = re.more;

@@ -34,7 +34,6 @@ T.Button {
         layer.enabled: control.enabled && color.a > 0 && !control.flat
         layer.effect: MD.RoundedElevationEffect {
             elevation: MD.MatProp.elevation
-            roundedScale: control.background.radius
         }
 
         MD.Ripple {
@@ -49,47 +48,45 @@ T.Button {
         }
     }
 
-    Item {
-        id: item_btn_state
+    MD.MatProp.elevation: item_state.elevation
+    MD.MatProp.textColor: item_state.textColor
+    MD.MatProp.supportTextColor: item_state.supportTextColor
+    MD.MatProp.backgroundColor: item_state.backgroundColor
+    MD.MatProp.stateLayerColor: item_state.stateLayerColor
 
+    MD.State {
+        id: item_state
         visible: false
-        state: "Base"
+
+        elevation: {
+            switch (control.type) {
+            case MD.Enum.CardOutlined:
+            case MD.Enum.CardFilled:
+                return MD.Token.elevation.level0;
+            case MD.Enum.CardElevated:
+            default:
+                return MD.Token.elevation.level1;
+            }
+        }
+        textColor: MD.Token.color.getOn(backgroundColor)
+        backgroundColor: {
+            switch (control.type) {
+            case MD.Enum.CardOutlined:
+                return MD.Token.color.surface;
+            case MD.Enum.CardFilled:
+                return MD.Token.color.surface_container_highest;
+            case MD.Enum.CardElevated:
+            default:
+                return MD.Token.color.surface_container_low;
+            }
+        }
+        stateLayerColor: "#00000000"
         states: [
-            State {
-                name: "Base"
-                when: control.enabled && !control.hovered && !control.down
-                PropertyChanges {
-                    MD.MatProp.elevation: {
-                        switch (control.type) {
-                        case MD.Enum.CardOutlined:
-                        case MD.Enum.CardFilled:
-                            return MD.Token.elevation.level0;
-                        case MD.Enum.CardElevated:
-                        default:
-                            return MD.Token.elevation.level1;
-                        }
-                    }
-                    MD.MatProp.backgroundColor: {
-                        switch (control.type) {
-                        case MD.Enum.CardOutlined:
-                            return MD.Token.color.surface;
-                        case MD.Enum.CardFilled:
-                            return MD.Token.color.surface_container_highest;
-                        case MD.Enum.CardElevated:
-                        default:
-                            return MD.Token.color.surface_container_low;
-                        }
-                    }
-                    MD.MatProp.stateLayerColor: "#00000000"
-                    target: control
-                    restoreEntryValues: false
-                }
-            },
             State {
                 name: "Disabled"
                 when: !enabled
                 PropertyChanges {
-                    MD.MatProp.elevation: {
+                    item_state.elevation: {
                         switch (control.type) {
                         case MD.Enum.CardFilled:
                             return MD.Token.elevation.level1;
@@ -99,18 +96,16 @@ T.Button {
                             return MD.Token.elevation.level0;
                         }
                     }
-                    MD.MatProp.backgroundColor: MD.Token.color.surface_variant
-                    contentItem.opacity: 0.38
-                    background.opacity: 0.12
-                    target: control
+                    item_state.backgroundColor: MD.Token.color.surface_variant
+                    control.contentItem.opacity: 0.38
+                    control.background.opacity: 0.12
                 }
             },
             State {
                 name: "Hovered"
-                extend: "Base"
                 when: control.enabled && control.hovered && !control.down
                 PropertyChanges {
-                    MD.MatProp.elevation: {
+                    item_state.elevation: {
                         switch (control.type) {
                         case MD.Enum.CardOutlined:
                         case MD.Enum.CardFilled:
@@ -120,19 +115,17 @@ T.Button {
                             return MD.Token.elevation.level2;
                         }
                     }
-                    MD.MatProp.stateLayerColor: {
+                    item_state.stateLayerColor: {
                         let c = MD.Token.color.on_surface;
-                        return Qt.rgba(c.r, c.g, c.b, 0.08);
+                        return MD.Util.transparent(c, MD.Token.state.hover.state_layer_opacity);
                     }
-                    target: control
                 }
             },
             State {
                 name: "Pressed"
-                extend: "Base"
                 when: control.enabled && control.down
                 PropertyChanges {
-                    MD.MatProp.elevation: {
+                    item_state.elevation: {
                         switch (control.type) {
                         case MD.Enum.CardOutlined:
                         case MD.Enum.CardFilled:
@@ -142,11 +135,10 @@ T.Button {
                             return MD.Token.elevation.level1;
                         }
                     }
-                    MD.MatProp.stateLayerColor: {
+                    item_state.stateLayerColor: {
                         let c = MD.Token.color.on_surface;
-                        return Qt.rgba(c.r, c.g, c.b, 0.18);
+                        return MD.Util.transparent(c, MD.Token.state.pressed.state_layer_opacity);
                     }
-                    target: control
                 }
             }
         ]

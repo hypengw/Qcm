@@ -61,7 +61,7 @@ set(QML_FILES
     qml/js/util.mjs
     qml/PlayBar.qml
     qml/Theme.qml
-    qml/QA.qml
+    qml/Global.qml
     qml/page/LoginPage.qml
     qml/page/AlbumDetailPage.qml
     qml/page/ArtistDetailPage.qml
@@ -89,6 +89,7 @@ set(QML_FILES
     qml/part/SongTag.qml
     qml/part/RouteMsg.qml
     qml/part/PlaySlider.qml
+    qml/part/ListDescription.qml
     qml/component/IconRowLayout.qml
     qml/component/RoundImage.qml
     qml/component/Leaflet.qml
@@ -110,7 +111,7 @@ set(RESOURCES assets/MaterialIconsRound-Regular.otf
               assets/MaterialIconsOutlined-Regular.otf)
 
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
-set_source_files_properties(qml/QA.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(qml/Global.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 qt_add_qml_module(
   app

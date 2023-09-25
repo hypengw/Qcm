@@ -2,16 +2,16 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
-import ".."
-import "../component"
-import "../part"
 
-Page {
+import Qcm.App as QA
+import Qcm.Material as MD
+
+MD.Page {
     id: root
     padding: 0
     title: 'Playlist'
 
-    MListView {
+    QA.MListView {
         id: view_playlist
         anchors.fill: parent
         bottomMargin: 8
@@ -21,18 +21,18 @@ Page {
         highlightMoveDuration: 1000
         highlightMoveVelocity: -1
         implicitHeight: contentHeight + 2 * topMargin
-        model: QA.playlist
+        model: QA.Global.playlist
         reuseItems: true
         topMargin: 8
 
         ScrollBar.vertical: ScrollBar {
         }
-        delegate: MItemDelegate {
+        delegate: MD.ListItem {
             width: ListView.view.width
 
             // highlighted: model.song.itemId === QA.playlist.cur.itemId
             onClicked: {
-                QA.playlist.switchTo(model.song);
+                QA.Global.playlist.switchTo(model.song);
             }
 
             RowLayout {
@@ -41,23 +41,24 @@ Page {
                 anchors.rightMargin: 12
                 spacing: 12
 
-                Label {
-                    Layout.minimumWidth: Theme.font.w_unit * view_playlist.count.toString().length + 2
+                MD.Text {
+                    Layout.minimumWidth: QA.Theme.font.w_unit * view_playlist.count.toString().length + 2
                     horizontalAlignment: Qt.AlignRight
+                    typescale: MD.Token.typescale.body_medium
                     opacity: 0.6
                     text: index + 1
                 }
-                Label {
+                MD.Text {
                     Layout.fillWidth: true
+                    typescale: MD.Token.typescale.body_medium
                     elide: Text.ElideRight
                     text: model.song.name
                 }
-                MRoundButton {
-                    flat: true
-                    icon.name: Theme.ic.remove
+                MD.IconButton {
+                    icon.name: MD.Token.icon.remove
 
                     onClicked: {
-                        QA.playlist.remove(model.song.itemId);
+                        QA.Global.playlist.remove(model.song.itemId);
                     }
                 }
             }

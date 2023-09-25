@@ -45,8 +45,10 @@ MD.Card {
             MD.Text {
                 id: label_sub
                 Layout.alignment: Qt.AlignHCenter
+                text: root.subText
                 visible: !!text
                 opacity: 0.6
+                typescale: MD.Token.typescale.body_medium
             }
         }
     }

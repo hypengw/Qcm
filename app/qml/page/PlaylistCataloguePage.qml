@@ -1,14 +1,12 @@
+import QtCore
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
 import QtQuick.Layouts
-import Qt.labs.settings
-import Qcm.App
-import ".."
-import "../component"
-import "../part"
 
-MPage {
+import Qcm.App as QA
+import Qcm.Material as MD
+
+MD.Page {
     id: root
 
     property list<string> mine_cats: []
@@ -16,7 +14,7 @@ MPage {
     padding: 0
     title: qsTr('playlist tags')
 
-    MFlickable {
+    QA.MFlickable {
         id: flick
         anchors.fill: parent
         leftMargin: 4
@@ -81,10 +79,10 @@ MPage {
 
         property alias cat_list: root.mine_cats
 
-        category: QA.user_setting_category
+        category: QA.Global.user_setting_category
     }
-    ApiContainer {
-        PlaylistCatalogueQuerier {
+    QA.ApiContainer {
+        QA.PlaylistCatalogueQuerier {
             id: qr_cat
         }
     }
@@ -96,9 +94,9 @@ MPage {
         property alias model: flow_repeater.model
         property alias text: label.text
 
-        Label {
+        MD.Text {
             id: label
-            font.pointSize: Theme.ts.label_large.size
+            typescale: MD.Token.typescale.label_large
         }
         Flow {
             Layout.fillWidth: true
@@ -106,11 +104,9 @@ MPage {
 
             Repeater {
                 id: flow_repeater
-                delegate: MButton {
-                    Material.accent: Theme.color.surface_container_lowest
-                    Material.elevation: 0
+
+                delegate: MD.Button {
                     enabled: cat_section.is_mine || !mine_section.set.has(modelData.name)
-                    highlighted: true
 
                     action: Action {
                         text: modelData.name

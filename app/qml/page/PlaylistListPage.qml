@@ -1,14 +1,11 @@
 import QtQuick
 import QtCore
 import QtQuick.Controls
-import QtQuick.Controls.Material
 import QtQuick.Layouts
-import Qcm.App
-import ".."
-import "../component"
-import "../part"
+import Qcm.App as QA
+import Qcm.Material as MD
 
-Page {
+MD.Page {
     id: root
 
     // list<string>
@@ -22,7 +19,7 @@ Page {
             }, true);
     }
 
-    padding: 16
+    padding: 0
 
     Component.onCompleted: {
         curChanged();
@@ -40,62 +37,63 @@ Page {
             root.custom_cat_list = value('cat_list', root.custom_cat_list);
         }
 
-        category: QA.user_setting_category
+        category: QA.Global.user_setting_category
     }
     ColumnLayout {
         anchors.fill: parent
 
-        Pane {
-            Layout.fillWidth: true
+        RowLayout {
 
-            Flow {
-                anchors.fill: parent
-                spacing: 8
+            MD.TabBar {
+                id: item_bar
+                Layout.fillWidth: true
+                spacing: 0
+                clip: true
 
+                readonly property int tab_width: parent.width / root.cat_list.length
+
+                Component.onCompleted: {
+                    currentIndexChanged();
+                }
                 Repeater {
-                    model: root.cat_list
+                    model: root.cat_list.length
 
-                    delegate: MButton {
-                        Material.accent: modelData === cur ? Theme.color.secondary_container : Theme.color.surface_container_low
-                        highlighted: true
-
+                    MD.TabButton {
+                        required property int index
+                        width: Math.max(item_bar.tab_width, implicitWidth)
                         action: Action {
-                            text: modelData
+                            text: root.cat_list[index]
 
                             onTriggered: {
-                                cur = modelData;
+                                item_bar.currentIndex = index;
+                                root.cur = root.cat_list[index];
                             }
                         }
                     }
                 }
-                MRoundButton {
-                    Material.accent: Theme.color.secondary
-                    Material.elevation: 1
-                    highlighted: true
+            }
+            MD.IconButton {
+                action: Action {
+                    icon.name: MD.Token.icon.edit
 
-                    action: Action {
-                        icon.name: Theme.ic.edit
-
-                        onTriggered: {
-                            const popup = QA.show_page_popup('qrc:/Qcm/App/qml/page/PlaylistCataloguePage.qml', {}, {
-                                    "fillHeight": true
-                                });
-                            popup.closed.connect(() => {
-                                    settings.read();
-                                });
-                        }
+                    onTriggered: {
+                        const popup = QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/PlaylistCataloguePage.qml', {}, {
+                                "fillHeight": true
+                            });
+                        popup.closed.connect(() => {
+                                settings.read();
+                            });
                     }
                 }
             }
         }
-        Pane {
+        MD.Pane {
             Layout.fillHeight: true
             Layout.fillWidth: true
-            Material.background: Theme.color.surface
-            Material.elevation: 1
+            MD.MatProp.backgroundColor: MD.Token.color.surface
             padding: 0
 
-            PageContainer {
+            QA.PageContainer {
                 id: view_container
                 anchors.fill: parent
 

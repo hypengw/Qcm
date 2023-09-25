@@ -1,17 +1,16 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
 import QtQuick.Layouts
-import Qcm.App
-import ".."
-import "../component"
 
-Pane {
+import Qcm.App as QA
+import Qcm.Material as MD
+
+MD.Pane {
     property alias cat: qr_pl.cat
 
     padding: 0
 
-    MGridView {
+    QA.MGridView {
         property int cellWidth_: 180
 
         anchors.fill: parent
@@ -24,7 +23,7 @@ Pane {
         delegate: Item {
             width: GridView.view.cellWidth
             height: GridView.view.cellHeight
-            PicGridDelegate {
+            QA.PicGridDelegate {
                 anchors.centerIn: parent
                 width: picWidth
                 height: Math.min(implicitHeight, parent.height)
@@ -32,14 +31,14 @@ Pane {
                 // subText:
                 image.source: `image://ncm/${model.picUrl}`
                 onClicked: {
-                    QA.route(model.itemId);
+                    QA.Global.route(model.itemId);
                 }
             }
         }
 
-        footer: ListBusyFooter {
+        footer: QA.ListBusyFooter {
             width: GridView.view.width
-            running: qr_pl.status === ApiQuerierBase.Querying
+            running: qr_pl.status === QA.ApiQuerierBase.Querying
         }
 
         ScrollBar.vertical: ScrollBar {
@@ -47,8 +46,8 @@ Pane {
 
     }
 
-    ApiContainer {
-        PlaylistListQuerier {
+    QA.ApiContainer {
+        QA.PlaylistListQuerier {
             id: qr_pl
 
             autoReload: cat.length > 0

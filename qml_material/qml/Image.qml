@@ -1,4 +1,5 @@
 import QtQuick
+import Qcm.Material as MD
 
 Canvas {
     id: canvas
@@ -14,8 +15,6 @@ Canvas {
     property alias mipmap: image.mipmap
     property alias mirror: image.mirror
     property alias mirrorVertically: image.mirrorVertically
-    property alias paintedHeight: image.paintedHeight
-    property alias paintedWidth: image.paintedWidth
     property alias progress: image.progress
     property alias smooth: image.smooth
     property alias source: image.source
@@ -24,12 +23,20 @@ Canvas {
     property alias status: image.status
     property alias verticalAlignment: image.verticalAlignment
 
-    implicitHeight: image.implicitHeight
-    implicitWidth: image.implicitWidth
+    property alias paintedHeight: image.paintedHeight
+    property alias paintedWidth: image.paintedWidth
+
+    implicitHeight: {
+        return sourceSize.width;
+    }
+    implicitWidth: {
+        return sourceSize.height;
+    }
 
     onStatusChanged: {
-        if (status === Image.Ready)
-            canvas.imageLoaded();
+        if (status === Image.Ready) {
+            requestPaint();
+        }
     }
     Component.onCompleted: {
         image.visible = false;
@@ -78,10 +85,10 @@ Canvas {
         ctx.quadraticCurveTo(x, y, x + radius.tl, y);
     }
     onPaint: {
-        if (image.paintedHeight === 0)
+        const c = canvas;
+        if (c.paintedHeight === 0)
             return;
         const ctx = getContext("2d");
-        const c = canvas;
         const ratio = Screen.devicePixelRatio;
         ctx.beginPath();
         roundRect(ctx, 0, 0, c.width, c.height, c.radius);
@@ -98,5 +105,11 @@ Canvas {
     Image {
         id: image
         visible: false
+    }
+
+    MD.MatProp.elevation: MD.Token.elevation.level0
+    layer.enabled: canvas.status === Image.Ready && canvas.paintedHeight > 0 && canvas.MD.MatProp.elevation != MD.Token.elevation.level0
+    layer.effect: MD.RoundedElevationEffect {
+        elevation: canvas.MD.MatProp.elevation
     }
 }

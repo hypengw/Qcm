@@ -1,19 +1,17 @@
-import Qcm.App
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
 import QtQuick.Layouts
+
+import Qcm.App as QA
 import Qcm.Material as MD
-import ".."
-import "../component"
-import "../part"
+
 import "../js/util.mjs" as Util
 
-Page {
+MD.Page {
     id: root
     padding: 0
 
-    MFlickable {
+    QA.MFlickable {
         anchors.fill: parent
 
         ScrollBar.vertical: ScrollBar {
@@ -28,19 +26,20 @@ Page {
             ColumnLayout {
                 spacing: 4
 
-                Pane {
+                MD.Pane {
                     ColumnLayout {
                         anchors.fill: parent
 
-                        Label {
+                        MD.Text {
                             font.capitalization: Font.Capitalize
-                            font.pointSize: Theme.ts.title_large.size
+                            typescale: MD.Token.typescale.title_large
                             text: qsTr('recommend playlists')
                         }
                     }
                 }
-                Pane {
+                MD.Pane {
                     Layout.fillWidth: true
+                    MD.MatProp.backgroundColor: MD.Token.color.surface
                     padding: 0
 
                     SwipeView {
@@ -69,7 +68,7 @@ Page {
                                 delegate: Item {
                                     width: GridView.view.cellWidth
                                     height: GridView.view.cellHeight
-                                    PicGridDelegate {
+                                    QA.PicGridDelegate {
                                         anchors.centerIn: parent
                                         width: picWidth
                                         height: Math.min(implicitHeight, parent.height)
@@ -77,12 +76,12 @@ Page {
                                         text: modelData.name
 
                                         onClicked:  {
-                                            QA.route(modelData.itemId)
+                                            QA.Global.route(modelData.itemId)
                                         }
                                     }
                                 }
-                                footer: ListBusyFooter {
-                                    running: qr_rmd_res.status === ApiQuerierBase.Querying
+                                footer: QA.ListBusyFooter {
+                                    running: qr_rmd_res.status === QA.ApiQuerierBase.Querying
                                     width: GridView.view.width
                                 }
                             }
@@ -100,19 +99,19 @@ Page {
             ColumnLayout {
                 spacing: 4
 
-                Pane {
+                MD.Pane {
                     id: title_pane
                     ColumnLayout {
                         anchors.fill: parent
 
-                        Label {
+                        MD.Text {
                             font.capitalization: Font.Capitalize
-                            font.pointSize: Theme.ts.title_large.size
+                            typescale: MD.Token.typescale.title_large
                             text: qsTr('recommend songs')
                         }
                     }
                 }
-                Pane {
+                MD.Pane {
                     id: tool_pane
                     RowLayout {
                         anchors.fill: parent
@@ -120,17 +119,17 @@ Page {
                         MD.Button {
                             font.capitalization: Font.Capitalize
                             action: Action {
-                                icon.name: Theme.ic.playlist_add
+                                icon.name: MD.Token.icon.playlist_add
                                 text: qsTr('add to list')
 
                                 onTriggered: {
-                                    QA.playlist.appendList(qr_rmd_songs.data.dailySongs);
+                                    QA.Global.playlist.appendList(qr_rmd_songs.data.dailySongs);
                                 }
                             }
                         }
                     }
                 }
-                Pane {
+                MD.Pane {
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                     padding: 0
@@ -140,7 +139,7 @@ Page {
                         anchors.fill: parent
                         spacing: 0
 
-                        Pane {
+                        MD.Pane {
                             Layout.fillHeight: true
                             Layout.fillWidth: true
                             padding: 0
@@ -154,16 +153,16 @@ Page {
                                 interactive: false
                                 model: qr_rmd_songs.data.dailySongs
 
-                                delegate: SongDelegate {
+                                delegate: QA.SongDelegate {
                                     count: view.count
                                     width: view.width
 
                                     onClicked: {
-                                        QA.playlist.switchTo(modelData);
+                                        QA.Global.playlist.switchTo(modelData);
                                     }
                                 }
-                                footer: ListBusyFooter {
-                                    running: qr_rmd_songs.status === ApiQuerierBase.Querying
+                                footer: QA.ListBusyFooter {
+                                    running: qr_rmd_songs.status === QA.ApiQuerierBase.Querying
                                     width: ListView.view.width
                                 }
                             }
@@ -172,11 +171,11 @@ Page {
                 }
             }
         }
-        ApiContainer {
-            RecommendSongsQuerier {
+        QA.ApiContainer {
+            QA.RecommendSongsQuerier {
                 id: qr_rmd_songs
             }
-            RecommendResourceQuerier {
+            QA.RecommendResourceQuerier {
                 id: qr_rmd_res
             }
         }
@@ -207,14 +206,14 @@ Page {
 
     MD.FAB {
         action: Action {
-            icon.name: Theme.ic.play_arrow
+            icon.name: MD.Token.icon.play_arrow
 
             onTriggered: {
                 const songs = qr_rmd_songs.data.dailySongs.filter(s => {
                         return s.canPlay;
                     });
                 if (songs.length)
-                    QA.playlist.switchList(songs);
+                    QA.Global.playlist.switchList(songs);
             }
         }
     }

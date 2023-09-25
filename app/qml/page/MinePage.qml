@@ -2,13 +2,10 @@ import QtQml.Models
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qcm.App
+import Qcm.App as QA
 import Qcm.Material as MD
-import ".."
-import "../component"
-import "../part"
 
-Page {
+MD.Page {
     id: root
 
     readonly property bool canBack: leaf.folded && leaf.rightAbove
@@ -17,39 +14,36 @@ Page {
         content.pop(null);
     }
 
-    Material.background: Theme.color.surface
-
-    Leaflet {
+    QA.Leaflet {
         id: leaf
         anchors.fill: parent
         leftMin: 280
         rightAbove: content.depth === 2
         rightMin: 400
 
-        leftPage: Pane {
-            Material.elevation: 2
+        leftPage: MD.Pane {
             padding: 0
 
             ColumnLayout {
                 id: p1
                 anchors.fill: parent
+                spacing: 0
 
-                TabBar {
+                MD.TabBar {
                     id: bar
                     Layout.fillWidth: true
-                    Material.elevation: 1
 
                     Component.onCompleted: {
                         currentIndexChanged();
                     }
 
-                    TabButton {
+                    MD.TabButton {
                         text: qsTr("Playlist")
                     }
-                    TabButton {
+                    MD.TabButton {
                         text: qsTr("Album")
                     }
-                    TabButton {
+                    MD.TabButton {
                         text: qsTr("Artist")
                     }
                 }
@@ -69,7 +63,7 @@ Page {
                                 view_playlist.dirty = true;
                             }
 
-                            target: QA
+                            target: QA.Global
                         }
                     }
                     BaseView {
@@ -85,7 +79,7 @@ Page {
                                 view_albumlist.dirty = true;
                             }
 
-                            target: QA
+                            target: QA.Global
                         }
                     }
                     BaseView {
@@ -93,7 +87,7 @@ Page {
                         model: qr_artistlist.data
                     }
                 }
-                ApiContainer {
+                QA.ApiContainer {
                     id: api_container
                     function refresh_list(qr) {
                         const old_limit = qr.limit;
@@ -102,18 +96,18 @@ Page {
                         qr.limit = Math.max(old_limit, qr.data.rowCount());
                     }
 
-                    AlbumSublistQuerier {
+                    QA.AlbumSublistQuerier {
                         id: qr_albumlist
                         autoReload: limit > 0
                     }
-                    ArtistSublistQuerier {
+                    QA.ArtistSublistQuerier {
                         id: qr_artistlist
                         autoReload: limit > 0
                     }
-                    UserPlaylistQuerier {
+                    QA.UserPlaylistQuerier {
                         id: qr_playlist
                         autoReload: uid.valid() && limit > 0
-                        uid: QA.user_info.userId
+                        uid: QA.Global.user_info.userId
                     }
                 }
                 Component {
@@ -124,7 +118,7 @@ Page {
                         width: ListView.view.width
                         text: model.name
                         maximumLineCount: 2
-                        supportText: QA.join_name(model.artists, '/')
+                        supportText: QA.Global.join_name(model.artists, '/')
                         leader: MD.Image {
                             radius: 8
                             source: `image://ncm/${model.picUrl}`
@@ -181,7 +175,7 @@ Page {
                 }
             }
         }
-        rightPage: StackView {
+        rightPage: MD.StackView {
             id: content
 
             property var currentItemId: null
@@ -194,7 +188,7 @@ Page {
             }
             function route(itemId) {
                 currentItemId = itemId;
-                push_page(QA.item_id_url(itemId), {
+                push_page(QA.Global.item_id_url(itemId), {
                         "itemId": itemId
                     });
             }
@@ -208,7 +202,7 @@ Page {
         }
     }
 
-    component BaseView: MListView {
+    component BaseView: QA.MListView {
         property bool dirty: false
         property var refresh: function () {}
 

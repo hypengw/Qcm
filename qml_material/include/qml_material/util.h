@@ -21,6 +21,11 @@ public:
         return false;
     }
 
+    Q_INVOKABLE QColor transparent(QColor in, float alpha) {
+        in.setAlphaF(alpha);
+        return in;
+    }
+
     Q_INVOKABLE QColor hoverColor(QColor in) {
         in.setAlphaF(0.08);
         return in;
