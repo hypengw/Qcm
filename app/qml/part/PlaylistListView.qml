@@ -11,14 +11,10 @@ MD.Pane {
     padding: 0
 
     QA.MGridView {
-        property int cellWidth_: 180
-
         anchors.fill: parent
         boundsBehavior: Flickable.StopAtBounds
         clip: true
         model: qr_pl.data
-        cellHeight: 250
-        cellWidth: width > 0 ? width / Math.floor((width / cellWidth_)) : 0
 
         delegate: Item {
             width: GridView.view.cellWidth

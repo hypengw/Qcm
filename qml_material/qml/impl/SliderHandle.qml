@@ -10,7 +10,7 @@ Item {
     property bool handleHasFocus: false
     property bool handlePressed: false
     property bool handleHovered: false
-    readonly property int initialSize: 6
+    readonly property int initialSize: 4
     readonly property var control: parent
 
     Rectangle {

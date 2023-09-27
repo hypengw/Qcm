@@ -10,7 +10,6 @@ MD.Slider {
     readonly property double playing_pos: (QA.Global.player.duration > 0 ? QA.Global.player.position / QA.Global.player.duration : 0)
     property bool in_anim: false
 
-    background.implicitHeight: 8
     live: false
     padding: 0
     to: 1

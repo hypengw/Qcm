@@ -49,5 +49,9 @@ T.TabBar {
         //    elevation: control.Material.elevation
         //    fullWidth: true
         //}
+
+        MD.Divider {
+            anchors.bottom: parent.bottom
+        }
     }
 }

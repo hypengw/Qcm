@@ -10,7 +10,11 @@ T.Slider {
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset, implicitHandleWidth + leftPadding + rightPadding)
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset, implicitHandleHeight + topPadding + bottomPadding)
 
-    padding: 6
+    horizontalPadding: 0
+    topInset: 0
+    bottomInset: 0
+    topPadding: 0
+    bottomPadding: 0
     clip: false
 
     // The Slider is discrete if all of the following requirements are met:
@@ -33,8 +37,8 @@ T.Slider {
     background: Item {
         x: control.leftPadding + (control.horizontal ? 0 : (control.availableWidth - width) / 2)
         y: control.topPadding + (control.horizontal ? (control.availableHeight - height) / 2 : 0)
-        implicitWidth: control.horizontal ? 200 : 48
-        implicitHeight: control.horizontal ? 48 : 200
+        implicitWidth: control.horizontal ? 200 : 4
+        implicitHeight: control.horizontal ? 4 : 200
         width: control.horizontal ? control.availableWidth : 4
         height: control.horizontal ? 4 : control.availableHeight
 

@@ -124,11 +124,9 @@ MD.Page {
                             }
                         }
                         QA.MGridView {
-                            property int cellWidth_: 180
+                            cellHeight: 264
 
                             boundsBehavior: Flickable.StopAtBounds
-                            cellHeight: 264
-                            cellWidth: width > 0 ? width / Math.floor((width / cellWidth_)) : 0
                             clip: true
                             interactive: flick.atYEnd
                             model: qr_artist_albums.data

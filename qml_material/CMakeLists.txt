@@ -16,6 +16,7 @@ set(SOURCES
 set(QML_FILES
     qml/Button.qml
     qml/Control.qml
+    qml/Divider.qml
     qml/Token.qml
     qml/IconLabel.qml
     qml/IconButton.qml

@@ -156,6 +156,7 @@ MD.Page {
                     }
                 }
             }
+            MD.Divider {}
             QA.PlayBar {
                 Layout.fillWidth: true
                 // Material.background: Theme.color.surface_container

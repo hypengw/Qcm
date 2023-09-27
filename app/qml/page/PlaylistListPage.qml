@@ -41,6 +41,7 @@ MD.Page {
     }
     ColumnLayout {
         anchors.fill: parent
+        spacing: 0
 
         RowLayout {
 
@@ -72,20 +73,7 @@ MD.Page {
                     }
                 }
             }
-            MD.IconButton {
-                action: Action {
-                    icon.name: MD.Token.icon.edit
 
-                    onTriggered: {
-                        const popup = QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/PlaylistCataloguePage.qml', {}, {
-                                "fillHeight": true
-                            });
-                        popup.closed.connect(() => {
-                                settings.read();
-                            });
-                    }
-                }
-            }
         }
         MD.Pane {
             Layout.fillHeight: true
@@ -99,6 +87,21 @@ MD.Page {
 
                 initialItem: Item {
                 }
+            }
+        }
+    }
+
+    MD.FAB {
+        action: Action {
+            icon.name: MD.Token.icon.edit
+
+            onTriggered: {
+                const popup = QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/PlaylistCataloguePage.qml', {}, {
+                        "fillHeight": true
+                    });
+                popup.closed.connect(() => {
+                        settings.read();
+                    });
             }
         }
     }
