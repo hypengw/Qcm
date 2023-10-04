@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-
 import Qcm.App as QA
 import Qcm.Material as MD
 
@@ -20,7 +19,10 @@ MD.Pane {
             width: GridView.view.cellWidth
             height: GridView.view.cellHeight
             QA.PicGridDelegate {
-                anchors.centerIn: parent
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: parent.top
+                anchors.topMargin: 8
+
                 width: picWidth
                 height: Math.min(implicitHeight, parent.height)
                 text: model.name
@@ -39,16 +41,11 @@ MD.Pane {
 
         ScrollBar.vertical: ScrollBar {
         }
-
     }
 
-    QA.ApiContainer {
-        QA.PlaylistListQuerier {
-            id: qr_pl
+    QA.PlaylistListQuerier {
+        id: qr_pl
 
-            autoReload: cat.length > 0
-        }
-
+        autoReload: cat.length > 0
     }
-
 }

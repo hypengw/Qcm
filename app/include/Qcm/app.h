@@ -59,6 +59,7 @@ public:
 
 signals:
     void instanceStarted();
+    void errorOccurred(QString);
 
 public slots:
     void loginPost(model::UserAccount*);

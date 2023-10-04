@@ -12,6 +12,7 @@ T.Pane {
 
     padding: 12
     property real radius
+    MD.MatProp.elevation: MD.Token.elevation.level0
 
     background: Rectangle {
         color: control.MD.MatProp.backgroundColor

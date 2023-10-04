@@ -81,66 +81,74 @@ T.Button {
         return t == MD.Enum.FABSmall ? small : (t == MD.Enum.FABLarge ? large : normal);
     }
 
-    Item {
-        id: item_btn_state
+    MD.MatProp.elevation: item_state.elevation
+    MD.MatProp.textColor: item_state.textColor
+    MD.MatProp.supportTextColor: item_state.supportTextColor
+    MD.MatProp.backgroundColor: item_state.backgroundColor
+    MD.MatProp.stateLayerColor: item_state.stateLayerColor
 
+    MD.State {
+        id: item_state
         visible: false
-        state: "Base"
+        elevation: MD.Token.elevation.level3
+        textColor: {
+            switch (control.color) {
+            case MD.Enum.FABColorSurfaec:
+                return MD.Token.color.primary;
+            case MD.Enum.FABColorSecondary:
+                return MD.Token.color.on_secondary_container;
+            case MD.Enum.FABColorTertiary:
+                return MD.Token.color.on_tertiary_container;
+            case MD.Enum.FABColorPrimary:
+            default:
+                return MD.Token.color.on_primary_container;
+            }
+        }
+        backgroundColor: {
+            switch (control.color) {
+            case MD.Enum.FABColorSurfaec:
+                return MD.Token.color.surface_container_high;
+            case MD.Enum.FABColorSecondary:
+                return MD.Token.color.secondary_container;
+            case MD.Enum.FABColorTertiary:
+                return MD.Token.color.tertiary_container;
+            case MD.Enum.FABColorPrimary:
+            default:
+                return MD.Token.color.primary_container;
+            }
+        }
+        stateLayerColor: "transparent"
+
         states: [
-            State {
-                name: "Base"
-                when: !control.hovered && !control.down
-                PropertyChanges {
-                    MD.MatProp.elevation: MD.Token.elevation.level3
-                    MD.MatProp.textColor: {
-                        switch (control.color) {
-                        case MD.Enum.FABColorSurfaec:
-                            return MD.Token.color.primary;
-                        case MD.Enum.FABColorSecondary:
-                            return MD.Token.color.on_secondary_container;
-                        case MD.Enum.FABColorTertiary:
-                            return MD.Token.color.on_tertiary_container;
-                        case MD.Enum.FABColorPrimary:
-                        default:
-                            return MD.Token.color.on_primary_container;
-                        }
-                    }
-                    MD.MatProp.backgroundColor: {
-                        switch (control.color) {
-                        case MD.Enum.FABColorSurfaec:
-                            return MD.Token.color.surface_container_high;
-                        case MD.Enum.FABColorSecondary:
-                            return MD.Token.color.secondary_container;
-                        case MD.Enum.FABColorTertiary:
-                            return MD.Token.color.tertiary_container;
-                        case MD.Enum.FABColorPrimary:
-                        default:
-                            return MD.Token.color.primary_container;
-                        }
-                    }
-                    MD.MatProp.stateLayerColor: "#00000000"
-                    target: control
-                    restoreEntryValues: false
-                }
-            },
             State {
                 name: "Hovered"
                 extend: "Base"
                 when: control.hovered && !control.down
                 PropertyChanges {
-                    MD.MatProp.elevation: MD.Token.elevation.level4
-                    MD.MatProp.stateLayerColor: MD.Util.hoverColor(MD.MatProp.textColor)
-                    target: control
+                    item_state.elevation: MD.Token.elevation.level4
                 }
+                PropertyChanges {
+                    restoreEntryValues: false
+                    item_state.stateLayerColor: {
+                        const c = item_state.textColor;
+                        return MD.Util.transparent(c, MD.Token.state.hover.state_layer_opacity);
+                    }
+                }
+
             },
             State {
                 name: "Pressed"
                 extend: "Base"
                 when: control.down
                 PropertyChanges {
-                    MD.MatProp.elevation: MD.Token.elevation.level3
-                    MD.MatProp.stateLayerColor: MD.Util.pressColor(MD.MatProp.textColor)
-                    target: control
+                    item_state.elevation: MD.Token.elevation.level3
+                }
+                PropertyChanges {
+                    restoreEntryValues: false
+                    item_state.stateLayerColor: {
+                        const c = item_state.textColor;
+                        return MD.Util.transparent(c, MD.Token.state.pressed.state_layer_opacity);
+                    }
                 }
             }
         ]

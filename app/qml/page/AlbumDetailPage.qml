@@ -1,8 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-
-import Qcm.App as QA 
+import Qcm.App as QA
 import Qcm.Material as MD
 
 MD.Page {
@@ -145,24 +144,22 @@ MD.Page {
         }
     }
 
-    QA.ApiContainer {
-        QA.AlbumDetailQuerier {
-            id: qr_al
-            autoReload: root.itemId.valid()
-        }
-        QA.AlbumDetailDynamicQuerier {
-            id: qr_dynamic
-            autoReload: itemId.valid()
-            itemId: qr_al.itemId
-        }
-        QA.AlbumSubQuerier {
-            id: qr_sub
-            autoReload: false
+    QA.AlbumDetailQuerier {
+        id: qr_al
+        autoReload: root.itemId.valid()
+    }
+    QA.AlbumDetailDynamicQuerier {
+        id: qr_dynamic
+        autoReload: itemId.valid()
+        itemId: qr_al.itemId
+    }
+    QA.AlbumSubQuerier {
+        id: qr_sub
+        autoReload: false
 
-            onStatusChanged: {
-                if (status === QA.ApiQuerierBase.Finished)
-                    QA.Global.sig_like_album();
-            }
+        onStatusChanged: {
+            if (status === QA.ApiQuerierBase.Finished)
+                QA.Global.sig_like_album();
         }
     }
 }

@@ -1,9 +1,9 @@
 import QtCore
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
 import QtQuick.Layouts
 import QtQuick.Window
+
 import Qcm.App as QA
 import Qcm.Material as MD
 
@@ -13,12 +13,6 @@ ApplicationWindow {
     // load QA
     readonly property string _QA: QA.Global.user_info.nickname
     readonly property alias snake: m_snake
-
-    Material.accent: Material.primary
-    Material.background: QA.Theme.color.background
-    Material.foreground: QA.Theme.color.getOn(Material.background)
-    Material.primary: QA.Theme.color.primary
-    Material.theme: QA.Theme.toMatTheme(QA.Theme.theme)
 
     MD.MatProp.backgroundColor: MD.Token.color.background
     MD.MatProp.textColor: MD.Token.color.getOn(MD.MatProp.backgroundColor)
@@ -90,7 +84,6 @@ ApplicationWindow {
                 playing_page = page;
             }
 
-            Material.background: QA.Theme.color.surface
             clip: true
 
             initialItem: QA.MainPage {

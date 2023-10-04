@@ -29,7 +29,7 @@ T.ItemDelegate {
     property alias trailing: item_holder_trailing.contentItem
 
     property int heightMode: {
-        if(supportText.length > 0)
+        if (supportText)
             return MD.Enum.ListItemTwoLine;
         else
             return MD.Enum.ListItemOneLine;
@@ -52,19 +52,23 @@ T.ItemDelegate {
                 text: control.text
                 typescale: MD.Token.typescale.body_large
                 maximumLineCount: control.maximumLineCount
+                verticalAlignment: Qt.AlignVCenter
             }
             MD.Text {
                 Layout.fillWidth: true
+                visible: text
                 text: control.supportText
                 color: MD.MatProp.supportTextColor
                 typescale: MD.Token.typescale.body_medium
+                verticalAlignment: Qt.AlignVCenter
             }
         }
         MD.Text {
             id: item_text_trailing_support
             Layout.alignment: Qt.AlignVCenter
-            visible: text.length
+            visible: text
             typescale: MD.Token.typescale.label_small
+            verticalAlignment: Qt.AlignVCenter
         }
 
         MD.Control {
@@ -74,8 +78,8 @@ T.ItemDelegate {
         }
 
         MD.Icon {
-            Layout.alignment: Qt.AlignVCenter
             id: item_text_trailing_icon
+            Layout.alignment: Qt.AlignVCenter
             visible: name.length
             size: 24
         }
@@ -84,7 +88,7 @@ T.ItemDelegate {
     background: Rectangle {
         implicitWidth: 64
         implicitHeight: {
-            switch(control.heightMode) {
+            switch (control.heightMode) {
             case MD.Enum.ListItemThreeLine:
                 return 96;
             case MD.Enum.ListItemTwoLine:
@@ -113,7 +117,6 @@ T.ItemDelegate {
             active: enabled && (control.down || control.visualFocus || control.hovered)
             color: control.MD.MatProp.stateLayerColor
         }
-
     }
     MD.MatProp.elevation: item_state.elevation
     MD.MatProp.textColor: item_state.textColor
@@ -129,7 +132,7 @@ T.ItemDelegate {
         textColor: MD.Token.color.on_surface
         backgroundColor: MD.Token.color.surface
         supportTextColor: MD.Token.color.on_surface_variant
-        stateLayerColor: "#00000000"
+        stateLayerColor: "transparent"
 
         states: [
             State {
@@ -148,14 +151,22 @@ T.ItemDelegate {
                 name: "Hovered"
                 when: control.enabled && control.hovered && !control.down
                 PropertyChanges {
-                    item_state.stateLayerColor: MD.Util.hoverColor(MD.Token.color.on_surface)
+                    restoreEntryValues: false
+                    item_state.stateLayerColor: {
+                        const c = MD.Token.color.on_surface;
+                        return MD.Util.transparent(c, MD.Token.state.hover.state_layer_opacity);
+                    }
                 }
             },
             State {
                 name: "Pressed"
                 when: control.enabled && control.down
                 PropertyChanges {
-                    item_state.stateLayerColor: MD.Util.pressColor(MD.Token.color.on_surface)
+                    restoreEntryValues: false
+                    item_state.stateLayerColor: {
+                        const c = MD.Token.color.on_surface;
+                        return MD.Util.transparent(c, MD.Token.state.pressed.state_layer_opacity);
+                    }
                 }
             }
         ]

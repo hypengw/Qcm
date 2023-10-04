@@ -126,6 +126,9 @@ T.Button {
                 when: control.enabled && control.hovered && !control.down
                 PropertyChanges {
                     item_state.elevation: MD.Token.elevation.level2
+                }
+                PropertyChanges {
+                    restoreEntryValues: false
                     item_state.stateLayerColor: {
                         let c = null;
                         switch (control.type) {
@@ -148,6 +151,9 @@ T.Button {
                 when: control.enabled && control.down
                 PropertyChanges {
                     item_state.elevation: MD.Token.elevation.level1
+                }
+                PropertyChanges {
+                    restoreEntryValues: false
                     item_state.stateLayerColor: {
                         let c = null;
                         switch (control.type) {

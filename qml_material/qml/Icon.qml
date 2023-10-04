@@ -14,6 +14,7 @@ Item {
 
     property int lineHeight: MD.Token.typescale.label_large.line_height
     property int iconStyle: MD.Enum.IconRound
+    property color color: MD.MatProp.textColor
 
     Text {
         id: item_text_icon
@@ -29,7 +30,7 @@ Item {
 
         font.pixelSize: root.size
         text: root.name
-        color: MD.MatProp.textColor
+        color: root.color
         lineHeight: root.lineHeight
         lineHeightMode: Text.FixedHeight
     }

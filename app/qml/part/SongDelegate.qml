@@ -1,16 +1,13 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-
 import Qcm.App as QA
 import Qcm.Material as MD
-
 
 MD.ListItem {
     id: root
 
     required property int count
-    readonly property int count_len: this.count.toString().length
     required property int index
     readonly property bool is_playing: QA.Global.playlist.cur.itemId === modelData.itemId
     required property var modelData
@@ -26,7 +23,7 @@ MD.ListItem {
         StackLayout {
             Layout.fillHeight: false
             Layout.fillWidth: false
-            Layout.minimumWidth: QA.Theme.font.w_unit * root.count_len + 2
+            Layout.minimumWidth: item_font_metrics.advanceWidth(root.count.toString()) + 2
             currentIndex: 0
 
             Binding on currentIndex  {
@@ -34,8 +31,14 @@ MD.ListItem {
                 when: root.is_playing
             }
 
+            MD.FontMetrics {
+                id: item_font_metrics
+                typescale: MD.Token.typescale.body_medium
+            }
+
             MD.Text {
-                horizontalAlignment: Qt.AlignRight
+                horizontalAlignment: Qt.AlignHCenter
+                verticalAlignment: Qt.AlignVCenter
                 typescale: MD.Token.typescale.body_medium
                 opacity: 0.6
                 text: index + 1
@@ -44,7 +47,7 @@ MD.ListItem {
                 name: MD.Token.icon.equalizer
                 size: 24
                 MD.MatProp.textColor: MD.Token.color.primary
-                horizontalAlignment: Qt.AlignRight
+                horizontalAlignment: Qt.AlignHCenter
             }
         }
         ColumnLayout {
@@ -53,6 +56,7 @@ MD.ListItem {
                 Layout.fillWidth: true
                 text: root.modelData.name
                 typescale: MD.Token.typescale.body_large
+                verticalAlignment: Qt.AlignVCenter
             }
             RowLayout {
                 Repeater {
@@ -67,6 +71,7 @@ MD.ListItem {
                 MD.Text {
                     id: subtitle_label
                     Layout.fillWidth: true
+                    verticalAlignment: Qt.AlignVCenter
                     typescale: MD.Token.typescale.body_medium
                     color: MD.MatProp.supportTextColor
                     text: root.subtitle ? root.subtitle : `${QA.Global.join_name(root.modelData.artists, '/')} - ${root.modelData.album.name}`
@@ -76,6 +81,7 @@ MD.ListItem {
         MD.Text {
             typescale: MD.Token.typescale.body_medium
             text: Qt.formatDateTime(root.modelData.duration, 'mm:ss')
+            verticalAlignment: Qt.AlignVCenter
         }
         RowLayout {
             spacing: 0

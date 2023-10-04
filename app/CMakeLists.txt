@@ -60,7 +60,6 @@ set(SOURCES
 set(QML_FILES
     qml/js/util.mjs
     qml/PlayBar.qml
-    qml/Theme.qml
     qml/Global.qml
     qml/page/LoginPage.qml
     qml/page/AlbumDetailPage.qml
@@ -72,10 +71,10 @@ set(QML_FILES
     qml/page/MinePage.qml
     qml/page/SettingsPage.qml
     qml/page/TodayPage.qml
-    qml/part/ApiContainer.qml
     qml/page/PlayingPage.qml
     qml/page/PlayQueuePage.qml
     qml/page/MainPage.qml
+    qml/page/MaterialTest.qml
     qml/part/ArtistsPopup.qml
     qml/part/InfoRow.qml
     qml/part/SnakeBar.qml
@@ -98,12 +97,7 @@ set(QML_FILES
     qml/component/MGridView.qml
     qml/component/MItemDelegate.qml
     qml/component/MListView.qml
-    qml/component/MMenu.qml
-    qml/component/MMenuItem.qml
     qml/component/MFlickable.qml
-    qml/component/MPage.qml
-    qml/component/MPane.qml
-    qml/component/MPopup.qml
     qml/component/PageContainer.qml
     qml/component/PagePopup.qml
     qml/component/PageStack.qml)

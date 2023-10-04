@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-
 import Qcm.App as QA
 import Qcm.Material as MD
 
@@ -133,24 +132,22 @@ MD.Page {
         }
     }
 
-    QA.ApiContainer {
-        QA.PlaylistDetailQuerier {
-            id: qr_pl
-            autoReload: root.itemId.valid()
-        }
-        QA.PlaylistDetailDynamicQuerier {
-            id: qr_dynamic
-            autoReload: itemId.valid()
-            itemId: qr_pl.itemId
-        }
-        QA.PlaylistSubscribeQuerier {
-            id: qr_sub
-            autoReload: false
+    QA.PlaylistDetailQuerier {
+        id: qr_pl
+        autoReload: root.itemId.valid()
+    }
+    QA.PlaylistDetailDynamicQuerier {
+        id: qr_dynamic
+        autoReload: itemId.valid()
+        itemId: qr_pl.itemId
+    }
+    QA.PlaylistSubscribeQuerier {
+        id: qr_sub
+        autoReload: false
 
-            onStatusChanged: {
-                if (status === QA.ApiQuerierBase.Finished)
-                    QA.Global.sig_like_playlist();
-            }
+        onStatusChanged: {
+            if (status === QA.ApiQuerierBase.Finished)
+                QA.Global.sig_like_playlist();
         }
     }
 }

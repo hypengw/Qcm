@@ -1,20 +1,20 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
 import QtQuick.Layouts
-import ".."
-import "../component"
-import "../part"
 
-MPage {
+import Qcm.App as QA
+import Qcm.Material as MD
+
+
+MD.Page {
     id: root
 
     property alias text: label.text
 
-    padding: 0
+    horizontalPadding: 24
     title: qsTr('description')
 
-    MFlickable {
+    QA.MFlickable {
         id: flick
 
         anchors.fill: parent
@@ -26,13 +26,12 @@ MPage {
             width: parent.width
             spacing: 12
 
-            Label {
+            MD.Text {
                 id: label
-
                 Layout.fillWidth: true
                 wrapMode: Text.Wrap
-                elide: Text.ElideRight
-                textFormat: Text.PlainText
+                maximumLineCount: -1
+                typescale: MD.Token.typescale.body_medium
             }
 
         }

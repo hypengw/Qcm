@@ -42,13 +42,14 @@ MD.Page {
                 spacing: 12
 
                 MD.Text {
-                    Layout.minimumWidth: QA.Theme.font.w_unit * view_playlist.count.toString().length + 2
+                    Layout.minimumWidth: item_idx.typescale.size * view_playlist.count.toString().length
                     horizontalAlignment: Qt.AlignRight
                     typescale: MD.Token.typescale.body_medium
                     opacity: 0.6
                     text: index + 1
                 }
                 MD.Text {
+                    id: item_idx
                     Layout.fillWidth: true
                     typescale: MD.Token.typescale.body_medium
                     elide: Text.ElideRight

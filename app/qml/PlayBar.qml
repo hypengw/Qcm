@@ -52,11 +52,14 @@ MD.Pane {
             }
             ColumnLayout {
                 Layout.leftMargin: 4
+                spacing: 0
 
                 MD.Text {
                     Layout.fillWidth: true
                     Layout.maximumWidth: implicitWidth + 10
                     MD.MatProp.textColor: ma_name.containsMouse ? MD.Token.color.primary : MD.Token.color.on_background
+                    verticalAlignment: Qt.AlignVCenter
+                    typescale: MD.Token.typescale.body_medium
 
                     text: QA.Global.cur_song.name
                     MouseArea {
@@ -85,9 +88,10 @@ MD.Pane {
                         Layout.fillWidth: true
                         Layout.maximumWidth: implicitWidth + 10
                         MD.MatProp.textColor: ma_subtitle.containsMouse ? MD.Token.color.primary : MD.Token.color.on_background
-                        typescale: MD.Token.typescale.label_small
+                        typescale: MD.Token.typescale.body_medium
                         opacity: 0.6
                         text: QA.Global.join_name(QA.Global.cur_song.artists, '/')
+                        verticalAlignment: Qt.AlignVCenter
 
                         MouseArea {
                             id: ma_subtitle
@@ -100,7 +104,7 @@ MD.Pane {
                                 if (artists.length === 1)
                                     QA.Global.route(artists[0].itemId);
                                 else
-                                    QA.Global.show_popup('qrc:/Qcm/App/qml/part/ArtistsPopup.qml', {
+                                    QA.Global.show_page_popup('qrc:/Qcm/App/qml/part/ArtistsPopup.qml', {
                                             "model": artists
                                         });
                             }
@@ -173,6 +177,8 @@ MD.Pane {
                         }
                     }
                     MD.Text {
+                        verticalAlignment: Qt.AlignVCenter
+                        typescale: MD.Token.typescale.body_medium
                         readonly property date position: new Date(QA.Global.player.duration * slider.position)
                         text: `${Qt.formatDateTime(position, 'mm:ss')} / ${Qt.formatDateTime(QA.Global.player.duration_date, 'mm:ss')}`
                     }

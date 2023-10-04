@@ -13,6 +13,12 @@ MD.Page {
     function back() {
         content.pop(null);
     }
+    function refresh_list(qr) {
+        const old_limit = qr.limit;
+        qr.limit = 0;
+        qr.offset = 0;
+        qr.limit = Math.max(old_limit, qr.data.rowCount());
+    }
 
     QA.Leaflet {
         id: leaf
@@ -55,7 +61,7 @@ MD.Page {
                         delegate: dg_playlist
                         model: qr_playlist.data
                         refresh: function () {
-                            api_container.refresh_list(qr_playlist);
+                            root.refresh_list(qr_playlist);
                         }
 
                         Connections {
@@ -71,7 +77,7 @@ MD.Page {
                         delegate: dg_albumlist
                         model: qr_albumlist.data
                         refresh: function () {
-                            api_container.refresh_list(qr_albumlist);
+                            root.refresh_list(qr_albumlist);
                         }
 
                         Connections {
@@ -87,28 +93,18 @@ MD.Page {
                         model: qr_artistlist.data
                     }
                 }
-                QA.ApiContainer {
-                    id: api_container
-                    function refresh_list(qr) {
-                        const old_limit = qr.limit;
-                        qr.limit = 0;
-                        qr.offset = 0;
-                        qr.limit = Math.max(old_limit, qr.data.rowCount());
-                    }
-
-                    QA.AlbumSublistQuerier {
-                        id: qr_albumlist
-                        autoReload: limit > 0
-                    }
-                    QA.ArtistSublistQuerier {
-                        id: qr_artistlist
-                        autoReload: limit > 0
-                    }
-                    QA.UserPlaylistQuerier {
-                        id: qr_playlist
-                        autoReload: uid.valid() && limit > 0
-                        uid: QA.Global.user_info.userId
-                    }
+                QA.AlbumSublistQuerier {
+                    id: qr_albumlist
+                    autoReload: limit > 0
+                }
+                QA.ArtistSublistQuerier {
+                    id: qr_artistlist
+                    autoReload: limit > 0
+                }
+                QA.UserPlaylistQuerier {
+                    id: qr_playlist
+                    autoReload: uid.valid() && limit > 0
+                    uid: QA.Global.user_info.userId
                 }
                 Component {
                     id: dg_albumlist

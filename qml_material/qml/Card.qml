@@ -19,7 +19,8 @@ T.Button {
     verticalPadding: 0
     horizontalPadding: 16
 
-    contentItem: Item {}
+    contentItem: Item {
+    }
 
     background: Rectangle {
         implicitWidth: 64
@@ -80,7 +81,8 @@ T.Button {
                 return MD.Token.color.surface_container_low;
             }
         }
-        stateLayerColor: "#00000000"
+        stateLayerColor: "transparent"
+
         states: [
             State {
                 name: "Disabled"
@@ -115,6 +117,9 @@ T.Button {
                             return MD.Token.elevation.level2;
                         }
                     }
+                }
+                PropertyChanges {
+                    restoreEntryValues: false
                     item_state.stateLayerColor: {
                         let c = MD.Token.color.on_surface;
                         return MD.Util.transparent(c, MD.Token.state.hover.state_layer_opacity);
@@ -135,6 +140,9 @@ T.Button {
                             return MD.Token.elevation.level1;
                         }
                     }
+                }
+                PropertyChanges {
+                    restoreEntryValues: false
                     item_state.stateLayerColor: {
                         let c = MD.Token.color.on_surface;
                         return MD.Util.transparent(c, MD.Token.state.pressed.state_layer_opacity);

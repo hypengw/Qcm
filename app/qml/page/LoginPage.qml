@@ -16,32 +16,31 @@ ColumnLayout {
         QA.querier_user.query();
     }
 
-    ApiContainer {
-        QrcodeLoginQuerier {
-            id: qr_qrlogin
-            key: qr_unikey.data.key
-        }
-        QrcodeUnikeyQuerier {
-            id: qr_unikey
+    QrcodeLoginQuerier {
+        id: qr_qrlogin
+        key: qr_unikey.data.key
+    }
+    QrcodeUnikeyQuerier {
+        id: qr_unikey
 
-            readonly property int loginCode: qr_qrlogin.data.code
+        readonly property int loginCode: qr_qrlogin.data.code
 
-            onLoginCodeChanged: {
-                if (loginCode === 800)
-                    query();
-            }
-        }
-        LoginQuerier {
-            id: qr_login
-            function login() {
-                username = tf_username.text;
-                password = App.md5(tf_password.text);
+        onLoginCodeChanged: {
+            if (loginCode === 800)
                 query();
-            }
-
-            autoReload: false
         }
     }
+    LoginQuerier {
+        id: qr_login
+        function login() {
+            username = tf_username.text;
+            password = App.md5(tf_password.text);
+            query();
+        }
+
+        autoReload: false
+    }
+
     ColumnLayout {
         Layout.alignment: Qt.AlignHCenter
         Layout.fillWidth: false

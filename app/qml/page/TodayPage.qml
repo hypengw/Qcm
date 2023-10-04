@@ -1,10 +1,8 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-
 import Qcm.App as QA
 import Qcm.Material as MD
-
 import "../js/util.mjs" as Util
 
 MD.Page {
@@ -58,7 +56,7 @@ MD.Page {
                             model: Util.array_split(qr_rmd_res.data.dailyPlaylists, swipe_playlist.itemCount)
 
                             GridView {
-                                cellHeight: 250
+                                cellHeight: 240
                                 cellWidth: width / swipe_playlist.row
                                 clip: true
                                 implicitHeight: contentHeight
@@ -69,14 +67,17 @@ MD.Page {
                                     width: GridView.view.cellWidth
                                     height: GridView.view.cellHeight
                                     QA.PicGridDelegate {
-                                        anchors.centerIn: parent
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        anchors.top: parent.top
+                                        anchors.topMargin: 12
+
                                         width: picWidth
                                         height: Math.min(implicitHeight, parent.height)
                                         image.source: `image://ncm/${modelData.picUrl}`
                                         text: modelData.name
 
-                                        onClicked:  {
-                                            QA.Global.route(modelData.itemId)
+                                        onClicked: {
+                                            QA.Global.route(modelData.itemId);
                                         }
                                     }
                                 }
@@ -171,13 +172,11 @@ MD.Page {
                 }
             }
         }
-        QA.ApiContainer {
-            QA.RecommendSongsQuerier {
-                id: qr_rmd_songs
-            }
-            QA.RecommendResourceQuerier {
-                id: qr_rmd_res
-            }
+        QA.RecommendSongsQuerier {
+            id: qr_rmd_songs
+        }
+        QA.RecommendResourceQuerier {
+            id: qr_rmd_res
         }
         Timer {
             id: timer_refresh

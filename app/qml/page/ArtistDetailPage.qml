@@ -90,7 +90,7 @@ MD.Page {
                 MD.Pane {
                     Layout.fillHeight: true
                     Layout.fillWidth: true
-                    implicitHeight: Math.min(Math.max(root.height - ly_header.implicitHeight - bar.implicitHeight, 0), item_stack.implicitHeight)
+                    implicitHeight: Math.min(Math.max(root.height - ly_header.implicitHeight * 0.4 - bar.implicitHeight, 0), item_stack.implicitHeight)
                     padding: 0
 
                     MD.MatProp.backgroundColor: MD.Token.color.surface
@@ -137,7 +137,10 @@ MD.Page {
                                 width: GridView.view.cellWidth
                                 height: GridView.view.cellHeight
                                 QA.PicGridDelegate {
-                                    anchors.centerIn: parent
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    anchors.top: parent.top
+                                    anchors.topMargin: 8
+
                                     width: picWidth
                                     height: Math.min(implicitHeight, parent.height)
                                     image.source: `image://ncm/${model.picUrl}`
@@ -155,15 +158,13 @@ MD.Page {
             }
         }
     }
-    QA.ApiContainer {
-        QA.ArtistQuerier {
-            id: qr_artist
-            autoReload: itemId.valid()
-        }
-        QA.ArtistAlbumsQuerier {
-            id: qr_artist_albums
-            artistId: qr_artist.itemId
-            autoReload: artistId.valid()
-        }
+    QA.ArtistQuerier {
+        id: qr_artist
+        autoReload: itemId.valid()
+    }
+    QA.ArtistAlbumsQuerier {
+        id: qr_artist_albums
+        artistId: qr_artist.itemId
+        autoReload: artistId.valid()
     }
 }

@@ -1,6 +1,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QCommandLineParser>
+#include <QSurfaceFormat>
 
 #include "Qcm/app.h"
 #include "request/request.h"
@@ -31,6 +32,10 @@ int main(int argc, char* argv[]) {
     logger->set_level(parser.isSet(verboseOption) ? qcm::LogLevel::DEBUG : qcm::LogLevel::WARN);
     int re;
     {
+        QSurfaceFormat format;
+        format.setSamples(4);
+        QSurfaceFormat::setDefaultFormat(format);
+
         QQmlApplicationEngine engine;
         engine.addImportPath(u"qrc:/"_qs);
 

@@ -16,6 +16,7 @@ set(SOURCES
 set(QML_FILES
     qml/Button.qml
     qml/Control.qml
+    qml/Dialog.qml
     qml/Divider.qml
     qml/Token.qml
     qml/IconLabel.qml
@@ -23,8 +24,12 @@ set(QML_FILES
     qml/FAB.qml
     qml/Card.qml
     qml/CircularIndicator.qml
+    qml/Menu.qml
+    qml/MenuItem.qml
     qml/Image.qml
     qml/ListItem.qml
+    qml/Label.qml
+    qml/FontMetrics.qml
     qml/Icon.qml
     qml/Text.qml
     qml/Pane.qml
@@ -32,6 +37,7 @@ set(QML_FILES
     qml/StackView.qml
     qml/SplitView.qml
     qml/Slider.qml
+    qml/Rail.qml
     qml/TabBar.qml
     qml/TabButton.qml
     qml/impl/Ripple.qml

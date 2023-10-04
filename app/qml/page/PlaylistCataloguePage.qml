@@ -2,7 +2,6 @@ import QtCore
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-
 import Qcm.App as QA
 import Qcm.Material as MD
 
@@ -81,10 +80,8 @@ MD.Page {
 
         category: QA.Global.user_setting_category
     }
-    QA.ApiContainer {
-        QA.PlaylistCatalogueQuerier {
-            id: qr_cat
-        }
+    QA.PlaylistCatalogueQuerier {
+        id: qr_cat
     }
 
     component CatalogueSection: ColumnLayout {

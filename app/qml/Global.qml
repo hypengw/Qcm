@@ -28,6 +28,8 @@ Item {
     property alias querier_user: m_querier_user
     property alias querier_user_song: m_querier_user_songlike
     property string song_cover: ''
+    property int color_scheme: MD.MdColorMgr.Light
+
     readonly property string title: 'Qcm'
     readonly property alias user_info: m_querier_user.data
     readonly property string user_setting_category: `user_${user_info.userId.sid}`
@@ -103,6 +105,14 @@ Item {
         main_win.snake.show(text, duration);
     }
 
+    Component.onCompleted: {
+        QA.App.errorOccurred.connect(s => {
+                // ignore 'Operation aborted'
+                if (!s.endsWith('Operation aborted.'))
+                    root.toast(s, 5000);
+            });
+    }
+
     Component {
         id: m_comp_route_msg
         QA.RouteMsg {
@@ -110,10 +120,24 @@ Item {
     }
     Settings {
         id: settings_play
-
         property alias loop: m_playlist.loopMode
-
         category: 'play'
+    }
+    Settings {
+        id: settings_theme
+        property alias color_scheme: root.color_scheme
+        property color primary_color: MD.Token.color.accentColor
+        category: 'theme'
+
+        Component.onCompleted: {
+            MD.Token.color.accentColor = primary_color;
+            primary_color = Qt.binding(() => {
+                return MD.Token.color.accentColor;
+            });
+            MD.Token.color.schemeTheme = Qt.binding(() => {
+                return root.color_scheme;
+            });
+        }
     }
     QA.Playlist {
         id: m_playlist
@@ -181,46 +205,44 @@ Item {
             }
         }
     }
-    QA.ApiContainer {
-        QA.UserAccountQuerier {
-            id: m_querier_user
+    QA.UserAccountQuerier {
+        id: m_querier_user
 
-            readonly property bool loginOk: data.userId.valid()
+        readonly property bool loginOk: data.userId.valid()
 
-            onLoginOkChanged: {
-                if (loginOk)
-                    QA.App.loginPost(data);
+        onLoginOkChanged: {
+            if (loginOk)
+                QA.App.loginPost(data);
+        }
+    }
+    QA.SongLikeQuerier {
+        id: m_querier_user_songlike
+        function like_song(song_id, is_like) {
+            const qu = m_querier_radio_like;
+            qu.trackId = song_id;
+            qu.like = is_like;
+            qu.query();
+        }
+
+        autoReload: m_querier_user.loginOk
+    }
+    QA.RadioLikeQuerier {
+        id: m_querier_radio_like
+        autoReload: false
+
+        onStatusChanged: {
+            if (status === QA.ApiQuerierBase.Finished) {
+                if (like)
+                    m_querier_user_songlike.data.insert(trackId);
+                else
+                    m_querier_user_songlike.data.remove(trackId);
+                m_querier_user_songlike.dataChanged();
             }
         }
-        QA.SongLikeQuerier {
-            id: m_querier_user_songlike
-            function like_song(song_id, is_like) {
-                const qu = m_querier_radio_like;
-                qu.trackId = song_id;
-                qu.like = is_like;
-                qu.query();
-            }
-
-            autoReload: m_querier_user.loginOk
-        }
-        QA.RadioLikeQuerier {
-            id: m_querier_radio_like
-            autoReload: false
-
-            onStatusChanged: {
-                if (status === QA.ApiQuerierBase.Finished) {
-                    if (like)
-                        m_querier_user_songlike.data.insert(trackId);
-                    else
-                        m_querier_user_songlike.data.remove(trackId);
-                    m_querier_user_songlike.dataChanged();
-                }
-            }
-        }
-        QA.SongUrlQuerier {
-            id: m_querier_song
-            autoReload: ids.length > 0
-        }
+    }
+    QA.SongUrlQuerier {
+        id: m_querier_song
+        autoReload: ids.length > 0
     }
 
     QA.Mpris {
@@ -250,14 +272,13 @@ Item {
         }
 
         source: ''
-        onSourceChanged: source => {
-            console.error(source);
+        onSourceChanged: {
             if (source)
                 play();
         }
         onPlaybackStateChanged: {
             if (playbackState === QA.QcmPlayer.StoppedState) {
-                if (position / duration > 0.99)
+                if (position / duration > 0.98)
                     m_playlist.next();
             }
         }

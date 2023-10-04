@@ -71,7 +71,7 @@ T.Slider {
                     radius: 2
                     x: control.horizontal ? (parent.width - width * 2) * currentPosition + (width / 2) : (parent.width - width) / 2
                     y: control.horizontal ? (parent.height - height) / 2 : (parent.height - height * 2) * currentPosition + (height / 2)
-                    color: active ? control.MD.MatProp.trackMarkColor : control.MD.MatProp.trackMarkInactiveColor
+                    color: active ? control.trackMarkColor : control.trackMarkInactiveColor
 
                     required property int index
                     readonly property real currentPosition: index / (parent.repeater.count - 1)

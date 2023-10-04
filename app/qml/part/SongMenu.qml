@@ -2,56 +2,56 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
-import Qcm.App
-import ".."
-import "../component"
 
-MMenu {
+import Qcm.App as QA
+import Qcm.Material as MD
+
+MD.Menu {
     id: root
 
-    required property t_song song
+    required property QA.t_song song
 
     dim: false
     font.capitalization: Font.Capitalize
     modal: true
 
     Action {
-        enabled: root.song.itemId !== QA.cur_song.itemId
-        icon.name: Theme.ic.play_arrow
+        enabled: root.song.itemId !== QA.Global.cur_song.itemId
+        icon.name: MD.Token.icon.play_arrow
         text: qsTr('play next')
 
         onTriggered: {
-            QA.playlist.appendNext(root.song);
+            QA.Global.playlist.appendNext(root.song);
         }
     }
     Action {
-        icon.name: Theme.ic.album
+        icon.name: MD.Token.icon.album
         text: qsTr('go to album')
 
         onTriggered: {
-            QA.route(root.song.album.itemId);
+            QA.Global.route(root.song.album.itemId);
         }
     }
     Action {
-        icon.name: Theme.ic.person
+        icon.name: MD.Token.icon.person
         text: qsTr('go to artist')
 
         onTriggered: {
             const artists = root.song.artists;
             if (artists.length === 1)
-                QA.route(artists[0].itemId);
+                QA.Global.route(artists[0].itemId);
             else
-                QA.show_popup('qrc:/Qcm/App/qml/part/ArtistsPopup.qml', {
+                QA.Global.show_page_popup('qrc:/Qcm/App/qml/part/ArtistsPopup.qml', {
                         "model": artists
                     });
         }
     }
     Action {
-        icon.name: Theme.ic.link
+        icon.name: MD.Token.icon.link
         text: qsTr('copy url')
 
         onTriggered: {
-            Clipboard.text = song.itemId.url();
+            QA.Clipboard.text = song.itemId.url();
         }
     }
 }

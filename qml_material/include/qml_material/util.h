@@ -26,6 +26,19 @@ public:
         return in;
     }
 
+    Q_INVOKABLE void closePopup(QObject* obj) {
+        do {
+            auto meta = obj->metaObject();
+            do {
+                if(meta->className() == std::string("QQuickPopup")) {
+                    QMetaObject::invokeMethod(obj, "close");
+                    return;
+                }
+            }
+            while(meta = meta->superClass(), meta);
+        } while (obj = obj->parent(), obj);
+    }
+
     Q_INVOKABLE QColor hoverColor(QColor in) {
         in.setAlphaF(0.08);
         return in;

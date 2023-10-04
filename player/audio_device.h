@@ -222,7 +222,7 @@ private:
             pos.value                  = frame.frame.ff->pts * time_base;
             if (pos.value >= m_mark_pos) {
                 auto diff = pos.value - m_last_pts;
-                if (diff <= 0 || diff > 50) {
+                if (diff <= 0 || diff > 10) {
                     m_notifier.try_send(pos);
                     m_last_pts = pos.value;
                 }

@@ -26,18 +26,17 @@ MD.Page {
         }
     }
 
-    QA.ApiContainer {
-        QA.SongLyricQuerier {
-            id: querier_lyric
+    QA.SongLyricQuerier {
+        id: querier_lyric
 
-            readonly property string combined_lrc: {
-                return data.lrc + data.transLrc;
-            }
-
-            autoReload: songId.valid()
-            songId: QA.Global.cur_song.itemId
+        readonly property string combined_lrc: {
+            return data.lrc + data.transLrc;
         }
+
+        autoReload: songId.valid()
+        songId: QA.Global.cur_song.itemId
     }
+
     MD.Page {
         anchors.fill: parent
 
@@ -67,21 +66,21 @@ MD.Page {
                         Layout.fillWidth: true
                         Layout.topMargin: 12
                         font.bold: true
-                        typescale: MD.Token.typescale.label_large
+                        typescale: MD.Token.typescale.title_medium
                         horizontalAlignment: Text.AlignHCenter
                         text: QA.Global.cur_song.name
                     }
                     MD.Text {
                         Layout.alignment: Qt.AlignHCenter
                         Layout.fillWidth: true
-                        typescale: MD.Token.typescale.label_medium
+                        typescale: MD.Token.typescale.body_medium
                         horizontalAlignment: Text.AlignHCenter
                         text: QA.Global.cur_song.album.name
                     }
                     MD.Text {
                         Layout.alignment: Qt.AlignHCenter
                         Layout.fillWidth: true
-                        typescale: MD.Token.typescale.label_medium
+                        typescale: MD.Token.typescale.body_medium
                         horizontalAlignment: Text.AlignHCenter
                         text: QA.Global.join_name(QA.Global.cur_song.artists, '/')
                     }
@@ -235,16 +234,20 @@ MD.Page {
                                     }
                                 }
                             }
-                            delegate: QA.MItemDelegate {
-                                // Material.foreground: lrc.currentIndex === index ? MD.Token.color.tertiary : root.Material.foreground
+                            delegate: MD.ListItem {
                                 width: ListView.view.width
 
                                 contentItem: ColumnLayout {
+                                    property bool current: lrc.currentIndex === index
                                     MD.Text {
                                         Layout.fillWidth: true
                                         typescale: MD.Token.typescale.title_medium
                                         horizontalAlignment: Text.AlignHCenter
+                                        verticalAlignment: Text.AlignVCenter
                                         text: model.content
+                                        color: parent.current ? MD.Token.color.primary : MD.Token.color.on_surface
+                                        font.weight: parent.current ? Font.Bold : typescale.weight
+                                        maximumLineCount: -1
                                     }
                                 }
 

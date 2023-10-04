@@ -68,11 +68,23 @@ Item {
     //  Font.ExtraBold	81
     //  Font.Black	87
 
+    // Value 	Common weight name
+    // 100 	Thin (Hairline)
+    // 200 	Extra Light (Ultra Light)
+    // 300 	Light
+    // 400 	Normal (Regular)
+    // 500 	Medium
+    // 600 	Semi Bold (Demi Bold)
+    // 700 	Bold
+    // 800 	Extra Bold (Ultra Bold)
+    // 900 	Black (Heavy)
+    // 950 	Extra Black (Ultra Black)
+
     readonly property QtObject typescale: QtObject {
         readonly property QtObject display_large: QtObject {
             readonly property int size: 57
             readonly property int line_height: 64
-            readonly property int weight: Font.Normal // 400
+            readonly property int weight: Font.Normal
             readonly property real tracking: -0.25
         }
         readonly property QtObject display_medium: QtObject {
@@ -84,13 +96,13 @@ Item {
         readonly property QtObject display_small: QtObject {
             readonly property int size: 36
             readonly property int line_height: 44
-            readonly property int weight: Font.Normal // 400
+            readonly property int weight: Font.Normal
             readonly property real tracking: 0
         }
         readonly property QtObject headline_large: QtObject {
             readonly property int size: 32
             readonly property int line_height: 40
-            readonly property int weight: Font.Normal // 400
+            readonly property int weight: Font.Normal
             readonly property real tracking: 0
         }
         readonly property QtObject headline_medium: QtObject {
@@ -102,13 +114,13 @@ Item {
         readonly property QtObject headline_small: QtObject {
             readonly property int size: 24
             readonly property int line_height: 32
-            readonly property int weight: Font.Normal // 400
+            readonly property int weight: Font.Normal
             readonly property real tracking: 0
         }
         readonly property QtObject title_large: QtObject {
             readonly property int size: 22
             readonly property int line_height: 28
-            readonly property int weight: Font.Normal // 400
+            readonly property int weight: Font.Normal
             readonly property real tracking: 0
         }
         readonly property QtObject title_medium: QtObject {
@@ -120,43 +132,46 @@ Item {
         readonly property QtObject title_small: QtObject {
             readonly property int size: 14
             readonly property int line_height: 20
-            readonly property int weight: Font.Medium // 400
+            readonly property int weight: Font.Medium
             readonly property real tracking: 0.1
         }
         readonly property QtObject label_large: QtObject {
             readonly property int size: 14
             readonly property int line_height: 20
-            readonly property int weight: Font.Medium // 500
+            readonly property int weight: Font.Medium
+            readonly property int weight_prominent: Font.Bold
             readonly property real tracking: 0.1
         }
         readonly property QtObject label_medium: QtObject {
             readonly property int size: 12
             readonly property int line_height: 16
-            readonly property int weight: Font.Medium // 500
+            readonly property int weight: Font.Medium
+            readonly property int weight_prominent: Font.Bold
             readonly property real tracking: 0.5
         }
         readonly property QtObject label_small: QtObject {
             readonly property int size: 11
             readonly property int line_height: 16
-            readonly property int weight: Font.Medium // 500
+            readonly property int weight: Font.Medium
+            readonly property int weight_prominent: Font.Bold
             readonly property real tracking: 0.5
         }
         readonly property QtObject body_large: QtObject {
             readonly property int size: 16
             readonly property int line_height: 24
-            readonly property int weight: Font.Normal // 400
+            readonly property int weight: Font.Normal
             readonly property real tracking: 0.5
         }
         readonly property QtObject body_medium: QtObject {
             readonly property int size: 14
             readonly property int line_height: 20
-            readonly property int weight: Font.Normal // 400
+            readonly property int weight: Font.Normal
             readonly property real tracking: 0.25
         }
         readonly property QtObject body_small: QtObject {
             readonly property int size: 12
             readonly property int line_height: 16
-            readonly property int weight: Font.Normal // 400
+            readonly property int weight: Font.Normal
             readonly property real tracking: 0.4
         }
     }
@@ -176,6 +191,13 @@ Item {
         readonly property int level3: 6
         readonly property int level4: 8
         readonly property int level5: 12
+    }
+
+    readonly property QtObject shape: QtObject {
+        readonly property QtObject corner: QtObject {
+            readonly property int extra_large: 28
+            readonly property int extra_small: 4
+        }
     }
 
     readonly property var ts: ({

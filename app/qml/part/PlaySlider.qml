@@ -48,6 +48,7 @@ MD.Slider {
     */
     onPlaying_posChanged: {
         if (!pressed) {
+            // console.error(QA.Global.player.position);
             const to = playing_pos;
             value =  to;
         }

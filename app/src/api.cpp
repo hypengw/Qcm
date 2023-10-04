@@ -35,6 +35,7 @@ void    ApiQuerierBase::set_error(QString v) {
     if (m_error != v) {
         m_error = v;
         emit errorChanged();
+        emit App::instance()->errorOccurred(v);
     }
 }
 
