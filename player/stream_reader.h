@@ -138,7 +138,7 @@ private:
                     (double)seek, av_make_q(1, 1000), fmt_ctx->streams[audio_idx]->time_base);
                 FFmpegError err = fmt_ctx.seek_file(audio_idx, target - 2, target, target + 2, 0);
                 if (err) {
-                    ERROR_LOG("{}", err);
+                    ERROR_LOG("{}", err.what());
                 }
                 pkt_queue.clear();
                 pkt_queue.refresh_serial();

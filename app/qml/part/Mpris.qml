@@ -1,39 +1,39 @@
 import QtQuick
-import QcmApp
-import ".."
+
+import Qcm.App as QA
 
 Item {
     required property QtObject playlist
     required property QtObject player
 
     function bindMpris() {
-        const mpris = App.mpris;
+        const mpris = QA.App.mpris;
         mpris.canPlay = true;
         mpris.canPause = true;
         mpris.canControl = true;
         mpris.playbackStatus = Qt.binding(() => {
                 switch (player.playbackState) {
-                case QcmPlayer.PlayingState:
-                    return MprisMediaPlayer.Playing;
-                case QcmPlayer.PausedState:
-                    return MprisMediaPlayer.Paused;
-                case QcmPlayer.StoppedState:
-                    return MprisMediaPlayer.Stopped;
+                case QA.QcmPlayer.PlayingState:
+                    return QA.MprisMediaPlayer.Playing;
+                case QA.QcmPlayer.PausedState:
+                    return QA.MprisMediaPlayer.Paused;
+                case QA.QcmPlayer.StoppedState:
+                    return QA.MprisMediaPlayer.Stopped;
                 }
             });
         mpris.loopStatus = Qt.binding(() => {
                 switch (playlist.loopMode) {
-                case Playlist.NoneLoop:
-                    return MprisMediaPlayer.None;
-                case Playlist.SingleLoop:
-                    return MprisMediaPlayer.Track;
-                case Playlist.ListLoop:
-                case Playlist.ShuffleLoop:
-                    return MprisMediaPlayer.Playlist;
+                case QA.Playlist.NoneLoop:
+                    return QA.MprisMediaPlayer.None;
+                case QA.Playlist.SingleLoop:
+                    return QA.MprisMediaPlayer.Track;
+                case QA.Playlist.ListLoop:
+                case QA.Playlist.ShuffleLoop:
+                    return QA.MprisMediaPlayer.Playlist;
                 }
             });
         mpris.shuffle = Qt.binding(() => {
-                return playlist.loopMode === Playlist.ShuffleLoop;
+                return playlist.loopMode === QA.Playlist.ShuffleLoop;
             });
         mpris.volume = Qt.binding(() => {
                 return 1.0;
@@ -51,20 +51,20 @@ Item {
         mpris.canGoPrevious = Qt.binding(() => {
                 return playlist.canPrev;
             });
-        const key = App.mpris.metakey;
+        const key = QA.App.mpris.metakey;
         mpris.metadata = Qt.binding(() => {
                 const meta = {};
                 const song = playlist.cur;
                 if (song.itemId.valid())
-                    meta[key(MprisMediaPlayer.MetaTrackId)] = song.itemId.sid;
+                    meta[key(QA.MprisMediaPlayer.MetaTrackId)] = song.itemId.sid;
                 if (root.song_cover)
-                    meta[key(MprisMediaPlayer.MetaArtUrl)] = root.song_cover;
-                meta[key(MprisMediaPlayer.MetaTitle)] = song.name;
-                meta[key(MprisMediaPlayer.MetaAlbum)] = song.album.name;
-                meta[key(MprisMediaPlayer.MetaAlbumArtist)] = song.artists.map(a => {
+                    meta[key(QA.MprisMediaPlayer.MetaArtUrl)] = root.song_cover;
+                meta[key(QA.MprisMediaPlayer.MetaTitle)] = song.name;
+                meta[key(QA.MprisMediaPlayer.MetaAlbum)] = song.album.name;
+                meta[key(QA.MprisMediaPlayer.MetaAlbumArtist)] = song.artists.map(a => {
                         return a.name;
                     });
-                meta[key(MprisMediaPlayer.MetaLength)] = player.duration * 1000;
+                meta[key(QA.MprisMediaPlayer.MetaLength)] = player.duration * 1000;
                 return meta;
             });
         // connect back
@@ -72,7 +72,7 @@ Item {
         mpris.pauseRequested.connect(player.pause);
         mpris.stopRequested.connect(player.stop);
         mpris.playPauseRequested.connect(() => {
-                if (player.playbackState === QcmPlayer.PlayingState)
+                if (player.playbackState === QA.QcmPlayer.PlayingState)
                     player.pause();
                 else
                     player.play();
@@ -81,22 +81,22 @@ Item {
         mpris.previousRequested.connect(playlist.prev);
         mpris.loopStatusRequested.connect(s => {
                 switch (s) {
-                case MprisMediaPlayer.None:
-                    playlist.loopMode = Playlist.NoneLoop;
+                case QA.MprisMediaPlayer.None:
+                    playlist.loopMode = QA.Playlist.NoneLoop;
                     break;
-                case MprisMediaPlayer.Track:
-                    playlist.loopMode = Playlist.SingleLoop;
+                case QA.MprisMediaPlayer.Track:
+                    playlist.loopMode = QA.Playlist.SingleLoop;
                     break;
-                case MprisMediaPlayer.Playlist:
-                    playlist.loopMode = Playlist.ListLoop;
+                case QA.MprisMediaPlayer.Playlist:
+                    playlist.loopMode = QA.Playlist.ListLoop;
                     break;
                 }
             });
         mpris.shuffleRequested.connect(shuffle => {
                 if (shuffle)
-                    playlist.loopMode = Playlist.ShuffleLoop;
+                    playlist.loopMode = QA.Playlist.ShuffleLoop;
                 else
-                    playlist.loopMode = Playlist.ListLoop;
+                    playlist.loopMode = QA.Playlist.ListLoop;
             });
         mpris.setPositionRequested.connect((_, pos) => {
                 player.position = pos / 1000;
@@ -113,7 +113,7 @@ Item {
     }
 
     Component.onCompleted: {
-        if (App.mpris)
+        if (QA.App.mpris)
             bindMpris();
     }
 }

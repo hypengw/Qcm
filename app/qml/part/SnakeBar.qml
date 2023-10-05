@@ -1,11 +1,10 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
 import QtQuick.Layouts
-import ".."
-import "../component"
 
-Pane {
+import Qcm.Material as MD
+
+MD.Pane {
     id: root
 
     property alias text: label.text
@@ -16,9 +15,7 @@ Pane {
     leftPadding: 16
     rightPadding: showClose ? 8 : 16
     height: 48
-    Material.elevation: 3
-    Material.background: Theme.color.inverse_surface
-    Material.foreground: Theme.color.inverse_on_surface
+    MD.MatProp.elevation: MD.Token.elevation.level3
 
     RowLayout {
         id: icon_layout
@@ -26,15 +23,15 @@ Pane {
         anchors.fill: parent
         spacing: 8
 
-        Label {
+        MD.Text {
             id: label
 
             Layout.fillWidth: true
-            font.pointSize: Theme.ts.body_medium.size
+            typescale: MD.Token.typescale.body_medium
         }
 
-        MButton {
-            Material.theme: Theme.toMatTheme(Theme.theme, true)
+/*
+        MD.Button {
             Material.foreground: Theme.color.inverse_primary
             padding: 4
             horizontalPadding: 8
@@ -49,12 +46,12 @@ Pane {
             visible: !!action
             action: root.action
         }
+*/
 
-        MRoundButton {
+        MD.Icon {
             visible: root.showClose
-            Material.theme: Theme.toMatTheme(Theme.theme, true)
-            text: Theme.ic.close
-            flat: true
+            name: Theme.ic.close
+            size: 24
         }
 
     }

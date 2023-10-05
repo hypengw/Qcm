@@ -2,12 +2,10 @@ import QtQml.Models
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QcmApp
-import ".."
-import "../component"
-import "../part"
+import Qcm.App as QA
+import Qcm.Material as MD
 
-Page {
+MD.Page {
     id: root
 
     readonly property bool canBack: leaf.folded && leaf.rightAbove
@@ -15,40 +13,43 @@ Page {
     function back() {
         content.pop(null);
     }
+    function refresh_list(qr) {
+        const old_limit = qr.limit;
+        qr.limit = 0;
+        qr.offset = 0;
+        qr.limit = Math.max(old_limit, qr.data.rowCount());
+    }
 
-    Material.background: Theme.color.surface
-
-    Leaflet {
+    QA.Leaflet {
         id: leaf
         anchors.fill: parent
         leftMin: 280
         rightAbove: content.depth === 2
         rightMin: 400
 
-        leftPage: Pane {
-            Material.elevation: 2
+        leftPage: MD.Pane {
             padding: 0
 
             ColumnLayout {
                 id: p1
                 anchors.fill: parent
+                spacing: 0
 
-                TabBar {
+                MD.TabBar {
                     id: bar
                     Layout.fillWidth: true
-                    Material.elevation: 1
 
                     Component.onCompleted: {
                         currentIndexChanged();
                     }
 
-                    TabButton {
+                    MD.TabButton {
                         text: qsTr("Playlist")
                     }
-                    TabButton {
+                    MD.TabButton {
                         text: qsTr("Album")
                     }
-                    TabButton {
+                    MD.TabButton {
                         text: qsTr("Artist")
                     }
                 }
@@ -60,7 +61,7 @@ Page {
                         delegate: dg_playlist
                         model: qr_playlist.data
                         refresh: function () {
-                            api_container.refresh_list(qr_playlist);
+                            root.refresh_list(qr_playlist);
                         }
 
                         Connections {
@@ -68,7 +69,7 @@ Page {
                                 view_playlist.dirty = true;
                             }
 
-                            target: QA
+                            target: QA.Global
                         }
                     }
                     BaseView {
@@ -76,7 +77,7 @@ Page {
                         delegate: dg_albumlist
                         model: qr_albumlist.data
                         refresh: function () {
-                            api_container.refresh_list(qr_albumlist);
+                            root.refresh_list(qr_albumlist);
                         }
 
                         Connections {
@@ -84,7 +85,7 @@ Page {
                                 view_albumlist.dirty = true;
                             }
 
-                            target: QA
+                            target: QA.Global
                         }
                     }
                     BaseView {
@@ -92,63 +93,34 @@ Page {
                         model: qr_artistlist.data
                     }
                 }
-                ApiContainer {
-                    id: api_container
-                    function refresh_list(qr) {
-                        const old_limit = qr.limit;
-                        qr.limit = 0;
-                        qr.offset = 0;
-                        qr.limit = Math.max(old_limit, qr.data.rowCount());
-                    }
-
-                    AlbumSublistQuerier {
-                        id: qr_albumlist
-                        autoReload: limit > 0
-                    }
-                    ArtistSublistQuerier {
-                        id: qr_artistlist
-                        autoReload: limit > 0
-                    }
-                    UserPlaylistQuerier {
-                        id: qr_playlist
-                        autoReload: uid.valid() && limit > 0
-                        uid: QA.user_info.userId
-                    }
+                QA.AlbumSublistQuerier {
+                    id: qr_albumlist
+                    autoReload: limit > 0
+                }
+                QA.ArtistSublistQuerier {
+                    id: qr_artistlist
+                    autoReload: limit > 0
+                }
+                QA.UserPlaylistQuerier {
+                    id: qr_playlist
+                    autoReload: uid.valid() && limit > 0
+                    uid: QA.Global.user_info.userId
                 }
                 Component {
                     id: dg_albumlist
-                    MItemDelegate {
+                    MD.ListItem {
                         property var itemId: model.itemId
 
                         width: ListView.view.width
-
-                        contentItem: RowLayout {
-                            spacing: 8
-                            width: parent.width
-
-                            Image {
-                                source: `image://ncm/${model.picUrl}`
-                                sourceSize.height: 48
-                                sourceSize.width: 48
-                            }
-                            ColumnLayout {
-                                Label {
-                                    Layout.fillWidth: true
-                                    elide: Text.ElideRight
-                                    maximumLineCount: 4
-                                    text: model.name
-                                    wrapMode: Text.Wrap
-                                }
-                                Label {
-                                    Layout.fillWidth: true
-                                    elide: Text.ElideRight
-                                    font.pointSize: Theme.ts.label_small.size
-                                    opacity: 0.6
-                                    text: QA.join_name(model.artists, '/')
-                                }
-                            }
+                        text: model.name
+                        maximumLineCount: 2
+                        supportText: QA.Global.join_name(model.artists, '/')
+                        leader: MD.Image {
+                            radius: 8
+                            source: `image://ncm/${model.picUrl}`
+                            sourceSize.height: 48
+                            sourceSize.width: 48
                         }
-
                         onClicked: {
                             content.route(itemId);
                             ListView.view.currentIndex = index;
@@ -157,40 +129,19 @@ Page {
                 }
                 Component {
                     id: dg_artistlist
-                    MItemDelegate {
+                    MD.ListItem {
                         property var itemId: model.itemId
 
                         width: ListView.view.width
-
-                        contentItem: RowLayout {
-                            spacing: 8
-                            width: parent.width
-
-                            RoundImage {
-                                image: Image {
-                                    source: `image://ncm/${model.picUrl}`
-                                    sourceSize.height: 48
-                                    sourceSize.width: 48
-                                }
-                            }
-                            ColumnLayout {
-                                Label {
-                                    Layout.fillWidth: true
-                                    elide: Text.ElideRight
-                                    maximumLineCount: 4
-                                    text: model.name
-                                    wrapMode: Text.Wrap
-                                }
-                                Label {
-                                    Layout.fillWidth: true
-                                    elide: Text.ElideRight
-                                    font.pointSize: Theme.font.small(Theme.font.label_font)
-                                    opacity: 0.6
-                                    text: `${model.albumSize} albums`
-                                }
-                            }
+                        text: model.name
+                        maximumLineCount: 2
+                        supportText: `${model.albumSize} albums`
+                        leader: MD.Image {
+                            radius: 24
+                            source: `image://ncm/${model.picUrl}`
+                            sourceSize.height: 48
+                            sourceSize.width: 48
                         }
-
                         onClicked: {
                             content.route(itemId);
                             ListView.view.currentIndex = index;
@@ -199,38 +150,19 @@ Page {
                 }
                 Component {
                     id: dg_playlist
-                    MItemDelegate {
+                    MD.ListItem {
                         property var itemId: model.itemId
 
                         width: ListView.view.width
-
-                        contentItem: RowLayout {
-                            spacing: 8
-                            width: parent.width
-
-                            Image {
-                                source: `image://ncm/${model.picUrl}`
-                                sourceSize.height: 48
-                                sourceSize.width: 48
-                            }
-                            ColumnLayout {
-                                Label {
-                                    Layout.fillWidth: true
-                                    elide: Text.ElideRight
-                                    maximumLineCount: 4
-                                    text: model.name
-                                    wrapMode: Text.Wrap
-                                }
-                                Label {
-                                    Layout.fillWidth: true
-                                    elide: Text.ElideRight
-                                    font.pointSize: Theme.font.small(Theme.font.label_font)
-                                    opacity: 0.6
-                                    text: `${model.trackCount} songs`
-                                }
-                            }
+                        text: model.name
+                        maximumLineCount: 2
+                        supportText: `${model.trackCount} songs`
+                        leader: MD.Image {
+                            radius: 8
+                            source: `image://ncm/${model.picUrl}`
+                            sourceSize.height: 48
+                            sourceSize.width: 48
                         }
-
                         onClicked: {
                             content.route(itemId);
                             ListView.view.currentIndex = index;
@@ -239,7 +171,7 @@ Page {
                 }
             }
         }
-        rightPage: StackView {
+        rightPage: MD.StackView {
             id: content
 
             property var currentItemId: null
@@ -252,7 +184,7 @@ Page {
             }
             function route(itemId) {
                 currentItemId = itemId;
-                push_page(QA.item_id_url(itemId), {
+                push_page(QA.Global.item_id_url(itemId), {
                         "itemId": itemId
                     });
             }
@@ -266,7 +198,7 @@ Page {
         }
     }
 
-    component BaseView: MListView {
+    component BaseView: QA.MListView {
         property bool dirty: false
         property var refresh: function () {}
 

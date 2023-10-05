@@ -1,79 +1,53 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
 import QtQuick.Layouts
-import ".."
-import "../component"
-import "../part"
 
-MPane {
+import Qcm.App as QA
+import Qcm.Material as MD
+
+MD.Card {
     id: root
 
     property alias image: image
-    property alias text: label.text
-    property alias subText: label_sub.text
+    property string subText
+    property int picWidth: 160
 
-    signal clicked()
+    horizontalPadding: 0
 
-    Component.onCompleted: {
-        item_dg.clicked.connect(() => {
-            root.clicked();
-        });
-    }
+    contentItem: ColumnLayout {
+        MD.Image {
+            id: image
+            radius: root.background.radius
+            implicitWidth: root.picWidth
+            implicitHeight: root.picWidth
 
-    MItemDelegate {
-        id: item_dg
-
-        anchors.horizontalCenter: parent.horizontalCenter
-        clip: true
-        padding: 8
-
-        contentItem: ColumnLayout {
-            Image {
-                id: image
-
-                Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
-                Layout.preferredWidth: 160
-                Layout.preferredHeight: 160
-                sourceSize.width: 160
-                sourceSize.height: 160
-            }
-
-            Label {
-                id: label
-
-                Layout.topMargin: 8
-                Layout.preferredWidth: 160
-                maximumLineCount: 2
-                wrapMode: Text.Wrap
-                elide: Text.ElideRight
-            }
-
-            Label {
-                id: label_sub
-
-                visible: !!text
-                Layout.alignment: Qt.AlignHCenter
-                font.pointSize: Theme.ts.label_small.size
-                opacity: 0.6
-            }
-
-            Item {
-                Layout.fillHeight: true
-            }
-
+            sourceSize.width: root.picWidth
+            sourceSize.height: root.picWidth
         }
 
-    }
+        ColumnLayout {
+            Layout.leftMargin: 16
+            Layout.rightMargin: 16
+            Layout.topMargin: 8
+            Layout.bottomMargin: 8
+            Layout.fillWidth: true
 
-    Binding on width {
-        when: root.GridView && root.GridView.view
-        value: root.GridView.view.cellWidth
-    }
+            MD.Text {
+                id: label
+                Layout.fillWidth: true
+                text: root.text
+                maximumLineCount: 2
+                typescale: MD.Token.typescale.body_medium
+            }
 
-    Binding on height {
-        when: root.GridView && root.GridView.view
-        value: root.GridView.view.cellHeight
+            MD.Text {
+                id: label_sub
+                Layout.alignment: Qt.AlignHCenter
+                text: root.subText
+                visible: !!text
+                opacity: 0.6
+                typescale: MD.Token.typescale.body_medium
+            }
+        }
     }
-
 }

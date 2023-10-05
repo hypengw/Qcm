@@ -8,6 +8,7 @@
 #include <qapplicationstatic.h>
 #include <QSettings>
 #include <QJSValueIterator>
+#include <QTextCodec>
 
 #include <asio/deferred.hpp>
 
@@ -83,7 +84,7 @@ App::~App() {
 ncm::Client App::ncm_client() const { return m_client; }
 
 void App::init(QQmlApplicationEngine* engine) {
-    qmlRegisterSingletonInstance("QcmApp", 1, 0, "App", this);
+    qmlRegisterSingletonInstance("Qcm.App", 1, 0, "App", this);
     qcm::init_path(std::array { config_path() / "session", data_path() });
 
     {
@@ -93,7 +94,7 @@ void App::init(QQmlApplicationEngine* engine) {
         m->setDesktopEntry(APP_ID); // no ".desktop"
         m->setCanQuit(true);
         qmlRegisterUncreatableType<mpris::MediaPlayer2>(
-            "QcmApp", 1, 0, "MprisMediaPlayer", "uncreatable");
+            "Qcm.App", 1, 0, "MprisMediaPlayer", "uncreatable");
     }
 
     {
@@ -133,7 +134,7 @@ void App::init(QQmlApplicationEngine* engine) {
     engine->addImageProvider(u"ncm"_qs, new NcmImageProvider {});
     engine->addImageProvider(u"qr"_qs, new QrImageProvider {});
 
-    engine->load(u"qrc:/QcmApp/main.qml"_qs);
+    engine->load(u"qrc:/main/main.qml"_qs);
 }
 
 model::ArtistId App::artistId(QString id) const { return { id }; }
@@ -216,7 +217,7 @@ void App::save_session() {
 
 bool App::is_item_id(const QJSValue& v) const {
     bool meta_ok = v.hasProperty("metaObject");
-    auto meta = v.property("metaObject").toQMetaObject();
+    auto meta    = v.property("metaObject").toQMetaObject();
     return meta != nullptr && meta->inherits(&model::ItemId::staticMetaObject);
 }
 

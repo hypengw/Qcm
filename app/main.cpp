@@ -1,16 +1,20 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QCommandLineParser>
+#include <QSurfaceFormat>
 
 #include "Qcm/app.h"
 #include "request/request.h"
 #include "core/log.h"
 
+#include <QtQml/QQmlExtensionPlugin>
+Q_IMPORT_QML_PLUGIN(Qcm_AppPlugin)
+Q_IMPORT_QML_PLUGIN(Qcm_MaterialPlugin)
+
 #include <SingleApplication>
 
 int main(int argc, char* argv[]) {
-    // qputenv("QT_FONT_DPI", "96");
-    // qputenv("QT_MEDIA_BACKEND", "ffmpeg");
+    qputenv("QT_FONT_DPI", "96");
     auto logger = qcm::LogManager::init();
     request::global_init();
 
@@ -28,7 +32,12 @@ int main(int argc, char* argv[]) {
     logger->set_level(parser.isSet(verboseOption) ? qcm::LogLevel::DEBUG : qcm::LogLevel::WARN);
     int re;
     {
+        QSurfaceFormat format;
+        format.setSamples(4);
+        QSurfaceFormat::setDefaultFormat(format);
+
         QQmlApplicationEngine engine;
+        engine.addImportPath(u"qrc:/"_qs);
 
         qcm::App* app = qcm::App::instance();
         QObject::connect(

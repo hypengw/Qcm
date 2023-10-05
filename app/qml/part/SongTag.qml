@@ -1,32 +1,32 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
 import QtQuick.Layouts
-import ".."
 
-Pane {
+import Qcm.Material as MD
+
+MD.Pane {
     id: root
 
     required property string tag
-    property alias pointSize: tag_label.font.pointSize
-
-    Material.foreground: Theme.color.tertiary
-    padding: 1
+    MD.MatProp.textColor: MD.Token.color.tertiary
+    height: tag_label.typescale.line_height
+    padding: 0
     horizontalPadding: 2
 
-    Label {
+    MD.Text {
         id: tag_label
-
         text: root.tag
         font.capitalization: Font.AllUppercase
-        font.bold: true
+        typescale: MD.Token.typescale.label_small
+        verticalAlignment: Qt.AlignVCenter
     }
 
     background: Rectangle {
         color: 'transparent'
+        implicitHeight: 0
         radius: 1
         border.width: 1
-        border.color: Material.foreground
+        border.color: root.MD.MatProp.textColor
     }
 
 }

@@ -1,52 +1,51 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
 import QtQuick.Layouts
-import QcmApp
-import ".."
-import "../component"
+import Qcm.App as QA
+import Qcm.Material as MD
 
-Pane {
+MD.Pane {
     property alias cat: qr_pl.cat
 
     padding: 0
 
-    MGridView {
-        property int cellWidth_: 180
-
+    QA.MGridView {
         anchors.fill: parent
         boundsBehavior: Flickable.StopAtBounds
         clip: true
         model: qr_pl.data
-        cellHeight: 250
-        cellWidth: width > 0 ? width / Math.floor((width / cellWidth_)) : 0
 
-        delegate: PicGridDelegate {
-            text: model.name
-            // subText:
-            image.source: `image://ncm/${model.picUrl}`
-            onClicked: {
-                QA.route(model.itemId);
+        delegate: Item {
+            width: GridView.view.cellWidth
+            height: GridView.view.cellHeight
+            QA.PicGridDelegate {
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: parent.top
+                anchors.topMargin: 8
+
+                width: picWidth
+                height: Math.min(implicitHeight, parent.height)
+                text: model.name
+                // subText:
+                image.source: `image://ncm/${model.picUrl}`
+                onClicked: {
+                    QA.Global.route(model.itemId);
+                }
             }
         }
 
-        footer: ListBusyFooter {
+        footer: QA.ListBusyFooter {
             width: GridView.view.width
-            running: qr_pl.status === ApiQuerierBase.Querying
+            running: qr_pl.status === QA.ApiQuerierBase.Querying
         }
 
         ScrollBar.vertical: ScrollBar {
         }
-
     }
 
-    ApiContainer {
-        PlaylistListQuerier {
-            id: qr_pl
+    QA.PlaylistListQuerier {
+        id: qr_pl
 
-            autoReload: cat.length > 0
-        }
-
+        autoReload: cat.length > 0
     }
-
 }

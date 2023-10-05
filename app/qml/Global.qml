@@ -2,24 +2,24 @@ pragma Singleton
 import QtCore
 import QtQml
 import QtQuick
-import QcmApp
-import "./part"
+import Qcm.App as QA
+import Qcm.Material as MD
 
 Item {
     id: root
 
-    readonly property t_song cur_song: m_playlist.cur
+    readonly property QA.t_song cur_song: m_playlist.cur
     readonly property bool is_login: m_querier_user.data.userId.valid()
     readonly property string loop_icon: switch (m_playlist.loopMode) {
-    case Playlist.SingleLoop:
-        return Theme.ic.repeat_one;
-    case Playlist.ListLoop:
-        return Theme.ic.loop;
-    case Playlist.ShuffleLoop:
-        return Theme.ic.shuffle;
-    case Playlist.NoneLoop:
+    case QA.Playlist.SingleLoop:
+        return MD.Token.icon.repeat_one;
+    case QA.Playlist.ListLoop:
+        return MD.Token.icon.loop;
+    case QA.Playlist.ShuffleLoop:
+        return MD.Token.icon.shuffle;
+    case QA.Playlist.NoneLoop:
     default:
-        return Theme.ic.trending_flat;
+        return MD.Token.icon.trending_flat;
     }
     property QtObject main_win: null
     property alias player: m_player
@@ -28,6 +28,8 @@ Item {
     property alias querier_user: m_querier_user
     property alias querier_user_song: m_querier_user_songlike
     property string song_cover: ''
+    property int color_scheme: MD.MdColorMgr.Light
+
     readonly property string title: 'Qcm'
     readonly property alias user_info: m_querier_user.data
     readonly property string user_setting_category: `user_${user_info.userId.sid}`
@@ -35,7 +37,7 @@ Item {
 
     signal sig_like_album
     signal sig_like_playlist
-    signal sig_route(RouteMsg msg)
+    signal sig_route(QA.RouteMsg msg)
     signal sig_route_special(string name)
 
     function create_item(url_or_comp, props, parent) {
@@ -52,12 +54,12 @@ Item {
     }
     function item_id_url(itemId) {
         switch (itemId.type) {
-        case ItemIdType.Album:
-            return 'qrc:/QcmApp/qml/page/AlbumDetailPage.qml';
-        case ItemIdType.Playlist:
-            return 'qrc:/QcmApp/qml/page/PlaylistDetailPage.qml';
-        case ItemIdType.Artist:
-            return 'qrc:/QcmApp/qml/page/ArtistDetailPage.qml';
+        case QA.ItemIdType.Album:
+            return 'qrc:/Qcm/App/qml/page/AlbumDetailPage.qml';
+        case QA.ItemIdType.Playlist:
+            return 'qrc:/Qcm/App/qml/page/PlaylistDetailPage.qml';
+        case QA.ItemIdType.Artist:
+            return 'qrc:/Qcm/App/qml/page/ArtistDetailPage.qml';
         }
         return '';
     }
@@ -70,13 +72,13 @@ Item {
     function route(dest) {
         let url = dest;
         let props = {};
-        if (dest.objectType instanceof ItemIdType) {
+        if (dest.objectType instanceof QA.ItemIdType) {
             url = item_id_url(dest);
             props = {
                 "itemId": dest
             };
         }
-        QA.sig_route_special('main');
+        sig_route_special('main');
         const msg = m_comp_route_msg.createObject(root, {
                 "qml": url,
                 "props": props
@@ -85,7 +87,7 @@ Item {
         msg.destroy(3000);
     }
     function show_page_popup(url, props, popup_props = {}) {
-        return show_popup('qrc:/QcmApp/qml/component/PagePopup.qml', Object.assign({}, {
+        return show_popup('qrc:/Qcm/App/qml/component/PagePopup.qml', Object.assign({}, {
                     "source": url,
                     "props": props
                 }, popup_props));
@@ -103,19 +105,41 @@ Item {
         main_win.snake.show(text, duration);
     }
 
+    Component.onCompleted: {
+        QA.App.errorOccurred.connect(s => {
+                // ignore 'Operation aborted'
+                if (!s.endsWith('Operation aborted.'))
+                    root.toast(s, 5000);
+            });
+    }
+
     Component {
         id: m_comp_route_msg
-        RouteMsg {
+        QA.RouteMsg {
         }
     }
     Settings {
         id: settings_play
-
         property alias loop: m_playlist.loopMode
-
         category: 'play'
     }
-    Playlist {
+    Settings {
+        id: settings_theme
+        property alias color_scheme: root.color_scheme
+        property color primary_color: MD.Token.color.accentColor
+        category: 'theme'
+
+        Component.onCompleted: {
+            MD.Token.color.accentColor = primary_color;
+            primary_color = Qt.binding(() => {
+                return MD.Token.color.accentColor;
+            });
+            MD.Token.color.schemeTheme = Qt.binding(() => {
+                return root.color_scheme;
+            });
+        }
+    }
+    QA.Playlist {
         id: m_playlist
 
         property var song_url_slot: null
@@ -123,17 +147,17 @@ Item {
         function iterLoopMode() {
             let mode = loopMode;
             switch (mode) {
-            case Playlist.NoneLoop:
-                mode = Playlist.SingleLoop;
+            case QA.Playlist.NoneLoop:
+                mode = QA.Playlist.SingleLoop;
                 break;
-            case Playlist.SingleLoop:
-                mode = Playlist.ListLoop;
+            case QA.Playlist.SingleLoop:
+                mode = QA.Playlist.ListLoop;
                 break;
-            case Playlist.ListLoop:
-                mode = Playlist.ShuffleLoop;
+            case QA.Playlist.ListLoop:
+                mode = QA.Playlist.ShuffleLoop;
                 break;
-            case Playlist.ShuffleLoop:
-                mode = Playlist.NoneLoop;
+            case QA.Playlist.ShuffleLoop:
+                mode = QA.Playlist.NoneLoop;
                 break;
             }
             loopMode = mode;
@@ -141,11 +165,11 @@ Item {
         function songUrlSlot(key) {
             const status = m_querier_song.status;
             const songs = m_querier_song.data.songs;
-            if (status === ApiQuerierBase.Finished) {
+            if (status === QA.ApiQuerierBase.Finished) {
                 const song = songs.length ? songs[0] : null;
-                const media_url = song ? App.media_url(song.url, key) : '';
+                const media_url = song ? QA.App.media_url(song.url, key) : '';
                 m_player.source = media_url;
-            } else if (status === ApiQuerierBase.Error) {
+            } else if (status === QA.ApiQuerierBase.Error) {
                 m_player.stop();
             }
         }
@@ -162,7 +186,7 @@ Item {
             }
             const quality = parseInt(settings_play.value('play_quality', m_querier_song.level.toString()));
             const key = Qt.md5(`${cur.itemId.sid}, quality: ${quality}`);
-            const file = App.media_file(key);
+            const file = QA.App.media_file(key);
             // seems empty url is true, use string
             if (file.toString()) {
                 m_player.source = file;
@@ -181,62 +205,60 @@ Item {
             }
         }
     }
-    ApiContainer {
-        UserAccountQuerier {
-            id: m_querier_user
+    QA.UserAccountQuerier {
+        id: m_querier_user
 
-            readonly property bool loginOk: data.userId.valid()
+        readonly property bool loginOk: data.userId.valid()
 
-            onLoginOkChanged: {
-                if (loginOk)
-                    App.loginPost(data);
-            }
-        }
-        SongLikeQuerier {
-            id: m_querier_user_songlike
-            function like_song(song_id, is_like) {
-                const qu = m_querier_radio_like;
-                qu.trackId = song_id;
-                qu.like = is_like;
-                qu.query();
-            }
-
-            autoReload: m_querier_user.loginOk
-        }
-        RadioLikeQuerier {
-            id: m_querier_radio_like
-            autoReload: false
-
-            onStatusChanged: {
-                if (status === ApiQuerierBase.Finished) {
-                    if (like)
-                        m_querier_user_songlike.data.insert(trackId);
-                    else
-                        m_querier_user_songlike.data.remove(trackId);
-                    m_querier_user_songlike.dataChanged();
-                }
-            }
-        }
-        SongUrlQuerier {
-            id: m_querier_song
-            autoReload: ids.length > 0
+        onLoginOkChanged: {
+            if (loginOk)
+                QA.App.loginPost(data);
         }
     }
+    QA.SongLikeQuerier {
+        id: m_querier_user_songlike
+        function like_song(song_id, is_like) {
+            const qu = m_querier_radio_like;
+            qu.trackId = song_id;
+            qu.like = is_like;
+            qu.query();
+        }
 
-    Mpris {
+        autoReload: m_querier_user.loginOk
+    }
+    QA.RadioLikeQuerier {
+        id: m_querier_radio_like
+        autoReload: false
+
+        onStatusChanged: {
+            if (status === QA.ApiQuerierBase.Finished) {
+                if (like)
+                    m_querier_user_songlike.data.insert(trackId);
+                else
+                    m_querier_user_songlike.data.remove(trackId);
+                m_querier_user_songlike.dataChanged();
+            }
+        }
+    }
+    QA.SongUrlQuerier {
+        id: m_querier_song
+        autoReload: ids.length > 0
+    }
+
+    QA.Mpris {
         id: m_mpris
         player: m_player
         playlist: m_playlist
     }
 
-    QcmPlayer {
+    QA.QcmPlayer {
         id: m_player
 
         readonly property bool seekable: true
         readonly property date duration_date: new Date(duration)
         readonly property bool playing: {
             switch (playbackState) {
-            case QcmPlayer.PlayingState:
+            case QA.QcmPlayer.PlayingState:
                 return true;
             default:
                 return false;
@@ -250,14 +272,13 @@ Item {
         }
 
         source: ''
-        onSourceChanged: source => {
-            console.error(source);
+        onSourceChanged: {
             if (source)
                 play();
         }
         onPlaybackStateChanged: {
-            if (playbackState === QcmPlayer.StoppedState) {
-                if (position / duration > 0.99)
+            if (playbackState === QA.QcmPlayer.StoppedState) {
+                if (position / duration > 0.98)
                     m_playlist.next();
             }
         }

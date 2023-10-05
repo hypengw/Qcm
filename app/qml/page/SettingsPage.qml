@@ -1,29 +1,30 @@
 import QtCore
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
 import QtQuick.Layouts
-import QcmApp
-import ".."
-import "../component"
-import "../part"
+
+import Qcm.App as QA
+import Qcm.Material as MD
+
 import "../js/util.mjs" as Util
 
-Page {
+MD.Page {
     id: root
     font.capitalization: Font.Capitalize
     title: qsTr('settings')
 
-    MFlickable {
+    MD.MatProp.textColor: MD.Token.color.on_surface
+    MD.MatProp.elevation: MD.Token.elevation.level0
+
+    QA.MFlickable {
         id: flick
         anchors.fill: parent
         leftMargin: 0
         rightMargin: 0
 
-        //   ScrollBar.vertical: ScrollBar {}
         ColumnLayout {
             height: implicitHeight
-            spacing: 12
+            spacing: 8
             width: parent.width
 
             SettingSection {
@@ -38,7 +39,7 @@ Page {
                     ColumnLayout {
                         spacing: 8
 
-                        Label {
+                        MD.Text {
                             text: qsTr('Theme')
                         }
                         RowLayout {
@@ -72,6 +73,7 @@ Page {
                                     implicitHeight: implicitWidth
                                     implicitWidth: 24
 
+
                                     Rectangle {
                                         anchors.centerIn: parent
                                         color: modelData.value
@@ -86,7 +88,7 @@ Page {
                                             color: parent.color
                                             height: width
                                             radius: width / 2
-                                            visible: color === Theme.color.accentColor
+                                            visible: color === MD.Token.color.accentColor
                                             width: 18
                                         }
                                         MouseArea {
@@ -95,7 +97,7 @@ Page {
                                             hoverEnabled: true
 
                                             onClicked: {
-                                                Theme.color.accentColor = modelData.value;
+                                                MD.Token.color.accentColor = modelData.value;
                                             }
                                         }
                                     }
@@ -105,6 +107,9 @@ Page {
                     }
                 }
             }
+            MD.Divider {}
+
+
             SettingSection {
                 id: sec_play
                 Layout.fillWidth: true
@@ -125,19 +130,19 @@ Page {
                         model: ListModel {
                             ListElement {
                                 text: qsTr('Standard')
-                                value: SongUrlQuerier.LevelStandard
+                                value: QA.SongUrlQuerier.LevelStandard
                             }
                             ListElement {
                                 text: qsTr('Higher')
-                                value: SongUrlQuerier.LevelHigher
+                                value: QA.SongUrlQuerier.LevelHigher
                             }
                             ListElement {
                                 text: qsTr('Exhigh')
-                                value: SongUrlQuerier.LevelExhigh
+                                value: QA.SongUrlQuerier.LevelExhigh
                             }
                             ListElement {
                                 text: qsTr('Lossless')
-                                value: SongUrlQuerier.LevelLossless
+                                value: QA.SongUrlQuerier.LevelLossless
                             }
                         }
 
@@ -147,6 +152,9 @@ Page {
                     }
                 }
             }
+
+            MD.Divider {}
+
             SettingSection {
                 id: sec_cache
                 Layout.fillWidth: true
@@ -159,7 +167,7 @@ Page {
                     ColumnLayout {
                         spacing: 0
 
-                        Label {
+                        MD.Text {
                             text: `${qsTr('total cache limit')}: ${Util.pretty_bytes(slider_total_cache.byteValue)}`
                         }
                         ByteSlider {
@@ -178,7 +186,7 @@ Page {
                     ColumnLayout {
                         spacing: 0
 
-                        Label {
+                        MD.Text {
                             text: `${qsTr('media cache limit')}: ${Util.pretty_bytes(slider_media_cache.byteValue)}`
                         }
                         ByteSlider {
@@ -217,13 +225,13 @@ Page {
             }
             Component.onDestruction: {
                 sync();
-                App.triggerCacheLimit();
+                QA.App.triggerCacheLimit();
             }
         }
         Settings {
             id: settings_play
 
-            property int play_quality: SongUrlQuerier.LevelExhigh
+            property int play_quality: QA.SongUrlQuerier.LevelExhigh
 
             category: 'play'
 
@@ -236,7 +244,7 @@ Page {
         }
     }
 
-    component ByteSlider: Slider {
+    component ByteSlider: MD.Slider {
         readonly property real byteValue: value > 9 ? (value - 9) * m_GB : value * m_MB
         readonly property int m_GB: Math.pow(2, 30)
         readonly property int m_MB: 100 * Math.pow(2, 20)
@@ -253,11 +261,11 @@ Page {
         property alias actionItem: sr_action.contentItem
         property alias text: sr_label.text
 
-        MItemDelegate {
+        MD.ListItem {
             Layout.fillWidth: true
 
             contentItem: RowLayout {
-                Label {
+                MD.Text {
                     id: sr_label
                     Layout.fillWidth: true
                 }
@@ -272,12 +280,9 @@ Page {
             }
         }
     }
-    component SettingSection: Pane {
+    component SettingSection: MD.Pane {
         default property alias m_children: sec_column.children
         property alias title: sec_title.text
-
-        Material.background: Theme.color.surface_container_lowest
-        Material.elevation: 1
         horizontalPadding: 0
 
         ColumnLayout {
@@ -285,11 +290,11 @@ Page {
             anchors.fill: parent
             spacing: 12
 
-            Label {
+            MD.Text {
                 id: sec_title
                 Layout.leftMargin: 12
                 Layout.rightMargin: 12
-                Material.foreground: Theme.color.primary
+                MD.MatProp.textColor: MD.Token.color.primary
             }
         }
     }

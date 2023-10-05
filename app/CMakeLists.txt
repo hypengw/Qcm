@@ -3,12 +3,11 @@ set(APP_NAME Qcm)
 set(APP_VERSION 1.0)
 set(APP_SUMMARY "A Qt client for netease cloud music")
 
-find_package(Qt6 REQUIRED COMPONENTS QuickControls2 Sql)
+find_package(Qt6 REQUIRED COMPONENTS QuickControls2 Sql Core5Compat)
 
 set(SOURCES
     include/Qcm/app.h
     include/Qcm/api.h
-    include/Qcm/color.h
     include/Qcm/info.h
     include/Qcm/type.h
     include/Qcm/model.h
@@ -46,7 +45,6 @@ set(SOURCES
     include/Qcm/util/flickable_scroll_handler.hpp
     src/app.cpp
     src/api.cpp
-    src/color.cpp
     src/model.cpp
     src/path.cpp
     src/playlist.cpp
@@ -56,14 +54,13 @@ set(SOURCES
     src/lyric.cpp
     src/clipboard.cpp
     src/player.cpp
-    src/util/flickable_scroll_handler.cpp)
+    src/util/flickable_scroll_handler.cpp
+    )
 
 set(QML_FILES
-    main.qml
     qml/js/util.mjs
     qml/PlayBar.qml
-    qml/Theme.qml
-    qml/QA.qml
+    qml/Global.qml
     qml/page/LoginPage.qml
     qml/page/AlbumDetailPage.qml
     qml/page/ArtistDetailPage.qml
@@ -74,10 +71,10 @@ set(QML_FILES
     qml/page/MinePage.qml
     qml/page/SettingsPage.qml
     qml/page/TodayPage.qml
-    qml/part/ApiContainer.qml
     qml/page/PlayingPage.qml
     qml/page/PlayQueuePage.qml
     qml/page/MainPage.qml
+    qml/page/MaterialTest.qml
     qml/part/ArtistsPopup.qml
     qml/part/InfoRow.qml
     qml/part/SnakeBar.qml
@@ -91,6 +88,7 @@ set(QML_FILES
     qml/part/SongTag.qml
     qml/part/RouteMsg.qml
     qml/part/PlaySlider.qml
+    qml/part/ListDescription.qml
     qml/component/IconRowLayout.qml
     qml/component/RoundImage.qml
     qml/component/Leaflet.qml
@@ -99,12 +97,7 @@ set(QML_FILES
     qml/component/MGridView.qml
     qml/component/MItemDelegate.qml
     qml/component/MListView.qml
-    qml/component/MMenu.qml
-    qml/component/MMenuItem.qml
     qml/component/MFlickable.qml
-    qml/component/MPage.qml
-    qml/component/MPane.qml
-    qml/component/MPopup.qml
     qml/component/PageContainer.qml
     qml/component/PagePopup.qml
     qml/component/PageStack.qml)
@@ -112,12 +105,12 @@ set(RESOURCES assets/MaterialIconsRound-Regular.otf
               assets/MaterialIconsOutlined-Regular.otf)
 
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
-set_source_files_properties(qml/QA.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(qml/Global.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 qt_add_qml_module(
   app
   URI
-  QcmApp
+  Qcm.App
   STATIC
   RESOURCE_PREFIX
   /
@@ -131,6 +124,10 @@ qt_add_qml_module(
   ${RESOURCES}
   NO_PLUGIN_OPTIONAL)
 
+target_sources(app PRIVATE
+$<$<CONFIG:Debug>:src/util/QmlStackTraceHelper.cpp>
+)
+
 target_include_directories(
   app
   PUBLIC include
@@ -141,6 +138,7 @@ target_link_libraries(
          Qt6::Quick
          Qt6::QuickControls2
          Qt6::Sql
+         Qt6::Core5Compat
          asio_qt
          sv_ncm
          request
@@ -151,17 +149,26 @@ target_link_libraries(
          mpris
          media_cache
          ctre
-         player
-         appplugin)
+         player)
 target_compile_definitions(
   app PUBLIC APP_ID="${APP_ID}" APP_VERSION="${APP_VERSION}"
              APP_NAME="${APP_NAME}")
 
 qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cpp)
-qt_import_qml_plugins(${PROJECT_NAME})
 
-target_link_libraries(${PROJECT_NAME}
-                      PRIVATE app SingleApplication::SingleApplication)
+qt_add_qml_module(
+  ${PROJECT_NAME}
+  URI
+  main
+  QML_FILES
+  main.qml
+  SOURCES
+  RESOURCE_PREFIX
+  /)
+
+target_link_libraries(
+  ${PROJECT_NAME} PRIVATE app appplugin qml_materialplugin
+                          SingleApplication::SingleApplication)
 
 set(APP_DESKTOP assets/Qcm.desktop)
 set(APP_METAINFO assets/Qcm.metainfo.xml)
@@ -174,24 +181,24 @@ install(
   BUNDLE DESTINATION .
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-#qt_generate_deploy_qml_app_script(
-#  TARGET ${PROJECT_NAME} FILENAME_VARIABLE deploy_script
-#  NO_UNSUPPORTED_PLATFORM_ERROR DEPLOY_USER_QML_MODULES_ON_UNSUPPORTED_PLATFORM)
-#install(SCRIPT ${deploy_script})
+# qt_generate_deploy_qml_app_script( TARGET ${PROJECT_NAME} FILENAME_VARIABLE
+# deploy_script NO_UNSUPPORTED_PLATFORM_ERROR
+# DEPLOY_USER_QML_MODULES_ON_UNSUPPORTED_PLATFORM) install(SCRIPT
+# ${deploy_script})
 
 if(LINUX AND NOT ANDROID)
   install(
     FILES "${CMAKE_CURRENT_BINARY_DIR}/${APP_DESKTOP}"
     RENAME ${APP_ID}.desktop
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
+    DESTINATION share/applications)
   install(
     FILES "${CMAKE_CURRENT_BINARY_DIR}/${APP_METAINFO}"
     RENAME ${APP_ID}.metainfo.xml
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/metainfo)
+    DESTINATION share/metainfo)
   install(
     FILES ${APP_SVG}
     RENAME ${APP_ID}.svg
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps)
+    DESTINATION share/icons/hicolor/scalable/apps)
 endif()
 
 qt_finalize_target(${PROJECT_NAME})

@@ -67,6 +67,9 @@ struct To<MdScheme> {
 MdScheme qcm::MaterialLightColorScheme(QRgb rgb) {
     auto palette             = md::CorePalette::Of(rgb);
     auto scheme              = To<MdScheme>::from(md::MaterialLightColorSchemeFromPalette(palette));
+    scheme.background = palette.neutral().get(98);
+    scheme.on_background = palette.neutral().get(10);
+
     scheme.surface           = palette.neutral().get(98);
     scheme.surface_dim       = palette.neutral().get(87);
     scheme.surface_bright    = palette.neutral().get(98);
@@ -75,12 +78,16 @@ MdScheme qcm::MaterialLightColorScheme(QRgb rgb) {
     scheme.surface_container_lowest  = palette.neutral().get(100);
     scheme.surface_container_high    = palette.neutral().get(92);
     scheme.surface_container_highest = palette.neutral().get(90);
+
     return scheme;
 }
 
 MdScheme qcm::MaterialDarkColorScheme(QRgb rgb) {
     auto palette             = md::CorePalette::Of(rgb);
     auto scheme              = To<MdScheme>::from(md::MaterialDarkColorSchemeFromPalette(palette));
+    scheme.background = palette.neutral().get(6);
+    scheme.on_background = palette.neutral().get(90);
+
     scheme.surface           = palette.neutral().get(6);
     scheme.surface_dim       = palette.neutral().get(6);
     scheme.surface_bright    = palette.neutral().get(24);
@@ -89,6 +96,7 @@ MdScheme qcm::MaterialDarkColorScheme(QRgb rgb) {
     scheme.surface_container_lowest  = palette.neutral().get(4);
     scheme.surface_container_high    = palette.neutral().get(17);
     scheme.surface_container_highest = palette.neutral().get(22);
+
     return scheme;
 }
 

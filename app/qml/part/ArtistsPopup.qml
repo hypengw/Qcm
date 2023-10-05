@@ -1,50 +1,51 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
 import QtQuick.Layouts
-import "../component"
-import ".."
 
-MPopup {
+import Qcm.App as QA
+import Qcm.Material as MD
+
+MD.Page {
     id: root
 
     required property var model
 
+    font.capitalization: Font.Capitalize
     title: qsTr('artists')
     width: 300
 
-    MListView {
-        Layout.fillHeight: true
-        Layout.fillWidth: true
+    QA.MListView {
+        anchors.fill: parent
         clip: true
         currentIndex: -1
         implicitHeight: contentHeight
         model: root.model
 
-        delegate: MItemDelegate {
+        delegate: MD.ListItem {
             horizontalPadding: 8
             padding: 8
             width: ListView.view.width
 
+            leader: MD.Image {
+                source: `image://ncm/${modelData.picUrl}`
+                sourceSize.height: 48
+                sourceSize.width: 48
+                radius: 8
+            }
+            text: modelData.name
+            /*
             contentItem: RowLayout {
-                spacing: 12
-
-                RoundImage {
-                    image: Image {
-                        source: `image://ncm/${modelData.picUrl}`
-                        sourceSize.height: 48
-                        sourceSize.width: 48
-                    }
-                }
-                Label {
+                // spacing: 12
+                MD.Text {
                     Layout.fillWidth: true
                     text: modelData.name
                 }
             }
+            */
 
             onClicked: {
-                root.close();
-                QA.route(modelData.itemId);
+                MD.Util.closePopup(root);
+                QA.Global.route(modelData.itemId);
             }
         }
     }
