@@ -1,11 +1,9 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Controls.Material
-import Qcm.App
-import ".."
-import "../component"
-import "../part"
+
+import Qcm.App as QA
+import Qcm.Material as MD
 
 ColumnLayout {
     id: root
@@ -13,14 +11,14 @@ ColumnLayout {
     readonly property bool loginCodeOk: qr_login.data.code === 200 || qr_qrlogin.data.code === 803
 
     onLoginCodeOkChanged: {
-        QA.querier_user.query();
+        QA.Global.querier_user.query();
     }
 
-    QrcodeLoginQuerier {
+    QA.QrcodeLoginQuerier {
         id: qr_qrlogin
         key: qr_unikey.data.key
     }
-    QrcodeUnikeyQuerier {
+    QA.QrcodeUnikeyQuerier {
         id: qr_unikey
 
         readonly property int loginCode: qr_qrlogin.data.code
@@ -30,11 +28,11 @@ ColumnLayout {
                 query();
         }
     }
-    LoginQuerier {
+    QA.LoginQuerier {
         id: qr_login
         function login() {
             username = tf_username.text;
-            password = App.md5(tf_password.text);
+            password = QA.App.md5(tf_password.text);
             query();
         }
 
@@ -46,14 +44,13 @@ ColumnLayout {
         Layout.fillWidth: false
         Layout.preferredWidth: 300
 
-        Label {
+        MD.Text {
             Layout.bottomMargin: 20
             Layout.fillWidth: true
             font.capitalization: Font.Capitalize
-            font.pointSize: 18
             text: qsTr('Login')
         }
-        TabBar {
+        MD.TabBar {
             id: bar
             Layout.fillWidth: true
             font.capitalization: Font.Capitalize
@@ -62,10 +59,10 @@ ColumnLayout {
                 view.currentIndex = currentIndex;
             }
 
-            TabButton {
+            MD.TabButton {
                 text: qsTr("email")
             }
-            TabButton {
+            MD.TabButton {
                 text: qsTr("qr")
             }
         }
@@ -79,7 +76,7 @@ ColumnLayout {
                 bar.currentIndex = currentIndex;
             }
 
-            Pane {
+            MD.Pane {
                 id: mail_pane
                 ColumnLayout {
                     anchors.fill: parent
@@ -95,8 +92,8 @@ ColumnLayout {
                         echoMode: TextInput.Password
                         placeholderText: 'password'
                     }
-                    Label {
-                        Material.foreground: Theme.color.error
+                    MD.Text {
+                        MD.MatProp.textColor: MD.Token.color.error
                         text: {
                             switch (qr_login.data.code) {
                             case 501:
@@ -108,9 +105,9 @@ ColumnLayout {
                             }
                         }
                     }
-                    Button {
+                    MD.Button {
                         Layout.fillWidth: true
-                        enabled: qr_login.status !== ApiQuerierBase.Querying
+                        enabled: qr_login.status !== QA.ApiQuerierBase.Querying
                         font.capitalization: Font.Capitalize
                         highlighted: true
                         text: qsTr('login in')
@@ -125,7 +122,7 @@ ColumnLayout {
                     }
                 }
             }
-            Pane {
+            MD.Pane {
                 id: qr_pane
                 clip: true
 
@@ -150,10 +147,10 @@ ColumnLayout {
                 Component {
                     id: comp_qr_wait_scan
                     ColumnLayout {
-                        Pane {
+                        MD.Pane {
                             Layout.alignment: Qt.AlignCenter
-                            Material.background: 'white'
-                            Material.elevation: 4
+                            MD.MatProp.backgroundColor: 'white'
+                            MD.MatProp.elevation: MD.Token.elevation.level3
                             padding: 12
 
                             Image {
@@ -170,20 +167,19 @@ ColumnLayout {
                 Component {
                     id: comp_qr_wait_comfirm
                     ColumnLayout {
-                        RoundImage {
+                        MD.Image {
                             Layout.alignment: Qt.AlignHCenter
 
-                            image: Image {
-                                source: `image://ncm/${qr_qrlogin.data.avatarUrl}`
-                                sourceSize.height: 96
-                                sourceSize.width: 96
-                            }
+                            source: `image://ncm/${qr_qrlogin.data.avatarUrl}`
+                            sourceSize.height: 96
+                            sourceSize.width: 96
+                            radius: height / 2
                         }
-                        Label {
+                        MD.Text {
                             Layout.alignment: Qt.AlignHCenter
                             text: qr_qrlogin.data.nickname
                         }
-                        Label {
+                        MD.Text {
                             Layout.alignment: Qt.AlignHCenter
                             text: qr_qrlogin.data.message
                         }

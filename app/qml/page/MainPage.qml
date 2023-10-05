@@ -96,11 +96,15 @@ MD.Page {
                                 "icon": MD.Token.icon.queue_music,
                                 "name": qsTr('playlist'),
                                 "page": 'qrc:/Qcm/App/qml/page/PlaylistListPage.qml'
-                            }, {
+                            }
+                            /*
+                            {
                                 "icon": MD.Token.icon.queue_music,
                                 "name": qsTr('test'),
                                 "page": 'qrc:/Qcm/App/qml/page/MaterialTest.qml'
-                            }].forEach(m => {
+                            }
+                            */
+                            ,].forEach(m => {
                                 model.append(m);
                             });
                         currentIndex = 1;
@@ -145,7 +149,6 @@ MD.Page {
                 }
             }
         }
-
 
         ColumnLayout {
             spacing: 0

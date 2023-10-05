@@ -271,7 +271,7 @@ private:
         case CUBEB_STATE_STARTED: INFO_LOG("stream started"); break;
         case CUBEB_STATE_STOPPED: INFO_LOG("stream stopped"); break;
         case CUBEB_STATE_DRAINED: INFO_LOG("stream drained"); break;
-        default: INFO_LOG("unknown stream state {}", state);
+        default: INFO_LOG("unknown stream state {}", (int)state);
         }
     }
 
