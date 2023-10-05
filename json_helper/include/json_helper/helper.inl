@@ -20,6 +20,14 @@ void from_json_opt(Type& out, const nlohmann::json& j, std::string_view name) {
     }
 }
 
+template<typename T, typename... Ts>
+void variant_from_json(const nlohmann::json& j, std::variant<Ts...>& data) {
+    try {
+        data = j.get<T>();
+    } catch (...) {
+    }
+}
+
 } // namespace
 
 #define JSON_GET_IMPL(_TYPE_)                                                 \
@@ -95,6 +103,23 @@ struct adl_serializer<std::optional<T>> {
             opt = std::nullopt;
         else
             opt = j.get<T>();
+    }
+};
+
+template<typename... Ts>
+struct adl_serializer<std::variant<Ts...>> {
+    static void to_json(nlohmann::json& j, const std::variant<Ts...>& data) {
+        // Will call j = v automatically for the right type
+        std::visit(
+            [&j](const auto& v) {
+                j = v;
+            },
+            data);
+    }
+
+    static void from_json(const nlohmann::json& j, std::variant<Ts...>& data) {
+        // Call variant_from_json for all types, only one will succeed
+        (variant_from_json<Ts>(j, data), ...);
     }
 };
 NLOHMANN_JSON_NAMESPACE_END

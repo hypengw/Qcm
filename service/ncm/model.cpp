@@ -24,6 +24,8 @@
 #include "ncm/api/qrcode_unikey.h"
 #include "ncm/api/radio_like.h"
 #include "ncm/api/song_like.h"
+#include "ncm/api/cloudsearch.h"
+
 
 namespace ncm
 {
@@ -120,6 +122,11 @@ JSON_DEFINE_WITH_DEFAULT_IMPL(QrcodeLogin, code, message, nickname, avatarUrl);
 JSON_DEFINE_IMPL(RadioLike, code);
 JSON_DEFINE_IMPL(SongLike, code, ids, checkPoint);
 
+JSON_DEFINE_IMPL(CloudSearch::SongResult, songCount, songs);
+JSON_DEFINE_IMPL(CloudSearch::AlbumResult, albumCount, albums);
+JSON_DEFINE_IMPL(CloudSearch::PlaylistResult, playlistCount, playlists);
+JSON_DEFINE_IMPL(CloudSearch::ArtistResult, artistCount, artists);
+JSON_DEFINE_IMPL(CloudSearch, result);
 } // namespace api_model
 
 } // namespace ncm

@@ -185,15 +185,14 @@ struct Playlist {
     std::string coverImgUrl;
     // coverImgId_str	"109951167805071571"
     // adType	0
-    i64  userId;
-    Time createTime;
-    i64  status;
+    i64 userId;
+    i64 status;
     // opRecommend	false
     // highQuality	false
     // newImported	false
-    Time updateTime;
-    i64  trackCount;
-    i64  specialType;
+
+    i64 trackCount;
+    i64 specialType;
     // privacy	0
     // trackUpdateTime	1678022963095
     std::string commentThreadId;
@@ -202,8 +201,10 @@ struct Playlist {
     // subscribedCount	4
     // cloudTrackCount	1
     // ordered	true
-    std::optional<std::string> description;
-    std::vector<std::string>   tags;
+    std::optional<std::string>              description;
+    std::optional<Time>                     createTime;
+    std::optional<Time>                     updateTime;
+    std::optional<std::vector<std::string>> tags;
     // updateFrequency	null
     // backgroundCoverId	0
     // backgroundCoverUrl	null
@@ -221,8 +222,8 @@ struct Playlist {
     // videos	null
     // trackIds	[…]
     // bannedTrackIds	null
-    i64 shareCount;
-    i64 commentCount;
+    std::optional<i64> shareCount;
+    std::optional<i64> commentCount;
     // remixVideo	null
     // sharedUsers	null
     // historySharedUsers	null

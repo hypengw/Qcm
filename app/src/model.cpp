@@ -32,7 +32,9 @@ To<qcm::model::Playlist>::From<ncm::model::Playlist>::from(const ncm::model::Pla
     CONVERT_PROPERTY(o.name, in.name);
     CONVERT_PROPERTY(o.picUrl, in.coverImgUrl);
     CONVERT_PROPERTY(o.description, in.description.value_or(""));
-    CONVERT_PROPERTY(o.updateTime, in.updateTime);
+    if (in.updateTime) {
+        CONVERT_PROPERTY(o.updateTime, in.updateTime.value());
+    }
     CONVERT_PROPERTY(o.playCount, in.playCount);
     return o;
 };

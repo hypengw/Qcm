@@ -34,7 +34,9 @@ public:
         CONVERT_PROPERTY(o.m_name, in.playlist.name);
         CONVERT_PROPERTY(o.m_picUrl, in.playlist.coverImgUrl);
         CONVERT_PROPERTY(o.m_description, in.playlist.description.value_or(""));
-        CONVERT_PROPERTY(o.m_updateTime, in.playlist.updateTime);
+        if (in.playlist.updateTime) {
+            CONVERT_PROPERTY(o.m_updateTime, in.playlist.updateTime.value());
+        }
         CONVERT_PROPERTY(o.m_playCount, in.playlist.playCount);
         CONVERT_PROPERTY(o.m_songs, in.playlist.tracks.value_or(std::vector<ncm::model::Song> {}));
         emit infoChanged();
