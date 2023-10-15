@@ -17,7 +17,7 @@ namespace api_model
 {
 
 struct AlbumDetail {
-    static Result<AlbumDetail> parse(std::span<const byte> bs) {
+    static Result<AlbumDetail> parse(std::span<const byte> bs, const auto&) {
         return api_model::parse<AlbumDetail>(bs);
     }
 

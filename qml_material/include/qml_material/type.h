@@ -69,6 +69,14 @@ public:
     };
     Q_ENUM(CardType)
 
+
+    enum class TextFieldType
+    {
+        TextFieldFilled = 0,
+        TextFieldOutlined
+    };
+    Q_ENUM(TextFieldType)
+
     enum class ListItemHeightMode
     {
         ListItemOneLine = 0,

@@ -44,7 +44,7 @@ public:
         Result<std::vector<byte>> res = co_await post(req, body);
 
         if (! res.has_value()) co_return nstd::unexpected(res.error());
-        co_return out_type::parse(std::move(res).value());
+        co_return out_type::parse(std::move(res).value(), api.input);
     }
 
     template<typename Fn, typename H>

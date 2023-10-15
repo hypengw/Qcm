@@ -40,9 +40,9 @@ enum class CryptoType
     NONE,
 };
 
-template<typename T>
-concept ApiOutCp = requires(T t, std::span<const byte> bs) {
-                       { T::parse(bs) } -> std::same_as<Result<T>>;
+template<typename T, typename Tin>
+concept ApiOutCp = requires(T t, std::span<const byte> bs, Tin tin) {
+                       { T::parse(bs, tin) } -> std::same_as<Result<T>>;
                    };
 
 template<typename T>
@@ -53,7 +53,7 @@ concept ApiCP = requires(T t) {
                     { t.query() } -> std::convertible_to<UrlParams>;
                     { t.body() } -> std::convertible_to<Params>;
                     { t.input } -> std::convertible_to<typename T::in_type>;
-                    requires ApiOutCp<typename T::out_type>;
+                    requires ApiOutCp<typename T::out_type, typename T::in_type>;
                 };
 template<typename T>
 concept ApiCP_Base = requires(T t) {
@@ -86,7 +86,6 @@ namespace api_model
  */
 
 template<typename T>
-    requires api::ApiOutCp<T>
 Result<T> parse(std::span<const byte> bs) {
     return json::parse(To<std::string>::from(bs))
         .map_error([](auto err) {
@@ -105,7 +104,6 @@ Result<T> parse(std::span<const byte> bs) {
 }
 
 template<typename T>
-    requires api::ApiOutCp<T>
 Result<T> parse_no_apierr(std::span<const byte> bs) {
     return json::parse(To<std::string>::from(bs))
         .and_then([](auto j) {

@@ -8,10 +8,11 @@ Text {
 
     Binding {
         when: typescale
-        root.lineHeight: typescale.line_height
-        root.font.pixelSize: typescale.size
-        root.font.weight: root.prominent && typescale.weight_prominent ? typescale.weight_prominent : typescale.weight
-        root.font.letterSpacing: typescale.tracking
+        root.lineHeight: typescale ? typescale?.line_height : 16
+        root.font.pixelSize: typescale ? typescale?.size : 16
+        root.font.weight: typescale ? (root.prominent && typescale?.weight_prominent ? typescale?.weight_prominent : typescale?.weight) : Font.Normal
+        root.font.letterSpacing: typescale ? typescale.tracking : 1
+        restoreMode: Binding.RestoreNone
     }
 
     color: MD.MatProp.textColor

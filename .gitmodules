@@ -22,9 +22,9 @@
 [submodule "third_party/magic_enum"]
 	path = third_party/magic_enum
 	url = https://github.com/Neargye/magic_enum
-[submodule "third_party/SingleApplication"]
-	path = third_party/SingleApplication
-	url = https://github.com/itay-grudev/SingleApplication
 [submodule "third_party/cubeb"]
 	path = third_party/cubeb
 	url = https://github.com/mozilla/cubeb.git
+[submodule "third_party/KDSingleApplication"]
+	path = third_party/KDSingleApplication
+	url = https://github.com/KDAB/KDSingleApplication.git

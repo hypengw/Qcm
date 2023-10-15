@@ -46,7 +46,10 @@ Player::Player(QObject* parent)
     : QObject(parent),
       m_channel(make_rc<NotifierInner::channel_type>(App::instance()->get_pool_executor(),
                                                      MaxChannelSize)),
-      m_end(false) {
+      m_end(false),
+      m_position(0),
+      m_duration(0),
+      m_playback_state(PlaybackState::StoppedState) {
     connect(this, &Player::notify, this, &Player::processNotify);
 
     auto channel       = m_channel;

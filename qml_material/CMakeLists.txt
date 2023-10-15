@@ -16,6 +16,7 @@ set(SOURCES
 set(QML_FILES
     qml/Button.qml
     qml/Control.qml
+    qml/ComboBox.qml
     qml/Dialog.qml
     qml/Divider.qml
     qml/Token.qml
@@ -38,6 +39,8 @@ set(QML_FILES
     qml/SplitView.qml
     qml/Slider.qml
     qml/Rail.qml
+    qml/TextInput.qml
+    qml/TextField.qml
     qml/TabBar.qml
     qml/TabButton.qml
     qml/impl/Ripple.qml

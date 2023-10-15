@@ -2,10 +2,8 @@ import QtCore
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-
 import Qcm.App as QA
 import Qcm.Material as MD
-
 import "../js/util.mjs" as Util
 
 MD.Page {
@@ -73,7 +71,6 @@ MD.Page {
                                     implicitHeight: implicitWidth
                                     implicitWidth: 24
 
-
                                     Rectangle {
                                         anchors.centerIn: parent
                                         color: modelData.value
@@ -107,8 +104,8 @@ MD.Page {
                     }
                 }
             }
-            MD.Divider {}
-
+            MD.Divider {
+            }
 
             SettingSection {
                 id: sec_play
@@ -118,32 +115,37 @@ MD.Page {
                 SettingRow {
                     Layout.fillWidth: true
                     text: qsTr('playing quality')
+                    canInput: !comb_quality.popup.visible
 
-                    actionItem: ComboBox {
+                    actionItem: MD.ComboBox {
                         id: comb_quality
                         signal clicked
 
-                        popup.modal: true
                         textRole: "text"
                         valueRole: "value"
 
                         model: ListModel {
-                            ListElement {
-                                text: qsTr('Standard')
-                                value: QA.SongUrlQuerier.LevelStandard
-                            }
-                            ListElement {
-                                text: qsTr('Higher')
-                                value: QA.SongUrlQuerier.LevelHigher
-                            }
-                            ListElement {
-                                text: qsTr('Exhigh')
-                                value: QA.SongUrlQuerier.LevelExhigh
-                            }
-                            ListElement {
-                                text: qsTr('Lossless')
-                                value: QA.SongUrlQuerier.LevelLossless
-                            }
+                        }
+
+                        Component.onCompleted: {
+                            [{
+                                    "text": qsTr('Standard'),
+                                    "value": QA.SongUrlQuerier.LevelStandard
+                                }, {
+                                    "text": qsTr('Higher'),
+                                    "value": QA.SongUrlQuerier.LevelHigher
+                                }, {
+                                    "text": qsTr('Exhigh'),
+                                    "value": QA.SongUrlQuerier.LevelExhigh
+                                }, {
+                                    "text": qsTr('Lossless'),
+                                    "value": QA.SongUrlQuerier.LevelLossless
+                                }].map(el => model.append(el));
+
+                            currentIndex = indexOfValue(settings_play.play_quality);
+                            settings_play.play_quality = Qt.binding(() => {
+                                    return comb_quality.currentValue;
+                                });
                         }
 
                         onClicked: {
@@ -153,53 +155,48 @@ MD.Page {
                 }
             }
 
-            MD.Divider {}
+            MD.Divider {
+            }
 
             SettingSection {
                 id: sec_cache
                 Layout.fillWidth: true
                 title: qsTr('cache')
 
-                ColumnLayout {
-                    Layout.leftMargin: 16
-                    Layout.rightMargin: 16
+                SettingRow {
+                    Layout.fillWidth: true
+                    text: `${qsTr('total cache limit')}: ${Util.pretty_bytes(slider_total_cache.byteValue)}`
+                    canInput: false
 
-                    ColumnLayout {
-                        spacing: 0
+                    belowItem: ByteSlider {
+                        id: slider_total_cache
+                        Layout.fillWidth: true
+                        from: 2
+                        stepSize: 1
+                        to: 19
 
-                        MD.Text {
-                            text: `${qsTr('total cache limit')}: ${Util.pretty_bytes(slider_total_cache.byteValue)}`
-                        }
-                        ByteSlider {
-                            id: slider_total_cache
-                            Layout.fillWidth: true
-                            from: 2
-                            stepSize: 1
-                            to: 19
-
-                            onValueChanged: {
-                                if (Math.floor(value) <= Math.floor(slider_media_cache.value))
-                                    slider_media_cache.value = value - 1;
-                            }
+                        onValueChanged: {
+                            if (Math.floor(value) <= Math.floor(slider_media_cache.value))
+                                slider_media_cache.value = value - 1;
                         }
                     }
-                    ColumnLayout {
-                        spacing: 0
+                }
 
-                        MD.Text {
-                            text: `${qsTr('media cache limit')}: ${Util.pretty_bytes(slider_media_cache.byteValue)}`
-                        }
-                        ByteSlider {
-                            id: slider_media_cache
-                            Layout.fillWidth: true
-                            from: 1
-                            stepSize: 1
-                            to: 18
+                SettingRow {
+                    Layout.fillWidth: true
+                    text: `${qsTr('media cache limit')}: ${Util.pretty_bytes(slider_media_cache.byteValue)}`
+                    canInput: false
 
-                            onValueChanged: {
-                                if (Math.floor(slider_total_cache.value) <= Math.floor(value))
-                                    slider_total_cache.value = value + 1;
-                            }
+                    belowItem: ByteSlider {
+                        id: slider_media_cache
+                        Layout.fillWidth: true
+                        from: 1
+                        stepSize: 1
+                        to: 18
+
+                        onValueChanged: {
+                            if (Math.floor(slider_total_cache.value) <= Math.floor(value))
+                                slider_total_cache.value = value + 1;
                         }
                     }
                 }
@@ -236,10 +233,6 @@ MD.Page {
             category: 'play'
 
             Component.onCompleted: {
-                comb_quality.currentIndex = comb_quality.indexOfValue(play_quality);
-                play_quality = Qt.binding(() => {
-                        return comb_quality.currentValue;
-                    });
             }
         }
     }
@@ -259,24 +252,43 @@ MD.Page {
         id: s_row
 
         property alias actionItem: sr_action.contentItem
+        property alias belowItem: sr_below.contentItem
         property alias text: sr_label.text
+        property bool canInput: true
+
+        MD.InputBlock {
+            id: item_block
+            when: !canInput
+            target: sr_item
+        }
 
         MD.ListItem {
+            id: sr_item
             Layout.fillWidth: true
 
-            contentItem: RowLayout {
-                MD.Text {
-                    id: sr_label
-                    Layout.fillWidth: true
+            contentItem: ColumnLayout {
+                RowLayout {
+                    MD.Text {
+                        id: sr_label
+                        Layout.fillWidth: true
+                        typescale: MD.Token.typescale.title_small
+                        font.capitalization: Font.Capitalize
+                    }
+                    MD.Control {
+                        id: sr_action
+                    }
                 }
-                Control {
-                    id: sr_action
+                MD.Control {
+                    id: sr_below
+                    Layout.fillWidth: true
+                    visible: contentItem
+                    contentItem: null
                 }
             }
 
             Component.onCompleted: {
-                if (actionItem.clicked)
-                    clicked.connect(actionItem.clicked);
+                if (s_row.actionItem?.clicked)
+                    clicked.connect(s_row.actionItem.clicked);
             }
         }
     }
@@ -295,6 +307,8 @@ MD.Page {
                 Layout.leftMargin: 12
                 Layout.rightMargin: 12
                 MD.MatProp.textColor: MD.Token.color.primary
+                typescale: MD.Token.typescale.title_medium
+                font.capitalization: Font.Capitalize
             }
         }
     }

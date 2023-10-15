@@ -16,7 +16,6 @@ Canvas {
     property alias mirror: image.mirror
     property alias mirrorVertically: image.mirrorVertically
     property alias progress: image.progress
-    property alias smooth: image.smooth
     property alias source: image.source
     property alias sourceClipRect: image.sourceClipRect
     property alias sourceSize: image.sourceSize
@@ -105,6 +104,7 @@ Canvas {
     Image {
         id: image
         visible: false
+        smooth: root.smooth 
     }
 
     MD.MatProp.elevation: MD.Token.elevation.level0

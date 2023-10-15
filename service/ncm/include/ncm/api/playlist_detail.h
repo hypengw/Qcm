@@ -30,7 +30,7 @@ namespace api_model
 {
 
 struct PlaylistDetail {
-    static Result<PlaylistDetail> parse(std::span<const byte> bs) {
+    static Result<PlaylistDetail> parse(std::span<const byte> bs, const auto&) {
         return api_model::parse<PlaylistDetail>(bs).map([](PlaylistDetail in) {
             if (in.playlist.tracks && in.privileges) {
                 auto& tracks     = in.playlist.tracks.value();

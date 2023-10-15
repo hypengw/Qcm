@@ -64,7 +64,7 @@ namespace api_model
 {
 
 struct SongUrl {
-    static Result<SongUrl> parse(std::span<const byte> bs) { return api_model::parse<SongUrl>(bs); }
+    static Result<SongUrl> parse(std::span<const byte> bs, const auto&) { return api_model::parse<SongUrl>(bs); }
     std::vector<model::SongUrl> data;
     i64                         code;
 };

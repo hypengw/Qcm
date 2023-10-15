@@ -9,7 +9,7 @@ MD.Pane {
 
     required property string tag
     MD.MatProp.textColor: MD.Token.color.tertiary
-    height: tag_label.typescale.line_height
+    height: tag_label.lineHeight
     padding: 0
     horizontalPadding: 2
 

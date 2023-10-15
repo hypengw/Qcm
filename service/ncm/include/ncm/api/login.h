@@ -17,7 +17,7 @@ struct Login {
 namespace api_model
 {
 struct Login {
-    static Result<Login> parse(std::span<const byte> bs) {
+    static Result<Login> parse(std::span<const byte> bs, const auto&) {
         return api_model::parse_no_apierr<Login>(bs);
     }
 

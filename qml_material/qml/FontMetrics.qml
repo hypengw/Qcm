@@ -7,7 +7,7 @@ FontMetrics {
     property QtObject typescale: MD.Token.typescale.label_medium
     property bool prominent: false
 
-    font.pixelSize: typescale.size
-    font.weight: root.prominent && typescale.weight_prominent ? typescale.weight_prominent : typescale.weight
-    font.letterSpacing: typescale.tracking
+    font.pixelSize: typescale?.size ?? 16
+    font.weight: typescale ? (root.prominent && typescale.weight_prominent ? typescale.weight_prominent : typescale.weight) : Font.Normal
+    font.letterSpacing: typescale?.tracking ?? 1
 }

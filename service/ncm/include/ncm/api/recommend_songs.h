@@ -15,7 +15,7 @@ namespace api_model
 {
 
 struct RecommendSongs {
-    static Result<RecommendSongs> parse(std::span<const byte> bs) {
+    static Result<RecommendSongs> parse(std::span<const byte> bs, const auto&) {
         return api_model::parse<RecommendSongs>(bs);
     }
 

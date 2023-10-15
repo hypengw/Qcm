@@ -28,7 +28,7 @@ namespace api_model
 {
 
 struct RadioLike {
-    static Result<RadioLike> parse(std::span<const byte> bs) {
+    static Result<RadioLike> parse(std::span<const byte> bs, const auto&) {
         return api_model::parse<RadioLike>(bs);
     }
     // 200

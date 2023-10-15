@@ -19,6 +19,8 @@ T.Menu {
 
     delegate: MD.MenuItem {}
 
+    property var model: contentModel
+
     enter: Transition {
         // grow_fade_in
         NumberAnimation { property: "scale"; from: 0.9; to: 1.0; easing.type: Easing.OutQuint; duration: 220 }
@@ -34,7 +36,7 @@ T.Menu {
     contentItem: ListView {
         implicitHeight: contentHeight
 
-        model: control.contentModel
+        model: control.model
         interactive: Window.window
                         ? contentHeight + control.topPadding + control.bottomPadding > Window.window.height
                         : false

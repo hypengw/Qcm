@@ -24,7 +24,7 @@ namespace api_model
 {
 
 struct CloudSearch {
-    static Result<CloudSearch> parse(std::span<const byte> bs) {
+    static Result<CloudSearch> parse(std::span<const byte> bs, const params::CloudSearch&) {
         return api_model::parse<CloudSearch>(bs);
     }
 

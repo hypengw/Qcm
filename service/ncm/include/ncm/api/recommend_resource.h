@@ -30,7 +30,7 @@ namespace api_model
 {
 
 struct RecommendResource {
-    static Result<RecommendResource> parse(std::span<const byte> bs) {
+    static Result<RecommendResource> parse(std::span<const byte> bs, const auto&) {
         return api_model::parse<RecommendResource>(bs);
     }
     std::vector<model::RecommendResourceItem> recommend;

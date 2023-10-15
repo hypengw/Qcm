@@ -18,6 +18,7 @@ Item {
                 case QA.QcmPlayer.PausedState:
                     return QA.MprisMediaPlayer.Paused;
                 case QA.QcmPlayer.StoppedState:
+                default:
                     return QA.MprisMediaPlayer.Stopped;
                 }
             });

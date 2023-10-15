@@ -20,7 +20,7 @@ namespace api_model
 {
 
 struct PlaylistDetailDynamic {
-    static Result<PlaylistDetailDynamic> parse(std::span<const byte> bs) {
+    static Result<PlaylistDetailDynamic> parse(std::span<const byte> bs, const auto&) {
         return api_model::parse<PlaylistDetailDynamic>(bs);
     }
     i64  code;

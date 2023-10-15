@@ -26,7 +26,7 @@ namespace api_model
 {
 
 struct PlaylistSubscribe {
-    static Result<PlaylistSubscribe> parse(std::span<const byte> bs) {
+    static Result<PlaylistSubscribe> parse(std::span<const byte> bs, const auto&) {
         return api_model::parse<PlaylistSubscribe>(bs);
     }
     // 200

@@ -3,11 +3,6 @@ add_subdirectory(fmt)
 add_subdirectory(json)
 add_subdirectory(qr_code)
 
-set(QAPPLICATION_CLASS
-    QGuiApplication
-    CACHE STRING "Inheritance class for SingleApplication")
-add_subdirectory(SingleApplication)
-
 add_library(random INTERFACE)
 target_include_directories(random INTERFACE random/include)
 
@@ -50,3 +45,10 @@ add_subdirectory(cubeb EXCLUDE_FROM_ALL)
 set_property(TARGET cubeb PROPERTY MSVC_RUNTIME_LIBRARY
                                    "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 add_library(cubeb::cubeb ALIAS cubeb)
+
+option(KDSingleApplication_QT6 "" ON)
+option(KDSingleApplication_STATIC "" ON)
+option(KDSingleApplication_TESTS "" OFF)
+option(KDSingleApplication_EXAMPLES "" OFF)
+option(KDSingleApplication_DOCS "" OFF)
+add_subdirectory(KDSingleApplication)

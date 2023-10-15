@@ -11,14 +11,21 @@
 Q_IMPORT_QML_PLUGIN(Qcm_AppPlugin)
 Q_IMPORT_QML_PLUGIN(Qcm_MaterialPlugin)
 
-#include <SingleApplication>
+#include <kdsingleapplication.h>
 
 int main(int argc, char* argv[]) {
     qputenv("QT_FONT_DPI", "96");
     auto logger = qcm::LogManager::init();
     request::global_init();
 
-    SingleApplication gui_app(argc, argv);
+    QGuiApplication     gui_app(argc, argv);
+    KDSingleApplication single;
+    if (! single.isPrimaryInstance()) {
+        WARN_LOG("another qcm running, triggering");
+        single.sendMessageWithTimeout("hello", 5);
+        exit(0);
+    }
+
     QCoreApplication::setApplicationName("Qcm");
     QCoreApplication::setApplicationVersion(APP_VERSION);
 
@@ -40,8 +47,9 @@ int main(int argc, char* argv[]) {
         engine.addImportPath(u"qrc:/"_qs);
 
         qcm::App* app = qcm::App::instance();
-        QObject::connect(
-            &gui_app, &SingleApplication::instanceStarted, app, &qcm::App::instanceStarted);
+        QObject::connect(&single, &KDSingleApplication::messageReceived, app, [app]() {
+            emit app->instanceStarted();
+        });
 
         app->init(&engine);
 

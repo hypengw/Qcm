@@ -14,7 +14,7 @@ struct QrcodeUnikey {};
 namespace api_model
 {
 struct QrcodeUnikey {
-    static Result<QrcodeUnikey> parse(std::span<const byte> bs) {
+    static Result<QrcodeUnikey> parse(std::span<const byte> bs, const auto&) {
         return api_model::parse<QrcodeUnikey>(bs).map([](auto in) {
             in.qrurl = fmt::format("https://music.163.com/login?codekey={}", in.unikey);
             return in;

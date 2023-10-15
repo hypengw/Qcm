@@ -35,7 +35,7 @@ namespace api_model
 {
 
 struct ArtistSublist {
-    static Result<ArtistSublist> parse(std::span<const byte> bs) {
+    static Result<ArtistSublist> parse(std::span<const byte> bs, const auto&) {
         return api_model::parse<ArtistSublist>(bs);
     }
 

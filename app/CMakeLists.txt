@@ -168,7 +168,9 @@ qt_add_qml_module(
 
 target_link_libraries(
   ${PROJECT_NAME} PRIVATE app appplugin qml_materialplugin
-                          SingleApplication::SingleApplication)
+  #SingleApplication::SingleApplication
+                          kdsingleapplication
+                          )
 
 set(APP_DESKTOP assets/Qcm.desktop)
 set(APP_METAINFO assets/Qcm.metainfo.xml)

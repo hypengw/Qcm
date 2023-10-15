@@ -28,7 +28,7 @@ namespace api_model
 {
 
 struct SongLyric {
-    static Result<SongLyric> parse(std::span<const byte> bs) {
+    static Result<SongLyric> parse(std::span<const byte> bs, const auto&) {
         return api_model::parse<SongLyric>(bs);
     }
     // 200
