@@ -29,20 +29,20 @@ struct CloudSearch {
     }
 
     struct SongResult {
-        std::vector<model::Song> songs;
-        i64                      songCount;
+        std::optional<std::vector<model::Song>> songs;
+        i64                                     songCount;
     };
     struct AlbumResult {
-        std::vector<model::Artist> albums;
-        i64                        albumCount;
+        std::optional<std::vector<model::Album>> albums;
+        i64                                      albumCount;
     };
     struct PlaylistResult {
-        std::vector<model::Playlist> playlists;
-        i64                          playlistCount;
+        std::optional<std::vector<model::Playlist>> playlists;
+        i64                                         playlistCount;
     };
     struct ArtistResult {
-        std::vector<model::Artist> artists;
-        i64                        artistCount;
+        std::optional<std::vector<model::Artist>> artists;
+        i64                                       artistCount;
     };
 
     using SearchResult = std::variant<SongResult, AlbumResult, PlaylistResult, ArtistResult>;
@@ -63,17 +63,17 @@ struct CloudSearch {
     using in_type                      = params::CloudSearch;
     using out_type                     = api_model::CloudSearch;
     constexpr static Operation  oper   = Operation::PostOperation;
-    constexpr static CryptoType crypto = CryptoType::EAPI;
+    constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string path() const { return "/eapi/cloudsearch/pc"; };
+    std::string path() const { return "/weapi/cloudsearch/pc"; };
     UrlParams   query() const { return {}; }
     Params      body() const {
         Params p;
-        p["keywords"] = input.keywords;
-        p["type"]     = To<std::string>::from(input.type);
-        p["limit"]    = To<std::string>::from(input.limit);
-        p["offset"]   = To<std::string>::from(input.offset);
-        p["total"]    = To<std::string>::from(input.total);
+        p["s"]      = input.keywords;
+        p["type"]   = To<std::string>::from(input.type);
+        p["limit"]  = To<std::string>::from(input.limit);
+        p["offset"] = To<std::string>::from(input.offset);
+        p["total"]  = To<std::string>::from(input.total);
         return p;
     }
 

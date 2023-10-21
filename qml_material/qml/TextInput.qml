@@ -6,6 +6,8 @@ TextInput {
     property QtObject typescale: MD.Token.typescale.body_large
     property bool prominent: false
 
+    font.capitalization: Font.MixedCase
+
     Binding {
         when: typescale
         root.font.pixelSize: typescale.size

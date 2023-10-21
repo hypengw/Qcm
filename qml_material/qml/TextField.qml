@@ -11,6 +11,8 @@ MD.TextFieldEmbed {
     property string leading_icon
     property string trailing_icon
 
+    font.capitalization: Font.MixedCase
+
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset, Math.max(contentWidth, placeholder.implicitWidth) + leftPadding + rightPadding + (leading.visible ? leading.implicitWidth : 0) + (trailing.visible ? trailing.implicitWidth : 0))
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset, contentHeight + topPadding + bottomPadding)
 

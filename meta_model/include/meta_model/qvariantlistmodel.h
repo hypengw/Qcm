@@ -2,6 +2,7 @@
 
 #include <variant>
 #include "meta_model/qmetaobjectmodel.h"
+#include "core/variant_helper.h"
 
 namespace meta_model
 {
@@ -18,6 +19,12 @@ public:
     using value_type     = std::variant<Ts...>;
     using container_type = std::variant<std::vector<Ts>...>;
     using iterator       = std::variant<typename std::vector<Ts>::iterator...>;
+
+
+    template<typename T>
+    bool holds_alternative() const {
+        return std::holds_alternative<std::vector<T>>(m_items);
+    }
 
     // override
     virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override {
@@ -90,11 +97,9 @@ public:
 private:
     template<typename Tin>
     void insert_impl(std::size_t idx, Tin beg, Tin end) {
-        std::visit(
-            [idx, beg, end](auto& items) {
-                items.insert(std::begin(items + idx), beg, end);
-            },
-            m_items);
+        using value_type = Tin::value_type;
+        auto& items      = std::get<std::vector<value_type>>(m_items);
+        items.insert(std::begin(items) + idx, beg, end);
     }
 
     void erase_impl(std::size_t begin, std::size_t last) {
@@ -102,6 +107,14 @@ private:
             [this, begin, last](auto& v) {
                 auto it = std::begin(v);
                 v.erase(it + begin, it + last);
+            },
+            m_items);
+    }
+
+    void reset_impl() {
+        std::visit(
+            [](auto& v) {
+                v.clear();
             },
             m_items);
     }
@@ -117,6 +130,14 @@ private:
             m_items);
         insert_impl(0, std::begin(items), std::end(items));
     }
+
+protected:
+    void updateRoleNames(const QMetaObject& meta, const std::size_t i) {
+        Q_EMIT this->layoutAboutToBeChanged();
+        m_items = helper::make_variant<std::vector<Ts>...>(i);
+        this->QMetaListModelBase::updateRoleNames(meta);
+    }
+
 
 private:
     container_type m_items;

@@ -24,6 +24,8 @@
 #include "request/response.h"
 #include "asio_helper/sync_file.h"
 
+#include "meta_model/qgadget_helper.h"
+
 using namespace qcm;
 
 namespace
@@ -248,4 +250,8 @@ bool App::debug() const {
 #else
     return 0;
 #endif
+}
+
+model::Song App::song(const QJSValue& js) const {
+    return meta_model::toGadget<model::Song>(js);
 }

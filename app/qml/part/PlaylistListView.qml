@@ -34,7 +34,7 @@ MD.Pane {
             }
         }
 
-        footer: QA.ListBusyFooter {
+        footer: MD.ListBusyFooter {
             width: GridView.view.width
             running: qr_pl.status === QA.ApiQuerierBase.Querying
         }

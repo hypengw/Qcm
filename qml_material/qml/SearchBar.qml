@@ -17,9 +17,10 @@ T.Button {
     property QC.Action trailing_action: QC.Action {
         icon.name: control.text ? MD.Token.icon.close : null
         onTriggered: {
-            item_input.text = ''
+            item_input.text = '';
         }
     }
+    signal accepted
 
     text: item_input.text
 
@@ -47,6 +48,12 @@ T.Button {
             Layout.fillWidth: true
             color: control.MD.MatProp.textColor
 
+            Connections {
+                target: item_input
+                function onAccepted() {
+                    control.accepted();
+                }
+            }
         }
 
         MD.IconButton {

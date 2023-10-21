@@ -142,6 +142,7 @@ JSON_GET_IMPL(api_model::AlbumSublist);
 JSON_GET_IMPL(api_model::Artist);
 JSON_GET_IMPL(api_model::ArtistAlbums);
 JSON_GET_IMPL(api_model::ArtistSublist);
+JSON_GET_IMPL(api_model::CloudSearch);
 JSON_GET_IMPL(api_model::Login);
 JSON_GET_IMPL(api_model::PlaylistCatalogue);
 JSON_GET_IMPL(api_model::PlaylistDetail);

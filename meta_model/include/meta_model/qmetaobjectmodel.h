@@ -41,18 +41,18 @@ public:
 
     void insert(int index, const TItem& item) { insert(index, std::array { item }); }
     template<typename T>
-        requires std::ranges::sized_range<T> &&
-                 std::same_as<std::decay_t<typename T::value_type>, TItem>
+        requires std::ranges::sized_range<T>
+    // std::same_as<std::decay_t<typename T::value_type>, TItem>
     void insert(int index, const T& range) {
         auto size = range.size();
-        if(size < 1) return;
+        if (size < 1) return;
         beginInsertRows({}, index, index + size - 1);
         crtp_impl().insert_impl(index, std::begin(range), std::end(range));
         endInsertRows();
     }
 
     void remove(int index, int size = 1) {
-        if(size < 1) return;
+        if (size < 1) return;
         auto last = index + size;
         beginRemoveRows({}, index, last - 1);
         crtp_impl().erase_impl(index, last);
@@ -63,9 +63,16 @@ public:
         auto idx = index(row);
         dataChanged(idx, idx);
     }
+
+    void resetModel() {
+        beginResetModel();
+        crtp_impl().reset_impl();
+        endResetModel();
+    }
+
     template<typename T>
-        requires std::ranges::sized_range<T> &&
-                 std::same_as<std::decay_t<typename T::value_type>, TItem>
+        requires std::ranges::sized_range<T>
+    // std::same_as<std::decay_t<typename T::value_type>, TItem>
     void resetModel(const T& items) {
         beginResetModel();
         crtp_impl().reset_impl(items);
@@ -147,6 +154,11 @@ private:
     void erase_impl(std::size_t index, std::size_t last) {
         auto it = m_items.begin();
         m_items.erase(it + index, it + last);
+    }
+
+    template<typename T>
+    void reset_impl() {
+        m_items.clear();
     }
 
     template<typename T>

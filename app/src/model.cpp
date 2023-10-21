@@ -24,6 +24,8 @@
 #include "Qcm/model/radio_like.h"
 #include "Qcm/model/song_like.h"
 
+#include "core/qlist_helper.h"
+
 using namespace qcm;
 
 qcm::model::Playlist
@@ -69,6 +71,7 @@ qcm::model::Album To<qcm::model::Album>::from(const ncm::model::Album& in) {
     CONVERT_PROPERTY(o.picUrl, in.picUrl);
     CONVERT_PROPERTY(o.artists, in.artists);
     CONVERT_PROPERTY(o.publishTime, in.publishTime);
+    CONVERT_PROPERTY(o.trackCount, std::max(in.size, (i64)in.songs.size()));
     return o;
 }
 

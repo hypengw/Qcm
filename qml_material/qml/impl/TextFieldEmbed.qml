@@ -10,6 +10,8 @@ T.TextField {
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset, contentWidth + leftPadding + rightPadding)
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset, contentHeight + topPadding + bottomPadding)
 
+    font.capitalization: Font.MixedCase
+
     Binding {
         when: typescale
         root.font.pixelSize: typescale.size

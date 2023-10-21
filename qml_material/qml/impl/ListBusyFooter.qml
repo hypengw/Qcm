@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Controls
-
 import Qcm.Material as MD
 
 MD.Pane {
@@ -16,5 +15,4 @@ MD.Pane {
 
         anchors.centerIn: parent
     }
-
 }

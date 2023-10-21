@@ -14,6 +14,17 @@
     Q_PROPERTY(_type_ _prop_ MEMBER _var_)     \
     _type_ _var_;
 
+#define GATGET_LIST_PROPERTY(_type_, _prop_, _var_)                                   \
+    Q_PROPERTY(QVariantList _prop_ READ get_##_prop_ WRITE set_##_prop_)              \
+    QVariantList get_##_prop_() const { return QVariant::fromValue(_var_).toList(); } \
+    void         set_##_prop_(const QVariantList& in) {                               \
+        _var_.clear();                                                        \
+        for (auto& el : in) {                                                 \
+            _var_ << el.value<_type_>();                                      \
+        }                                                                     \
+    }                                                                                 \
+    QList<_type_> _var_;
+
 #define READ_PROPERTY(_type_, _prop_, _var_, _sig_)    \
     Q_PROPERTY(_type_ _prop_ READ _prop_ NOTIFY _sig_) \
     const auto& _prop_() const { return _var_; }       \
@@ -121,9 +132,9 @@ struct ItemIdBase : public ItemId {
 
 template<typename T>
 concept ItemIdCP = requires(T t) {
-                       { t.id } -> std::convertible_to<QString>;
-                       { t.type() } -> std::same_as<ItemId::Type>;
-                   };
+    { t.id } -> std::convertible_to<QString>;
+    { t.type() } -> std::same_as<ItemId::Type>;
+};
 
 struct SongId : public ItemIdBase<ItemId::Type::Song> {
     Q_GADGET
@@ -184,7 +195,8 @@ public:
     GATGET_PROPERTY(QString, name, name)
     GATGET_PROPERTY(QString, picUrl, picUrl)
     GATGET_PROPERTY(QDateTime, publishTime, publishTime)
-    GATGET_PROPERTY(std::vector<Artist>, artists, artists)
+    GATGET_PROPERTY(int, trackCount, trackCount)
+    GATGET_LIST_PROPERTY(Artist, artists, artists)
 
     std::strong_ordering operator<=>(const Album&) const = default;
 };
@@ -210,9 +222,10 @@ public:
     GATGET_PROPERTY(QString, name, name)
     GATGET_PROPERTY(Album, album, album)
     GATGET_PROPERTY(QDateTime, duration, duration)
-    GATGET_PROPERTY(std::vector<Artist>, artists, artists)
     GATGET_PROPERTY(bool, canPlay, canPlay)
-    GATGET_PROPERTY(std::vector<QString>, tags, tags)
+    GATGET_PROPERTY(QList<QString>, tags, tags)
+
+    GATGET_LIST_PROPERTY(Artist, artists, artists)
 
     std::strong_ordering operator<=>(const Song&) const = default;
 };

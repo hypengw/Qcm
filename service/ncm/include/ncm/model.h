@@ -185,8 +185,8 @@ struct Playlist {
     std::string coverImgUrl;
     // coverImgId_str	"109951167805071571"
     // adType	0
-    i64 userId;
-    i64 status;
+    i64                userId;
+    std::optional<i64> status;
     // opRecommend	false
     // highQuality	false
     // newImported	false
@@ -195,8 +195,8 @@ struct Playlist {
     i64 specialType;
     // privacy	0
     // trackUpdateTime	1678022963095
-    std::string commentThreadId;
-    i64         playCount;
+    std::optional<std::string> commentThreadId;
+    i64                        playCount;
     // trackNumberUpdateTime	1678018138230
     // subscribedCount	4
     // cloudTrackCount	1

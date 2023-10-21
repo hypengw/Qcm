@@ -32,7 +32,7 @@ class App : public QObject {
     Q_PROPERTY(bool debug READ debug)
 public:
     using pool_executor_t = asio::thread_pool::executor_type;
-    using qt_executor_t = QtExecutor;
+    using qt_executor_t   = QtExecutor;
 
     App();
     virtual ~App();
@@ -41,10 +41,10 @@ public:
 
     static App* instance();
 
-    ncm::Client                      ncm_client() const;
-    auto                             get_executor() { return m_qt_ex; }
+    ncm::Client     ncm_client() const;
+    auto            get_executor() { return m_qt_ex; }
     pool_executor_t get_pool_executor() { return m_pool.get_executor(); }
-    auto                             get_cache_sql() { return m_cache_sql; }
+    auto            get_cache_sql() { return m_cache_sql; }
 
     mpris::MediaPlayer2* mpris() const { return m_mpris->mediaplayer2(); }
 
@@ -57,6 +57,8 @@ public:
     Q_INVOKABLE model::AlbumId albumId(QString id) const;
     Q_INVOKABLE QUrl           getImageCache(QString url, QSize reqSize) const;
     Q_INVOKABLE bool           is_item_id(const QJSValue&) const;
+
+    Q_INVOKABLE model::Song song(const QJSValue& = {}) const;
 
     Q_INVOKABLE void test();
 

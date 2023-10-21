@@ -86,7 +86,7 @@ namespace helper
 template<typename T>
 concept is_expected = core::is_specialization_of<T, nstd::expected>;
 template<typename T>
-concept is_optional = core::is_specialization_of<T, std::optional>;
+concept is_optional = core::is_specialization_of<std::decay_t<T>, std::optional>;
 
 template<typename T, typename Fn>
 auto map(T&& t, Fn&& fn) -> std::optional<decltype(fn(t.value()))> {
@@ -121,6 +121,15 @@ nstd::expected<E, T> expected_switch(nstd::expected<T, E> res) {
         return nstd::unexpected(std::move(res).value());
     else
         return std::move(res).error();
+}
+
+template<typename T>
+    requires is_optional<T>
+typename std::decay_t<T>::value_type value_or_default(T&& t) {
+    if (t.has_value())
+        return std::forward<T>(t).value();
+    else
+        return typename std::decay_t<T>::value_type {};
 }
 
 } // namespace helper

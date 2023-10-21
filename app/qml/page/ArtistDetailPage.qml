@@ -118,7 +118,7 @@ MD.Page {
                                     QA.Global.playlist.switchTo(modelData);
                                 }
                             }
-                            footer: QA.ListBusyFooter {
+                            footer: MD.ListBusyFooter {
                                 running: qr_artist.status === QA.ApiQuerierBase.Querying
                                 width: ListView.view.width
                             }

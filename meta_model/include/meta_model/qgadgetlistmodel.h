@@ -2,15 +2,11 @@
 
 #include <type_traits>
 
+#include "meta_model/qgadget_helper.h"
 #include "meta_model/qmetaobjectmodel.h"
 
 namespace meta_model
 {
-
-template<typename T>
-concept cp_is_gadget = requires() { typename T::QtGadgetHelper; };
-template<typename T>
-concept cp_is_qobject = std::derived_from<T, QObject>;
 
 template<typename TGadget>
     requires cp_is_gadget<TGadget>

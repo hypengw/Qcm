@@ -81,7 +81,7 @@ MD.Page {
                                         }
                                     }
                                 }
-                                footer: QA.ListBusyFooter {
+                                footer: MD.ListBusyFooter {
                                     running: qr_rmd_res.status === QA.ApiQuerierBase.Querying
                                     width: GridView.view.width
                                 }
@@ -162,7 +162,7 @@ MD.Page {
                                         QA.Global.playlist.switchTo(modelData);
                                     }
                                 }
-                                footer: QA.ListBusyFooter {
+                                footer: MD.ListBusyFooter {
                                     running: qr_rmd_songs.status === QA.ApiQuerierBase.Querying
                                     width: ListView.view.width
                                 }

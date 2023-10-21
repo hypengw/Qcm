@@ -7,13 +7,13 @@ import Qcm.Material as MD
 MD.ListItem {
     id: root
 
-    required property int count
-    required property int index
-    readonly property bool is_playing: QA.Global.playlist.cur.itemId === modelData.itemId
-    required property var modelData
+    property int count: ListView.view?.count ?? 0
+    property int index_: index ? index : (model ? model.index : 0)
+    readonly property bool is_playing: QA.Global.playlist.cur.itemId === model_.itemId
+    property QA.t_song model_: modelData
     property string subtitle: ''
 
-    enabled: modelData.canPlay
+    enabled: model_.canPlay
     highlighted: is_playing
     heightMode: MD.Enum.ListItemTwoLine
 
@@ -41,7 +41,7 @@ MD.ListItem {
                 verticalAlignment: Qt.AlignVCenter
                 typescale: MD.Token.typescale.body_medium
                 opacity: 0.6
-                text: index + 1
+                text: index_ + 1
             }
             MD.Icon {
                 name: MD.Token.icon.equalizer
@@ -54,13 +54,13 @@ MD.ListItem {
             spacing: 0
             MD.Text {
                 Layout.fillWidth: true
-                text: root.modelData.name
+                text: root.model_.name
                 typescale: MD.Token.typescale.body_large
                 verticalAlignment: Qt.AlignVCenter
             }
             RowLayout {
                 Repeater {
-                    model: root.modelData.tags
+                    model: root.model_.tags
 
                     delegate: ColumnLayout {
                         SongTag {
@@ -74,24 +74,24 @@ MD.ListItem {
                     verticalAlignment: Qt.AlignVCenter
                     typescale: MD.Token.typescale.body_medium
                     color: MD.MatProp.supportTextColor
-                    text: root.subtitle ? root.subtitle : `${QA.Global.join_name(root.modelData.artists, '/')} - ${root.modelData.album.name}`
+                    text: root.subtitle ? root.subtitle : `${QA.Global.join_name(root.model_.artists, '/')} - ${root.model_.album.name}`
                 }
             }
         }
         MD.Text {
             typescale: MD.Token.typescale.body_medium
-            text: Qt.formatDateTime(root.modelData.duration, 'mm:ss')
+            text: Qt.formatDateTime(root.model_.duration, 'mm:ss')
             verticalAlignment: Qt.AlignVCenter
         }
         RowLayout {
             spacing: 0
 
             MD.IconButton {
-                checked: QA.Global.user_song_set.contains(root.modelData.itemId)
+                checked: QA.Global.user_song_set.contains(root.model_.itemId)
                 icon.name: checked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
 
                 onClicked: {
-                    QA.Global.querier_user_song.like_song(root.modelData.itemId, !checked);
+                    QA.Global.querier_user_song.like_song(root.model_.itemId, !checked);
                 }
             }
             MD.IconButton {
@@ -99,7 +99,7 @@ MD.ListItem {
 
                 onClicked: {
                     QA.Global.show_popup('qrc:/Qcm/App/qml/part/SongMenu.qml', {
-                            "song": modelData,
+                            "song": model_,
                             "y": height
                         }, this);
                 }

@@ -29,6 +29,7 @@ set(QML_FILES
     qml/MenuItem.qml
     qml/Image.qml
     qml/ListItem.qml
+    qml/ListView.qml
     qml/Label.qml
     qml/FontMetrics.qml
     qml/Icon.qml
@@ -44,6 +45,7 @@ set(QML_FILES
     qml/TextField.qml
     qml/TabBar.qml
     qml/TabButton.qml
+    qml/impl/ListBusyFooter.qml
     qml/impl/Ripple.qml
     qml/impl/CursorDelegate.qml
     qml/impl/State.qml

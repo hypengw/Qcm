@@ -45,7 +45,6 @@ signals:
     void fetchMoreReq(qint32);
 
 private:
-    std::vector<Playlist> m_items;
     bool                  m_has_more;
 };
 static_assert(modelable<PlaylistList, ncm::api::PlaylistList>);

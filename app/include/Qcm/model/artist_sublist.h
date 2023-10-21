@@ -71,7 +71,6 @@ signals:
     void fetchMoreReq(qint32);
 
 private:
-    std::vector<ArtistSublistItem> m_items;
     bool                           m_has_more;
 };
 static_assert(modelable<ArtistSublist, ncm::api::ArtistSublist>);

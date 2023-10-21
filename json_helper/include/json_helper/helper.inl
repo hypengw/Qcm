@@ -21,10 +21,12 @@ void from_json_opt(Type& out, const nlohmann::json& j, std::string_view name) {
 }
 
 template<typename T, typename... Ts>
-void variant_from_json(const nlohmann::json& j, std::variant<Ts...>& data) {
+std::string variant_from_json(const nlohmann::json& j, std::variant<Ts...>& data) {
     try {
         data = j.get<T>();
-    } catch (...) {
+        return {};
+    } catch (const nlohmann::json::exception& e) {
+        return e.what();
     }
 }
 
@@ -119,7 +121,13 @@ struct adl_serializer<std::variant<Ts...>> {
 
     static void from_json(const nlohmann::json& j, std::variant<Ts...>& data) {
         // Call variant_from_json for all types, only one will succeed
-        (variant_from_json<Ts>(j, data), ...);
+        std::array res { variant_from_json<Ts>(j, data)... };
+        if (std::all_of(res.begin(), res.end(), [](const auto& x) {
+                return ! x.empty();
+            })) {
+            throw nlohmann::json::type_error::create(
+                302, fmt::format("{}", fmt::join(res, "\n")), nullptr);
+        }
     }
 };
 NLOHMANN_JSON_NAMESPACE_END
