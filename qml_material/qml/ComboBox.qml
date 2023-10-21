@@ -55,7 +55,7 @@ T.ComboBox {
         selectByMouse: control.selectTextByMouse
         color: item_state.textColor
         selectionColor: MD.Token.color.primary
-        selectedTextColor: MD.Token.color.primary
+        selectedTextColor: MD.Token.color.getOn(selectionColor)
         verticalAlignment: TextInput.AlignVCenter
     }
     background: MDImpl.MaterialTextContainer {

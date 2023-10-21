@@ -38,15 +38,19 @@ set(QML_FILES
     qml/StackView.qml
     qml/SplitView.qml
     qml/Slider.qml
+    qml/SearchBar.qml
     qml/Rail.qml
     qml/TextInput.qml
     qml/TextField.qml
     qml/TabBar.qml
     qml/TabButton.qml
     qml/impl/Ripple.qml
+    qml/impl/CursorDelegate.qml
     qml/impl/State.qml
     qml/impl/SliderHandle.qml
-    qml/impl/RoundedElevationEffect.qml)
+    qml/impl/RoundedElevationEffect.qml
+    qml/impl/TextFieldEmbed.qml
+    )
 set(RESOURCES assets/MaterialIconsRound-Regular.otf
               assets/MaterialIconsOutlined-Regular.otf)
 

@@ -4,7 +4,7 @@ import QtQuick.Controls.impl
 import QtQuick.Controls.Material.impl as MDImpl
 import Qcm.Material as MD
 
-T.TextField {
+MD.TextFieldEmbed {
     id: control
 
     property int type: MD.Enum.TextFieldOutlined
@@ -31,11 +31,6 @@ T.TextField {
     //    // Account for any topInset (used to avoid floating placeholder text being clipped),
     //    // otherwise the text will be too close to the background.
     //    : Material.textFieldVerticalPadding + topInset
-
-    verticalAlignment: TextInput.AlignVCenter
-
-    cursorDelegate: MDImpl.CursorDelegate {
-    }
 
     MDImpl.FloatingPlaceholderText {
         id: placeholder
@@ -83,8 +78,6 @@ T.TextField {
         fillColor: control.MD.MatProp.backgroundColor
         outlineColor: control.outlineColor
         focusedOutlineColor: control.outlineColor
-        // When the control's size is set larger than its implicit size, use whatever size is smaller
-        // so that the gap isn't too big.
         placeholderTextWidth: Math.min(placeholder.width, placeholder.implicitWidth) * placeholder.scale
         controlHasActiveFocus: control.activeFocus
         controlHasText: control.length > 0
@@ -99,8 +92,6 @@ T.TextField {
     MD.MatProp.stateLayerColor: item_state.stateLayerColor
 
     color: item_state.textColor
-    selectionColor: MD.Token.color.primary
-    selectedTextColor: MD.Token.color.primary
     placeholderTextColor: item_state.placeholderColor
 
     property color outlineColor: item_state.outlineColor
@@ -110,7 +101,7 @@ T.TextField {
         visible: false
 
         elevation: MD.Token.elevation.level0
-        textColor: "black" // MD.Token.color.on_surface
+        textColor: MD.Token.color.on_surface
         backgroundColor: "transparent"
         supportTextColor: MD.Token.color.on_surface_variant
         property color placeholderColor: MD.Token.color.on_surface_variant

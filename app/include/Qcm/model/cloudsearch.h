@@ -8,6 +8,7 @@
 #include "ncm/api/cloudsearch.h"
 
 #include "meta_model/qgadgetlistmodel.h"
+#include "meta_model/qvariantlistmodel.h"
 
 #include "core/log.h"
 
@@ -16,12 +17,20 @@ namespace qcm
 namespace model
 {
 
-class CloudSearch : public meta_model::QGadgetListModel<CloudSearch> {
+class CloudSearch : public meta_model::VariantListModel<model::Album> {
     Q_OBJECT
 public:
-    CloudSearch(QObject* parent = nullptr)
-        : meta_model::QGadgetListModel<CloudSearch>(parent), m_has_more(true) {}
+    CloudSearch(QObject* parent = nullptr): meta_model::VariantListModel<model::Album>(parent) {}
+
     using out_type = ncm::api_model::CloudSearch;
+
+    void handle_output(const out_type& re, const auto& input) {}
+
+signals:
+    void fetchMoreReq(qint32);
+    /*
+        : meta_model::QGadgetListModel<CloudSearch>(parent), m_has_more(true) {}
+
 
     void handle_output(const out_type& re, const auto& input) {
         if (input.offset != (int)rowCount()) {
@@ -46,10 +55,13 @@ signals:
 
 private:
     std::vector<CloudSearch> m_items;
-    bool                  m_has_more;
+    bool                     m_has_more;
+    */
 };
 static_assert(modelable<CloudSearch, ncm::api::CloudSearch>);
 } // namespace model
+
+/*
 
 using CloudSearchQuerier_base = ApiQuerier<ncm::api::CloudSearch, model::CloudSearch>;
 class CloudSearchQuerier : public CloudSearchQuerier_base {
@@ -58,12 +70,14 @@ class CloudSearchQuerier : public CloudSearchQuerier_base {
 public:
     CloudSearchQuerier(QObject* parent = nullptr): CloudSearchQuerier_base(parent) {}
 
-    FORWARD_PROPERTY(QString, cat, cat)
+    FORWARD_PROPERTY(QString, keywords, keywords)
+    FORWARD_PROPERTY(int, type, type)
     FORWARD_PROPERTY(qint32, offset, offset)
     FORWARD_PROPERTY(qint32, limit, limit)
 
 public:
     void fetch_more(qint32 cur_count) override { set_offset(cur_count); }
 };
+*/
 
 } // namespace qcm

@@ -241,3 +241,11 @@ void App::test() {
         asio::detached);
     */
 }
+
+bool App::debug() const {
+#ifndef NDEBUG
+    return 1;
+#else
+    return 0;
+#endif
+}

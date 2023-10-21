@@ -69,9 +69,8 @@ Item {
             });
         return names.join(split);
     }
-    function route(dest) {
+    function route(dest, props = {}) {
         let url = dest;
-        let props = {};
         if (dest.objectType instanceof QA.ItemIdType) {
             url = item_id_url(dest);
             props = {

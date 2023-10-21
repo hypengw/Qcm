@@ -55,7 +55,7 @@ T.Button {
         // to set Material.elevation as well
         layer.enabled: control.enabled && color.a > 0 && !control.flat
         layer.effect: MD.RoundedElevationEffect {
-            elevation: MD.Token.elevation.level1//control.MD.MatProp.elevation
+            elevation: control.MD.MatProp.elevation
         }
 
         MD.Ripple {

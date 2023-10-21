@@ -93,8 +93,8 @@ void LrcLyric::parseLrc() {
 
 void LrcLyric::refreshIndex() {
     auto old   = m_cur_idx;
-    auto begin = items().begin();
-    auto end   = items().end();
+    auto begin = this->begin();
+    auto end   = this->end();
 
     if (begin < end) {
         auto it = begin + m_cur_idx;

@@ -23,6 +23,7 @@ MD.Page {
 
         ColumnLayout {
             Layout.topMargin: 12
+            Layout.bottomMargin: 12
             Layout.preferredWidth: 56 + 24
             Layout.fillWidth: false
 
@@ -76,7 +77,7 @@ MD.Page {
                     }
 
                     Component.onCompleted: {
-                        [{
+                        const pages = [{
                                 "icon": MD.Token.icon.menu,
                                 "name": qsTr('menu'),
                                 "action": {
@@ -96,15 +97,15 @@ MD.Page {
                                 "icon": MD.Token.icon.queue_music,
                                 "name": qsTr('playlist'),
                                 "page": 'qrc:/Qcm/App/qml/page/PlaylistListPage.qml'
-                            }
-                            /*
-                            {
-                                "icon": MD.Token.icon.queue_music,
-                                "name": qsTr('test'),
-                                "page": 'qrc:/Qcm/App/qml/page/MaterialTest.qml'
-                            }
-                            */
-                            ,].forEach(m => {
+                            }];
+                        if (QA.App.debug) {
+                            pages.push({
+                                    "icon": MD.Token.icon.queue_music,
+                                    "name": qsTr('test'),
+                                    "page": 'qrc:/Qcm/App/qml/page/MaterialTest.qml'
+                                });
+                        }
+                        pages.forEach(m => {
                                 model.append(m);
                             });
                         currentIndex = 1;
@@ -124,6 +125,7 @@ MD.Page {
                 action: Action {
                     icon.name: MD.Token.icon.search
                     onTriggered: {
+                        QA.Global.route('qrc:/Qcm/App/qml/page/SearchPage.qml');
                     }
                 }
             }

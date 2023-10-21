@@ -29,6 +29,7 @@ class App : public QObject {
     Q_OBJECT
 
     Q_PROPERTY(mpris::MediaPlayer2* mpris READ mpris)
+    Q_PROPERTY(bool debug READ debug)
 public:
     using pool_executor_t = asio::thread_pool::executor_type;
     using qt_executor_t = QtExecutor;
@@ -45,7 +46,9 @@ public:
     pool_executor_t get_pool_executor() { return m_pool.get_executor(); }
     auto                             get_cache_sql() { return m_cache_sql; }
 
-    mpris::MediaPlayer2* mpris() const { return m_mpris->mediaplayer2(); };
+    mpris::MediaPlayer2* mpris() const { return m_mpris->mediaplayer2(); }
+
+    bool debug() const;
 
     Q_INVOKABLE QUrl    media_file(const QString& id) const;
     Q_INVOKABLE QString media_url(const QString& ori, const QString& id) const;
