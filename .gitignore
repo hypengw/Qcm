@@ -77,3 +77,5 @@ build_release
 .cache
 CMakeLists.txt.*
 compile_commands.json
+/.qmllint.ini
+/.vscode

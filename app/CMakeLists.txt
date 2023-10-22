@@ -77,19 +77,19 @@ set(QML_FILES
     qml/page/PlayQueuePage.qml
     qml/page/MainPage.qml
     qml/page/MaterialTest.qml
-    qml/part/ArtistsPopup.qml
-    qml/part/InfoRow.qml
-    qml/part/SnakeBar.qml
-    qml/part/SnakeView.qml
-    qml/part/SongDelegate.qml
-    qml/part/SongMenu.qml
-    qml/part/Mpris.qml
-    qml/part/PicGridDelegate.qml
-    qml/part/PlaylistListView.qml
-    qml/part/SongTag.qml
-    qml/part/RouteMsg.qml
-    qml/part/PlaySlider.qml
-    qml/part/ListDescription.qml
+    qml/component/ArtistsPopup.qml
+    qml/component/InfoRow.qml
+    qml/component/SnakeBar.qml
+    qml/component/SnakeView.qml
+    qml/component/SongDelegate.qml
+    qml/component/SongMenu.qml
+    qml/component/Mpris.qml
+    qml/component/PicGridDelegate.qml
+    qml/component/PlaylistListView.qml
+    qml/component/SongTag.qml
+    qml/component/RouteMsg.qml
+    qml/component/PlaySlider.qml
+    qml/component/ListDescription.qml
     qml/component/IconRowLayout.qml
     qml/component/RoundImage.qml
     qml/component/Leaflet.qml

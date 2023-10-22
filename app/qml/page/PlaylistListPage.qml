@@ -14,7 +14,7 @@ MD.Page {
     property var custom_cat_list: ['华语', '流行', '电子', 'ACG', '欧美', '运动']
 
     function switchCat(cat) {
-        view_container.switchTo('qrc:/Qcm/App/qml/part/PlaylistListView.qml', {
+        view_container.switchTo('qrc:/Qcm/App/qml/component/PlaylistListView.qml', {
                 "cat": cat
             }, true);
     }

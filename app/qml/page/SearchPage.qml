@@ -104,7 +104,7 @@ MD.Page {
                         width: ListView.view.width
                         text: model.name
                         maximumLineCount: 2
-                        supportText: `${model.trackCount} tracks`
+                        supportText: `${QA.Global.join_name(model.artists, '/')} - ${Qt.formatDateTime(model.publishTime, 'yyyy.M.d')} - ${model.trackCount} tracks`
                         leader: MD.Image {
                             radius: 8
                             source: `image://ncm/${model.picUrl}`

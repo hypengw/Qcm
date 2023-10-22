@@ -25,9 +25,9 @@ public:
 
     void handle_output(const out_type& in, const auto&) {
         auto& o = *this;
-        CONVERT_PROPERTY(o.m_is_sub, in.isSub);
-        CONVERT_PROPERTY(o.m_like_count, in.likedCount);
-        CONVERT_PROPERTY(o.m_comment_count, in.commentCount);
+        convert(o.m_is_sub, in.isSub);
+        convert(o.m_like_count, in.likedCount);
+        convert(o.m_comment_count, in.commentCount);
         emit infoChanged();
     }
 

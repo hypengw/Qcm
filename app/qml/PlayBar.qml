@@ -104,7 +104,7 @@ MD.Pane {
                                 if (artists.length === 1)
                                     QA.Global.route(artists[0].itemId);
                                 else
-                                    QA.Global.show_page_popup('qrc:/Qcm/App/qml/part/ArtistsPopup.qml', {
+                                    QA.Global.show_page_popup('qrc:/Qcm/App/qml/component/ArtistsPopup.qml', {
                                             "model": artists
                                         });
                             }
@@ -169,7 +169,7 @@ MD.Pane {
                         icon.name: MD.Token.icon.more_vert
 
                         onClicked: {
-                            const popup = QA.Global.show_popup('qrc:/Qcm/App/qml/part/SongMenu.qml', {
+                            const popup = QA.Global.show_popup('qrc:/Qcm/App/qml/component/SongMenu.qml', {
                                     "song": QA.Global.cur_song,
                                     "y": 0
                                 }, this);

@@ -33,11 +33,11 @@ template<>
 struct To<qcm::model::UserPlaylistItem> {
     static auto from(const ncm::model::UserPlaylistItem& in) {
         qcm::model::UserPlaylistItem o;
-        CONVERT_PROPERTY(o.itemId, in.id);
-        CONVERT_PROPERTY(o.name, in.name);
-        CONVERT_PROPERTY(o.picUrl, in.coverImgUrl);
-        CONVERT_PROPERTY(o.playCount, in.playCount);
-        CONVERT_PROPERTY(o.trackCount, in.trackCount);
+        convert(o.itemId, in.id);
+        convert(o.name, in.name);
+        convert(o.picUrl, in.coverImgUrl);
+        convert(o.playCount, in.playCount);
+        convert(o.trackCount, in.trackCount);
         return o;
     };
 };

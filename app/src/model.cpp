@@ -31,14 +31,15 @@ using namespace qcm;
 qcm::model::Playlist
 To<qcm::model::Playlist>::From<ncm::model::Playlist>::from(const ncm::model::Playlist& in) {
     qcm::model::Playlist o;
-    CONVERT_PROPERTY(o.id, in.id);
-    CONVERT_PROPERTY(o.name, in.name);
-    CONVERT_PROPERTY(o.picUrl, in.coverImgUrl);
-    CONVERT_PROPERTY(o.description, in.description.value_or(""));
+    convert(o.id, in.id);
+    convert(o.name, in.name);
+    convert(o.picUrl, in.coverImgUrl);
+    convert(o.description, in.description.value_or(""));
     if (in.updateTime) {
-        CONVERT_PROPERTY(o.updateTime, in.updateTime.value());
+        convert(o.updateTime, in.updateTime.value());
     }
-    CONVERT_PROPERTY(o.playCount, in.playCount);
+    convert(o.playCount, in.playCount);
+    convert(o.trackCount, in.trackCount);
     return o;
 };
 
@@ -48,43 +49,43 @@ QDateTime To<QDateTime>::From<ncm::model::Time>::from(const ncm::model::Time& t)
 
 qcm::model::Artist To<qcm::model::Artist>::from(const ncm::model::Artist& in) {
     qcm::model::Artist o;
-    CONVERT_PROPERTY(o.id, in.id);
-    CONVERT_PROPERTY(o.name, in.name);
-    CONVERT_PROPERTY(o.picUrl, in.picUrl);
-    CONVERT_PROPERTY(o.briefDesc, in.briefDesc.value_or(""));
-    CONVERT_PROPERTY(o.musicSize, in.musicSize);
-    CONVERT_PROPERTY(o.albumSize, in.albumSize);
+    convert(o.id, in.id);
+    convert(o.name, in.name);
+    convert(o.picUrl, in.picUrl);
+    convert(o.briefDesc, in.briefDesc.value_or(""));
+    convert(o.musicSize, in.musicSize);
+    convert(o.albumSize, in.albumSize);
     return o;
 }
 qcm::model::Artist To<qcm::model::Artist>::from(const ncm::model::Song::Ar& in) {
     qcm::model::Artist o;
-    CONVERT_PROPERTY(o.id, in.id);
-    CONVERT_PROPERTY(o.name, in.name);
-    CONVERT_PROPERTY(o.alias, in.alia);
+    convert(o.id, in.id);
+    convert(o.name, in.name);
+    convert(o.alias, in.alia);
     return o;
 }
 
 qcm::model::Album To<qcm::model::Album>::from(const ncm::model::Album& in) {
     qcm::model::Album o;
-    CONVERT_PROPERTY(o.id, in.id);
-    CONVERT_PROPERTY(o.name, in.name);
-    CONVERT_PROPERTY(o.picUrl, in.picUrl);
-    CONVERT_PROPERTY(o.artists, in.artists);
-    CONVERT_PROPERTY(o.publishTime, in.publishTime);
-    CONVERT_PROPERTY(o.trackCount, std::max(in.size, (i64)in.songs.size()));
+    convert(o.id, in.id);
+    convert(o.name, in.name);
+    convert(o.picUrl, in.picUrl);
+    convert(o.artists, in.artists);
+    convert(o.publishTime, in.publishTime);
+    convert(o.trackCount, std::max(in.size, (i64)in.songs.size()));
     return o;
 }
 
 model::Song To<model::Song>::from(const ncm::model::Song& in) {
     model::Song o;
-    CONVERT_PROPERTY(o.id, in.id);
-    CONVERT_PROPERTY(o.name, in.name);
-    CONVERT_PROPERTY(o.album.id, in.al.id);
-    CONVERT_PROPERTY(o.album.name, in.al.name);
-    CONVERT_PROPERTY(o.album.picUrl, in.al.picUrl);
-    CONVERT_PROPERTY(o.duration, in.dt);
-    CONVERT_PROPERTY(o.artists, in.ar);
-    CONVERT_PROPERTY(o.canPlay, (! in.privilege || in.privilege.value().st >= 0));
+    convert(o.id, in.id);
+    convert(o.name, in.name);
+    convert(o.album.id, in.al.id);
+    convert(o.album.name, in.al.name);
+    convert(o.album.picUrl, in.al.picUrl);
+    convert(o.duration, in.dt);
+    convert(o.artists, in.ar);
+    convert(o.canPlay, (! in.privilege || in.privilege.value().st >= 0));
 
     if (in.privilege) {
         QString tag;

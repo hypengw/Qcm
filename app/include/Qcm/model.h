@@ -68,10 +68,10 @@ Q_SIGNALS:                                                                      
         }                                                                                       \
     }
 
-#define CONVERT_PROPERTY(_out_, _in_) _out_ = To<std::decay_t<decltype(_out_)>>::from(_in_)
-
 namespace qcm
 {
+
+
 namespace model
 {
 
@@ -210,6 +210,7 @@ public:
     GATGET_PROPERTY(QString, description, description)
     GATGET_PROPERTY(QDateTime, updateTime, updateTime)
     GATGET_PROPERTY(qint32, playCount, playCount)
+    GATGET_PROPERTY(qint32, trackCount, trackCount)
 
     std::strong_ordering operator<=>(const Playlist&) const = default;
 };

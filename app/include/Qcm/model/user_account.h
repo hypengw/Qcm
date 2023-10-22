@@ -26,9 +26,9 @@ public:
         auto& o = *this;
 
         const auto& profile = in.profile.value_or(ncm::model::UserAccountProfile {});
-        CONVERT_PROPERTY(o.m_userId, profile.userId);
-        CONVERT_PROPERTY(o.m_nickname, profile.nickname);
-        CONVERT_PROPERTY(o.m_avatarUrl, profile.avatarUrl);
+        convert(o.m_userId, profile.userId);
+        convert(o.m_nickname, profile.nickname);
+        convert(o.m_avatarUrl, profile.avatarUrl);
         emit infoChanged();
     }
 

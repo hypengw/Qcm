@@ -33,10 +33,10 @@ template<>
 struct To<qcm::model::AlbumSublistItem> {
     static auto from(const ncm::model::AlbumSublistItem& in) {
         qcm::model::AlbumSublistItem o;
-        CONVERT_PROPERTY(o.id, in.id);
-        CONVERT_PROPERTY(o.name, in.name);
-        CONVERT_PROPERTY(o.artists, in.artists);
-        CONVERT_PROPERTY(o.picUrl, in.picUrl);
+        convert(o.id, in.id);
+        convert(o.name, in.name);
+        convert(o.artists, in.artists);
+        convert(o.picUrl, in.picUrl);
         return o;
     };
 };
@@ -80,7 +80,7 @@ signals:
     void fetchMoreReq(qint32);
 
 private:
-    bool                          m_has_more;
+    bool m_has_more;
 };
 static_assert(modelable<AlbumSublist, ncm::api::AlbumSublist>);
 } // namespace model

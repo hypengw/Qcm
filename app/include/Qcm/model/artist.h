@@ -24,8 +24,8 @@ public:
 
     void handle_output(const out_type& in, const auto&) {
         auto& o = *this;
-        CONVERT_PROPERTY(o.m_info, in.artist);
-        CONVERT_PROPERTY(o.m_hotSongs, in.hotSongs);
+        convert(o.m_info, in.artist);
+        convert(o.m_hotSongs, in.hotSongs);
         emit infoChanged();
     }
 

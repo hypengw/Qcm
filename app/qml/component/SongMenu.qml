@@ -41,7 +41,7 @@ MD.Menu {
             if (artists.length === 1)
                 QA.Global.route(artists[0].itemId);
             else
-                QA.Global.show_page_popup('qrc:/Qcm/App/qml/part/ArtistsPopup.qml', {
+                QA.Global.show_page_popup('qrc:/Qcm/App/qml/component/ArtistsPopup.qml', {
                         "model": artists
                     });
         }

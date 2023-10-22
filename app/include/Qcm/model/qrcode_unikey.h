@@ -24,8 +24,8 @@ public:
 
     void handle_output(const out_type& in, const auto&) {
         auto& o = *this;
-        CONVERT_PROPERTY(o.m_key, in.unikey);
-        CONVERT_PROPERTY(o.m_qrurl, in.qrurl);
+        convert(o.m_key, in.unikey);
+        convert(o.m_qrurl, in.qrurl);
         emit infoChanged();
     }
 

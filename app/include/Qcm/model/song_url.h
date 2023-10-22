@@ -26,9 +26,9 @@ template<>
 struct To<qcm::model::SongUrlItem> {
     static auto from(const ncm::model::SongUrl& in) {
         qcm::model::SongUrlItem o;
-        CONVERT_PROPERTY(o.id, in.id);
-        CONVERT_PROPERTY(o.url, in.url);
-        CONVERT_PROPERTY(o.md5, in.md5);
+        convert(o.id, in.id);
+        convert(o.url, in.url);
+        convert(o.md5, in.md5);
         return o;
     }
 };
@@ -48,7 +48,7 @@ public:
 
     void handle_output(const out_type& in, const auto&) {
         auto& o = m_songs;
-        CONVERT_PROPERTY(o, in.data);
+        convert(o, in.data);
         emit songsChanged();
     }
 

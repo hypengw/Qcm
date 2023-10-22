@@ -11,11 +11,11 @@ template<>
 template<>
 inline qcm::model::Playlist To<qcm::model::Playlist>::from(const ncm::model::RecommendResourceItem& in) {
     qcm::model::Playlist o;
-    CONVERT_PROPERTY(o.id, in.id);
-    CONVERT_PROPERTY(o.name, in.name);
-    CONVERT_PROPERTY(o.picUrl, in.picUrl);
-    CONVERT_PROPERTY(o.playCount, in.playcount);
-    CONVERT_PROPERTY(o.updateTime, in.createTime);
+    convert(o.id, in.id);
+    convert(o.name, in.name);
+    convert(o.picUrl, in.picUrl);
+    convert(o.playCount, in.playcount);
+    convert(o.updateTime, in.createTime);
     return o;
 };
 
@@ -35,7 +35,7 @@ public:
 
     void handle_output(const out_type& in, const auto&) {
         auto& o = *this;
-        CONVERT_PROPERTY(o.m_dailyPlaylists, in.recommend);
+        convert(o.m_dailyPlaylists, in.recommend);
         emit  infoChanged();
     }
 

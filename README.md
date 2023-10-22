@@ -20,16 +20,16 @@ Currently linux only.
 ```
 git clone https://github.com/hypengw/Qcm.git  
 git submodule update --init
-mkdir build && cd build
-cmake .. -GNinja -DCMAKE_BUILD_TYPE=Release  
-ninja
-./app/QcmApp
+
+cmake -S . -B build -GNinja -DCMAKE_BUILD_TYPE=Release  
+cmake --build build
+./build/app/QcmApp
 ```
 
 ### Todo:
-- [ ] search page
 - [ ] sidebar popup
 - [ ] sql api cache
+- [x] search page
 - [x] lyric
 - [x] audio cache using http proxy(AndroidVideoCache)
 - [x] cache limit

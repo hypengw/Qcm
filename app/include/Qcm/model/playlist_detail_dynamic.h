@@ -26,9 +26,9 @@ public:
 
     void handle_output(const out_type& in, const auto&) {
         auto& o = *this;
-        CONVERT_PROPERTY(o.m_subscribed, in.subscribed);
-        CONVERT_PROPERTY(o.m_playCount, in.playCount);
-        CONVERT_PROPERTY(o.m_comment_count, in.commentCount);
+        convert(o.m_subscribed, in.subscribed);
+        convert(o.m_playCount, in.playCount);
+        convert(o.m_comment_count, in.commentCount);
         emit infoChanged();
     }
 

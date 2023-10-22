@@ -29,10 +29,10 @@ template<>
 struct To<qcm::model::PlaylistCatalogueItem> {
     static auto from(const ncm::model::PlaylistCatalogue& in) {
         qcm::model::PlaylistCatalogueItem o;
-        CONVERT_PROPERTY(o.name, in.name);
-        CONVERT_PROPERTY(o.resourceCount, in.resourceCount);
-        CONVERT_PROPERTY(o.category, in.category);
-        CONVERT_PROPERTY(o.hot, in.hot);
+        convert(o.name, in.name);
+        convert(o.resourceCount, in.resourceCount);
+        convert(o.category, in.category);
+        convert(o.hot, in.hot);
         return o;
     }
 };

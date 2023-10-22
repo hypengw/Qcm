@@ -80,6 +80,11 @@ concept to_able = requires(F f) {
     { To<T>::from(f) } -> std::same_as<T>;
 };
 
+template<typename Tout, typename Tin>
+void convert(Tout& out, const Tin& in) {
+    out = To<std::decay_t<Tout>>::from(in);
+}
+
 template<typename IMPL>
 struct CRTP {
 protected:

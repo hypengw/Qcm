@@ -23,7 +23,7 @@ public:
 
     void handle_output(const out_type& in, const auto&) {
         auto& o = *this;
-        CONVERT_PROPERTY(o.m_code, in.code);
+        convert(o.m_code, in.code);
         emit infoChanged();
     }
 

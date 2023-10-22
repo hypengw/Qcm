@@ -23,7 +23,7 @@ public:
 
     void handle_output(const out_type& in, const auto&) {
         auto& o = *this;
-        CONVERT_PROPERTY(o.m_dailySongs, in.data.dailySongs);
+        convert(o.m_dailySongs, in.data.dailySongs);
         emit infoChanged();
     }
 

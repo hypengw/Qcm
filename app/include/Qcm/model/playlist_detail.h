@@ -30,15 +30,15 @@ public:
 
     void handle_output(const out_type& in, const auto&) {
         auto& o = *this;
-        CONVERT_PROPERTY(o.m_itemId, in.playlist.id);
-        CONVERT_PROPERTY(o.m_name, in.playlist.name);
-        CONVERT_PROPERTY(o.m_picUrl, in.playlist.coverImgUrl);
-        CONVERT_PROPERTY(o.m_description, in.playlist.description.value_or(""));
+        convert(o.m_itemId, in.playlist.id);
+        convert(o.m_name, in.playlist.name);
+        convert(o.m_picUrl, in.playlist.coverImgUrl);
+        convert(o.m_description, in.playlist.description.value_or(""));
         if (in.playlist.updateTime) {
-            CONVERT_PROPERTY(o.m_updateTime, in.playlist.updateTime.value());
+            convert(o.m_updateTime, in.playlist.updateTime.value());
         }
-        CONVERT_PROPERTY(o.m_playCount, in.playlist.playCount);
-        CONVERT_PROPERTY(o.m_songs, in.playlist.tracks.value_or(std::vector<ncm::model::Song> {}));
+        convert(o.m_playCount, in.playlist.playCount);
+        convert(o.m_songs, in.playlist.tracks.value_or(std::vector<ncm::model::Song> {}));
         emit infoChanged();
     }
 

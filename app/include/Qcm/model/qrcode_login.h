@@ -26,10 +26,10 @@ public:
 
     void handle_output(const out_type& in, const auto&) {
         auto& o = *this;
-        CONVERT_PROPERTY(o.m_code, in.code);
-        CONVERT_PROPERTY(o.m_message, in.message);
-        CONVERT_PROPERTY(o.m_nickname, in.nickname);
-        CONVERT_PROPERTY(o.m_avatarUrl, in.avatarUrl);
+        convert(o.m_code, in.code);
+        convert(o.m_message, in.message);
+        convert(o.m_nickname, in.nickname);
+        convert(o.m_avatarUrl, in.avatarUrl);
         emit infoChanged();
     }
 

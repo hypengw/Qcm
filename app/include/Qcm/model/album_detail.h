@@ -35,17 +35,17 @@ public:
 
     void handle_output(const out_type& in, const auto&) {
         auto& o = *this;
-        CONVERT_PROPERTY(o.m_name, in.album.name);
-        CONVERT_PROPERTY(o.m_picUrl, in.album.picUrl);
-        CONVERT_PROPERTY(o.m_description, in.album.description.value_or(""));
-        CONVERT_PROPERTY(o.m_company, in.album.company.value_or(""));
-        CONVERT_PROPERTY(o.m_type, in.album.type);
-        CONVERT_PROPERTY(o.m_subType, in.album.subType);
-        CONVERT_PROPERTY(o.m_alias, in.album.alias);
-        CONVERT_PROPERTY(o.m_artists, in.album.artists);
-        CONVERT_PROPERTY(o.m_size, in.album.size);
-        CONVERT_PROPERTY(o.m_publishTime, in.album.publishTime);
-        CONVERT_PROPERTY(o.m_songs, in.songs);
+        convert(o.m_name, in.album.name);
+        convert(o.m_picUrl, in.album.picUrl);
+        convert(o.m_description, in.album.description.value_or(""));
+        convert(o.m_company, in.album.company.value_or(""));
+        convert(o.m_type, in.album.type);
+        convert(o.m_subType, in.album.subType);
+        convert(o.m_alias, in.album.alias);
+        convert(o.m_artists, in.album.artists);
+        convert(o.m_size, in.album.size);
+        convert(o.m_publishTime, in.album.publishTime);
+        convert(o.m_songs, in.songs);
         emit infoChanged();
     }
 
