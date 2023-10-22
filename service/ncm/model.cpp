@@ -9,7 +9,7 @@
 #include "ncm/api/artist_albums.h"
 #include "ncm/api/artist_sublist.h"
 #include "ncm/api/cloudsearch.h"
-#include "ncm/api/comment_album.h"
+#include "ncm/api/comments.h"
 #include "ncm/api/login.h"
 #include "ncm/api/playlist_catalogue.h"
 #include "ncm/api/playlist_detail.h"
@@ -133,7 +133,7 @@ JSON_DEFINE_IMPL(CloudSearch::PlaylistResult, playlistCount, playlists);
 JSON_DEFINE_IMPL(CloudSearch::ArtistResult, artistCount, artists);
 JSON_DEFINE_IMPL(CloudSearch, result);
 
-JSON_DEFINE_IMPL(CommentAlbum, comments, hotComments, topComments, more, moreHot, total);
+JSON_DEFINE_IMPL(Comments, comments, hotComments, topComments, more, moreHot, total);
 } // namespace api_model
 
 } // namespace ncm
@@ -150,7 +150,7 @@ JSON_GET_IMPL(api_model::Artist);
 JSON_GET_IMPL(api_model::ArtistAlbums);
 JSON_GET_IMPL(api_model::ArtistSublist);
 JSON_GET_IMPL(api_model::CloudSearch);
-JSON_GET_IMPL(api_model::CommentAlbum);
+JSON_GET_IMPL(api_model::Comments);
 JSON_GET_IMPL(api_model::Login);
 JSON_GET_IMPL(api_model::PlaylistCatalogue);
 JSON_GET_IMPL(api_model::PlaylistDetail);

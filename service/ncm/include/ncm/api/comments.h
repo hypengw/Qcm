@@ -9,11 +9,12 @@ namespace ncm
 namespace params
 {
 
-struct CommentAlbum {
-    std::string id;
-    i32         offset { 0 };
-    i32         limit { 20 };
-    model::Time before;
+struct Comments {
+    model::IDType type { 0 };
+    std::string   id;
+    i32           offset { 0 };
+    i32           limit { 20 };
+    model::Time   before;
 };
 
 } // namespace params
@@ -21,9 +22,9 @@ struct CommentAlbum {
 namespace api_model
 {
 
-struct CommentAlbum {
-    static Result<CommentAlbum> parse(std::span<const byte> bs, const params::CommentAlbum&) {
-        return api_model::parse<CommentAlbum>(bs);
+struct Comments {
+    static Result<Comments> parse(std::span<const byte> bs, const params::Comments&) {
+        return api_model::parse<Comments>(bs);
     }
     std::vector<model::Comment>                topComments;
     std::optional<std::vector<model::Comment>> hotComments;
@@ -32,20 +33,22 @@ struct CommentAlbum {
     std::optional<bool>                        moreHot;
     bool                                       more;
 };
-JSON_DEFINE(CommentAlbum);
+JSON_DEFINE(Comments);
 } // namespace api_model
 
 namespace api
 {
 
-struct CommentAlbum {
-    using in_type                      = params::CommentAlbum;
-    using out_type                     = api_model::CommentAlbum;
+struct Comments {
+    using in_type                      = params::Comments;
+    using out_type                     = api_model::Comments;
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
+    constexpr static std::array prefixs { "R_AL_3_", "A_PL_0_", "R_SO_4_" };
 
     std::string path() const {
-        return fmt::format("/weapi/v1/resource/comments/R_AL_3_{}", input.id);
+        return fmt::format(
+            "/weapi/v1/resource/comments/{}{}", prefixs[(int)input.type % 3], input.id);
     };
     UrlParams query() const { return {}; }
     Params    body() const {
@@ -59,7 +62,7 @@ struct CommentAlbum {
 
     in_type input;
 };
-static_assert(ApiCP<CommentAlbum>);
+static_assert(ApiCP<Comments>);
 
 } // namespace api
 

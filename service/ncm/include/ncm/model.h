@@ -28,6 +28,13 @@ enum class SongFee
     OnlyOnlineWithPaid   = 32
 };
 
+enum class IDType
+{
+    Album = 0,
+    Playlist,
+    Song
+};
+
 struct Song {
     struct Ar {
         i64                      id;

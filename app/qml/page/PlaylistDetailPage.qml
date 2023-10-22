@@ -102,6 +102,17 @@ MD.Page {
                         when: qr_sub.status === QA.ApiQuerierBase.Finished
                     }
                 }
+                MD.IconButton {
+                    id: btn_comment
+                    action: Action {
+                        icon.name: MD.Token.icon.comment
+                        onTriggered: {
+                            QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/CommentPage.qml', {
+                                    "itemId": root.itemId
+                                });
+                        }
+                    }
+                }
             }
         }
         delegate: QA.SongDelegate {

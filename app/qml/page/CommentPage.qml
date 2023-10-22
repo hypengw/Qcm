@@ -23,12 +23,12 @@ MD.Page {
         }
         Loader {
             id: model_loader
-            sourceComponent: cm_album
+            sourceComponent: cm_querier
         }
 
         Component {
-            id: cm_album
-            QA.CommentAlbumQuerier {
+            id: cm_querier
+            QA.CommentsQuerier {
                 itemId: root.itemId
                 autoReload: itemId.valid()
             }

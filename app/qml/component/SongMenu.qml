@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
-
 import Qcm.App as QA
 import Qcm.Material as MD
 
@@ -44,6 +43,15 @@ MD.Menu {
                 QA.Global.show_page_popup('qrc:/Qcm/App/qml/component/ArtistsPopup.qml', {
                         "model": artists
                     });
+        }
+    }
+    Action {
+        icon.name: MD.Token.icon.comment
+        text: qsTr('commnet')
+        onTriggered: {
+            QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/CommentPage.qml', {
+                    "itemId": root.song.itemId
+                });
         }
     }
     Action {

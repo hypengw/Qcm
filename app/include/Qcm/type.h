@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QString>
+#include <QVariant>
 
 #include "core/core.h"
 #include "core/str_helper.h"
@@ -33,4 +34,9 @@ struct Convert<T, F> {
 template<std::integral T>
 struct Convert<bool, T> {
     Convert(bool& out, T i) { out = (bool)(i); }
+};
+
+template<typename T>
+struct Convert<QVariant, T> {
+    Convert(QVariant& out, const T& in) { out = QVariant::fromValue(in); }
 };

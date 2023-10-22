@@ -26,7 +26,7 @@ set(SOURCES
     include/Qcm/model/artist.h
     include/Qcm/model/artist_albums.h
     include/Qcm/model/artist_sublist.h
-    include/Qcm/model/comment_album.h
+    include/Qcm/model/comments.h
     include/Qcm/model/cloudsearch.h
     include/Qcm/model/login.h
     include/Qcm/model/playlist_catalogue.h
