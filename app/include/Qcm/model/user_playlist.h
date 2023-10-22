@@ -29,18 +29,13 @@ public:
 } // namespace model
 } // namespace qcm
 
-template<>
-struct To<qcm::model::UserPlaylistItem> {
-    static auto from(const ncm::model::UserPlaylistItem& in) {
-        qcm::model::UserPlaylistItem o;
-        convert(o.itemId, in.id);
-        convert(o.name, in.name);
-        convert(o.picUrl, in.coverImgUrl);
-        convert(o.playCount, in.playCount);
-        convert(o.trackCount, in.trackCount);
-        return o;
-    };
-};
+DEFINE_CONVERT(qcm::model::UserPlaylistItem, ncm::model::UserPlaylistItem) {
+    convert(out.itemId, in.id);
+    convert(out.name, in.name);
+    convert(out.picUrl, in.coverImgUrl);
+    convert(out.playCount, in.playCount);
+    convert(out.trackCount, in.trackCount);
+}
 
 namespace qcm
 {
@@ -56,14 +51,14 @@ public:
 
     void handle_output(const out_type& re, const auto& input) {
         if (input.offset == 0) {
-            auto in_ = To<std::vector<UserPlaylistItem>>::from(re.playlist);
+            auto in_ = convert_from<std::vector<UserPlaylistItem>>(re.playlist);
             convertModel(in_, [](const UserPlaylistItem& it) {
-                return To<std::string>::from(it.itemId);
+                return convert_from<std::string>(it.itemId);
             });
             m_has_more = re.more;
         } else if (input.offset == (int)rowCount()) {
             for (auto& el : re.playlist) {
-                insert(rowCount(), To<UserPlaylistItem>::from(el));
+                insert(rowCount(), convert_from<UserPlaylistItem>(el));
             }
             m_has_more = re.more;
         }

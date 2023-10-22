@@ -25,17 +25,11 @@ public:
 } // namespace model
 } // namespace qcm
 
-template<>
-struct To<qcm::model::PlaylistCatalogueItem> {
-    static auto from(const ncm::model::PlaylistCatalogue& in) {
-        qcm::model::PlaylistCatalogueItem o;
-        convert(o.name, in.name);
-        convert(o.resourceCount, in.resourceCount);
-        convert(o.category, in.category);
-        convert(o.hot, in.hot);
-        return o;
-    }
-};
+DEFINE_CONVERT(qcm::model::PlaylistCatalogueItem, ncm::model::PlaylistCatalogue) {
+    convert(out.resourceCount, in.resourceCount);
+    convert(out.category, in.category);
+    convert(out.hot, in.hot);
+}
 
 namespace qcm
 {
@@ -52,11 +46,11 @@ public:
     void handle_output(const out_type& in, const auto&) {
         auto& o = *this;
         for (auto el : in.sub) {
-            auto cat_id = To<std::string>::from(el.category);
+            auto cat_id = convert_from<std::string>(el.category);
             if (! in.categories.contains(cat_id)) continue;
-            auto cat = To<QString>::from(in.categories.at(cat_id));
+            auto cat = convert_from<QString>(in.categories.at(cat_id));
             if (! m_cats.contains(cat)) m_cats[cat] = {};
-            m_cats[cat].emplace_back(To<PlaylistCatalogueItem>::from(el));
+            m_cats[cat].emplace_back(convert_from<PlaylistCatalogueItem>(el));
         }
         emit infoChanged();
     }

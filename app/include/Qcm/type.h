@@ -6,10 +6,9 @@
 #include "core/str_helper.h"
 #include "core/fmt.h"
 
-template<>
 template<fmt::formattable Fmt>
-struct To<QString>::From<Fmt> {
-    static auto from(const Fmt& fmt) { return QString::fromStdString(fmt::format("{}", fmt)); }
+struct Convert<QString, Fmt> {
+    Convert(QString& out, const Fmt& fmt) { out = QString::fromStdString(fmt::format("{}", fmt)); }
 };
 
 template<>
@@ -25,10 +24,13 @@ inline std::strong_ordering operator<=>(const QString& a, const QString& b) {
                  : (a == b ? std::strong_ordering::equal : std::strong_ordering::greater);
 }
 
+template<typename T, std::integral F>
+    requires std::integral<T> && (! std::same_as<T, bool>)
+struct Convert<T, F> {
+    Convert(T& out, F in) { out = (T)in; }
+};
+
 template<std::integral T>
-struct To<T> {
-    template<std::integral F>
-    static auto from(F i) {
-        return (T)i;
-    }
+struct Convert<bool, T> {
+    Convert(bool& out, T i) { out = (bool)(i); }
 };

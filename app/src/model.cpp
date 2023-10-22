@@ -28,64 +28,53 @@
 
 using namespace qcm;
 
-qcm::model::Playlist
-To<qcm::model::Playlist>::From<ncm::model::Playlist>::from(const ncm::model::Playlist& in) {
-    qcm::model::Playlist o;
-    convert(o.id, in.id);
-    convert(o.name, in.name);
-    convert(o.picUrl, in.coverImgUrl);
-    convert(o.description, in.description.value_or(""));
+IMPL_CONVERT(qcm::model::Playlist, ncm::model::Playlist) {
+    convert(out.id, in.id);
+    convert(out.name, in.name);
+    convert(out.picUrl, in.coverImgUrl);
+    convert(out.description, in.description.value_or(""));
     if (in.updateTime) {
-        convert(o.updateTime, in.updateTime.value());
+        convert(out.updateTime, in.updateTime.value());
     }
-    convert(o.playCount, in.playCount);
-    convert(o.trackCount, in.trackCount);
-    return o;
+    convert(out.playCount, in.playCount);
+    convert(out.trackCount, in.trackCount);
 };
 
-QDateTime To<QDateTime>::From<ncm::model::Time>::from(const ncm::model::Time& t) {
-    return QDateTime::fromMSecsSinceEpoch(t.milliseconds);
+IMPL_CONVERT(QDateTime, ncm::model::Time) { out = QDateTime::fromMSecsSinceEpoch(in.milliseconds); }
+
+IMPL_CONVERT(qcm::model::Artist, ncm::model::Artist) {
+    convert(out.id, in.id);
+    convert(out.name, in.name);
+    convert(out.picUrl, in.picUrl);
+    convert(out.briefDesc, in.briefDesc.value_or(""));
+    convert(out.musicSize, in.musicSize);
+    convert(out.albumSize, in.albumSize);
 }
 
-qcm::model::Artist To<qcm::model::Artist>::from(const ncm::model::Artist& in) {
-    qcm::model::Artist o;
-    convert(o.id, in.id);
-    convert(o.name, in.name);
-    convert(o.picUrl, in.picUrl);
-    convert(o.briefDesc, in.briefDesc.value_or(""));
-    convert(o.musicSize, in.musicSize);
-    convert(o.albumSize, in.albumSize);
-    return o;
-}
-qcm::model::Artist To<qcm::model::Artist>::from(const ncm::model::Song::Ar& in) {
-    qcm::model::Artist o;
-    convert(o.id, in.id);
-    convert(o.name, in.name);
-    convert(o.alias, in.alia);
-    return o;
+IMPL_CONVERT(qcm::model::Artist, ncm::model::Song::Ar) {
+    convert(out.id, in.id);
+    convert(out.name, in.name);
+    convert(out.alias, in.alia);
 }
 
-qcm::model::Album To<qcm::model::Album>::from(const ncm::model::Album& in) {
-    qcm::model::Album o;
-    convert(o.id, in.id);
-    convert(o.name, in.name);
-    convert(o.picUrl, in.picUrl);
-    convert(o.artists, in.artists);
-    convert(o.publishTime, in.publishTime);
-    convert(o.trackCount, std::max(in.size, (i64)in.songs.size()));
-    return o;
+IMPL_CONVERT(qcm::model::Album, ncm::model::Album) {
+    convert(out.id, in.id);
+    convert(out.name, in.name);
+    convert(out.picUrl, in.picUrl);
+    convert(out.artists, in.artists);
+    convert(out.publishTime, in.publishTime);
+    convert(out.trackCount, std::max(in.size, (i64)in.songs.size()));
 }
 
-model::Song To<model::Song>::from(const ncm::model::Song& in) {
-    model::Song o;
-    convert(o.id, in.id);
-    convert(o.name, in.name);
-    convert(o.album.id, in.al.id);
-    convert(o.album.name, in.al.name);
-    convert(o.album.picUrl, in.al.picUrl);
-    convert(o.duration, in.dt);
-    convert(o.artists, in.ar);
-    convert(o.canPlay, (! in.privilege || in.privilege.value().st >= 0));
+IMPL_CONVERT(qcm::model::Song, ncm::model::Song) {
+    convert(out.id, in.id);
+    convert(out.name, in.name);
+    convert(out.album.id, in.al.id);
+    convert(out.album.name, in.al.name);
+    convert(out.album.picUrl, in.al.picUrl);
+    convert(out.duration, in.dt);
+    convert(out.artists, in.ar);
+    convert(out.canPlay, (! in.privilege || in.privilege.value().st >= 0));
 
     if (in.privilege) {
         QString tag;
@@ -100,7 +89,20 @@ model::Song To<model::Song>::from(const ncm::model::Song& in) {
         case Free128k: break;
         default: WARN_LOG("unknown fee: {}, {}", (i64)fee, in.name);
         }
-        if (! tag.isEmpty()) o.tags.push_back(tag);
+        if (! tag.isEmpty()) out.tags.push_back(tag);
     }
-    return o;
 }
+
+IMPL_CONVERT(qcm::model::User, ncm::model::User) {
+    convert(out.id, in.userId);
+    convert(out.name, in.nickname);
+    convert(out.picUrl, in.avatarUrl);
+}
+
+IMPL_CONVERT(qcm::model::Comment, ncm::model::Comment) {
+    convert(out.content, in.content);
+    convert(out.id, in.commentId);
+    convert(out.liked, in.liked);
+    convert(out.user, in.user);
+    convert(out.time, in.time);
+};

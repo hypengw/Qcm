@@ -66,8 +66,8 @@ struct PlaylistDetail {
     Params           body() const {
         Params p;
         p["id"] = input.id;
-        p["n"]  = To<std::string>::from(input.n);
-        p["s"]  = To<std::string>::from(input.s);
+        convert(p["n"], input.n);
+        convert(p["s"], input.s);
         return p;
     }
 

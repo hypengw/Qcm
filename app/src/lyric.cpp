@@ -20,7 +20,7 @@ QList<LrcLyricLine> parse_lrc(const QString& source) {
 
     qlonglong last_milli { 0 };
     for (auto line_ : list) {
-        // auto line = To<std::string>::from(line_.trimmed().toString());
+        // auto line = convert_from<std::string>(line_.trimmed().toString());
         auto line = line_.trimmed().toUtf8();
 
         if (auto [whole, min, sec, milli, content] = ctre::match<RE_LrcLine>(line); whole) {

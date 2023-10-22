@@ -16,30 +16,20 @@
 #include "audio_frame_queue.h"
 #include "player/notify.h"
 
-template<>
-template<>
-struct To<AVSampleFormat>::From<cubeb_sample_format> {
-    static auto from(cubeb_sample_format in) {
-        switch (in) {
-        case CUBEB_SAMPLE_S16LE:
-        case CUBEB_SAMPLE_S16BE: return AVSampleFormat::AV_SAMPLE_FMT_S16;
-        case CUBEB_SAMPLE_FLOAT32LE:
-        case CUBEB_SAMPLE_FLOAT32BE:
-        default: return AVSampleFormat::AV_SAMPLE_FMT_FLT;
-        }
+DEFINE_CONVERT(AVSampleFormat, cubeb_sample_format) {
+    switch (in) {
+    case CUBEB_SAMPLE_S16LE:
+    case CUBEB_SAMPLE_S16BE: out = AVSampleFormat::AV_SAMPLE_FMT_S16; break;
+    case CUBEB_SAMPLE_FLOAT32LE:
+    case CUBEB_SAMPLE_FLOAT32BE:
+    default: out = AVSampleFormat::AV_SAMPLE_FMT_FLT;
     }
-};
+}
 
-template<>
-template<>
-struct To<player::AudioParams>::From<cubeb_stream_params> {
-    static auto from(const cubeb_stream_params& in) {
-        out_type out;
-        out.sample_rate = in.rate;
-        out.format      = To<AVSampleFormat>::from(in.format);
-        av_channel_layout_default(&out.ch_layout, in.channels);
-        return out;
-    }
+DEFINE_CONVERT(player::AudioParams, cubeb_stream_params) {
+    out.sample_rate = in.rate;
+    out.format      = convert_from<AVSampleFormat>(in.format);
+    av_channel_layout_default(&out.ch_layout, in.channels);
 };
 
 namespace player
@@ -166,7 +156,7 @@ public:
             throw std::runtime_error("can't initialize cubeb device");
         }
 
-        m_audio_params = To<AudioParams>::from(output_params);
+        m_audio_params = convert_from<AudioParams>(output_params);
     };
     ~Device() {
         if (m_thread.joinable()) m_thread.join();

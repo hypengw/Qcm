@@ -61,9 +61,9 @@ struct ArtistSublist {
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;
-        p["offset"] = To<std::string>::from(input.offset);
-        p["limit"]  = To<std::string>::from(input.limit);
-        p["total"]  = To<std::string>::from(input.total);
+        convert(p["offset"], input.offset);
+        convert(p["limit"], input.limit);
+        convert(p["total"], input.total);
         return p;
     }
     in_type input;

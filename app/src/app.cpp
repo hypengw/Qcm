@@ -149,23 +149,23 @@ QUrl App::getImageCache(QString url, QSize reqSize) const {
 }
 
 QUrl App::media_file(const QString& id_) const {
-    auto id              = To<std::string>::from(id_);
+    auto id              = convert_from<std::string>(id_);
     auto media_cache_dir = cache_path() / "media";
     asio::co_spawn(m_media_cache_sql->get_executor(), m_media_cache_sql->get(id), asio::detached);
     auto file = media_cache_dir / id;
-    if (std::filesystem::exists(file)) return QUrl::fromLocalFile(To<QString>::from(file.native()));
+    if (std::filesystem::exists(file)) return QUrl::fromLocalFile(convert_from<QString>(file.native()));
     return {};
 }
 
 QString App::media_url(const QString& ori, const QString& id) const {
-    return To<QString>::from(
-        m_media_cache->get_url(To<std::string>::from(ori), To<std::string>::from(id)));
+    return convert_from<QString>(
+        m_media_cache->get_url(convert_from<std::string>(ori), convert_from<std::string>(id)));
 }
 
 QString App::md5(QString txt) const {
-    auto opt = crypto::digest(crypto::md5(), To<std::vector<byte>>::from(txt.toStdString()))
+    auto opt = crypto::digest(crypto::md5(), convert_from<std::vector<byte>>(txt.toStdString()))
                    .map([](auto in) {
-                       return To<QString>::from(crypto::hex::encode_low(in));
+                       return convert_from<QString>(crypto::hex::encode_low(in));
                    });
     _assert_(opt);
     return std::move(opt).value();
@@ -175,7 +175,7 @@ void App::loginPost(model::UserAccount* user) {
     auto& id = user->m_userId;
     if (id.valid()) {
         QSettings s;
-        s.setValue("session/user_id", To<QString>::from((fmt::format("ncm-{}", id.id))));
+        s.setValue("session/user_id", convert_from<QString>((fmt::format("ncm-{}", id.id))));
 
         save_session();
     }
@@ -203,7 +203,7 @@ void App::triggerCacheLimit() {
 
 void App::load_session() {
     QSettings s;
-    auto      user_id = To<std::string>::from(s.value("session/user_id").toString());
+    auto      user_id = convert_from<std::string>(s.value("session/user_id").toString());
     if (! user_id.empty()) {
         m_session->load_cookie(config_path() / "session" / user_id);
     }
@@ -211,7 +211,7 @@ void App::load_session() {
 
 void App::save_session() {
     QSettings s;
-    auto      user_id = To<std::string>::from(s.value("session/user_id").toString());
+    auto      user_id = convert_from<std::string>(s.value("session/user_id").toString());
     if (! user_id.empty()) {
         m_session->save_cookie(config_path() / "session" / user_id);
     }

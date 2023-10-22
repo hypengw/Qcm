@@ -93,10 +93,10 @@ struct UserPlaylist {
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;
-        p["uid"]          = To<std::string>::from(input.uid);
-        p["offset"]       = To<std::string>::from(input.offset);
-        p["limit"]        = To<std::string>::from(input.limit);
-        p["includeVideo"] = To<std::string>::from(input.includeVideo);
+        convert(p["uid"], input.uid);
+        convert(p["offset"], input.offset);
+        convert(p["limit"], input.limit);
+        convert(p["includeVideo"], input.includeVideo);
         return p;
     }
     in_type input;

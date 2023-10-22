@@ -7,17 +7,13 @@
 
 #include "core/log.h"
 
-template<>
-template<>
-inline qcm::model::Playlist To<qcm::model::Playlist>::from(const ncm::model::RecommendResourceItem& in) {
-    qcm::model::Playlist o;
-    convert(o.id, in.id);
-    convert(o.name, in.name);
-    convert(o.picUrl, in.picUrl);
-    convert(o.playCount, in.playcount);
-    convert(o.updateTime, in.createTime);
-    return o;
-};
+DEFINE_CONVERT(qcm::model::Playlist, ncm::model::RecommendResourceItem) {
+    convert(out.id, in.id);
+    convert(out.name, in.name);
+    convert(out.picUrl, in.picUrl);
+    convert(out.playCount, in.playcount);
+    convert(out.updateTime, in.createTime);
+}
 
 namespace qcm
 {
@@ -36,7 +32,7 @@ public:
     void handle_output(const out_type& in, const auto&) {
         auto& o = *this;
         convert(o.m_dailyPlaylists, in.recommend);
-        emit  infoChanged();
+        emit infoChanged();
     }
 
 signals:

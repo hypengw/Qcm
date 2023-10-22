@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(UNIX AND NOT APPLE)
-    set(LINUX CACHE INTERNAL TRUE "")
+  set(LINUX CACHE INTERNAL TRUE "")
 endif()
 
 find_package(PkgConfig REQUIRED)
@@ -25,8 +25,14 @@ set(QML_IMPORT_PATH
     CACHE STRING "Qt Creator extra qml import paths" FORCE)
 
 # -Wconversion -Wsign-conversion
-add_compile_options(-Wall -Wextra -Wpedantic -Wno-unused-variable
-                    -Wno-unused-function -Wno-dangling-reference)
+add_compile_options(
+  -Wall
+  -Wextra
+  -Wpedantic
+  -Wno-unused-variable
+  -Wno-unused-function
+  -Wno-dangling-reference
+  -fconcepts-diagnostics-depth=2)
 
 add_compile_options(
   $<$<CONFIG:Debug>:-ggdb> $<$<CONFIG:Debug>:-fno-omit-frame-pointer>

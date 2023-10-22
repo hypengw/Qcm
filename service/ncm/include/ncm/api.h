@@ -87,7 +87,7 @@ namespace api_model
 
 template<typename T>
 Result<T> parse(std::span<const byte> bs) {
-    return json::parse(To<std::string>::from(bs))
+    return json::parse(convert_from<std::string>(bs))
         .map_error([](auto err) {
             return Error::push(err);
         })
@@ -105,7 +105,7 @@ Result<T> parse(std::span<const byte> bs) {
 
 template<typename T>
 Result<T> parse_no_apierr(std::span<const byte> bs) {
-    return json::parse(To<std::string>::from(bs))
+    return json::parse(convert_from<std::string>(bs))
         .and_then([](auto j) {
             return json::get<T>(*j, {});
         })

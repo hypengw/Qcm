@@ -23,15 +23,15 @@ CacheSql::Item query_to_item(const QSqlQuery& q) {
     auto i_content_type   = q.record().indexOf("content_type");
     auto i_content_length = q.record().indexOf("content_length");
     return CacheSql::Item {
-        .key            = To<std::string>::from(q.value(i_key).toString()),
-        .content_type   = To<std::string>::from(q.value(i_content_type).toString()),
+        .key            = convert_from<std::string>(q.value(i_key).toString()),
+        .content_type   = convert_from<std::string>(q.value(i_content_type).toString()),
         .content_length = q.value(i_content_length).toULongLong(),
     };
 }
 } // namespace
 
 CacheSql::CacheSql(std::string_view table, i64 limit)
-    : m_table(To<QString>::from(table)),
+    : m_table(convert_from<QString>(table)),
       m_thread(1),
       m_ex(m_thread.get_executor()),
       m_limit(limit),
@@ -86,7 +86,7 @@ asio::awaitable<std::optional<CacheSql::Item>> CacheSql::get(std::string_view ke
     {
         QSqlQuery q(m_db);
         q.prepare(QString("SELECT * FROM %1 WHERE key = :key").arg(m_table));
-        q.bindValue(":key", To<QString>::from(key));
+        q.bindValue(":key", convert_from<QString>(key));
         if (q.exec()) {
             while (q.next()) {
                 auto item = query_to_item(q);
@@ -96,7 +96,7 @@ asio::awaitable<std::optional<CacheSql::Item>> CacheSql::get(std::string_view ke
                     QSqlQuery q(m_db);
                     q.prepare(QString("UPDATE %1 SET timestamp = :timestamp WHERE key = :key;")
                                   .arg(m_table));
-                    q.bindValue(":key", To<QString>::from(key));
+                    q.bindValue(":key", convert_from<QString>(key));
                     q.bindValue(":timestamp", QDateTime::currentSecsSinceEpoch());
                     q.exec();
                 }
@@ -118,8 +118,8 @@ asio::awaitable<void> CacheSql::insert(Item item) {
                           "VALUES (:key, "
                           ":content_type, :content_length, :timestamp);")
                       .arg(m_table));
-        q.bindValue(":key", To<QString>::from(item.key));
-        q.bindValue(":content_type", To<QString>::from(item.content_type));
+        q.bindValue(":key", convert_from<QString>(item.key));
+        q.bindValue(":content_type", convert_from<QString>(item.content_type));
         q.bindValue(":content_length", QVariant::fromValue(item.content_length));
         q.bindValue(":timestamp", QDateTime::currentSecsSinceEpoch());
         if (q.exec()) {
@@ -137,7 +137,7 @@ asio::awaitable<void> CacheSql::remove(std::string_view key) {
     {
         QSqlQuery q(m_db);
         q.prepare(QString("DELETE FROM %1 WHERE key = :key").arg(m_table));
-        q.bindValue(":key", To<QString>::from(key));
+        q.bindValue(":key", convert_from<QString>(key));
         q.exec();
     }
     co_return;

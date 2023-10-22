@@ -107,7 +107,7 @@ protected:
                     std::string e_str = e.what();
                     asio::post(main_ex, [self, e_str]() {
                         if (self) {
-                            self->set_error(To<QString>::from(e_str));
+                            self->set_error(convert_from<QString>(e_str));
                             self->set_status(Status::Error);
                         }
                     });
@@ -176,7 +176,7 @@ public:
                                 self->model()->handle_output(std::move(out).value(), cnt.api.input);
                                 self->set_status(Status::Finished);
                             } else {
-                                self->set_error(To<QString>::from(out.error().what()));
+                                self->set_error(convert_from<QString>(out.error().what()));
                                 self->set_status(Status::Error);
                             }
                         }

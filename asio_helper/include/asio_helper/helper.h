@@ -13,18 +13,14 @@
 #include "core/expected_helper.h"
 #include "core/str_helper.h"
 
-template<>
-template<>
-inline auto To<std::vector<byte>>::from(const asio::streambuf& buf) {
-    std::vector<byte> out;
-    std::transform(asio::buffers_begin(buf.data()),
-                   asio::buffers_end(buf.data()),
+DEFINE_CONVERT(std::vector<byte>, asio::streambuf) {
+    out.clear();
+    std::transform(asio::buffers_begin(in.data()),
+                   asio::buffers_end(in.data()),
                    std::back_inserter(out),
                    [](unsigned char c) {
                        return byte { c };
                    });
-
-    return out;
 }
 
 template<>
@@ -43,8 +39,8 @@ concept is_awaitable = core::is_specialization_of<T, asio::awaitable>;
 
 template<typename T>
 concept is_sync_stream = requires(T s, asio::const_buffer buf) {
-                             { s.write_some(buf) } -> std::convertible_to<std::size_t>;
-                         };
+    { s.write_some(buf) } -> std::convertible_to<std::size_t>;
+};
 
 template<typename Ex, typename ExWork, typename F, typename... Args>
 void post_via(const Ex& exec, const ExWork& work_exec, F&& handler, Args&&... args) {

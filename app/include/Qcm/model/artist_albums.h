@@ -27,10 +27,7 @@ public:
             return;
         }
         if (! in.hotAlbums.empty()) {
-            auto in_      = To<std::vector<model::Album>>::from(in.hotAlbums);
-            for (auto& el : in_) {
-                insert(rowCount(), el);
-            }
+            insert(rowCount(), convert_from<std::vector<Album>>(in.hotAlbums));
         }
         m_has_more = in.more;
     }

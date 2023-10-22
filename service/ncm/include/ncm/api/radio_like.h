@@ -52,9 +52,9 @@ struct RadioLike {
     Params           body() const {
         Params p;
         p["alg"]     = input.alg;
-        p["time"]    = To<std::string>::from(input.time);
+        convert(p["time"], input.time);
         p["trackId"] = input.trackId;
-        p["like"]    = To<std::string>::from(input.like);
+        convert(p["like"], input.like);
         return p;
     }
     in_type input;

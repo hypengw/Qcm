@@ -70,10 +70,10 @@ struct CloudSearch {
     Params      body() const {
         Params p;
         p["s"]      = input.keywords;
-        p["type"]   = To<std::string>::from(input.type);
-        p["limit"]  = To<std::string>::from(input.limit);
-        p["offset"] = To<std::string>::from(input.offset);
-        p["total"]  = To<std::string>::from(input.total);
+        convert(p["type"], input.type);
+        convert(p["limit"], input.limit);
+        convert(p["offset"], input.offset);
+        convert(p["total"], input.total);
         return p;
     }
 

@@ -25,16 +25,11 @@ public:
 } // namespace model
 } // namespace qcm
 
-template<>
-struct To<qcm::model::ArtistSublistItem> {
-    static auto from(const ncm::model::ArtistSublistItem& in) {
-        qcm::model::ArtistSublistItem o;
-        convert(o.itemId, in.id);
-        convert(o.name, in.name);
-        convert(o.picUrl, in.picUrl);
-        convert(o.albumSize, in.albumSize);
-        return o;
-    };
+DEFINE_CONVERT(qcm::model::ArtistSublistItem, ncm::model::ArtistSublistItem) {
+    convert(out.itemId, in.id);
+    convert(out.name, in.name);
+    convert(out.picUrl, in.picUrl);
+    convert(out.albumSize, in.albumSize);
 };
 
 namespace qcm
@@ -54,7 +49,7 @@ public:
             return;
         }
         if (! re.data.empty()) {
-            auto in_ = To<std::vector<ArtistSublistItem>>::from(re.data);
+            auto in_ = convert_from<std::vector<ArtistSublistItem>>(re.data);
             for (auto& el : in_) {
                 insert(rowCount(), el);
             }

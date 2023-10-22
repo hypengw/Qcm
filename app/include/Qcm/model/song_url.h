@@ -22,16 +22,11 @@ public:
 };
 } // namespace model
 } // namespace qcm
-template<>
-struct To<qcm::model::SongUrlItem> {
-    static auto from(const ncm::model::SongUrl& in) {
-        qcm::model::SongUrlItem o;
-        convert(o.id, in.id);
-        convert(o.url, in.url);
-        convert(o.md5, in.md5);
-        return o;
-    }
-};
+DEFINE_CONVERT(qcm::model::SongUrlItem, ncm::model::SongUrl) {
+    convert(out.id, in.id);
+    convert(out.url, in.url);
+    convert(out.md5, in.md5);
+}
 
 namespace qcm
 {
@@ -87,19 +82,13 @@ public:
 };
 } // namespace qcm
 
-template<>
-struct To<qcm::SongUrlQuerier::Level> {
-    static auto from(ncm::params::SongUrl::Level l) {
-        return static_cast<qcm::SongUrlQuerier::Level>(l);
-    }
-};
-template<>
-struct To<ncm::params::SongUrl::Level> {
-    static auto from(qcm::SongUrlQuerier::Level l) {
-        return static_cast<ncm::params::SongUrl::Level>(l);
-    }
-};
+DEFINE_CONVERT(qcm::SongUrlQuerier::Level, ncm::params::SongUrl::Level) {
+    out = static_cast<qcm::SongUrlQuerier::Level>(in);
+}
 
+DEFINE_CONVERT(ncm::params::SongUrl::Level, qcm::SongUrlQuerier::Level) {
+    out = static_cast<ncm::params::SongUrl::Level>(in);
+}
 namespace qcm
 {
 FORWARD_PROPERTY_IMPL(SongUrlQuerier, SongUrlQuerier::Level, level, level)

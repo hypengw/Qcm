@@ -27,6 +27,7 @@ T.ItemDelegate {
     property int maximumLineCount: 1
     property alias leader: item_holder_leader.contentItem
     property alias trailing: item_holder_trailing.contentItem
+    property alias below: item_holder_below.contentItem
 
     property int heightMode: {
         if (supportText)
@@ -35,53 +36,69 @@ T.ItemDelegate {
             return MD.Enum.ListItemOneLine;
     }
 
-    contentItem: RowLayout {
-        spacing: 16
+    contentItem: ColumnLayout {
+        RowLayout {
+            spacing: 16
 
-        MD.Control {
-            id: item_holder_leader
-            visible: contentItem
-        }
+            MD.Control {
+                id: item_holder_leader
+                visible: contentItem
+            }
 
-        ColumnLayout {
-            Layout.fillWidth: true
-            Layout.alignment: Qt.AlignVCenter
-            spacing: 0
-            MD.Text {
+            ColumnLayout {
                 Layout.fillWidth: true
-                text: control.text
-                typescale: MD.Token.typescale.body_large
-                maximumLineCount: control.maximumLineCount
-                verticalAlignment: Qt.AlignVCenter
+                Layout.alignment: Qt.AlignVCenter
+                spacing: 0
+                MD.Text {
+                    Layout.fillWidth: true
+                    text: control.text
+                    typescale: MD.Token.typescale.body_large
+                    maximumLineCount: control.maximumLineCount
+                    verticalAlignment: Qt.AlignVCenter
+                }
+                MD.Text {
+                    Layout.fillWidth: true
+                    visible: text
+                    text: control.supportText
+                    color: MD.MatProp.supportTextColor
+                    typescale: MD.Token.typescale.body_medium
+                    verticalAlignment: Qt.AlignVCenter
+                }
             }
             MD.Text {
-                Layout.fillWidth: true
+                id: item_text_trailing_support
+                Layout.alignment: Qt.AlignVCenter
                 visible: text
-                text: control.supportText
-                color: MD.MatProp.supportTextColor
-                typescale: MD.Token.typescale.body_medium
+                typescale: MD.Token.typescale.label_small
                 verticalAlignment: Qt.AlignVCenter
             }
-        }
-        MD.Text {
-            id: item_text_trailing_support
-            Layout.alignment: Qt.AlignVCenter
-            visible: text
-            typescale: MD.Token.typescale.label_small
-            verticalAlignment: Qt.AlignVCenter
+
+            MD.Control {
+                id: item_holder_trailing
+                Layout.alignment: Qt.AlignVCenter
+                visible: contentItem
+            }
+
+            MD.Icon {
+                id: item_text_trailing_icon
+                Layout.alignment: Qt.AlignVCenter
+                visible: name.length
+                size: 24
+            }
         }
 
-        MD.Control {
-            id: item_holder_trailing
-            Layout.alignment: Qt.AlignVCenter
-            visible: contentItem
-        }
+        RowLayout {
+            spacing: 16
+            Item {
+                implicitWidth: item_holder_leader.height
+                visible: item_holder_leader.visible
+            }
 
-        MD.Icon {
-            id: item_text_trailing_icon
-            Layout.alignment: Qt.AlignVCenter
-            visible: name.length
-            size: 24
+            MD.Control {
+                id: item_holder_below
+                Layout.fillWidth: true
+                visible: contentItem
+            }
         }
     }
 

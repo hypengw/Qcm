@@ -45,7 +45,7 @@ public:
 
         template<typename Tin>
         auto to(const Tin& in) -> std::vector<D> {
-            return To<std::vector<D>>::from(in);
+            return convert_from<std::vector<D>>(in);
         }
 
     private:

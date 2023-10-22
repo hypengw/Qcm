@@ -8,6 +8,8 @@
 #include "ncm/api/artist.h"
 #include "ncm/api/artist_albums.h"
 #include "ncm/api/artist_sublist.h"
+#include "ncm/api/cloudsearch.h"
+#include "ncm/api/comment_album.h"
 #include "ncm/api/login.h"
 #include "ncm/api/playlist_catalogue.h"
 #include "ncm/api/playlist_detail.h"
@@ -24,8 +26,6 @@
 #include "ncm/api/qrcode_unikey.h"
 #include "ncm/api/radio_like.h"
 #include "ncm/api/song_like.h"
-#include "ncm/api/cloudsearch.h"
-
 
 namespace ncm
 {
@@ -57,6 +57,11 @@ JSON_DEFINE_WITH_DEFAULT_IMPL(Album, songs, paid, onSale, mark, companyId, blurP
                               artists, copyrightId, artist, briefDesc, publishTime, company, picUrl,
                               commentThreadId, description, tags, status, subType, name, id, type,
                               size, picId_str);
+
+JSON_DEFINE_IMPL(User, userId, userType, vipType, avatarUrl, followed, nickname)
+
+JSON_DEFINE_IMPL(Comment, user, richContent, commentId, content, liked, likedCount, owner, status,
+                 time)
 
 JSON_DEFINE_IMPL(AlbumSublistItem, subTime, size, artists, id, name, picUrl, alias, transNames);
 
@@ -127,6 +132,8 @@ JSON_DEFINE_IMPL(CloudSearch::AlbumResult, albumCount, albums);
 JSON_DEFINE_IMPL(CloudSearch::PlaylistResult, playlistCount, playlists);
 JSON_DEFINE_IMPL(CloudSearch::ArtistResult, artistCount, artists);
 JSON_DEFINE_IMPL(CloudSearch, result);
+
+JSON_DEFINE_IMPL(CommentAlbum, comments, hotComments, topComments, more, moreHot, total);
 } // namespace api_model
 
 } // namespace ncm
@@ -143,6 +150,7 @@ JSON_GET_IMPL(api_model::Artist);
 JSON_GET_IMPL(api_model::ArtistAlbums);
 JSON_GET_IMPL(api_model::ArtistSublist);
 JSON_GET_IMPL(api_model::CloudSearch);
+JSON_GET_IMPL(api_model::CommentAlbum);
 JSON_GET_IMPL(api_model::Login);
 JSON_GET_IMPL(api_model::PlaylistCatalogue);
 JSON_GET_IMPL(api_model::PlaylistDetail);

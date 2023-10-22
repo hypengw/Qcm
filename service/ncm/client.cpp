@@ -70,7 +70,7 @@ template<>
 std::optional<std::string> Client::encrypt<api::CryptoType::WEAPI>(std::string_view,
                                                                    const Params& p) {
     // p.insert_or_assign(std::string("csrf_token"), *csrf);
-    return m_crypto->weapi(To<std::vector<byte>>::from(to_json_str(p)));
+    return m_crypto->weapi(convert_from<std::vector<byte>>(to_json_str(p)));
 }
 template<>
 std::optional<std::string> Client::encrypt<api::CryptoType::EAPI>(std::string_view path,
@@ -78,7 +78,7 @@ std::optional<std::string> Client::encrypt<api::CryptoType::EAPI>(std::string_vi
     assert(path.starts_with("/eapi"));
     path.remove_prefix(5);
     std::string path_ = fmt::format("/api{}", path);
-    return m_crypto->eapi(path_, To<std::vector<byte>>::from(to_json_str(p)));
+    return m_crypto->eapi(path_, convert_from<std::vector<byte>>(to_json_str(p)));
 }
 template<>
 std::optional<std::string> Client::encrypt<api::CryptoType::NONE>(std::string_view, const Params&) {
@@ -112,5 +112,5 @@ awaitable<Result<std::vector<byte>>> Client::post(const request::Request& req,
     if (ec != asio::error::eof && ec)
         co_return nstd::unexpected(Error::push(ec.message()));
     else
-        co_return To<std::vector<byte>>::from(buf);
+        co_return convert_from<std::vector<byte>>(buf);
 }

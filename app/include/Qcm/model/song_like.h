@@ -24,7 +24,7 @@ public:
     using out_type = ncm::api_model::SongLike;
     void handle_output(const out_type& in, const auto&) {
         for (auto& id : in.ids) {
-            m_ids.insert(To<QString>::from(id));
+            m_ids.insert(convert_from<QString>(id));
         }
     }
 

@@ -63,27 +63,38 @@ template<template<typename...> class T, typename... Args>
 constexpr bool is_specialization_of<T<Args...>, T> = true;
 } // namespace core
 
-template<typename TType>
-struct To {
-    using out_type = TType;
-    template<typename T>
-    struct From;
+template<typename Tout, typename Tin>
+struct Convert;
 
-    template<typename T>
-    static TType from(const T& t) {
-        return From<T>::from(t);
-    }
-};
-
-template<typename F, typename T>
-concept to_able = requires(F f) {
-    { To<T>::from(f) } -> std::same_as<T>;
+template<typename T, typename F>
+concept convertable = requires(T& t, const F& f) {
+    { Convert<std::decay_t<T>, std::decay_t<F>>(t, f) };
 };
 
 template<typename Tout, typename Tin>
-void convert(Tout& out, const Tin& in) {
-    out = To<std::decay_t<Tout>>::from(in);
+void convert(Tout& out, Tin&& in) {
+    Convert<std::decay_t<Tout>, std::decay_t<Tin>>(out, std::forward<Tin>(in));
 }
+
+template<typename Tout, typename Tin>
+Tout convert_from(Tin&& in) {
+    Tout out;
+    Convert<std::decay_t<Tout>, std::decay_t<Tin>>(out, std::forward<Tin>(in));
+    return out;
+}
+
+#define DECLARE_CONVERT(Ta, Tb)     \
+    template<>                      \
+    struct Convert<Ta, Tb> {        \
+        using out_type = Ta;        \
+        using in_type  = Tb;        \
+        Convert(Ta&, const Tb& in); \
+    };
+
+#define IMPL_CONVERT(Ta, Tb) Convert<Ta, Tb>::Convert(Ta& out, const Tb& in)
+#define DEFINE_CONVERT(Ta, Tb) \
+    DECLARE_CONVERT(Ta, Tb)    \
+    inline IMPL_CONVERT(Ta, Tb)
 
 template<typename IMPL>
 struct CRTP {

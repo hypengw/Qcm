@@ -50,7 +50,7 @@ MD.Pane {
 
         MD.Icon {
             visible: root.showClose
-            name: Theme.ic.close
+            name: MD.Token.icon.close
             size: 24
         }
 

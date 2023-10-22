@@ -40,7 +40,7 @@ std::optional<std::string> ncm::Crypto::weapi(bytes_view in) {
                       .and_then([](auto in) {
                           return crypto::encode(in);
                       })
-                      .map(To<std::string>::from<bytes_view>);
+                      .map(convert_from<std::string, bytes_view>);
 
     std::array<byte, 128> sec_key_padding { byte { 0 } };
     std::copy(sec_key.begin(), sec_key.end(), sec_key_padding.begin());
@@ -48,7 +48,7 @@ std::optional<std::string> ncm::Crypto::weapi(bytes_view in) {
 
     auto enc_sec_key = m_rsa.encrypt(crypto::rsa::Padding::NONE, sec_key_padding)
                            .map(crypto::hex::encode_low)
-                           .map(To<std::string>::from<bytes_view>);
+                           .map(convert_from<std::string, bytes_view>);
 
     if (params.has_value() && enc_sec_key.has_value()) {
         request::UrlParams url_params;
@@ -61,10 +61,10 @@ std::optional<std::string> ncm::Crypto::weapi(bytes_view in) {
 
 std::optional<std::string> ncm::Crypto::eapi(std::string_view url, bytes_view in) {
     auto message = fmt::format("nobody{}use{}md5forencrypt", url, in);
-    auto params  = crypto::digest(crypto::md5(), To<std::vector<byte>>::from(message))
+    auto params  = crypto::digest(crypto::md5(), convert_from<std::vector<byte>>(message))
                       .map(crypto::hex::encode_low)
                       .map([&url, &in](auto msg) {
-                          return To<std::vector<byte>>::from(
+                          return convert_from<std::vector<byte>>(
                               fmt::format("{}-36cd479b6b5-{}-36cd479b6b5-{}", url, in, msg));
                       })
                       .and_then([](auto in) {

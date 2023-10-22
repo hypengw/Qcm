@@ -13,7 +13,8 @@
 namespace helper
 {
 template<typename T>
-concept ByteRangeCP = std::ranges::range<T> && std::same_as<std::ranges::range_value_t<T>, byte>;
+concept ByteRangeCP =
+    std::ranges::range<T> && std::same_as<std::decay_t<std::ranges::range_value_t<T>>, byte>;
 } // namespace helper
 
 template<helper::ByteRangeCP Bytes>
@@ -28,10 +29,9 @@ struct fmt::formatter<Bytes> : fmt::formatter<std::string> {
     }
 };
 
-template<>
 template<fmt::formattable T>
-struct To<std::string>::From<T> {
-    static auto from(const T& fmt) { return fmt::format("{}", fmt); }
+struct Convert<std::string, T> {
+    Convert(std::string& out, const T& fmt) { out = fmt::format("{}", fmt); }
 };
 
 namespace helper

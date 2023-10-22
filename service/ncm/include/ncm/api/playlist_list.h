@@ -55,9 +55,9 @@ struct PlaylistList {
         Params p;
         p["cat"]    = input.cat;
         p["order"]  = input.order;
-        p["limit"]  = To<std::string>::from(input.limit);
-        p["offset"] = To<std::string>::from(input.offset);
-        p["total"]  = To<std::string>::from(input.total);
+        convert(p["limit"], input.limit);
+        convert(p["offset"], input.offset);
+        convert(p["total"], input.total);
         return p;
     }
     in_type input;

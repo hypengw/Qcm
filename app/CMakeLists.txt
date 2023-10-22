@@ -26,6 +26,7 @@ set(SOURCES
     include/Qcm/model/artist.h
     include/Qcm/model/artist_albums.h
     include/Qcm/model/artist_sublist.h
+    include/Qcm/model/comment_album.h
     include/Qcm/model/cloudsearch.h
     include/Qcm/model/login.h
     include/Qcm/model/playlist_catalogue.h
@@ -65,6 +66,7 @@ set(QML_FILES
     qml/page/LoginPage.qml
     qml/page/AlbumDetailPage.qml
     qml/page/ArtistDetailPage.qml
+    qml/page/CommentPage.qml
     qml/page/DescriptionPage.qml
     qml/page/PlaylistCataloguePage.qml
     qml/page/PlaylistDetailPage.qml
@@ -77,14 +79,15 @@ set(QML_FILES
     qml/page/PlayQueuePage.qml
     qml/page/MainPage.qml
     qml/page/MaterialTest.qml
+    qml/delegate/CommentDelegate.qml
+    qml/delegate/SongDelegate.qml
+    qml/delegate/PicGridDelegate.qml
     qml/component/ArtistsPopup.qml
     qml/component/InfoRow.qml
     qml/component/SnakeBar.qml
     qml/component/SnakeView.qml
-    qml/component/SongDelegate.qml
     qml/component/SongMenu.qml
     qml/component/Mpris.qml
-    qml/component/PicGridDelegate.qml
     qml/component/PlaylistListView.qml
     qml/component/SongTag.qml
     qml/component/RouteMsg.qml

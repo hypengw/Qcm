@@ -63,7 +63,7 @@ MD.ListItem {
                     model: root.model_.tags
 
                     delegate: ColumnLayout {
-                        SongTag {
+                        QA.SongTag {
                             tag: modelData
                         }
                     }

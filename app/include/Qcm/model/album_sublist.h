@@ -29,18 +29,12 @@ public:
 } // namespace model
 } // namespace qcm
 
-template<>
-struct To<qcm::model::AlbumSublistItem> {
-    static auto from(const ncm::model::AlbumSublistItem& in) {
-        qcm::model::AlbumSublistItem o;
-        convert(o.id, in.id);
-        convert(o.name, in.name);
-        convert(o.artists, in.artists);
-        convert(o.picUrl, in.picUrl);
-        return o;
-    };
-};
-
+DEFINE_CONVERT(qcm::model::AlbumSublistItem, ncm::model::AlbumSublistItem) {
+    convert(out.id, in.id);
+    convert(out.name, in.name);
+    convert(out.artists, in.artists);
+    convert(out.picUrl, in.picUrl);
+}
 namespace qcm
 {
 namespace model
@@ -55,14 +49,14 @@ public:
 
     void handle_output(const out_type& re, const auto& input) {
         if (input.offset == 0) {
-            auto in_ = To<std::vector<AlbumSublistItem>>::from(re.data);
+            auto in_ = convert_from<std::vector<AlbumSublistItem>>(re.data);
             convertModel(in_, [](const AlbumSublistItem& it) -> std::string {
-                return To<std::string>::from(it.id);
+                return convert_from<std::string>(it.id);
             });
             m_has_more = re.hasMore;
         } else if (input.offset == (int)rowCount()) {
             if (! re.data.empty()) {
-                auto in_ = To<std::vector<AlbumSublistItem>>::from(re.data);
+                auto in_ = convert_from<std::vector<AlbumSublistItem>>(re.data);
                 for (auto& el : in_) {
                     insert(rowCount(), el);
                 }

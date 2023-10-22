@@ -12,9 +12,11 @@ namespace model
 
 struct Time {
     using time_point = std::chrono::system_clock::time_point;
-    i64        milliseconds;
+    i64        milliseconds { 0 };
     time_point point;
 };
+
+using Bool = std::variant<i64, bool>;
 
 enum class SongFee
 {
@@ -232,12 +234,73 @@ struct Playlist {
     // algTags	null
 };
 
+struct User {
+    // locationInfo	null
+    // liveInfo	null
+    // anonym	0
+    // commonIdentity	null
+    // avatarDetail	null
+    i64         userType;
+    std::string avatarUrl;
+    bool        followed;
+    // mutual	false
+    // remarkName	null
+    // socialUserId	null
+    // vipRights	{…}
+    std::string nickname;
+    // authStatus	0
+    // expertTags	null
+    // experts	null
+    i64 vipType;
+    i64 userId;
+    // target	null
+};
+
+struct Comment {
+    User user;
+    // beReplied	[]
+    // pendantData	null
+    // showFloorComment	null
+    i64                        status;
+    i64                        commentId;
+    std::string                content;
+    std::optional<std::string> richContent;
+    // contentResource	null
+    Time time;
+    // timeStr	"08-10"
+    // needDisplayTime	true
+    i64 likedCount;
+    // expressionUrl	null
+    // commentLocationType	0
+    // parentCommentId	0
+    // decoration	{}
+    // repliedMark	null
+    // grade	null
+    // userBizLevels	null
+    // ipLocation	{…}
+    bool owner;
+    Bool liked;
+};
+
 JSON_DEFINE(Song);
 JSON_DEFINE(Artist);
 JSON_DEFINE(Album);
 JSON_DEFINE(Playlist);
 JSON_DEFINE(Time);
+JSON_DEFINE(Comment);
+JSON_DEFINE(User);
 
 } // namespace model
 
 } // namespace ncm
+
+template<>
+struct Convert<bool, ncm::model::Bool> {
+    Convert(bool& out, const ncm::model::Bool& i) {
+        std::visit(
+            [&out](auto v) {
+                out = (bool)v;
+            },
+            i);
+    }
+};

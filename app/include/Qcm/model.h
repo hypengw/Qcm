@@ -30,21 +30,21 @@
     const auto& _prop_() const { return _var_; }       \
     _type_      _var_;
 
-#define FORWARD_PROPERTY(_type_, _prop_, _input_)                                    \
-public:                                                                              \
-    Q_PROPERTY(_type_ _prop_ READ _prop_ WRITE set_##_prop_ NOTIFY changed_##_prop_) \
-    _type_ _prop_() const { return To<_type_>::from(this->api().input._input_); }    \
-    void   set_##_prop_(_type_ v) {                                                  \
-        auto& cur = this->api().input._input_;                                     \
-        auto  v_  = To<std::decay_t<decltype(cur)>>::from(v);                      \
-        if (cur != v_) {                                                           \
-            cur = v_;                                                              \
-            this->mark_dirty();                                                    \
-            emit changed_##_prop_();                                               \
-            this->reload_if_needed();                                              \
-        }                                                                          \
-    }                                                                                \
-Q_SIGNALS:                                                                           \
+#define FORWARD_PROPERTY(_type_, _prop_, _input_)                                     \
+public:                                                                               \
+    Q_PROPERTY(_type_ _prop_ READ _prop_ WRITE set_##_prop_ NOTIFY changed_##_prop_)  \
+    _type_ _prop_() const { return convert_from<_type_>(this->api().input._input_); } \
+    void   set_##_prop_(_type_ v) {                                                   \
+        auto& cur = this->api().input._input_;                                      \
+        auto  v_  = convert_from<std::decay_t<decltype(cur)>>(v);                   \
+        if (cur != v_) {                                                            \
+            cur = v_;                                                               \
+            this->mark_dirty();                                                     \
+            emit changed_##_prop_();                                                \
+            this->reload_if_needed();                                               \
+        }                                                                           \
+    }                                                                                 \
+Q_SIGNALS:                                                                            \
     void changed_##_prop_();
 
 #define FORWARD_PROPERTY_DECLARE(_type_, _prop_, _input_)                            \
@@ -55,22 +55,23 @@ public:                                                                         
 Q_SIGNALS:                                                                           \
     void changed_##_prop_();
 
-#define FORWARD_PROPERTY_IMPL(_class_, _type_, _prop_, _input_)                                   \
-    inline _type_ _class_::_prop_() const { return To<_type_>::from(this->api().input._input_); } \
-    inline void   _class_::set_##_prop_(_type_ v) {                                               \
-        auto& cur = this->api().input._input_;                                                  \
-        auto  v_  = To<std::decay_t<decltype(cur)>>::from(v);                                   \
-        if (cur != v_) {                                                                        \
-            cur = v_;                                                                           \
-            this->mark_dirty();                                                                 \
-            emit changed_##_prop_();                                                            \
-            this->reload_if_needed();                                                           \
-        }                                                                                       \
+#define FORWARD_PROPERTY_IMPL(_class_, _type_, _prop_, _input_)   \
+    inline _type_ _class_::_prop_() const {                       \
+        return convert_from<_type_>(this->api().input._input_);   \
+    }                                                             \
+    inline void _class_::set_##_prop_(_type_ v) {                 \
+        auto& cur = this->api().input._input_;                    \
+        auto  v_  = convert_from<std::decay_t<decltype(cur)>>(v); \
+        if (cur != v_) {                                          \
+            cur = v_;                                             \
+            this->mark_dirty();                                   \
+            emit changed_##_prop_();                              \
+            this->reload_if_needed();                             \
+        }                                                         \
     }
 
 namespace qcm
 {
-
 
 namespace model
 {
@@ -143,7 +144,7 @@ public:
     virtual ~SongId() = default;
 
     Q_INVOKABLE QUrl url() const {
-        return QUrl(To<QString>::from(fmt::format("https://music.163.com/song?id={}", id)));
+        return QUrl(convert_from<QString>(fmt::format("https://music.163.com/song?id={}", id)));
     }
 };
 
@@ -172,6 +173,13 @@ struct UserId : public ItemIdBase<ItemId::Type::User> {
 public:
     using ItemIdBase<ItemId::Type::User>::ItemIdBase;
     virtual ~UserId() = default;
+};
+
+struct CommentId : public ItemIdBase<ItemId::Type::User> {
+    Q_GADGET
+public:
+    using ItemIdBase<ItemId::Type::User>::ItemIdBase;
+    virtual ~CommentId() = default;
 };
 
 class Artist {
@@ -231,6 +239,28 @@ public:
     std::strong_ordering operator<=>(const Song&) const = default;
 };
 
+class User {
+    Q_GADGET
+public:
+    GATGET_PROPERTY(UserId, itemId, id)
+    GATGET_PROPERTY(QString, name, name)
+    GATGET_PROPERTY(QString, picUrl, picUrl)
+
+    std::strong_ordering operator<=>(const User&) const = default;
+};
+
+class Comment {
+    Q_GADGET
+public:
+    GATGET_PROPERTY(CommentId, itemId, id)
+    GATGET_PROPERTY(User, user, user)
+    GATGET_PROPERTY(QString, content, content)
+    GATGET_PROPERTY(bool, liked, liked)
+    GATGET_PROPERTY(QDateTime, time, time)
+
+    std::strong_ordering operator<=>(const Comment&) const = default;
+};
+
 } // namespace model
 } // namespace qcm
 
@@ -242,37 +272,17 @@ struct fmt::formatter<I> : fmt::formatter<std::string> {
     }
 };
 
-template<typename T>
-    requires qcm::model::ItemIdCP<T>
-struct To<T> {
-    static auto from(i64 s) { return T { QString::fromStdString(To<std::string>::from(s)) }; }
-    static auto from(const std::string& s) { return T { QString::fromStdString(s) }; }
+template<typename T, typename F>
+    requires qcm::model::ItemIdCP<T> && (std::same_as<F, i64> || std::same_as<F, std::string>)
+struct Convert<T, F> {
+    Convert(T& out, const F& in) { out = convert_from<QString>(in); }
 };
 
-template<>
-template<>
-struct To<QDateTime>::From<ncm::model::Time> {
-    static QDateTime from(const ncm::model::Time& t);
-};
-
-template<>
-struct To<qcm::model::Artist> {
-    static qcm::model::Artist from(const ncm::model::Artist& in);
-    static qcm::model::Artist from(const ncm::model::Song::Ar& in);
-};
-
-template<>
-struct To<qcm::model::Album> {
-    static qcm::model::Album from(const ncm::model::Album& in);
-};
-
-template<>
-template<>
-struct To<qcm::model::Playlist>::From<ncm::model::Playlist> {
-    static out_type from(const ncm::model::Playlist&);
-};
-
-template<>
-struct To<qcm::model::Song> {
-    static qcm::model::Song from(const ncm::model::Song& in);
-};
+DECLARE_CONVERT(QDateTime, ncm::model::Time)
+DECLARE_CONVERT(qcm::model::Artist, ncm::model::Artist)
+DECLARE_CONVERT(qcm::model::Artist, ncm::model::Song::Ar)
+DECLARE_CONVERT(qcm::model::Album, ncm::model::Album)
+DECLARE_CONVERT(qcm::model::Playlist, ncm::model::Playlist)
+DECLARE_CONVERT(qcm::model::Song, ncm::model::Song)
+DECLARE_CONVERT(qcm::model::User, ncm::model::User)
+DECLARE_CONVERT(qcm::model::Comment, ncm::model::Comment)

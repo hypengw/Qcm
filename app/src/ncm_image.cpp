@@ -39,9 +39,9 @@ inline QSize get_down_size(const QSize& req) {
 }
 
 inline std::string gen_file_name(const request::Url& url) {
-    return crypto::digest(crypto::md5(), To<std::vector<byte>>::from(url.path + url.query))
+    return crypto::digest(crypto::md5(), convert_from<std::vector<byte>>(url.path + url.query))
         .map(crypto::hex::encode_up)
-        .map(To<std::string>::from<crypto::bytes_view>)
+        .map(convert_from<std::string, crypto::bytes_view>)
         .map_error([](auto) {
             _assert_(false);
         })
@@ -192,7 +192,7 @@ QQuickImageResponse* NcmImageProvider::requestImageResponse(const QString& id,
                 } catch (const std::exception& e) {
                     NcmImageProviderInner::handle_res(
                         rsp_guard,
-                        nstd::unexpected(To<QString>::from(
+                        nstd::unexpected(convert_from<QString>(
                             fmt::format("NcmImageProvider, id: {}, error: {}", id, e.what()))));
                 }
             }

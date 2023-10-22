@@ -27,12 +27,12 @@ public:
         if (input.offset != (int)rowCount()) {
             return;
         }
-        auto in_ = To<std::vector<Playlist>>::from(re.playlists);
+        auto in_ = convert_from<std::vector<Playlist>>(re.playlists);
         for (auto& el : in_) {
             // remove query
             el.picUrl = el.picUrl.split('?').front();
-            insert(rowCount(), el);
         }
+        insert(rowCount(), in_);
         m_has_more = re.more;
     }
 
@@ -45,7 +45,7 @@ signals:
     void fetchMoreReq(qint32);
 
 private:
-    bool                  m_has_more;
+    bool m_has_more;
 };
 static_assert(modelable<PlaylistList, ncm::api::PlaylistList>);
 } // namespace model
