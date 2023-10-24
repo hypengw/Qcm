@@ -158,7 +158,7 @@ MD.Page {
 
         onStatusChanged: {
             if (status === QA.ApiQuerierBase.Finished)
-                QA.Global.sig_like_playlist();
+                QA.App.playlistLiked(itemId, sub)
         }
     }
 }

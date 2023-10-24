@@ -169,8 +169,9 @@ MD.Page {
         autoReload: false
 
         onStatusChanged: {
-            if (status === QA.ApiQuerierBase.Finished)
-                QA.Global.sig_like_album();
+            if (status === QA.ApiQuerierBase.Finished) {
+                QA.App.albumLiked(itemId, sub);
+            }
         }
     }
 

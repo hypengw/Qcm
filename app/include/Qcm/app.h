@@ -65,6 +65,8 @@ public:
 signals:
     void instanceStarted();
     void errorOccurred(QString);
+    void albumLiked(model::AlbumId, bool);
+    void playlistLiked(model::PlaylistId, bool);
 
 public slots:
     void loginPost(model::UserAccount*);

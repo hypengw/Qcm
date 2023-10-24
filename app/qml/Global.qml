@@ -35,8 +35,6 @@ Item {
     readonly property string user_setting_category: `user_${user_info.userId.sid}`
     readonly property alias user_song_set: m_querier_user_songlike.data
 
-    signal sig_like_album
-    signal sig_like_playlist
     signal sig_route(QA.RouteMsg msg)
     signal sig_route_special(string name)
 

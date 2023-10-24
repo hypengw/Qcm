@@ -65,11 +65,11 @@ MD.Page {
                         }
 
                         Connections {
-                            function onSig_like_playlist() {
+                            function onPlaylistLiked() {
                                 view_playlist.dirty = true;
                             }
 
-                            target: QA.Global
+                            target: QA.App
                         }
                     }
                     BaseView {
@@ -79,13 +79,12 @@ MD.Page {
                         refresh: function () {
                             root.refresh_list(qr_albumlist);
                         }
-
                         Connections {
-                            function onSig_like_album() {
+                            function onAlbumLiked() {
                                 view_albumlist.dirty = true;
                             }
 
-                            target: QA.Global
+                            target: QA.App
                         }
                     }
                     BaseView {
