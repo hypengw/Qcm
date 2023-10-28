@@ -111,8 +111,6 @@ MD.Page {
                                 }
                             }
 
-                            ScrollBar.vertical: ScrollBar {
-                            }
                             delegate: QA.SongDelegate {
                                 count: ListView.view.count
                                 subtitle: `${modelData.album.name}`
@@ -139,8 +137,6 @@ MD.Page {
                                 }
                             }
 
-                            ScrollBar.vertical: ScrollBar {
-                            }
                             delegate: Item {
                                 width: GridView.view.cellWidth
                                 height: GridView.view.cellHeight

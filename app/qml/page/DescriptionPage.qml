@@ -35,10 +35,6 @@ MD.Page {
             }
 
         }
-
-        ScrollBar.vertical: ScrollBar {
-        }
-
     }
 
 }

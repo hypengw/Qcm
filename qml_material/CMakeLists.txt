@@ -44,6 +44,7 @@ set(QML_FILES
     qml/SplitView.qml
     qml/Slider.qml
     qml/SearchBar.qml
+    qml/ScrollBar.qml
     qml/Rail.qml
     qml/TextInput.qml
     qml/TextField.qml

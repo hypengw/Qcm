@@ -219,9 +219,6 @@ MD.Page {
         highlightMoveDuration: 1000
         highlightMoveVelocity: -1
 
-        ScrollBar.vertical: ScrollBar {
-        }
-
         Component.onCompleted: {
             visibleChanged.connect(checkCur);
             currentItemChanged.connect(checkCur);

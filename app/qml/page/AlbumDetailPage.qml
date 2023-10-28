@@ -138,8 +138,6 @@ MD.ListView {
             running: qr_al.status === QA.ApiQuerierBase.Querying
             width: ListView.view.width
         }
-        ScrollBar.vertical: ScrollBar {
-        }
     }
     MD.FAB {
         action: Action {

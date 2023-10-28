@@ -12,9 +12,6 @@ MD.Page {
     MD.Flickable {
         anchors.fill: parent
 
-        ScrollBar.vertical: ScrollBar {
-        }
-
         ColumnLayout {
             anchors.horizontalCenter: parent.horizontalCenter
             height: implicitHeight

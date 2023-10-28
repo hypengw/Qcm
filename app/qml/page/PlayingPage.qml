@@ -196,9 +196,6 @@ MD.Page {
                             reuseItems: true
                             spacing: 4
 
-                            ScrollBar.vertical: ScrollBar {
-                                visible: false
-                            }
                             SmoothedAnimation on contentY  {
                                 id: anim_scroll
 

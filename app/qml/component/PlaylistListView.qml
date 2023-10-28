@@ -37,9 +37,6 @@ MD.Pane {
             width: GridView.view.width
             running: qr_pl.status === QA.ApiQuerierBase.Querying
         }
-
-        ScrollBar.vertical: ScrollBar {
-        }
     }
 
     QA.PlaylistListQuerier {

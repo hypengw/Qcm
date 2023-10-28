@@ -23,8 +23,6 @@ MD.Page {
         reuseItems: true
         topMargin: 8
 
-        ScrollBar.vertical: ScrollBar {
-        }
         MD.FontMetrics {
             id: item_font_metrics
             typescale: MD.Token.typescale.body_medium

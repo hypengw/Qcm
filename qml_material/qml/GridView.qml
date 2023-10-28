@@ -12,4 +12,6 @@ GridView {
         filterMouseEvents: false
         onWheelMoved: root.wheelMoved()
     }
+    ScrollBar.vertical: MD.ScrollBar {
+    }
 }
