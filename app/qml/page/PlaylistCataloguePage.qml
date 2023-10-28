@@ -13,7 +13,7 @@ MD.Page {
     padding: 0
     title: qsTr('playlist tags')
 
-    QA.MFlickable {
+    MD.Flickable {
         id: flick
         anchors.fill: parent
         leftMargin: 4

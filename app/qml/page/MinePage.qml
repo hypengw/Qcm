@@ -197,7 +197,7 @@ MD.Page {
         }
     }
 
-    component BaseView: QA.MListView {
+    component BaseView: MD.ListView {
         property bool dirty: false
         property var refresh: function () {}
 

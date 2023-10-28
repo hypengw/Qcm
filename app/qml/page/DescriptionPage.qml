@@ -14,7 +14,7 @@ MD.Page {
     horizontalPadding: 24
     title: qsTr('description')
 
-    QA.MFlickable {
+    MD.Flickable {
         id: flick
 
         anchors.fill: parent

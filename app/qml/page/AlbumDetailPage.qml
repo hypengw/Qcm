@@ -12,10 +12,9 @@ MD.Page {
 
     padding: 0
 
-    ListView {
+MD.ListView {
         id: view
         anchors.fill: parent
-        boundsBehavior: Flickable.StopAtBounds
         reuseItems: true
         clip: true
         contentY: 0

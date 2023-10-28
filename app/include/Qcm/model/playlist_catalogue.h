@@ -26,6 +26,7 @@ public:
 } // namespace qcm
 
 DEFINE_CONVERT(qcm::model::PlaylistCatalogueItem, ncm::model::PlaylistCatalogue) {
+    convert(out.name, in.name);
     convert(out.resourceCount, in.resourceCount);
     convert(out.category, in.category);
     convert(out.hot, in.hot);

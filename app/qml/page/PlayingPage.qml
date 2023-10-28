@@ -172,7 +172,7 @@ MD.Page {
                         Layout.fillHeight: true
                         Layout.fillWidth: true
 
-                        QA.MListView {
+                        MD.ListView {
                             id: lyric_view
                             function posTo(idx) {
                                 if (visible) {
@@ -191,8 +191,6 @@ MD.Page {
                             }
 
                             anchors.fill: parent
-                            boundsBehavior: Flickable.StopAtBounds
-                            boundsMovement: Flickable.StopAtBounds
                             highlightFollowsCurrentItem: false
                             model: lrc
                             reuseItems: true

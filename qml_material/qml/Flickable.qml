@@ -1,11 +1,10 @@
 import QtQuick
-import QtQuick.Controls
 
-import Qcm.App as QA
+import Qcm.Material as MD
 
 Flickable {
     id: root
-    boundsBehavior: Flickable.StopAtBounds
+
     clip: true
     contentHeight: contentItem.childrenRect.height
     contentWidth: width - rightMargin - leftMargin
@@ -16,6 +15,13 @@ Flickable {
     topMargin: 0
     bottomMargin: 0
 
-    QA.FlickableScrollHandler {
+    signal wheelMoved
+
+    MD.WheelHandler {
+        id: wheel
+        target: root
+        filterMouseEvents: false
+        onWheelMoved: root.wheelMoved()
     }
 }
+

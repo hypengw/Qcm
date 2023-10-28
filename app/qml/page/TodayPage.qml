@@ -9,7 +9,7 @@ MD.Page {
     id: root
     padding: 0
 
-    QA.MFlickable {
+    MD.Flickable {
         anchors.fill: parent
 
         ScrollBar.vertical: ScrollBar {
@@ -145,10 +145,9 @@ MD.Page {
                             Layout.fillWidth: true
                             padding: 0
 
-                            ListView {
+                        MD.ListView {
                                 id: view
                                 anchors.fill: parent
-                                boundsBehavior: Flickable.StopAtBounds
                                 clip: true
                                 implicitHeight: contentHeight
                                 interactive: false

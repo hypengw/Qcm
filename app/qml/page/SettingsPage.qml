@@ -14,7 +14,7 @@ MD.Page {
     MD.MatProp.textColor: MD.Token.color.on_surface
     MD.MatProp.elevation: MD.Token.elevation.level0
 
-    QA.MFlickable {
+    MD.Flickable {
         id: flick
         anchors.fill: parent
         leftMargin: 0

@@ -1,9 +1,10 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
-import Qcm.App
 
-GridView {
+import Qcm.App as QA
+import Qcm.Material as MD
+
+MD.GridView {
     id: root
     
     property int space: 8
@@ -14,7 +15,4 @@ GridView {
     rightMargin: space / 2
     cellHeight: 250
     cellWidth: _width > 0 ? _width / Math.floor((_width / (fixedCellWidth + space / 2))) : 0
-
-    FlickableScrollHandler {
-    }
 }

@@ -44,7 +44,6 @@ set(SOURCES
     include/Qcm/model/qrcode_unikey.h
     include/Qcm/model/radio_like.h
     include/Qcm/model/song_like.h
-    include/Qcm/util/flickable_scroll_handler.hpp
     src/app.cpp
     src/api.cpp
     src/model.cpp
@@ -56,7 +55,6 @@ set(SOURCES
     src/lyric.cpp
     src/clipboard.cpp
     src/player.cpp
-    src/util/flickable_scroll_handler.cpp
     )
 
 set(QML_FILES
@@ -100,8 +98,6 @@ set(QML_FILES
     qml/component/MRoundButton.qml
     qml/component/MGridView.qml
     qml/component/MItemDelegate.qml
-    qml/component/MListView.qml
-    qml/component/MFlickable.qml
     qml/component/PageContainer.qml
     qml/component/PagePopup.qml
     qml/component/PageStack.qml)

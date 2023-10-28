@@ -13,7 +13,7 @@ MD.Page {
 
     padding: 0
 
-    QA.MFlickable {
+    MD.Flickable {
         id: flick
         anchors.fill: parent
         clip: true
@@ -100,12 +100,16 @@ MD.Page {
                         anchors.fill: parent
                         currentIndex: bar.currentIndex
 
-                        QA.MListView {
-                            boundsBehavior: Flickable.StopAtBounds
+                        MD.ListView {
                             clip: true
                             implicitHeight: contentHeight
                             interactive: flick.atYEnd
                             model: itemData.hotSongs
+                            onAtYBeginningChanged: {
+                                if (interactive) {
+                                    flick.contentY -= 1;
+                                }
+                            }
 
                             ScrollBar.vertical: ScrollBar {
                             }
@@ -126,10 +130,14 @@ MD.Page {
                         QA.MGridView {
                             cellHeight: 264
 
-                            boundsBehavior: Flickable.StopAtBounds
                             clip: true
                             interactive: flick.atYEnd
                             model: qr_artist_albums.data
+                            onAtYBeginningChanged: {
+                                if (interactive) {
+                                    flick.contentY -= 1;
+                                }
+                            }
 
                             ScrollBar.vertical: ScrollBar {
                             }

@@ -7,12 +7,14 @@ set(SOURCES
     include/qml_material/icon.h
     include/qml_material/type.h
     include/qml_material/round_item.h
-    type.cpp
-    color.cpp
-    icon.cpp
-    util.cpp
-    theme.cpp
-    round_item.cpp)
+    include/qml_material/kirigami/wheelhandler.h
+    src/kirigami/wheelhandler.cpp
+    src/type.cpp
+    src/color.cpp
+    src/icon.cpp
+    src/util.cpp
+    src/theme.cpp
+    src/round_item.cpp)
 set(QML_FILES
     qml/Button.qml
     qml/Control.qml
@@ -32,6 +34,8 @@ set(QML_FILES
     qml/ListView.qml
     qml/Label.qml
     qml/FontMetrics.qml
+    qml/Flickable.qml
+    qml/GridView.qml
     qml/Icon.qml
     qml/Text.qml
     qml/Pane.qml
@@ -77,7 +81,7 @@ qt_add_qml_module(
 target_include_directories(
   ${LIBNAME}
   PUBLIC include
-  PRIVATE "include/${LIBNAME}")
+  PRIVATE "include/${LIBNAME}" "include/${LIBNAME}/kirigami")
 
 find_package(Qt6 REQUIRED COMPONENTS Core Quick QuickControls2)
 

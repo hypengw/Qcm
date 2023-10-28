@@ -10,11 +10,10 @@ MD.Page {
     padding: 0
     title: 'Playlist'
 
-    QA.MListView {
+    MD.ListView {
         id: view_playlist
         anchors.fill: parent
         bottomMargin: 8
-        boundsBehavior: Flickable.StopAtBounds
         clip: true
         currentIndex: model.curIndex
         highlightMoveDuration: 1000

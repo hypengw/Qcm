@@ -14,7 +14,7 @@ MD.Page {
     title: qsTr('artists')
     width: 300
 
-    QA.MListView {
+    MD.ListView {
         anchors.fill: parent
         clip: true
         currentIndex: -1

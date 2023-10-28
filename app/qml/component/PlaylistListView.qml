@@ -11,7 +11,6 @@ MD.Pane {
 
     QA.MGridView {
         anchors.fill: parent
-        boundsBehavior: Flickable.StopAtBounds
         clip: true
         model: qr_pl.data
 

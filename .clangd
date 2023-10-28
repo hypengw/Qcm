@@ -1,2 +1,2 @@
 CompileFlags:
-  Remove: [-fconcepts-diagnostics-depth*]
+  Remove: [-fconcepts-diagnostics-depth*, -mno-direct*]

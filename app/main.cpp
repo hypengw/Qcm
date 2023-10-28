@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
     {
         QSurfaceFormat format;
         format.setSamples(4);
-        QSurfaceFormat::setDefaultFormat(format);
+        // QSurfaceFormat::setDefaultFormat(format);
 
         QQmlApplicationEngine engine;
         engine.addImportPath(u"qrc:/"_qs);

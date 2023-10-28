@@ -19,7 +19,6 @@ T.TabBar {
 
         spacing: control.spacing
         orientation: ListView.Horizontal
-        boundsBehavior: Flickable.StopAtBounds
         flickableDirection: Flickable.AutoFlickIfNeeded
         snapMode: ListView.SnapToItem
 

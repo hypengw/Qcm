@@ -54,7 +54,7 @@ MD.Page {
                         Layout.fillWidth: true
                     }
                 }
-                ListView {
+            MD.ListView {
                     Layout.fillWidth: true
                     implicitHeight: contentHeight
                     interactive: false
