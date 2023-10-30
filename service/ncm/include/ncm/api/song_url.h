@@ -54,8 +54,8 @@ struct SongUrl {
     std::string md5;
     std::string type;
     i64         fee;
-    std::string level;
-    std::string encodeType;
+    std::optional<std::string> level;
+    std::optional<std::string> encodeType;
     i64         time;
 };
 } // namespace model

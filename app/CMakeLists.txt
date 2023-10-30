@@ -28,6 +28,9 @@ set(SOURCES
     include/Qcm/model/artist_sublist.h
     include/Qcm/model/comments.h
     include/Qcm/model/cloudsearch.h
+    include/Qcm/model/djradio_detail.h
+    include/Qcm/model/djradio_sublist.h
+    include/Qcm/model/djradio_program.h
     include/Qcm/model/login.h
     include/Qcm/model/playlist_catalogue.h
     include/Qcm/model/playlist_detail.h
@@ -66,6 +69,7 @@ set(QML_FILES
     qml/page/ArtistDetailPage.qml
     qml/page/CommentPage.qml
     qml/page/DescriptionPage.qml
+    qml/page/DjradioDetailPage.qml
     qml/page/PlaylistCataloguePage.qml
     qml/page/PlaylistDetailPage.qml
     qml/page/PlaylistListPage.qml
@@ -80,6 +84,7 @@ set(QML_FILES
     qml/delegate/CommentDelegate.qml
     qml/delegate/SongDelegate.qml
     qml/delegate/PicGridDelegate.qml
+    qml/delegate/ProgramDelegate.qml
     qml/component/ArtistsPopup.qml
     qml/component/InfoRow.qml
     qml/component/SnakeBar.qml

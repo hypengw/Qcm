@@ -89,6 +89,9 @@ public:
         Artist,
         Playlist,
         User,
+        Comment,
+        Djradio,
+        Program
     };
     Q_ENUM(Type)
 };
@@ -175,11 +178,23 @@ public:
     virtual ~UserId() = default;
 };
 
-struct CommentId : public ItemIdBase<ItemId::Type::User> {
+struct CommentId : public ItemIdBase<ItemId::Type::Comment> {
     Q_GADGET
 public:
-    using ItemIdBase<ItemId::Type::User>::ItemIdBase;
+    using ItemIdBase<ItemId::Type::Comment>::ItemIdBase;
     virtual ~CommentId() = default;
+};
+struct DjradioId : public ItemIdBase<ItemId::Type::Djradio> {
+    Q_GADGET
+public:
+    using ItemIdBase<ItemId::Type::Djradio>::ItemIdBase;
+    virtual ~DjradioId() = default;
+};
+struct ProgramId : public ItemIdBase<ItemId::Type::Program> {
+    Q_GADGET
+public:
+    using ItemIdBase<ItemId::Type::Program>::ItemIdBase;
+    virtual ~ProgramId() = default;
 };
 
 class Artist {
@@ -232,6 +247,7 @@ public:
     GATGET_PROPERTY(Album, album, album)
     GATGET_PROPERTY(QDateTime, duration, duration)
     GATGET_PROPERTY(bool, canPlay, canPlay)
+    GATGET_PROPERTY(QString, coverUrl, coverUrl)
     GATGET_PROPERTY(QList<QString>, tags, tags)
 
     GATGET_LIST_PROPERTY(Artist, artists, artists)
@@ -261,6 +277,33 @@ public:
     std::strong_ordering operator<=>(const Comment&) const = default;
 };
 
+class Djradio {
+    Q_GADGET
+public:
+    GATGET_PROPERTY(DjradioId, itemId, id)
+    GATGET_PROPERTY(QString, name, name)
+    GATGET_PROPERTY(QString, picUrl, picUrl)
+    GATGET_PROPERTY(std::vector<Artist>, artists, artists)
+    GATGET_PROPERTY(qint32, programCount, programCount)
+
+    std::strong_ordering operator<=>(const Djradio&) const = default;
+};
+
+class Program {
+    Q_GADGET
+    QML_VALUE_TYPE(t_program)
+public:
+    GATGET_PROPERTY(ProgramId, itemId, id)
+    GATGET_PROPERTY(QString, name, name)
+    GATGET_PROPERTY(QDateTime, duration, duration)
+    GATGET_PROPERTY(QString, coverUrl, coverUrl)
+    GATGET_PROPERTY(Song, song, song)
+    GATGET_PROPERTY(QDateTime, createTime, createTime)
+    GATGET_PROPERTY(qint32, serialNum, serialNum)
+
+    std::strong_ordering operator<=>(const Program&) const = default;
+};
+
 } // namespace model
 } // namespace qcm
 
@@ -286,3 +329,6 @@ DECLARE_CONVERT(qcm::model::Playlist, ncm::model::Playlist)
 DECLARE_CONVERT(qcm::model::Song, ncm::model::Song)
 DECLARE_CONVERT(qcm::model::User, ncm::model::User)
 DECLARE_CONVERT(qcm::model::Comment, ncm::model::Comment)
+DECLARE_CONVERT(qcm::model::Djradio, ncm::model::Djradio)
+DECLARE_CONVERT(qcm::model::Song, ncm::model::SongB)
+DECLARE_CONVERT(qcm::model::Program, ncm::model::Program)

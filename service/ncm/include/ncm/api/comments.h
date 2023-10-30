@@ -44,11 +44,12 @@ struct Comments {
     using out_type                     = api_model::Comments;
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
-    constexpr static std::array prefixs { "R_AL_3_", "A_PL_0_", "R_SO_4_" };
+    constexpr static std::array prefixs { "R_AL_3_", "A_PL_0_", "R_SO_4_", "A_DJ_1_" };
 
     std::string path() const {
-        return fmt::format(
-            "/weapi/v1/resource/comments/{}{}", prefixs[(int)input.type % 3], input.id);
+        return fmt::format("/weapi/v1/resource/comments/{}{}",
+                           prefixs[(int)input.type % prefixs.size()],
+                           input.id);
     };
     UrlParams query() const { return {}; }
     Params    body() const {

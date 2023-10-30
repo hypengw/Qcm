@@ -50,17 +50,6 @@ Item {
             console.error(com.errorString());
         }
     }
-    function item_id_url(itemId) {
-        switch (itemId.type) {
-        case QA.ItemIdType.Album:
-            return 'qrc:/Qcm/App/qml/page/AlbumDetailPage.qml';
-        case QA.ItemIdType.Playlist:
-            return 'qrc:/Qcm/App/qml/page/PlaylistDetailPage.qml';
-        case QA.ItemIdType.Artist:
-            return 'qrc:/Qcm/App/qml/page/ArtistDetailPage.qml';
-        }
-        return '';
-    }
     function join_name(objs, split) {
         const names = objs.map(o => {
                 return o.name;
@@ -69,12 +58,14 @@ Item {
     }
     function route(dest, props = {}) {
         let url = dest;
-        if (dest.objectType instanceof QA.ItemIdType) {
-            url = item_id_url(dest);
+        if (QA.App.isItemId(dest)) {
+            url = QA.App.itemIdPageUrl(dest);
             props = {
                 "itemId": dest
             };
         }
+        if (QA.App.debug)
+            console.error('route to:', url);
         sig_route_special('main');
         const msg = m_comp_route_msg.createObject(root, {
                 "qml": url,
@@ -129,11 +120,11 @@ Item {
         Component.onCompleted: {
             MD.Token.color.accentColor = primary_color;
             primary_color = Qt.binding(() => {
-                return MD.Token.color.accentColor;
-            });
+                    return MD.Token.color.accentColor;
+                });
             MD.Token.color.schemeTheme = Qt.binding(() => {
-                return root.color_scheme;
-            });
+                    return root.color_scheme;
+                });
         }
     }
     QA.Playlist {

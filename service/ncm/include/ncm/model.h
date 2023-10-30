@@ -32,19 +32,22 @@ enum class IDType
 {
     Album = 0,
     Playlist,
-    Song
+    Song,
 };
 
 struct Song {
     struct Ar {
-        i64                      id;
-        std::string              name;
-        std::vector<std::string> alia;
+        i64                                     id { 0 };
+        std::string                             name;
+        std::optional<std::vector<std::string>> alia;
+        std::optional<std::string>              picUrl;
+        std::optional<i64>                      picId { 0 };
     };
     struct Al {
-        i64         id;
-        std::string name;
-        std::string picUrl;
+        i64                        id { 0 };
+        std::optional<std::string> name;
+        std::string                picUrl;
+        std::optional<i64>         picId { 0 };
     };
 
     struct Quality {
@@ -54,7 +57,7 @@ struct Song {
     };
 
     struct Privilege {
-        i64         id;
+        i64         id { 0 };
         SongFee     fee;
         i64         payed;
         i64         st;
@@ -129,7 +132,7 @@ struct Song {
     std::optional<Quality>     hr;
     std::string                cd;
     std::string                name;
-    i64                        id;
+    i64                        id { 0 };
 
     std::optional<Privilege> privilege;
 
@@ -140,6 +143,49 @@ struct Song {
     // crbt	null
     // rtUrl	null
     // djId	0
+};
+
+struct SongB {
+    std::string name;
+    i64         id { 0 };
+    // position	0
+    // alias	[]
+    i64         status { 0 };
+    i64         fee { 0 };
+    i64         copyrightId { 0 };
+    std::string disc;
+    // no	0
+    std::vector<Song::Ar> artists;
+    Song::Al              album;
+    bool                  starred { false };
+    i64                   popularity { 0 };
+    i64                   score { 5 };
+    i64                   starredNum { 0 };
+    Time                  duration;
+    i64                   playedNum { 0 };
+    // dayPlays	0
+    i64 hearTime { 0 };
+    // ringtone	null
+    // crbt	null
+    // audition	null
+    // copyFrom	""
+    std::string commentThreadId;
+    // rtUrl	null
+    i64 ftype { 0 };
+    // rtUrls	[]
+    i64 copyright { 0 };
+    // transName	null
+    // sign	null
+    // mark	0
+    // noCopyrightRcmd	null
+    // hMusic	{…}
+    // mMusic	{…}
+    // lMusic	{…}
+    // bMusic	{…}
+    // mp3Url	null
+    // rtype	0
+    // rurl	null
+    // mvid	0
 };
 
 struct Artist {
@@ -153,7 +199,7 @@ struct Artist {
     std::string                picUrl;
     std::string                img1v1Url;
     std::string                name;
-    i64                        id;
+    i64                        id { 0 };
     // std::string              picId_str;
     // std::string              img1v1Id_str;
 };
@@ -179,7 +225,7 @@ struct Album {
     i64                        status;
     std::string                subType;
     std::string                name;
-    i64                        id;
+    i64                        id { 0 };
     std::string                type;
     i64                        size;
     std::string                picId_str;
@@ -188,7 +234,7 @@ struct Album {
 };
 
 struct Playlist {
-    i64         id;
+    i64         id { 0 };
     std::string name;
     // coverImgId	109951167805071570
     std::string coverImgUrl;
@@ -289,13 +335,120 @@ struct Comment {
     Bool liked;
 };
 
+struct Djradio {
+    std::string category;
+    std::string secondCategory;
+    bool        buyed { false };
+    i64         price { 0 };
+    i64         originalPrice { 0 };
+    // discountPrice":null,
+    i64 purchaseCount { 0 };
+    // std::string lastProgramName;
+    // videos":null,
+    bool finished { false };
+    // underShelf":false,
+    // liveInfo":null,
+    i64  playCount { 0 };
+    bool privacy { false };
+    // icon":null,
+    // manualTagsDTO":null,
+    // descPicList":null,
+    // replaceRadioId":0,
+    // replaceRadio":null,
+    Time lastProgramCreateTime;
+    // shortName":null,
+    std::string intervenePicUrl;
+    i64         picId { 0 };
+    i64         categoryId;
+    // taskId":0,
+    i64         programCount { 0 };
+    i64         subCount { 0 };
+    bool        dynamic { false };
+    i64         radioFeeType { 0 };
+    std::string picUrl;
+    i64 lastProgramId {0};
+    i64 feeScope { 0 };
+    // intervenePicId":19115009649278426,
+    std::string name;
+    i64         id { 0 };
+    std::string desc;
+    model::Time createTime;
+    // rcmdtext":null,
+    // newProgramCount":0
+};
+
+struct Program {
+    SongB mainSong;
+    // songs	null
+    // dj	{…}
+    std::string blurCoverUrl;
+    // radio	{…}
+    Time duration;
+    // authDTO	null
+    bool buyed { false };
+    // programDesc	null
+    // h5Links	null
+    bool canReward { false };
+    i64  auditStatus { 0 };
+    // videoInfo	null
+    i64 score { 0 };
+    // liveInfo	null
+    // alg	null
+    // disPlayStatus	null
+    i64                        auditDisPlayStatus { 1 };
+    std::optional<std::string> categoryName;
+    std::optional<std::string> secondCategoryName;
+    bool                       existLyric { false };
+    // djPlayRecordVo	null
+    // recommended	false
+    // icon	null
+    // additionIconList	null
+    // adIconInfo	null
+    // replaceVoiceId	0
+    // replaceResource	null
+    // smallLanguageAuditStatus	0
+    i64 pubStatus { 1 };
+    i64 programFeeType { 0 };
+    i64 mainTrackId { 0 };
+    // titbits	null
+    i64         feeScope { 0 };
+    std::string coverUrl;
+    bool        reward { false };
+    i64         subscribedCount { 0 };
+    // trackCount	0
+    // titbitImages	null
+    bool isPublish { false };
+    i64  coverId { 0 };
+    bool privacy { false };
+    // channels	[]
+    i64         categoryId { 0 };
+    std::string commentThreadId;
+    i64         listenerCount { 0 };
+    // createEventId	0
+    i64  serialNum { 36 };
+    Time scheduledPublishTime;
+    // bdAuditStatus	2
+    i64         secondCategoryId { 0 };
+    std::string name;
+    i64         id { 0 };
+    std::string description;
+    Time        createTime;
+    i64         shareCount { 0 };
+    bool        subscribed { false };
+    i64         likedCount { 0 };
+    i64         commentCount { 0 };
+};
+
 JSON_DEFINE(Song);
+JSON_DEFINE(SongB);
 JSON_DEFINE(Artist);
 JSON_DEFINE(Album);
 JSON_DEFINE(Playlist);
 JSON_DEFINE(Time);
 JSON_DEFINE(Comment);
 JSON_DEFINE(User);
+JSON_DEFINE(Djradio);
+JSON_DEFINE(Program);
 
 } // namespace model
 

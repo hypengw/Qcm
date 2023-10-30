@@ -10,6 +10,9 @@
 #include "ncm/api/artist_sublist.h"
 #include "ncm/api/cloudsearch.h"
 #include "ncm/api/comments.h"
+#include "ncm/api/djradio_detail.h"
+#include "ncm/api/djradio_sublist.h"
+#include "ncm/api/djradio_program.h"
 #include "ncm/api/login.h"
 #include "ncm/api/playlist_catalogue.h"
 #include "ncm/api/playlist_detail.h"
@@ -40,15 +43,17 @@ void from_json(const nlohmann::json& j, Time& t) {
     t.point        = Time::time_point { std::chrono::duration<i64, std::milli> { t.milliseconds } };
 }
 
-JSON_DEFINE_WITH_DEFAULT_IMPL(Song::Ar, id, name, alia);
-JSON_DEFINE_WITH_DEFAULT_IMPL(Song::Al, id, name, picUrl);
+JSON_DEFINE_IMPL(Song::Ar, id, name, alia, picId);
+JSON_DEFINE_IMPL(Song::Al, id, name, picUrl, picId);
 JSON_DEFINE_IMPL(Song::Quality, br, size);
 JSON_DEFINE_IMPL(Song::Privilege, downloadMaxBrLevel, playMaxBrLevel, downloadMaxbr, maxBrLevel,
                  playMaxbr, preSell, plLevel, flLevel, dlLevel, toast, payed, maxbr, subp, flag, sp,
                  pl, fl, dl, cs, fee, st, id, cp);
 
-JSON_DEFINE_WITH_DEFAULT_IMPL(Song, ar, al, st, rtype, pst, alia, pop, rt, mst, cp, cf, dt, ftype,
-                              no, fee, mv, t, v, h, m, l, sq, hr, cd, name, id, privilege);
+JSON_DEFINE_IMPL(Song, ar, al, st, rtype, pst, alia, pop, rt, mst, cp, cf, dt, ftype, no, fee, mv,
+                 t, v, h, m, l, sq, hr, cd, name, id, privilege);
+JSON_DEFINE_IMPL(SongB, name, ftype, album, artists, commentThreadId, copyright, copyrightId, disc,
+                 duration, fee, hearTime, id, status, starred, score, popularity, playedNum)
 
 JSON_DEFINE_WITH_DEFAULT_IMPL(Artist, followed, alias, trans, musicSize, albumSize, briefDesc,
                               picUrl, img1v1Url, name, id);
@@ -62,6 +67,10 @@ JSON_DEFINE_IMPL(User, userId, userType, vipType, avatarUrl, followed, nickname)
 
 JSON_DEFINE_IMPL(Comment, user, richContent, commentId, content, liked, likedCount, owner, status,
                  time)
+
+JSON_DEFINE_IMPL(Djradio, createTime, buyed, category, categoryId, secondCategory, desc, dynamic,
+                 feeScope, finished, id, intervenePicUrl, name, originalPrice, picId, picUrl,
+                 playCount, privacy, radioFeeType, programCount, lastProgramCreateTime, lastProgramId)
 
 JSON_DEFINE_IMPL(AlbumSublistItem, subTime, size, artists, id, name, picUrl, alias, transNames);
 
@@ -87,6 +96,17 @@ JSON_DEFINE_WITH_DEFAULT_IMPL(UserAccountProfile, defaultAvatar, accountStatus, 
 JSON_DEFINE_IMPL(UserPlaylistItem, tags, description, commentThreadId, id, subscribedCount,
                  coverImgUrl, updateTime, trackCount, subscribed, createTime, playCount, userId,
                  name);
+
+JSON_DEFINE_IMPL(DjradioDetail, name, category, categoryId, secondCategory, secondCategoryId,
+                 commentCount, likedCount, playCount, programCount, shareCount,
+                 lastProgramCreateTime, lastProgramId, subCount, desc, dynamic, feeScope, id,
+                 original, picId, picUrl, privacy, radioFeeType, subed, createTime)
+
+JSON_DEFINE_IMPL(Program, programFeeType, privacy, auditDisPlayStatus, auditStatus, pubStatus,
+                 blurCoverUrl, coverId, coverUrl, buyed, canReward, categoryId, secondCategoryId,
+                 secondCategoryName, createTime, scheduledPublishTime, commentCount,
+                 commentThreadId, auditDisPlayStatus, id, mainSong, existLyric, duration, serialNum,
+                 subscribed, score, name)
 
 } // namespace model
 
@@ -134,6 +154,11 @@ JSON_DEFINE_IMPL(CloudSearch::ArtistResult, artistCount, artists);
 JSON_DEFINE_IMPL(CloudSearch, result);
 
 JSON_DEFINE_IMPL(Comments, comments, hotComments, topComments, more, moreHot, total);
+
+JSON_DEFINE_IMPL(DjradioSublist, djRadios, hasMore, count, time);
+JSON_DEFINE_IMPL(DjradioDetail, data);
+
+JSON_DEFINE_IMPL(DjradioProgram, programs, count, more);
 } // namespace api_model
 
 } // namespace ncm
@@ -167,6 +192,9 @@ JSON_GET_IMPL(api_model::QrcodeUnikey);
 JSON_GET_IMPL(api_model::QrcodeLogin);
 JSON_GET_IMPL(api_model::RadioLike);
 JSON_GET_IMPL(api_model::SongLike);
+JSON_GET_IMPL(api_model::DjradioSublist);
+JSON_GET_IMPL(api_model::DjradioDetail);
+JSON_GET_IMPL(api_model::DjradioProgram);
 
 JSON_GET_IMPL(model::Album);
 JSON_GET_IMPL(model::Song);

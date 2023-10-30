@@ -72,11 +72,13 @@ concept convertable = requires(T& t, const F& f) {
 };
 
 template<typename Tout, typename Tin>
+    requires convertable<Tout, Tin>
 void convert(Tout& out, Tin&& in) {
     Convert<std::decay_t<Tout>, std::decay_t<Tin>>(out, std::forward<Tin>(in));
 }
 
 template<typename Tout, typename Tin>
+    requires convertable<Tout, Tin>
 Tout convert_from(Tin&& in) {
     Tout out;
     Convert<std::decay_t<Tout>, std::decay_t<Tin>>(out, std::forward<Tin>(in));

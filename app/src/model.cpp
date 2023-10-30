@@ -7,6 +7,9 @@
 #include "Qcm/model/artist_albums.h"
 #include "Qcm/model/artist_sublist.h"
 #include "Qcm/model/cloudsearch.h"
+#include "Qcm/model/djradio_detail.h"
+#include "Qcm/model/djradio_sublist.h"
+#include "Qcm/model/djradio_program.h"
 #include "Qcm/model/login.h"
 #include "Qcm/model/playlist_catalogue.h"
 #include "Qcm/model/playlist_detail.h"
@@ -54,7 +57,7 @@ IMPL_CONVERT(qcm::model::Artist, ncm::model::Artist) {
 IMPL_CONVERT(qcm::model::Artist, ncm::model::Song::Ar) {
     convert(out.id, in.id);
     convert(out.name, in.name);
-    convert(out.alias, in.alia);
+    convert(out.alias, helper::value_or_default(in.alia));
 }
 
 IMPL_CONVERT(qcm::model::Album, ncm::model::Album) {
@@ -70,7 +73,7 @@ IMPL_CONVERT(qcm::model::Song, ncm::model::Song) {
     convert(out.id, in.id);
     convert(out.name, in.name);
     convert(out.album.id, in.al.id);
-    convert(out.album.name, in.al.name);
+    convert(out.album.name, in.al.name.value_or(""));
     convert(out.album.picUrl, in.al.picUrl);
     convert(out.duration, in.dt);
     convert(out.artists, in.ar);
@@ -93,6 +96,17 @@ IMPL_CONVERT(qcm::model::Song, ncm::model::Song) {
     }
 }
 
+IMPL_CONVERT(qcm::model::Song, ncm::model::SongB) {
+    convert(out.id, in.id);
+    convert(out.name, in.name);
+    convert(out.album.id, in.album.id);
+    convert(out.album.name, in.album.name.value_or(""));
+    convert(out.album.picUrl, in.album.picUrl);
+    convert(out.duration, in.duration);
+    convert(out.artists, in.artists);
+    out.canPlay = true;
+}
+
 IMPL_CONVERT(qcm::model::User, ncm::model::User) {
     convert(out.id, in.userId);
     convert(out.name, in.nickname);
@@ -106,3 +120,23 @@ IMPL_CONVERT(qcm::model::Comment, ncm::model::Comment) {
     convert(out.user, in.user);
     convert(out.time, in.time);
 };
+
+IMPL_CONVERT(qcm::model::Djradio, ncm::model::Djradio) {
+    convert(out.id, in.id);
+    convert(out.name, in.name);
+    convert(out.picUrl, in.picUrl);
+    convert(out.programCount, in.programCount);
+}
+
+IMPL_CONVERT(qcm::model::Program, ncm::model::Program) {
+    convert(out.coverUrl, in.coverUrl);
+    convert(out.duration, in.duration);
+    convert(out.id, in.id);
+    convert(out.name, in.name);
+    convert(out.song, in.mainSong);
+    convert(out.createTime, in.createTime);
+    convert(out.serialNum, in.serialNum);
+    if (in.mainSong.album.picId.value_or(1) == 0) {
+        convert(out.song.album.picUrl, in.coverUrl);
+    }
+}

@@ -52,6 +52,9 @@ MD.Page {
                     MD.TabButton {
                         text: qsTr("Artist")
                     }
+                    MD.TabButton {
+                        text: qsTr("Djradio")
+                    }
                 }
                 StackLayout {
                     currentIndex: bar.currentIndex
@@ -91,6 +94,10 @@ MD.Page {
                         delegate: dg_artistlist
                         model: qr_artistlist.data
                     }
+                    BaseView {
+                        delegate: dg_djradiolist
+                        model: qr_djradiolist.data
+                    }
                 }
                 QA.AlbumSublistQuerier {
                     id: qr_albumlist
@@ -104,6 +111,10 @@ MD.Page {
                     id: qr_playlist
                     autoReload: uid.valid() && limit > 0
                     uid: QA.Global.user_info.userId
+                }
+                QA.DjradioSublistQuerier {
+                    id: qr_djradiolist
+                    autoReload: limit > 0
                 }
                 Component {
                     id: dg_albumlist
@@ -168,6 +179,27 @@ MD.Page {
                         }
                     }
                 }
+                Component {
+                    id: dg_djradiolist
+                    MD.ListItem {
+                        property var itemId: model.itemId
+
+                        width: ListView.view.width
+                        text: model.name
+                        maximumLineCount: 2
+                        // supportText: `${model.trackCount} songs`
+                        leader: MD.Image {
+                            radius: 8
+                            source: `image://ncm/${model.picUrl}`
+                            sourceSize.height: 48
+                            sourceSize.width: 48
+                        }
+                        onClicked: {
+                            content.route(itemId);
+                            ListView.view.currentIndex = index;
+                        }
+                    }
+                }
             }
         }
         rightPage: MD.StackView {
@@ -183,7 +215,7 @@ MD.Page {
             }
             function route(itemId) {
                 currentItemId = itemId;
-                push_page(QA.Global.item_id_url(itemId), {
+                push_page(QA.App.itemIdPageUrl(itemId), {
                         "itemId": itemId
                     });
             }

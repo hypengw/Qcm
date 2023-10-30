@@ -153,7 +153,8 @@ QUrl App::media_file(const QString& id_) const {
     auto media_cache_dir = cache_path() / "media";
     asio::co_spawn(m_media_cache_sql->get_executor(), m_media_cache_sql->get(id), asio::detached);
     auto file = media_cache_dir / id;
-    if (std::filesystem::exists(file)) return QUrl::fromLocalFile(convert_from<QString>(file.native()));
+    if (std::filesystem::exists(file))
+        return QUrl::fromLocalFile(convert_from<QString>(file.native()));
     return {};
 }
 
@@ -217,10 +218,13 @@ void App::save_session() {
     }
 }
 
-bool App::is_item_id(const QJSValue& v) const {
-    bool meta_ok = v.hasProperty("metaObject");
-    auto meta    = v.property("metaObject").toQMetaObject();
-    return meta != nullptr && meta->inherits(&model::ItemId::staticMetaObject);
+bool App::isItemId(const QJSValue& v) const {
+    auto var = v.toVariant();
+    if (var.isValid()) {
+        auto meta = var.metaType().metaObject();
+        return meta != nullptr && meta->inherits(&model::ItemId::staticMetaObject);
+    }
+    return false;
 }
 
 void App::test() {
@@ -252,6 +256,21 @@ bool App::debug() const {
 #endif
 }
 
-model::Song App::song(const QJSValue& js) const {
-    return meta_model::toGadget<model::Song>(js);
+model::Song    App::song(const QJSValue& js) const { return meta_model::toGadget<model::Song>(js); }
+model::Program App::program(const QJSValue& js) const {
+    return meta_model::toGadget<model::Program>(js);
+}
+
+QString App::itemIdPageUrl(const QJSValue& js) const {
+    auto variant = js.toVariant();
+    if (variant.canConvert<model::AlbumId>()) {
+        return "qrc:/Qcm/App/qml/page/AlbumDetailPage.qml";
+    } else if (variant.canConvert<model::ArtistId>()) {
+        return "qrc:/Qcm/App/qml/page/ArtistDetailPage.qml";
+    } else if (variant.canConvert<model::PlaylistId>()) {
+        return "qrc:/Qcm/App/qml/page/PlaylistDetailPage.qml";
+    } else if (variant.canConvert<model::DjradioId>()) {
+        return "qrc:/Qcm/App/qml/page/DjradioDetailPage.qml";
+    }
+    return {};
 }
