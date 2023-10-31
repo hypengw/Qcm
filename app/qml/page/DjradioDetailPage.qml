@@ -83,7 +83,7 @@ MD.Page {
                             for (let i = 0; i < model.rowCount(); i++) {
                                 songs.push(model.item(i).song);
                             }
-                            QA.playlist.appendList(songs);
+                            QA.Global.playlist.appendList(songs);
                         }
                     }
                 }

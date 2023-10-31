@@ -78,7 +78,7 @@ MD.Page {
                         icon.name: MD.Token.icon.playlist_add
                         // text: qsTr('add to list')
                         onTriggered: {
-                            QA.playlist.appendList(itemData.songs);
+                            QA.Global.playlist.appendList(itemData.songs);
                         }
                     }
                 }
