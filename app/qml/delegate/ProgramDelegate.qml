@@ -90,8 +90,8 @@ MD.ListItem {
                 icon.name: MD.Token.icon.more_vert
 
                 onClicked: {
-                    QA.Global.show_popup('qrc:/Qcm/App/qml/component/SongMenu.qml', {
-                            "song": model_,
+                    QA.Global.show_popup('qrc:/Qcm/App/qml/component/ProgramMenu.qml', {
+                            "program": model_,
                             "y": height
                         }, this);
                 }

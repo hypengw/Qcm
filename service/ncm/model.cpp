@@ -11,6 +11,7 @@
 #include "ncm/api/cloudsearch.h"
 #include "ncm/api/comments.h"
 #include "ncm/api/djradio_detail.h"
+#include "ncm/api/djradio_sub.h"
 #include "ncm/api/djradio_sublist.h"
 #include "ncm/api/djradio_program.h"
 #include "ncm/api/login.h"
@@ -151,6 +152,7 @@ JSON_DEFINE_IMPL(CloudSearch::SongResult, songCount, songs);
 JSON_DEFINE_IMPL(CloudSearch::AlbumResult, albumCount, albums);
 JSON_DEFINE_IMPL(CloudSearch::PlaylistResult, playlistCount, playlists);
 JSON_DEFINE_IMPL(CloudSearch::ArtistResult, artistCount, artists);
+JSON_DEFINE_IMPL(CloudSearch::DjradioResult, djRadiosCount, djRadios);
 JSON_DEFINE_IMPL(CloudSearch, result);
 
 JSON_DEFINE_IMPL(Comments, comments, hotComments, topComments, more, moreHot, total);
@@ -159,6 +161,7 @@ JSON_DEFINE_IMPL(DjradioSublist, djRadios, hasMore, count, time);
 JSON_DEFINE_IMPL(DjradioDetail, data);
 
 JSON_DEFINE_IMPL(DjradioProgram, programs, count, more);
+JSON_DEFINE_IMPL(DjradioSub, code);
 } // namespace api_model
 
 } // namespace ncm
@@ -195,6 +198,7 @@ JSON_GET_IMPL(api_model::SongLike);
 JSON_GET_IMPL(api_model::DjradioSublist);
 JSON_GET_IMPL(api_model::DjradioDetail);
 JSON_GET_IMPL(api_model::DjradioProgram);
+JSON_GET_IMPL(api_model::DjradioSub);
 
 JSON_GET_IMPL(model::Album);
 JSON_GET_IMPL(model::Song);

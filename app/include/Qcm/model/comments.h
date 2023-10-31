@@ -87,6 +87,9 @@ public:
             } else if (v.canConvert<model::SongId>()) {
                 convert(id, v.value<model::SongId>());
                 type = ncm::model::IDType::Song;
+            } else if(v.canConvert<model::ProgramId>()) {
+                convert(id, v.value<model::ProgramId>());
+                type = ncm::model::IDType::Program;
             }
             this->mark_dirty();
             emit changed_itemId();

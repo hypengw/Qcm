@@ -18,12 +18,12 @@ namespace model
 {
 
 class CloudSearch : public meta_model::VariantListModel<model::Song, model::Album, model::Playlist,
-                                                        model::Artist> {
+                                                        model::Artist, model::Djradio> {
     Q_OBJECT
 public:
     CloudSearch(QObject* parent = nullptr)
-        : meta_model::VariantListModel<model::Song, model::Album, model::Playlist, model::Artist>(
-              parent),
+        : meta_model::VariantListModel<model::Song, model::Album, model::Playlist, model::Artist,
+                                       model::Djradio>(parent),
           m_has_more(true) {
         connect(this, &CloudSearch::modelReset, this, [this]() {
             fetchMore({});
@@ -82,6 +82,13 @@ public:
                 m_has_more = h.src().artistCount > rowCount();
             }
         }
+        {
+            Helper<out_type::DjradioResult, model::Djradio> h(*this, re);
+            if (h) {
+                this->insert(rowCount(), h.to(helper::value_or_default(h.src().djRadios)));
+                m_has_more = h.src().djRadiosCount > rowCount();
+            }
+        }
     }
 
     bool canFetchMore(const QModelIndex&) const override { return m_has_more; }
@@ -130,7 +137,8 @@ public:
         SongType     = 1,
         AlbumType    = 10,
         AritstType   = 100,
-        PlaylistType = 1000
+        PlaylistType = 1000,
+        DjradioType  = 1009
         // 1: 单曲, 10: 专辑, 100: 歌手, 1000: 歌单, 1002: 用户, 1004: MV, 1006: 歌词,
         // 1009: 电台, 1014: 视频
     };
@@ -162,6 +170,10 @@ inline void qcm::model::CloudSearch::updateType(int t) {
     case CloudSearchQuerier::AritstType:
         meta = &model::Artist::staticMetaObject;
         i    = 3;
+        break;
+    case CloudSearchQuerier::DjradioType:
+        meta = &model::Djradio::staticMetaObject;
+        i    = 4;
         break;
     default:
     case CloudSearchQuerier::SongType:

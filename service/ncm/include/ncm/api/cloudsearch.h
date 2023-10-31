@@ -45,7 +45,12 @@ struct CloudSearch {
         i64                                       artistCount;
     };
 
-    using SearchResult = std::variant<SongResult, AlbumResult, PlaylistResult, ArtistResult>;
+    struct DjradioResult {
+        std::optional<std::vector<model::Djradio>> djRadios;
+        i64                                       djRadiosCount;
+    };
+
+    using SearchResult = std::variant<SongResult, AlbumResult, PlaylistResult, ArtistResult, DjradioResult>;
     SearchResult result;
 };
 JSON_DEFINE(CloudSearch);
@@ -53,6 +58,7 @@ JSON_DEFINE(CloudSearch::SongResult);
 JSON_DEFINE(CloudSearch::AlbumResult);
 JSON_DEFINE(CloudSearch::PlaylistResult);
 JSON_DEFINE(CloudSearch::ArtistResult);
+JSON_DEFINE(CloudSearch::DjradioResult);
 
 } // namespace api_model
 

@@ -8,6 +8,7 @@
 #include "Qcm/model/artist_sublist.h"
 #include "Qcm/model/cloudsearch.h"
 #include "Qcm/model/djradio_detail.h"
+#include "Qcm/model/djradio_sub.h"
 #include "Qcm/model/djradio_sublist.h"
 #include "Qcm/model/djradio_program.h"
 #include "Qcm/model/login.h"

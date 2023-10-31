@@ -24,6 +24,7 @@ public:
     READ_PROPERTY(qint32, programCount, m_programCount, infoChanged)
     READ_PROPERTY(QDateTime, createTime, m_createTime, infoChanged)
     READ_PROPERTY(QDateTime, lastProgramTime, m_lastProgramTime, infoChanged)
+    READ_PROPERTY(bool, subed, m_subed, infoChanged)
 
     using out_type = ncm::api_model::DjradioDetail;
 
@@ -36,6 +37,7 @@ public:
         convert(o.m_programCount, in.programCount);
         convert(o.m_createTime, in.createTime);
         convert(o.m_lastProgramTime, in.lastProgramCreateTime);
+        convert(o.m_subed, in.subed);
         emit infoChanged();
     }
 

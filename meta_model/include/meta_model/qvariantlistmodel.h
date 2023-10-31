@@ -20,7 +20,6 @@ public:
     using container_type = std::variant<std::vector<Ts>...>;
     using iterator       = std::variant<typename std::vector<Ts>::iterator...>;
 
-
     template<typename T>
     bool holds_alternative() const {
         return std::holds_alternative<std::vector<T>>(m_items);
@@ -29,63 +28,57 @@ public:
     // override
     virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override {
         if (auto prop = this->propertyOfRole(role); prop) {
-            QVariant var;
-            std::visit(
-                [&var, &index, &prop](auto& items) {
-                    var = prop.value().readOnGadget(&items.at(index.row()));
+            return std::visit(
+                [&index, &prop](auto& items) -> QVariant {
+                    return prop.value().readOnGadget(&items.at(index.row()));
                 },
                 m_items);
-            return var;
         }
         return {};
     };
 
     auto begin() const {
-        iterator it;
-        std::visit(
-            [&it](auto& var) {
-                it = std::begin(var);
+        return std::visit(
+            [](auto& var) -> iterator {
+                return std::begin(var);
             },
             m_items);
-        return it;
     }
     auto end() const {
-        iterator it;
-        std::visit(
-            [&it](auto& var) {
-                it = std::end(var);
+        return std::visit(
+            [](auto& var) -> iterator {
+                return std::end(var);
             },
             m_items);
-        return it;
     }
     auto begin() {
-        iterator it;
-        std::visit(
-            [&it](auto& var) {
-                it = std::begin(var);
+        return std::visit(
+            [](auto& var) -> iterator {
+                return std::begin(var);
             },
             m_items);
-        return it;
     }
     auto end() {
-        iterator it;
-        std::visit(
-            [&it](auto& var) {
-                it = std::end(var);
+        return std::visit(
+            [](auto& var) -> iterator {
+                return std::end(var);
             },
             m_items);
-        return it;
     }
     auto size() const {
-        std::size_t it;
-        std::visit(
-            [&it](auto& var) {
-                it = std::size(var);
+        return std::visit(
+            [](auto& var) -> std::size_t {
+                return std::size(var);
             },
             m_items);
-        return it;
     }
-    auto at(std::size_t idx) const { return m_items.at(idx); }
+    auto at(std::size_t idx) const {
+        return std::visit(
+            [idx](auto& items) -> value_type {
+                return items.at(idx);
+            },
+            m_items);
+    }
     void assign(std::size_t idx, value_type v) {
         std::visit(
             [this, idx](auto& var) {
@@ -137,7 +130,6 @@ protected:
         m_items = helper::make_variant<std::vector<Ts>...>(i);
         this->QMetaListModelBase::updateRoleNames(meta);
     }
-
 
 private:
     container_type m_items;

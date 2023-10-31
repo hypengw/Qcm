@@ -29,6 +29,7 @@ set(SOURCES
     include/Qcm/model/comments.h
     include/Qcm/model/cloudsearch.h
     include/Qcm/model/djradio_detail.h
+    include/Qcm/model/djradio_sub.h
     include/Qcm/model/djradio_sublist.h
     include/Qcm/model/djradio_program.h
     include/Qcm/model/login.h
@@ -103,6 +104,7 @@ set(QML_FILES
     qml/component/MRoundButton.qml
     qml/component/MGridView.qml
     qml/component/MItemDelegate.qml
+    qml/component/ProgramMenu.qml
     qml/component/PageContainer.qml
     qml/component/PagePopup.qml
     qml/component/PageStack.qml)

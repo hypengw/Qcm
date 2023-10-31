@@ -95,8 +95,19 @@ MD.Page {
                         model: qr_artistlist.data
                     }
                     BaseView {
+                        id: view_djradiolist
                         delegate: dg_djradiolist
                         model: qr_djradiolist.data
+                        refresh: function () {
+                            root.refresh_list(qr_djradiolist);
+                        }
+                        Connections {
+                            function onDjradioLiked() {
+                                view_djradiolist.dirty = true;
+                            }
+
+                            target: QA.App
+                        }
                     }
                 }
                 QA.AlbumSublistQuerier {
@@ -187,7 +198,7 @@ MD.Page {
                         width: ListView.view.width
                         text: model.name
                         maximumLineCount: 2
-                        // supportText: `${model.trackCount} songs`
+                        supportText: `${model.programCount} programs`
                         leader: MD.Image {
                             radius: 8
                             source: `image://ncm/${model.picUrl}`

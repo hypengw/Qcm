@@ -11,6 +11,8 @@
 
 #include <QtCore/QAbstractListModel>
 
+#include "core/core.h"
+
 namespace meta_model
 {
 class QMetaListModelBase : public QAbstractListModel {
@@ -20,6 +22,8 @@ public:
     virtual ~QMetaListModelBase();
 
     virtual QHash<int, QByteArray> roleNames() const override;
+
+    Q_INVOKABLE virtual QVariant item(int index) const = 0;
 
 protected:
     std::optional<QMetaProperty> propertyOfRole(int role) const;
@@ -79,7 +83,17 @@ public:
         endResetModel();
     }
 
-    const auto& item(int idx) const { return crtp_impl().at(idx); }
+    QVariant item(int idx) const override {
+        if constexpr (core::is_specialization_of<value_type, std::variant>) {
+            return std::visit(
+                [](const auto& v) -> QVariant {
+                    return QVariant::fromValue(v);
+                },
+                crtp_impl().at(idx));
+        } else {
+            return QVariant::fromValue(crtp_impl().at(idx));
+        }
+    }
     virtual int rowCount(const QModelIndex& = QModelIndex()) const override {
         return crtp_impl().size();
     }

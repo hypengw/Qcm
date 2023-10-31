@@ -33,6 +33,7 @@ enum class IDType
     Album = 0,
     Playlist,
     Song,
+    Program
 };
 
 struct Song {
@@ -361,13 +362,13 @@ struct Djradio {
     i64         picId { 0 };
     i64         categoryId;
     // taskId":0,
-    i64         programCount { 0 };
-    i64         subCount { 0 };
-    bool        dynamic { false };
-    i64         radioFeeType { 0 };
-    std::string picUrl;
-    i64 lastProgramId {0};
-    i64 feeScope { 0 };
+    i64                 programCount { 0 };
+    i64                 subCount { 0 };
+    std::optional<bool> dynamic { false };
+    i64                 radioFeeType { 0 };
+    std::string         picUrl;
+    i64                 lastProgramId { 0 };
+    i64                 feeScope { 0 };
     // intervenePicId":19115009649278426,
     std::string name;
     i64         id { 0 };

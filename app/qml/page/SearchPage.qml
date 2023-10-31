@@ -48,8 +48,11 @@ MD.Page {
             MD.TabButton {
                 text: qsTr("Playlist")
             }
+            MD.TabButton {
+                text: qsTr("Djradio")
+            }
 
-            readonly property list<QtObject> queriers: [song_querier, album_querier, playlist_querier]
+            readonly property list<QtObject> queriers: [song_querier, album_querier, playlist_querier, djradio_querier]
 
             onCurrentIndexChanged: {
                 let querier = queriers[currentIndex];
@@ -153,6 +156,37 @@ MD.Page {
                         id: playlist_querier
                         autoReload: keywords
                         type: QA.CloudSearchQuerier.PlaylistType
+                    }
+                }
+                MD.ListView {
+                    clip: true
+                    implicitHeight: contentHeight
+                    model: djradio_querier.data
+                    busy: djradio_querier.status === QA.ApiQuerierBase.Querying
+
+                    delegate: MD.ListItem {
+                        property var itemId: model.itemId
+
+                        width: ListView.view.width
+                        text: model.name
+                        maximumLineCount: 2
+                        supportText: `${model.programCount} programs`
+                        leader: MD.Image {
+                            radius: 8
+                            source: `image://ncm/${model.picUrl}`
+                            sourceSize.height: 48
+                            sourceSize.width: 48
+                        }
+                        onClicked: {
+                            QA.Global.route(itemId);
+                            ListView.view.currentIndex = index;
+                        }
+                    }
+
+                    QA.CloudSearchQuerier {
+                        id: djradio_querier
+                        autoReload: keywords
+                        type: QA.CloudSearchQuerier.DjradioType
                     }
                 }
             }

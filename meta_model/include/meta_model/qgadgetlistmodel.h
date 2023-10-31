@@ -20,7 +20,7 @@ public:
     // override
     virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override {
         if (auto prop = this->propertyOfRole(role); prop) {
-            return prop.value().readOnGadget(&this->item(index.row()));
+            return prop.value().readOnGadget(&this->at(index.row()));
         }
         return {};
     };

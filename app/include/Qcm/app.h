@@ -69,6 +69,8 @@ signals:
     void errorOccurred(QString);
     void albumLiked(model::AlbumId, bool);
     void playlistLiked(model::PlaylistId, bool);
+    void djradioLiked(model::DjradioId, bool);
+    void programLiked(model::ProgramId, bool);
 
 public slots:
     void loginPost(model::UserAccount*);

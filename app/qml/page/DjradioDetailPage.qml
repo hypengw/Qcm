@@ -78,13 +78,18 @@ MD.Page {
                         icon.name: MD.Token.icon.playlist_add
                         // text: qsTr('add to list')
                         onTriggered: {
-                            QA.playlist.appendList(itemData.songs);
+                            const songs = [];
+                            const model = qr_program.data;
+                            for (let i = 0; i < model.rowCount(); i++) {
+                                songs.push(model.item(i).song);
+                            }
+                            QA.playlist.appendList(songs);
                         }
                     }
                 }
                 MD.IconButton {
                     id: btn_fav
-                    property bool liked: false//qr_dynamic.data.subscribed
+                    property bool liked: root.itemData.subed
                     action: Action {
                         icon.name: btn_fav.liked ? MD.Token.icon.done : MD.Token.icon.add
 
@@ -132,10 +137,13 @@ MD.Page {
     MD.FAB {
         action: Action {
             icon.name: MD.Token.icon.play_arrow
+
             onTriggered: {
-                const songs = itemData.songs.filter(s => {
-                        return s.canPlay;
-                    });
+                const songs = [];
+                const model = qr_program.data;
+                for (let i = 0; i < model.rowCount(); i++) {
+                    songs.push(model.item(i).song);
+                }
                 if (songs.length)
                     QA.Global.playlist.switchList(songs);
             }
@@ -151,13 +159,14 @@ MD.Page {
         autoReload: itemId.valid()
         itemId: qr_dj.itemId
     }
-    QA.PlaylistSubscribeQuerier {
+    QA.DjradioSubQuerier {
         id: qr_sub
         autoReload: false
 
         onStatusChanged: {
-            if (status === QA.ApiQuerierBase.Finished)
-                QA.App.playlistLiked(itemId, sub);
+            if (status === QA.ApiQuerierBase.Finished) {
+                QA.App.djradioLiked(itemId, sub);
+            }
         }
     }
 }
