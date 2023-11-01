@@ -27,7 +27,7 @@ MD.Page {
 
                         MD.Text {
                             font.capitalization: Font.Capitalize
-                            typescale: MD.Token.typescale.title_large
+                            typescale: MD.Token.typescale.headline_large
                             text: qsTr('recommend playlists')
                         }
                     }
@@ -104,7 +104,7 @@ MD.Page {
 
                         MD.Text {
                             font.capitalization: Font.Capitalize
-                            typescale: MD.Token.typescale.title_large
+                            typescale: MD.Token.typescale.headline_large
                             text: qsTr('recommend songs')
                         }
                     }

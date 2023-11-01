@@ -8,6 +8,7 @@
 #include "ncm/api/artist.h"
 #include "ncm/api/artist_albums.h"
 #include "ncm/api/artist_sublist.h"
+#include "ncm/api/artist_sub.h"
 #include "ncm/api/cloudsearch.h"
 #include "ncm/api/comments.h"
 #include "ncm/api/djradio_detail.h"
@@ -26,6 +27,7 @@
 #include "ncm/api/song_lyric.h"
 #include "ncm/api/user_account.h"
 #include "ncm/api/user_playlist.h"
+#include "ncm/api/user_cloud.h"
 #include "ncm/api/qrcode_login.h"
 #include "ncm/api/qrcode_unikey.h"
 #include "ncm/api/radio_like.h"
@@ -71,7 +73,8 @@ JSON_DEFINE_IMPL(Comment, user, richContent, commentId, content, liked, likedCou
 
 JSON_DEFINE_IMPL(Djradio, createTime, buyed, category, categoryId, secondCategory, desc, dynamic,
                  feeScope, finished, id, intervenePicUrl, name, originalPrice, picId, picUrl,
-                 playCount, privacy, radioFeeType, programCount, lastProgramCreateTime, lastProgramId)
+                 playCount, privacy, radioFeeType, programCount, lastProgramCreateTime,
+                 lastProgramId)
 
 JSON_DEFINE_IMPL(AlbumSublistItem, subTime, size, artists, id, name, picUrl, alias, transNames);
 
@@ -109,6 +112,9 @@ JSON_DEFINE_IMPL(Program, programFeeType, privacy, auditDisPlayStatus, auditStat
                  commentThreadId, auditDisPlayStatus, id, mainSong, existLyric, duration, serialNum,
                  subscribed, score, name)
 
+JSON_DEFINE_IMPL(UserCloudItem, fileName, fileSize, simpleSong, songName, songId, addTime, album,
+                 artist, bitrate, cover, coverId, songId, lyricId, version)
+
 } // namespace model
 
 namespace api_model
@@ -123,6 +129,7 @@ JSON_DEFINE_IMPL(AlbumSub, code);
 JSON_DEFINE_IMPL(AlbumSublist, code, data, count, hasMore);
 JSON_DEFINE_IMPL(Artist, code, hotSongs, artist, more);
 JSON_DEFINE_IMPL(ArtistAlbums, code, hotAlbums, more);
+JSON_DEFINE_IMPL(ArtistSub, code);
 JSON_DEFINE_IMPL(ArtistSublist, code, data, count, hasMore);
 JSON_DEFINE_IMPL(Login, code);
 JSON_DEFINE_IMPL(PlaylistDetail, code, playlist, privileges);
@@ -162,6 +169,8 @@ JSON_DEFINE_IMPL(DjradioDetail, data);
 
 JSON_DEFINE_IMPL(DjradioProgram, programs, count, more);
 JSON_DEFINE_IMPL(DjradioSub, code);
+
+JSON_DEFINE_IMPL(UserCloud, data, count, hasMore, maxSize, size, upgradeSign);
 } // namespace api_model
 
 } // namespace ncm
@@ -176,6 +185,7 @@ JSON_GET_IMPL(api_model::AlbumSub);
 JSON_GET_IMPL(api_model::AlbumSublist);
 JSON_GET_IMPL(api_model::Artist);
 JSON_GET_IMPL(api_model::ArtistAlbums);
+JSON_GET_IMPL(api_model::ArtistSub);
 JSON_GET_IMPL(api_model::ArtistSublist);
 JSON_GET_IMPL(api_model::CloudSearch);
 JSON_GET_IMPL(api_model::Comments);
@@ -199,6 +209,7 @@ JSON_GET_IMPL(api_model::DjradioSublist);
 JSON_GET_IMPL(api_model::DjradioDetail);
 JSON_GET_IMPL(api_model::DjradioProgram);
 JSON_GET_IMPL(api_model::DjradioSub);
+JSON_GET_IMPL(api_model::UserCloud);
 
 JSON_GET_IMPL(model::Album);
 JSON_GET_IMPL(model::Song);

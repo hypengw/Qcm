@@ -31,7 +31,7 @@ MD.Page {
                 Layout.fillHeight: false
                 currentIndex: 1
 
-                Binding on currentIndex  {
+                Binding on currentIndex {
                     value: 0
                     when: m_page_stack.depth > 1 || !!page_container.currentItem.canBack
                 }
@@ -54,7 +54,7 @@ MD.Page {
                         Layout.fillWidth: true
                     }
                 }
-            MD.ListView {
+                MD.ListView {
                     Layout.fillWidth: true
                     implicitHeight: contentHeight
                     interactive: false
@@ -97,6 +97,11 @@ MD.Page {
                                 "icon": MD.Token.icon.queue_music,
                                 "name": qsTr('playlist'),
                                 "page": 'qrc:/Qcm/App/qml/page/PlaylistListPage.qml'
+                            }, {
+                                "icon": MD.Token.icon.cloud,
+                                "name": qsTr('cloud'),
+                                "page": 'qrc:/Qcm/App/qml/page/CloudPage.qml',
+                                "cache": true
                             }];
                         if (QA.App.debug) {
                             pages.push({

@@ -5,6 +5,7 @@
 #include "Qcm/model/album_sublist.h"
 #include "Qcm/model/artist.h"
 #include "Qcm/model/artist_albums.h"
+#include "Qcm/model/artist_sub.h"
 #include "Qcm/model/artist_sublist.h"
 #include "Qcm/model/cloudsearch.h"
 #include "Qcm/model/djradio_detail.h"
@@ -23,6 +24,7 @@
 #include "Qcm/model/song_lyric.h"
 #include "Qcm/model/user_playlist.h"
 #include "Qcm/model/user_account.h"
+#include "Qcm/model/user_cloud.h"
 #include "Qcm/model/qrcode_login.h"
 #include "Qcm/model/qrcode_unikey.h"
 #include "Qcm/model/radio_like.h"
@@ -53,6 +55,7 @@ IMPL_CONVERT(qcm::model::Artist, ncm::model::Artist) {
     convert(out.briefDesc, in.briefDesc.value_or(""));
     convert(out.musicSize, in.musicSize);
     convert(out.albumSize, in.albumSize);
+    convert(out.followed, in.followed);
 }
 
 IMPL_CONVERT(qcm::model::Artist, ncm::model::Song::Ar) {

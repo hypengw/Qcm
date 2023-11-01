@@ -12,7 +12,7 @@ MD.Page {
 
     padding: 0
 
-MD.ListView {
+    MD.ListView {
         id: view
         anchors.fill: parent
         reuseItems: true
@@ -107,7 +107,7 @@ MD.ListView {
                             qr_sub.query();
                         }
                     }
-                    Binding on liked  {
+                    Binding on liked {
                         value: qr_sub.sub
                         when: qr_sub.status === QA.ApiQuerierBase.Finished
                     }
@@ -133,10 +133,6 @@ MD.ListView {
             onClicked: {
                 QA.Global.playlist.switchTo(modelData);
             }
-        }
-        footer: MD.ListBusyFooter {
-            running: qr_al.status === QA.ApiQuerierBase.Querying
-            width: ListView.view.width
         }
     }
     MD.FAB {
@@ -171,5 +167,4 @@ MD.ListView {
             }
         }
     }
-
 }

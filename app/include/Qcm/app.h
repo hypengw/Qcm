@@ -67,6 +67,7 @@ public:
 signals:
     void instanceStarted();
     void errorOccurred(QString);
+    void artistLiked(model::ArtistId, bool);
     void albumLiked(model::AlbumId, bool);
     void playlistLiked(model::PlaylistId, bool);
     void djradioLiked(model::DjradioId, bool);

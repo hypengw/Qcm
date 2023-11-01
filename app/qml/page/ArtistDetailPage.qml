@@ -67,6 +67,25 @@ MD.Page {
                     }
                 }
             }
+            RowLayout {
+                Layout.alignment: Qt.AlignHCenter
+                MD.IconButton {
+                    id: btn_fav
+                    property bool liked: root.itemData.info.followed
+                    action: Action {
+                        icon.name: btn_fav.liked ? MD.Token.icon.done : MD.Token.icon.add
+                        onTriggered: {
+                            qr_sub.sub = !btn_fav.liked;
+                            qr_sub.itemId = root.itemId;
+                            qr_sub.query();
+                        }
+                    }
+                    Binding on liked {
+                        value: qr_sub.sub
+                        when: qr_sub.status === QA.ApiQuerierBase.Finished
+                    }
+                }
+            }
 
             ColumnLayout {
                 id: pane_view_column
@@ -165,6 +184,15 @@ MD.Page {
     QA.ArtistQuerier {
         id: qr_artist
         autoReload: itemId.valid()
+    }
+    QA.ArtistSubQuerier {
+        id: qr_sub
+        autoReload: false
+        onStatusChanged: {
+            if (status === QA.ApiQuerierBase.Finished) {
+                QA.App.artistLiked(itemId, sub);
+            }
+        }
     }
     QA.ArtistAlbumsQuerier {
         id: qr_artist_albums

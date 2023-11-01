@@ -207,6 +207,7 @@ public:
     GATGET_PROPERTY(qint32, albumSize, albumSize)
     GATGET_PROPERTY(qint32, musicSize, musicSize)
     GATGET_PROPERTY(std::vector<QString>, alias, alias)
+    GATGET_PROPERTY(bool, followed, followed)
 
     std::strong_ordering operator<=>(const Artist&) const = default;
 };

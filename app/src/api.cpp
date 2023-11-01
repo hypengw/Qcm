@@ -27,6 +27,9 @@ void                   ApiQuerierBase::set_status(ApiQuerierBase::Status v) {
     if (m_status != v) {
         m_status = v;
         emit statusChanged();
+        if (m_status == Status::Error) {
+            emit App::instance()->errorOccurred(m_error);
+        }
     }
 }
 
@@ -35,7 +38,6 @@ void    ApiQuerierBase::set_error(QString v) {
     if (m_error != v) {
         m_error = v;
         emit errorChanged();
-        emit App::instance()->errorOccurred(v);
     }
 }
 

@@ -74,22 +74,23 @@ public:
 public:
     QVariant itemId() const { return convert_from<QVariant>(m_id); }
     void     set_itemId(QVariant v) {
+        using CT = ncm::params::Comments::Type;
         if (v != m_id) {
             auto& id   = this->api().input.id;
             auto& type = this->api().input.type;
             m_id       = v;
             if (v.canConvert<model::AlbumId>()) {
                 convert(id, v.value<model::AlbumId>());
-                type = ncm::model::IDType::Album;
+                type = CT::Album;
             } else if (v.canConvert<model::PlaylistId>()) {
                 convert(id, v.value<model::PlaylistId>());
-                type = ncm::model::IDType::Playlist;
+                type = CT::Playlist;
             } else if (v.canConvert<model::SongId>()) {
                 convert(id, v.value<model::SongId>());
-                type = ncm::model::IDType::Song;
+                type = CT::Song;
             } else if(v.canConvert<model::ProgramId>()) {
                 convert(id, v.value<model::ProgramId>());
-                type = ncm::model::IDType::Program;
+                type = CT::Program;
             }
             this->mark_dirty();
             emit changed_itemId();

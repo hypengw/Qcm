@@ -53,16 +53,10 @@ public:
             convertModel(in_, [](const AlbumSublistItem& it) -> std::string {
                 return convert_from<std::string>(it.id);
             });
-            m_has_more = re.hasMore;
         } else if (input.offset == (int)rowCount()) {
-            if (! re.data.empty()) {
-                auto in_ = convert_from<std::vector<AlbumSublistItem>>(re.data);
-                for (auto& el : in_) {
-                    insert(rowCount(), el);
-                }
-            }
-            m_has_more = re.hasMore;
+            insert(rowCount(), convert_from<std::vector<AlbumSublistItem>>(re.data));
         }
+        m_has_more = re.hasMore;
     }
 
     bool canFetchMore(const QModelIndex&) const override { return m_has_more; }

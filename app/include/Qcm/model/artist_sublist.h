@@ -17,16 +17,18 @@ namespace model
 struct ArtistSublistItem {
     Q_GADGET
 public:
-    GATGET_PROPERTY(ArtistId, itemId, itemId)
+    GATGET_PROPERTY(ArtistId, itemId, id)
     GATGET_PROPERTY(QString, name, name)
     GATGET_PROPERTY(QString, picUrl, picUrl)
     GATGET_PROPERTY(qint32, albumSize, albumSize)
+
+    std::strong_ordering operator<=>(const ArtistSublistItem&) const = default;
 };
 } // namespace model
 } // namespace qcm
 
 DEFINE_CONVERT(qcm::model::ArtistSublistItem, ncm::model::ArtistSublistItem) {
-    convert(out.itemId, in.id);
+    convert(out.id, in.id);
     convert(out.name, in.name);
     convert(out.picUrl, in.picUrl);
     convert(out.albumSize, in.albumSize);
@@ -45,14 +47,13 @@ public:
     using out_type = ncm::api_model::ArtistSublist;
 
     void handle_output(const out_type& re, const auto& input) {
-        if (input.offset != (int)rowCount()) {
-            return;
-        }
-        if (! re.data.empty()) {
-            auto in_ = convert_from<std::vector<ArtistSublistItem>>(re.data);
-            for (auto& el : in_) {
-                insert(rowCount(), el);
-            }
+        auto in_ = convert_from<std::vector<ArtistSublistItem>>(re.data);
+        if (input.offset == 0) {
+            convertModel(in_, [](const ArtistSublistItem& it) -> std::string {
+                return convert_from<std::string>(it.id);
+            });
+        } else if (input.offset == (int)rowCount()) {
+            insert(rowCount(), in_);
         }
         m_has_more = re.hasMore;
     }
@@ -83,6 +84,12 @@ public:
 
 public:
     void fetch_more(qint32 cur_count) override { set_offset(cur_count); }
+
+public slots:
+    void reset() {
+        api().input.offset = 0;
+        reload();
+    }
 };
 
 } // namespace qcm

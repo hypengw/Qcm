@@ -10,11 +10,18 @@ namespace params
 {
 
 struct Comments {
-    model::IDType type { 0 };
-    std::string   id;
-    i32           offset { 0 };
-    i32           limit { 20 };
-    model::Time   before;
+    enum class Type
+    {
+        Album = 0,
+        Playlist,
+        Song,
+        Program
+    };
+    Type        type { 0 };
+    std::string id;
+    i32         offset { 0 };
+    i32         limit { 20 };
+    model::Time before;
 };
 
 } // namespace params
