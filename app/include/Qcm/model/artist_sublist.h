@@ -14,14 +14,9 @@ namespace qcm
 {
 namespace model
 {
-struct ArtistSublistItem {
+struct ArtistSublistItem : public Artist {
     Q_GADGET
 public:
-    GATGET_PROPERTY(ArtistId, itemId, id)
-    GATGET_PROPERTY(QString, name, name)
-    GATGET_PROPERTY(QString, picUrl, picUrl)
-    GATGET_PROPERTY(qint32, albumSize, albumSize)
-
     std::strong_ordering operator<=>(const ArtistSublistItem&) const = default;
 };
 } // namespace model
@@ -32,6 +27,7 @@ DEFINE_CONVERT(qcm::model::ArtistSublistItem, ncm::model::ArtistSublistItem) {
     convert(out.name, in.name);
     convert(out.picUrl, in.picUrl);
     convert(out.albumSize, in.albumSize);
+    out.followed = true;
 };
 
 namespace qcm

@@ -17,7 +17,7 @@ T.ItemDelegate {
 
     verticalPadding: 8
     leftPadding: 16
-    rightPadding: 24
+    rightPadding: trailing ? 16 : 24
     spacing: 0
 
     icon.width: 24

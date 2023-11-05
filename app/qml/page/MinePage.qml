@@ -137,6 +137,7 @@ MD.Page {
                     id: qr_playlist
                     autoReload: uid.valid() && limit > 0
                     uid: QA.Global.user_info.userId
+                    limit: 50
                 }
                 QA.DjradioSublistQuerier {
                     id: qr_djradiolist
@@ -144,85 +145,57 @@ MD.Page {
                 }
                 Component {
                     id: dg_albumlist
-                    MD.ListItem {
-                        property var itemId: model.itemId
-
-                        width: ListView.view.width
+                    BaseItem {
+                        image: `image://ncm/${model.picUrl}`
                         text: model.name
-                        maximumLineCount: 2
-                        supportText: QA.Global.join_name(model.artists, '/')
-                        leader: MD.Image {
-                            radius: 8
-                            source: `image://ncm/${model.picUrl}`
-                            sourceSize.height: 48
-                            sourceSize.width: 48
-                        }
-                        onClicked: {
-                            content.route(itemId);
-                            ListView.view.currentIndex = index;
+                        supportText: `${QA.Global.join_name(model.artists, '/')} - ${model.trackCount} tracks`
+                        function showMenu(parent) {
+                            QA.Global.show_popup('qrc:/Qcm/App/qml/menu/AlbumMenu.qml', {
+                                    "album": QA.App.album(model),
+                                    "y": parent.height
+                                }, parent);
                         }
                     }
                 }
                 Component {
                     id: dg_artistlist
-                    MD.ListItem {
-                        property var itemId: model.itemId
-
-                        width: ListView.view.width
+                    BaseItem {
+                        image: `image://ncm/${model.picUrl}`
                         text: model.name
-                        maximumLineCount: 2
                         supportText: `${model.albumSize} albums`
-                        leader: MD.Image {
-                            radius: 24
-                            source: `image://ncm/${model.picUrl}`
-                            sourceSize.height: 48
-                            sourceSize.width: 48
-                        }
-                        onClicked: {
-                            content.route(itemId);
-                            ListView.view.currentIndex = index;
+                        function showMenu(parent) {
+                            QA.Global.show_popup('qrc:/Qcm/App/qml/menu/ArtistMenu.qml', {
+                                    "artist": QA.App.artist(model),
+                                    "y": parent.height
+                                }, parent);
                         }
                     }
                 }
                 Component {
                     id: dg_playlist
-                    MD.ListItem {
-                        property var itemId: model.itemId
-
-                        width: ListView.view.width
+                    BaseItem {
+                        image: `image://ncm/${model.picUrl}`
                         text: model.name
-                        maximumLineCount: 2
                         supportText: `${model.trackCount} songs`
-                        leader: MD.Image {
-                            radius: 8
-                            source: `image://ncm/${model.picUrl}`
-                            sourceSize.height: 48
-                            sourceSize.width: 48
-                        }
-                        onClicked: {
-                            content.route(itemId);
-                            ListView.view.currentIndex = index;
+                        function showMenu(parent) {
+                            QA.Global.show_popup('qrc:/Qcm/App/qml/menu/PlaylistMenu.qml', {
+                                    "playlist": QA.App.playlist(model),
+                                    "y": parent.height
+                                }, parent);
                         }
                     }
                 }
                 Component {
                     id: dg_djradiolist
-                    MD.ListItem {
-                        property var itemId: model.itemId
-
-                        width: ListView.view.width
+                    BaseItem {
+                        image: `image://ncm/${model.picUrl}`
                         text: model.name
-                        maximumLineCount: 2
                         supportText: `${model.programCount} programs`
-                        leader: MD.Image {
-                            radius: 8
-                            source: `image://ncm/${model.picUrl}`
-                            sourceSize.height: 48
-                            sourceSize.width: 48
-                        }
-                        onClicked: {
-                            content.route(itemId);
-                            ListView.view.currentIndex = index;
+                        function showMenu(parent) {
+                            QA.Global.show_popup('qrc:/Qcm/App/qml/menu/DjradioMenu.qml', {
+                                    "djradio": QA.App.djradio(model),
+                                    "y": parent.height
+                                }, parent);
                         }
                     }
                 }
@@ -282,6 +255,33 @@ MD.Page {
             currentItemChanged.connect(checkCur);
             visibleChanged.connect(checkDirty);
             dirtyChanged.connect(visibleChanged);
+        }
+    }
+
+    component BaseItem: MD.ListItem {
+        property var itemId: model.itemId
+        property string image
+
+        width: ListView.view.width
+        maximumLineCount: 2
+        leader: MD.Image {
+            radius: 8
+            source: image
+            sourceSize.height: 48
+            sourceSize.width: 48
+        }
+        rightPadding: 0
+        trailing: MD.IconButton {
+            MD.MatProp.textColor: MD.Token.color.on_surface_variant
+            icon.name: MD.Token.icon.more_vert
+            onClicked: {
+                if (showMenu)
+                    showMenu(this);
+            }
+        }
+        onClicked: {
+            content.route(itemId);
+            ListView.view.currentIndex = index;
         }
     }
 }

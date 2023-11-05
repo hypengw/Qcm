@@ -16,9 +16,9 @@ namespace model
 class SongUrlItem {
     Q_GADGET
 public:
-    GATGET_PROPERTY(SongId, itemId, id)
-    GATGET_PROPERTY(QString, url, url)
-    GATGET_PROPERTY(QString, md5, md5)
+    GADGET_PROPERTY_DEF(SongId, itemId, id)
+    GADGET_PROPERTY_DEF(QString, url, url)
+    GADGET_PROPERTY_DEF(QString, md5, md5)
 };
 } // namespace model
 } // namespace qcm

@@ -20,7 +20,7 @@ namespace model
 struct AlbumSublistItem {
     // i64 picId;
     // "msg" : [],
-    i64                        subTime;
+    Time                       subTime;
     std::vector<std::string>   alias;
     std::vector<model::Artist> artists;
     std::string                picUrl;

@@ -93,7 +93,6 @@ set(QML_FILES
     qml/component/InfoRow.qml
     qml/component/SnakeBar.qml
     qml/component/SnakeView.qml
-    qml/component/SongMenu.qml
     qml/component/Mpris.qml
     qml/component/PlaylistListView.qml
     qml/component/SongTag.qml
@@ -107,10 +106,19 @@ set(QML_FILES
     qml/component/MRoundButton.qml
     qml/component/MGridView.qml
     qml/component/MItemDelegate.qml
-    qml/component/ProgramMenu.qml
     qml/component/PageContainer.qml
     qml/component/PagePopup.qml
-    qml/component/PageStack.qml)
+    qml/component/PageStack.qml
+    qml/action/PlaynextAction.qml
+    qml/action/CommentAction.qml
+    qml/action/SubAction.qml
+    qml/menu/SongMenu.qml
+    qml/menu/AlbumMenu.qml
+    qml/menu/ArtistMenu.qml
+    qml/menu/DjradioMenu.qml
+    qml/menu/PlaylistMenu.qml
+    qml/menu/ProgramMenu.qml
+    )
 set(RESOURCES assets/MaterialIconsRound-Regular.otf
               assets/MaterialIconsOutlined-Regular.otf)
 

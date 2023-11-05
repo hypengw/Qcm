@@ -44,6 +44,8 @@ IMPL_CONVERT(qcm::model::Playlist, ncm::model::Playlist) {
     }
     convert(out.playCount, in.playCount);
     convert(out.trackCount, in.trackCount);
+    convert(out.subscribed, in.subscribed);
+    convert(out.userId, in.userId);
 };
 
 IMPL_CONVERT(QDateTime, ncm::model::Time) { out = QDateTime::fromMSecsSinceEpoch(in.milliseconds); }

@@ -26,6 +26,7 @@ public:
     READ_PROPERTY(QString, description, m_description, infoChanged)
     READ_PROPERTY(QDateTime, updateTime, m_updateTime, infoChanged)
     READ_PROPERTY(qint32, playCount, m_playCount, infoChanged)
+    READ_PROPERTY(UserId, userId, m_userId, infoChanged)
     READ_PROPERTY(std::vector<Song>, songs, m_songs, infoChanged)
 
     void handle_output(const out_type& in, const auto&) {
@@ -38,6 +39,7 @@ public:
             convert(o.m_updateTime, in.playlist.updateTime.value());
         }
         convert(o.m_playCount, in.playlist.playCount);
+        convert(o.m_userId, in.playlist.userId);
         convert(o.m_songs, in.playlist.tracks.value_or(std::vector<ncm::model::Song> {}));
         emit infoChanged();
     }

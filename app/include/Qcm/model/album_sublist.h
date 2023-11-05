@@ -11,19 +11,16 @@
 #include "meta_model/qgadgetlistmodel.h"
 
 #include "core/log.h"
+#include "core/qlist_helper.h"
 
 namespace qcm
 {
 namespace model
 {
-struct AlbumSublistItem {
+struct AlbumSublistItem : public Album {
     Q_GADGET
 public:
-    GATGET_PROPERTY(AlbumId, itemId, id)
-    GATGET_PROPERTY(QString, name, name)
-    GATGET_PROPERTY(QString, picUrl, picUrl)
-    GATGET_PROPERTY(std::vector<Artist>, artists, artists)
-
+    GADGET_PROPERTY_DEF(QDateTime, subTime, subTime)
     std::strong_ordering operator<=>(const AlbumSublistItem&) const = default;
 };
 } // namespace model
@@ -34,6 +31,9 @@ DEFINE_CONVERT(qcm::model::AlbumSublistItem, ncm::model::AlbumSublistItem) {
     convert(out.name, in.name);
     convert(out.artists, in.artists);
     convert(out.picUrl, in.picUrl);
+    convert(out.subTime, in.subTime);
+    convert(out.trackCount, in.size);
+    out.subscribed = true;
 }
 namespace qcm
 {

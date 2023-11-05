@@ -15,53 +15,25 @@ namespace qcm
 {
 namespace model
 {
-struct UserPlaylistItem {
-    Q_GADGET
-public:
-    GATGET_PROPERTY(PlaylistId, itemId, itemId)
-    GATGET_PROPERTY(QString, name, name)
-    GATGET_PROPERTY(QString, picUrl, picUrl)
-    GATGET_PROPERTY(qint32, playCount, playCount)
-    GATGET_PROPERTY(qint32, trackCount, trackCount)
 
-    std::strong_ordering operator<=>(const UserPlaylistItem&) const = default;
-};
-} // namespace model
-} // namespace qcm
-
-DEFINE_CONVERT(qcm::model::UserPlaylistItem, ncm::model::UserPlaylistItem) {
-    convert(out.itemId, in.id);
-    convert(out.name, in.name);
-    convert(out.picUrl, in.coverImgUrl);
-    convert(out.playCount, in.playCount);
-    convert(out.trackCount, in.trackCount);
-}
-
-namespace qcm
-{
-namespace model
-{
-
-class UserPlaylist : public meta_model::QGadgetListModel<UserPlaylistItem> {
+class UserPlaylist : public meta_model::QGadgetListModel<Playlist> {
     Q_OBJECT
 public:
     UserPlaylist(QObject* parent = nullptr)
-        : meta_model::QGadgetListModel<UserPlaylistItem>(parent), m_has_more(true) {}
+        : meta_model::QGadgetListModel<Playlist>(parent), m_has_more(true) {}
     using out_type = ncm::api_model::UserPlaylist;
 
     void handle_output(const out_type& re, const auto& input) {
+        auto in_ = convert_from<std::vector<Playlist>>(re.playlist);
         if (input.offset == 0) {
-            auto in_ = convert_from<std::vector<UserPlaylistItem>>(re.playlist);
-            convertModel(in_, [](const UserPlaylistItem& it) {
-                return convert_from<std::string>(it.itemId);
+            convertModel(in_, [](const Playlist& it) {
+                return convert_from<std::string>(it.id);
             });
-            m_has_more = re.more;
         } else if (input.offset == (int)rowCount()) {
-            for (auto& el : re.playlist) {
-                insert(rowCount(), convert_from<UserPlaylistItem>(el));
-            }
-            m_has_more = re.more;
+            insert(rowCount(), in_);
         }
+
+        m_has_more = re.more;
     }
 
     bool canFetchMore(const QModelIndex&) const override { return m_has_more; }

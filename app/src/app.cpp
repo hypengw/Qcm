@@ -257,6 +257,10 @@ bool App::debug() const {
 }
 
 model::Song    App::song(const QJSValue& js) const { return meta_model::toGadget<model::Song>(js); }
+model::Album    App::album(const QJSValue& js) const { return meta_model::toGadget<model::Album>(js); }
+model::Artist    App::artist(const QJSValue& js) const { return meta_model::toGadget<model::Artist>(js); }
+model::Djradio    App::djradio(const QJSValue& js) const { return meta_model::toGadget<model::Djradio>(js); }
+model::Playlist    App::playlist(const QJSValue& js) const { return meta_model::toGadget<model::Playlist>(js); }
 model::Program App::program(const QJSValue& js) const {
     return meta_model::toGadget<model::Program>(js);
 }

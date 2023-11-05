@@ -18,14 +18,14 @@ namespace model
 struct UserCloudItem {
     Q_GADGET
 public:
-    GATGET_PROPERTY(SongId, itemId, id)
-    GATGET_PROPERTY(QString, name, name)
-    GATGET_PROPERTY(QString, picUrl, picUrl)
-    GATGET_PROPERTY(QString, albumName, albumName)
-    GATGET_PROPERTY(QString, artistName, artistName)
-    GATGET_PROPERTY(qint32, bitrate, bitrate)
-    GATGET_PROPERTY(QDateTime, addTime, addTime)
-    GATGET_PROPERTY(Song, song, song)
+    GADGET_PROPERTY_DEF(SongId, itemId, id)
+    GADGET_PROPERTY_DEF(QString, name, name)
+    GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
+    GADGET_PROPERTY_DEF(QString, albumName, albumName)
+    GADGET_PROPERTY_DEF(QString, artistName, artistName)
+    GADGET_PROPERTY_DEF(qint32, bitrate, bitrate)
+    GADGET_PROPERTY_DEF(QDateTime, addTime, addTime)
+    GADGET_PROPERTY_DEF(Song, song, song)
 
     std::strong_ordering operator<=>(const UserCloudItem&) const = default;
 };

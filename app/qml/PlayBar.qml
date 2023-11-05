@@ -169,7 +169,7 @@ MD.Pane {
                         icon.name: MD.Token.icon.more_vert
 
                         onClicked: {
-                            const popup = QA.Global.show_popup('qrc:/Qcm/App/qml/component/SongMenu.qml', {
+                            const popup = QA.Global.show_popup('qrc:/Qcm/App/qml/menu/SongMenu.qml', {
                                     "song": QA.Global.cur_song,
                                     "y": 0
                                 }, this);

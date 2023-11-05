@@ -59,8 +59,14 @@ public:
     Q_INVOKABLE bool           isItemId(const QJSValue&) const;
     Q_INVOKABLE QString        itemIdPageUrl(const QJSValue&) const;
 
+
     Q_INVOKABLE model::Song song(const QJSValue& = {}) const;
+    Q_INVOKABLE model::Album album(const QJSValue& = {}) const;
+    Q_INVOKABLE model::Artist artist(const QJSValue& = {}) const;
+    Q_INVOKABLE model::Djradio djradio(const QJSValue& = {}) const;
+    Q_INVOKABLE model::Playlist playlist(const QJSValue& = {}) const;
     Q_INVOKABLE model::Program program(const QJSValue& = {}) const;
+
 
     Q_INVOKABLE void test();
 

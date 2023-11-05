@@ -17,10 +17,10 @@ namespace model
 struct PlaylistCatalogueItem {
     Q_GADGET
 public:
-    GATGET_PROPERTY(QString, name, name)
-    GATGET_PROPERTY(i64, resourceCount, resourceCount)
-    GATGET_PROPERTY(QString, category, category)
-    GATGET_PROPERTY(bool, hot, hot)
+    GADGET_PROPERTY_DEF(QString, name, name)
+    GADGET_PROPERTY_DEF(i64, resourceCount, resourceCount)
+    GADGET_PROPERTY_DEF(QString, category, category)
+    GADGET_PROPERTY_DEF(bool, hot, hot)
 };
 } // namespace model
 } // namespace qcm

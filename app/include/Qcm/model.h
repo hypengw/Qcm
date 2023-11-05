@@ -10,9 +10,11 @@
 #include "ncm/model.h"
 #include "Qcm/type.h"
 
-#define GATGET_PROPERTY(_type_, _prop_, _var_) \
+#define GADGET_PROPERTY(_type_, _prop_, _var_, _val_) \
     Q_PROPERTY(_type_ _prop_ MEMBER _var_)     \
-    _type_ _var_;
+    _type_ _var_ {_val_};
+
+#define GADGET_PROPERTY_DEF(_type_, _prop_, _var_) GADGET_PROPERTY(_type_, _prop_, _var_,)
 
 #define GATGET_LIST_PROPERTY(_type_, _prop_, _var_)                                   \
     Q_PROPERTY(QVariantList _prop_ READ get_##_prop_ WRITE set_##_prop_)              \
@@ -199,27 +201,30 @@ public:
 
 class Artist {
     Q_GADGET
+    QML_VALUE_TYPE(t_artist)
 public:
-    GATGET_PROPERTY(ArtistId, itemId, id)
-    GATGET_PROPERTY(QString, name, name)
-    GATGET_PROPERTY(QString, picUrl, picUrl)
-    GATGET_PROPERTY(QString, briefDesc, briefDesc)
-    GATGET_PROPERTY(qint32, albumSize, albumSize)
-    GATGET_PROPERTY(qint32, musicSize, musicSize)
-    GATGET_PROPERTY(std::vector<QString>, alias, alias)
-    GATGET_PROPERTY(bool, followed, followed)
+    GADGET_PROPERTY_DEF(ArtistId, itemId, id)
+    GADGET_PROPERTY_DEF(QString, name, name)
+    GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
+    GADGET_PROPERTY_DEF(QString, briefDesc, briefDesc)
+    GADGET_PROPERTY_DEF(qint32, albumSize, albumSize)
+    GADGET_PROPERTY_DEF(qint32, musicSize, musicSize)
+    GADGET_PROPERTY_DEF(std::vector<QString>, alias, alias)
+    GADGET_PROPERTY_DEF(bool, followed, followed)
 
     std::strong_ordering operator<=>(const Artist&) const = default;
 };
 
 class Album {
     Q_GADGET
+    QML_VALUE_TYPE(t_album)
 public:
-    GATGET_PROPERTY(AlbumId, itemId, id)
-    GATGET_PROPERTY(QString, name, name)
-    GATGET_PROPERTY(QString, picUrl, picUrl)
-    GATGET_PROPERTY(QDateTime, publishTime, publishTime)
-    GATGET_PROPERTY(int, trackCount, trackCount)
+    GADGET_PROPERTY_DEF(AlbumId, itemId, id)
+    GADGET_PROPERTY_DEF(QString, name, name)
+    GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
+    GADGET_PROPERTY_DEF(QDateTime, publishTime, publishTime)
+    GADGET_PROPERTY_DEF(int, trackCount, trackCount)
+    GADGET_PROPERTY_DEF(bool, subscribed, subscribed)
     GATGET_LIST_PROPERTY(Artist, artists, artists)
 
     std::strong_ordering operator<=>(const Album&) const = default;
@@ -227,14 +232,17 @@ public:
 
 class Playlist {
     Q_GADGET
+    QML_VALUE_TYPE(t_playlist)
 public:
-    GATGET_PROPERTY(PlaylistId, itemId, id)
-    GATGET_PROPERTY(QString, name, name)
-    GATGET_PROPERTY(QString, picUrl, picUrl)
-    GATGET_PROPERTY(QString, description, description)
-    GATGET_PROPERTY(QDateTime, updateTime, updateTime)
-    GATGET_PROPERTY(qint32, playCount, playCount)
-    GATGET_PROPERTY(qint32, trackCount, trackCount)
+    GADGET_PROPERTY_DEF(PlaylistId, itemId, id)
+    GADGET_PROPERTY_DEF(QString, name, name)
+    GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
+    GADGET_PROPERTY_DEF(QString, description, description)
+    GADGET_PROPERTY_DEF(QDateTime, updateTime, updateTime)
+    GADGET_PROPERTY_DEF(qint32, playCount, playCount)
+    GADGET_PROPERTY_DEF(qint32, trackCount, trackCount)
+    GADGET_PROPERTY_DEF(bool, subscribed, subscribed)
+    GADGET_PROPERTY_DEF(UserId, userId, userId)
 
     std::strong_ordering operator<=>(const Playlist&) const = default;
 };
@@ -243,13 +251,13 @@ class Song {
     Q_GADGET
     QML_VALUE_TYPE(t_song)
 public:
-    GATGET_PROPERTY(SongId, itemId, id)
-    GATGET_PROPERTY(QString, name, name)
-    GATGET_PROPERTY(Album, album, album)
-    GATGET_PROPERTY(QDateTime, duration, duration)
-    GATGET_PROPERTY(bool, canPlay, canPlay)
-    GATGET_PROPERTY(QString, coverUrl, coverUrl)
-    GATGET_PROPERTY(QList<QString>, tags, tags)
+    GADGET_PROPERTY_DEF(SongId, itemId, id)
+    GADGET_PROPERTY_DEF(QString, name, name)
+    GADGET_PROPERTY_DEF(Album, album, album)
+    GADGET_PROPERTY_DEF(QDateTime, duration, duration)
+    GADGET_PROPERTY_DEF(bool, canPlay, canPlay)
+    GADGET_PROPERTY_DEF(QString, coverUrl, coverUrl)
+    GADGET_PROPERTY_DEF(QList<QString>, tags, tags)
 
     GATGET_LIST_PROPERTY(Artist, artists, artists)
 
@@ -259,9 +267,9 @@ public:
 class User {
     Q_GADGET
 public:
-    GATGET_PROPERTY(UserId, itemId, id)
-    GATGET_PROPERTY(QString, name, name)
-    GATGET_PROPERTY(QString, picUrl, picUrl)
+    GADGET_PROPERTY_DEF(UserId, itemId, id)
+    GADGET_PROPERTY_DEF(QString, name, name)
+    GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
 
     std::strong_ordering operator<=>(const User&) const = default;
 };
@@ -269,23 +277,24 @@ public:
 class Comment {
     Q_GADGET
 public:
-    GATGET_PROPERTY(CommentId, itemId, id)
-    GATGET_PROPERTY(User, user, user)
-    GATGET_PROPERTY(QString, content, content)
-    GATGET_PROPERTY(bool, liked, liked)
-    GATGET_PROPERTY(QDateTime, time, time)
+    GADGET_PROPERTY_DEF(CommentId, itemId, id)
+    GADGET_PROPERTY_DEF(User, user, user)
+    GADGET_PROPERTY_DEF(QString, content, content)
+    GADGET_PROPERTY_DEF(QDateTime, time, time)
+    GADGET_PROPERTY_DEF(bool, liked, liked)
 
     std::strong_ordering operator<=>(const Comment&) const = default;
 };
 
 class Djradio {
     Q_GADGET
+    QML_VALUE_TYPE(t_djradio)
 public:
-    GATGET_PROPERTY(DjradioId, itemId, id)
-    GATGET_PROPERTY(QString, name, name)
-    GATGET_PROPERTY(QString, picUrl, picUrl)
-    GATGET_PROPERTY(std::vector<Artist>, artists, artists)
-    GATGET_PROPERTY(qint32, programCount, programCount)
+    GADGET_PROPERTY_DEF(DjradioId, itemId, id)
+    GADGET_PROPERTY_DEF(QString, name, name)
+    GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
+    GADGET_PROPERTY_DEF(std::vector<Artist>, artists, artists)
+    GADGET_PROPERTY_DEF(qint32, programCount, programCount)
 
     std::strong_ordering operator<=>(const Djradio&) const = default;
 };
@@ -294,13 +303,13 @@ class Program {
     Q_GADGET
     QML_VALUE_TYPE(t_program)
 public:
-    GATGET_PROPERTY(ProgramId, itemId, id)
-    GATGET_PROPERTY(QString, name, name)
-    GATGET_PROPERTY(QDateTime, duration, duration)
-    GATGET_PROPERTY(QString, coverUrl, coverUrl)
-    GATGET_PROPERTY(Song, song, song)
-    GATGET_PROPERTY(QDateTime, createTime, createTime)
-    GATGET_PROPERTY(qint32, serialNum, serialNum)
+    GADGET_PROPERTY_DEF(ProgramId, itemId, id)
+    GADGET_PROPERTY_DEF(QString, name, name)
+    GADGET_PROPERTY_DEF(QDateTime, duration, duration)
+    GADGET_PROPERTY_DEF(QString, coverUrl, coverUrl)
+    GADGET_PROPERTY_DEF(Song, song, song)
+    GADGET_PROPERTY_DEF(QDateTime, createTime, createTime)
+    GADGET_PROPERTY_DEF(qint32, serialNum, serialNum)
 
     std::strong_ordering operator<=>(const Program&) const = default;
 };

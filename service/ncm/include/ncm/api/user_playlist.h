@@ -72,9 +72,8 @@ struct UserPlaylist {
         return api_model::parse<UserPlaylist>(bs);
     }
 
-    i64                                  code;
-    bool                                 more;
-    std::vector<model::UserPlaylistItem> playlist;
+    bool                         more;
+    std::vector<model::Playlist> playlist;
 };
 JSON_DEFINE(UserPlaylist);
 

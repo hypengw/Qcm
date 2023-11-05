@@ -71,18 +71,10 @@ MD.Page {
                 Layout.alignment: Qt.AlignHCenter
                 MD.IconButton {
                     id: btn_fav
-                    property bool liked: root.itemData.info.followed
-                    action: Action {
-                        icon.name: btn_fav.liked ? MD.Token.icon.done : MD.Token.icon.add
-                        onTriggered: {
-                            qr_sub.sub = !btn_fav.liked;
-                            qr_sub.itemId = root.itemId;
-                            qr_sub.query();
-                        }
-                    }
-                    Binding on liked {
-                        value: qr_sub.sub
-                        when: qr_sub.status === QA.ApiQuerierBase.Finished
+                    action: QA.SubAction {
+                        liked: root.itemData.info.followed
+                        querier: qr_sub
+                        itemId: root.itemId
                     }
                 }
             }

@@ -84,32 +84,17 @@ MD.Page {
                 }
                 MD.IconButton {
                     id: btn_fav
-                    property bool liked: qr_dynamic.data.subscribed
-                    action: Action {
-                        icon.name: btn_fav.liked ? MD.Token.icon.done : MD.Token.icon.add
-
-                        // text: qsTr(btn_fav.liked ? 'fav-ed' : 'fav')
-
-                        onTriggered: {
-                            qr_sub.sub = !btn_fav.liked;
-                            qr_sub.itemId = root.itemId;
-                            qr_sub.query();
-                        }
-                    }
-                    Binding on liked  {
-                        value: qr_sub.sub
-                        when: qr_sub.status === QA.ApiQuerierBase.Finished
+                    action: QA.SubAction {
+                        enabled: QA.Global.user_info.userId !== itemData.userId
+                        liked: qr_dynamic.data.subscribed
+                        querier: qr_sub
+                        itemId: root.itemId
                     }
                 }
                 MD.IconButton {
                     id: btn_comment
-                    action: Action {
-                        icon.name: MD.Token.icon.comment
-                        onTriggered: {
-                            QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/CommentPage.qml', {
-                                    "itemId": root.itemId
-                                });
-                        }
+                    action: QA.CommentAction {
+                        itemId: root.itemId
                     }
                 }
             }
@@ -155,7 +140,7 @@ MD.Page {
 
         onStatusChanged: {
             if (status === QA.ApiQuerierBase.Finished)
-                QA.App.playlistLiked(itemId, sub)
+                QA.App.playlistLiked(itemId, sub);
         }
     }
 }

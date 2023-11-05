@@ -80,13 +80,15 @@ Item {
                     "props": props
                 }, popup_props));
     }
-    function show_popup(url, props, parent) {
+    function show_popup(url, props, parent = null, open_and_destry = true) {
         const popup = create_item(url, props, parent ? parent : main_win);
-        popup.closed.connect(() => {
-                if (popup.destroy)
-                    popup.destroy(1000);
-            });
-        popup.open();
+        if (open_and_destry) {
+            popup.closed.connect(() => {
+                    if (popup.destroy)
+                        popup.destroy(1000);
+                });
+            popup.open();
+        }
         return popup;
     }
     function toast(text, duration) {
