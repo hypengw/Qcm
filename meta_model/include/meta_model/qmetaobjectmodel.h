@@ -170,10 +170,7 @@ private:
         m_items.erase(it + index, it + last);
     }
 
-    template<typename T>
-    void reset_impl() {
-        m_items.clear();
-    }
+    void reset_impl() { m_items.clear(); }
 
     template<typename T>
     void reset_impl(const T& items) {

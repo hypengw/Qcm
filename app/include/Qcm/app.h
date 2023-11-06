@@ -78,6 +78,9 @@ signals:
     void playlistLiked(model::PlaylistId, bool);
     void djradioLiked(model::DjradioId, bool);
     void programLiked(model::ProgramId, bool);
+    void playlistCreated();
+    void playlistDeleted();
+    void playlistChanged();
 
 public slots:
     void loginPost(model::UserAccount*);

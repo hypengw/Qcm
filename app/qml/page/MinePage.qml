@@ -69,11 +69,28 @@ MD.Page {
                         }
 
                         Connections {
+                            function onPlaylistChanged() {
+                                view_playlist.dirty = true;
+                            }
+                            function onPlaylistDeleted() {
+                                view_playlist.dirty = true;
+                            }
+                            function onPlaylistCreated() {
+                                view_playlist.dirty = true;
+                            }
                             function onPlaylistLiked() {
                                 view_playlist.dirty = true;
                             }
 
                             target: QA.App
+                        }
+                        MD.FAB {
+                            action: Action {
+                                icon.name: MD.Token.icon.add
+                                onTriggered: {
+                                    QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/PlaylistCreatePage.qml', {});
+                                }
+                            }
                         }
                     }
                     BaseView {

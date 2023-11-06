@@ -18,13 +18,34 @@ namespace model
 
 class UserPlaylist : public meta_model::QGadgetListModel<Playlist> {
     Q_OBJECT
+    Q_PROPERTY(
+        model::UserId onlyUserId READ onlyUserId WRITE setOnlyUserId NOTIFY onlyUserIdChanged)
 public:
     UserPlaylist(QObject* parent = nullptr)
         : meta_model::QGadgetListModel<Playlist>(parent), m_has_more(true) {}
     using out_type = ncm::api_model::UserPlaylist;
 
+    model::UserId onlyUserId() const { return m_user_id; }
+    void          setOnlyUserId(const model::UserId& v) {
+        if (std::exchange(m_user_id, v) != v) {
+            Q_EMIT onlyUserIdChanged();
+            m_has_more = true;
+            resetModel();
+        }
+    }
+
     void handle_output(const out_type& re, const auto& input) {
         auto in_ = convert_from<std::vector<Playlist>>(re.playlist);
+
+        m_has_more = re.more;
+        if (m_user_id.valid()) {
+            if (std::erase_if(in_, [this](const Playlist& pl) -> bool {
+                    return pl.userId != m_user_id;
+                })) {
+                m_has_more = false;
+            }
+        }
+
         if (input.offset == 0) {
             convertModel(in_, [](const Playlist& it) {
                 return convert_from<std::string>(it.id);
@@ -32,8 +53,6 @@ public:
         } else if (input.offset == (int)rowCount()) {
             insert(rowCount(), in_);
         }
-
-        m_has_more = re.more;
     }
 
     bool canFetchMore(const QModelIndex&) const override { return m_has_more; }
@@ -43,9 +62,11 @@ public:
     }
 signals:
     void fetchMoreReq(qint32);
+    void onlyUserIdChanged();
 
 private:
-    bool m_has_more;
+    bool          m_has_more;
+    model::UserId m_user_id;
 };
 static_assert(modelable<UserPlaylist, ncm::api::UserPlaylist>);
 } // namespace model

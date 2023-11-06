@@ -263,7 +263,7 @@ struct Playlist {
     // copied	false
     // relateResType	null
     // subscribers	[…]
-    bool subscribed;
+    std::optional<bool> subscribed;
     // creator	{…}
     std::optional<std::vector<Song>> tracks;
     // videoIds	null

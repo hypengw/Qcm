@@ -13,15 +13,20 @@ MD.Menu {
     font.capitalization: Font.Capitalize
     modal: true
 
-    Action {
+    QA.PlaynextAction {
         enabled: root.song.itemId !== QA.Global.cur_song.itemId
-        icon.name: MD.Token.icon.play_arrow
-        text: qsTr('play next')
-
+        song: root.song
+    }
+    Action {
+        icon.name: MD.Token.icon.queue
+        text: qsTr('Fav to Playlist')
         onTriggered: {
-            QA.Global.playlist.appendNext(root.song);
+            QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/FavPage.qml', {
+                    songId: root.song.itemId
+                });
         }
     }
+
     Action {
         icon.name: MD.Token.icon.album
         text: qsTr('go to album')
@@ -44,14 +49,8 @@ MD.Menu {
                     });
         }
     }
-    Action {
-        icon.name: MD.Token.icon.comment
-        text: qsTr('commnet')
-        onTriggered: {
-            QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/CommentPage.qml', {
-                    "itemId": root.song.itemId
-                });
-        }
+    QA.CommentAction {
+        itemId: root.song.itemId
     }
     Action {
         icon.name: MD.Token.icon.link
@@ -61,4 +60,17 @@ MD.Menu {
             QA.Clipboard.text = song.itemId.url();
         }
     }
+
+/*
+    Action {
+        icon.name: MD.Token.icon.delete
+    }
+
+    QA.PlaylistTracksQuerier {
+        id: qr_tracks
+        operation: QA.PlaylistTracksQuerier.Del
+        trackIds: [root.song.itemId]
+        autoReload: playlistId.valid()
+    }
+*/
 }

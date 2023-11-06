@@ -39,6 +39,9 @@ set(SOURCES
     include/Qcm/model/playlist_detail_dynamic.h
     include/Qcm/model/playlist_list.h
     include/Qcm/model/playlist_subscribe.h
+    include/Qcm/model/playlist_create.h
+    include/Qcm/model/playlist_delete.h
+    include/Qcm/model/playlist_tracks.h
     include/Qcm/model/recommend_songs.h
     include/Qcm/model/recommend_resource.h
     include/Qcm/model/song_url.h
@@ -76,6 +79,7 @@ set(QML_FILES
     qml/page/PlaylistCataloguePage.qml
     qml/page/PlaylistDetailPage.qml
     qml/page/PlaylistListPage.qml
+    qml/page/PlaylistCreatePage.qml
     qml/page/MinePage.qml
     qml/page/SettingsPage.qml
     qml/page/SearchPage.qml
@@ -84,6 +88,7 @@ set(QML_FILES
     qml/page/PlayQueuePage.qml
     qml/page/MainPage.qml
     qml/page/CloudPage.qml
+    qml/page/FavPage.qml
     qml/page/MaterialTest.qml
     qml/delegate/CommentDelegate.qml
     qml/delegate/SongDelegate.qml

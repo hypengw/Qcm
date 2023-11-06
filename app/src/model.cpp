@@ -18,6 +18,9 @@
 #include "Qcm/model/playlist_detail_dynamic.h"
 #include "Qcm/model/playlist_list.h"
 #include "Qcm/model/playlist_subscribe.h"
+#include "Qcm/model/playlist_create.h"
+#include "Qcm/model/playlist_delete.h"
+#include "Qcm/model/playlist_tracks.h"
 #include "Qcm/model/recommend_songs.h"
 #include "Qcm/model/recommend_resource.h"
 #include "Qcm/model/song_url.h"
@@ -44,7 +47,7 @@ IMPL_CONVERT(qcm::model::Playlist, ncm::model::Playlist) {
     }
     convert(out.playCount, in.playCount);
     convert(out.trackCount, in.trackCount);
-    convert(out.subscribed, in.subscribed);
+    convert(out.subscribed, in.subscribed.value_or(false));
     convert(out.userId, in.userId);
 };
 
