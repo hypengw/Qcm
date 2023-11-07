@@ -39,7 +39,7 @@ MD.Page {
             id: qr_playlist
             autoReload: uid.valid() && limit > 0
             uid: QA.Global.user_info.userId
-            limit: 50
+            limit: 30
             Component.onCompleted: {
                 data.onlyUserId = uid;
             }
@@ -51,6 +51,9 @@ MD.Page {
             autoReload: playlistId.valid()
             onStatusChanged: {
                 if (status === QA.ApiQuerierBase.Finished) {
+                    if (playlistId === view.model.item(0)?.itemId) {
+                        QA.App.songLiked(root.songId, true);
+                    }
                     QA.App.playlistChanged();
                     MD.Util.closePopup(root);
                 }

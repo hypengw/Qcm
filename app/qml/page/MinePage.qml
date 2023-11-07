@@ -81,6 +81,9 @@ MD.Page {
                             function onPlaylistLiked() {
                                 view_playlist.dirty = true;
                             }
+                            function onSongLiked() {
+                                view_playlist.dirty = true;
+                            }
 
                             target: QA.App
                         }
@@ -154,7 +157,7 @@ MD.Page {
                     id: qr_playlist
                     autoReload: uid.valid() && limit > 0
                     uid: QA.Global.user_info.userId
-                    limit: 50
+                    limit: 30
                 }
                 QA.DjradioSublistQuerier {
                     id: qr_djradiolist

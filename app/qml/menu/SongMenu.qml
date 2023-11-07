@@ -61,9 +61,13 @@ MD.Menu {
         }
     }
 
-/*
     Action {
+        enabled: root.song.source?.userId === QA.Global.user_info.userId
         icon.name: MD.Token.icon.delete
+        text: qsTr('delete')
+        onTriggered: {
+            qr_tracks.playlistId = root.song.source?.itemId;
+        }
     }
 
     QA.PlaylistTracksQuerier {
@@ -71,6 +75,10 @@ MD.Menu {
         operation: QA.PlaylistTracksQuerier.Del
         trackIds: [root.song.itemId]
         autoReload: playlistId.valid()
+        onStatusChanged: {
+            if (status === QA.ApiQuerierBase.Finished) {
+                QA.App.playlistChanged()
+            }
+        }
     }
-*/
 }

@@ -216,17 +216,25 @@ Item {
 
         autoReload: m_querier_user.loginOk
     }
+    Connections {
+        function onSongLiked(trackId, liked) {
+            const qr = m_querier_user_songlike;
+            if (liked)
+                qr.data.insert(trackId);
+            else
+                qr.data.remove(trackId);
+            qr.dataChanged();
+        }
+        target: QA.App
+    }
+
     QA.RadioLikeQuerier {
         id: m_querier_radio_like
         autoReload: false
 
         onStatusChanged: {
             if (status === QA.ApiQuerierBase.Finished) {
-                if (like)
-                    m_querier_user_songlike.data.insert(trackId);
-                else
-                    m_querier_user_songlike.data.remove(trackId);
-                m_querier_user_songlike.dataChanged();
+                QA.App.songLiked(trackId, like);
             }
         }
     }

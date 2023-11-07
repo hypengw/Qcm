@@ -40,3 +40,9 @@ template<typename T>
 struct Convert<QVariant, T> {
     Convert(QVariant& out, const T& in) { out = QVariant::fromValue(in); }
 };
+
+inline std::strong_ordering operator<=>(const QVariant& a, const QVariant& b) {
+    return a == b    ? std::strong_ordering::equal
+           : (a < b) ? std::strong_ordering::less
+                     : std::strong_ordering::greater;
+}

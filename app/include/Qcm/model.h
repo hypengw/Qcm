@@ -259,6 +259,8 @@ public:
     GADGET_PROPERTY_DEF(QString, coverUrl, coverUrl)
     GADGET_PROPERTY_DEF(QList<QString>, tags, tags)
 
+    GADGET_PROPERTY_DEF(QVariant, source, source)
+
     GATGET_LIST_PROPERTY(Artist, artists, artists)
 
     std::strong_ordering operator<=>(const Song&) const = default;

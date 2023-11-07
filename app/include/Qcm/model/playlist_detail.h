@@ -41,6 +41,11 @@ public:
         convert(o.m_playCount, in.playlist.playCount);
         convert(o.m_userId, in.playlist.userId);
         convert(o.m_songs, in.playlist.tracks.value_or(std::vector<ncm::model::Song> {}));
+        model::Playlist pl;
+        convert(pl, in.playlist);
+        for (auto& s : o.m_songs) {
+            s.source = QVariant::fromValue(pl);
+        }
         emit infoChanged();
     }
 

@@ -13,10 +13,10 @@ MD.Menu {
     font.capitalization: Font.Capitalize
     modal: true
 
-    QA.PlatnextAction {
+    QA.PlaynextAction {
         song: root.program.song
     }
     QA.CommentAction {
-        itemId: root.program
+        itemId: root.program.itemId
     }
 }
