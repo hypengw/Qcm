@@ -84,8 +84,9 @@ private slots:
 
 private:
     template<typename T>
-        requires std::ranges::sized_range<T>
-    void insert(int index, const T& range);
+        requires std::ranges::sized_range<T> &&
+                 std::convertible_to<std::ranges::range_value_t<T>, model::Song>
+    usize insert(int index, const T& range);
 
     const detail::PlayList& oper_list() const;
     const detail::PlayList& sync_list() const;

@@ -1,6 +1,7 @@
 #include "Qcm/playlist.h"
 
 #include "core/random.h"
+#include <ranges>
 
 using namespace qcm;
 
@@ -200,15 +201,37 @@ Playlist::Playlist(QObject* parent)
 Playlist::~Playlist() {}
 
 template<typename T>
-    requires std::ranges::sized_range<T>
-void Playlist::insert(int index, const T& range) {
-    auto size = range.size();
-    if (size < 1) return;
+    requires std::ranges::sized_range<T> &&
+             std::convertible_to<std::ranges::range_value_t<T>, model::Song>
+usize Playlist::insert(int index, const T& range) {
+    auto filter = [this](const model::Song& s) -> bool {
+                      return !m_songs.contains(sid(s));
+                  };
+    std::vector<QString> ids;
+
+    for (auto& s : range | std::views::filter(filter)) {
+        auto id = sid(s);
+        m_songs.insert({ sid(s), s });
+        ids.emplace_back(id);
+    }
+    auto size = ids.size();
+    if (size == 0) return size; 
+
     beginInsertRows({}, index, index + size - 1);
-    m_list->insert(m_list->begin() + index, std::begin(range), std::end(range));
+    m_list->insert(m_list->begin() + index, std::begin(ids), std::end(ids));
     m_shuffle_list->random_insert_after(
-        m_shuffle_list->begin() + index, std::begin(range), std::end(range));
+        m_shuffle_list->begin() + index, std::begin(ids), std::end(ids));
     endInsertRows();
+
+    {
+        auto& list = oper_list();
+        if (! list.cur_ok()) {
+            list.try_set_cur_frist();
+            sync_list().sync_cur(list);
+        }
+    }
+
+    return size; 
 }
 
 int Playlist::rowCount(const QModelIndex&) const { return m_list->size(); }
@@ -265,15 +288,7 @@ void Playlist::switchList(const std::vector<model::Song>& songs) {
     auto old_id = m_cur.id;
     clear();
 
-    appendList(songs);
-    m_shuffle_list->shuffle(m_shuffle_list->begin(), m_shuffle_list->end());
-
-    {
-        auto& list = oper_list();
-        list.try_set_cur_frist();
-        sync_list().sync_cur(list);
-    }
-
+    insert(0, songs);
     emit curIndexChanged(true);
 }
 
@@ -302,15 +317,7 @@ void Playlist::appendNext(const model::Song& song) {
 }
 
 void Playlist::append(const model::Song& song) {
-    if (m_songs.contains(sid(song))) return;
-
-    beginInsertRows({}, rowCount(), rowCount());
-
-    m_list->insert(m_list->end(), sid(song));
-    m_shuffle_list->random_insert_after(m_shuffle_list->cur_it(), sid(song));
-    m_songs.insert({ sid(song), song });
-
-    endInsertRows();
+    insert(rowCount(), std::array {song});
 }
 
 void Playlist::remove(model::SongId id) {
@@ -328,21 +335,7 @@ void Playlist::remove(model::SongId id) {
 }
 
 void Playlist::appendList(const std::vector<model::Song>& songs) {
-    std::vector<QString> ids;
-    for (auto& s : songs) {
-        auto id = sid(s);
-        if (m_songs.contains(id)) continue;
-        m_songs.insert({ id, s });
-        ids.push_back(id);
-    }
-    insert(rowCount(), ids);
-    {
-        auto& list = oper_list();
-        if (! list.cur_ok()) {
-            list.try_set_cur_frist();
-            sync_list().sync_cur(list);
-        }
-    }
+    insert(rowCount(), songs);
     emit curIndexChanged(false);
 }
 
