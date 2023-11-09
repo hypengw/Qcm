@@ -23,6 +23,8 @@ struct Context {
         audio_frame_queue->clear();
     }
 
+    
+
     rc<PacketQueue>     audio_pkt_queue;
     rc<AudioFrameQueue> audio_frame_queue;
 };

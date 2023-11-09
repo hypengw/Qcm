@@ -48,6 +48,7 @@ public:
 private:
     void set_playback_state(PlaybackState);
     void set_duration(int);
+    void set_position_raw(int);
 
 signals:
     void sourceChanged();
@@ -65,9 +66,9 @@ private:
     rc<channel_type>   m_channel;
     bool               m_end;
 
-    int           m_position;
-    int           m_duration;
-    PlaybackState m_playback_state;
+    std::atomic<int> m_position;
+    int              m_duration;
+    PlaybackState    m_playback_state;
 };
 
 } // namespace qcm

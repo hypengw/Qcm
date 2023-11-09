@@ -44,7 +44,11 @@ public:
         av_dump_format(m_d, idx, url, is_output);
     }
 
-    FFmpegError read_frame(AVPacket* pkt) { return av_read_frame(m_d, pkt); }
+    FFmpegError read_frame(AVPacket* pkt) {
+        FFmpegError err = av_read_frame(m_d, pkt);
+        if (! err) pkt->time_base = m_d->streams[pkt->stream_index]->time_base;
+        return err;
+    }
 
     int find_best_stream(enum AVMediaType type, int wanted_stream_nb, int related_stream,
                          const AVCodec** decoder_ret, int flags) {

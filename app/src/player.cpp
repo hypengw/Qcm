@@ -50,7 +50,7 @@ Player::Player(QObject* parent)
       m_position(0),
       m_duration(0),
       m_playback_state(PlaybackState::StoppedState) {
-    connect(this, &Player::notify, this, &Player::processNotify);
+    connect(this, &Player::notify, this, &Player::processNotify, Qt::QueuedConnection);
 
     auto channel       = m_channel;
     auto notifer_inner = make_rc<NotifierInner>(channel);
@@ -60,10 +60,16 @@ Player::Player(QObject* parent)
     asio::co_spawn(
         asio::strand<NotifierInner::channel_type::executor_type>(channel->get_executor()),
         [this, channel]() -> asio::awaitable<void> {
-            for (; ! m_end;) {
+            while (! m_end) {
                 auto [ec, info] =
                     co_await channel->async_receive(asio::as_tuple(asio::use_awaitable));
-                emit notify(info);
+                if (! ec) {
+                    if (const auto* pos = std::get_if<player::notify::position>(&info)) {
+                        set_position_raw(pos->value);
+                    } else {
+                        emit notify(info);
+                    }
+                }
             }
             co_return;
         },
@@ -94,29 +100,34 @@ void Player::stop() { m_player->stop(); }
 
 void Player::set_position(int v) {
     if (m_duration > 0) {
-        m_player->seek(v + 200);
+        m_player->seek(v + 50);
+        m_channel->cancel();
+        m_channel->reset();
+    }
+}
+
+void Player::set_position_raw(int v) {
+    int expected = m_position.load();
+    if (m_position.compare_exchange_weak(expected, v)) {
+        emit positionChanged();
     }
 }
 
 void Player::set_duration(int v) {
     if (v != std::exchange(m_duration, v)) {
-        durationChanged();
+        emit durationChanged();
     }
 }
 
 void Player::set_playback_state(PlaybackState v) {
     if (v != std::exchange(m_playback_state, v)) {
-        playbackStateChanged();
+        emit playbackStateChanged();
     }
 }
 
 void Player::processNotify(NotifyInfo info) {
     using namespace player;
-    std::visit(overloaded { [this](notify::position pos) {
-                               auto v = pos.value;
-                               if (v != std::exchange(m_position, v)) {
-                                   positionChanged();
-                               }
+    std::visit(overloaded { [](notify::position) {
                            },
                             [this](notify::duration d) {
                                 set_duration(d.value);

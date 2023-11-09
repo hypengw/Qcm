@@ -1,5 +1,7 @@
 #pragma once
 
+#include <chrono>
+
 #include "ffmpeg_frame.h"
 #include "audio_stream_params.h"
 #include "ffmpeg_error.h"
@@ -8,6 +10,7 @@
 
 namespace player
 {
+using namespace std::chrono;
 
 struct AudioFrame : NoCopy {
     using Self = AudioFrame;
@@ -59,6 +62,11 @@ struct AudioFrame : NoCopy {
 
     void set_eof() { ff->pts = -2; }
     bool eof() const { return ff->pts == -2; }
+
+    auto pts_duration() {
+        return microseconds(
+            av_rescale_q(ff->pts, ff->time_base, av_make_q(std::micro::num, std::micro::den)));
+    }
 
     FFmpegFrame ff;
 

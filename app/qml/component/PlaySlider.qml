@@ -1,14 +1,19 @@
 import QtQuick
 import QtQuick.Controls
-
 import Qcm.App as QA
 import Qcm.Material as MD
 
 MD.Slider {
     id: root
 
-    readonly property double playing_pos: (QA.Global.player.duration > 0 ? QA.Global.player.position / QA.Global.player.duration : 0)
+    property double playing_pos: 0
     property bool in_anim: false
+
+    Binding {
+        when: QA.Global.player.duration > 0
+        restoreMode: Binding.RestoreNone
+        root.playing_pos: QA.Global.player.position / QA.Global.player.duration
+    }
 
     live: false
     padding: 0
@@ -47,10 +52,9 @@ MD.Slider {
     }
     */
     onPlaying_posChanged: {
-        if (!pressed) {
-            // console.error(QA.Global.player.position);
+        if (!pressed && !block_timer.blocked) {
             const to = playing_pos;
-            value =  to;
+            value = to;
         }
     }
     onPositionChanged: {
@@ -58,8 +62,6 @@ MD.Slider {
             slider_timer.recordPos(position);
     }
     onPressedChanged: {
-        // anim_v.from = position;
-        // anim_v.stop();
         if (!pressed) {
             slider_timer.stop();
             slider_timer.triggered();
@@ -82,7 +84,21 @@ MD.Slider {
             if (pos > 0) {
                 QA.Global.player.seek(pos);
                 pos = -1;
+                block_timer.block();
             }
+        }
+    }
+
+    Timer {
+        id: block_timer
+        interval: 300
+        property bool blocked: false
+        function block() {
+            blocked = true;
+            restart();
+        }
+        onTriggered: {
+            blocked = false;
         }
     }
 }

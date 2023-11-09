@@ -133,10 +133,12 @@ private:
             if (m_aborted) break;
             // pause
             // seek req
-            if (auto seek = m_seek_pos.exchange(-1.0); seek > 0) {
+            auto seek_pos = m_seek_pos.exchange(-1.0);
+            if (seek_pos > 0) {
                 i64 target = av_rescale_q(
-                    (double)seek, av_make_q(1, 1000), fmt_ctx->streams[audio_idx]->time_base);
-                FFmpegError err = fmt_ctx.seek_file(audio_idx, target - 2, target, target + 2, 0);
+                    (double)seek_pos, av_make_q(1, 1000), fmt_ctx->streams[audio_idx]->time_base);
+
+                FFmpegError err = fmt_ctx.seek_file(audio_idx, INT64_MIN, target, INT64_MAX, 0);
                 if (err) {
                     ERROR_LOG("{}", err.what());
                 }
@@ -157,6 +159,7 @@ private:
                     } else {
                         // wait cond
                         pkt.unref();
+                        ERROR_LOG("e: {}", err.what());
                         continue;
                     }
                 } else {
@@ -173,7 +176,10 @@ private:
 
             auto pkt_ref = RECORD(pkt.ref());
             if (pkt_ref) {
-                // check in range
+                // drop if not valid
+                if (seek_pos > 0 && std::abs(seek_pos - duration_cast<milliseconds>(pkt.pts_duration()).count()) > 5000) {
+                    continue;
+                }
                 if (st_idx == audio_idx) {
                     if (! pkt_queue.push(std::move(pkt_ref).value())) continue;
                 }

@@ -104,6 +104,7 @@ private:
             if (pkt_queue.serial() != queue.serial()) {
                 queue.clear();
                 queue.set_serial(pkt_queue.serial());
+                avcodec_flush_buffers(ctx);
             }
 
             err = decode_frame(ctx, pkt_queue, frame.raw());
@@ -135,12 +136,16 @@ private:
         return;
     }
 
-    FFmpegError decode_frame(AVCodecContext* ctx, PacketQueue& pkt_queue, AVFrame* frame) {
+    FFmpegError decode_frame(AVCodecContext* ctx, PacketQueue& pkt_queue, AVFrame* frame
+                             ) {
         FFmpegError err = AVERROR(EAGAIN);
         for (;;) {
             do {
-                err              = avcodec_receive_frame(ctx, frame);
-                frame->time_base = ctx->pkt_timebase;
+                err = avcodec_receive_frame(ctx, frame);
+                if (! err) {
+                    // currently frame->time_base is not used by ffmpeg, set it manually
+                    frame->time_base = ctx->time_base;
+                }
                 if (err == AVERROR_EOF) {
                     avcodec_flush_buffers(ctx);
                     return err;
@@ -154,6 +159,8 @@ private:
                         avcodec_flush_buffers(ctx);
                         return AVERROR_EOF;
                     }
+                    // convert to codec timebase
+                    pkt->rescale_ts(ctx->pkt_timebase, ctx->time_base);
                     err = avcodec_send_packet(ctx, pkt->raw());
                     if (! err)
                         break;

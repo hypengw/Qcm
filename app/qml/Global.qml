@@ -271,8 +271,12 @@ Item {
 
         source: ''
         onSourceChanged: {
-            if (source)
+            if (source) {
                 play();
+                if (QA.App.debug) {
+                    console.error(source);
+                }
+            }
         }
         onPlaybackStateChanged: {
             if (playbackState === QA.QcmPlayer.StoppedState) {

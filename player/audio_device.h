@@ -180,10 +180,9 @@ public:
         m_notifier.send(s).wait();
     }
 
-    void mark_pos(i32 p) {
-        m_mark_pos = p;
-        if (p >= 0) m_mark_serial = m_output_queue->serial();
-    }
+    void mark_dirty() { m_mark_serial = m_output_queue->serial(); }
+
+    bool dirty() const { return m_mark_serial == m_output_queue->serial(); }
 
 private:
     struct Frame {
@@ -210,12 +209,8 @@ private:
             notify::position pos;
             auto             time_base = av_q2d(frame.frame.ff->time_base) * 1000;
             pos.value                  = frame.frame.ff->pts * time_base;
-            if (pos.value >= m_mark_pos) {
-                auto diff = pos.value - m_last_pts;
-                if (diff <= 0 || diff > 10) {
-                    m_notifier.try_send(pos);
-                    m_last_pts = pos.value;
-                }
+            if (! dirty()) {
+                m_notifier.try_send(pos);
             }
         }
     }
@@ -226,7 +221,7 @@ private:
             (usize)nframes * self->m_channels * self->m_audio_params.bytes_per_sample();
         std::span<byte> output { (byte*)outputbuffer, size };
 
-        if (self->m_output_queue->serial() != (usize)self->m_mark_serial) {
+        if (! self->dirty()) {
             auto& frame = self->m_cached_frame;
             if (! frame) {
                 frame = Frame::from(self->m_output_queue->try_pop());
@@ -277,7 +272,7 @@ private:
     std::optional<Frame> m_cached_frame;
     std::atomic<bool>    m_paused;
     std::atomic<i32>     m_mark_pos;
-    std::atomic<i32>     m_mark_serial;
+    std::atomic<usize>   m_mark_serial;
 
     AudioParams         m_audio_params;
     rc<AudioFrameQueue> m_output_queue;

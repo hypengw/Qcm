@@ -2,6 +2,7 @@
 
 #include <utility>
 #include <deque>
+#include <chrono>
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -11,6 +12,7 @@ extern "C" {
 
 namespace player
 {
+using namespace std::chrono;
 
 struct Packet : NoCopy {
 public:
@@ -50,6 +52,15 @@ public:
 
     void set_eof() { m_pkt->pts = -2; }
     bool eof() const { return m_pkt->pts == -2; }
+
+    auto rescale_ts(AVRational tb_src, AVRational tb_dst) {
+        return av_packet_rescale_ts(m_pkt, tb_src, tb_dst);
+    }
+
+    auto pts_duration() {
+        return microseconds(av_rescale_q(
+            m_pkt->pts, m_pkt->time_base, av_make_q(std::micro::num, std::micro::den)));
+    }
 
 private:
     AVPacket* m_pkt;

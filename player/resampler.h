@@ -32,10 +32,10 @@ public:
 
     FFmpegError resampler(AudioFrame& out, const AudioFrame& in) {
         if (out.ff->pts != AV_NOPTS_VALUE) {
-            auto multiple_base = (i64)out.ff->sample_rate * in.ff->sample_rate;
-            double  inpts         = in.ff->pts * in.ff->time_base.num / (double)in.ff->time_base.den;
+            double multiple_base = out.ff->sample_rate * in.ff->sample_rate;
+            double  inpts         = in.ff->pts  * av_q2d(in.ff->time_base);
             double  outpts        = next_pts(inpts * multiple_base) / (double)multiple_base;
-            out.ff->pts        = outpts * in.ff->time_base.den / (double)in.ff->time_base.num;
+            out.ff->pts        = outpts / av_q2d(in.ff->time_base);
         } else {
             out.ff->pts = AV_NOPTS_VALUE;
         }
