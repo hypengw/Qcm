@@ -176,7 +176,6 @@ private:
     template<typename T>
     void reset_impl(const T& items) {
         m_items.clear();
-        m_items.resize(items.size());
         insert_impl(0, std::begin(items), std::end(items));
     }
 

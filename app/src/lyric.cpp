@@ -26,11 +26,11 @@ QList<LrcLyricLine> parse_lrc(const QString& source) {
         if (auto [whole, min, sec, milli, content] = ctre::match<RE_LrcLine>(line); whole) {
             qlonglong milli_total =
                 (min.to_number() * 60 + sec.to_number()) * 1000 + milli.to_number();
-            auto content_str = content.to_view();
+            auto content_str = helper::trims(content.to_view());
 
             if (lrc_map.contains(milli_total)) {
                 lrc_map.at(milli_total).content.append('\n').append(QString::fromUtf8(content_str));
-            } else {
+            } else if (! content_str.empty()) {
                 lrc_map.insert({ milli_total,
                                  LrcLyricLine { .milliseconds = milli_total,
                                                 .content      = QString::fromUtf8(content_str) } });
