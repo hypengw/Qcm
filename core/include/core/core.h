@@ -66,9 +66,9 @@ constexpr bool is_specialization_of<T<Args...>, T> = true;
 template<typename Tout, typename Tin>
 struct Convert;
 
-template<typename T, typename F>
-concept convertable = requires(T& t, const F& f) {
-    { Convert<std::decay_t<T>, std::decay_t<F>>(t, f) };
+template<typename Tout, typename Fin>
+concept convertable = requires(Tout& t, const Fin& f) {
+    { Convert<std::decay_t<Tout>, std::decay_t<Fin>>(t, f) };
 };
 
 template<typename Tout, typename Tin>

@@ -22,6 +22,7 @@ Item {
         return MD.Token.icon.trending_flat;
     }
     property QtObject main_win: null
+    property alias category: m_category
     property alias player: m_player
     property alias playlist: m_playlist
     property alias querier_song: m_querier_song
@@ -108,6 +109,13 @@ Item {
         QA.RouteMsg {
         }
     }
+
+    LoggingCategory {
+        id: m_category
+        name: "qcm"
+        defaultLogLevel: LoggingCategory.Warning
+    }
+
     Settings {
         id: settings_play
         property alias loop: m_playlist.loopMode
@@ -168,8 +176,6 @@ Item {
             const song_url_sig = m_querier_song.statusChanged;
             if (song_url_slot)
                 song_url_sig.disconnect(song_url_slot);
-            if (refresh)
-                m_player.source = '';
             if (!cur.itemId.valid()) {
                 m_player.stop();
                 return;
@@ -179,6 +185,8 @@ Item {
             const file = QA.App.media_file(key);
             // seems empty url is true, use string
             if (file.toString()) {
+                if (refresh && m_player.source === file)
+                    m_player.source = '';
                 m_player.source = file;
                 m_querier_song.ids = [];
             } else {
@@ -273,15 +281,14 @@ Item {
         onSourceChanged: {
             if (source) {
                 play();
-                if (QA.App.debug) {
-                    console.error(source);
-                }
             }
         }
         onPlaybackStateChanged: {
-            if (playbackState === QA.QcmPlayer.StoppedState) {
-                if (position / duration > 0.98)
+            console.debug(root.category, `state: ${playbackState}, ${position}, ${duration}, ${source}`);
+            if (playbackState === QA.QcmPlayer.StoppedState && source) {
+                if (position / duration > 0.98) {
                     m_playlist.next();
+                }
             }
         }
     }

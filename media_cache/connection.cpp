@@ -128,9 +128,11 @@ asio::awaitable<void> Connection::http_source(std::filesystem::path file_path,
     file.handle().exceptions(std::ios_base::badbit);
 
     request::Request proxy_req;
-    proxy_req.set_url(req.proxy_url.value()).set_transfer_timeout(120);
+    proxy_req.set_url(req.proxy_url.value()).set_transfer_timeout(180);
+    proxy_req.set_tcp_keepactive(true);
 
     if (req.range_start) {
+        proxy_req.set_header("Host", proxy_req.url_info().host);
         proxy_req.set_header("Range", fmt::format("bytes={}-", req.range_start.value()));
         file.handle().seekg(m_req->range_start.value());
     }

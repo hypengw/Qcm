@@ -207,8 +207,7 @@ private:
             m_notifier.send(p);
         } else {
             notify::position pos;
-            auto             time_base = av_q2d(frame.frame.ff->time_base) * 1000;
-            pos.value                  = frame.frame.ff->pts * time_base;
+            pos.value = duration_cast<milliseconds>(frame.frame.pts_duration()).count();
             if (! dirty()) {
                 m_notifier.try_send(pos);
             }

@@ -2,6 +2,7 @@
 #include <QQmlApplicationEngine>
 #include <QCommandLineParser>
 #include <QSurfaceFormat>
+#include <QLoggingCategory>
 
 #include "Qcm/app.h"
 #include "request/request.h"
@@ -18,7 +19,24 @@ int main(int argc, char* argv[]) {
     auto logger = qcm::LogManager::init();
     request::global_init();
 
-    QGuiApplication     gui_app(argc, argv);
+    QGuiApplication gui_app(argc, argv);
+
+    QCoreApplication::setApplicationName(APP_NAME);
+    QCoreApplication::setApplicationVersion(APP_VERSION);
+
+    QCommandLineParser parser;
+    {
+        parser.addHelpOption();
+        parser.addVersionOption();
+        QCommandLineOption verboseOption("verbose");
+        parser.addOption(verboseOption);
+        parser.process(gui_app);
+
+        logger->set_level(parser.isSet(verboseOption) ? qcm::LogLevel::DEBUG : qcm::LogLevel::WARN);
+        QLoggingCategory::setFilterRules(
+            QString::fromStdString(fmt::format("qcm.debug={}", parser.isSet(verboseOption))));
+    }
+
     KDSingleApplication single;
     if (! single.isPrimaryInstance()) {
         WARN_LOG("another qcm running, triggering");
@@ -26,17 +44,6 @@ int main(int argc, char* argv[]) {
         exit(0);
     }
 
-    QCoreApplication::setApplicationName("Qcm");
-    QCoreApplication::setApplicationVersion(APP_VERSION);
-
-    QCommandLineParser parser;
-    parser.addHelpOption();
-    parser.addVersionOption();
-    QCommandLineOption verboseOption("verbose");
-    parser.addOption(verboseOption);
-    parser.process(gui_app);
-
-    logger->set_level(parser.isSet(verboseOption) ? qcm::LogLevel::DEBUG : qcm::LogLevel::WARN);
     int re;
     {
         QSurfaceFormat format;

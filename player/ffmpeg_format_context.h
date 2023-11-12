@@ -7,6 +7,7 @@ extern "C" {
 
 #include "core/core.h"
 #include "ffmpeg_error.h"
+#include "ffmpeg_dict.h"
 
 namespace player
 {
@@ -32,8 +33,8 @@ public:
     constexpr auto operator->() { return m_d; }
     constexpr auto operator->() const { return m_d; }
 
-    FFmpegError open_input(const char* url) noexcept {
-        return avformat_open_input(&m_d, url, NULL, NULL);
+    FFmpegError open_input(const char* url, std::optional<FFmpegDict> opt = std::nullopt) noexcept {
+        return avformat_open_input(&m_d, url, NULL, opt ? opt->praw() : nullptr);
     }
 
     FFmpegError find_stream_info(AVDictionary** options) noexcept {

@@ -88,13 +88,12 @@ MD.Page {
                         Layout.alignment: Qt.AlignHCenter
 
                         MD.IconButton {
-                            readonly property bool liked: QA.Global.user_song_set.contains(QA.Global.cur_song.itemId)
-
+                            checked: QA.Global.user_song_set.contains(QA.Global.cur_song.itemId)
                             enabled: QA.Global.cur_song.itemId.valid()
-                            icon.name: liked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
+                            icon.name: checked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
 
                             onClicked: {
-                                QA.Global.querier_user_song.like_song(QA.Global.cur_song.itemId, !liked);
+                                QA.Global.querier_user_song.like_song(QA.Global.cur_song.itemId, !checked);
                             }
                         }
                         MD.IconButton {
@@ -130,7 +129,7 @@ MD.Page {
                     RowLayout {
                         Layout.alignment: Qt.AlignHCenter
 
-                        Label {
+                        MD.Text {
                             readonly property date position: new Date(QA.Global.player.duration * slider.position)
 
                             opacity: QA.Global.player.duration > 0 ? 1 : 0
@@ -140,7 +139,7 @@ MD.Page {
                             id: slider
                             Layout.preferredWidth: 220
                         }
-                        Label {
+                        MD.Text {
                             opacity: QA.Global.player.duration > 0 ? 1 : 0
                             text: `${Qt.formatDateTime(QA.Global.player.duration_date, 'mm:ss')}`
                         }
@@ -196,7 +195,7 @@ MD.Page {
                             reuseItems: true
                             spacing: 4
 
-                            SmoothedAnimation on contentY  {
+                            SmoothedAnimation on contentY {
                                 id: anim_scroll
 
                                 property bool manual_stopped: false

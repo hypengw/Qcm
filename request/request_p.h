@@ -15,8 +15,11 @@ private:
     Request* m_q;
     Url      m_url;
     Header   m_header;
-    i32      m_low_speed; // byte
-    i32      m_connect_timeout;
-    i32      m_transfer_timeout;
+    i64      m_low_speed; // byte
+    i64      m_connect_timeout;
+    i64      m_transfer_timeout;
+    bool     m_tcp_keepalive;
+    i64      m_tcp_keepidle;
+    i64      m_tcp_keepintvl;
 };
 } // namespace request

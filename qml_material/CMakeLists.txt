@@ -7,6 +7,7 @@ set(SOURCES
     include/qml_material/icon.h
     include/qml_material/type.h
     include/qml_material/round_item.h
+    include/qml_material/helper.h
     include/qml_material/kirigami/wheelhandler.h
     src/kirigami/wheelhandler.cpp
     src/type.cpp
@@ -14,6 +15,7 @@ set(SOURCES
     src/icon.cpp
     src/util.cpp
     src/theme.cpp
+    src/helper.cpp
     src/round_item.cpp)
 set(QML_FILES
     qml/Button.qml
@@ -89,4 +91,4 @@ find_package(Qt6 REQUIRED COMPONENTS Core Quick QuickControls2)
 target_link_libraries(
   ${LIBNAME}
   PUBLIC Qt6::Core Qt6::Quick Qt6::QuickControls2 core
-  PRIVATE material_helper)
+  PRIVATE material_color)

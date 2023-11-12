@@ -29,7 +29,7 @@ public:
 
     class Buffer {
     public:
-        Buffer(usize limit): m_full(false), m_limit(limit) {}
+        Buffer(usize limit): m_full(false), m_limit(limit), m_transferred(0) {}
         bool is_full() const { return m_full; }
 
         auto size() const { return m_buf.size(); };
@@ -38,6 +38,7 @@ public:
         auto commit(asio::const_buffer in) {
             auto copied = asio::buffer_copy(m_buf.prepare(in.size()), in);
             m_buf.commit(copied);
+            m_transferred += copied;
             check_full();
             return copied;
         }
@@ -55,6 +56,7 @@ public:
         asio::streambuf   m_buf;
         std::atomic<bool> m_full;
         usize             m_limit;
+        usize             m_transferred;
     };
 
     Connection(executor_type::inner_executor_type ex, rc<Session::channel_type> session_channel)
@@ -226,7 +228,9 @@ private:
             }
         } else if (m_state == State::Finished) {
             asio::error_code ec { asio::error::eof };
-            if (m_finish_ec != CURLE_OK) ec = m_finish_ec;
+            if (m_finish_ec != CURLE_OK) {
+                ec = m_finish_ec;
+            }
             m_read_some_handler(ec);
         }
     }

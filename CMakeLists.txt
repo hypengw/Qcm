@@ -44,7 +44,6 @@ add_compile_options(
 add_subdirectory(third_party)
 add_subdirectory(core)
 add_subdirectory(error)
-add_subdirectory(material_helper)
 add_subdirectory(json_helper)
 add_subdirectory(asio_helper)
 add_subdirectory(asio_qt)

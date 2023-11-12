@@ -167,7 +167,6 @@ target_link_libraries(
          request
          fmt::fmt
          qr_code
-         material_helper
          meta_model
          mpris
          media_cache

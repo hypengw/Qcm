@@ -1,4 +1,4 @@
-#include "material_helper/helper.h"
+#include "qml_material/helper.h"
 
 #include "cpp/scheme/scheme.h"
 #include "cpp/blend/blend.h"

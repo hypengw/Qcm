@@ -82,8 +82,14 @@ public:
 private:
     void read_thread(rc<FFmpegFormatContext> rc_fmt_ctx, PacketQueue& pkt_queue) {
         qcm::set_thread_name("qcm stream reader");
-        auto&       fmt_ctx = *rc_fmt_ctx;
-        FFmpegError err     = fmt_ctx.open_input(m_url.c_str());
+        auto& fmt_ctx = *rc_fmt_ctx;
+
+        FFmpegError err;
+        {
+            FFmpegDict opt;
+            opt.set("reconnect", 1);
+            err = fmt_ctx.open_input(m_url.c_str(), std::move(opt));
+        }
         if (err) {
             ERROR_LOG("{}, url: {}", err.what(), m_url);
             return;
@@ -177,7 +183,9 @@ private:
             auto pkt_ref = RECORD(pkt.ref());
             if (pkt_ref) {
                 // drop if not valid
-                if (seek_pos > 0 && std::abs(seek_pos - duration_cast<milliseconds>(pkt.pts_duration()).count()) > 5000) {
+                if (seek_pos > 0 &&
+                    std::abs(seek_pos - duration_cast<milliseconds>(pkt.pts_duration()).count()) >
+                        5000) {
                     continue;
                 }
                 if (st_idx == audio_idx) {

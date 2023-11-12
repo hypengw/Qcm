@@ -2,7 +2,7 @@
 
 #include "core/log.h"
 
-#include "material_helper/helper.h"
+#include "qml_material/helper.h"
 
 using namespace qcm;
 using namespace qcm_material;

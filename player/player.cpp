@@ -37,7 +37,6 @@ void Player::set_source(std::string_view v) {
 
     d->m_dev->start();
     play();
-    d->m_notifier.send(notify::position { 0 });
 }
 
 void Player::play() {
@@ -54,6 +53,7 @@ void Player::stop() {
     d->m_reader->stop();
     d->m_dec->stop();
 
+    d->m_notifier.send(notify::position { 0 });
     d->m_notifier.send(notify::playstate { PlayState::Stopped }).wait();
 }
 

@@ -26,6 +26,9 @@ void apply_easy_request(CurlEasy& easy, const Request& req) {
     easy.setopt(CURLOPT_LOW_SPEED_LIMIT, req.transfer_low_speed());
     easy.setopt(CURLOPT_LOW_SPEED_TIME, req.transfer_timeout());
     easy.setopt(CURLOPT_CONNECTTIMEOUT, req.connect_timeout());
+    easy.setopt(CURLOPT_TCP_KEEPALIVE, req.tcp_keepactive());
+    easy.setopt(CURLOPT_TCP_KEEPIDLE, req.tcp_keepidle());
+    easy.setopt(CURLOPT_TCP_KEEPINTVL, req.tcp_keepintvl());
     easy.set_header(req.header());
 }
 

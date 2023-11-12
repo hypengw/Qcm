@@ -5,8 +5,10 @@ extern "C" {
 }
 #include <cstdlib>
 #include <utility>
+#include <ranges>
 
 #include "core/core.h"
+#include "core/str_helper.h"
 
 namespace player
 {
@@ -20,8 +22,17 @@ public:
         return *this;
     }
 
-    int set(const char* key, const char* value, int flag = 0) {
+    template<typename T>
+        requires std::convertible_to<T, const char* const>
+    int set(const char* key, T&& value, int flag = 0) {
         return av_dict_set(&m_raw, key, value, flag);
+    }
+
+    template<typename T>
+        requires convertable<std::string, T> && (! std::convertible_to<T, const char* const>)
+    int set(const char* key, T&& value, int flag = 0) {
+        auto str_val = convert_from<std::string>(std::forward<T>(value));
+        return av_dict_set(&m_raw, key, str_val.c_str(), flag);
     }
 
     auto get(const char* key, int flag = 0) { return av_dict_get(m_raw, key, NULL, flag); }

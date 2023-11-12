@@ -6,7 +6,7 @@
 #include <QtGui/QColor>
 
 #include "core/core.h"
-#include "material_helper/helper.h"
+#include "qml_material/helper.h"
 
 namespace qcm_material
 {

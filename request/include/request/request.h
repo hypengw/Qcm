@@ -9,7 +9,6 @@
 namespace request
 {
 
-
 std::error_code global_init();
 
 class Session;
@@ -36,14 +35,21 @@ public:
 
     const Header& header() const;
 
-    i32      connect_timeout() const;
-    Request& set_connect_timeout(i32);
+    i64      connect_timeout() const;
+    Request& set_connect_timeout(i64);
 
-    i32      transfer_timeout() const;
-    Request& set_transfer_timeout(i32);
+    i64      transfer_timeout() const;
+    Request& set_transfer_timeout(i64);
 
-    i32      transfer_low_speed() const;
-    Request& set_transfer_low_speed(i32);
+    i64      transfer_low_speed() const;
+    Request& set_transfer_low_speed(i64);
+
+    bool     tcp_keepactive() const;
+    Request& set_tcp_keepactive(bool);
+    i64      tcp_keepidle() const;
+    Request& set_tcp_keepidle(i64);
+    i64      tcp_keepintvl() const;
+    Request& set_tcp_keepintvl(i64);
 
 private:
     C_DECLARE_PRIVATE(Request, m_d)
