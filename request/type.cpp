@@ -54,6 +54,8 @@ std::string UrlParams::encode() const {
     return res;
 }
 
+
+/*
 Url Url::from(std::string_view url_) {
     auto curlu_ =
         std::unique_ptr<CURLU, decltype(&::curl_url_cleanup)>(curl_url(), ::curl_url_cleanup);
@@ -88,3 +90,4 @@ Url Url::from(std::string_view url_) {
 
     return o;
 }
+*/

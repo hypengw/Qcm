@@ -26,7 +26,7 @@ public:
     Request& operator=(const Request&);
 
     std::string_view url() const;
-    const Url&       url_info() const;
+    const URI&       url_info() const;
     Request&         set_url(std::string_view);
 
     std::string header(std::string_view name) const;

@@ -52,3 +52,7 @@ option(KDSingleApplication_TESTS "" OFF)
 option(KDSingleApplication_EXAMPLES "" OFF)
 option(KDSingleApplication_DOCS "" OFF)
 add_subdirectory(KDSingleApplication)
+
+
+add_library(pegtl INTERFACE)
+target_include_directories(pegtl INTERFACE PEGTL/include)

@@ -84,7 +84,7 @@ public:
     }
 
     QVariant item(int idx) const override {
-        if ((usize)std::max(idx + 1, 0) >= crtp_impl().size()) return {};
+        if ((usize)std::max(idx, 0) >= crtp_impl().size()) return {};
         if constexpr (core::is_specialization_of<value_type, std::variant>) {
             return std::visit(
                 [](const auto& v) -> QVariant {

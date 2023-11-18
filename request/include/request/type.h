@@ -8,6 +8,8 @@
 #include "core/variant_helper.h"
 #include "core/core.h"
 
+#include "request/uri.h"
+
 namespace request
 {
 
@@ -68,21 +70,6 @@ std::string url_decode(std::string_view);
 struct Cookie {};
 struct CookieJar {
     std::string raw_cookie;
-};
-
-class Url {
-public:
-    static Url from(std::string_view);
-
-    std::string url;
-    std::string host;
-    std::string scheme;
-    std::string user;
-    std::string password;
-    std::string port;
-    std::string path;
-    std::string query;
-    std::string fragment;
 };
 
 class Connection;

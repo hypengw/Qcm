@@ -8,17 +8,15 @@
 
 using namespace player;
 
-Player::Player(std::string_view name, Notifier notifier)
-    : m_d(std::make_unique<Private>(name, notifier)) {}
+Player::Player(std::string_view name, Notifier notifier): m_d(make_up<Private>(name, notifier)) {}
 Player::~Player() {}
 
 Player::Private::Private(std::string_view name, Notifier notifier)
     : m_notifier(notifier),
-      m_reader(std::make_shared<StreamReader>(notifier)),
-      m_dec(std::make_unique<Decoder>()),
-      m_dev(std::make_unique<Device>(std::make_shared<DeviceContext>(name), nullptr, 2, 44100,
-                                     notifier)),
-      m_ctx(std::make_shared<Context>()) {}
+      m_reader(make_rc<StreamReader>(notifier)),
+      m_dec(make_up<Decoder>()),
+      m_dev(make_up<Device>(make_rc<DeviceContext>(name), nullptr, 2, 44100, notifier)),
+      m_ctx(make_rc<Context>()) {}
 
 Player::Private::~Private() {}
 

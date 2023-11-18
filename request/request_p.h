@@ -13,7 +13,7 @@ public:
 
 private:
     Request* m_q;
-    Url      m_url;
+    URI      m_uri;
     Header   m_header;
     i64      m_low_speed; // byte
     i64      m_connect_timeout;

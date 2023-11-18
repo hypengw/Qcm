@@ -11,6 +11,8 @@
 
 #include <fmt/core.h>
 
+#include <tao/pegtl.hpp>
+
 using namespace request;
 
 std::error_code request::global_init() {
@@ -39,17 +41,17 @@ Request::Private::~Private() {}
 
 std::string_view Request::url() const {
     C_D(const Request);
-    return d->m_url.url;
+    return d->m_uri.uri;
 }
 
-const Url& Request::url_info() const {
+const URI& Request::url_info() const {
     C_D(const Request);
-    return d->m_url;
+    return d->m_uri;
 }
 
-Request& Request::set_url(std::string_view url) {
+Request& Request::set_url(std::string_view uri) {
     C_D(Request);
-    d->m_url = Url::from(url);
+    d->m_uri = URI::from(uri);
     return *this;
 }
 
