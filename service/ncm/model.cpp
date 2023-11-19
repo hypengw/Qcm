@@ -35,6 +35,7 @@
 #include "ncm/api/qrcode_unikey.h"
 #include "ncm/api/radio_like.h"
 #include "ncm/api/song_like.h"
+#include "ncm/api/feedback_weblog.h"
 
 namespace ncm
 {
@@ -223,3 +224,25 @@ JSON_GET_IMPL(api_model::UserCloud);
 
 JSON_GET_IMPL(model::Album);
 JSON_GET_IMPL(model::Song);
+
+Params api::FeedbackWeblog::body() const {
+    Params           p;
+    qcm::json::njson j;
+    j["action"] = "play";
+    {
+        qcm::json::njson j_;
+        j_["download"] = 0;
+        j_["end"]      = "playend";
+        j_["id"]       = input.id;
+        j_["sourceId"] = input.sourceId;
+        j_["time"]     = input.time.milliseconds;
+        j_["type"]     = "song";
+        j_["wifi"]     = 0;
+        j_["source"]   = "list";
+
+        j["json"] = j_;
+    }
+
+    p["logs"] = j.dump();
+    return p;
+}

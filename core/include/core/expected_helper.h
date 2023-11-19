@@ -7,28 +7,31 @@
 #include "core/log.h"
 #include "core/fmt.h"
 
-#define UNWRAP(_RES_, _R_)                                                                  \
-    do {                                                                                    \
-        auto _exp = helper::to_expected(_R_);                                               \
-        _assert_msg_(                                                                       \
-            _exp.has_value(), "unwrap {}", helper::format_or(std::move(_exp).error(), "")); \
-        _RES_ = std::move(_exp).value();                                                    \
+#define UNWRAP(EXP) helper::unwrap(EXP, #EXP)
+
+#define UE(EXP)                                                    \
+    (                                                              \
+        {                                                          \
+            if (! EXP.has_value()) return helper::unexpected(exp); \
+        },                                                         \
+        EXP.value())
+
+#define ERR_RET(_RES_, _R_)                 \
+    do {                                    \
+        auto exp = (_R_);                   \
+        if (! exp.has_value())              \
+            return helper::unexpected(exp); \
+        else                                \
+            _RES_ = std::move(exp).value(); \
     } while (false)
 
-#define ERR_RET(_RES_, _R_)                                           \
-    do {                                                              \
-        if (auto _exp = helper::to_expected(_R_); ! _exp.has_value()) \
-            return nstd::unexpected(std::move(_exp).error()));        \
-        else                                                          \
-            _RES_ = std::move(_exp).value()                           \
-    } while (false)
-
-#define ERR_RET_CO(_RES_, _R_)                                        \
-    do {                                                              \
-        if (auto _exp = helper::to_expected(_R_); ! _exp.has_value()) \
-            co_return nstd::unexpected(std::move(_exp.error()));      \
-        else                                                          \
-            _RES_ = std::move(_exp).value();                          \
+#define ERR_RET_CO(_RES_, _R_)                 \
+    do {                                       \
+        auto exp = (_R_);                      \
+        if (! exp.has_value())                 \
+            co_return helper::unexpected(exp); \
+        else                                   \
+            _RES_ = std::move(exp).value();    \
     } while (false)
 
 #define UNEXPECTED(_V_) nstd::unexpected(_V_)
@@ -84,7 +87,7 @@ namespace helper
 {
 
 template<typename T>
-concept is_expected = core::is_specialization_of<T, nstd::expected>;
+concept is_expected = core::is_specialization_of<std::decay_t<T>, tl::expected>;
 template<typename T>
 concept is_optional = core::is_specialization_of<std::decay_t<T>, std::optional>;
 
@@ -130,6 +133,38 @@ typename std::decay_t<T>::value_type value_or_default(T&& t) {
         return std::forward<T>(t).value();
     else
         return typename std::decay_t<T>::value_type {};
+}
+
+template<typename T>
+    requires is_optional<T> || is_expected<T>
+auto unwrap(T&& opt, std::string_view expr = {},
+            const std::source_location loc = std::source_location::current()) {
+    if constexpr (is_expected<T>) {
+        _tpl_assert_msg_(true,
+                         opt.has_value(),
+                         loc,
+                         "unwrap{}faild: {}",
+                         expr.empty() ? " " : fmt::format(" `{}` ", expr),
+                         opt.error());
+    } else {
+        _tpl_assert_msg_(true,
+                         opt.has_value(),
+                         loc,
+                         "unwrap{}faild",
+                         expr.empty() ? " " : fmt::format(" `{}` ", expr));
+    }
+    return std::forward<T>(opt).value();
+}
+
+template<typename T>
+    requires is_optional<T>
+auto unexpected(T&&) {
+    return std::nullopt;
+}
+template<typename T>
+    requires is_expected<T>
+auto unexpected(T&& t) {
+    return nstd::unexpected(std::forward<T>(t).error());
 }
 
 } // namespace helper

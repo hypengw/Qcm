@@ -14,7 +14,7 @@ if(UNIX AND NOT APPLE)
 endif()
 
 find_package(PkgConfig REQUIRED)
-find_package(Qt6 REQUIRED COMPONENTS Core Quick)
+find_package(Qt6 REQUIRED COMPONENTS Core Quick ShaderTools)
 qt_standard_project_setup()
 
 set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/qml_modules")

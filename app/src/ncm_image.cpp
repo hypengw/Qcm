@@ -32,7 +32,7 @@ inline QSize get_down_size(const QSize& req) {
         if (rate < 1.0) {
             return { def_size, (int)(def_size * rate) };
         } else {
-            return { (int)(def_size / rate), DEF_SIZE };
+            return { (int)(def_size / rate), def_size };
         }
     }
     return req;

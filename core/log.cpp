@@ -48,8 +48,8 @@ LogManager::LogManager(): m_level(LogLevel::WARN) {}
 LogManager::~LogManager() {}
 
 void LogManager::set_level(LogLevel l) { m_level = l; }
-void LogManager::log_impl(LogLevel level, const std::source_location loc,
-                          std::string_view content) {
+
+void LogManager::log_raw(LogLevel level, std::string_view content) {
     FILE* out = nullptr;
     switch (level) {
         using enum LogLevel;
@@ -58,24 +58,27 @@ void LogManager::log_impl(LogLevel level, const std::source_location loc,
     case WARN:
     case ERROR: out = stderr; break;
     }
-    fmt::print(out,
-               "{} {} at {}({}:{})\n",
-               to_sv(level),
-               content,
-               loc.file_name(),
-               loc.line(),
-               loc.column());
+    fmt::print(out, "{}", content);
     std::fflush(out);
+};
+void LogManager::log_loc_raw(LogLevel level, const std::source_location loc,
+                             std::string_view content) {
+    log_raw(level,
+            fmt::format("{} {} at {}({}:{})\n",
+                        to_sv(level),
+                        content,
+                        loc.file_name(),
+                        loc.line(),
+                        loc.column()));
 }
 
-bool qcm::handle_assert(std::string_view func, std::string_view file, int line,
-                        std::string_view expr, std::string_view reason) {
-    fmt::print(stderr, "assert '{}' at {} {}:{}, {}\n", expr, func, file, line, reason);
-    std::fflush(stderr);
-    return false;
-}
-
-void qcm::crash() {
-    bool ok { false };
-    assert(ok);
+std::string log::format_assert(std::string_view expr_str, const std::source_location& loc,
+                               std::string_view msg) {
+    return fmt::format("{}:{}: {}: Assertion `{}` failed.{}{}\n",
+                       extract_basename(loc.file_name()),
+                       loc.line(),
+                       loc.function_name(),
+                       expr_str,
+                       msg.empty() ? "" : "\n",
+                       msg);
 }

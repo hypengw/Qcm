@@ -36,17 +36,23 @@ T.Button {
         layer.effect: MD.RoundedElevationEffect {
             elevation: MD.MatProp.elevation
         }
+    }
 
-        MD.Ripple {
-            clip: true
-            clipRadius: parent.radius
-            width: parent.width
-            height: parent.height
-            pressed: control.pressed
-            anchor: control
-            active: enabled && (control.pressed || control.visualFocus || control.hovered)
-            color: MD.MatProp.stateLayerColor
-        }
+    Binding{
+        control.contentItem.z: -1
+        control.background.z: -2
+        when: control.contentItem
+    }
+
+    MD.Ripple {
+        clip: true
+        clipRadius: 12
+        width: parent.width
+        height: parent.height
+        pressed: control.pressed
+        anchor: control
+        active: enabled && (control.pressed || control.visualFocus || control.hovered)
+        color: MD.MatProp.stateLayerColor
     }
 
     MD.MatProp.elevation: item_state.elevation

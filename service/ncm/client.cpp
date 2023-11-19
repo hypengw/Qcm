@@ -86,8 +86,7 @@ std::optional<std::string> Client::encrypt<api::CryptoType::NONE>(std::string_vi
 }
 
 awaitable<rc<request::Response>> Client::rsp(const request::Request& q) const {
-    rc<request::Response> rsp;
-    UNWRAP(rsp, co_await m_session->get(q));
+    rc<request::Response> rsp = UNWRAP(co_await m_session->get(q));
     co_return rsp;
 }
 

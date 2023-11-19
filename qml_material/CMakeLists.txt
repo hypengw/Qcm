@@ -4,7 +4,9 @@ set(SOURCES
     include/qml_material/util.h
     include/qml_material/theme.h
     include/qml_material/color.h
+    include/qml_material/corner.h
     include/qml_material/icon.h
+    include/qml_material/input_block.h
     include/qml_material/type.h
     include/qml_material/round_item.h
     include/qml_material/helper.h
@@ -12,7 +14,10 @@ set(SOURCES
     src/kirigami/wheelhandler.cpp
     src/type.cpp
     src/color.cpp
+    src/corner.cpp
     src/icon.cpp
+    src/input_block.cpp
+    src/image.cpp
     src/util.cpp
     src/theme.cpp
     src/helper.cpp
@@ -80,6 +85,13 @@ qt_add_qml_module(
   RESOURCES
   ${RESOURCES}
   NO_PLUGIN_OPTIONAL)
+
+qt_add_shaders(${LIBNAME} "shader"
+    PREFIX
+      "/Qcm/Material/"
+    FILES
+        "assets/shader/round.frag"
+)
 
 target_include_directories(
   ${LIBNAME}

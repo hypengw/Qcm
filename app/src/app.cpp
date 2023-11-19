@@ -8,7 +8,6 @@
 #include <qapplicationstatic.h>
 #include <QSettings>
 #include <QJSValueIterator>
-#include <QTextCodec>
 
 #include <asio/deferred.hpp>
 

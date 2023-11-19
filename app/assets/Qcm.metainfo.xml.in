@@ -8,7 +8,7 @@
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
   <description>
     <p>
-        A Qt client for netease cloud music
+        Qt client for netease cloud music
     </p>
   </description>
   <developer_name>hypengw</developer_name>

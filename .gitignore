@@ -79,3 +79,4 @@ CMakeLists.txt.*
 compile_commands.json
 /.qmllint.ini
 /.vscode
+/CMakeUserPresets.json

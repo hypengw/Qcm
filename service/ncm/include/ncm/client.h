@@ -36,10 +36,9 @@ public:
         else
             base_url = BASE_URL;
 
-        auto        url = fmt::format("{}{}", base_url, api.path());
-        auto        req = make_req<TApi::crypto>(url, api.query());
-        std::string body;
-        UNWRAP(body, encrypt<TApi::crypto>(api.path(), api.body()));
+        auto        url  = fmt::format("{}{}", base_url, api.path());
+        auto        req  = make_req<TApi::crypto>(url, api.query());
+        std::string body = UNWRAP(encrypt<TApi::crypto>(api.path(), api.body()));
 
         Result<std::vector<byte>> res = co_await post(req, body);
 

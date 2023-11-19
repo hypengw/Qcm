@@ -92,10 +92,11 @@ public:
         }
     }
 
-    template<typename T, typename E>
-    static auto expected_chain(nstd::expected<T, E>&&     exp,
+    template<typename T>
+        requires helper::is_expected<T>
+    static auto expected_chain(T&&                        exp,
                                const std::source_location loc = std::source_location::current()) {
-        return std::move(exp).map_error([&loc](auto err) {
+        return std::forward<T>(exp).map_error([&loc](auto err) {
             return Error::push(err, loc);
         });
     }

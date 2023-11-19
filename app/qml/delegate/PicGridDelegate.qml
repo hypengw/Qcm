@@ -18,8 +18,6 @@ MD.Card {
         MD.Image {
             id: image
             radius: root.background.radius
-            implicitWidth: root.picWidth
-            implicitHeight: root.picWidth
 
             sourceSize.width: root.picWidth
             sourceSize.height: root.picWidth

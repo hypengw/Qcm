@@ -29,7 +29,7 @@ bool qcm::init_path(std::span<const std::filesystem::path> pathes) {
     for (auto& p : pathes) {
         std::error_code ec;
         std::filesystem::create_directories(p, ec);
-        _assert_msg_(! ec, "path: {}, info: {}({})", p.native(), ec.message(), ec.value())
+        _assert_msg_(! ec, "path: {}, info: {}({})", p.native(), ec.message(), ec.value());
     }
     return true;
 }

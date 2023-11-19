@@ -1,9 +1,9 @@
 set(APP_ID io.github.hypengw.Qcm)
 set(APP_NAME Qcm)
 set(APP_VERSION 1.0)
-set(APP_SUMMARY "A Qt client for netease cloud music")
+set(APP_SUMMARY "Qt client for netease cloud music")
 
-find_package(Qt6 REQUIRED COMPONENTS QuickControls2 Sql Core5Compat)
+find_package(Qt6 REQUIRED COMPONENTS QuickControls2 Sql)
 
 set(SOURCES
     include/Qcm/app.h
@@ -161,7 +161,6 @@ target_link_libraries(
          Qt6::Quick
          Qt6::QuickControls2
          Qt6::Sql
-         Qt6::Core5Compat
          asio_qt
          sv_ncm
          request

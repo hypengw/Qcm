@@ -48,9 +48,10 @@ MD.Page {
         RowLayout {
 
         Kirigami.ShadowedRectangle {
-            width: 100
-            height: 100
-            radius: 50
+            width: 200
+            height: 200
+            radius: 100
+            smooth: false
             color: MD.Token.color.primary
         }
         Rectangle {
