@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-
 import Qcm.App as QA
 import Qcm.Material as MD
 
@@ -17,10 +16,14 @@ MD.Card {
     contentItem: ColumnLayout {
         MD.Image {
             id: image
+            Layout.preferredWidth: root.picWidth
+            Layout.preferredHeight: root.picWidth
             radius: root.background.radius
 
-            sourceSize.width: root.picWidth
-            sourceSize.height: root.picWidth
+            sourceSize: {
+                const q = QA.Global.cover_quality / MD.Util.devicePixelRatio(this)
+                return Qt.size(q, q);
+            }
         }
 
         ColumnLayout {

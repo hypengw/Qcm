@@ -30,6 +30,7 @@ Item {
     property alias querier_user_song: m_querier_user_songlike
     property string song_cover: ''
     property int color_scheme: MD.MdColorMgr.Light
+    property int cover_quality: -1
 
     readonly property string title: 'Qcm'
     readonly property alias user_info: m_querier_user.data
@@ -120,6 +121,11 @@ Item {
         id: settings_play
         property alias loop: m_playlist.loopMode
         category: 'play'
+    }
+    Settings {
+        id: settings_quality
+        property alias cover_quality: root.cover_quality
+        category: 'quality'
     }
     Settings {
         id: settings_theme

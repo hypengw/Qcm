@@ -40,10 +40,10 @@ MD.Page {
                     SwipeView {
                         id: swipe_playlist
 
-                        readonly property int cellWidth: 180
+                        readonly property int fixedCellWidth: Math.max(160, QA.Global.main_win.width / 6.0)
                         readonly property int column: 2
                         readonly property int itemCount: column * row
-                        readonly property int row: Math.max(2, Math.floor(width / cellWidth))
+                        readonly property int row: Math.max(2, Math.floor(width / fixedCellWidth))
 
                         anchors.fill: parent
                         clip: true
@@ -52,9 +52,8 @@ MD.Page {
                         Repeater {
                             model: Util.array_split(qr_rmd_res.data.dailyPlaylists, swipe_playlist.itemCount)
 
-                            GridView {
-                                cellHeight: 240
-                                cellWidth: width / swipe_playlist.row
+                            QA.MGridView {
+                                fixedCellWidth: swipe_playlist.fixedCellWidth
                                 clip: true
                                 implicitHeight: contentHeight
                                 interactive: false
@@ -68,6 +67,7 @@ MD.Page {
                                         anchors.top: parent.top
                                         anchors.topMargin: 12
 
+                                        picWidth: parent.GridView.view.fixedCellWidth
                                         width: picWidth
                                         height: Math.min(implicitHeight, parent.height)
                                         image.source: `image://ncm/${modelData.picUrl}`

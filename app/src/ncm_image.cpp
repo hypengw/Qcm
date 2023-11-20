@@ -22,12 +22,12 @@ using namespace qcm;
 
 namespace
 {
-constexpr int DEF_SIZE { 240 };
+constexpr int DEF_SIZE { 300 };
 
 inline QSize get_down_size(const QSize& req) {
-    const int def_size = DEF_SIZE * qApp->devicePixelRatio();
+    const int def_size = DEF_SIZE;
 
-    if (req.width() <= def_size) {
+    if (req.width() * req.height() <= def_size * def_size) {
         double rate = req.height() / (double)req.width();
         if (rate < 1.0) {
             return { def_size, (int)(def_size * rate) };
@@ -39,11 +39,12 @@ inline QSize get_down_size(const QSize& req) {
 }
 
 inline std::string gen_file_name(const request::URI& url) {
-    return crypto::digest(crypto::md5(), convert_from<std::vector<byte>>(fmt::format("{}{}", url.path , url.query)))
+    return crypto::digest(crypto::md5(),
+                          convert_from<std::vector<byte>>(fmt::format("{}{}", url.path, url.query)))
         .map(crypto::hex::encode_up)
         .map(convert_from<std::string, crypto::bytes_view>)
         .map_error([](auto) {
-        _assert_(false);
+            _assert_(false);
         })
         .value();
 }
@@ -143,9 +144,11 @@ private:
 
 request::Request NcmImageProvider::makeReq(const QString& id, const QSize& requestedSize,
                                            ncm::Client& cli) {
-    auto               down_size = get_down_size(requestedSize);
     request::UrlParams query;
-    query.set_param("param", fmt::format("{}y{}", down_size.width(), down_size.height()));
+    if (requestedSize.isValid()) {
+        auto down_size = get_down_size(requestedSize);
+        query.set_param("param", fmt::format("{}y{}", down_size.width(), down_size.height()));
+    }
     auto req = cli.make_req<ncm::api::CryptoType::NONE>(id.toStdString(), query);
     return req;
 }

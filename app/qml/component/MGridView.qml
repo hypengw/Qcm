@@ -13,6 +13,6 @@ MD.GridView {
 
     leftMargin: space / 2
     rightMargin: space / 2
-    cellHeight: 250
+    cellHeight: fixedCellWidth + 100
     cellWidth: _width > 0 ? _width / Math.floor((_width / (fixedCellWidth + space / 2))) : 0
 }

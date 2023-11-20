@@ -4,6 +4,7 @@
 #include <QColor>
 #include <QQuickItem>
 #include <QPointer>
+#include <QQuickWindow>
 
 #include "qml_material/corner.h"
 
@@ -51,6 +52,10 @@ public:
     Q_INVOKABLE QColor pressColor(QColor in) {
         in.setAlphaF(0.18);
         return in;
+    }
+
+    Q_INVOKABLE qreal devicePixelRatio(QQuickItem* in) {
+        return in ? in->window() ? in->window()->devicePixelRatio() : 1.0 : 1.0;
     }
 
     // tl tr bl br

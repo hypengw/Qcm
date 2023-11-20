@@ -13,6 +13,7 @@ MD.Pane {
         anchors.fill: parent
         clip: true
         model: qr_pl.data
+        fixedCellWidth: Math.max(160, QA.Global.main_win.width / 6.0)
 
         delegate: Item {
             width: GridView.view.cellWidth
@@ -22,6 +23,7 @@ MD.Pane {
                 anchors.top: parent.top
                 anchors.topMargin: 8
 
+                picWidth: parent.GridView.view.fixedCellWidth
                 width: picWidth
                 height: Math.min(implicitHeight, parent.height)
                 text: model.name

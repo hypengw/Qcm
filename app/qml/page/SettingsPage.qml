@@ -110,15 +110,15 @@ MD.Page {
             SettingSection {
                 id: sec_play
                 Layout.fillWidth: true
-                title: qsTr('play')
+                title: qsTr('quality')
 
                 SettingRow {
                     Layout.fillWidth: true
                     text: qsTr('playing quality')
-                    canInput: !comb_quality.popup.visible
+                    canInput: !comb_playing_quality.popup.visible
 
                     actionItem: MD.ComboBox {
-                        id: comb_quality
+                        id: comb_playing_quality
                         signal clicked
 
                         textRole: "text"
@@ -141,11 +141,51 @@ MD.Page {
                                     "text": qsTr('Lossless'),
                                     "value": QA.SongUrlQuerier.LevelLossless
                                 }].map(el => model.append(el));
-
                             currentIndex = indexOfValue(settings_play.play_quality);
                             settings_play.play_quality = Qt.binding(() => {
-                                    return comb_quality.currentValue;
+                                    return comb_playing_quality.currentValue;
                                 });
+                        }
+
+                        onClicked: {
+                            popup.open();
+                        }
+                    }
+                }
+
+                SettingRow {
+                    Layout.fillWidth: true
+                    text: qsTr('cover quality')
+                    canInput: !comb_cover_quality.popup.visible
+
+                    actionItem: MD.ComboBox {
+                        id: comb_cover_quality
+                        signal clicked
+
+                        textRole: "text"
+                        valueRole: "value"
+
+                        model: ListModel {
+                        }
+
+                        Component.onCompleted: {
+                            [{
+                                    "text": qsTr('300px'),
+                                    "value": 300
+                                }, {
+                                    "text": qsTr('400px'),
+                                    "value": 400
+                                }, {
+                                    "text": qsTr('800px'),
+                                    "value": 800
+                                }, {
+                                    "text": qsTr('Origin'),
+                                    "value": -1
+                                }].map(el => model.append(el));
+                            currentIndex = indexOfValue(QA.Global.cover_quality);
+                            currentValueChanged.connect(() => {
+                                QA.Global.cover_quality = comb_cover_quality.currentValue;
+                            });
                         }
 
                         onClicked: {
