@@ -21,13 +21,10 @@ namespace qcm
 class NcmAsyncImageResponse : public QQuickImageResponse {
     Q_OBJECT
 public:
-    NcmAsyncImageResponse() {}
-    virtual ~NcmAsyncImageResponse() {}
+    NcmAsyncImageResponse();
+    virtual ~NcmAsyncImageResponse();
 
-    QQuickTextureFactory* textureFactory() const override {
-        return QQuickTextureFactory::textureFactoryForImage(m_image);
-    }
-
+    QQuickTextureFactory* textureFactory() const override;
     QString errorString() const override { return m_error; }
 
     helper::WatchDog& wdog() { return m_wdog; }
@@ -47,6 +44,7 @@ public slots:
     }
 
 private:
+    QImage           m_image_;
     QImage           m_image;
     QString          m_error;
     helper::WatchDog m_wdog;

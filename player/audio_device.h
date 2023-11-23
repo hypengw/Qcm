@@ -10,6 +10,7 @@
 #include <mutex>
 #include <algorithm>
 #include <functional>
+#include <memory>
 
 #include "core/core.h"
 #include "core/log.h"
@@ -88,24 +89,29 @@ public:
         return cubeb_get_min_latency(m_cubeb_ctx, &params, &latency);
     }
 
-    int stream_init(cubeb_stream** stream, char const* stream_name, cubeb_devid input_device,
-                    cubeb_stream_params* input_stream_params, cubeb_devid output_device,
-                    cubeb_stream_params* output_stream_params, unsigned int latency,
-                    cubeb_data_callback data_callback, cubeb_state_callback state_callback,
-                    void* user_ptr
+    nstd::expected<rc<cubeb_stream>, int> stream_init(
+        char const* stream_name, cubeb_devid input_device, cubeb_stream_params* input_stream_params,
+        cubeb_devid output_device, cubeb_stream_params* output_stream_params, unsigned int latency,
+        cubeb_data_callback data_callback, cubeb_state_callback state_callback, void* user_ptr
 
     ) {
-        return cubeb_stream_init(m_cubeb_ctx,
-                                 stream,
-                                 stream_name,
-                                 input_device,
-                                 input_stream_params,
-                                 output_device,
-                                 output_stream_params,
-                                 latency,
-                                 data_callback,
-                                 state_callback,
-                                 user_ptr);
+        cubeb_stream* st { nullptr };
+        auto          res = cubeb_stream_init(m_cubeb_ctx,
+                                     &st,
+                                     stream_name,
+                                     input_device,
+                                     input_stream_params,
+                                     output_device,
+                                     output_stream_params,
+                                     latency,
+                                     data_callback,
+                                     state_callback,
+                                     user_ptr);
+        if (res != CUBEB_OK) {
+            return nstd::unexpected(res);
+        } else {
+            return std::shared_ptr<cubeb_stream>(st, &cubeb_stream_destroy);
+        }
     }
 
 private:
@@ -143,16 +149,18 @@ public:
 
         // m_buffer.reserve(m_bytes_per_block * kBlockCount);
 
-        if (m_ctx->stream_init(&m_stream,
-                               "Cubeb output",
-                               nullptr,
-                               nullptr,
-                               devid,
-                               &output_params,
-                               latency,
-                               Self::data_cb,
-                               Self::state_cb,
-                               this) != CUBEB_OK) {
+        if (auto res = m_ctx->stream_init("Cubeb output",
+                                          nullptr,
+                                          nullptr,
+                                          devid,
+                                          &output_params,
+                                          latency,
+                                          Self::data_cb,
+                                          Self::state_cb,
+                                          this);
+            res) {
+            m_stream = res.value();
+        } else {
             throw std::runtime_error("can't initialize cubeb device");
         }
 
@@ -162,10 +170,12 @@ public:
         if (m_thread.joinable()) m_thread.join();
     };
 
-    void start() { cubeb_stream_start(m_stream); }
-    void stop() { cubeb_stream_stop(m_stream); }
+    void start() { cubeb_stream_start(m_stream.get()); }
+    void stop() { cubeb_stream_stop(m_stream.get()); }
 
-    bool set_volume(float v) const { return CUBEB_OK == cubeb_stream_set_volume(m_stream, v); }
+    bool set_volume(float v) const {
+        return CUBEB_OK == cubeb_stream_set_volume(m_stream.get(), v);
+    }
 
     void set_output(rc<AudioFrameQueue> in) {
         m_output_queue = in;
@@ -263,7 +273,7 @@ private:
     std::thread m_thread;
 
     rc<DeviceContext> m_ctx;
-    cubeb_stream*     m_stream;
+    rc<cubeb_stream>  m_stream;
 
     i32   m_channels;
     float m_volume;

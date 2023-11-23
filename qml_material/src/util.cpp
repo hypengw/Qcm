@@ -1,5 +1,8 @@
 #include "qml_material/util.h"
 
+#include "core/log.h"
+#include <set>
+
 namespace qml_material
 {
 CornersGroup Util::corner(QVariant in) {
@@ -40,6 +43,19 @@ CornersGroup Util::corner(QVariant in) {
 
 CornersGroup Util::corner(qreal br, qreal tr, qreal bl, qreal tl) {
     return CornersGroup(br, tr, bl, tl);
+}
+
+void Util::track(QVariant, Track t) {
+    switch (t) {
+    case TrackCreate:
+        m_tracked++;
+        WARN_LOG("track create {}", m_tracked);
+        break;
+    case TrackDelete:
+        m_tracked--;
+        WARN_LOG("track delete {}", m_tracked);
+        break;
+    }
 }
 
 } // namespace qml_material

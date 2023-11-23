@@ -15,7 +15,6 @@ Q_IMPORT_QML_PLUGIN(Qcm_MaterialPlugin)
 #include <kdsingleapplication.h>
 
 int main(int argc, char* argv[]) {
-    qputenv("QT_FONT_DPI", "96");
     auto logger = qcm::LogManager::init();
     request::global_init();
 

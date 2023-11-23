@@ -30,7 +30,7 @@ private:
                                            const request::Request& proxy_req);
     asio::awaitable<void> send_file_header(std::optional<DataBase::Item>, i64 offset, usize size);
 
-    asio::awaitable<bool> check_cache(std::string_view key, std::filesystem::path);
+    asio::awaitable<bool> check_cache(std::string key, std::filesystem::path);
 
     asio::ip::tcp::socket     m_s;
     rc<DataBase>              m_db;

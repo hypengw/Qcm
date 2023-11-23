@@ -18,35 +18,30 @@
 #include "crypto/crypto.h"
 #include "ncm/client.h"
 
+#include "platform/platform.h"
+
 using namespace qcm;
 
 namespace
 {
-constexpr int DEF_SIZE { 300 };
+
+constexpr int MIN_IMG_SIZE { 300 };
 
 inline QSize get_down_size(const QSize& req) {
-    const int def_size = DEF_SIZE;
+    const int min_size = MIN_IMG_SIZE;
 
-    if (req.width() * req.height() <= def_size * def_size) {
-        double rate = req.height() / (double)req.width();
-        if (rate < 1.0) {
-            return { def_size, (int)(def_size * rate) };
-        } else {
-            return { (int)(def_size / rate), def_size };
-        }
+    if (req.width() * req.height() <= min_size * min_size) {
+        return req.scaled(min_size, min_size, Qt::AspectRatioMode::KeepAspectRatioByExpanding);
     }
     return req;
 }
 
 inline std::string gen_file_name(const request::URI& url) {
-    return crypto::digest(crypto::md5(),
-                          convert_from<std::vector<byte>>(fmt::format("{}{}", url.path, url.query)))
-        .map(crypto::hex::encode_up)
-        .map(convert_from<std::string, crypto::bytes_view>)
-        .map_error([](auto) {
-            _assert_(false);
-        })
-        .value();
+    return UNWRAP(
+        crypto::digest(crypto::md5(),
+                       convert_from<std::vector<byte>>(fmt::format("{}{}", url.path, url.query)))
+            .map(crypto::hex::encode_up)
+            .map(convert_from<std::string, crypto::bytes_view>));
 }
 
 void header_record_db(const request::Header& h, CacheSql::Item& db_it) {
@@ -63,6 +58,13 @@ void header_record_db(const request::Header& h, CacheSql::Item& db_it) {
 
 namespace qcm
 {
+
+NcmAsyncImageResponse::NcmAsyncImageResponse() {}
+NcmAsyncImageResponse::~NcmAsyncImageResponse() { plt::malloc_trim_count(0, 10); }
+
+QQuickTextureFactory* NcmAsyncImageResponse::textureFactory() const {
+    return QQuickTextureFactory::textureFactoryForImage(m_image);
+}
 
 class NcmImageProviderInner : std::enable_shared_from_this<NcmImageProviderInner>, NoCopy {
 public:
@@ -111,7 +113,7 @@ public:
         }
         auto img = QImage(cache_path.c_str());
         if (req_size.isValid()) {
-            img = img.scaled(req_size);
+            img = img.scaled(req_size, Qt::AspectRatioMode::KeepAspectRatio);
         }
         co_return img;
     }

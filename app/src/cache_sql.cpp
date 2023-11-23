@@ -79,7 +79,7 @@ void CacheSql::set_limit(i64 limit) {
 
 void CacheSql::set_clean_cb(clean_cb_t f) { m_clean_cb = std::move(f); }
 
-asio::awaitable<std::optional<CacheSql::Item>> CacheSql::get(std::string_view key) {
+asio::awaitable<std::optional<CacheSql::Item>> CacheSql::get(std::string key) {
     co_await asio::post(asio::bind_executor(m_ex, asio::use_awaitable));
     try_connect();
 
@@ -130,7 +130,7 @@ asio::awaitable<void> CacheSql::insert(Item item) {
     co_return;
 }
 
-asio::awaitable<void> CacheSql::remove(std::string_view key) {
+asio::awaitable<void> CacheSql::remove(std::string key) {
     co_await asio::post(asio::bind_executor(m_ex, asio::use_awaitable));
     try_connect();
 

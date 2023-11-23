@@ -22,6 +22,7 @@
 
 #include "request/response.h"
 #include "asio_helper/sync_file.h"
+#include "platform/platform.h"
 
 #include "meta_model/qgadget_helper.h"
 
@@ -255,11 +256,17 @@ bool App::debug() const {
 #endif
 }
 
-model::Song    App::song(const QJSValue& js) const { return meta_model::toGadget<model::Song>(js); }
-model::Album    App::album(const QJSValue& js) const { return meta_model::toGadget<model::Album>(js); }
-model::Artist    App::artist(const QJSValue& js) const { return meta_model::toGadget<model::Artist>(js); }
-model::Djradio    App::djradio(const QJSValue& js) const { return meta_model::toGadget<model::Djradio>(js); }
-model::Playlist    App::playlist(const QJSValue& js) const { return meta_model::toGadget<model::Playlist>(js); }
+model::Song  App::song(const QJSValue& js) const { return meta_model::toGadget<model::Song>(js); }
+model::Album App::album(const QJSValue& js) const { return meta_model::toGadget<model::Album>(js); }
+model::Artist App::artist(const QJSValue& js) const {
+    return meta_model::toGadget<model::Artist>(js);
+}
+model::Djradio App::djradio(const QJSValue& js) const {
+    return meta_model::toGadget<model::Djradio>(js);
+}
+model::Playlist App::playlist(const QJSValue& js) const {
+    return meta_model::toGadget<model::Playlist>(js);
+}
 model::Program App::program(const QJSValue& js) const {
     return meta_model::toGadget<model::Program>(js);
 }
@@ -276,4 +283,11 @@ QString App::itemIdPageUrl(const QJSValue& js) const {
         return "qrc:/Qcm/App/qml/page/DjradioDetailPage.qml";
     }
     return {};
+}
+
+// #include <private/qquickpixmapcache_p.h>
+void App::releaseResources(QQuickWindow* win) {
+    win->releaseResources();
+    // QQuickPixmap::purgeCache();
+    plt::malloc_trim(0);
 }

@@ -24,7 +24,7 @@ std::filesystem::path get_dl_path(std::filesystem::path p) { return p.replace_ex
 Connection::Connection(asio::ip::tcp::socket s, rc<DataBase> db): m_s(std::move(s)), m_db(db) {};
 Connection::~Connection() {}
 
-asio::awaitable<bool> Connection::check_cache(std::string_view      key,
+asio::awaitable<bool> Connection::check_cache(std::string      key,
                                               std::filesystem::path file_path) {
     auto has_entry = (bool)(co_await m_db->get(key));
 

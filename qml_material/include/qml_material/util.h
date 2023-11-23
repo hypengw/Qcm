@@ -7,6 +7,7 @@
 #include <QQuickWindow>
 
 #include "qml_material/corner.h"
+#include "core/core.h"
 
 namespace qml_material
 {
@@ -17,6 +18,15 @@ class Util : public QObject {
     QML_SINGLETON
 public:
     using QObject::QObject;
+
+    enum Track
+    {
+        TrackCreate = 0,
+        TrackDelete
+    };
+    Q_ENUMS(Track)
+
+    Q_INVOKABLE void track(QVariant, Track);
 
     Q_INVOKABLE bool hasIcon(const QJSValue& v) {
         auto name   = v.property("name");
@@ -62,5 +72,8 @@ public:
     Q_INVOKABLE CornersGroup corner(QVariant in);
 
     Q_INVOKABLE CornersGroup corner(qreal br, qreal tr, qreal bl, qreal tl);
+
+private:
+    usize m_tracked { 0 };
 };
 } // namespace qml_material

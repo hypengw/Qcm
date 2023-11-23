@@ -151,6 +151,10 @@ target_sources(app PRIVATE
 $<$<CONFIG:Debug>:src/util/QmlStackTraceHelper.cpp>
 )
 
+#target_compile_definitions(app PUBLIC
+#$<$<CONFIG:Debug>:QT_QML_DEBUG>
+#)
+
 target_include_directories(
   app
   PUBLIC include
@@ -161,6 +165,8 @@ target_link_libraries(
          Qt6::Quick
          Qt6::QuickControls2
          Qt6::Sql
+         Qt6::QuickPrivate
+
          asio_qt
          sv_ncm
          request
@@ -170,7 +176,8 @@ target_link_libraries(
          mpris
          media_cache
          ctre
-         player)
+         player
+         platform)
 target_compile_definitions(
   app PUBLIC APP_ID="${APP_ID}" APP_VERSION="${APP_VERSION}"
              APP_NAME="${APP_NAME}")

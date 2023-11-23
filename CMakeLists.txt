@@ -24,6 +24,8 @@ set(QML_IMPORT_PATH
     "${QML_DIRS}"
     CACHE STRING "Qt Creator extra qml import paths" FORCE)
 
+  option(USE_ASAN "use asan" OFF)
+
 # -Wconversion -Wsign-conversion
 add_compile_options(
   -Wall
@@ -35,14 +37,20 @@ add_compile_options(
   -fconcepts-diagnostics-depth=2)
 
 add_compile_options(
-  $<$<CONFIG:Debug>:-ggdb> $<$<CONFIG:Debug>:-fno-omit-frame-pointer>
-  # $<$<CONFIG:Debug>:-fsanitize=address>
+  $<$<CONFIG:Debug>:-fno-omit-frame-pointer>
+  $<$<BOOL:${USE_ASAN}>:-fsanitize=address>
+  $<$<BOOL:${USE_ASAN}>:-fsanitize-recover=address>
 )
 
-# add_link_options( $<$<CONFIG:Debug>:-fsanitize=address> )
+add_link_options( 
+  $<$<BOOL:${USE_ASAN}>:-fsanitize=address> 
+  $<$<BOOL:${USE_ASAN}>:-fsanitize-recover=address>
+  $<$<BOOL:${USE_ASAN}>:-lasan>
+)
 
 add_subdirectory(third_party)
 add_subdirectory(core)
+add_subdirectory(platform)
 add_subdirectory(error)
 add_subdirectory(json_helper)
 add_subdirectory(asio_helper)

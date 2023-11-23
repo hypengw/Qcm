@@ -41,6 +41,7 @@ Item {
     Image {
         id: image
         anchors.fill: parent
+        cache: true
 
         fillMode: Image.PreserveAspectFit
 

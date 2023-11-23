@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QQuickWindow>
 
 #include <iostream>
 #include <vector>
@@ -84,6 +85,7 @@ signals:
     void playlistChanged();
 
 public slots:
+    void releaseResources(QQuickWindow*);
     void loginPost(model::UserAccount*);
     void triggerCacheLimit();
 

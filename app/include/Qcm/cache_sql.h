@@ -23,10 +23,10 @@ public:
     void set_limit(i64);
     void set_clean_cb(clean_cb_t);
 
-    asio::awaitable<std::optional<Item>> get(std::string_view key) override;
+    asio::awaitable<std::optional<Item>> get(std::string key) override;
     asio::awaitable<void>                insert(Item) override;
 
-    asio::awaitable<void>                remove(std::string_view key);
+    asio::awaitable<void>                remove(std::string key);
     asio::awaitable<usize>               total_size();
     asio::awaitable<std::optional<Item>> lru();
     asio::awaitable<std::vector<Item>>   get_all();
