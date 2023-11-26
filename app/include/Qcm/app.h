@@ -35,6 +35,16 @@ public:
     using pool_executor_t = asio::thread_pool::executor_type;
     using qt_executor_t   = QtExecutor;
 
+    enum ImageQuality
+    {
+        Img400px  = 400,
+        Img800px  = 800,
+        Img1200px  = 1200,
+        ImgAuto   = -1,
+        ImgOrigin = -2,
+    };
+    Q_ENUMS(ImageQuality)
+
     App();
     virtual ~App();
 
@@ -60,7 +70,6 @@ public:
     Q_INVOKABLE bool           isItemId(const QJSValue&) const;
     Q_INVOKABLE QString        itemIdPageUrl(const QJSValue&) const;
 
-
     Q_INVOKABLE model::Song song(const QJSValue& = {}) const;
     Q_INVOKABLE model::Album album(const QJSValue& = {}) const;
     Q_INVOKABLE model::Artist artist(const QJSValue& = {}) const;
@@ -68,6 +77,7 @@ public:
     Q_INVOKABLE model::Playlist playlist(const QJSValue& = {}) const;
     Q_INVOKABLE model::Program program(const QJSValue& = {}) const;
 
+    Q_INVOKABLE QSize image_size(QSize display, int quality, QQuickItem* = nullptr) const;
 
     Q_INVOKABLE void test();
 

@@ -164,28 +164,32 @@ MD.Page {
 
                         textRole: "text"
                         valueRole: "value"
+                        popup.width: 160
 
                         model: ListModel {
                         }
 
                         Component.onCompleted: {
                             [{
-                                    "text": qsTr('300px'),
-                                    "value": 300
-                                }, {
                                     "text": qsTr('400px'),
-                                    "value": 400
+                                    "value": QA.App.Img400px
                                 }, {
                                     "text": qsTr('800px'),
-                                    "value": 800
+                                    "value": QA.App.Img800px
                                 }, {
-                                    "text": qsTr('Origin'),
-                                    "value": -1
+                                    "text": qsTr('1200px'),
+                                    "value": QA.App.Img1200px
+                                }, {
+                                    "text": qsTr('Auto'),
+                                    "value": QA.App.ImgAuto
+                                }, {
+                                    "text": qsTr('Origin(Slow)'),
+                                    "value": QA.App.ImgOrigin
                                 }].map(el => model.append(el));
                             currentIndex = indexOfValue(QA.Global.cover_quality);
                             currentValueChanged.connect(() => {
-                                QA.Global.cover_quality = comb_cover_quality.currentValue;
-                            });
+                                    QA.Global.cover_quality = comb_cover_quality.currentValue;
+                                });
                         }
 
                         onClicked: {

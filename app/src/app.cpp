@@ -1,6 +1,7 @@
 #include "Qcm/app.h"
 
 #include <cmath>
+#include <array>
 
 #include <QQuickWindow>
 #include <QQuickStyle>
@@ -8,6 +9,7 @@
 #include <qapplicationstatic.h>
 #include <QSettings>
 #include <QJSValueIterator>
+#include <QQuickItem>
 
 #include <asio/deferred.hpp>
 
@@ -290,4 +292,22 @@ void App::releaseResources(QQuickWindow* win) {
     win->releaseResources();
     // QQuickPixmap::purgeCache();
     plt::malloc_trim(0);
+}
+
+QSize App::image_size(QSize display, int quality, QQuickItem* item) const {
+    QSize out;
+    if (quality == ImgOrigin) {
+        out = { -1, -1 };
+    } else if (quality == ImgAuto) {
+        constexpr std::array sizes { Img400px, Img800px, Img1200px };
+        auto                 size = std::max(display.width(), display.height());
+        auto dpr = (item && item->window() ? item->window()->effectiveDevicePixelRatio() : 1.0);
+        size = size * (item && item->window() ? item->window()->effectiveDevicePixelRatio() : 1.0);
+        auto it = std::upper_bound(sizes.begin(), sizes.end(), size);
+        size    = it == sizes.end() ? -1 : (int)((int)*it / dpr);
+        out     = display.scaled(size, size, Qt::AspectRatioMode::KeepAspectRatio);
+    } else {
+        out = display.scaled(quality, quality, Qt::AspectRatioMode::KeepAspectRatio);
+    }
+    return out;
 }

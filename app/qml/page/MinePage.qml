@@ -284,11 +284,13 @@ MD.Page {
 
         width: ListView.view.width
         maximumLineCount: 2
-        leader: MD.Image {
+        leader: QA.Image {
             radius: 8
             source: image
-            sourceSize.height: 48
-            sourceSize.width: 48
+            implicitWidth: displaySize.width
+            implicitHeight: displaySize.height
+
+            displaySize: Qt.size(48, 48)
         }
         rightPadding: 0
         trailing: MD.IconButton {

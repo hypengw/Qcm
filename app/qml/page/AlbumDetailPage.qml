@@ -34,12 +34,14 @@ MD.Page {
             RowLayout {
                 spacing: 16
 
-                MD.Image {
+                QA.Image {
                     MD.MatProp.elevation: MD.Token.elevation.level2
                     source: `image://ncm/${root.itemData.picUrl}`
-                    sourceSize.height: 240
-                    sourceSize.width: 240
                     radius: 16
+
+                    Layout.preferredWidth: displaySize.width
+                    Layout.preferredHeight: displaySize.height
+                    displaySize: Qt.size(240, 240)
                 }
 
                 ColumnLayout {

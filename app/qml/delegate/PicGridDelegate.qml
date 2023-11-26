@@ -14,16 +14,12 @@ MD.Card {
     horizontalPadding: 0
 
     contentItem: ColumnLayout {
-        MD.Image {
+        QA.Image {
             id: image
-            Layout.preferredWidth: root.picWidth
-            Layout.preferredHeight: root.picWidth
+            Layout.preferredWidth: displaySize.width
+            Layout.preferredHeight: displaySize.height
+            displaySize: Qt.size(root.picWidth, root.picWidth)
             radius: root.background.radius
-
-            sourceSize: {
-                const q = QA.Global.cover_quality / MD.Util.devicePixelRatio(this)
-                return Qt.size(q, q);
-            }
         }
 
         ColumnLayout {

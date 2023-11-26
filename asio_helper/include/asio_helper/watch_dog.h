@@ -30,24 +30,11 @@ public:
     }
 
     template<typename Ex, typename F>
-    auto watch(Ex&& ex, F&& f, const duration& t = asio::chrono::minutes(5)) {
+    asio::awaitable<void> watch(Ex&& ex, F&& f, const duration& t = asio::chrono::minutes(5)) {
         cancel();
         m_timer = std::make_shared<asio::steady_timer>(ex);
         m_timer->expires_after(t);
-        return ([](rc<asio::steady_timer> timer, std::decay_t<F> f) -> asio::awaitable<void> {
-            auto ex = co_await asio::this_coro::executor;
-            auto [order, exp, ec] =
-                co_await asio::experimental::make_parallel_group(
-                    asio::co_spawn(ex, std::move(f), asio::deferred),
-                    asio::co_spawn(ex, timer->async_wait(asio::use_awaitable), asio::deferred))
-                    .async_wait(asio::experimental::wait_for_one(), asio::deferred);
-
-            timer->expires_after(asio::chrono::seconds(0));
-
-            if (exp) std::rethrow_exception(exp);
-            // if (exp2) std::rethrow_exception(exp2);
-            co_return;
-        })(m_timer, std::move(f));
+        return watch_impl<std::decay_t<F>>(m_timer, std::move(f));
     }
 
     void cancel() {
@@ -58,6 +45,21 @@ public:
     }
 
 private:
+    template<typename F>
+    static asio::awaitable<void> watch_impl(rc<asio::steady_timer> timer, F f) {
+        auto ex = co_await asio::this_coro::executor;
+        auto [order, exp, ec] =
+            co_await asio::experimental::make_parallel_group(
+                asio::co_spawn(ex, std::move(f), asio::deferred),
+                asio::co_spawn(ex, timer->async_wait(asio::use_awaitable), asio::deferred))
+                .async_wait(asio::experimental::wait_for_one(), asio::deferred);
+
+        timer->expires_after(asio::chrono::seconds(0));
+
+        if (exp) std::rethrow_exception(exp);
+        co_return;
+    }
+
     rc<asio::steady_timer> m_timer;
 };
 } // namespace helper

@@ -42,8 +42,9 @@ Item {
         id: image
         anchors.fill: parent
         cache: true
+        smooth: true
+        fillMode: Image.PreserveAspectCrop
 
-        fillMode: Image.PreserveAspectFit
 
         layer.enabled: true
         layer.effect: ShaderEffect {

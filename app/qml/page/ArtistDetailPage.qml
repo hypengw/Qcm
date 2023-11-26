@@ -18,6 +18,7 @@ MD.Page {
         anchors.fill: parent
         clip: true
         contentHeight: content.implicitHeight
+        ScrollBar.vertical.visible: false
 
         ColumnLayout {
             id: content
@@ -32,12 +33,14 @@ MD.Page {
                 Layout.rightMargin: 8
                 Layout.topMargin: 8
 
-                MD.Image {
+                QA.Image {
                     MD.MatProp.elevation: MD.Token.elevation.level2
                     source: `image://ncm/${root.itemData.info.picUrl}`
-                    sourceSize.height: 240
-                    sourceSize.width: 240
                     radius: width / 2
+
+                    Layout.preferredWidth: displaySize.width
+                    Layout.preferredHeight: displaySize.height
+                    displaySize: Qt.size(240, 240)
                 }
 
                 ColumnLayout {
