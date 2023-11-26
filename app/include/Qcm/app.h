@@ -39,18 +39,21 @@ public:
     {
         Img400px  = 400,
         Img800px  = 800,
-        Img1200px  = 1200,
+        Img1200px = 1200,
         ImgAuto   = -1,
         ImgOrigin = -2,
     };
     Q_ENUMS(ImageQuality)
 
+    static App* self;
+
     App();
     virtual ~App();
 
-    void init(QQmlApplicationEngine*);
+    void init();
 
-    static App* instance();
+    static App*            instance();
+    QQmlApplicationEngine* engine() const;
 
     ncm::Client     ncm_client() const;
     auto            get_executor() { return m_qt_ex; }
@@ -77,7 +80,8 @@ public:
     Q_INVOKABLE model::Playlist playlist(const QJSValue& = {}) const;
     Q_INVOKABLE model::Program program(const QJSValue& = {}) const;
 
-    Q_INVOKABLE QSize image_size(QSize display, int quality, QQuickItem* = nullptr) const;
+    Q_INVOKABLE qreal  devicePixelRadio() const;
+    Q_INVOKABLE QSizeF image_size(QSizeF display, int quality, QQuickItem* = nullptr) const;
 
     Q_INVOKABLE void test();
 
@@ -100,9 +104,8 @@ public slots:
     void triggerCacheLimit();
 
 private:
-    void load_session();
-    void save_session();
-    // up<QQmlApplicationEngine> m_qml_engine;
+    void              load_session();
+    void              save_session();
     qt_executor_t     m_qt_ex;
     asio::thread_pool m_pool;
 
@@ -113,5 +116,8 @@ private:
 
     rc<CacheSql> m_media_cache_sql;
     rc<CacheSql> m_cache_sql;
+
+    QPointer<QQuickWindow>    m_main_win;
+    up<QQmlApplicationEngine> m_qml_engine;
 };
 } // namespace qcm

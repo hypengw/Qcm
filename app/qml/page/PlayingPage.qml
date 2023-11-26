@@ -51,14 +51,16 @@ MD.Page {
                     anchors.centerIn: parent
                     spacing: 12
                     width: parent.width
-
-                    MD.Image {
+                    QA.Image {
                         Layout.alignment: Qt.AlignHCenter
                         MD.MatProp.elevation: MD.Token.elevation.level2
                         source: `image://ncm/${QA.Global.cur_song.album.picUrl}`
-                        sourceSize.height: 240
-                        sourceSize.width: 240
                         radius: 16
+
+                        Layout.preferredWidth: displaySize.width
+                        Layout.preferredHeight: displaySize.height
+                        displaySize: Qt.size(size, size)
+                        readonly property real size: Math.max(240, Window.window.width / 4.0)
                     }
                     MD.Text {
                         Layout.alignment: Qt.AlignHCenter
@@ -66,7 +68,7 @@ MD.Page {
                         Layout.fillWidth: true
                         Layout.topMargin: 12
                         font.bold: true
-                        typescale: MD.Token.typescale.title_medium
+                        typescale: MD.Token.typescale.title_large
                         horizontalAlignment: Text.AlignHCenter
                         text: QA.Global.cur_song.name
                     }
@@ -235,12 +237,15 @@ MD.Page {
                                     property bool current: lrc.currentIndex === index
                                     MD.Text {
                                         Layout.fillWidth: true
-                                        typescale: MD.Token.typescale.title_medium
+                                        typescale: {
+                                            const ts = MD.Token.typescale.title_large.fresh();
+                                            ts.weight = Font.DemiBold
+                                            return ts;
+                                        }
                                         horizontalAlignment: Text.AlignHCenter
                                         verticalAlignment: Text.AlignVCenter
                                         text: model.content
                                         color: parent.current ? MD.Token.color.primary : MD.Token.color.on_surface
-                                        font.weight: parent.current ? Font.Bold : typescale.weight
                                         maximumLineCount: -1
                                     }
                                 }

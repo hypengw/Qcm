@@ -112,9 +112,10 @@ public:
             co_await cache_new_image(req, key, cache_path, req_size);
         }
         auto img = QImage(cache_path.c_str());
-        if (req_size.isValid()) {
-            img = img.scaled(req_size, Qt::AspectRatioMode::KeepAspectRatio);
-        }
+        // do not scale twice
+        //if (req_size.isValid()) {
+        //    img = img.scaled(req_size, Qt::AspectRatioMode::KeepAspectRatio);
+        //}
         co_return img;
     }
 

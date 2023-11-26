@@ -4,7 +4,7 @@ import Qcm.Material as MD
 
 T.TextField {
     id: root
-    property QtObject typescale: MD.Token.typescale.body_large
+    property MD.t_typescale typescale: MD.Token.typescale.body_large
     property bool prominent: false
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset, contentWidth + leftPadding + rightPadding)

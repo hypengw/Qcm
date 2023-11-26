@@ -58,9 +58,9 @@ asio::awaitable<void> scan_media_cache(rc<CacheSql> cache_sql, std::filesystem::
 
 } // namespace
 
-Q_APPLICATION_STATIC(App, app);
+App* App::self { nullptr };
 
-App* App::instance() { return app; }
+App* App::instance() { return self; }
 
 App::App()
     : QObject(nullptr),
@@ -69,7 +69,14 @@ App::App()
       m_session(std::make_shared<request::Session>(m_pool.get_executor())),
       m_client(m_session, m_pool.get_executor()),
       m_mpris(std::make_unique<mpris::Mpris>()),
-      m_media_cache(std::make_shared<media_cache::MediaCache>(m_pool.get_executor(), m_session)) {
+      m_media_cache(std::make_shared<media_cache::MediaCache>(m_pool.get_executor(), m_session)),
+      m_main_win(nullptr),
+      m_qml_engine(std::make_unique<QQmlApplicationEngine>()) {
+    _assert_msg_rel_(self == nullptr, "there should be only one app object");
+    self = this;
+
+    m_qml_engine->addImportPath(u"qrc:/"_qs);
+
     QGuiApplication::setApplicationName(AppName.data());
     QGuiApplication::setOrganizationName(AppName.data());
     QGuiApplication::setDesktopFileName(APP_ID);
@@ -79,6 +86,8 @@ App::App()
     m_cache_sql       = std::make_shared<CacheSql>("cache", 0);
 }
 App::~App() {
+    m_qml_engine = nullptr;
+
     save_session();
     m_media_cache->stop();
     m_session->about_to_stop();
@@ -87,7 +96,9 @@ App::~App() {
 
 ncm::Client App::ncm_client() const { return m_client; }
 
-void App::init(QQmlApplicationEngine* engine) {
+void App::init() { // QQmlApplicationEngine* engine) {
+    auto engine = this->engine();
+
     qmlRegisterSingletonInstance("Qcm.App", 1, 0, "App", this);
     qcm::init_path(std::array { config_path() / "session", data_path() });
 
@@ -139,6 +150,14 @@ void App::init(QQmlApplicationEngine* engine) {
     engine->addImageProvider(u"qr"_qs, new QrImageProvider {});
 
     engine->load(u"qrc:/main/main.qml"_qs);
+
+    for (auto el : engine->rootObjects()) {
+        if (auto win = qobject_cast<QQuickWindow*>(el)) {
+            m_main_win = win;
+        }
+    }
+
+    _assert_msg_rel_(m_main_win, "main window must exist");
 }
 
 model::ArtistId App::artistId(QString id) const { return { id }; }
@@ -287,27 +306,38 @@ QString App::itemIdPageUrl(const QJSValue& js) const {
     return {};
 }
 
+QQmlApplicationEngine* App::engine() const { return m_qml_engine.get(); }
+
 // #include <private/qquickpixmapcache_p.h>
 void App::releaseResources(QQuickWindow* win) {
+    m_qml_engine->trimComponentCache();
+    m_qml_engine->collectGarbage();
     win->releaseResources();
     // QQuickPixmap::purgeCache();
     plt::malloc_trim(0);
 }
 
-QSize App::image_size(QSize display, int quality, QQuickItem* item) const {
-    QSize out;
+qreal App::devicePixelRadio() const {
+    return m_main_win ? m_main_win->effectiveDevicePixelRatio() : qApp->devicePixelRatio();
+}
+
+QSizeF App::image_size(QSizeF display, int quality, QQuickItem* item) const {
+    QSizeF out { -1, -1 };
+    auto   dpr =
+        (item && item->window() ? item->window()->effectiveDevicePixelRatio() : devicePixelRadio());
+
     if (quality == ImgOrigin) {
-        out = { -1, -1 };
     } else if (quality == ImgAuto) {
         constexpr std::array sizes { Img400px, Img800px, Img1200px };
-        auto                 size = std::max(display.width(), display.height());
-        auto dpr = (item && item->window() ? item->window()->effectiveDevicePixelRatio() : 1.0);
-        size = size * (item && item->window() ? item->window()->effectiveDevicePixelRatio() : 1.0);
-        auto it = std::upper_bound(sizes.begin(), sizes.end(), size);
-        size    = it == sizes.end() ? -1 : (int)((int)*it / dpr);
-        out     = display.scaled(size, size, Qt::AspectRatioMode::KeepAspectRatio);
+        auto                 size = std::max(display.width(), display.height()) * dpr;
+        auto                 it   = std::upper_bound(sizes.begin(), sizes.end(), size);
+        if (it != sizes.end()) {
+            size = ((int)*it / dpr);
+            out  = display.scaled(size, size, Qt::AspectRatioMode::KeepAspectRatio);
+        }
     } else {
-        out = display.scaled(quality, quality, Qt::AspectRatioMode::KeepAspectRatio);
+        qreal qualityF = quality / dpr;
+        out            = display.scaled(qualityF, qualityF, Qt::AspectRatioMode::KeepAspectRatio);
     }
     return out;
 }

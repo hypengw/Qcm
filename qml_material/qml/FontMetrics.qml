@@ -4,7 +4,7 @@ import Qcm.Material as MD
 
 FontMetrics {
     id: root
-    property QtObject typescale: MD.Token.typescale.label_medium
+    property MD.t_typescale typescale: MD.Token.typescale.label_medium
     property bool prominent: false
 
     font.pixelSize: typescale?.size ?? 16

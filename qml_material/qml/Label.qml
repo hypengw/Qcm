@@ -9,7 +9,7 @@ T.Label {
 
     linkColor: control.palette.link
 
-    property QtObject typescale: MD.Token.typescale.label_medium
+    property MD.t_typescale typescale: MD.Token.typescale.label_medium
 
     Binding {
         when: typescale

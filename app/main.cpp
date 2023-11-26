@@ -42,22 +42,17 @@ int main(int argc, char* argv[]) {
         single.sendMessageWithTimeout("hello", 5);
         exit(0);
     }
+    // QSurfaceFormat format;
+    // format.setSamples(4);
+    // QSurfaceFormat::setDefaultFormat(format);
 
-    int re;
+    int re { 0 };
     {
-        QSurfaceFormat format;
-        format.setSamples(4);
-        // QSurfaceFormat::setDefaultFormat(format);
-
-        QQmlApplicationEngine engine;
-        engine.addImportPath(u"qrc:/"_qs);
-
-        qcm::App* app = qcm::App::instance();
-        QObject::connect(&single, &KDSingleApplication::messageReceived, app, [app]() {
-            emit app->instanceStarted();
+        qcm::App app;
+        QObject::connect(&single, &KDSingleApplication::messageReceived, app.instance(), []() {
+            emit qcm::App::instance()->instanceStarted();
         });
-
-        app->init(&engine);
+        app.init();
 
         re = gui_app.exec();
     }
