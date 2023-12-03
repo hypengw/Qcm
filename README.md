@@ -27,8 +27,8 @@ cmake --build build
 ```
 
 ### Todo:
-- [ ] sidebar popup
 - [ ] sql api cache
+- [x] sidebar popup
 - [x] search page
 - [x] lyric
 - [x] audio cache using http proxy(AndroidVideoCache)
