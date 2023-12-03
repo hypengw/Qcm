@@ -17,7 +17,7 @@ MD.Page {
 
         target: QA.Global
     }
-    RowLayout {
+    contentItem: RowLayout {
         anchors.fill: parent
         spacing: 0
 
@@ -59,6 +59,7 @@ MD.Page {
                     implicitHeight: contentHeight
                     interactive: false
                     spacing: 12
+                    reuseItems: false
 
                     delegate: MD.Rail {
                         width: ListView.view.width
@@ -81,7 +82,9 @@ MD.Page {
                                 "icon": MD.Token.icon.menu,
                                 "name": qsTr('menu'),
                                 "action": {
-                                    "do": function () {}
+                                    "do": function () {
+                                        item_drawer.open()
+                                    }
                                 }
                             }, {
                                 "icon": MD.Token.icon.library_music,
@@ -178,5 +181,11 @@ MD.Page {
                 // Material.background: Theme.color.surface_container
             }
         }
+    }
+
+    QA.Drawer {
+        id: item_drawer
+        width: 400
+        height: root.height
     }
 }

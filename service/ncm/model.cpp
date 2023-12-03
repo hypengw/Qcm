@@ -16,6 +16,7 @@
 #include "ncm/api/djradio_sublist.h"
 #include "ncm/api/djradio_program.h"
 #include "ncm/api/login.h"
+#include "ncm/api/logout.h"
 #include "ncm/api/playlist_catalogue.h"
 #include "ncm/api/playlist_detail.h"
 #include "ncm/api/playlist_detail_dynamic.h"
@@ -136,6 +137,7 @@ JSON_DEFINE_IMPL(ArtistAlbums, code, hotAlbums, more);
 JSON_DEFINE_IMPL(ArtistSub, code);
 JSON_DEFINE_IMPL(ArtistSublist, code, data, count, hasMore);
 JSON_DEFINE_IMPL(Login, code);
+JSON_DEFINE_IMPL(Logout, code);
 JSON_DEFINE_IMPL(PlaylistDetail, code, playlist, privileges);
 JSON_DEFINE_IMPL(PlaylistDetailDynamic, code, bookedCount, subscribed, playCount, followed,
                  shareCount);
@@ -198,6 +200,7 @@ JSON_GET_IMPL(api_model::ArtistSublist);
 JSON_GET_IMPL(api_model::CloudSearch);
 JSON_GET_IMPL(api_model::Comments);
 JSON_GET_IMPL(api_model::Login);
+JSON_GET_IMPL(api_model::Logout);
 JSON_GET_IMPL(api_model::PlaylistCatalogue);
 JSON_GET_IMPL(api_model::PlaylistDetail);
 JSON_GET_IMPL(api_model::PlaylistDetailDynamic);

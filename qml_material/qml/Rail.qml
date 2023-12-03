@@ -53,6 +53,7 @@ T.Button {
                     width: 56
 
                     NumberAnimation on width {
+                        alwaysRunToEnd: true
                         from: 48
                         to: 56
                         duration: 100

@@ -34,6 +34,7 @@ MD.Page {
                 Layout.topMargin: 8
 
                 QA.Image {
+                    z: 1
                     MD.MatProp.elevation: MD.Token.elevation.level2
                     source: `image://ncm/${root.itemData.info.picUrl}`
                     radius: width / 2

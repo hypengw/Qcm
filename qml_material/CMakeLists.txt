@@ -30,6 +30,8 @@ set(QML_FILES
     qml/ComboBox.qml
     qml/Dialog.qml
     qml/Divider.qml
+    qml/Drawer.qml
+    qml/DrawerItem.qml
     qml/Token.qml
     qml/IconLabel.qml
     qml/IconButton.qml

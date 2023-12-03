@@ -21,6 +21,7 @@ MD.Pane {
             id: slider
             Layout.fillWidth: true
             visible: !is_small
+            z: 1
         }
         RowLayout {
             Layout.bottomMargin: 8

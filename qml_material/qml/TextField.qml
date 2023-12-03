@@ -70,7 +70,7 @@ MD.TextFieldEmbed {
         size: 24
     }
 
-    data: [leading, trailing]
+    data: [placeholder, leading, trailing]
 
     background: MDImpl.MaterialTextContainer {
         implicitWidth: 64

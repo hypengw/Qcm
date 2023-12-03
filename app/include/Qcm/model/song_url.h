@@ -25,7 +25,7 @@ public:
 DEFINE_CONVERT(qcm::model::SongUrlItem, ncm::model::SongUrl) {
     convert(out.id, in.id);
     convert(out.url, in.url);
-    convert(out.md5, in.md5);
+    convert(out.md5, in.md5.value_or(""));
 }
 
 namespace qcm

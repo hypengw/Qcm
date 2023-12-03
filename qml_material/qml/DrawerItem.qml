@@ -15,108 +15,45 @@ T.ItemDelegate {
     leftInset: 0
     rightInset: 0
 
-    verticalPadding: 8
+    verticalPadding: 0
     leftPadding: 16
-    rightPadding: trailing ? 16 : 24
+    rightPadding: 24
     spacing: 0
+    checked: false
 
     icon.width: 24
     icon.height: 24
 
-    property string supportText
-    property int maximumLineCount: 1
-    property alias leader: item_holder_leader.contentItem
     property alias trailing: item_holder_trailing.contentItem
-    property alias below: item_holder_below.contentItem
 
-    property int heightMode: {
-        if (supportText)
-            return MD.Enum.ListItemTwoLine;
-        else
-            return MD.Enum.ListItemOneLine;
-    }
+    contentItem: RowLayout {
+        spacing: 12
 
-    contentItem: ColumnLayout {
-        RowLayout {
-            spacing: 16
-
-            MD.Control {
-                id: item_holder_leader
-                visible: contentItem
-            }
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignVCenter
-                spacing: 0
-                MD.Text {
-                    Layout.fillWidth: true
-                    text: control.text
-                    typescale: MD.Token.typescale.body_large
-                    maximumLineCount: control.maximumLineCount
-                    verticalAlignment: Qt.AlignVCenter
-                }
-                MD.Text {
-                    Layout.fillWidth: true
-                    visible: text
-                    text: control.supportText
-                    color: MD.MatProp.supportTextColor
-                    typescale: MD.Token.typescale.body_medium
-                    verticalAlignment: Qt.AlignVCenter
-                }
-            }
-            MD.Text {
-                id: item_text_trailing_support
-                Layout.alignment: Qt.AlignVCenter
-                visible: text
-                typescale: MD.Token.typescale.label_small
-                verticalAlignment: Qt.AlignVCenter
-            }
-
-            MD.Control {
-                id: item_holder_trailing
-                Layout.alignment: Qt.AlignVCenter
-                visible: contentItem
-            }
-
-            MD.Icon {
-                id: item_text_trailing_icon
-                Layout.alignment: Qt.AlignVCenter
-                visible: name.length
-                size: 24
-            }
+        MD.Icon {
+            id: item_holder_leader
+            name: control.icon.name
+            size: Math.min(control.icon.width, control.icon.height)
         }
-
-        RowLayout {
-            spacing: 16
-            Item {
-                implicitWidth: item_holder_leader.height
-                visible: item_holder_leader.visible
-            }
-
-            MD.Control {
-                id: item_holder_below
-                Layout.fillWidth: true
-                visible: contentItem
-            }
+        MD.Text {
+            Layout.fillWidth: true
+            font: control.font
+            text: control.text
+            typescale: MD.Token.typescale.label_large
+            maximumLineCount: control.maximumLineCount
+            verticalAlignment: Qt.AlignVCenter
+        }
+        MD.Control {
+            id: item_holder_trailing
+            Layout.alignment: Qt.AlignVCenter
+            visible: contentItem
         }
     }
 
     background: Rectangle {
-        implicitWidth: 64
-        implicitHeight: {
-            switch (control.heightMode) {
-            case MD.Enum.ListItemThreeLine:
-                return 96;
-            case MD.Enum.ListItemTwoLine:
-                return 72;
-            case MD.Enum.ListItemOneLine:
-            default:
-                return 56;
-            }
-        }
+        implicitWidth: 336
+        implicitHeight: 56
 
-        radius: 0
+        radius: 28
         color: control.MD.MatProp.backgroundColor
 
         layer.enabled: control.enabled && color.a > 0
@@ -146,8 +83,8 @@ T.ItemDelegate {
         visible: false
 
         elevation: MD.Token.elevation.level0
-        textColor: MD.Token.color.on_surface
-        backgroundColor: MD.Token.color.surface
+        textColor: control.checked ? on_secondary_container : MD.Token.color.on_surface_variant
+        backgroundColor: control.checked ? MD.Token.color.secondary_container : "transparent"
         supportTextColor: MD.Token.color.on_surface_variant
         stateLayerColor: "transparent"
 
@@ -168,9 +105,12 @@ T.ItemDelegate {
                 name: "Hovered"
                 when: control.enabled && control.hovered && !control.down
                 PropertyChanges {
+                    item_state.textColor: control.checked ? on_secondary_container : MD.Token.color.on_surface
+                }
+                PropertyChanges {
                     restoreEntryValues: false
                     item_state.stateLayerColor: {
-                        const c = MD.Token.color.on_surface;
+                        const c = control.checked ? MD.Token.color.on_secondary_container : MD.Token.color.on_surface;
                         return MD.Util.transparent(c, MD.Token.state.hover.state_layer_opacity);
                     }
                 }
@@ -179,9 +119,12 @@ T.ItemDelegate {
                 name: "Pressed"
                 when: control.enabled && control.down
                 PropertyChanges {
+                    item_state.textColor: control.checked ? on_secondary_container : MD.Token.color.on_surface
+                }
+                PropertyChanges {
                     restoreEntryValues: false
                     item_state.stateLayerColor: {
-                        const c = MD.Token.color.on_surface;
+                        const c = MD.Token.color.on_secondary_container;
                         return MD.Util.transparent(c, MD.Token.state.pressed.state_layer_opacity);
                     }
                 }

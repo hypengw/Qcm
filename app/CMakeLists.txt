@@ -2,6 +2,7 @@ set(APP_ID io.github.hypengw.Qcm)
 set(APP_NAME Qcm)
 set(APP_VERSION 1.0)
 set(APP_SUMMARY "Qt client for netease cloud music")
+set(APP_AUTHOR "hypeng")
 
 find_package(Qt6 REQUIRED COMPONENTS QuickControls2 Sql)
 
@@ -34,6 +35,7 @@ set(SOURCES
     include/Qcm/model/djradio_sublist.h
     include/Qcm/model/djradio_program.h
     include/Qcm/model/login.h
+    include/Qcm/model/logout.h
     include/Qcm/model/playlist_catalogue.h
     include/Qcm/model/playlist_detail.h
     include/Qcm/model/playlist_detail_dynamic.h
@@ -69,8 +71,10 @@ set(SOURCES
 set(QML_FILES
     qml/js/util.mjs
     qml/PlayBar.qml
+    qml/Drawer.qml
     qml/Global.qml
     qml/page/LoginPage.qml
+    qml/page/AboutPage.qml
     qml/page/AlbumDetailPage.qml
     qml/page/ArtistDetailPage.qml
     qml/page/CommentPage.qml
@@ -125,8 +129,7 @@ set(QML_FILES
     qml/menu/PlaylistMenu.qml
     qml/menu/ProgramMenu.qml
     )
-set(RESOURCES assets/MaterialIconsRound-Regular.otf
-              assets/MaterialIconsOutlined-Regular.otf)
+set(RESOURCES assets/Qcm.svg)
 
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 set_source_files_properties(qml/Global.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
@@ -139,7 +142,7 @@ qt_add_qml_module(
   RESOURCE_PREFIX
   /
   VERSION
-  1.0
+  ${APP_VERSION}
   QML_FILES
   ${QML_FILES}
   SOURCES
@@ -180,8 +183,8 @@ target_link_libraries(
          player
          platform)
 target_compile_definitions(
-  app PUBLIC APP_ID="${APP_ID}" APP_VERSION="${APP_VERSION}"
-             APP_NAME="${APP_NAME}")
+  app PUBLIC APP_ID="${APP_ID}" APP_VERSION="${APP_VERSION}" APP_AUTHOR="${APP_AUTHOR}"
+             APP_NAME="${APP_NAME}" APP_SUMMARY="${APP_SUMMARY}")
 
 qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cpp)
 

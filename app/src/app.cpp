@@ -269,6 +269,14 @@ void App::test() {
     */
 }
 
+QVariantMap App::info() const {
+    return QVariantMap { { "name", APP_NAME },
+                         { "version", APP_VERSION },
+                         { "summary", APP_SUMMARY },
+                         { "author", APP_AUTHOR },
+                          };
+}
+
 bool App::debug() const {
 #ifndef NDEBUG
     return 1;

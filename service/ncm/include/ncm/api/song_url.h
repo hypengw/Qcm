@@ -47,16 +47,16 @@ namespace ncm
 namespace model
 {
 struct SongUrl {
-    i64         id;
-    std::string url;
-    i64         br;
-    i64         size;
-    std::string md5;
-    std::string type;
-    i64         fee;
+    i64                        id;
+    std::string                url;
+    i64                        br;
+    i64                        size;
+    std::optional<std::string> md5;
+    std::string                type;
+    i64                        fee;
     std::optional<std::string> level;
     std::optional<std::string> encodeType;
-    i64         time;
+    i64                        time;
 };
 } // namespace model
 
@@ -64,7 +64,9 @@ namespace api_model
 {
 
 struct SongUrl {
-    static Result<SongUrl> parse(std::span<const byte> bs, const auto&) { return api_model::parse<SongUrl>(bs); }
+    static Result<SongUrl> parse(std::span<const byte> bs, const auto&) {
+        return api_model::parse<SongUrl>(bs);
+    }
     std::vector<model::SongUrl> data;
     i64                         code;
 };

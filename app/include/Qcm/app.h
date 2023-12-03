@@ -26,6 +26,7 @@
 namespace qcm
 {
 class CacheSql;
+
 class App : public QObject {
     Q_OBJECT
 
@@ -62,7 +63,8 @@ public:
 
     mpris::MediaPlayer2* mpris() const { return m_mpris->mediaplayer2(); }
 
-    bool debug() const;
+    bool           debug() const;
+    Q_INVOKABLE QVariantMap info() const;
 
     Q_INVOKABLE QUrl    media_file(const QString& id) const;
     Q_INVOKABLE QString media_url(const QString& ori, const QString& id) const;

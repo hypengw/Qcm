@@ -13,6 +13,7 @@
 #include "Qcm/model/djradio_sublist.h"
 #include "Qcm/model/djradio_program.h"
 #include "Qcm/model/login.h"
+#include "Qcm/model/logout.h"
 #include "Qcm/model/playlist_catalogue.h"
 #include "Qcm/model/playlist_detail.h"
 #include "Qcm/model/playlist_detail_dynamic.h"
