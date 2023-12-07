@@ -7,7 +7,7 @@ import Qcm.Material as MD
 Action {
     required property var itemId
     icon.name: MD.Token.icon.comment
-    text: qsTr('commnet')
+    text: qsTr('comment')
     onTriggered: {
         QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/CommentPage.qml', {
                 "itemId": itemId
