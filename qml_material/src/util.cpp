@@ -1,10 +1,19 @@
+#include <glibmm.h>
+
 #include "qml_material/util.h"
 
-#include "core/log.h"
 #include <set>
+
+#include "core/log.h"
 
 namespace qml_material
 {
+Util::Util(QObject* parent): QObject(parent) {
+
+
+}
+Util::~Util() {}
+
 CornersGroup Util::corner(QVariant in) {
     CornersGroup out;
     if (in.canConvert<qreal>()) {

@@ -20,18 +20,22 @@ class MdColorMgr : public QObject {
     Q_OBJECT
     QML_ELEMENT
 public:
+    using Self = MdColorMgr;
+
     MdColorMgr(QObject* = nullptr);
 
-    enum SchemeTheme
+    enum ColorScheme
     {
         Light,
         Dark
     };
-    Q_ENUM(SchemeTheme)
+    Q_ENUM(ColorScheme)
 
     Q_PROPERTY(
-        SchemeTheme schemeTheme READ schemeTheme WRITE set_schemeTheme NOTIFY schemeThemeChanged)
+        ColorScheme colorScheme READ colorScheme WRITE set_colorScheme NOTIFY colorSchemeChanged)
     Q_PROPERTY(QColor accentColor READ accentColor WRITE set_accentColor NOTIFY accentColorChanged)
+    Q_PROPERTY(
+        bool useSysColorSM READ useSysColorSM WRITE set_useSysColorSM NOTIFY useSysColorSMChanged)
 
 #define X(_n_)                                           \
     Q_PROPERTY(QColor _n_ READ _n_ NOTIFY schemeChanged) \
@@ -81,27 +85,31 @@ public:
 #undef X
 
 public:
-    SchemeTheme schemeTheme() const;
+    ColorScheme colorScheme() const;
     QColor      accentColor() const;
+    bool        useSysColorSM() const;
 
     Q_INVOKABLE QColor getOn(QColor) const;
 
 public slots:
-    void set_schemeTheme(SchemeTheme);
+    void set_colorScheme(ColorScheme);
     void set_accentColor(QColor);
+    void set_useSysColorSM(bool);
+    void gen_scheme();
+    void refrehFromSystem();
 
 signals:
-    void schemeThemeChanged();
+    void colorSchemeChanged();
     void schemeChanged();
     void accentColorChanged();
+    void useSysColorSMChanged();
 
 private:
-    void gen_scheme();
-
     QColor                                  m_accent_color;
-    SchemeTheme                             m_scheme_theme;
-    qcm::MdScheme                                m_scheme;
+    ColorScheme                             m_color_scheme;
+    qcm::MdScheme                           m_scheme;
     std::map<QColor, QColor, QColorCompare> m_on_map;
+    bool                                    m_use_sys_color_scheme;
 };
 
-} // namespace qcm
+} // namespace qcm_material

@@ -20,8 +20,8 @@ Item {
     }
     readonly property var icon: MD.IconToken.codeMap
 
-    readonly property bool is_dark_theme: theme === MD.MdColorMgr.Dark
-    property alias theme: m_color.schemeTheme
+    property alias theme: m_color.colorScheme
+    readonly property bool is_dark_theme: Number(theme) == MD.MdColorMgr.Dark
 
     //  Font.Thin	0
     //  Font.ExtraLight	12
@@ -45,7 +45,8 @@ Item {
     // 900 	Black (Heavy)
     // 950 	Extra Black (Ultra Black)
 
-    readonly property QtObject typescale: MD.TypeScale {}
+    readonly property QtObject typescale: MD.TypeScale {
+    }
 
     readonly property QtObject state: QtObject {
         readonly property QtObject hover: QtObject {

@@ -9,7 +9,7 @@ Item {
     implicitHeight: size
 
     property string name
-    property int size
+    property int size: 24
     property alias horizontalAlignment: item_text_icon.horizontalAlignment
 
     property int lineHeight: MD.Token.typescale.label_large.line_height

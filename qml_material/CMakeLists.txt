@@ -1,3 +1,7 @@
+find_package(Qt6 REQUIRED COMPONENTS Core Quick QuickControls2 Gui)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(glibmm REQUIRED IMPORTED_TARGET glibmm-2.4)
+
 set(LIBNAME qml_material)
 
 set(SOURCES
@@ -102,9 +106,8 @@ target_include_directories(
   PUBLIC include
   PRIVATE "include/${LIBNAME}" "include/${LIBNAME}/kirigami")
 
-find_package(Qt6 REQUIRED COMPONENTS Core Quick QuickControls2)
-
 target_link_libraries(
   ${LIBNAME}
-  PUBLIC Qt6::Core Qt6::Quick Qt6::QuickControls2 core
-  PRIVATE material_color)
+  PUBLIC Qt6::Core Qt6::Quick Qt6::QuickControls2 
+  core
+  PRIVATE material_color PkgConfig::glibmm)

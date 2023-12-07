@@ -10,6 +10,13 @@ class Enum : public QObject {
 public:
     using QObject::QObject;
 
+    enum class ColorScheme
+    {
+        Light,
+        Dark
+    };
+    Q_ENUM(ColorScheme)
+
     enum class IconStyle
     {
         IconRound = 0,
@@ -68,7 +75,6 @@ public:
         CardOutlined
     };
     Q_ENUM(CardType)
-
 
     enum class TextFieldType
     {

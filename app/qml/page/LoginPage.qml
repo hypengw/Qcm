@@ -209,12 +209,9 @@ MD.Page {
         anchors.bottomMargin: 16
 
         action: Action {
-            readonly property bool is_dark_theme: QA.Global.color_scheme == MD.MdColorMgr.Dark
-            icon.name: is_dark_theme ? MD.Token.icon.dark_mode : MD.Token.icon.light_mode
+            icon.name: MD.Token.is_dark_theme ? MD.Token.icon.dark_mode : MD.Token.icon.light_mode
 
-            onTriggered: {
-                QA.Global.color_scheme = is_dark_theme ? MD.MdColorMgr.Light : MD.MdColorMgr.Dark;
-            }
+            onTriggered: QA.Global.toggleColorScheme()
         }
     }
 }

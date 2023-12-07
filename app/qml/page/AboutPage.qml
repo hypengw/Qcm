@@ -61,6 +61,9 @@ MD.Page {
                 icon.name: MD.Token.icon['public']
                 text: qsTr('project website')
                 font.capitalization: Font.Capitalize
+                trailing: MD.Icon {
+                    name: MD.Token.icon.launch
+                }
                 onClicked: {
                     Qt.openUrlExternally('https://github.com/hypengw/Qcm');
                 }
@@ -72,6 +75,25 @@ MD.Page {
                 text: qsTr('report an issue')
                 onClicked: {
                     Qt.openUrlExternally('https://github.com/hypengw/Qcm/issues');
+                }
+                trailing: MD.Icon {
+                    name: MD.Token.icon.launch
+                }
+            }
+        }
+    }
+
+    footer: MD.Control {
+        horizontalPadding: 24
+        contentItem: RowLayout {
+            Item {
+                Layout.fillWidth: true
+            }
+            MD.Button {
+                type: MD.Enum.BtText
+                text: qsTr('close')
+                onClicked: {
+                    MD.Util.closePopup(root);
                 }
             }
         }

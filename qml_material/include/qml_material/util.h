@@ -7,6 +7,7 @@
 #include <QQuickWindow>
 
 #include "qml_material/corner.h"
+#include "qml_material/type.h"
 #include "core/core.h"
 
 namespace qml_material
@@ -17,7 +18,8 @@ class Util : public QObject {
     QML_ELEMENT
     QML_SINGLETON
 public:
-    using QObject::QObject;
+    Util(QObject* parent = nullptr);
+    ~Util();
 
     enum Track
     {

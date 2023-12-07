@@ -29,7 +29,10 @@ Item {
     property alias querier_user: m_querier_user
     property alias querier_user_song: m_querier_user_songlike
     property string song_cover: ''
+
     property int color_scheme: MD.MdColorMgr.Light
+    property bool use_system_color_scheme: true
+
     property int cover_quality: -1
 
     readonly property string title: 'Qcm'
@@ -97,6 +100,10 @@ Item {
         main_win.snake.show(text, duration);
     }
 
+    function toggleColorScheme() {
+        color_scheme = color_scheme == MD.MdColorMgr.Dark ? MD.MdColorMgr.Light : MD.MdColorMgr.Dark;
+    }
+
     Component.onCompleted: {
         QA.App.errorOccurred.connect(s => {
                 // ignore 'Operation aborted'
@@ -130,6 +137,7 @@ Item {
     Settings {
         id: settings_theme
         property alias color_scheme: root.color_scheme
+        property alias use_system_color_scheme: root.use_system_color_scheme
         property color primary_color: MD.Token.color.accentColor
         category: 'theme'
 
@@ -138,8 +146,11 @@ Item {
             primary_color = Qt.binding(() => {
                     return MD.Token.color.accentColor;
                 });
-            MD.Token.color.schemeTheme = Qt.binding(() => {
+            MD.Token.color.colorScheme = Qt.binding(() => {
                     return root.color_scheme;
+                });
+            MD.Token.color.useSysColorSM = Qt.binding(() => {
+                    return root.use_system_color_scheme;
                 });
         }
     }

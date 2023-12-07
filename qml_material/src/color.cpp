@@ -3,6 +3,8 @@
 #include "core/log.h"
 
 #include "qml_material/helper.h"
+#include <QtGui/QGuiApplication>
+#include <QStyleHints>
 
 using namespace qcm;
 using namespace qcm_material;
@@ -40,25 +42,47 @@ std::map<QColor, QColor, QColorCompare> gen_on_map(const MdScheme& sh) {
 }
 } // namespace
 
-MdColorMgr::MdColorMgr(QObject* parent)
-    : QObject(parent), m_accent_color(BASE_COLOR), m_scheme_theme(SchemeTheme::Light) {
-    gen_scheme();
+DEFINE_CONVERT(qcm_material::MdColorMgr::ColorScheme, Qt::ColorScheme) {
+    switch (in) {
+    case in_type::Dark: out = out_type::Dark; break;
+    default: out = out_type::Light;
+    }
 }
 
-MdColorMgr::SchemeTheme MdColorMgr::schemeTheme() const { return m_scheme_theme; }
-void                    MdColorMgr::set_schemeTheme(SchemeTheme v) {
-    if (std::exchange(m_scheme_theme, v) != v) {
-        gen_scheme();
-        emit schemeThemeChanged();
+MdColorMgr::MdColorMgr(QObject* parent)
+    : QObject(parent),
+      m_accent_color(BASE_COLOR),
+      m_color_scheme(convert_from<ColorScheme>(QGuiApplication::styleHints()->colorScheme())),
+      m_use_sys_color_scheme(true) {
+    gen_scheme();
+    connect(this, &Self::colorSchemeChanged, this, &Self::gen_scheme);
+    connect(this, &Self::accentColorChanged, this, &Self::gen_scheme);
+    auto st = QGuiApplication::styleHints();
+
+    connect(st, &QStyleHints::colorSchemeChanged, this, &Self::refrehFromSystem);
+    connect(this, &Self::useSysColorSMChanged, this, &Self::refrehFromSystem);
+}
+
+MdColorMgr::ColorScheme MdColorMgr::colorScheme() const { return m_color_scheme; }
+void                    MdColorMgr::set_colorScheme(ColorScheme v) {
+    if (std::exchange(m_color_scheme, v) != v) {
+        emit colorSchemeChanged();
     }
 }
 
 QColor MdColorMgr::accentColor() const { return m_accent_color; }
 
+bool MdColorMgr::useSysColorSM() const { return m_use_sys_color_scheme; };
+
 void MdColorMgr::set_accentColor(QColor v) {
     if (std::exchange(m_accent_color, v) != v) {
-        gen_scheme();
         emit accentColorChanged();
+    }
+}
+
+void MdColorMgr::set_useSysColorSM(bool v) {
+    if (std::exchange(m_use_sys_color_scheme, v) != v) {
+        emit useSysColorSMChanged();
     }
 }
 
@@ -70,11 +94,17 @@ QColor MdColorMgr::getOn(QColor in) const {
 }
 
 void MdColorMgr::gen_scheme() {
-    if (m_scheme_theme == SchemeTheme::Light)
+    if (m_color_scheme == ColorScheme::Light)
         m_scheme = MaterialLightColorScheme(m_accent_color.rgb());
     else
         m_scheme = MaterialDarkColorScheme(m_accent_color.rgb());
 
     m_on_map = gen_on_map(m_scheme);
     emit schemeChanged();
+}
+
+void MdColorMgr::refrehFromSystem() {
+    if (useSysColorSM()) {
+        set_colorScheme(convert_from<ColorScheme>(QGuiApplication::styleHints()->colorScheme()));
+    }
 }
