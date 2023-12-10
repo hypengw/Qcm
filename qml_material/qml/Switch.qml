@@ -10,12 +10,16 @@ T.Switch {
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset, implicitContentWidth + leftPadding + rightPadding)
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset, implicitContentHeight + topPadding + bottomPadding, implicitIndicatorHeight + topPadding + bottomPadding)
 
-    padding: 8
+    padding: 0
     spacing: 8
+    topInset: 0
+    bottomInset: 0
+    rightInset: 0
+    leftInset: 0
 
     icon.width: 16
     icon.height: 16
-    icon.color: checked ? (Material.theme === Material.Light ? enabled ? Qt.darker(Material.switchCheckedTrackColor, 1.8) : Material.switchDisabledCheckedIconColor : enabled ? Material.primaryTextColor : Material.switchDisabledCheckedIconColor) : enabled ? Material.switchUncheckedTrackColor : Material.switchDisabledUncheckedIconColor
+    icon.color: item_state.textColor
 
     indicator: Rectangle {
         id: indicator
@@ -102,15 +106,9 @@ T.Switch {
         }
     }
 
-    contentItem: Text {
-        leftPadding: control.indicator && !control.mirrored ? control.indicator.width + control.spacing : 0
-        rightPadding: control.indicator && control.mirrored ? control.indicator.width + control.spacing : 0
-
-        text: control.text
-        font: control.font
-        color: control.enabled ? control.Material.foreground : control.Material.hintTextColor
-        elide: Text.ElideRight
-        verticalAlignment: Text.AlignVCenter
+    contentItem: Item {
+        implicitWidth: control.indicator.width
+        implicitHeight: control.indicator.height
     }
 
     MD.State {
