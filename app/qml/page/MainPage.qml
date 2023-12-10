@@ -139,10 +139,8 @@ MD.Page {
             }
             MD.IconButton {
                 Layout.alignment: Qt.AlignHCenter
-                action: Action {
-                    icon.name: MD.Token.is_dark_theme ? MD.Token.icon.dark_mode : MD.Token.icon.light_mode
-
-                    onTriggered: QA.Global.toggleColorScheme()
+                visible: !QA.Global.use_system_color_scheme
+                action: QA.ColorSchemeAction {
                 }
             }
             MD.IconButton {

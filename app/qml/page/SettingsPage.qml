@@ -36,9 +36,12 @@ MD.Page {
 
                     ColumnLayout {
                         spacing: 8
+                        visible: !QA.Global.use_system_accent_color
 
                         MD.Text {
-                            text: qsTr('Theme')
+                            text: qsTr('theme color')
+                            typescale: MD.Token.typescale.title_small
+                            font.capitalization: Font.Capitalize
                         }
                         RowLayout {
                             Repeater {
@@ -85,7 +88,7 @@ MD.Page {
                                             color: parent.color
                                             height: width
                                             radius: width / 2
-                                            visible: color === MD.Token.color.accentColor
+                                            visible: color === QA.Global.primary_color
                                             width: 18
                                         }
                                         MouseArea {
@@ -94,13 +97,30 @@ MD.Page {
                                             hoverEnabled: true
 
                                             onClicked: {
-                                                MD.Token.color.accentColor = modelData.value;
+                                                QA.Global.primary_color = modelData.value;
                                             }
                                         }
                                     }
                                 }
                             }
                         }
+                    }
+                }
+
+                SettingRow {
+                    Layout.fillWidth: true
+                    text: qsTr('follow system color')
+                    actionItem: MD.Switch {
+                        checked: QA.Global.use_system_accent_color
+                        onCheckedChanged: QA.Global.use_system_accent_color = checked
+                    }
+                }
+                SettingRow {
+                    Layout.fillWidth: true
+                    text: qsTr('auto-night mode')
+                    actionItem: MD.Switch {
+                        checked: QA.Global.use_system_color_scheme
+                        onCheckedChanged: QA.Global.use_system_color_scheme = checked
                     }
                 }
             }
@@ -333,6 +353,8 @@ MD.Page {
             Component.onCompleted: {
                 if (s_row.actionItem?.clicked)
                     clicked.connect(s_row.actionItem.clicked);
+                if (s_row.actionItem?.checkable)
+                    clicked.connect(s_row.actionItem.toggle);
             }
         }
     }

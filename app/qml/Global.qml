@@ -32,6 +32,8 @@ Item {
 
     property int color_scheme: MD.MdColorMgr.Light
     property bool use_system_color_scheme: true
+    property bool use_system_accent_color: true
+    property color primary_color: MD.Token.color.accentColor
 
     property int cover_quality: -1
 
@@ -138,19 +140,28 @@ Item {
         id: settings_theme
         property alias color_scheme: root.color_scheme
         property alias use_system_color_scheme: root.use_system_color_scheme
-        property color primary_color: MD.Token.color.accentColor
+        property alias use_system_accent_color: root.use_system_accent_color
+        property alias primary_color: root.primary_color
         category: 'theme'
 
         Component.onCompleted: {
-            MD.Token.color.accentColor = primary_color;
-            primary_color = Qt.binding(() => {
-                    return MD.Token.color.accentColor;
-                });
-            MD.Token.color.colorScheme = Qt.binding(() => {
-                    return root.color_scheme;
-                });
             MD.Token.color.useSysColorSM = Qt.binding(() => {
                     return root.use_system_color_scheme;
+                });
+            MD.Token.color.useSysAccentColor = Qt.binding(() => {
+                    return root.use_system_accent_color;
+                });
+            if (root.use_system_accent_color) {
+                root.primary_color = MD.Token.color.accentColor;
+            }
+            MD.Token.color.accentColor = Qt.binding(() => {
+                    return primary_color;
+                });
+            if (MD.Token.color.useSysColorSM) {
+                root.color_scheme = MD.Token.color.colorScheme;
+            }
+            MD.Token.color.colorScheme = Qt.binding(() => {
+                    return root.color_scheme;
                 });
         }
     }

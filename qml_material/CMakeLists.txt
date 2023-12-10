@@ -1,6 +1,5 @@
 find_package(Qt6 REQUIRED COMPONENTS Core Quick QuickControls2 Gui)
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(glibmm REQUIRED IMPORTED_TARGET glibmm-2.4)
 
 set(LIBNAME qml_material)
 
@@ -60,6 +59,7 @@ set(QML_FILES
     qml/Slider.qml
     qml/SearchBar.qml
     qml/ScrollBar.qml
+    qml/Switch.qml
     qml/Rail.qml
     qml/TextInput.qml
     qml/TextField.qml
@@ -108,6 +108,6 @@ target_include_directories(
 
 target_link_libraries(
   ${LIBNAME}
-  PUBLIC Qt6::Core Qt6::Quick Qt6::QuickControls2 
+  PUBLIC Qt6::Core Qt6::Quick Qt6::QuickControls2 Qt6::GuiPrivate 
   core
-  PRIVATE material_color PkgConfig::glibmm)
+  PRIVATE material_color)

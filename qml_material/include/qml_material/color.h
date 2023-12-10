@@ -8,7 +8,7 @@
 #include "core/core.h"
 #include "qml_material/helper.h"
 
-namespace qcm_material
+namespace qml_material
 {
 
 struct QColorCompare {
@@ -24,18 +24,20 @@ public:
 
     MdColorMgr(QObject* = nullptr);
 
-    enum ColorScheme
+    enum ColorSchemeEnum
     {
         Light,
         Dark
     };
-    Q_ENUM(ColorScheme)
+    Q_ENUMS(ColorSchemeEnum)
 
-    Q_PROPERTY(
-        ColorScheme colorScheme READ colorScheme WRITE set_colorScheme NOTIFY colorSchemeChanged)
+    Q_PROPERTY(ColorSchemeEnum colorScheme READ colorScheme WRITE set_colorScheme NOTIFY
+                   colorSchemeChanged)
     Q_PROPERTY(QColor accentColor READ accentColor WRITE set_accentColor NOTIFY accentColorChanged)
     Q_PROPERTY(
         bool useSysColorSM READ useSysColorSM WRITE set_useSysColorSM NOTIFY useSysColorSMChanged)
+    Q_PROPERTY(bool useSysAccentColor READ useSysAccentColor WRITE set_useSysAccentColor NOTIFY
+                   useSysAccentColorChanged)
 
 #define X(_n_)                                           \
     Q_PROPERTY(QColor _n_ READ _n_ NOTIFY schemeChanged) \
@@ -85,16 +87,21 @@ public:
 #undef X
 
 public:
-    ColorScheme colorScheme() const;
-    QColor      accentColor() const;
-    bool        useSysColorSM() const;
+    ColorSchemeEnum colorScheme() const;
+    ColorSchemeEnum sysColorScheme() const;
+
+    QColor sysAccentColor() const;
+    QColor accentColor() const;
+    bool   useSysColorSM() const;
+    bool   useSysAccentColor() const;
 
     Q_INVOKABLE QColor getOn(QColor) const;
 
 public slots:
-    void set_colorScheme(ColorScheme);
+    void set_colorScheme(ColorSchemeEnum);
     void set_accentColor(QColor);
     void set_useSysColorSM(bool);
+    void set_useSysAccentColor(bool);
     void gen_scheme();
     void refrehFromSystem();
 
@@ -103,13 +110,15 @@ signals:
     void schemeChanged();
     void accentColorChanged();
     void useSysColorSMChanged();
+    void useSysAccentColorChanged();
 
 private:
     QColor                                  m_accent_color;
-    ColorScheme                             m_color_scheme;
+    ColorSchemeEnum                         m_color_scheme;
     qcm::MdScheme                           m_scheme;
     std::map<QColor, QColor, QColorCompare> m_on_map;
     bool                                    m_use_sys_color_scheme;
+    bool                                    m_use_sys_accent_color;
 };
 
-} // namespace qcm_material
+} // namespace qml_material

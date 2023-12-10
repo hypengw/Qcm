@@ -123,6 +123,10 @@ MD.Page {
                 QA.Global.playlist.switchTo(modelData);
             }
         }
+        footer: MD.ListBusyFooter {
+            running: qr_pl.status === QA.ApiQuerierBase.Querying
+            width: ListView.view.width
+        }
     }
     MD.FAB {
         action: Action {

@@ -121,6 +121,7 @@ set(QML_FILES
     qml/component/PageStack.qml
     qml/action/PlaynextAction.qml
     qml/action/CommentAction.qml
+    qml/action/ColorSchemeAction.qml
     qml/action/SubAction.qml
     qml/menu/SongMenu.qml
     qml/menu/AlbumMenu.qml
