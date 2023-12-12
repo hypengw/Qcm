@@ -235,6 +235,7 @@ Item {
         id: m_querier_user
 
         readonly property bool loginOk: data.userId.valid()
+        forwardError: false
 
         onLoginOkChanged: {
             if (loginOk)

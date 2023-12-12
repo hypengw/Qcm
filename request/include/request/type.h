@@ -93,4 +93,5 @@ using msg = std::variant<Stop, ConnectAction>;
 } // namespace session_message
 
 using SessionMessage = session_message::msg;
+
 } // namespace request

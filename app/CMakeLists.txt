@@ -85,6 +85,7 @@ set(QML_FILES
     qml/page/PlaylistListPage.qml
     qml/page/PlaylistCreatePage.qml
     qml/page/MinePage.qml
+    qml/page/RetryPage.qml
     qml/page/SettingsPage.qml
     qml/page/SearchPage.qml
     qml/page/TodayPage.qml

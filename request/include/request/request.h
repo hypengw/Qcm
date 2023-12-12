@@ -4,7 +4,8 @@
 #include <list>
 
 #include "core/core.h"
-#include "type.h"
+#include "request/type.h"
+#include "request/request_opt.h"
 
 namespace request
 {
@@ -33,27 +34,27 @@ public:
     Request&    set_header(std::string_view name, std::string_view value);
     void        set_option(const Header&);
 
+    template<typename T>
+    T& get_opt() {
+        constexpr auto idx = RequestOpts::index<T>();
+        return *(static_cast<T*>(get_opt(idx)));
+    }
+
+    template<typename T>
+    const T& get_opt() const {
+        constexpr auto idx = RequestOpts::index<T>();
+        return *(static_cast<const T*>(get_opt(idx)));
+    }
+
+    void set_opt(const RequestOpt&);
+
     const Header& header() const;
 
-    i64      connect_timeout() const;
-    Request& set_connect_timeout(i64);
-
-    i64      transfer_timeout() const;
-    Request& set_transfer_timeout(i64);
-
-    i64      transfer_low_speed() const;
-    Request& set_transfer_low_speed(i64);
-
-    bool     tcp_keepactive() const;
-    Request& set_tcp_keepactive(bool);
-    i64      tcp_keepidle() const;
-    Request& set_tcp_keepidle(i64);
-    i64      tcp_keepintvl() const;
-    Request& set_tcp_keepintvl(i64);
-
 private:
-    C_DECLARE_PRIVATE(Request, m_d)
+    const_voidp get_opt(usize) const;
+    voidp       get_opt(usize);
 
+    C_DECLARE_PRIVATE(Request, m_d)
     up<Private> m_d;
 };
 

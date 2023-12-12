@@ -23,12 +23,24 @@ namespace
 
 void apply_easy_request(CurlEasy& easy, const Request& req) {
     easy.setopt(CURLOPT_URL, req.url().data());
-    easy.setopt(CURLOPT_LOW_SPEED_LIMIT, req.transfer_low_speed());
-    easy.setopt(CURLOPT_LOW_SPEED_TIME, req.transfer_timeout());
-    easy.setopt(CURLOPT_CONNECTTIMEOUT, req.connect_timeout());
-    easy.setopt(CURLOPT_TCP_KEEPALIVE, req.tcp_keepactive());
-    easy.setopt(CURLOPT_TCP_KEEPIDLE, req.tcp_keepidle());
-    easy.setopt(CURLOPT_TCP_KEEPINTVL, req.tcp_keepintvl());
+    {
+        auto& timeout = req.get_opt<req_opt::Timeout>();
+
+        easy.setopt(CURLOPT_LOW_SPEED_LIMIT, timeout.low_speed);
+        easy.setopt(CURLOPT_LOW_SPEED_TIME, timeout.transfer_timeout);
+        easy.setopt(CURLOPT_CONNECTTIMEOUT, timeout.connect_timeout);
+    }
+    {
+        auto& tcp = req.get_opt<req_opt::Tcp>();
+        easy.setopt(CURLOPT_TCP_KEEPALIVE, tcp.keepalive);
+        easy.setopt(CURLOPT_TCP_KEEPIDLE, tcp.keepidle);
+        easy.setopt(CURLOPT_TCP_KEEPINTVL, tcp.keepintvl);
+    }
+    {
+        auto& p = req.get_opt<req_opt::Proxy>();
+        easy.setopt(CURLOPT_PROXYTYPE, p.type);
+        easy.setopt(CURLOPT_PROXY, p.content.empty() ? NULL : p.content.c_str());
+    }
     easy.set_header(req.header());
 }
 

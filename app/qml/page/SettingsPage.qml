@@ -31,74 +31,71 @@ MD.Page {
                 title: qsTr('application')
 
                 ColumnLayout {
+                    spacing: 8
+                    visible: !QA.Global.use_system_accent_color
                     Layout.leftMargin: 16
                     Layout.rightMargin: 16
 
-                    ColumnLayout {
-                        spacing: 8
-                        visible: !QA.Global.use_system_accent_color
+                    MD.Text {
+                        text: qsTr('theme color')
+                        typescale: MD.Token.typescale.title_small
+                        font.capitalization: Font.Capitalize
+                    }
+                    RowLayout {
+                        Repeater {
+                            model: [{
+                                    "name": 'red',
+                                    "value": '#F44336'
+                                }, {
+                                    "name": 'pink',
+                                    "value": '#E91E63'
+                                }, {
+                                    "name": 'purple',
+                                    "value": '#9C27B0'
+                                }, {
+                                    "name": 'indigo',
+                                    "value": '#3F51B5'
+                                }, {
+                                    "name": 'blue',
+                                    "value": '#2196F3'
+                                }, {
+                                    "name": 'cyan',
+                                    "value": '#00BCD4'
+                                }, {
+                                    "name": 'orange',
+                                    "value": '#FF9800'
+                                },]
 
-                        MD.Text {
-                            text: qsTr('theme color')
-                            typescale: MD.Token.typescale.title_small
-                            font.capitalization: Font.Capitalize
-                        }
-                        RowLayout {
-                            Repeater {
-                                model: [{
-                                        "name": 'red',
-                                        "value": '#F44336'
-                                    }, {
-                                        "name": 'pink',
-                                        "value": '#E91E63'
-                                    }, {
-                                        "name": 'purple',
-                                        "value": '#9C27B0'
-                                    }, {
-                                        "name": 'indigo',
-                                        "value": '#3F51B5'
-                                    }, {
-                                        "name": 'blue',
-                                        "value": '#2196F3'
-                                    }, {
-                                        "name": 'cyan',
-                                        "value": '#00BCD4'
-                                    }, {
-                                        "name": 'orange',
-                                        "value": '#FF9800'
-                                    },]
+                            delegate: Item {
+                                id: color_item
+                                Layout.fillWidth: true
+                                implicitHeight: implicitWidth
+                                implicitWidth: 24
 
-                                delegate: Item {
-                                    id: color_item
-                                    Layout.fillWidth: true
-                                    implicitHeight: implicitWidth
-                                    implicitWidth: 24
+                                Rectangle {
+                                    anchors.centerIn: parent
+                                    color: modelData.value
+                                    height: width
+                                    radius: width / 2
+                                    width: parent.implicitWidth
 
                                     Rectangle {
                                         anchors.centerIn: parent
-                                        color: modelData.value
+                                        border.color: Material.background
+                                        border.width: 3
+                                        color: parent.color
                                         height: width
                                         radius: width / 2
-                                        width: parent.implicitWidth
+                                        visible: color === QA.Global.primary_color
+                                        width: 18
+                                    }
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        hoverEnabled: true
 
-                                        Rectangle {
-                                            anchors.centerIn: parent
-                                            border.color: Material.background
-                                            border.width: 3
-                                            color: parent.color
-                                            height: width
-                                            radius: width / 2
-                                            visible: color === QA.Global.primary_color
-                                            width: 18
-                                        }
-                                        MouseArea {
-                                            anchors.fill: parent
-                                            cursorShape: Qt.PointingHandCursor
-                                            hoverEnabled: true
-
-                                            onClicked: {
-                                                QA.Global.primary_color = modelData.value;
-                                            }
+                                        onClicked: {
+                                            QA.Global.primary_color = modelData.value;
                                         }
                                     }
                                 }
@@ -223,6 +220,86 @@ MD.Page {
             }
 
             SettingSection {
+                id: sec_network
+                Layout.fillWidth: true
+                title: qsTr('network')
+
+                ColumnLayout {
+                    spacing: 8
+                    Layout.leftMargin: 16
+                    Layout.rightMargin: 16
+
+                    MD.Text {
+                        text: qsTr('proxy')
+                        typescale: MD.Token.typescale.title_small
+                        font.capitalization: Font.Capitalize
+                    }
+                    RowLayout {
+                        MD.ComboBox {
+                            id: comb_proxy
+                            signal clicked
+
+                            textRole: "text"
+                            valueRole: "value"
+                            popup.width: 160
+
+                            model: ListModel {
+                            }
+
+                            Component.onCompleted: {
+                                [{
+                                        "text": 'http',
+                                        "value": QA.App.PROXY_HTTP
+                                    }, {
+                                        "text": 'https',
+                                        "value": QA.App.PROXY_HTTPS2
+                                    }, {
+                                        "text": 'socks4',
+                                        "value": QA.App.PROXY_SOCKS4
+                                    }, {
+                                        "text": 'socks5',
+                                        "value": QA.App.PROXY_SOCKS5
+                                    }, {
+                                        "text": 'socks4a',
+                                        "value": QA.App.PROXY_SOCKS4A
+                                    }, {
+                                        "text": 'socks5h',
+                                        "value": QA.App.PROXY_SOCKS5H
+                                    }].map(el => model.append(el));
+                                currentIndex = indexOfValue(settings_network.proxy_type);
+                                currentValueChanged.connect(() => {
+                                        settings_network.proxy_type = comb_proxy.currentValue;
+                                    });
+                            }
+
+                            onClicked: {
+                                popup.open();
+                            }
+                        }
+
+                        MD.Text {
+                            text: '://'
+                        }
+
+                        MD.TextField {
+                            id: item_tf_proxy
+                            Layout.fillWidth: true
+                            Component.onCompleted: {
+                                text = settings_network.proxy_content;
+                            }
+
+                            onAccepted: {
+                                settings_network.proxy_content = text;
+                            }
+                        }
+                    }
+                }
+            }
+
+            MD.Divider {
+            }
+
+            SettingSection {
                 id: sec_cache
                 Layout.fillWidth: true
                 title: qsTr('cache')
@@ -297,6 +374,17 @@ MD.Page {
             category: 'play'
 
             Component.onCompleted: {
+            }
+        }
+        Settings {
+            id: settings_network
+
+            property int proxy_type: QA.App.PROXY_HTTP
+            property string proxy_content: ''
+
+            category: 'network'
+            Component.onDestruction: {
+                QA.App.setProxy(proxy_type, proxy_content);
             }
         }
     }

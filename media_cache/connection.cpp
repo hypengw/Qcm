@@ -24,8 +24,7 @@ std::filesystem::path get_dl_path(std::filesystem::path p) { return p.replace_ex
 Connection::Connection(asio::ip::tcp::socket s, rc<DataBase> db): m_s(std::move(s)), m_db(db) {};
 Connection::~Connection() {}
 
-asio::awaitable<bool> Connection::check_cache(std::string      key,
-                                              std::filesystem::path file_path) {
+asio::awaitable<bool> Connection::check_cache(std::string key, std::filesystem::path file_path) {
     auto has_entry = (bool)(co_await m_db->get(key));
 
     co_return has_entry&& std::filesystem::exists(file_path);
@@ -128,8 +127,9 @@ asio::awaitable<void> Connection::http_source(std::filesystem::path file_path,
     file.handle().exceptions(std::ios_base::badbit);
 
     request::Request proxy_req;
-    proxy_req.set_url(req.proxy_url.value()).set_transfer_timeout(180);
-    proxy_req.set_tcp_keepactive(true);
+    proxy_req.set_url(req.proxy_url.value());
+    proxy_req.get_opt<request::req_opt::Timeout>().set_transfer_timeout(180);
+    proxy_req.get_opt<request::req_opt::Tcp>().set_keepalive(true);
 
     if (req.range_start) {
         proxy_req.set_header("Host", proxy_req.url_info().host);

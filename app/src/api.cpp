@@ -12,7 +12,8 @@ ApiQuerierBase::ApiQuerierBase(QObject* parent)
       m_main_ex(App::instance()->get_executor()),
       m_status(Status::Uninitialized),
       m_auto_reload(true),
-      m_dirty(true) {
+      m_dirty(true),
+      m_forward_error(true) {
     connect(this,
             &ApiQuerierBase::autoReloadChanged,
             this,
@@ -27,7 +28,7 @@ void                   ApiQuerierBase::set_status(ApiQuerierBase::Status v) {
     if (m_status != v) {
         m_status = v;
         emit statusChanged();
-        if (m_status == Status::Error) {
+        if (forwardError() && m_status == Status::Error) {
             emit App::instance()->errorOccurred(m_error);
         }
     }
@@ -41,11 +42,17 @@ void    ApiQuerierBase::set_error(QString v) {
     }
 }
 
-bool ApiQuerierBase::auto_reload() const { return m_auto_reload; }
-void ApiQuerierBase::set_auto_reload(bool v) {
-    if (m_auto_reload != v) {
-        m_auto_reload = v;
+bool ApiQuerierBase::autoReload() const { return m_auto_reload; }
+void ApiQuerierBase::set_autoReload(bool v) {
+    if (std::exchange(m_auto_reload, v) != v) {
         emit autoReloadChanged();
+    }
+}
+
+bool ApiQuerierBase::forwardError() const { return m_forward_error; }
+void ApiQuerierBase::set_forwardError(bool v) {
+    if (std::exchange(m_forward_error, v) != v) {
+        emit forwardErrorChanged();
     }
 }
 

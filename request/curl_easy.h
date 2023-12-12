@@ -13,7 +13,6 @@
 
 namespace request
 {
-
 constexpr CURLINFO to_curl_info(Attribute A) noexcept {
     switch (A) {
         using enum Attribute;

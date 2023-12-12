@@ -17,10 +17,12 @@ using u16 = std::uint16_t;
 using u32 = std::uint32_t;
 using u64 = std::uint64_t;
 
-using idx   = std::ptrdiff_t;
-using usize = std::size_t;
-using isize = std::ptrdiff_t;
-using byte  = std::byte;
+using idx         = std::ptrdiff_t;
+using usize       = std::size_t;
+using isize       = std::ptrdiff_t;
+using byte        = std::byte;
+using voidp       = void*;
+using const_voidp = const void*;
 
 template<typename T>
 using rc = std::shared_ptr<T>;

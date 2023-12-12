@@ -46,6 +46,17 @@ public:
     };
     Q_ENUMS(ImageQuality)
 
+    enum ProxyType
+    {
+        PROXY_HTTP    = 0,
+        PROXY_HTTPS2  = 3,
+        PROXY_SOCKS4  = 4,
+        PROXY_SOCKS5  = 5,
+        PROXY_SOCKS4A = 6,
+        PROXY_SOCKS5H = 7
+    };
+    Q_ENUMS(ProxyType)
+
     static App* self;
 
     App();
@@ -63,7 +74,7 @@ public:
 
     mpris::MediaPlayer2* mpris() const { return m_mpris->mediaplayer2(); }
 
-    bool           debug() const;
+    bool                    debug() const;
     Q_INVOKABLE QVariantMap info() const;
 
     Q_INVOKABLE QUrl    media_file(const QString& id) const;
@@ -104,6 +115,7 @@ public slots:
     void releaseResources(QQuickWindow*);
     void loginPost(model::UserAccount*);
     void triggerCacheLimit();
+    void setProxy(ProxyType, QString);
 
 private:
     void              load_session();

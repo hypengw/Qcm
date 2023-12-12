@@ -1,5 +1,9 @@
 #include "request.h"
 #include "request_p.h"
+
+#include <iostream>
+#include <fmt/core.h>
+
 #include "session.h"
 #include "session_p.h"
 
@@ -7,11 +11,8 @@
 #include "curl_multi.h"
 #include "curl_easy.h"
 
-#include <iostream>
-
-#include <fmt/core.h>
-
-#include <tao/pegtl.hpp>
+#include "core/type_list.h"
+#include "core/variant_helper.h"
 
 using namespace request;
 
@@ -31,12 +32,9 @@ Request& Request::operator=(const Request& o) {
 
 Request::Private::Private(Request* q)
     : m_q(q),
-      m_low_speed(30),
-      m_connect_timeout(180),
-      m_transfer_timeout(0),
-      m_tcp_keepalive(false),
-      m_tcp_keepidle(120),
-      m_tcp_keepintvl(60) {}
+      m_opts { req_opt::Timeout { .low_speed = 30, .connect_timeout = 180, .transfer_timeout = 0 },
+               req_opt::Proxy {},
+               req_opt::Tcp { .keepalive = false, .keepidle = 120, .keepintvl = 60 } } {}
 Request::Private::~Private() {}
 
 std::string_view Request::url() const {
@@ -79,59 +77,25 @@ void Request::set_option(const Header& header) {
     d->m_header = header;
 }
 
-i64 Request::connect_timeout() const {
+const_voidp Request::get_opt(usize idx) const {
     C_D(const Request);
-    return d->m_connect_timeout;
+    return RequestOpts::runtime_select(idx, [d]<usize I, typename T>() -> const_voidp {
+        return &std::get<I>(d->m_opts);
+    });
 }
-Request& Request::set_connect_timeout(i64 val) {
+voidp Request::get_opt(usize idx) {
     C_D(Request);
-    d->m_connect_timeout = val;
-    return *this;
-}
-i64 Request::transfer_timeout() const {
-    C_D(const Request);
-    return d->m_transfer_timeout;
-}
-Request& Request::set_transfer_timeout(i64 val) {
-    C_D(Request);
-    d->m_transfer_timeout = val;
-    return *this;
+    return RequestOpts::runtime_select(idx, [d]<usize I, typename T>() -> voidp {
+        return &std::get<I>(d->m_opts);
+    });
 }
 
-i64 Request::transfer_low_speed() const {
-    C_D(const Request);
-    return d->m_transfer_timeout;
-}
-Request& Request::set_transfer_low_speed(i64 val) {
+void Request::set_opt(const RequestOpt& opt) {
     C_D(Request);
-    d->m_transfer_timeout = val;
-    return *this;
-}
 
-bool Request::tcp_keepactive() const {
-    C_D(const Request);
-    return d->m_tcp_keepalive;
-}
-Request& Request::set_tcp_keepactive(bool val) {
-    C_D(Request);
-    d->m_tcp_keepalive = val;
-    return *this;
-}
-i64 Request::tcp_keepidle() const {
-    C_D(const Request);
-    return d->m_tcp_keepidle;
-}
-Request& Request::set_tcp_keepidle(i64 val) {
-    C_D(Request);
-    d->m_tcp_keepidle = val;
-    return *this;
-}
-i64 Request::tcp_keepintvl() const {
-    C_D(const Request);
-    return d->m_tcp_keepintvl;
-}
-Request& Request::set_tcp_keepintvl(i64 val) {
-    C_D(Request);
-    d->m_tcp_keepintvl = val;
-    return *this;
+    std::get<req_opt::Proxy>(d->m_opts);
+    std::visit(overloaded { [d](const auto& t) {
+                   std::get<std::decay_t<decltype(t)>>(d->m_opts) = t;
+               } },
+               opt);
 }

@@ -30,12 +30,13 @@ std::string concat_query(std::string_view url, std::string_view query) {
 
 Client::Client(rc<Session> sess, asio::any_io_executor ex)
     : m_session(sess),
-      m_csrf(std::make_shared<std::string>()),
-      m_crypto(std::make_shared<Crypto>()),
-      m_ex(std::make_shared<executor_type>(ex)) {
-    m_req_common.set_connect_timeout(30)
-        .set_transfer_timeout(60)
-        .set_header("Referer", "https://music.163.com")
+      m_csrf(make_rc<std::string>()),
+      m_crypto(make_rc<Crypto>()),
+      m_ex(make_rc<executor_type>(ex)),
+      m_req_common(make_rc<Request>()) {
+    m_req_common->get_opt<request::req_opt::Timeout>().set_connect_timeout(30).set_transfer_timeout(
+        60);
+    m_req_common->set_header("Referer", "https://music.163.com")
         .set_header("User-Agent",
                     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, "
                     "like Gecko) Version/13.1.2 Safari/605.1.15");
@@ -45,17 +46,19 @@ Client::~Client() {}
 
 Client::executor_type& Client::get_executor() { return *m_ex; }
 
+void Client::set_proxy(const request::req_opt::Proxy& p) { m_req_common->set_opt(p); }
+
 template<>
 request::Request Client::make_req<api::CryptoType::WEAPI>(std::string_view          path,
                                                           const request::UrlParams& q) const {
-    Request req { m_req_common };
+    Request req { *m_req_common };
     req.set_url(concat_query(path, q.encode()));
     return req;
 }
 template<>
 request::Request Client::make_req<api::CryptoType::EAPI>(std::string_view          path,
                                                          const request::UrlParams& q) const {
-    Request req { m_req_common };
+    Request req { *m_req_common };
     req.set_url(concat_query(path, q.encode()))
         .set_header("Cookie", "os=pc; appver=2.10.6; versioncode=200601;");
     return req;
@@ -63,7 +66,7 @@ request::Request Client::make_req<api::CryptoType::EAPI>(std::string_view       
 template<>
 request::Request Client::make_req<api::CryptoType::NONE>(std::string_view          path,
                                                          const request::UrlParams& q) const {
-    return Request { m_req_common }.set_url(concat_query(path, q.encode()));
+    return Request { *m_req_common }.set_url(concat_query(path, q.encode()));
 }
 
 template<>

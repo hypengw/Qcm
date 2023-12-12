@@ -29,9 +29,9 @@ concept modelable =
 } // namespace detail
 
 template<typename M, typename A>
-concept modelable = detail::modelable<M, A> &&
-                    (! std::derived_from<M, QAbstractItemModel> ||
-                     requires(M t, qint32 offset) { t.fetchMoreReq(offset); });
+concept modelable =
+    detail::modelable<M, A> && (! std::derived_from<M, QAbstractItemModel> ||
+                                requires(M t, qint32 offset) { t.fetchMoreReq(offset); });
 
 class ApiQuerierBase : public QObject, public QQmlParserStatus {
     Q_OBJECT
@@ -52,8 +52,10 @@ public:
 public:
     Q_PROPERTY(Status status READ status WRITE set_status NOTIFY statusChanged)
     Q_PROPERTY(QString error READ error NOTIFY errorChanged)
-    Q_PROPERTY(bool autoReload READ auto_reload WRITE set_auto_reload NOTIFY autoReloadChanged)
+    Q_PROPERTY(bool autoReload READ autoReload WRITE set_autoReload NOTIFY autoReloadChanged)
     Q_PROPERTY(QObject* data READ data NOTIFY dataChanged)
+    Q_PROPERTY(
+        bool forwardError READ forwardError WRITE set_forwardError NOTIFY forwardErrorChanged)
 
     Q_INVOKABLE void query() { reload(); }
 
@@ -62,8 +64,8 @@ public:
 
     QString error() const;
 
-    bool auto_reload() const;
-    void set_auto_reload(bool);
+    bool autoReload() const;
+    bool forwardError() const;
 
     bool dirty() const;
     bool is_qml_parsing() const;
@@ -75,8 +77,10 @@ public:
     // virtual bool can_relaod() const = 0;
 
 public slots:
+    void set_autoReload(bool);
+    void set_forwardError(bool);
     void reload_if_needed() {
-        if (! is_qml_parsing() && auto_reload() && dirty()) {
+        if (! is_qml_parsing() && autoReload() && dirty()) {
             reload();
             mark_dirty(false);
         }
@@ -88,6 +92,7 @@ public slots:
 signals:
     void statusChanged();
     void errorChanged();
+    void forwardErrorChanged();
     void autoReloadChanged();
     void dataChanged();
 
@@ -128,6 +133,7 @@ private:
     bool                  m_auto_reload;
     bool                  m_qml_parsing;
     bool                  m_dirty;
+    bool                  m_forward_error;
 };
 
 template<typename TApi, typename TModel>
@@ -140,9 +146,7 @@ public:
     using model_type = TModel;
 
     ApiQuerier(QObject* parent)
-        : ApiQuerierBase(parent),
-          m_model(new model_type(this)),
-          m_client(detail::get_client()) {
+        : ApiQuerierBase(parent), m_model(new model_type(this)), m_client(detail::get_client()) {
         if constexpr (std::derived_from<TModel, QAbstractItemModel>) {
             connect(m_model,
                     &TModel::fetchMoreReq,
@@ -158,30 +162,29 @@ public:
         // co_spawn need strand for cancel
         auto ex = asio::make_strand(m_client.get_executor());
         this->set_status(Status::Querying);
-        this->spawn(ex,
-                    [cnt = gen_context()]() mutable -> asio::awaitable<void> {
-                        auto& self = cnt.self;
-                        auto& cli  = cnt.client;
+        this->spawn(ex, [cnt = gen_context()]() mutable -> asio::awaitable<void> {
+            auto& self = cnt.self;
+            auto& cli  = cnt.client;
 
-                        ncm::Result<out_type> out = co_await cli.perform(cnt.api);
+            ncm::Result<out_type> out = co_await cli.perform(cnt.api);
 
-                        if (! out) {
-                            ERROR_LOG("{}", out.error());
-                        }
+            if (! out) {
+                ERROR_LOG("{}", out.error());
+            }
 
-                        // switch to qt thread
-                        co_await asio::post(asio::bind_executor(cnt.main_ex, asio::use_awaitable));
-                        if (self) {
-                            if (out) {
-                                self->model()->handle_output(std::move(out).value(), cnt.api.input);
-                                self->set_status(Status::Finished);
-                            } else {
-                                self->set_error(convert_from<QString>(out.error().what()));
-                                self->set_status(Status::Error);
-                            }
-                        }
-                        co_return;
-                    });
+            // switch to qt thread
+            co_await asio::post(asio::bind_executor(cnt.main_ex, asio::use_awaitable));
+            if (self) {
+                if (out) {
+                    self->model()->handle_output(std::move(out).value(), cnt.api.input);
+                    self->set_status(Status::Finished);
+                } else {
+                    self->set_error(convert_from<QString>(out.error().what()));
+                    self->set_status(Status::Error);
+                }
+            }
+            co_return;
+        });
     }
 
 protected:

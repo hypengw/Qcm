@@ -30,6 +30,10 @@
 
 using namespace qcm;
 
+DEFINE_CONVERT(request::req_opt::Proxy::Type, App::ProxyType) {
+    out = static_cast<std::decay_t<decltype(out)>>(in);
+}
+
 namespace
 {
 
@@ -140,6 +144,13 @@ void App::init() { // QQmlApplicationEngine* engine) {
 
     load_session();
 
+    {
+        QSettings s;
+        auto type = s.value("network/proxy_type").value<ProxyType>();
+        auto content = s.value("network/proxy_content").toString();
+        setProxy(type, content);
+    }
+
     QQuickStyle::setStyle("Material");
 
     auto gui_app = QGuiApplication::instance();
@@ -239,6 +250,11 @@ void App::save_session() {
     }
 }
 
+void App::setProxy(ProxyType t, QString content) {
+    m_client.set_proxy(request::req_opt::Proxy {
+        .type = convert_from<request::req_opt::Proxy::Type>(t), .content = content.toStdString() });
+}
+
 bool App::isItemId(const QJSValue& v) const {
     auto var = v.toVariant();
     if (var.isValid()) {
@@ -270,11 +286,12 @@ void App::test() {
 }
 
 QVariantMap App::info() const {
-    return QVariantMap { { "name", APP_NAME },
-                         { "version", APP_VERSION },
-                         { "summary", APP_SUMMARY },
-                         { "author", APP_AUTHOR },
-                          };
+    return QVariantMap {
+        { "name", APP_NAME },
+        { "version", APP_VERSION },
+        { "summary", APP_SUMMARY },
+        { "author", APP_AUTHOR },
+    };
 }
 
 bool App::debug() const {
