@@ -190,7 +190,9 @@ public:
         m_notifier.send(s).wait();
     }
 
-    void mark_dirty() { m_mark_serial = m_output_queue->serial(); }
+    void mark_dirty() {
+        if (m_output_queue) m_mark_serial = m_output_queue->serial();
+    }
 
     bool dirty() const { return m_mark_serial == m_output_queue->serial(); }
 

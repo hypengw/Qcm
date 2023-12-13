@@ -47,6 +47,8 @@ void Player::pause() {
 }
 void Player::stop() {
     C_D(Player);
+    d->m_dev->mark_dirty();
+
     d->m_ctx->set_aborted(true);
     d->m_reader->stop();
     d->m_dec->stop();
