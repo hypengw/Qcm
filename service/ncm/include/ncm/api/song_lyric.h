@@ -50,9 +50,9 @@ struct SongLyric {
     using in_type                      = params::SongLyric;
     using out_type                     = api_model::SongLyric;
     constexpr static Operation  oper   = Operation::PostOperation;
-    constexpr static CryptoType crypto = CryptoType::EAPI;
+    constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string_view path() const { return "/eapi/song/lyric"; }
+    std::string_view path() const { return "/weapi/song/lyric"; }
     UrlParams        query() const {
         UrlParams p;
         p.set_param("_nmclfl", "1");

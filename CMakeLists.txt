@@ -24,31 +24,37 @@ set(QML_IMPORT_PATH
     "${QML_DIRS}"
     CACHE STRING "Qt Creator extra qml import paths" FORCE)
 
-  option(USE_ASAN "use asan" OFF)
+option(QCM_USE_ASAN "use asan" OFF)
 
 # -Wconversion -Wsign-conversion
-add_compile_options(
+set(WARN_OPTS
   -Wall
   -Wextra
   -Wpedantic
   -Wno-unused-variable
   -Wno-unused-function
   -Wno-dangling-reference
-  -fconcepts-diagnostics-depth=2)
+  -fconcepts-diagnostics-depth=2
+)
+
 
 add_compile_options(
   $<$<CONFIG:Debug>:-fno-omit-frame-pointer>
-  $<$<BOOL:${USE_ASAN}>:-fsanitize=address>
-  $<$<BOOL:${USE_ASAN}>:-fsanitize-recover=address>
+  $<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=address>
+  $<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=undefined>
+  $<$<BOOL:${QCM_USE_ASAN}>:-fsanitize-recover=address>
 )
 
 add_link_options( 
-  $<$<BOOL:${USE_ASAN}>:-fsanitize=address> 
-  $<$<BOOL:${USE_ASAN}>:-fsanitize-recover=address>
-  $<$<BOOL:${USE_ASAN}>:-lasan>
+  $<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=address> 
+  $<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=undefined>
+  $<$<BOOL:${QCM_USE_ASAN}>:-fsanitize-recover=address>
 )
 
 add_subdirectory(third_party)
+
+add_compile_options(${WARN_OPTS})
+
 add_subdirectory(core)
 add_subdirectory(platform)
 add_subdirectory(error)

@@ -13,6 +13,8 @@
 
 #include <asio/deferred.hpp>
 
+#include "core/qvariant_helper.h"
+
 #include "Qcm/path.h"
 #include "Qcm/type.h"
 #include "Qcm/ncm_image.h"
@@ -146,9 +148,13 @@ void App::init() { // QQmlApplicationEngine* engine) {
 
     {
         QSettings s;
-        auto type = s.value("network/proxy_type").value<ProxyType>();
-        auto content = s.value("network/proxy_content").toString();
+        auto      type    = s.value("network/proxy_type").value<ProxyType>();
+        auto      content = s.value("network/proxy_content").toString();
+        auto ignore_cert  = convert_from<std::optional<bool>>(s.value("network/ignore_certificate"))
+                               .value_or(false);
+
         setProxy(type, content);
+        setVerifyCertificate(! ignore_cert);
     }
 
     QQuickStyle::setStyle("Material");
@@ -251,9 +257,11 @@ void App::save_session() {
 }
 
 void App::setProxy(ProxyType t, QString content) {
-    m_client.set_proxy(request::req_opt::Proxy {
+    m_session->set_proxy(request::req_opt::Proxy {
         .type = convert_from<request::req_opt::Proxy::Type>(t), .content = content.toStdString() });
 }
+
+void App::setVerifyCertificate(bool v) { m_session->set_verify_certificate(v); }
 
 bool App::isItemId(const QJSValue& v) const {
     auto var = v.toVariant();

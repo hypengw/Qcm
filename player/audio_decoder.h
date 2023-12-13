@@ -66,7 +66,10 @@ private:
 
     const AVCodec* open_codec(AVCodecContext* ctx, StreamInfo& st_info) {
         auto idx = st_info.audio_idx;
-        auto st  = st_info.st[idx];
+        if (idx < 0) {
+            return nullptr;
+        }
+        auto st = st_info.st[idx];
 
         FFmpegError err = avcodec_parameters_to_context(ctx, st->codecpar);
         if (err) {
@@ -136,8 +139,7 @@ private:
         return;
     }
 
-    FFmpegError decode_frame(AVCodecContext* ctx, PacketQueue& pkt_queue, AVFrame* frame
-                             ) {
+    FFmpegError decode_frame(AVCodecContext* ctx, PacketQueue& pkt_queue, AVFrame* frame) {
         FFmpegError err = AVERROR(EAGAIN);
         for (;;) {
             do {

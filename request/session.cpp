@@ -77,6 +77,14 @@ asio::strand<Session::executor_type>& Session::get_strand() {
     return d->m_strand;
 }
 
+Request Session::prepare_req(const Request& req) const {
+    C_D(const Session);
+    Request o { req };
+    if (d->m_proxy) o.set_opt(d->m_proxy.value());
+    if (d->m_ignore_certificate) o.get_opt<req_opt::SSL>().verify_certificate = false;
+    return o;
+}
+
 asio::awaitable<bool> Session::perform(rc<Response>& rsp) {
     C_D(Session);
     auto& con = rsp->connection();
@@ -95,7 +103,8 @@ asio::awaitable<bool> Session::perform(rc<Response>& rsp) {
 
 asio::awaitable<std::optional<rc<Response>>> Session::get(const Request& req) {
     C_D(Session);
-    auto res = Response::make_response(req, Operation::GetOperation, shared_from_this());
+    auto res =
+        Response::make_response(prepare_req(req), Operation::GetOperation, shared_from_this());
 
     if (co_await perform(res)) co_return res;
     co_return std::nullopt;
@@ -104,7 +113,8 @@ asio::awaitable<std::optional<rc<Response>>> Session::get(const Request& req) {
 asio::awaitable<std::optional<rc<Response>>> Session::post(const Request&     req,
                                                            asio::const_buffer buf) {
     C_D(Session);
-    rc<Response> res = Response::make_response(req, Operation::PostOperation, shared_from_this());
+    rc<Response> res =
+        Response::make_response(prepare_req(req), Operation::PostOperation, shared_from_this());
     res->add_send_buffer(buf);
 
     if (co_await perform(res)) co_return res;
@@ -119,7 +129,9 @@ Session::Private::Private(Session& p, executor_type& ex) noexcept
       m_poll_thread(1),
       m_channel(std::make_shared<channel_poll_type>(m_poll_thread.get_executor(), 1024)),
       m_channel_with_notify(std::make_shared<channel_type>(asio::make_strand(ex), 1024)),
-      m_stopped(false) {};
+      m_stopped(false),
+      m_proxy(),
+      m_ignore_certificate(false) {};
 
 void Session::load_cookie(std::filesystem::path p) {
     C_D(Session);
@@ -128,6 +140,14 @@ void Session::load_cookie(std::filesystem::path p) {
 void Session::save_cookie(std::filesystem::path p) const {
     C_D(const Session);
     d->m_curl_multi->save_cookie(p);
+}
+void Session::set_proxy(const req_opt::Proxy& p) {
+    C_D(Session);
+    d->m_proxy = p;
+}
+void Session::set_verify_certificate(bool v) {
+    C_D(Session);
+    d->m_ignore_certificate = ! v;
 }
 
 void Session::test() { C_D(Session); }

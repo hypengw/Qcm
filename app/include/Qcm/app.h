@@ -116,6 +116,7 @@ public slots:
     void loginPost(model::UserAccount*);
     void triggerCacheLimit();
     void setProxy(ProxyType, QString);
+    void setVerifyCertificate(bool);
 
 private:
     void              load_session();

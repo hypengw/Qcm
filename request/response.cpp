@@ -41,6 +41,11 @@ void apply_easy_request(CurlEasy& easy, const Request& req) {
         easy.setopt(CURLOPT_PROXYTYPE, p.type);
         easy.setopt(CURLOPT_PROXY, p.content.empty() ? NULL : p.content.c_str());
     }
+    {
+        auto& p = req.get_opt<req_opt::SSL>();
+        easy.setopt(CURLOPT_SSL_VERIFYPEER, (long)p.verify_certificate);
+        easy.setopt(CURLOPT_PROXY_SSL_VERIFYPEER, (long)p.verify_certificate);
+    }
     easy.set_header(req.header());
 }
 

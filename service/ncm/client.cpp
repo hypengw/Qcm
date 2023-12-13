@@ -46,8 +46,6 @@ Client::~Client() {}
 
 Client::executor_type& Client::get_executor() { return *m_ex; }
 
-void Client::set_proxy(const request::req_opt::Proxy& p) { m_req_common->set_opt(p); }
-
 template<>
 request::Request Client::make_req<api::CryptoType::WEAPI>(std::string_view          path,
                                                           const request::UrlParams& q) const {

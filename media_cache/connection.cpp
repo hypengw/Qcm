@@ -130,6 +130,7 @@ asio::awaitable<void> Connection::http_source(std::filesystem::path file_path,
     proxy_req.set_url(req.proxy_url.value());
     proxy_req.get_opt<request::req_opt::Timeout>().set_transfer_timeout(180);
     proxy_req.get_opt<request::req_opt::Tcp>().set_keepalive(true);
+    proxy_req.set_header("Icy-MetaData", "1");
 
     if (req.range_start) {
         proxy_req.set_header("Host", proxy_req.url_info().host);

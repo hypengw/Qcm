@@ -34,7 +34,8 @@ Request::Private::Private(Request* q)
     : m_q(q),
       m_opts { req_opt::Timeout { .low_speed = 30, .connect_timeout = 180, .transfer_timeout = 0 },
                req_opt::Proxy {},
-               req_opt::Tcp { .keepalive = false, .keepidle = 120, .keepintvl = 60 } } {}
+               req_opt::Tcp { .keepalive = false, .keepidle = 120, .keepintvl = 60 },
+               req_opt::SSL { .verify_certificate = true } } {}
 Request::Private::~Private() {}
 
 std::string_view Request::url() const {

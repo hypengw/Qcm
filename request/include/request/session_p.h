@@ -38,6 +38,9 @@ private:
     rc<channel_poll_type> m_channel;
     rc<channel_type>      m_channel_with_notify;
     bool                  m_stopped;
+
+    std::optional<req_opt::Proxy> m_proxy;
+    bool                          m_ignore_certificate;
 };
 
 } // namespace request

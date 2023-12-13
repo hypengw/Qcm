@@ -9,6 +9,7 @@
 #include <filesystem>
 
 #include "request/type.h"
+#include "request/request_opt.h"
 
 #include "core/core.h"
 #include "core/expected_helper.h"
@@ -41,6 +42,8 @@ public:
 
     void load_cookie(std::filesystem::path);
     void save_cookie(std::filesystem::path) const;
+    void set_proxy(const req_opt::Proxy&);
+    void set_verify_certificate(bool);
 
     void about_to_stop();
 
@@ -51,6 +54,7 @@ public:
 
 private:
     asio::awaitable<bool> perform(rc<Response>&);
+    Request prepare_req(const Request&) const;
 
     C_DECLARE_PRIVATE(Session, m_p)
 

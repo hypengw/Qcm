@@ -62,8 +62,6 @@ public:
     template<api::CryptoType CT>
     std::optional<std::string> encrypt(std::string_view path, const Params&);
 
-    void set_proxy(const request::req_opt::Proxy&);
-
 private:
     awaitable<Result<std::vector<byte>>> post(const request::Request&, std::string_view);
 

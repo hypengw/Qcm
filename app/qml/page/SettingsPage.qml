@@ -294,6 +294,15 @@ MD.Page {
                         }
                     }
                 }
+                SettingRow {
+                    Layout.fillWidth: true
+                    text: qsTr('ignore SSL certificate')
+                    actionItem: MD.Switch {
+                        id: item_ignore_cert
+                        checked: false
+                        onCheckedChanged: QA.App.setVerifyCertificate(!checked);
+                    }
+                }
             }
 
             MD.Divider {
@@ -381,6 +390,7 @@ MD.Page {
 
             property int proxy_type: QA.App.PROXY_HTTP
             property string proxy_content: ''
+            property alias ignore_certificate: item_ignore_cert.checked
 
             category: 'network'
             Component.onDestruction: {

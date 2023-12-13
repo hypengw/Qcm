@@ -124,7 +124,7 @@ MD.Page {
             }
         }
         footer: MD.ListBusyFooter {
-            running: qr_pl.status === QA.ApiQuerierBase.Querying
+            running: qr_al.status === QA.ApiQuerierBase.Querying
             width: ListView.view.width
         }
     }
