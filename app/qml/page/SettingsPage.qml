@@ -286,11 +286,13 @@ MD.Page {
                             Layout.fillWidth: true
                             Component.onCompleted: {
                                 text = settings_network.proxy_content;
+                                settings_network.proxy_content = Qt.binding(() => {
+                                        return item_tf_proxy.text;
+                                    });
                             }
 
-                            onAccepted: {
-                                settings_network.proxy_content = text;
-                            }
+                            onAccepted: focusChanged(focus)
+                            onFocusChanged: settings_network.triggerProxy()
                         }
                     }
                 }
@@ -300,7 +302,7 @@ MD.Page {
                     actionItem: MD.Switch {
                         id: item_ignore_cert
                         checked: false
-                        onCheckedChanged: QA.App.setVerifyCertificate(!checked);
+                        onCheckedChanged: QA.App.setVerifyCertificate(!checked)
                     }
                 }
             }
@@ -393,8 +395,13 @@ MD.Page {
             property alias ignore_certificate: item_ignore_cert.checked
 
             category: 'network'
-            Component.onDestruction: {
+
+            function triggerProxy() {
                 QA.App.setProxy(proxy_type, proxy_content);
+            }
+
+            Component.onDestruction: {
+                triggerProxy();
             }
         }
     }
