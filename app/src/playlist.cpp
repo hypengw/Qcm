@@ -195,7 +195,9 @@ Playlist::Playlist(QObject* parent)
     : QAbstractListModel(parent),
       m_list(make_up<detail::PlayList>()),
       m_shuffle_list(make_up<detail::PlayList>()),
-      m_loop_mode(LoopMode::NoneLoop) {
+      m_loop_mode(LoopMode::NoneLoop),
+      m_can_next(false),
+      m_can_prev(false) {
     connect(this, &Playlist::curIndexChanged, this, &Playlist::check_cur, Qt::DirectConnection);
     connect(this, &Playlist::loopModeChanged, this, &Playlist::RefreshCanMove);
     connect(this, &Playlist::curIndexChanged, this, &Playlist::RefreshCanMove);

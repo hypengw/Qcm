@@ -27,7 +27,7 @@ Qt::ColorScheme to_color_scheme(const QVariant& in) {
 }
 
 QColor to_accent_color(const QVariant& in) {
-    std::array<double, 3> c {0};
+    std::array<double, 3> c { 0 };
     const auto            v = in.value<QDBusArgument>();
     v.beginStructure();
     v >> c[0] >> c[1] >> c[2];
@@ -40,12 +40,13 @@ namespace qml_material
 {
 Xdp::Xdp(QObject* parent): QObject(parent) {
     auto bus = QDBusConnection::sessionBus();
-    _assert_(bus.connect(kService,
-                         kObjectPath,
-                         kSettingsInterface,
-                         "SettingChanged",
-                         this,
-                         SLOT(xdpSettingChangeSlot(QString, QString, QDBusVariant))));
+    auto res = bus.connect(kService,
+                           kObjectPath,
+                           kSettingsInterface,
+                           "SettingChanged",
+                           this,
+                           SLOT(xdpSettingChangeSlot(QString, QString, QDBusVariant)));
+    _assert_(res);
 
     auto message =
         QDBusMessage::createMethodCall(kService, kObjectPath, kSettingsInterface, "Read");
