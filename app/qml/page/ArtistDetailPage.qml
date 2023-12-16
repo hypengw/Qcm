@@ -140,8 +140,7 @@ MD.Page {
                             }
                         }
                         QA.MGridView {
-                            cellHeight: 264
-
+                            fixedCellWidth: Math.max(160, QA.Global.main_win.width / 6.0)
                             clip: true
                             interactive: flick.atYEnd
                             model: qr_artist_albums.data
@@ -159,6 +158,7 @@ MD.Page {
                                     anchors.top: parent.top
                                     anchors.topMargin: 8
 
+                                    picWidth: parent.GridView.view.fixedCellWidth
                                     width: picWidth
                                     height: Math.min(implicitHeight, parent.height)
                                     image.source: `image://ncm/${model.picUrl}`

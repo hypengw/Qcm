@@ -42,8 +42,9 @@ MD.Page {
 
                         readonly property int fixedCellWidth: Math.max(160, QA.Global.main_win.width / 6.0)
                         readonly property int column: 2
+                        readonly property int space: 8
+                        readonly property int row: Math.max(2, Math.floor((width - space) / (fixedCellWidth + space / 2)))
                         readonly property int itemCount: column * row
-                        readonly property int row: Math.max(2, Math.floor(width / fixedCellWidth))
 
                         anchors.fill: parent
                         clip: true
@@ -109,20 +110,13 @@ MD.Page {
                         }
                     }
                 }
-                MD.Pane {
-                    id: tool_pane
-                    RowLayout {
-                        anchors.fill: parent
-
-                        MD.Button {
-                            font.capitalization: Font.Capitalize
-                            action: Action {
-                                icon.name: MD.Token.icon.playlist_add
-                                text: qsTr('add to list')
-
-                                onTriggered: {
-                                    QA.Global.playlist.appendList(qr_rmd_songs.data.dailySongs);
-                                }
+                RowLayout {
+                    Layout.alignment: Qt.AlignHCenter
+                    MD.IconButton {
+                        action: Action {
+                            icon.name: MD.Token.icon.playlist_add
+                            onTriggered: {
+                                QA.Global.playlist.appendList(qr_rmd_songs.data.dailySongs);
                             }
                         }
                     }
@@ -142,7 +136,7 @@ MD.Page {
                             Layout.fillWidth: true
                             padding: 0
 
-                        MD.ListView {
+                            MD.ListView {
                                 id: view
                                 anchors.fill: parent
                                 clip: true
