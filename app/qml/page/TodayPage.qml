@@ -151,7 +151,6 @@ MD.Page {
                                 model: qr_rmd_songs.data.dailySongs
 
                                 delegate: QA.SongDelegate {
-                                    count: view.count
                                     width: view.width
 
                                     onClicked: {

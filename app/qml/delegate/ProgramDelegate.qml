@@ -7,8 +7,6 @@ import Qcm.Material as MD
 MD.ListItem {
     id: root
 
-    property int count: ListView.view?.count ?? 0
-    property int index_: index ? index : (model ? model.index : 0)
     readonly property bool is_playing: QA.Global.playlist.cur.itemId === model_.song.itemId
     property QA.t_program model_: modelData
     property string subtitle: ''

@@ -10,6 +10,7 @@ set(SOURCES
     include/qml_material/corner.h
     include/qml_material/icon.h
     include/qml_material/input_block.h
+    include/qml_material/item_holder.h
     include/qml_material/type.h
     include/qml_material/round_item.h
     include/qml_material/helper.h
@@ -21,6 +22,7 @@ set(SOURCES
     src/corner.cpp
     src/icon.cpp
     src/input_block.cpp
+    src/item_holder.cpp
     src/image.cpp
     src/util.cpp
     src/theme.cpp

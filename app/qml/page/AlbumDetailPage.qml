@@ -115,7 +115,6 @@ MD.Page {
             }
         }
         delegate: QA.SongDelegate {
-            count: view.count
             width: view.width
             subtitle: QA.Global.join_name(modelData.artists, '/')
 

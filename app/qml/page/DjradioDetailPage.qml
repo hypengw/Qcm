@@ -104,7 +104,6 @@ MD.Page {
             }
         }
         delegate: QA.ProgramDelegate {
-            count: view.count
             width: view.width
 
             model_: QA.App.program(model)

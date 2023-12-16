@@ -301,6 +301,14 @@ MD.Page {
                     showMenu(this);
             }
         }
+        divider: MD.Divider {
+            anchors.bottom: parent.bottom
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.leftMargin: 48 + 16*2
+            full: false
+            height: 1
+        }
         onClicked: {
             content.route(itemId);
             ListView.view.currentIndex = index;

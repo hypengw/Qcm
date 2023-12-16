@@ -23,11 +23,15 @@ T.ItemDelegate {
     icon.width: 24
     icon.height: 24
 
+    readonly property int count: ListView.view?.count ?? 0
+    readonly property int index_: index ? index : (model ? model.index : 0)
+
     property string supportText
     property int maximumLineCount: 1
     property alias leader: item_holder_leader.contentItem
     property alias trailing: item_holder_trailing.contentItem
     property alias below: item_holder_below.contentItem
+    property alias divider: holder_divider.item
 
     property int heightMode: {
         if (supportText)
@@ -133,6 +137,11 @@ T.ItemDelegate {
             anchor: control
             active: enabled && (control.down || control.visualFocus || control.hovered)
             color: control.MD.MatProp.stateLayerColor
+        }
+
+        MD.ItemHolder {
+            id: holder_divider
+            visible: control.index_ + 1 !== control.count
         }
     }
     MD.MatProp.elevation: item_state.elevation

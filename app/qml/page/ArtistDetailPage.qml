@@ -127,7 +127,6 @@ MD.Page {
                             }
 
                             delegate: QA.SongDelegate {
-                                count: ListView.view.count
                                 subtitle: `${modelData.album.name}`
                                 width: ListView.view.width
 
