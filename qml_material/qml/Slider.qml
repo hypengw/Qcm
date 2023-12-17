@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Templates as T
 import QtQuick.Controls.impl
-
 import Qcm.Material as MD
 
 T.Slider {
@@ -39,14 +38,11 @@ T.Slider {
         y: control.topPadding + (control.horizontal ? (control.availableHeight - height) / 2 : 0)
         implicitWidth: control.horizontal ? 200 : 4
         implicitHeight: control.horizontal ? 4 : 200
-        width: control.horizontal ? control.availableWidth : 4
-        height: control.horizontal ? 4 : control.availableHeight
 
         Rectangle {
-            x: (control.horizontal ? (control.implicitHandleWidth / 2) - (control.__isDiscrete ? 2 : 0) : 0)
-            y: (control.horizontal ? 0 : (control.implicitHandleHeight / 2) - (control.__isDiscrete ? 2 : 0))
-            width: parent.width - (control.horizontal ? (control.implicitHandleWidth - (control.__isDiscrete ? 4 : 0)) : 0)
-            height: parent.height - (control.horizontal ? 0 : (control.implicitHandleHeight - (control.__isDiscrete ? 4 : 0)))
+            anchors.centerIn: parent
+            width: control.horizontal ? parent.width - (control.implicitHandleWidth - (control.__isDiscrete ? 4 : 0)) : 4
+            height: control.horizontal ? 4 : parent.height - (control.implicitHandleHeight - (control.__isDiscrete ? 4 : 0))
             scale: control.horizontal && control.mirrored ? -1 : 1
             radius: Math.min(width, height) / 2
             color: control.trackInactiveColor

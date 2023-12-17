@@ -17,11 +17,17 @@ MD.Pane {
         anchors.fill: parent
         spacing: 0
 
-        QA.PlaySlider {
-            id: slider
+        Item {
             Layout.fillWidth: true
+            implicitHeight: 4
             visible: !is_small
-            z: 1
+            clip: false
+            QA.PlaySlider {
+                id: slider
+                anchors.centerIn: parent
+                width: parent.width
+                z: 1
+            }
         }
         RowLayout {
             Layout.bottomMargin: 8
@@ -245,7 +251,7 @@ MD.Pane {
 
                 Layout.fillHeight: true
 
-                Binding on implicitWidth  {
+                Binding on implicitWidth {
                     value: ctl_stack.currentItem.implicitWidth
                     when: ctl_stack.currentItem
                 }

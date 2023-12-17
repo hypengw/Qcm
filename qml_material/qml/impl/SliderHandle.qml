@@ -3,8 +3,8 @@ import Qcm.Material as MD
 
 Item {
     id: root
-    implicitWidth: initialSize
-    implicitHeight: initialSize
+    implicitWidth: 20
+    implicitHeight: 20
 
     property real value: 0
     property bool handleHasFocus: false

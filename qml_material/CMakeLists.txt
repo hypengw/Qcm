@@ -74,6 +74,7 @@ set(QML_FILES
     qml/impl/SliderHandle.qml
     qml/impl/RoundedElevationEffect.qml
     qml/impl/TextFieldEmbed.qml
+    qml/impl/RoundClip.qml
     )
 set(RESOURCES assets/MaterialIconsRound-Regular.otf
               assets/MaterialIconsOutlined-Regular.otf)
