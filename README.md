@@ -3,7 +3,7 @@ Qt client for netease cloud music.
 Currently linux only.  
 
 <p align="center" width="100%">
-<img src="https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main.jpg?raw=true" width=70%>
+<img src="https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main.png?raw=true" width=70%>
 </p>
 
 ### Download:  
