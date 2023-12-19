@@ -19,14 +19,24 @@ float sdf_rounded_rectangle(in vec2 p, in vec2 rect, in vec4 r) {
 
 const float sdf_default_smoothing = 0.625;
 
-vec4 sdf_render(in float sdf, in vec4 sourceColor, in vec4 sdfColor, in float alpha, in float smoothing)
+vec4 sdf_render(in float sdf, in vec4 sourceColor, in vec4 sdfColor, in float alpha, in float smoothing, in float offset)
 {
     // bigger when zoom out
     float g = smoothing * fwidth(sdf);
-    return mix(sourceColor, sdfColor, alpha * (1.0 - clamp(sdf / g, 0.0, 1.0)));
+    return mix(sourceColor, sdfColor, alpha * (1.0 - clamp((1.0 / g) * sdf - offset, 0.0, 1.0)));
+}
+
+vec4 sdf_render(in float sdf, in vec4 sourceColor, in vec4 sdfColor, in float alpha, in float smoothing)
+{
+    return sdf_render(sdf, sourceColor, sdfColor, alpha, smoothing, 0);
+}
+
+vec4 sdf_render(in float sdf, in vec4 sourceColor, in vec4 sdfColor, in float alpha)
+{
+    return sdf_render(sdf, sourceColor, sdfColor, alpha, sdf_default_smoothing);
 }
 
 vec4 sdf_render(in float sdf, in vec4 sourceColor, in vec4 sdfColor)
 {
-    return sdf_render(sdf, sourceColor, sdfColor, 1.0, sdf_default_smoothing);
+    return sdf_render(sdf, sourceColor, sdfColor, 1.0);
 }

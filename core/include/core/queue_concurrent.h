@@ -9,8 +9,10 @@
 #include <deque>
 #include <vector>
 #include <cmath>
+#include <numeric>
 
 #include "core/core.h"
+#include "core/log.h"
 
 namespace qcm
 {
@@ -18,10 +20,11 @@ namespace qcm
 template<typename T>
 concept queue_cp =
     std::movable<T> && requires(T t, std::list<typename T::value_type> vs, usize num) {
-        { t.push(vs) } -> std::convertible_to<usize>;
+        { t.push(vs, t.push_info(vs)) } -> std::convertible_to<usize>;
         { t.pop() };
         { t.pop(num) };
-        { t.push_waiter(num) } -> std::convertible_to<bool>;
+        { t.push_info(vs) };
+        { t.push_waiter(t.push_info(vs)) } -> std::convertible_to<bool>;
         { t.pop_waiter(num) } -> std::convertible_to<bool>;
         { t.clear() };
         { t.size() } -> std::same_as<usize>;
@@ -55,12 +58,13 @@ public:
     template<typename T>
         requires std::ranges::forward_range<T> && std::ranges::sized_range<T>
     auto push(T&& v) {
+        auto      info = m_queue.push_info(v);
         lock_type lock { m_data->mutex };
-        while (m_queue.push_waiter(v.size()) && m_temp_push) {
+        while (m_queue.push_waiter(info) && m_temp_push) {
             m_data->not_full.wait(lock);
         }
         m_temp_push = true;
-        auto ret    = m_queue.push(std::forward<T>(v));
+        auto ret    = m_queue.push(std::forward<T>(v), info);
         notify_add(v.size());
         return ret;
     }
@@ -87,7 +91,9 @@ public:
 
     auto try_push(value_type&& v) {
         lock_type lock { m_data->mutex };
-        auto      ret = m_queue.push(std::array { std::move(v) });
+        auto&&    list = std::array { std::move(v) };
+        auto      info = m_queue.push_info(list);
+        auto      ret  = m_queue.push(std::move(list), info);
         notify_add(1);
         return ret;
     }
@@ -143,25 +149,27 @@ private:
         condition_type not_empty;
         condition_type not_full;
     };
-    bool     m_temp_push;
     up<Data> m_data;
+    bool     m_temp_push;
     Queue    m_queue;
 };
 
 template<typename V>
 struct QueueWithSize {
 public:
-    using value_type = V;
+    using value_type     = V;
+    using push_info_type = usize;
 
-    QueueWithSize(usize max_size): max_size(max_size), aborted(false) {}
+    QueueWithSize(usize max_size): data_size(0), max_size(max_size), aborted(false) {}
 
     template<typename T>
         requires std::ranges::forward_range<T> && std::ranges::sized_range<T>
-    usize push(T&& vs) {
-        if (max_size > queue.size()) {
+    usize push(T&& vs, push_info_type info) {
+        if (max_size > data_size) {
             usize num = std::min(max_size - queue.size(), vs.size());
             auto  it  = std::make_move_iterator(std::begin(vs));
             queue.insert(queue.end(), it, it + num);
+            data_size += info;
             return num;
         }
         return 0;
@@ -170,28 +178,60 @@ public:
         if (! queue.empty()) {
             value_type back = std::move(queue.front());
             queue.pop_front();
+            data_size -= push_info(back);
             return back;
         }
         return std::nullopt;
     };
     std::vector<value_type> pop(usize num) {
         std::vector<value_type> out;
-        num = std::min(num, queue.size());
-        for (usize i = 0; i < num; i++) out.emplace_back(pop().value());
+        num = std::min(num, size());
+        for (usize i = 0; i < num; i++) {
+            out.emplace_back(pop().value());
+            data_size -= push_info(out.back());
+        }
         return out;
     };
 
-    bool push_waiter(usize num) { return num + queue.size() > max_size && ! aborted; }
-    bool pop_waiter(usize num) { return num > queue.size() && ! aborted; }
+    push_info_type push_info(const value_type& v) {
+        if constexpr (requires(value_type x) { x.size(); }) {
+            return v.size();
+        } else {
+            return 1;
+        }
+    }
 
-    void clear() { queue.clear(); }
+    template<typename T>
+        requires(std::ranges::forward_range<T> && std::ranges::sized_range<T> &&
+                 std::convertible_to<std::ranges::range_value_t<T>, value_type>)
+    push_info_type push_info(const T& list) {
+        if constexpr (requires(value_type x) { x.size(); }) {
+            return std::accumulate(
+                std::begin(list), std::end(list), (usize)0, [](const auto& a, const auto& b) {
+                    return a + b.size();
+                });
+        } else {
+            return list.size();
+        }
+    }
+
+    bool push_waiter(push_info_type size) { return size + data_size > max_size && ! aborted; }
+    bool pop_waiter(usize num) { return num > size() && ! aborted; }
+
+    void clear() {
+        queue.clear();
+        data_size = 0;
+    }
 
     usize size() const { return queue.size(); }
-    bool  is_notify_pop() const { return queue.size() < std::max(max_size / 2, (usize)1); }
+
+    bool is_notify_pop() const { return data_size < std::max(max_size / 2, (usize)1); }
 
     std::deque<value_type> queue;
-    usize                  max_size;
-    bool                   aborted;
+
+    usize data_size;
+    usize max_size;
+    bool  aborted;
 };
 
 } // namespace qcm

@@ -1,7 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
-import Qcm.Material as MD
 import org.kde.kirigami as Kirigami
+import Qcm.Material as MD
+import QtQuick.Controls.Material.impl as MDImpl
 
 MD.Page {
     padding: 16
@@ -81,32 +82,115 @@ MD.Page {
                     layer.effect: MD.RoundClip {
                         radius: [slider_c1.value, slider_c2.value, slider_c3.value, slider_c4.value]
                         size: rect_clip.height
+                        smoothing: slider_smoothing.value
                     }
                 }
                 ColumnLayout {
                     spacing: 4
-                    MD.Slider {
+                    MSlider {
                         id: slider_c1
+                        text: 'lt'
                         from: 0
                         to: rect_clip.height / 2
                     }
-                    MD.Slider {
+                    MSlider {
                         id: slider_c2
+                        text: 'rt'
                         from: 0
                         to: rect_clip.height / 2
                     }
-                    MD.Slider {
+                    MSlider {
                         id: slider_c3
+                        text: 'lb'
                         from: 0
                         to: rect_clip.height / 2
                     }
-                    MD.Slider {
+                    MSlider {
                         id: slider_c4
+                        text: 'rb'
                         from: 0
                         to: rect_clip.height / 2
+                    }
+                    MSlider {
+                        id: slider_smoothing
+                        text: 'smoothing'
+                        from: 0.1
+                        to: 10
+                        value: 1
                     }
                 }
             }
+            RowLayout {
+                Layout.leftMargin: 32
+                Layout.topMargin: 32
+                Layout.bottomMargin: 32
+                spacing: 32
+                Rectangle {
+                    id: rect_shadow
+                    radius: slider_shadow_radius.value
+                    width: 100
+                    height: 100
+                    color: MD.Token.color.primary
+                }
+                Item {
+                    implicitWidth: 200
+                    implicitHeight: implicitWidth
+
+                    MDImpl.BoxShadow {
+                        anchors.centerIn: parent
+                        source: rect_shadow
+                        offsetX: 0
+                        offsetY: 0
+                        blurRadius: slider_shadow_blur_radius.value
+
+                        spreadRadius: slider_shadow_spread_radius.value
+                        strength: slider_shadow_strength.value
+                        color: rect_shadow.color
+                        fullWidth: true
+                        fullHeight: true
+                    }
+                }
+
+                ColumnLayout {
+                    MD.Slider {
+                        id: slider_shadow_radius
+                        from: 0
+                        to: rect_shadow.height / 2
+                        value: 0
+                    }
+                    MD.Slider {
+                        id: slider_shadow_blur_radius
+                        from: 0
+                        to: rect_shadow.height / 2
+                        value: 0
+                    }
+                    MD.Slider {
+                        id: slider_shadow_spread_radius
+                        from: 0
+                        to: rect_shadow.height / 2
+                        value: 0
+                    }
+                    MD.Slider {
+                        id: slider_shadow_strength
+                        from: 0
+                        to: 1
+                        value: 0.2
+                    }
+                }
+            }
+        }
+    }
+
+    component MSlider: RowLayout {
+        property string text
+        property alias to: slider.to
+        property alias from: slider.from
+        property alias value: slider.value
+        MD.Text {
+            text: parent.text
+        }
+        MD.Slider {
+            id: slider
         }
     }
 }

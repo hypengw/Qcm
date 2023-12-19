@@ -74,8 +74,7 @@ set(QML_FILES
     qml/impl/SliderHandle.qml
     qml/impl/RoundedElevationEffect.qml
     qml/impl/TextFieldEmbed.qml
-    qml/impl/RoundClip.qml
-    )
+    qml/impl/RoundClip.qml)
 set(RESOURCES assets/MaterialIconsRound-Regular.otf
               assets/MaterialIconsOutlined-Regular.otf)
 
@@ -97,12 +96,17 @@ qt_add_qml_module(
   ${RESOURCES}
   NO_PLUGIN_OPTIONAL)
 
-qt_add_shaders(${LIBNAME} "shader"
-    PREFIX
-      "/Qcm/Material/"
-    FILES
-        "assets/shader/round.frag"
-)
+set(SHADER_GLSLS "assets/shader/sdf.glsl")
+set(SHADER_SOURCES "assets/shader/round.frag")
+qt_add_shaders(${LIBNAME} "shader" PREFIX "/Qcm/Material" FILES
+               ${SHADER_SOURCES})
+foreach(file ${SHADER_SOURCES})
+  set(output_file ".qsb/${file}.qsb")
+  add_custom_command(
+    OUTPUT ${output_file}
+    DEPENDS ${SHADER_GLSLS}
+    APPEND)
+endforeach()
 
 target_include_directories(
   ${LIBNAME}
@@ -111,6 +115,5 @@ target_include_directories(
 
 target_link_libraries(
   ${LIBNAME}
-  PUBLIC Qt6::Core Qt6::Quick Qt6::QuickControls2 Qt6::GuiPrivate 
-  core
+  PUBLIC Qt6::Core Qt6::Quick Qt6::QuickControls2 Qt6::GuiPrivate core
   PRIVATE material_color)

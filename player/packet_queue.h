@@ -53,6 +53,8 @@ public:
     void set_eof() { m_pkt->pts = -2; }
     bool eof() const { return m_pkt->pts == -2; }
 
+    usize size() const { return m_pkt->size; }
+
     auto rescale_ts(AVRational tb_src, AVRational tb_dst) {
         return av_packet_rescale_ts(m_pkt, tb_src, tb_dst);
     }
