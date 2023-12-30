@@ -31,7 +31,7 @@ enum class SongFee
 struct Song {
     struct Ar {
         i64                                     id { 0 };
-        std::string                             name;
+        std::optional<std::string>              name;
         std::optional<std::vector<std::string>> alia;
         std::optional<std::string>              picUrl;
         std::optional<i64>                      picId { 0 };
@@ -183,11 +183,11 @@ struct SongB {
 
 struct Artist {
     // topicPerson	0
-    bool                       followed {false};
+    bool                       followed { false };
     std::vector<std::string>   alias;
     std::string                trans;
-    i64                        musicSize {0};
-    i64                        albumSize {0};
+    i64                        musicSize { 0 };
+    i64                        albumSize { 0 };
     std::optional<std::string> briefDesc;
     std::string                picUrl;
     std::string                img1v1Url;

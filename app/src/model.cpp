@@ -66,7 +66,7 @@ IMPL_CONVERT(qcm::model::Artist, ncm::model::Artist) {
 
 IMPL_CONVERT(qcm::model::Artist, ncm::model::Song::Ar) {
     convert(out.id, in.id);
-    convert(out.name, in.name);
+    convert(out.name, in.name.value_or(""));
     convert(out.alias, helper::value_or_default(in.alia));
 }
 
