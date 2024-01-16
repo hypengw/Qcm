@@ -1,6 +1,6 @@
 set(APP_ID io.github.hypengw.Qcm)
 set(APP_NAME Qcm)
-set(APP_VERSION 1.0.1)
+set(APP_VERSION 1.0.2)
 set(APP_SUMMARY "Qt client for netease cloud music")
 set(APP_AUTHOR "hypeng")
 
