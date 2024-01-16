@@ -178,6 +178,47 @@ MD.Page {
                     }
                 }
             }
+            RowLayout {
+                Layout.leftMargin: 32
+                Layout.topMargin: 32
+                Layout.bottomMargin: 32
+                spacing: 32
+                Item {
+                    implicitWidth: 200
+                    implicitHeight: implicitWidth
+
+                    MD.RectangularGlow {
+                        anchors.centerIn: parent
+                        width: 100
+                        height: width
+                        color: MD.Token.color.primary
+                        glowRadius: slider_glow_glowradius.value
+                        cornerRadius: slider_glow_cornerradius.value
+                        spread: slider_glow_spread.value
+                    }
+                }
+
+                ColumnLayout {
+                    MD.Slider {
+                        id: slider_glow_glowradius
+                        from: 0
+                        to: 50
+                        value: 0
+                    }
+                    MD.Slider {
+                        id: slider_glow_cornerradius
+                        from: 0
+                        to: 50
+                        value: 0
+                    }
+                    MD.Slider {
+                        id: slider_glow_spread
+                        from: 0
+                        to: 1.0
+                        value: 0
+                    }
+                }
+            }
         }
     }
 

@@ -34,10 +34,9 @@ T.Drawer {
             anchors.fill: parent
             color: MD.Token.color.surface
             layer.enabled: true
-            layer.effect: ShaderEffect {
-                property var radius: MD.Util.corner([0, 16, 0, 16]).toVector4D()
-                property var size: parent.height
-                fragmentShader: 'qrc:/Qcm/Material/assets/shader/round.frag.qsb'
+            layer.effect: MD.RoundClip {
+                radius: [0, 16, 0, 16]
+                size: parent.height
             }
         }
         //layer.enabled: control.position > 0 && control.MD.MatProp.elevation > 0

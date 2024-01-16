@@ -67,8 +67,10 @@ set(QML_FILES
     qml/TextField.qml
     qml/TabBar.qml
     qml/TabButton.qml
+    qml/impl/BoxShadow.qml
     qml/impl/ListBusyFooter.qml
     qml/impl/Ripple.qml
+    qml/impl/RectangularGlow.qml
     qml/impl/CursorDelegate.qml
     qml/impl/State.qml
     qml/impl/SliderHandle.qml
@@ -97,7 +99,10 @@ qt_add_qml_module(
   NO_PLUGIN_OPTIONAL)
 
 set(SHADER_GLSLS "assets/shader/sdf.glsl")
-set(SHADER_SOURCES "assets/shader/round.frag")
+set(SHADER_SOURCES 
+  "assets/shader/round.frag"
+  "assets/shader/rect_glow.frag"
+)
 qt_add_shaders(${LIBNAME} "shader" PREFIX "/Qcm/Material" FILES
                ${SHADER_SOURCES})
 foreach(file ${SHADER_SOURCES})
