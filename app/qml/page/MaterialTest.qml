@@ -219,6 +219,44 @@ MD.Page {
                     }
                 }
             }
+
+            RowLayout {
+                Layout.leftMargin: 32
+                Layout.topMargin: 32
+                Layout.bottomMargin: 32
+                spacing: 32
+                Item {
+                    implicitWidth: 200
+                    implicitHeight: implicitWidth
+
+                    MD.Shadow {
+                        anchors.centerIn: parent
+                        width: 100
+                        height: width
+
+                        lower: Qt.vector2d(0.2, 0.2)
+                        higher: Qt.vector2d(0.8, 0.8)
+                        sigma: slider_shadow2_sigma.value
+                        corner: slider_shadow2_corner.value
+                        color: MD.Token.color.primary
+                    }
+                }
+
+                ColumnLayout {
+                    MD.Slider {
+                        id: slider_shadow2_sigma
+                        from: 0.0000001
+                        to: 1
+                        value: 0
+                    }
+                    MD.Slider {
+                        id: slider_shadow2_corner
+                        from: 0
+                        to: 1
+                        value: 0
+                    }
+                }
+            }
         }
     }
 

@@ -68,6 +68,7 @@ set(QML_FILES
     qml/TabBar.qml
     qml/TabButton.qml
     qml/impl/BoxShadow.qml
+    qml/impl/Shadow.qml
     qml/impl/ListBusyFooter.qml
     qml/impl/Ripple.qml
     qml/impl/RectangularGlow.qml
@@ -101,6 +102,7 @@ qt_add_qml_module(
 set(SHADER_GLSLS "assets/shader/sdf.glsl")
 set(SHADER_SOURCES 
   "assets/shader/round.frag"
+  "assets/shader/shadow.frag"
   "assets/shader/rect_glow.frag"
 )
 qt_add_shaders(${LIBNAME} "shader" PREFIX "/Qcm/Material" FILES
