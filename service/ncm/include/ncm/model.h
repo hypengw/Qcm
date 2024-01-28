@@ -110,7 +110,7 @@ struct Song {
     std::optional<std::string> rt;
     i64                        mst;
     i64                        cp;
-    std::string                cf;
+    std::optional<std::string> cf;
     Time                       dt;
     i64                        ftype;
     i64                        no;
@@ -123,7 +123,7 @@ struct Song {
     std::optional<Quality>     l;
     std::optional<Quality>     sq;
     std::optional<Quality>     hr;
-    std::string                cd;
+    std::optional<std::string> cd;
     std::string                name;
     i64                        id { 0 };
 
