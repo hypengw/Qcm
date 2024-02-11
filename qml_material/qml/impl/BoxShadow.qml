@@ -1,32 +1,31 @@
 import QtQuick
+import Qcm.Material as MD
 
-Item {
-    id: rootItem
+MD.RectangularGlow {
+    property int offsetX
+    property int offsetY
+    property int blurRadius
+    property int spreadRadius
 
-    property real blurRadius: 0.0
-    property real spreadRadius: 0.0
-    property color color: "white"
+    property real strength
 
-    ShaderEffect {
-        id: shaderItem
+    property Item source
 
-        x: (parent.width - width) / 2.0
-        y: (parent.height - height) / 2.0
-        width: parent.width + rootItem.glowRadius * 2 + cornerRadius * 2
-        height: parent.height + rootItem.glowRadius * 2 + cornerRadius * 2
+    property bool fullWidth
+    property bool fullHeight
 
-        function clampedCornerRadius() {
-            var maxCornerRadius = Math.min(rootItem.width, rootItem.height) / 2 + rootItem.glowRadius;
-            return Math.max(0, Math.min(rootItem.cornerRadius, maxCornerRadius));
-        }
+    readonly property real sourceRadius: source && source.radius || 0
 
-        property color color: rootItem.color
-        property real inverseSpread: 1.0 - rootItem.spread
-        property real relativeSizeX: ((inverseSpread * inverseSpread) * rootItem.glowRadius + cornerRadius * 2.0) / width
-        property real relativeSizeY: relativeSizeX * (width / height)
-        property real spread: rootItem.spread / 2.0
-        property real cornerRadius: clampedCornerRadius()
+    x: (parent.width - width)/2 + offsetX
+    y: (parent.height - height)/2 + offsetY
 
-        fragmentShader: 'qrc:/Qcm/Material/assets/shader/rect_glow.frag.qsb'
-    }
+    implicitWidth: source ? source.width : parent.width
+    implicitHeight: source ? source.height : parent.height
+
+    width: implicitWidth + 2 * spreadRadius + (fullWidth ? 2 * cornerRadius : 0)
+    height: implicitHeight + 2 * spreadRadius + (fullHeight ? 2 * cornerRadius : 0)
+    glowRadius: blurRadius/2
+    spread: strength
+
+    cornerRadius: blurRadius + sourceRadius
 }
