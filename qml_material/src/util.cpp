@@ -11,6 +11,7 @@
 #include <QGlobalStatic>
 #include "core/log.h"
 #include "core/qstr_helper.h"
+#include "core/lambda_hlper.h"
 
 Q_GLOBAL_STATIC(qml_material::Xdp, TheXdp)
 
@@ -152,6 +153,31 @@ void Util::track(QVariant, Track t) {
         WARN_LOG("track delete {}", m_tracked);
         break;
     }
+}
+
+
+QString Util::type_str(const QJSValue& obj) {
+    if(obj.isQObject()) {
+        return obj.toQObject()->metaObject()->className();
+    }
+    if(obj.isVariant()) {
+        return obj.toVariant().metaType().name();
+    }
+    if(auto objname = obj.property("objectName").toString(); !objname.isEmpty()) {
+        return objname;
+    }
+    return obj.toString();
+}
+
+void Util::print_parents(const QJSValue& obj) {
+    auto cur = obj;
+    auto format_parent = core::y_combinator {[this](auto format_parent, const QJSValue& cur, i32 level) -> std::string {
+        if(!cur.isNull()) {
+            return fmt::format("    {}\n{}", type_str(cur), format_parent(cur.property("parent"), level + 1));
+        }
+        return {};
+    }};
+    DEBUG_LOG("{}\n{}", type_str(obj), format_parent(obj.property("parent"), 1));
 }
 
 } // namespace qml_material

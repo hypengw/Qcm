@@ -5,7 +5,12 @@ import QtQuick
 import Qcm.Material as MD
 
 Item {
-    readonly property alias color: m_color
+    id: root
+    readonly property QtObject color: root.MD.MatProp.color
+    property int theme: root.color.colorScheme
+    readonly property var icon: MD.IconToken.codeMap
+    readonly property bool is_dark_theme: Number(theme) == MD.MdColorMgr.Dark
+
     // typescale
     readonly property QtObject font: QtObject {
         readonly property var default_font: Qt.application.font
@@ -18,10 +23,7 @@ Item {
         readonly property var icon_outline: this.fontload_material_outline.font
         readonly property var icon_round: this.fontload_material_round.font
     }
-    readonly property var icon: MD.IconToken.codeMap
 
-    property alias theme: m_color.colorScheme
-    readonly property bool is_dark_theme: Number(theme) == MD.MdColorMgr.Dark
 
     //  Font.Thin	0
     //  Font.ExtraLight	12
@@ -53,7 +55,10 @@ Item {
             readonly property real state_layer_opacity: 0.08
         }
         readonly property QtObject pressed: QtObject {
-            readonly property real state_layer_opacity: 0.12
+            readonly property real state_layer_opacity: 0.1
+        }
+        readonly property QtObject focus: QtObject {
+            readonly property real state_layer_opacity: 0.1
         }
     }
     readonly property QtObject elevation: QtObject {
@@ -86,9 +91,5 @@ Item {
             return iv ? !v : v;
         }
         return fn_inverse(th === MdColorMgr.Dark, inverse) ? Material.Dark : Material.Light;
-    }
-
-    MD.MdColorMgr {
-        id: m_color
     }
 }

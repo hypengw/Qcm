@@ -73,7 +73,7 @@ T.Dialog {
                 visible: control.title
                 text: control.title
                 typescale: MD.Token.typescale.headline_small
-                color: MD.Token.color.on_surface
+                color: item_state.ctx.color.on_surface
                 font.capitalization: control.titleCapitalization
             }
         }
@@ -87,7 +87,7 @@ T.Dialog {
     //    }
 
     T.Overlay.modal: Rectangle {
-        color: MD.Util.transparent(MD.Token.color.scrim, 0.32)
+        color: MD.Util.transparent(item_state.ctx.color.scrim, 0.32)
         Behavior on opacity  {
             NumberAnimation {
                 duration: 150
@@ -96,7 +96,7 @@ T.Dialog {
     }
 
     T.Overlay.modeless: Rectangle {
-        color: MD.Util.transparent(MD.Token.color.scrim, 0.32)
+        color: MD.Util.transparent(item_state.ctx.color.scrim, 0.32)
         Behavior on opacity  {
             NumberAnimation {
                 duration: 150
@@ -112,11 +112,11 @@ T.Dialog {
 
     MD.State {
         id: item_state
-        visible: false
+        item: control
 
         elevation: MD.Token.elevation.level3
-        textColor: MD.Token.color.primary
-        backgroundColor: MD.Token.color.surface_container_high
-        supportTextColor: MD.Token.color.on_surface_variant
+        textColor: item_state.ctx.color.primary
+        backgroundColor: item_state.ctx.color.surface_container_high
+        supportTextColor: item_state.ctx.color.on_surface_variant
     }
 }

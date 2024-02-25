@@ -55,7 +55,7 @@ T.Button {
         color: MD.MatProp.backgroundColor
 
         border.width: control.type == MD.Enum.BtOutlined ? 1 : 0
-        border.color: MD.Token.color.outline
+        border.color: item_state.ctx.color.outline
 
         // The layer is disabled when the button color is transparent so you can do
         // Material.background: "transparent" and get a proper flat button without needing
@@ -89,57 +89,41 @@ T.Button {
 
     MD.State {
         id: item_state
-        visible: false
+        item: control
+
         elevation: MD.Token.elevation.level3
         textColor: {
             switch (control.color) {
             case MD.Enum.FABColorSurfaec:
-                return MD.Token.color.primary;
+                return item_state.ctx.color.primary;
             case MD.Enum.FABColorSecondary:
-                return MD.Token.color.on_secondary_container;
+                return item_state.ctx.color.on_secondary_container;
             case MD.Enum.FABColorTertiary:
-                return MD.Token.color.on_tertiary_container;
+                return item_state.ctx.color.on_tertiary_container;
             case MD.Enum.FABColorPrimary:
             default:
-                return MD.Token.color.on_primary_container;
+                return item_state.ctx.color.on_primary_container;
             }
         }
         backgroundColor: {
             switch (control.color) {
             case MD.Enum.FABColorSurfaec:
-                return MD.Token.color.surface_container_high;
+                return item_state.ctx.color.surface_container_high;
             case MD.Enum.FABColorSecondary:
-                return MD.Token.color.secondary_container;
+                return item_state.ctx.color.secondary_container;
             case MD.Enum.FABColorTertiary:
-                return MD.Token.color.tertiary_container;
+                return item_state.ctx.color.tertiary_container;
             case MD.Enum.FABColorPrimary:
             default:
-                return MD.Token.color.primary_container;
+                return item_state.ctx.color.primary_container;
             }
         }
         stateLayerColor: "transparent"
 
         states: [
             State {
-                name: "Hovered"
-                extend: "Base"
-                when: control.hovered && !control.down
-                PropertyChanges {
-                    item_state.elevation: MD.Token.elevation.level4
-                }
-                PropertyChanges {
-                    restoreEntryValues: false
-                    item_state.stateLayerColor: {
-                        const c = item_state.textColor;
-                        return MD.Util.transparent(c, MD.Token.state.hover.state_layer_opacity);
-                    }
-                }
-
-            },
-            State {
                 name: "Pressed"
-                extend: "Base"
-                when: control.down
+                when: control.down || control.focus
                 PropertyChanges {
                     item_state.elevation: MD.Token.elevation.level3
                 }
@@ -148,6 +132,20 @@ T.Button {
                     item_state.stateLayerColor: {
                         const c = item_state.textColor;
                         return MD.Util.transparent(c, MD.Token.state.pressed.state_layer_opacity);
+                    }
+                }
+            },
+            State {
+                name: "Hovered"
+                when: control.hovered 
+                PropertyChanges {
+                    item_state.elevation: MD.Token.elevation.level4
+                }
+                PropertyChanges {
+                    restoreEntryValues: false
+                    item_state.stateLayerColor: {
+                        const c = item_state.textColor;
+                        return MD.Util.transparent(c, MD.Token.state.hover.state_layer_opacity);
                     }
                 }
             }

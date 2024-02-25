@@ -54,8 +54,8 @@ T.ComboBox {
         validator: control.validator
         selectByMouse: control.selectTextByMouse
         color: item_state.textColor
-        selectionColor: MD.Token.color.primary
-        selectedTextColor: MD.Token.color.getOn(selectionColor)
+        selectionColor: item_state.ctx.color.primary
+        selectedTextColor: item_state.ctx.color.getOn(selectionColor)
         verticalAlignment: TextInput.AlignVCenter
     }
     background: MDImpl.MaterialTextContainer {
@@ -93,54 +93,54 @@ T.ComboBox {
 
     MD.State {
         id: item_state
-        visible: false
+        item: control
 
         elevation: MD.Token.elevation.level0
-        textColor: MD.Token.color.on_surface
+        textColor: item_state.ctx.color.on_surface
         backgroundColor: "transparent"
-        supportTextColor: MD.Token.color.on_surface_variant
-        property color outlineColor: MD.Token.color.outline
+        supportTextColor: item_state.ctx.color.on_surface_variant
+        property color outlineColor: item_state.ctx.color.outline
 
         states: [
             State {
                 name: "Disabled"
                 when: !enabled
                 PropertyChanges {
-                    item_state.supportTextColor: MD.Token.color.on_surface
+                    item_state.supportTextColor: item_state.ctx.color.on_surface
                     control.contentItem.opacity: 0.38
                     control.background.opacity: 0.12
                 }
             },
             State {
-                name: "Hovered"
-                when: control.enabled && control.acceptableInput && control.hovered && !control.focus
-                PropertyChanges {
-                    item_state.outlineColor: MD.Token.color.on_surface
-                }
-            },
-            State {
-                name: "Focused"
-                when: control.enabled && control.acceptableInput && control.focus
-                PropertyChanges {
-                    item_state.outlineColor: MD.Token.color.primary
-                }
-            },
-            State {
                 name: "Error"
-                when: control.enabled && !control.acceptableInput && !control.hovered
+                when: !control.acceptableInput && !control.hovered
                 PropertyChanges {
-                    item_state.textColor: MD.Token.color.on_surface
-                    item_state.supportTextColor: MD.Token.color.error
-                    item_state.outlineColor: MD.Token.color.error
+                    item_state.textColor: item_state.ctx.color.on_surface
+                    item_state.supportTextColor: item_state.ctx.color.error
+                    item_state.outlineColor: item_state.ctx.color.error
                 }
             },
             State {
                 name: "ErrorHover"
-                when: control.enabled && !control.acceptableInput && control.hovered
+                when: !control.acceptableInput && control.hovered
                 PropertyChanges {
-                    item_state.textColor: MD.Token.color.on_surface
-                    item_state.supportTextColor: MD.Token.color.error
-                    item_state.outlineColor: MD.Token.color.on_error_container
+                    item_state.textColor: item_state.ctx.color.on_surface
+                    item_state.supportTextColor: item_state.ctx.color.error
+                    item_state.outlineColor: item_state.ctx.color.on_error_container
+                }
+            },
+            State {
+                name: "Focused"
+                when: control.focus
+                PropertyChanges {
+                    item_state.outlineColor: item_state.ctx.color.primary
+                }
+            },
+            State {
+                name: "Hovered"
+                when: control.hovered
+                PropertyChanges {
+                    item_state.outlineColor: item_state.ctx.color.on_surface
                 }
             }
         ]

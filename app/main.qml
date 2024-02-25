@@ -13,8 +13,8 @@ ApplicationWindow {
     readonly property string _QA: QA.Global.user_info.nickname
     readonly property alias snake: m_snake
 
-    MD.MatProp.backgroundColor: MD.Token.color.background
-    MD.MatProp.textColor: MD.Token.color.getOn(MD.MatProp.backgroundColor)
+    MD.MatProp.backgroundColor: MD.MatProp.color.background
+    MD.MatProp.textColor: MD.MatProp.color.getOn(MD.MatProp.backgroundColor)
 
     color: MD.MatProp.backgroundColor
     height: 600

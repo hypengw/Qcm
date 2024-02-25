@@ -100,74 +100,74 @@ MD.TextFieldEmbed {
 
     MD.State {
         id: item_state
-        visible: false
+        item: control
 
         elevation: MD.Token.elevation.level0
-        textColor: MD.Token.color.on_surface
+        textColor: item_state.ctx.color.on_surface
         backgroundColor: "transparent"
-        supportTextColor: MD.Token.color.on_surface_variant
-        property color placeholderColor: MD.Token.color.on_surface_variant
-        property color outlineColor: MD.Token.color.outline
+        supportTextColor: item_state.ctx.color.on_surface_variant
+        property color placeholderColor: item_state.ctx.color.on_surface_variant
+        property color outlineColor: item_state.ctx.color.outline
 
         states: [
             State {
                 name: "Disabled"
                 when: !enabled
                 PropertyChanges {
-                    item_state.placeholderColor: MD.Token.color.on_surface
-                    item_state.supportTextColor: MD.Token.color.on_surface
+                    item_state.placeholderColor: item_state.ctx.color.on_surface
+                    item_state.supportTextColor: item_state.ctx.color.on_surface
                     placeholder.opacity: 0.38
                     control.background.opacity: 0.12
                 }
             },
             State {
-                name: "Hovered"
-                when: control.enabled && control.acceptableInput && control.hovered
+                name: "ErrorHover"
+                when: !control.acceptableInput && control.hovered
                 PropertyChanges {
-                    item_state.placeholderColor: MD.Token.color.on_surface
-                    item_state.outlineColor: MD.Token.color.on_surface
+                    item_state.textColor: item_state.ctx.color.on_surface
+                    item_state.supportTextColor: item_state.ctx.color.error
+                    item_state.placeholderColor: item_state.ctx.color.on_error_container
+                    item_state.outlineColor: item_state.ctx.color.on_error_container
                 }
+            },
+            State {
+                name: "Error"
+                when: !control.acceptableInput
                 PropertyChanges {
-                    restoreEntryValues: false
-                    item_state.stateLayerColor: {
-                        const c = MD.Token.color.primary;
-                        return MD.Util.transparent(c, MD.Token.state.hover.state_layer_opacity);
-                    }
+                    item_state.textColor: item_state.ctx.color.on_surface
+                    item_state.supportTextColor: item_state.ctx.color.error
+                    item_state.placeholderColor: item_state.ctx.color.error
+                    item_state.outlineColor: item_state.ctx.color.error
                 }
             },
             State {
                 name: "Focused"
-                when: control.enabled && control.acceptableInput && !control.hovered && control.focus
+                when: control.focus
                 PropertyChanges {
-                    item_state.placeholderColor: MD.Token.color.primary
-                    item_state.outlineColor: MD.Token.color.primary
+                    item_state.placeholderColor: item_state.ctx.color.primary
+                    item_state.outlineColor: item_state.ctx.color.primary
                 }
                 PropertyChanges {
                     restoreEntryValues: false
                     item_state.stateLayerColor: {
-                        const c = MD.Token.color.primary;
+                        const c = item_state.ctx.color.primary;
                         return MD.Util.transparent(c, MD.Token.state.pressed.state_layer_opacity);
                     }
                 }
             },
             State {
-                name: "Error"
-                when: control.enabled && !control.acceptableInput && !control.hovered
+                name: "Hovered"
+                when: control.hovered
                 PropertyChanges {
-                    item_state.textColor: MD.Token.color.on_surface
-                    item_state.supportTextColor: MD.Token.color.error
-                    item_state.placeholderColor: MD.Token.color.error
-                    item_state.outlineColor: MD.Token.color.error
+                    item_state.placeholderColor: item_state.ctx.color.on_surface
+                    item_state.outlineColor: item_state.ctx.color.on_surface
                 }
-            },
-            State {
-                name: "ErrorHover"
-                when: control.enabled && !control.acceptableInput && control.hovered
                 PropertyChanges {
-                    item_state.textColor: MD.Token.color.on_surface
-                    item_state.supportTextColor: MD.Token.color.error
-                    item_state.placeholderColor: MD.Token.color.on_error_container
-                    item_state.outlineColor: MD.Token.color.on_error_container
+                    restoreEntryValues: false
+                    item_state.stateLayerColor: {
+                        const c = item_state.ctx.color.primary;
+                        return MD.Util.transparent(c, MD.Token.state.hover.state_layer_opacity);
+                    }
                 }
             }
         ]

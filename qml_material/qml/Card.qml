@@ -30,7 +30,7 @@ T.Button {
         color: MD.MatProp.backgroundColor
 
         border.width: control.type == MD.Enum.CardOutlined ? 1 : 0
-        border.color: MD.Token.color.outline
+        border.color: item_state.ctx.color.outline
 
         layer.enabled: control.enabled && color.a > 0 && !control.flat
         layer.effect: MD.RoundedElevationEffect {
@@ -38,7 +38,7 @@ T.Button {
         }
     }
 
-    Binding{
+    Binding {
         control.contentItem.z: -1
         control.background.z: -2
         when: control.contentItem
@@ -63,8 +63,7 @@ T.Button {
 
     MD.State {
         id: item_state
-        visible: false
-
+        item: control
         elevation: {
             switch (control.type) {
             case MD.Enum.CardOutlined:
@@ -75,16 +74,16 @@ T.Button {
                 return MD.Token.elevation.level1;
             }
         }
-        textColor: MD.Token.color.getOn(backgroundColor)
+        textColor: item_state.ctx.color.getOn(backgroundColor)
         backgroundColor: {
             switch (control.type) {
             case MD.Enum.CardOutlined:
-                return MD.Token.color.surface;
+                return item_state.ctx.color.surface;
             case MD.Enum.CardFilled:
-                return MD.Token.color.surface_container_highest;
+                return item_state.ctx.color.surface_container_highest;
             case MD.Enum.CardElevated:
             default:
-                return MD.Token.color.surface_container_low;
+                return item_state.ctx.color.surface_container_low;
             }
         }
         stateLayerColor: "transparent"
@@ -104,37 +103,14 @@ T.Button {
                             return MD.Token.elevation.level0;
                         }
                     }
-                    item_state.backgroundColor: MD.Token.color.surface_variant
+                    item_state.backgroundColor: item_state.ctx.color.surface_variant
                     control.contentItem.opacity: 0.38
                     control.background.opacity: 0.12
                 }
             },
             State {
-                name: "Hovered"
-                when: control.enabled && control.hovered && !control.down
-                PropertyChanges {
-                    item_state.elevation: {
-                        switch (control.type) {
-                        case MD.Enum.CardOutlined:
-                        case MD.Enum.CardFilled:
-                            return MD.Token.elevation.level1;
-                        case MD.Enum.CardElevated:
-                        default:
-                            return MD.Token.elevation.level2;
-                        }
-                    }
-                }
-                PropertyChanges {
-                    restoreEntryValues: false
-                    item_state.stateLayerColor: {
-                        let c = MD.Token.color.on_surface;
-                        return MD.Util.transparent(c, MD.Token.state.hover.state_layer_opacity);
-                    }
-                }
-            },
-            State {
                 name: "Pressed"
-                when: control.enabled && control.down
+                when: control.down || control.focus
                 PropertyChanges {
                     item_state.elevation: {
                         switch (control.type) {
@@ -150,8 +126,31 @@ T.Button {
                 PropertyChanges {
                     restoreEntryValues: false
                     item_state.stateLayerColor: {
-                        let c = MD.Token.color.on_surface;
+                        let c = item_state.ctx.color.on_surface;
                         return MD.Util.transparent(c, MD.Token.state.pressed.state_layer_opacity);
+                    }
+                }
+            },
+            State {
+                name: "Hovered"
+                when: control.hovered
+                PropertyChanges {
+                    item_state.elevation: {
+                        switch (control.type) {
+                        case MD.Enum.CardOutlined:
+                        case MD.Enum.CardFilled:
+                            return MD.Token.elevation.level1;
+                        case MD.Enum.CardElevated:
+                        default:
+                            return MD.Token.elevation.level2;
+                        }
+                    }
+                }
+                PropertyChanges {
+                    restoreEntryValues: false
+                    item_state.stateLayerColor: {
+                        let c = item_state.ctx.color.on_surface;
+                        return MD.Util.transparent(c, MD.Token.state.hover.state_layer_opacity);
                     }
                 }
             }

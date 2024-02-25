@@ -99,6 +99,8 @@ public:
 
     Q_INVOKABLE CornersGroup corner(qreal br, qreal tr, qreal bl, qreal tl);
 
+    QString type_str(const QJSValue&);
+    Q_INVOKABLE void print_parents(const QJSValue&);
 private:
     usize m_tracked { 0 };
 };

@@ -81,15 +81,15 @@ T.MenuItem {
 
     MD.State {
         id: item_state
-        visible: false
+        item: control
 
         elevation: MD.Token.elevation.level2
-        textColor: MD.Token.color.on_surface
-        backgroundColor: MD.Token.color.surface_container
-        supportTextColor: MD.Token.color.on_surface_variant
+        textColor: item_state.ctx.color.on_surface
+        backgroundColor: item_state.ctx.color.surface_container
+        supportTextColor: item_state.ctx.color.on_surface_variant
         stateLayerColor: "transparent"
-        property color leadingIconColor: MD.Token.color.on_surface
-        property color trailingIconColor: MD.Token.color.on_surface
+        property color leadingIconColor: item_state.ctx.color.on_surface
+        property color trailingIconColor: item_state.ctx.color.on_surface
 
         states: [
             State {
@@ -101,26 +101,26 @@ T.MenuItem {
                 }
             },
             State {
-                name: "Hovered"
-                when: control.enabled && control.hovered && !control.down
+                name: "Pressed"
+                when: control.down || control.focus
                 PropertyChanges {
-                    item_state.leadingIconColor: MD.Token.color.on_surface_variant
-                    item_state.trailingIconColor: MD.Token.color.on_surface_variant
+                    item_state.leadingIconColor: item_state.ctx.color.on_surface_variant
+                    item_state.trailingIconColor: item_state.ctx.color.on_surface_variant
                     item_state.stateLayerColor: {
-                        const c = MD.Token.color.on_surface;
-                        return MD.Util.transparent(c, MD.Token.state.hover.state_layer_opacity);
+                        const c = item_state.ctx.color.on_surface;
+                        return MD.Util.transparent(c, MD.Token.state.pressed.state_layer_opacity);
                     }
                 }
             },
             State {
-                name: "Pressed"
-                when: control.enabled && control.down
+                name: "Hovered"
+                when:  control.hovered
                 PropertyChanges {
-                    item_state.leadingIconColor: MD.Token.color.on_surface_variant
-                    item_state.trailingIconColor: MD.Token.color.on_surface_variant
+                    item_state.leadingIconColor: item_state.ctx.color.on_surface_variant
+                    item_state.trailingIconColor: item_state.ctx.color.on_surface_variant
                     item_state.stateLayerColor: {
-                        const c = MD.Token.color.on_surface;
-                        return MD.Util.transparent(c, MD.Token.state.pressed.state_layer_opacity);
+                        const c = item_state.ctx.color.on_surface;
+                        return MD.Util.transparent(c, MD.Token.state.hover.state_layer_opacity);
                     }
                 }
             }

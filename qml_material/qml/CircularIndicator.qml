@@ -17,7 +17,7 @@ T.BusyIndicator {
     contentItem: MDImpl.BusyIndicatorImpl {
         implicitWidth: 48
         implicitHeight: 48
-        color: MD.Token.color.primary
+        color: control.MD.MatProp.color.primary
 
         running: control.running
         opacity: control.running ? 1 : 0

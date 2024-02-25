@@ -41,7 +41,7 @@ T.Button {
         color: control.MD.MatProp.backgroundColor
 
         border.width: control.type == MD.Enum.IBtOutlined ? 1 : 0
-        border.color: MD.Token.color.outline
+        border.color: item_state.ctx.color.outline
 
         layer.enabled: control.enabled && color.a > 0 && !control.flat
         layer.effect: MD.RoundedElevationEffect {
@@ -68,7 +68,7 @@ T.Button {
 
     MD.State {
         id: item_state
-        visible: false
+        item: control
 
         elevation: MD.Token.elevation.level1
         stateLayerColor: "transparent"
@@ -77,25 +77,25 @@ T.Button {
             switch (control.type) {
             case MD.Enum.iBtOutlined:
                 if (control.checked)
-                    return MD.Token.color.on_inverse_surface;
+                    return item_state.ctx.color.on_inverse_surface;
                 else
-                    return MD.Token.color.on_surface_variant;
+                    return item_state.ctx.color.on_surface_variant;
             case MD.Enum.IBtStandard:
                 if (control.checked)
-                    return MD.Token.color.primary;
+                    return item_state.ctx.color.primary;
                 else
-                    return MD.Token.color.on_surface_variant;
+                    return item_state.ctx.color.on_surface_variant;
             case MD.Enum.IBtFilledTonal:
                 if (!control.checkable || control.checked)
-                    return MD.Token.color.on_secondary_container;
+                    return item_state.ctx.color.on_secondary_container;
                 else
-                    return MD.Token.color.on_surface_variant;
+                    return item_state.ctx.color.on_surface_variant;
             case MD.Enum.IBtFilled:
             default:
                 if (!control.checkable || control.checked)
-                    return MD.Token.color.on_primary;
+                    return item_state.ctx.color.on_primary;
                 else
-                    return MD.Token.color.primary;
+                    return item_state.ctx.color.primary;
             }
         }
         backgroundColor: {
@@ -104,20 +104,20 @@ T.Button {
                 return "transparent";
             case MD.Enum.IBtOutlined:
                 if (control.checked)
-                    return MD.Token.color.inverse_surface2;
+                    return item_state.ctx.color.inverse_surface2;
                 else
                     return "transparent";
             case MD.Enum.IBtFilledTonal:
                 if (!control.checkable || control.checked)
-                    return MD.Token.color.secondary_container;
+                    return item_state.ctx.color.secondary_container;
                 else
-                    return MD.Token.color.surface_container_highest;
+                    return item_state.ctx.color.surface_container_highest;
             case MD.Enum.IBtFilled:
             default:
                 if (!control.checkable || control.checked)
-                    return MD.Token.color.primary;
+                    return item_state.ctx.color.primary;
                 else
-                    return MD.Token.color.surface_container_highest;
+                    return item_state.ctx.color.surface_container_highest;
             }
         }
         states: [
@@ -126,56 +126,15 @@ T.Button {
                 when: !enabled
                 PropertyChanges {
                     item_state.elevation: MD.Token.elevation.level0
-                    item_state.textColor: MD.Token.color.on_surface
-                    item_state.backgroundColor: MD.Token.color.on_surface
+                    item_state.textColor: item_state.ctx.color.on_surface
+                    item_state.backgroundColor: item_state.ctx.color.on_surface
                     control.contentItem.opacity: 0.38
                     control.background.opacity: 0.12
                 }
             },
             State {
-                name: "Hovered"
-                when: control.enabled && control.hovered && !control.down
-                PropertyChanges {
-                    item_state.elevation: MD.Token.elevation.level2
-                }
-                PropertyChanges {
-                    restoreEntryValues: false
-                    item_state.stateLayerColor: {
-                        let c = null;
-                        switch (control.type) {
-                        case MD.Enum.IBtFilled:
-                            if (!control.checkable || control.checked)
-                                c = MD.Token.color.on_primary;
-                            else
-                                c = MD.Token.color.primary;
-                            break;
-                        case MD.Enum.IBtFilledTonal:
-                            if (!control.checkable || control.checked)
-                                c = MD.Token.color.on_secondary_container;
-                            else
-                                c = MD.Token.color.on_surface_variant;
-                            break;
-                        case MD.Enum.IBtOutlined:
-                            if (control.checked)
-                                c = MD.Token.color.on_inverse_surface;
-                            else
-                                c = MD.Token.color.on_surface_variant;
-                            break;
-                        default:
-                        case MD.Enum.IBtStandard:
-                            if (control.checked)
-                                c = MD.Token.color.primary;
-                            else
-                                c = MD.Token.color.on_surface_variant;
-                            break;
-                        }
-                        return MD.Util.transparent(c, MD.Token.state.hover.state_layer_opacity);
-                    }
-                }
-            },
-            State {
                 name: "Pressed"
-                when: control.enabled && control.down
+                when: control.down || control.focus
                 PropertyChanges {
                     item_state.elevation: MD.Token.elevation.level1
                 }
@@ -186,30 +145,71 @@ T.Button {
                         switch (control.type) {
                         case MD.Enum.IBtFilled:
                             if (!control.checkable || control.checked)
-                                c = MD.Token.color.on_primary;
+                                c = item_state.ctx.color.on_primary;
                             else
-                                c = MD.Token.color.primary;
+                                c = item_state.ctx.color.primary;
                             break;
                         case MD.Enum.IBtFilledTonal:
                             if (!control.checkable || control.checked)
-                                c = MD.Token.color.on_secondary_container;
+                                c = item_state.ctx.color.on_secondary_container;
                             else
-                                c = MD.Token.color.on_surface_variant;
+                                c = item_state.ctx.color.on_surface_variant;
                             break;
                         case MD.Enum.IBtOutlined:
                             if (control.checked)
-                                c = MD.Token.color.on_inverse_surface;
+                                c = item_state.ctx.color.on_inverse_surface;
                             else
-                                c = MD.Token.color.on_surface;
+                                c = item_state.ctx.color.on_surface;
                             break;
                         case MD.Enum.IBtStandard:
                         default:
                             if (control.checked)
-                                c = MD.Token.color.primary;
+                                c = item_state.ctx.color.primary;
                             else
-                                c = MD.Token.color.on_surface_variant;
+                                c = item_state.ctx.color.on_surface_variant;
                         }
                         return MD.Util.transparent(c, MD.Token.state.pressed.state_layer_opacity);
+                    }
+                }
+            },
+            State {
+                name: "Hovered"
+                when: control.hovered
+                PropertyChanges {
+                    item_state.elevation: MD.Token.elevation.level2
+                }
+                PropertyChanges {
+                    restoreEntryValues: false
+                    item_state.stateLayerColor: {
+                        let c = null;
+                        switch (control.type) {
+                        case MD.Enum.IBtFilled:
+                            if (!control.checkable || control.checked)
+                                c = item_state.ctx.color.on_primary;
+                            else
+                                c = item_state.ctx.color.primary;
+                            break;
+                        case MD.Enum.IBtFilledTonal:
+                            if (!control.checkable || control.checked)
+                                c = item_state.ctx.color.on_secondary_container;
+                            else
+                                c = item_state.ctx.color.on_surface_variant;
+                            break;
+                        case MD.Enum.IBtOutlined:
+                            if (control.checked)
+                                c = item_state.ctx.color.on_inverse_surface;
+                            else
+                                c = item_state.ctx.color.on_surface_variant;
+                            break;
+                        default:
+                        case MD.Enum.IBtStandard:
+                            if (control.checked)
+                                c = item_state.ctx.color.primary;
+                            else
+                                c = item_state.ctx.color.on_surface_variant;
+                            break;
+                        }
+                        return MD.Util.transparent(c, MD.Token.state.hover.state_layer_opacity);
                     }
                 }
             }

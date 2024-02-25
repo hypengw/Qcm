@@ -99,49 +99,49 @@ T.Button {
 
     MD.State {
         id: item_state
-        visible: false
+        item: control
 
         elevation: MD.Token.elevation.level2
-        textColor: MD.Token.color.on_surface
-        backgroundColor: MD.Token.color.surface_container_highest
-        supportTextColor: MD.Token.color.on_surface_variant
-        stateLayerColor: "transparent"//MD.Token.color.surface_tint
+        textColor: item_state.ctx.color.on_surface
+        backgroundColor: item_state.ctx.color.surface_container_highest
+        supportTextColor: item_state.ctx.color.on_surface_variant
+        stateLayerColor: "transparent"//item_state.ctx.color.surface_tint
 
-        property color outlineColor: MD.Token.color.outline
+        property color outlineColor: item_state.ctx.color.outline
 
         states: [
             State {
                 name: "Disabled"
                 when: !enabled
                 PropertyChanges {
-                    item_state.supportTextColor: MD.Token.color.on_surface
+                    item_state.supportTextColor: item_state.ctx.color.on_surface
                     placeholder.opacity: 0.38
                     control.background.opacity: 0.12
                 }
             },
             State {
-                name: "Hovered"
-                when: control.enabled && control.hovered
+                name: "Pressed"
+                when: control.pressed || control.focus
                 PropertyChanges {
                 }
                 PropertyChanges {
                     restoreEntryValues: false
                     item_state.stateLayerColor: {
-                        const c = MD.Token.color.on_surface;
-                        return MD.Util.transparent(c, MD.Token.state.hover.state_layer_opacity);
+                        const c = item_state.ctx.color.on_surface;
+                        return MD.Util.transparent(c, MD.Token.state.pressed.state_layer_opacity);
                     }
                 }
             },
             State {
-                name: "Pressed"
-                when: control.enabled && !control.hovered && control.pressed
+                name: "Hovered"
+                when: control.hovered
                 PropertyChanges {
                 }
                 PropertyChanges {
                     restoreEntryValues: false
                     item_state.stateLayerColor: {
-                        const c = MD.Token.color.on_surface;
-                        return MD.Util.transparent(c, MD.Token.state.pressed.state_layer_opacity);
+                        const c = item_state.ctx.color.on_surface;
+                        return MD.Util.transparent(c, MD.Token.state.hover.state_layer_opacity);
                     }
                 }
             }

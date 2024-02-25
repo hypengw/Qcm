@@ -25,6 +25,7 @@ set(SOURCES
     src/item_holder.cpp
     src/image.cpp
     src/util.cpp
+    src/state.cpp
     src/theme.cpp
     src/helper.cpp
     src/type_scale.cpp

@@ -29,7 +29,7 @@ T.Switch {
         y: parent.height / 2 - height / 2
         color: item_state.backgroundColor
         border.width: 2
-        border.color: MD.Token.color.outline
+        border.color: item_state.ctx.color.outline
 
         Behavior on color {
             ColorAnimation {
@@ -113,13 +113,13 @@ T.Switch {
 
     MD.State {
         id: item_state
-        visible: false
+        item: control
 
         elevation: MD.Token.elevation.level1
-        textColor: control.checked ? MD.Token.color.on_primary_container : MD.Token.color.surface_container_highest
-        backgroundColor: control.checked ? MD.Token.color.primary : MD.Token.color.surface_container_highest
-        stateLayerColor: "#00000000"
-        property color handleColor: control.checked ? MD.Token.color.on_primary : MD.Token.color.outline
+        textColor: control.checked ? item_state.ctx.color.on_primary_container : item_state.ctx.color.surface_container_highest
+        backgroundColor: control.checked ? item_state.ctx.color.primary : item_state.ctx.color.surface_container_highest
+        stateLayerColor: "transparent"
+        property color handleColor: control.checked ? item_state.ctx.color.on_primary : item_state.ctx.color.outline
         property int handleSize: control.checked ? 24 : 16
 
         states: [
@@ -128,42 +128,42 @@ T.Switch {
                 when: !enabled
                 PropertyChanges {
                     item_state.elevation: MD.Token.elevation.level0
-                    item_state.textColor: MD.Token.color.on_surface
-                    item_state.backgroundColor: MD.Token.color.on_surface
+                    item_state.textColor: item_state.ctx.color.on_surface
+                    item_state.backgroundColor: item_state.ctx.color.on_surface
                     control.contentItem.opacity: 0.38
                     control.background.opacity: 0.12
                 }
             },
             State {
-                name: "Hovered"
-                when: control.enabled && control.hovered && !control.down
-                PropertyChanges {
-                    item_state.textColor: control.checked ? MD.Token.color.on_primary_container : MD.Token.color.surface_container_highest
-                    item_state.backgroundColor: control.checked ? MD.Token.color.primary : MD.Token.color.surface_container_highest
-                    item_state.handleColor: control.checked ? MD.Token.color.primary_container : MD.Token.color.on_surface_variant
-                }
-                PropertyChanges {
-                    restoreEntryValues: false
-                    item_state.stateLayerColor: {
-                        const c = control.checked ? MD.Token.color.primary : MD.Token.color.on_surface;
-                        return MD.Util.transparent(c, MD.Token.state.hover.state_layer_opacity);
-                    }
-                }
-            },
-            State {
                 name: "Pressed"
-                when: control.enabled && control.down
+                when: control.down || control.focus
                 PropertyChanges {
-                    item_state.textColor: control.checked ? MD.Token.color.on_primary_container : MD.Token.color.surface_container_highest
-                    item_state.backgroundColor: control.checked ? MD.Token.color.primary : MD.Token.color.surface_container_highest
-                    item_state.handleColor: control.checked ? MD.Token.color.primary_container : MD.Token.color.on_surface_variant
+                    item_state.textColor: control.checked ? item_state.ctx.color.on_primary_container : item_state.ctx.color.surface_container_highest
+                    item_state.backgroundColor: control.checked ? item_state.ctx.color.primary : item_state.ctx.color.surface_container_highest
+                    item_state.handleColor: control.checked ? item_state.ctx.color.primary_container : item_state.ctx.color.on_surface_variant
                     item_state.handleSize: 28
                 }
                 PropertyChanges {
                     restoreEntryValues: false
                     item_state.stateLayerColor: {
-                        const c = control.checked ? MD.Token.color.primary : MD.Token.color.on_surface;
+                        const c = control.checked ? item_state.ctx.color.primary : item_state.ctx.color.on_surface;
                         return MD.Util.transparent(c, MD.Token.state.pressed.state_layer_opacity);
+                    }
+                }
+            },
+            State {
+                name: "Hovered"
+                when: control.hovered
+                PropertyChanges {
+                    item_state.textColor: control.checked ? item_state.ctx.color.on_primary_container : item_state.ctx.color.surface_container_highest
+                    item_state.backgroundColor: control.checked ? item_state.ctx.color.primary : item_state.ctx.color.surface_container_highest
+                    item_state.handleColor: control.checked ? item_state.ctx.color.primary_container : item_state.ctx.color.on_surface_variant
+                }
+                PropertyChanges {
+                    restoreEntryValues: false
+                    item_state.stateLayerColor: {
+                        const c = control.checked ? item_state.ctx.color.primary : item_state.ctx.color.on_surface;
+                        return MD.Util.transparent(c, MD.Token.state.hover.state_layer_opacity);
                     }
                 }
             }
