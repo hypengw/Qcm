@@ -31,3 +31,6 @@
 [submodule "third_party/PEGTL"]
 	path = third_party/PEGTL
 	url = https://github.com/taocpp/PEGTL.git
+[submodule "qml_material"]
+	path = qml_material
+	url = https://github.com/hypengw/QmlMaterial.git

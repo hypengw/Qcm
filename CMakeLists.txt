@@ -68,5 +68,7 @@ add_subdirectory(mpris)
 add_subdirectory(meta_model)
 add_subdirectory(media_cache)
 add_subdirectory(player)
+
+set(QM_BUILD_STATIC ON)
 add_subdirectory(qml_material)
 add_subdirectory(app)
