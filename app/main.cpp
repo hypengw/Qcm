@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
 
         logger->set_level(parser.isSet(verboseOption) ? qcm::LogLevel::DEBUG : qcm::LogLevel::WARN);
         QLoggingCategory::setFilterRules(
-            QString::fromStdString(fmt::format("qcm.debug={}", parser.isSet(verboseOption))));
+            QLatin1String(fmt::format("qcm.debug={}", parser.isSet(verboseOption))));
     }
 
     KDSingleApplication single;
