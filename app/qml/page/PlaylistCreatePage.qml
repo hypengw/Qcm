@@ -6,7 +6,7 @@ import Qcm.Material as MD
 
 MD.Page {
     id: root
-    title: `Create Playlist`
+    title: `Create a Playlist`
     horizontalPadding: 24
 
     ColumnLayout {
