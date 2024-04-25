@@ -112,7 +112,7 @@ MD.Page {
                             enabled: qr_login.status !== QA.ApiQuerierBase.Querying
                             font.capitalization: Font.Capitalize
                             highlighted: true
-                            text: qsTr('login in')
+                            text: qsTr('log in')
 
                             Component.onCompleted: {
                                 tf_username.accepted.connect(clicked);

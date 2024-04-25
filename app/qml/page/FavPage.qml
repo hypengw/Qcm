@@ -6,7 +6,7 @@ import Qcm.Material as MD
 
 MD.Page {
     id: root
-    title: `fav to playlist`
+    title: `add to playlist`
     padding: 0
 
     required property var songId
