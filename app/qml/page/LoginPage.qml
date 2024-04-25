@@ -65,7 +65,7 @@ MD.Page {
                     text: qsTr("email")
                 }
                 MD.TabButton {
-                    text: qsTr("qr")
+                    text: qsTr("QR code")
                 }
             }
             SwipeView {
@@ -86,22 +86,22 @@ MD.Page {
                         MD.TextField {
                             id: tf_username
                             Layout.fillWidth: true
-                            placeholderText: 'email'
+                            placeholderText: 'Email'
                         }
                         MD.TextField {
                             id: tf_password
                             Layout.fillWidth: true
                             echoMode: TextInput.Password
-                            placeholderText: 'password'
+                            placeholderText: 'Password'
                         }
                         MD.Text {
                             MD.MatProp.textColor: MD.Token.color.error
                             text: {
                                 switch (qr_login.data.code) {
                                 case 501:
-                                    return qsTr('email not exists');
+                                    return qsTr('Email not found');
                                 case 502:
-                                    return qsTr('wrong password');
+                                    return qsTr('Invalid email or password');
                                 default:
                                     return '';
                                 }
@@ -112,7 +112,7 @@ MD.Page {
                             enabled: qr_login.status !== QA.ApiQuerierBase.Querying
                             font.capitalization: Font.Capitalize
                             highlighted: true
-                            text: qsTr('login in')
+                            text: qsTr('log in')
 
                             Component.onCompleted: {
                                 tf_username.accepted.connect(clicked);

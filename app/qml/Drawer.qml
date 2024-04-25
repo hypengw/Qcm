@@ -67,7 +67,7 @@ MD.Drawer {
                 font.capitalization: Font.Capitalize
                 action: Action {
                     icon.name: MD.Token.icon.settings
-                    text: qsTr('setting')
+                    text: qsTr('settings')
 
                     onTriggered: {
                         QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/SettingsPage.qml', {});
