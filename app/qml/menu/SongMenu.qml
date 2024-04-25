@@ -19,7 +19,7 @@ MD.Menu {
     }
     Action {
         icon.name: MD.Token.icon.queue
-        text: qsTr('Fav to Playlist')
+        text: qsTr('Add to Playlist')
         onTriggered: {
             QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/FavPage.qml', {
                     songId: root.song.itemId
@@ -54,7 +54,7 @@ MD.Menu {
     }
     Action {
         icon.name: MD.Token.icon.link
-        text: qsTr('copy url')
+        text: qsTr('copy URL')
 
         onTriggered: {
             QA.Clipboard.text = song.itemId.url();
