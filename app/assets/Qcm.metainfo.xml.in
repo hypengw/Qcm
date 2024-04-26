@@ -3,6 +3,9 @@
   <id>@APP_ID@</id>
   <name>@APP_NAME@</name>
   <summary>@APP_SUMMARY@</summary>
+  <developer id="io.github.hypengw">
+      <name>hypengw</name>
+  </developer>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-2.0</project_license>
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
@@ -11,11 +14,13 @@
         Qt client for netease cloud music
     </p>
   </description>
-  <developer_name>hypengw</developer_name>
   <url type="homepage">https://github.com/hypengw/Qcm</url>
   <url type="bugtracker">https://github.com/hypengw/Qcm/issues</url>
   <screenshots>
-    <screenshot type="default">https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main.png?raw=true</screenshot>
+      <screenshot type="default">
+        <caption>main window</caption>
+        <image type="source">https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main.png?raw=true</image>
+      </screenshot>
   </screenshots>
   <releases>
     <release version="1.0.2" date="2024-01-16"/>
