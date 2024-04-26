@@ -93,7 +93,7 @@ public:
     Q_INVOKABLE model::Playlist playlist(const QJSValue& = {}) const;
     Q_INVOKABLE model::Program program(const QJSValue& = {}) const;
 
-    Q_INVOKABLE qreal  devicePixelRadio() const;
+    Q_INVOKABLE qreal  devicePixelRatio() const;
     Q_INVOKABLE QSizeF image_size(QSizeF display, int quality, QQuickItem* = nullptr) const;
 
     Q_INVOKABLE void test();

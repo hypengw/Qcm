@@ -28,9 +28,9 @@ Canvas {
         ctx.arc(c.width / 2, c.height / 2, Math.min(c.width, c.height) / 2, 0, Math.PI * 2, false);
         ctx.closePath();
         ctx.clip();
-        ctx.scale(1 / Screen.devicePixelRatio, 1 / Screen.devicePixelRatio);
+        ctx.scale(1 / ratio, 1 / ratio);
         ctx.drawImage(image, image.x, image.y, c.width * ratio, c.width * ratio);
-        ctx.scale(Screen.devicePixelRatio, Screen.devicePixelRatio);
+        ctx.scale(ratio, ratio);
     }
     onImageLoaded: {
         requestPaint();

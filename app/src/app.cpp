@@ -350,14 +350,14 @@ void App::releaseResources(QQuickWindow* win) {
     plt::malloc_trim(0);
 }
 
-qreal App::devicePixelRadio() const {
+qreal App::devicePixelRatio() const {
     return m_main_win ? m_main_win->effectiveDevicePixelRatio() : qApp->devicePixelRatio();
 }
 
 QSizeF App::image_size(QSizeF display, int quality, QQuickItem* item) const {
     QSizeF out { -1, -1 };
     auto   dpr =
-        (item && item->window() ? item->window()->effectiveDevicePixelRatio() : devicePixelRadio());
+        (item && item->window() ? item->window()->effectiveDevicePixelRatio() : devicePixelRatio());
 
     if (quality == ImgOrigin) {
     } else if (quality == ImgAuto) {
