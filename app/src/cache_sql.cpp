@@ -63,7 +63,7 @@ void CacheSql::try_connect() {
 
 bool CacheSql::create_table() {
     QSqlQuery q(m_db);
-    q.prepare(QString("CREATE TABLE IF NOT EXISTS %1 (key text not null primary key, "
+    q.prepare(QStringLiteral("CREATE TABLE IF NOT EXISTS %1 (key text not null primary key, "
                       "content_type text, content_length integer, timestamp integer);")
                   .arg(m_table));
     return q.exec();
@@ -85,7 +85,7 @@ asio::awaitable<std::optional<CacheSql::Item>> CacheSql::get(std::string key) {
 
     {
         QSqlQuery q(m_db);
-        q.prepare(QString("SELECT * FROM %1 WHERE key = :key").arg(m_table));
+        q.prepare(QStringLiteral("SELECT * FROM %1 WHERE key = :key").arg(m_table));
         q.bindValue(":key", convert_from<QString>(key));
         if (q.exec()) {
             while (q.next()) {
@@ -94,7 +94,7 @@ asio::awaitable<std::optional<CacheSql::Item>> CacheSql::get(std::string key) {
                 // update timestamp
                 {
                     QSqlQuery q(m_db);
-                    q.prepare(QString("UPDATE %1 SET timestamp = :timestamp WHERE key = :key;")
+                    q.prepare(QStringLiteral("UPDATE %1 SET timestamp = :timestamp WHERE key = :key;")
                                   .arg(m_table));
                     q.bindValue(":key", convert_from<QString>(key));
                     q.bindValue(":timestamp", QDateTime::currentSecsSinceEpoch());
@@ -114,7 +114,7 @@ asio::awaitable<void> CacheSql::insert(Item item) {
 
     {
         QSqlQuery q(m_db);
-        q.prepare(QString("INSERT OR ABORT INTO %1 (key, content_type, content_length, timestamp) "
+        q.prepare(QStringLiteral("INSERT OR ABORT INTO %1 (key, content_type, content_length, timestamp) "
                           "VALUES (:key, "
                           ":content_type, :content_length, :timestamp);")
                       .arg(m_table));
@@ -136,7 +136,7 @@ asio::awaitable<void> CacheSql::remove(std::string key) {
 
     {
         QSqlQuery q(m_db);
-        q.prepare(QString("DELETE FROM %1 WHERE key = :key").arg(m_table));
+        q.prepare(QStringLiteral("DELETE FROM %1 WHERE key = :key").arg(m_table));
         q.bindValue(":key", convert_from<QString>(key));
         q.exec();
     }
@@ -149,9 +149,8 @@ asio::awaitable<std::optional<CacheSql::Item>> CacheSql::lru() {
 
     {
         QSqlQuery q(m_db);
-        q.prepare(QString("SELECT * FROM %1 WHERE timestamp = (SELECT "
-                          "MIN(timestamp) FROM %2)")
-                      .arg(m_table)
+        q.prepare(QStringLiteral("SELECT * FROM %1 WHERE timestamp = (SELECT "
+                          "MIN(timestamp) FROM %1)")
                       .arg(m_table));
         if (q.exec()) {
             while (q.next()) {
@@ -164,7 +163,7 @@ asio::awaitable<std::optional<CacheSql::Item>> CacheSql::lru() {
 
 usize CacheSql::total_size_sync() {
     QSqlQuery q(m_db);
-    q.prepare(QString("SELECT SUM(content_length)/1024 FROM %1").arg(m_table));
+    q.prepare(QStringLiteral("SELECT SUM(content_length)/1024 FROM %1").arg(m_table));
     if (q.exec()) {
         while (q.next()) {
             auto total = q.value(0).toDouble();
@@ -188,7 +187,7 @@ asio::awaitable<std::vector<CacheSql::Item>> CacheSql::get_all() {
     std::vector<CacheSql::Item> out;
     {
         QSqlQuery q(m_db);
-        q.prepare(QString("SELECT * FROM %1").arg(m_table));
+        q.prepare(QStringLiteral("SELECT * FROM %1").arg(m_table));
         if (q.exec()) {
             while (q.next()) {
                 out.emplace_back(query_to_item(q));
