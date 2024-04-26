@@ -97,7 +97,7 @@ MD.Drawer {
             query();
         }
         onStatusChanged: {
-            if (status === QA.ApiQuerierBase.Finished) {
+            if (status === QA.qcm.Finished) {
                 QA.Global.querier_user.query();
             }
         }

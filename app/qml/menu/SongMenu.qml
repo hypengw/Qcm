@@ -76,7 +76,7 @@ MD.Menu {
         trackIds: [root.song.itemId]
         autoReload: playlistId.valid()
         onStatusChanged: {
-            if (status === QA.ApiQuerierBase.Finished) {
+            if (status === QA.qcm.Finished) {
                 QA.App.playlistChanged()
             }
         }

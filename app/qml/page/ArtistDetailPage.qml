@@ -135,7 +135,7 @@ MD.Page {
                                 }
                             }
                             footer: MD.ListBusyFooter {
-                                running: qr_artist.status === QA.ApiQuerierBase.Querying
+                                running: qr_artist.status === QA.qcm.Querying
                                 width: ListView.view.width
                             }
                         }
@@ -184,7 +184,7 @@ MD.Page {
         id: qr_sub
         autoReload: false
         onStatusChanged: {
-            if (status === QA.ApiQuerierBase.Finished) {
+            if (status === QA.qcm.Finished) {
                 QA.App.artistLiked(itemId, sub);
             }
         }

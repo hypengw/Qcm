@@ -30,7 +30,7 @@ MD.Menu {
         id: qr_sub
         autoReload: false
         onStatusChanged: {
-            if (status === QA.ApiQuerierBase.Finished)
+            if (status === QA.qcm.Finished)
                 QA.App.playlistLiked(itemId, sub);
         }
     }
@@ -49,7 +49,7 @@ MD.Menu {
         id: qr_delete
         autoReload: false
         onStatusChanged: {
-            if (status === QA.ApiQuerierBase.Finished)
+            if (status === QA.qcm.Finished)
                 QA.App.playlistDeleted();
         }
     }

@@ -29,7 +29,7 @@ MD.Page {
             name: item_input.text
             autoReload: false
             onStatusChanged: {
-                if (status === QA.ApiQuerierBase.Finished) {
+                if (status === QA.qcm.Finished) {
                     QA.App.playlistCreated();
                     MD.Util.closePopup(root);
                 }

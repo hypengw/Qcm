@@ -82,6 +82,7 @@ Item {
         msg.destroy(3000);
     }
     function show_page_popup(url, props, popup_props = {}) {
+        console.error("---", url);
         return show_popup('qrc:/Qcm/App/qml/component/PagePopup.qml', Object.assign({}, {
                     "source": url,
                     "props": props
@@ -191,11 +192,11 @@ Item {
         function songUrlSlot(key) {
             const status = m_querier_song.status;
             const songs = m_querier_song.data.songs;
-            if (status === QA.ApiQuerierBase.Finished) {
+            if (status === QA.qcm.Finished) {
                 const song = songs.length ? songs[0] : null;
                 const media_url = song ? QA.App.media_url(song.url, key) : '';
                 m_player.source = media_url;
-            } else if (status === QA.ApiQuerierBase.Error) {
+            } else if (status === QA.qcm.Error) {
                 m_player.stop();
             }
         }
@@ -270,7 +271,7 @@ Item {
         autoReload: false
 
         onStatusChanged: {
-            if (status === QA.ApiQuerierBase.Finished) {
+            if (status === QA.qcm.Finished) {
                 QA.App.songLiked(trackId, like);
             }
         }

@@ -48,20 +48,20 @@ ApplicationWindow {
         initialItem: Item {
             BusyIndicator {
                 anchors.centerIn: parent
-                running: QA.Global.querier_user.status === QA.ApiQuerierBase.Querying
+                running: QA.Global.querier_user.status === QA.qcm.Querying
             }
         }
 
         Connections {
             function onStatusChanged() {
-                if (target.status === QA.ApiQuerierBase.Error) {
+                if (target.status === QA.qcm.Error) {
                     win_stack.replace(win_stack.currentItem, comp_retry, {
                             text: target.error,
                             retryCallback: () => {
                                 target.query();
                             }
                         });
-                } else if (target.status === QA.ApiQuerierBase.Finished) {
+                } else if (target.status === QA.qcm.Finished) {
                     win_stack.replace(win_stack.currentItem, QA.Global.is_login ? comp_main : comp_login);
                 }
             }

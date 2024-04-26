@@ -19,6 +19,6 @@ Action {
     }
     Binding on liked {
         value: querier.sub
-        when: querier.status === QA.ApiQuerierBase.Finished
+        when: querier.status === QA.qcm.Finished
     }
 }

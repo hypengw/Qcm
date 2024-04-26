@@ -61,7 +61,7 @@ MD.Page {
 
                     BaseView {
                         id: view_playlist
-                        busy: qr_playlist.status === QA.ApiQuerierBase.Querying
+                        busy: qr_playlist.status === QA.qcm.Querying
                         delegate: dg_playlist
                         model: qr_playlist.data
                         refresh: function () {
@@ -98,7 +98,7 @@ MD.Page {
                     }
                     BaseView {
                         id: view_albumlist
-                        busy: qr_albumlist.status === QA.ApiQuerierBase.Querying
+                        busy: qr_albumlist.status === QA.qcm.Querying
                         delegate: dg_albumlist
                         model: qr_albumlist.data
                         refresh: function () {
@@ -115,7 +115,7 @@ MD.Page {
                     BaseView {
                         id: view_artistlist
                         delegate: dg_artistlist
-                        busy: qr_artistlist.status === QA.ApiQuerierBase.Querying
+                        busy: qr_artistlist.status === QA.qcm.Querying
                         model: qr_artistlist.data
                         refresh: function () {
                             root.refresh_list(qr_artistlist);
@@ -130,7 +130,7 @@ MD.Page {
                     }
                     BaseView {
                         id: view_djradiolist
-                        busy: qr_djradiolist.status === QA.ApiQuerierBase.Querying
+                        busy: qr_djradiolist.status === QA.qcm.Querying
                         delegate: dg_djradiolist
                         model: qr_djradiolist.data
                         refresh: function () {

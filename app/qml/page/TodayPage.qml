@@ -80,7 +80,7 @@ MD.Page {
                                     }
                                 }
                                 footer: MD.ListBusyFooter {
-                                    running: qr_rmd_res.status === QA.ApiQuerierBase.Querying
+                                    running: qr_rmd_res.status === QA.qcm.Querying
                                     width: GridView.view.width
                                 }
                             }
@@ -152,7 +152,7 @@ MD.Page {
                                     }
                                 }
                                 footer: MD.ListBusyFooter {
-                                    running: qr_rmd_songs.status === QA.ApiQuerierBase.Querying
+                                    running: qr_rmd_songs.status === QA.qcm.Querying
                                     width: ListView.view.width
                                 }
                             }

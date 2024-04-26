@@ -78,7 +78,7 @@ MD.Page {
                     clip: true
                     implicitHeight: contentHeight
                     model: song_querier.data
-                    busy: song_querier.status === QA.ApiQuerierBase.Querying
+                    busy: song_querier.status === QA.qcm.Querying
 
                     delegate: QA.SongDelegate {
                         width: ListView.view.width
@@ -99,7 +99,7 @@ MD.Page {
                     clip: true
                     implicitHeight: contentHeight
                     model: album_querier.data
-                    busy: album_querier.status === QA.ApiQuerierBase.Querying
+                    busy: album_querier.status === QA.qcm.Querying
 
                     delegate: MD.ListItem {
                         property var itemId: model.itemId
@@ -131,7 +131,7 @@ MD.Page {
                     clip: true
                     implicitHeight: contentHeight
                     model: playlist_querier.data
-                    busy: playlist_querier.status === QA.ApiQuerierBase.Querying
+                    busy: playlist_querier.status === QA.qcm.Querying
 
                     delegate: MD.ListItem {
                         property var itemId: model.itemId
@@ -162,7 +162,7 @@ MD.Page {
                     clip: true
                     implicitHeight: contentHeight
                     model: djradio_querier.data
-                    busy: djradio_querier.status === QA.ApiQuerierBase.Querying
+                    busy: djradio_querier.status === QA.qcm.Querying
 
                     delegate: MD.ListItem {
                         property var itemId: model.itemId

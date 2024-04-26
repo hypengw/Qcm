@@ -16,7 +16,7 @@ MD.Page {
         anchors.fill: parent
         clip: true
         implicitHeight: contentHeight
-        busy: model_loader.item.status === QA.ApiQuerierBase.Querying
+        busy: model_loader.item.status === QA.qcm.Querying
         model: model_loader.item.data
 
         delegate: QA.CommentDelegate {

@@ -9,6 +9,7 @@ find_package(Qt6 REQUIRED COMPONENTS QuickControls2 Sql)
 set(SOURCES
     include/Qcm/app.h
     include/Qcm/api.h
+    include/Qcm/enum.h
     include/Qcm/info.h
     include/Qcm/type.h
     include/Qcm/model.h
@@ -66,6 +67,7 @@ set(SOURCES
     src/lyric.cpp
     src/clipboard.cpp
     src/player.cpp
+    src/enum.cpp
     )
 
 set(QML_FILES

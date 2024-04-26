@@ -17,7 +17,7 @@ MD.Page {
         clip: true
         implicitHeight: contentHeight
 
-        busy: qr_playlist.status === QA.ApiQuerierBase.Querying
+        busy: qr_playlist.status === QA.qcm.Querying
         model: qr_playlist.data
         delegate: MD.ListItem {
             text: model.name
@@ -50,7 +50,7 @@ MD.Page {
             trackIds: [root.songId]
             autoReload: playlistId.valid()
             onStatusChanged: {
-                if (status === QA.ApiQuerierBase.Finished) {
+                if (status === QA.qcm.Finished) {
                     if (playlistId === view.model.item(0)?.itemId) {
                         QA.App.songLiked(root.songId, true);
                     }

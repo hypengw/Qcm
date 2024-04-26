@@ -123,7 +123,7 @@ MD.Page {
             }
         }
         footer: MD.ListBusyFooter {
-            running: qr_al.status === QA.ApiQuerierBase.Querying
+            running: qr_al.status === QA.qcm.Querying
             width: ListView.view.width
         }
     }
@@ -154,7 +154,7 @@ MD.Page {
         autoReload: false
 
         onStatusChanged: {
-            if (status === QA.ApiQuerierBase.Finished) {
+            if (status === QA.qcm.Finished) {
                 QA.App.albumLiked(itemId, sub);
             }
         }

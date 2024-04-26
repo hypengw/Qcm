@@ -109,7 +109,7 @@ MD.Page {
                         }
                         MD.Button {
                             Layout.fillWidth: true
-                            enabled: qr_login.status !== QA.ApiQuerierBase.Querying
+                            enabled: qr_login.status !== QA.qcm.Querying
                             font.capitalization: Font.Capitalize
                             highlighted: true
                             text: qsTr('log in')

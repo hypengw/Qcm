@@ -14,6 +14,7 @@
 #include "ncm/client.h"
 
 #include "Qcm/type.h"
+#include "Qcm/enum.h"
 
 namespace qcm
 {
@@ -36,18 +37,10 @@ concept modelable =
 class ApiQuerierBase : public QObject, public QQmlParserStatus {
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)
-    QML_ELEMENT
 public:
     ApiQuerierBase(QObject* parent = nullptr);
     virtual ~ApiQuerierBase();
-    enum Status
-    {
-        Uninitialized,
-        Querying,
-        Finished,
-        Error
-    };
-    Q_ENUM(Status);
+    using Status = ApiStatus;
 
 public:
     Q_PROPERTY(Status status READ status WRITE set_status NOTIFY statusChanged)
