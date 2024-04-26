@@ -11,7 +11,7 @@ Action {
     property QtObject querier: null
 
     icon.name: liked ? MD.Token.icon.done : MD.Token.icon.add
-    text: qsTr(liked ? 'fav-ed' : 'fav')
+    text: qsTr(liked ? 'favorited' : 'favorite')
     onTriggered: {
         querier.sub = !liked;
         querier.itemId = root.itemId;
