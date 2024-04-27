@@ -95,6 +95,7 @@ public:
 
     Q_INVOKABLE qreal  devicePixelRatio() const;
     Q_INVOKABLE QSizeF image_size(QSizeF display, int quality, QQuickItem* = nullptr) const;
+    Q_INVOKABLE QSizeF bound_image_size(QSizeF displaySize) const;
 
     Q_INVOKABLE void test();
 

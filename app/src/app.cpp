@@ -374,3 +374,9 @@ QSizeF App::image_size(QSizeF display, int quality, QQuickItem* item) const {
     }
     return out;
 }
+
+auto App::bound_image_size(QSizeF displaySize) const -> QSizeF {
+    auto size = std::max(displaySize.width(), displaySize.height());
+    size      = 30 * (1 << (usize)std::ceil(std::log2(size / 30)));
+    return displaySize.scaled(QSizeF(size, size), Qt::AspectRatioMode::KeepAspectRatioByExpanding);
+}

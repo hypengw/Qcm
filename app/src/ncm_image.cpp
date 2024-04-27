@@ -25,15 +25,15 @@ using namespace qcm;
 namespace
 {
 
-constexpr int MIN_IMG_SIZE { 300 };
+constexpr int        MIN_IMG_SIZE { 300 };
+constexpr std::array IMG_DL_SIZES { 240, 480, 960, 1920 };
 
 inline QSize get_down_size(const QSize& req) {
-    const int min_size = MIN_IMG_SIZE;
+    usize  req_size = std::sqrt(req.width() * req.height());
+    auto  it       = std::lower_bound(IMG_DL_SIZES.begin(), IMG_DL_SIZES.end(), req_size);
+    usize size     = it != IMG_DL_SIZES.end() ? *it : IMG_DL_SIZES.back();
 
-    if (req.width() * req.height() <= min_size * min_size) {
-        return req.scaled(min_size, min_size, Qt::AspectRatioMode::KeepAspectRatioByExpanding);
-    }
-    return req;
+    return req.scaled(size, size, Qt::AspectRatioMode::KeepAspectRatioByExpanding);
 }
 
 inline std::string gen_file_name(const request::URI& url) {
@@ -112,10 +112,11 @@ public:
             co_await cache_new_image(req, key, cache_path, req_size);
         }
         auto img = QImage(cache_path.c_str());
-        // do not scale twice
-        //if (req_size.isValid()) {
-        //    img = img.scaled(req_size, Qt::AspectRatioMode::KeepAspectRatio);
-        //}
+        if (req_size.isValid() && ! img.isNull()) {
+            img = img.scaled(req_size,
+                             Qt::AspectRatioMode::KeepAspectRatioByExpanding,
+                             Qt::TransformationMode::SmoothTransformation);
+        }
         co_return img;
     }
 

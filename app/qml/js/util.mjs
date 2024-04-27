@@ -28,3 +28,7 @@ export function array_split(arr, count) {
     const header = arr.slice(0, count);
     return [header].concat(array_split(arr.slice(count), count));
 }
+
+export function bound_img_size(x) {
+    return 30 * (1 << Math.ceil(Math.log2( x / 30 )));
+}

@@ -60,6 +60,7 @@ MD.Page {
                         Layout.preferredWidth: displaySize.width
                         Layout.preferredHeight: displaySize.height
                         displaySize: Qt.size(size, size)
+                        fixedSize: false
                         readonly property real size: Math.max(240, Window.window.width / 4.0)
                     }
                     MD.Text {

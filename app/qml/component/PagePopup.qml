@@ -19,8 +19,8 @@ MD.Dialog {
     titleCapitalization: loader.item.font.capitalization
     width: 400
 
-//    readonly property int contentMaxHeight: Math.max(maxHeight - headHeight, 0)
-//    readonly property int headHeight: head_pane.implicitHeight
+    //    readonly property int contentMaxHeight: Math.max(maxHeight - headHeight, 0)
+    //    readonly property int headHeight: head_pane.implicitHeight
     readonly property int maxHeight: parent.height * 0.8
 
     height: Math.min(implicitHeight, maxHeight)
@@ -30,8 +30,7 @@ MD.Dialog {
     x: Math.round((parent.width - width) / 2)
     y: Math.round((parent.height - height) / 2)
 
-
-    Binding on height  {
+    Binding on height {
         value: maxHeight
         when: fillHeight
     }

@@ -19,6 +19,7 @@ MD.Card {
             Layout.preferredWidth: displaySize.width
             Layout.preferredHeight: displaySize.height
             displaySize: Qt.size(root.picWidth, root.picWidth)
+            fixedSize: false
             radius: root.background.radius
         }
 

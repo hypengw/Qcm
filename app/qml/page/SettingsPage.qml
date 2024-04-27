@@ -43,28 +43,36 @@ MD.Page {
                     }
                     RowLayout {
                         Repeater {
-                            model: [{
+                            model: [
+                                {
                                     "name": 'red',
                                     "value": '#F44336'
-                                }, {
+                                },
+                                {
                                     "name": 'pink',
                                     "value": '#E91E63'
-                                }, {
+                                },
+                                {
                                     "name": 'purple',
                                     "value": '#9C27B0'
-                                }, {
+                                },
+                                {
                                     "name": 'indigo',
                                     "value": '#3F51B5'
-                                }, {
+                                },
+                                {
                                     "name": 'blue',
                                     "value": '#2196F3'
-                                }, {
+                                },
+                                {
                                     "name": 'cyan',
                                     "value": '#00BCD4'
-                                }, {
+                                },
+                                {
                                     "name": 'orange',
                                     "value": '#FF9800'
-                                },]
+                                },
+                            ]
 
                             delegate: Item {
                                 id: color_item
@@ -121,8 +129,7 @@ MD.Page {
                     }
                 }
             }
-            MD.Divider {
-            }
+            MD.Divider {}
 
             SettingSection {
                 id: sec_play
@@ -141,27 +148,31 @@ MD.Page {
                         textRole: "text"
                         valueRole: "value"
 
-                        model: ListModel {
-                        }
+                        model: ListModel {}
 
                         Component.onCompleted: {
-                            [{
+                            [
+                                {
                                     "text": qsTr('Standard'),
                                     "value": QA.SongUrlQuerier.LevelStandard
-                                }, {
+                                },
+                                {
                                     "text": qsTr('Higher'),
                                     "value": QA.SongUrlQuerier.LevelHigher
-                                }, {
+                                },
+                                {
                                     "text": qsTr('Exhigh'),
                                     "value": QA.SongUrlQuerier.LevelExhigh
-                                }, {
+                                },
+                                {
                                     "text": qsTr('Lossless'),
                                     "value": QA.SongUrlQuerier.LevelLossless
-                                }].map(el => model.append(el));
+                                }
+                            ].map(el => model.append(el));
                             currentIndex = indexOfValue(settings_play.play_quality);
                             settings_play.play_quality = Qt.binding(() => {
-                                    return comb_playing_quality.currentValue;
-                                });
+                                return comb_playing_quality.currentValue;
+                            });
                         }
 
                         onClicked: {
@@ -170,6 +181,7 @@ MD.Page {
                     }
                 }
 
+                /*
                 SettingRow {
                     Layout.fillWidth: true
                     text: qsTr('cover quality')
@@ -214,10 +226,10 @@ MD.Page {
                         }
                     }
                 }
+*/
             }
 
-            MD.Divider {
-            }
+            MD.Divider {}
 
             SettingSection {
                 id: sec_network
@@ -243,33 +255,39 @@ MD.Page {
                             valueRole: "value"
                             popup.width: 160
 
-                            model: ListModel {
-                            }
+                            model: ListModel {}
 
                             Component.onCompleted: {
-                                [{
+                                [
+                                    {
                                         "text": 'http',
                                         "value": QA.App.PROXY_HTTP
-                                    }, {
+                                    },
+                                    {
                                         "text": 'https',
                                         "value": QA.App.PROXY_HTTPS2
-                                    }, {
+                                    },
+                                    {
                                         "text": 'socks4',
                                         "value": QA.App.PROXY_SOCKS4
-                                    }, {
+                                    },
+                                    {
                                         "text": 'socks5',
                                         "value": QA.App.PROXY_SOCKS5
-                                    }, {
+                                    },
+                                    {
                                         "text": 'socks4a',
                                         "value": QA.App.PROXY_SOCKS4A
-                                    }, {
+                                    },
+                                    {
                                         "text": 'socks5h',
                                         "value": QA.App.PROXY_SOCKS5H
-                                    }].map(el => model.append(el));
+                                    }
+                                ].map(el => model.append(el));
                                 currentIndex = indexOfValue(settings_network.proxy_type);
                                 currentValueChanged.connect(() => {
-                                        settings_network.proxy_type = comb_proxy.currentValue;
-                                    });
+                                    settings_network.proxy_type = comb_proxy.currentValue;
+                                });
                             }
 
                             onClicked: {
@@ -287,8 +305,8 @@ MD.Page {
                             Component.onCompleted: {
                                 text = settings_network.proxy_content;
                                 settings_network.proxy_content = Qt.binding(() => {
-                                        return item_tf_proxy.text;
-                                    });
+                                    return item_tf_proxy.text;
+                                });
                             }
 
                             onAccepted: focusChanged(focus)
@@ -307,8 +325,7 @@ MD.Page {
                 }
             }
 
-            MD.Divider {
-            }
+            MD.Divider {}
 
             SettingSection {
                 id: sec_cache
@@ -365,12 +382,12 @@ MD.Page {
             Component.onCompleted: {
                 slider_media_cache.setByteValue(media_cache_limit);
                 media_cache_limit = Qt.binding(() => {
-                        return slider_media_cache.byteValue;
-                    });
+                    return slider_media_cache.byteValue;
+                });
                 slider_total_cache.setByteValue(total_cache_limit);
                 total_cache_limit = Qt.binding(() => {
-                        return slider_total_cache.byteValue;
-                    });
+                    return slider_total_cache.byteValue;
+                });
             }
             Component.onDestruction: {
                 sync();
@@ -384,8 +401,7 @@ MD.Page {
 
             category: 'play'
 
-            Component.onCompleted: {
-            }
+            Component.onCompleted: {}
         }
         Settings {
             id: settings_network
