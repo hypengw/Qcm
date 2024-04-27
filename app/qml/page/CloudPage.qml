@@ -12,41 +12,44 @@ MD.Page {
     MD.ListView {
         anchors.fill: parent
 
-        header: ColumnLayout {
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottomMargin: 8
-            anchors.leftMargin: 8
-            anchors.rightMargin: 8
-            spacing: 4
+        header: Item {
+            width: parent.width
+            implicitHeight: children[0].implicitHeight
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.bottomMargin: 8
+                anchors.leftMargin: 8
+                anchors.rightMargin: 8
+                spacing: 4
 
-            MD.Pane {
-                id: title_pane
-                ColumnLayout {
-                    anchors.fill: parent
+                MD.Pane {
+                    id: title_pane
+                    ColumnLayout {
+                        anchors.fill: parent
 
-                    MD.Text {
-                        font.capitalization: Font.Capitalize
-                        text: qsTr('cloud songs')
-                        typescale: MD.Token.typescale.headline_large
+                        MD.Text {
+                            font.capitalization: Font.Capitalize
+                            text: qsTr('cloud songs')
+                            typescale: MD.Token.typescale.headline_large
+                        }
                     }
                 }
-            }
-            RowLayout {
-                Layout.alignment: Qt.AlignHCenter
+                RowLayout {
+                    Layout.alignment: Qt.AlignHCenter
 
-                MD.IconButton {
-                    action: Action {
-                        icon.name: MD.Token.icon.playlist_add
-                        // text: qsTr('add to list')
-                        onTriggered: {
-                            const songs = [];
-                            const model = qr_cloud.data;
-                            for (let i = 0; i < model.rowCount(); i++) {
-                                songs.push(model.item(i).song);
+                    MD.IconButton {
+                        action: Action {
+                            icon.name: MD.Token.icon.playlist_add
+                            // text: qsTr('add to list')
+                            onTriggered: {
+                                const songs = [];
+                                const model = qr_cloud.data;
+                                for (let i = 0; i < model.rowCount(); i++) {
+                                    songs.push(model.item(i).song);
+                                }
+                                if (songs.length)
+                                    QA.Global.playlist.appendList(songs);
                             }
-                            if (songs.length)
-                                QA.Global.playlist.appendList(songs);
                         }
                     }
                 }

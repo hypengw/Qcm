@@ -23,82 +23,85 @@ MD.Page {
 
         model: qr_program.data
 
-        header: ColumnLayout {
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottomMargin: 8
-            anchors.leftMargin: 8
-            anchors.rightMargin: 8
+        header: Item {
+            width: parent.width
+            implicitHeight: children[0].implicitHeight
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.bottomMargin: 8
+                anchors.leftMargin: 8
+                anchors.rightMargin: 8
 
-            spacing: 4
+                spacing: 4
 
-            RowLayout {
-                spacing: 16
+                RowLayout {
+                    spacing: 16
 
-                MD.Image {
-                    MD.MatProp.elevation: MD.Token.elevation.level2
-                    source: `image://ncm/${root.itemData.picUrl}`
-                    sourceSize.height: 240
-                    sourceSize.width: 240
-                    radius: 16
-                }
-
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    spacing: 12
-
-                    MD.Text {
-                        Layout.fillWidth: true
-                        maximumLineCount: 2
-                        text: root.itemData.name
-                        typescale: MD.Token.typescale.headline_large
+                    MD.Image {
+                        MD.MatProp.elevation: MD.Token.elevation.level2
+                        source: `image://ncm/${root.itemData.picUrl}`
+                        sourceSize.height: 240
+                        sourceSize.width: 240
+                        radius: 16
                     }
 
-                    RowLayout {
+                    ColumnLayout {
+                        Layout.alignment: Qt.AlignTop
                         spacing: 12
+
                         MD.Text {
-                            typescale: MD.Token.typescale.body_medium
-                            text: `${root.itemData.programCount} programs`
+                            Layout.fillWidth: true
+                            maximumLineCount: 2
+                            text: root.itemData.name
+                            typescale: MD.Token.typescale.headline_large
                         }
-                        MD.Text {
-                            typescale: MD.Token.typescale.body_medium
-                            text: Qt.formatDateTime(root.itemData.createTime, 'yyyy.MM.dd')
-                        }
-                    }
-                    QA.ListDescription {
-                        description: root.itemData.description.trim()
-                        Layout.fillWidth: true
-                    }
-                }
-            }
-            RowLayout {
-                Layout.alignment: Qt.AlignHCenter
-                MD.IconButton {
-                    action: Action {
-                        icon.name: MD.Token.icon.playlist_add
-                        // text: qsTr('add to list')
-                        onTriggered: {
-                            const songs = [];
-                            const model = qr_program.data;
-                            for (let i = 0; i < model.rowCount(); i++) {
-                                songs.push(model.item(i).song);
+
+                        RowLayout {
+                            spacing: 12
+                            MD.Text {
+                                typescale: MD.Token.typescale.body_medium
+                                text: `${root.itemData.programCount} programs`
                             }
-                            QA.Global.playlist.appendList(songs);
+                            MD.Text {
+                                typescale: MD.Token.typescale.body_medium
+                                text: Qt.formatDateTime(root.itemData.createTime, 'yyyy.MM.dd')
+                            }
+                        }
+                        QA.ListDescription {
+                            description: root.itemData.description.trim()
+                            Layout.fillWidth: true
                         }
                     }
                 }
-                MD.IconButton {
-                    id: btn_fav
-                    action: QA.SubAction {
-                        liked: root.itemData.subed
-                        querier: qr_sub
-                        itemId: root.itemId
+                RowLayout {
+                    Layout.alignment: Qt.AlignHCenter
+                    MD.IconButton {
+                        action: Action {
+                            icon.name: MD.Token.icon.playlist_add
+                            // text: qsTr('add to list')
+                            onTriggered: {
+                                const songs = [];
+                                const model = qr_program.data;
+                                for (let i = 0; i < model.rowCount(); i++) {
+                                    songs.push(model.item(i).song);
+                                }
+                                QA.Global.playlist.appendList(songs);
+                            }
+                        }
                     }
-                }
-                MD.IconButton {
-                    id: btn_comment
-                    action: QA.CommentAction {
-                        itemId: root.itemId
+                    MD.IconButton {
+                        id: btn_fav
+                        action: QA.SubAction {
+                            liked: root.itemData.subed
+                            querier: qr_sub
+                            itemId: root.itemId
+                        }
+                    }
+                    MD.IconButton {
+                        id: btn_comment
+                        action: QA.CommentAction {
+                            itemId: root.itemId
+                        }
                     }
                 }
             }
