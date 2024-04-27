@@ -12,11 +12,8 @@ MD.Dialog {
     MD.MatProp.backgroundColor: MD.Token.color.surface
 
     property bool fillHeight: false
-    property var props: null
+    property var props: Object()
     required property string source
-
-
-    readonly property var _props: Object.is(props) ? props : Object()
 
     title: loader.item.title
     titleCapitalization: loader.item.font.capitalization
@@ -40,7 +37,7 @@ MD.Dialog {
     }
 
     onSourceChanged: {
-        loader.setSource(source, _props);
+        loader.setSource(source, props);
     }
 
     contentItem: Loader {
