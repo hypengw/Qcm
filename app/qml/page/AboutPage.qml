@@ -25,9 +25,11 @@ MD.Page {
 
             MD.Image {
                 property int size: 96
+                MD.MatProp.elevation: MD.Token.elevation.level0
                 Layout.preferredHeight: size
                 Layout.preferredWidth: size
                 Layout.alignment: Qt.AlignHCenter
+                mipmap: true
                 source: 'qrc:/Qcm/App/assets/Qcm.svg'
             }
 

@@ -82,7 +82,6 @@ Item {
         msg.destroy(3000);
     }
     function show_page_popup(url, props, popup_props = {}) {
-        console.error("---", url);
         return show_popup('qrc:/Qcm/App/qml/component/PagePopup.qml', Object.assign({}, {
                     "source": url,
                     "props": props
