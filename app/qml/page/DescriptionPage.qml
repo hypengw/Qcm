@@ -23,11 +23,11 @@ MD.Page {
             width: parent.width
             spacing: 12
 
-            MD.Text {
+            MD.TextEdit {
                 id: label
                 Layout.fillWidth: true
+                readOnly: true
                 wrapMode: Text.Wrap
-                maximumLineCount: -1
                 typescale: MD.Token.typescale.body_medium
             }
         }
