@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
-import QtQuick.Shapes
 import Qcm.App as QA
 import Qcm.Material as MD
 
@@ -112,8 +111,8 @@ MD.Pane {
                                     QA.Global.route(artists[0].itemId);
                                 else
                                     QA.Global.show_page_popup('qrc:/Qcm/App/qml/component/ArtistsPopup.qml', {
-                                            "model": artists
-                                        });
+                                        "model": artists
+                                    });
                             }
                         }
                     }
@@ -177,9 +176,9 @@ MD.Pane {
 
                         onClicked: {
                             const popup = QA.Global.show_popup('qrc:/Qcm/App/qml/menu/SongMenu.qml', {
-                                    "song": QA.Global.cur_song,
-                                    "y": 0
-                                }, this);
+                                "song": QA.Global.cur_song,
+                                "y": 0
+                            }, this);
                             popup.y = -popup.height;
                         }
                     }
@@ -204,34 +203,9 @@ MD.Pane {
                             else
                                 player.play();
                         }
-
-                        Item {
-                            anchors.fill: parent
-                            layer.enabled: true
-                            layer.samples: 8
-
-                            Shape {
-                                id: shape_play_arc
-                                anchors.centerIn: parent
-
-                                ShapePath {
-                                    capStyle: ShapePath.RoundCap
-                                    fillColor: "transparent"
-                                    startX: 0
-                                    startY: 0
-                                    strokeColor: MD.Token.color.primary
-                                    strokeWidth: 4
-
-                                    PathAngleArc {
-                                        centerX: 0
-                                        centerY: 0
-                                        radiusX: 16
-                                        radiusY: radiusX
-                                        startAngle: -90
-                                        sweepAngle: 360 * (QA.Global.player.position / QA.Global.player.duration)
-                                    }
-                                }
-                            }
+                        MD.CircleProgress {
+                            anchors.centerIn: parent
+                            progress: (QA.Global.player.position / QA.Global.player.duration)
                         }
                     }
                     MD.IconButton {
@@ -255,20 +229,17 @@ MD.Pane {
                     value: ctl_stack.currentItem.implicitWidth
                     when: ctl_stack.currentItem
                 }
-                initialItem: Item {
-                }
+                initialItem: Item {}
                 replaceEnter: Transition {
                     LineAnimation {
                         from: 0.5 * ctl_stack.height
                         property: 'y'
                         to: 0
                     }
-                    FadeIn {
-                    }
+                    FadeIn {}
                 }
                 replaceExit: Transition {
-                    FadeOut {
-                    }
+                    FadeOut {}
                 }
 
                 Component.onCompleted: {

@@ -19,7 +19,11 @@ MD.Page {
                     icon.name: MD.Token.icon.arrow_back
 
                     onTriggered: {
-                        QA.Global.sig_route_special('main');
+                        if (m_small.visible && m_small.depth > 1) {
+                            m_small.switch_pane();
+                        } else {
+                            QA.Global.sig_route_special('main');
+                        }
                     }
                 }
             }
@@ -37,250 +41,202 @@ MD.Page {
         songId: QA.Global.cur_song.itemId
     }
 
-    MD.Page {
-        anchors.fill: parent
+    Item {
+        visible: false
+        MD.Pane {
+            id: play_pane
+            Layout.fillWidth: true
+            contentHeight: contentChildren[1].implicitHeight
+            contentWidth: contentChildren[1].implicitWidth
 
-        RowLayout {
-            anchors.fill: parent
-
-            MD.Pane {
-                id: play_pane
-                Layout.fillWidth: true
-
-                ColumnLayout {
-                    anchors.centerIn: parent
-                    spacing: 12
-                    width: parent.width
-                    QA.Image {
-                        Layout.alignment: Qt.AlignHCenter
-                        MD.MatProp.elevation: MD.Token.elevation.level2
-                        source: `image://ncm/${QA.Global.cur_song.album.picUrl}`
-                        radius: 16
-
-                        Layout.preferredWidth: displaySize.width
-                        Layout.preferredHeight: displaySize.height
-                        displaySize: Qt.size(size, size)
-                        fixedSize: false
-                        readonly property real size: Math.max(240, Window.window.width / 4.0)
-                    }
-                    MD.Text {
-                        Layout.alignment: Qt.AlignHCenter
-                        Layout.bottomMargin: 12
-                        Layout.fillWidth: true
-                        Layout.topMargin: 12
-                        font.bold: true
-                        typescale: MD.Token.typescale.title_large
-                        horizontalAlignment: Text.AlignHCenter
-                        text: QA.Global.cur_song.name
-                    }
-                    MD.Text {
-                        Layout.alignment: Qt.AlignHCenter
-                        Layout.fillWidth: true
-                        typescale: MD.Token.typescale.body_medium
-                        horizontalAlignment: Text.AlignHCenter
-                        text: QA.Global.cur_song.album.name
-                    }
-                    MD.Text {
-                        Layout.alignment: Qt.AlignHCenter
-                        Layout.fillWidth: true
-                        typescale: MD.Token.typescale.body_medium
-                        horizontalAlignment: Text.AlignHCenter
-                        text: QA.Global.join_name(QA.Global.cur_song.artists, '/')
-                    }
-                    RowLayout {
-                        Layout.alignment: Qt.AlignHCenter
-
-                        MD.IconButton {
-                            checked: QA.Global.user_song_set.contains(QA.Global.cur_song.itemId)
-                            enabled: QA.Global.cur_song.itemId.valid()
-                            icon.name: checked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
-
-                            onClicked: {
-                                QA.Global.querier_user_song.like_song(QA.Global.cur_song.itemId, !checked);
-                            }
-                        }
-                        MD.IconButton {
-                            enabled: QA.Global.playlist.canPrev
-                            icon.name: MD.Token.icon.skip_previous
-
-                            onClicked: QA.Global.playlist.prev()
-                        }
-                        MD.IconButton {
-                            icon.name: QA.Global.player.playing ? MD.Token.icon.pause : MD.Token.icon.play_arrow
-
-                            onClicked: {
-                                const player = QA.Global.player;
-                                if (player.playing)
-                                    player.pause();
-                                else
-                                    player.play();
-                            }
-                        }
-                        MD.IconButton {
-                            enabled: QA.Global.playlist.canNext
-                            icon.name: MD.Token.icon.skip_next
-
-                            onClicked: QA.Global.playlist.next()
-                        }
-                        MD.IconButton {
-                            flat: true
-                            icon.name: QA.Global.loop_icon
-
-                            onClicked: QA.Global.playlist.iterLoopMode()
-                        }
-                    }
-                    RowLayout {
-                        Layout.alignment: Qt.AlignHCenter
-
-                        MD.Text {
-                            readonly property date position: new Date(QA.Global.player.duration * slider.position)
-
-                            opacity: QA.Global.player.duration > 0 ? 1 : 0
-                            text: `${Qt.formatDateTime(position, 'mm:ss')}`
-                        }
-                        QA.PlaySlider {
-                            id: slider
-                            Layout.preferredWidth: 220
-                        }
-                        MD.Text {
-                            opacity: QA.Global.player.duration > 0 ? 1 : 0
-                            text: `${Qt.formatDateTime(QA.Global.player.duration_date, 'mm:ss')}`
-                        }
-                    }
-                    Item {
-                        Layout.fillWidth: true
-                    }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    if (m_small.visible)
+                        m_small.switch_pane();
                 }
             }
-            MD.Pane {
-                id: lyric_pane
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                implicitWidth: play_pane.implicitWidth
 
-                ColumnLayout {
-                    anchors.fill: parent
+            ColumnLayout {
+                z: 1
+                anchors.centerIn: parent
+                spacing: 12
+                width: parent.width
+                QA.Image {
+                    Layout.alignment: Qt.AlignHCenter
+                    MD.MatProp.elevation: MD.Token.elevation.level2
+                    source: `image://ncm/${QA.Global.cur_song.album.picUrl}`
+                    radius: 16
 
-                    QA.LrcLyric {
-                        id: lrc
-                        position: QA.Global.player.position
-                        source: querier_lyric.combined_lrc
+                    Layout.preferredWidth: displaySize.width
+                    Layout.preferredHeight: displaySize.height
+                    displaySize: Qt.size(size, size)
+                    fixedSize: false
+                    readonly property real size: Math.max(240, root.Window.window.width / 4.0)
+                }
+                MD.Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.bottomMargin: 12
+                    Layout.fillWidth: true
+                    Layout.topMargin: 12
+                    font.bold: true
+                    typescale: MD.Token.typescale.title_large
+                    horizontalAlignment: Text.AlignHCenter
+                    text: QA.Global.cur_song.name
+                }
+                MD.Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.fillWidth: true
+                    typescale: MD.Token.typescale.body_medium
+                    horizontalAlignment: Text.AlignHCenter
+                    text: QA.Global.cur_song.album.name
+                }
+                MD.Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.fillWidth: true
+                    typescale: MD.Token.typescale.body_medium
+                    horizontalAlignment: Text.AlignHCenter
+                    text: QA.Global.join_name(QA.Global.cur_song.artists, '/')
+                }
+                RowLayout {
+                    Layout.alignment: Qt.AlignHCenter
 
-                        onCurrentIndexChanged: {
-                            lyric_view.posTo(currentIndex < 0 ? 0 : currentIndex);
+                    MD.IconButton {
+                        checked: QA.Global.user_song_set.contains(QA.Global.cur_song.itemId)
+                        enabled: QA.Global.cur_song.itemId.valid()
+                        icon.name: checked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
+
+                        onClicked: {
+                            QA.Global.querier_user_song.like_song(QA.Global.cur_song.itemId, !checked);
                         }
                     }
-                    MD.Pane {
-                        Layout.fillHeight: true
-                        Layout.fillWidth: true
+                    MD.IconButton {
+                        enabled: QA.Global.playlist.canPrev
+                        icon.name: MD.Token.icon.skip_previous
 
-                        MD.ListView {
-                            id: lyric_view
-                            function posTo(idx) {
-                                if (visible) {
-                                    anim_scroll.from = contentY;
-                                    positionViewAtIndex(idx, ListView.Center);
-                                    anim_scroll.to = contentY;
-                                    contentY = anim_scroll.from;
-                                    anim_scroll.running = !moving;
-                                }
-                            // seem when not visible, this is not accurate
-                            // use a timer to sync
-                            }
-                            function timer_restart() {
-                                if (visible)
-                                    timer_scroll.restart();
-                            }
+                        onClicked: QA.Global.playlist.prev()
+                    }
+                    MD.IconButton {
+                        icon.name: QA.Global.player.playing ? MD.Token.icon.pause : MD.Token.icon.play_arrow
 
-                            anchors.fill: parent
-                            highlightFollowsCurrentItem: false
-                            model: lrc
-                            reuseItems: true
-                            spacing: 4
-
-                            SmoothedAnimation on contentY {
-                                id: anim_scroll
-
-                                property bool manual_stopped: false
-
-                                function manual_stop() {
-                                    manual_stopped = true;
-                                    stop();
-                                }
-
-                                duration: 1000
-                                velocity: 200
-
-                                onStopped: {
-                                    if (manual_stopped) {
-                                        manual_stopped = false;
-                                        return;
-                                    }
-                                    if (lyric_view.count === 0)
-                                        return;
-                                    const cur = lyric_view.itemAtIndex(lrc.currentIndex);
-                                    if (cur) {
-                                        const center = cur.y + cur.height / 2;
-                                        const list_center = lyric_view.contentY + lyric_view.height / 2;
-                                        const diff = Math.abs(center - list_center);
-                                        if (diff > 10) {
-                                            timer_scroll.triggered();
-                                        }
-                                    } else {
-                                        lyric_view.timer_restart();
-                                    }
-                                }
-                            }
-                            delegate: MD.ListItem {
-                                width: ListView.view.width
-
-                                contentItem: ColumnLayout {
-                                    property bool current: lrc.currentIndex === index
-                                    MD.Text {
-                                        Layout.fillWidth: true
-                                        typescale: {
-                                            const ts = MD.Token.typescale.title_large.fresh();
-                                            ts.weight = Font.DemiBold
-                                            return ts;
-                                        }
-                                        horizontalAlignment: Text.AlignHCenter
-                                        verticalAlignment: Text.AlignVCenter
-                                        text: model.content
-                                        color: parent.current ? MD.Token.color.primary : MD.Token.color.on_surface
-                                        maximumLineCount: -1
-                                    }
-                                }
-
-                                onClicked: {
-                                    QA.Global.player.position = model.milliseconds;
-                                }
-                            }
-                            footer: Item {
-                                height: ListView.view.height / 2
-                            }
-                            header: Item {
-                                height: ListView.view.height / 2
-                            }
-
-                            onHeightChanged: timer_restart()
-                            onMovingChanged: {
-                                if (moving)
-                                    anim_scroll.manual_stop();
-                            }
-                            onVisibleChanged: timer_restart()
-                            onWheelMoved: anim_scroll.manual_stop()
-                            onWidthChanged: timer_restart()
-
-                            Timer {
-                                id: timer_scroll
-                                interval: 400
-                                repeat: false
-                                running: true
-
-                                onTriggered: lrc.currentIndexChanged()
-                            }
+                        onClicked: {
+                            const player = QA.Global.player;
+                            if (player.playing)
+                                player.pause();
+                            else
+                                player.play();
                         }
                     }
+                    MD.IconButton {
+                        enabled: QA.Global.playlist.canNext
+                        icon.name: MD.Token.icon.skip_next
+
+                        onClicked: QA.Global.playlist.next()
+                    }
+                    MD.IconButton {
+                        flat: true
+                        icon.name: QA.Global.loop_icon
+
+                        onClicked: QA.Global.playlist.iterLoopMode()
+                    }
+                }
+                RowLayout {
+                    Layout.alignment: Qt.AlignHCenter
+
+                    MD.Text {
+                        readonly property date position: new Date(QA.Global.player.duration * slider.position)
+
+                        opacity: QA.Global.player.duration > 0 ? 1 : 0
+                        text: `${Qt.formatDateTime(position, 'mm:ss')}`
+                    }
+                    QA.PlaySlider {
+                        id: slider
+                        Layout.preferredWidth: 220
+                    }
+                    MD.Text {
+                        opacity: QA.Global.player.duration > 0 ? 1 : 0
+                        text: `${Qt.formatDateTime(QA.Global.player.duration_date, 'mm:ss')}`
+                    }
+                }
+                Item {
+                    Layout.fillWidth: true
+                }
+            }
+        }
+        MD.Pane {
+            id: lyric_pane
+            padding: 0
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            implicitWidth: play_pane.implicitWidth
+
+            QA.LrcLyric {
+                id: lrc
+                position: QA.Global.player.position
+                source: querier_lyric.combined_lrc
+
+                onCurrentIndexChanged: {
+                    lyric_view.posTo(currentIndex < 0 ? 0 : currentIndex);
+                }
+            }
+            QA.LyricView {
+                id: lyric_view
+                anchors.fill: parent
+            }
+        }
+    }
+
+    onWidthChanged: {
+        if (width < (play_pane.implicitWidth + 10) * 2) {
+            m_large.visible = false;
+            m_small.visible = true;
+        } else {
+            m_small.visible = false;
+            m_large.visible = true;
+        }
+    }
+
+    RowLayout {
+        id: m_large
+        visible: false
+        anchors.fill: parent
+        LayoutItemProxy {
+            target: play_pane
+        }
+        LayoutItemProxy {
+            target: lyric_pane
+        }
+    }
+
+    MD.StackView {
+        id: m_small
+        visible: true
+        anchors.fill: parent
+
+        function push_pane(target) {
+            push(m_layout_comp, {
+                'target': target
+            });
+        }
+
+        function switch_pane() {
+            if (depth > 1) {
+                popToIndex(0);
+            } else {
+                push_pane(lyric_pane);
+            }
+        }
+
+        Component.onCompleted: {
+            push_pane(play_pane);
+        }
+
+        Component {
+            id: m_layout_comp
+            ColumnLayout {
+                property alias target: m_stack_layout_proxy.target
+                LayoutItemProxy {
+                    id: m_stack_layout_proxy
                 }
             }
         }
