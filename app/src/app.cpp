@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <array>
+#include <thread>
 
 #include <QQuickWindow>
 #include <QQuickStyle>
@@ -62,6 +63,10 @@ asio::awaitable<void> scan_media_cache(rc<CacheSql> cache_sql, std::filesystem::
     co_return;
 }
 
+auto get_pool_size() -> std::size_t {
+    return std::clamp<u32>(std::thread::hardware_concurrency(), 4, 12);
+}
+
 } // namespace
 
 App* App::self { nullptr };
@@ -71,7 +76,7 @@ App* App::instance() { return self; }
 App::App()
     : QObject(nullptr),
       m_qt_ex(std::make_shared<QtExecutionContext>(this)),
-      m_pool(6),
+      m_pool(get_pool_size()),
       m_session(std::make_shared<request::Session>(m_pool.get_executor())),
       m_client(m_session, m_pool.get_executor()),
       m_mpris(std::make_unique<mpris::Mpris>()),
@@ -80,6 +85,8 @@ App::App()
       m_qml_engine(std::make_unique<QQmlApplicationEngine>()) {
     _assert_msg_rel_(self == nullptr, "there should be only one app object");
     self = this;
+
+    DEBUG_LOG("thread pool size: {}", get_pool_size());
 
     m_qml_engine->addImportPath(u"qrc:/"_qs);
 

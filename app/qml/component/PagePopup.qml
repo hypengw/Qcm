@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Window
 
 import Qcm.App as QA
 import Qcm.Material as MD
@@ -17,7 +18,7 @@ MD.Dialog {
 
     title: loader.item.title
     titleCapitalization: loader.item.font.capitalization
-    width: 400
+    width: Math.min(400, parent.width)
 
     //    readonly property int contentMaxHeight: Math.max(maxHeight - headHeight, 0)
     //    readonly property int headHeight: head_pane.implicitHeight

@@ -180,7 +180,7 @@ MD.Page {
 
     QA.Drawer {
         id: item_drawer
-        width: 400
+        width: Math.min(400, QA.Global.main_win.width * 0.8)
         height: root.height
     }
 }
