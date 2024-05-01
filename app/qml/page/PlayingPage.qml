@@ -14,6 +14,7 @@ MD.Page {
 
         RowLayout {
             MD.IconButton {
+                id: m_back
                 Layout.alignment: Qt.AlignLeft
                 action: Action {
                     icon.name: MD.Token.icon.arrow_back
@@ -29,6 +30,7 @@ MD.Page {
             }
         }
     }
+
 
     QA.SongLyricQuerier {
         id: querier_lyric

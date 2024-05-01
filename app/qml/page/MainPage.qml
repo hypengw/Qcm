@@ -10,6 +10,33 @@ MD.Page {
     id: root
     padding: 0
 
+    property int pageIndex: -1
+    property var pages: [
+        {
+            "icon": MD.Token.icon.library_music,
+            "name": qsTr('library'),
+            "page": 'qrc:/Qcm/App/qml/page/MinePage.qml',
+            "cache": true
+        },
+        {
+            "icon": MD.Token.icon.today,
+            "name": qsTr('today'),
+            "page": 'qrc:/Qcm/App/qml/page/TodayPage.qml',
+            "cache": true
+        },
+        {
+            "icon": MD.Token.icon.queue_music,
+            "name": qsTr('playlist'),
+            "page": 'qrc:/Qcm/App/qml/page/PlaylistListPage.qml'
+        },
+        {
+            "icon": MD.Token.icon.cloud,
+            "name": qsTr('cloud'),
+            "page": 'qrc:/Qcm/App/qml/page/CloudPage.qml',
+            "cache": true
+        }
+    ]
+
     Connections {
         function onSig_route(msg) {
             m_page_stack.push_page(msg.qml, msg.props);
@@ -21,11 +48,76 @@ MD.Page {
         anchors.fill: parent
         spacing: 0
 
+        LayoutItemProxy {
+            id: m_proxy_nav_rail
+            target: m_nav_rail
+            visible: false
+        }
+
         ColumnLayout {
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            spacing: 0
+            QA.PageStack {
+                id: m_page_stack
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                clip: true
+
+                initialItem: QA.PageContainer {
+                    id: page_container
+                    initialItem: Item {}
+                }
+            }
+            QA.PlayBar {
+                Layout.fillWidth: true
+            }
+
+            RowLayout {
+                id: m_nav_bar
+                visible: visible_ && m_page_stack.depth <= 1
+                property bool visible_: false
+                Layout.fillWidth: true
+                Repeater {
+                    model: root.pages
+                    Item {
+                        Layout.fillWidth: true
+                        implicitHeight: 12 + children[0].implicitHeight + 16
+                        MD.BarItem {
+                            anchors.fill: parent
+                            anchors.topMargin: 12
+                            anchors.bottomMargin: 16
+                            icon.name: modelData.icon
+                            text: modelData.name
+                            checked: root.pageIndex == index + 1
+                            onClicked: {
+                                if (modelData.action)
+                                    modelData.action.do();
+                                else
+                                    root.pageIndex = index + 1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    QA.Drawer {
+        id: item_drawer
+        width: Math.min(400, QA.Global.main_win.width * 0.8)
+        height: root.height
+    }
+    Item {
+        visible: false
+
+        ColumnLayout {
+            id: m_nav_rail
             Layout.topMargin: 12
             Layout.bottomMargin: 12
             Layout.preferredWidth: 56 + 24
             Layout.fillWidth: false
+            Layout.fillHeight: true
 
             StackLayout {
                 Layout.fillHeight: false
@@ -60,25 +152,26 @@ MD.Page {
                     interactive: false
                     spacing: 12
                     reuseItems: false
+                    currentIndex: root.pageIndex
 
-                    delegate: MD.Rail {
+                    delegate: MD.RailItem {
                         width: ListView.view.width
                         icon.name: model.icon
                         text: model.name
-                        checked: ListView.view.currentIndex == index
+                        checked: root.pageIndex == index
                         onClicked: {
                             if (model.action)
                                 model.action.do();
                             else
-                                ListView.view.currentIndex = index;
+                                root.pageIndex = index;
                         }
                     }
 
-                    model: ListModel {
-                    }
+                    model: ListModel {}
 
                     Component.onCompleted: {
-                        const pages = [{
+                        const pages = [
+                            {
                                 "icon": MD.Token.icon.menu,
                                 "name": qsTr('menu'),
                                 "action": {
@@ -86,37 +179,19 @@ MD.Page {
                                         item_drawer.open();
                                     }
                                 }
-                            }, {
-                                "icon": MD.Token.icon.library_music,
-                                "name": qsTr('library'),
-                                "page": 'qrc:/Qcm/App/qml/page/MinePage.qml',
-                                "cache": true
-                            }, {
-                                "icon": MD.Token.icon.today,
-                                "name": qsTr('today'),
-                                "page": 'qrc:/Qcm/App/qml/page/TodayPage.qml',
-                                "cache": true
-                            }, {
-                                "icon": MD.Token.icon.queue_music,
-                                "name": qsTr('playlist'),
-                                "page": 'qrc:/Qcm/App/qml/page/PlaylistListPage.qml'
-                            }, {
-                                "icon": MD.Token.icon.cloud,
-                                "name": qsTr('cloud'),
-                                "page": 'qrc:/Qcm/App/qml/page/CloudPage.qml',
-                                "cache": true
-                            }];
+                            },
+                            ...root.pages];
                         if (QA.App.debug) {
                             pages.push({
-                                    "icon": MD.Token.icon.queue_music,
-                                    "name": qsTr('test'),
-                                    "page": 'qrc:/Qcm/App/qml/page/MaterialTest.qml'
-                                });
+                                "icon": MD.Token.icon.queue_music,
+                                "name": qsTr('test'),
+                                "page": 'qrc:/Qcm/App/qml/page/MaterialTest.qml'
+                            });
                         }
                         pages.forEach(m => {
-                                model.append(m);
-                            });
-                        currentIndex = 1;
+                            model.append(m);
+                        });
+                        root.pageIndex = 1;
                     }
                     onCurrentIndexChanged: {
                         const m = model.get(currentIndex);
@@ -140,8 +215,7 @@ MD.Page {
             MD.IconButton {
                 Layout.alignment: Qt.AlignHCenter
                 visible: !QA.Global.use_system_color_scheme
-                action: QA.ColorSchemeAction {
-                }
+                action: QA.ColorSchemeAction {}
             }
             MD.IconButton {
                 Layout.alignment: Qt.AlignHCenter
@@ -154,33 +228,15 @@ MD.Page {
                 }
             }
         }
-
-        ColumnLayout {
-            spacing: 0
-            QA.PageStack {
-                id: m_page_stack
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                clip: true
-
-                //Material.background: Theme.color.surface
-
-                initialItem: QA.PageContainer {
-                    id: page_container
-                    initialItem: Item {
-                    }
-                }
-            }
-            QA.PlayBar {
-                Layout.fillWidth: true
-                // Material.background: Theme.color.surface_container
-            }
-        }
     }
 
-    QA.Drawer {
-        id: item_drawer
-        width: Math.min(400, QA.Global.main_win.width * 0.8)
-        height: root.height
+    onWidthChanged: {
+        if (width < 500) {
+            m_nav_bar.visible_ = true;
+            m_proxy_nav_rail.visible = false;
+        } else {
+            m_proxy_nav_rail.visible = true;
+            m_nav_bar.visible_ = false;
+        }
     }
 }

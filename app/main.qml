@@ -69,6 +69,10 @@ ApplicationWindow {
             target: QA.Global.querier_user
         }
     }
+    Shortcut {
+        sequences: [StandardKey.Back, StandardKey.Cancel]
+        onActivated: console.error("back")
+    }
     QA.SnakeView {
         /*
         anchors.top: parent.top
