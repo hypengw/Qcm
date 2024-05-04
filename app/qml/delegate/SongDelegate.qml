@@ -105,6 +105,7 @@ MD.ListItem {
             }
         }
         MD.Text {
+            visible: !QA.Global.main_win.smallLayout
             typescale: MD.Token.typescale.body_medium
             text: Qt.formatDateTime(root.model_.duration, 'mm:ss')
             verticalAlignment: Qt.AlignVCenter
@@ -113,6 +114,7 @@ MD.ListItem {
             spacing: 0
 
             MD.IconButton {
+                visible: !QA.Global.main_win.smallLayout
                 checked: QA.Global.user_song_set.contains(root.model_.itemId)
                 icon.name: checked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
 

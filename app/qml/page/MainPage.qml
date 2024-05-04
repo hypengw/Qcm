@@ -253,13 +253,19 @@ MD.Page {
         }
     }
 
-    onWidthChanged: {
-        if (width < 500) {
-            m_small_layout.visible = true;
-            m_large_layout.visible = false;
-        } else {
-            m_large_layout.visible = true;
-            m_small_layout.visible = false;
+    Connections {
+        target: QA.Global.main_win
+        function onSmallLayoutChanged() {
+            if (this.target.smallLayout) {
+                m_small_layout.visible = true;
+                m_large_layout.visible = false;
+            } else {
+                m_large_layout.visible = true;
+                m_small_layout.visible = false;
+            }
+        }
+        Component.onCompleted: {
+            this.onSmallLayoutChanged();
         }
     }
 }

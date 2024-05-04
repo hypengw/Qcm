@@ -12,6 +12,7 @@ ApplicationWindow {
     // load QA
     readonly property string _QA: QA.Global.user_info.nickname
     readonly property alias snake: m_snake
+    property bool smallLayout: false
 
     MD.MatProp.backgroundColor: MD.MatProp.color.background
     MD.MatProp.textColor: MD.MatProp.color.getOn(MD.MatProp.backgroundColor)
@@ -20,6 +21,10 @@ ApplicationWindow {
     height: 600
     visible: true
     width: 900
+
+    onWidthChanged: {
+        smallLayout = width < 500;
+    }
 
     function back() {
         if (win_stack.currentItem.canBack) {
