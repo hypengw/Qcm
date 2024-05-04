@@ -12,9 +12,22 @@ MD.Pane {
 
     padding: 0
 
+    function swich_play() {
+        const player = QA.Global.player;
+        if (player.playing)
+            player.pause();
+        else
+            player.play();
+    }
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
+
+        Shortcut {
+            sequences: ["Space"]
+            onActivated: root.swich_play();
+        }
 
         Item {
             Layout.fillWidth: true
@@ -143,13 +156,7 @@ MD.Pane {
                         type: MD.Enum.IBtFilled
                         icon.name: QA.Global.player.playing ? MD.Token.icon.pause : MD.Token.icon.play_arrow
 
-                        onClicked: {
-                            const player = QA.Global.player;
-                            if (player.playing)
-                                player.pause();
-                            else
-                                player.play();
-                        }
+                        onClicked: root.swich_play();
                     }
                     MD.IconButton {
                         enabled: QA.Global.playlist.canNext
@@ -196,13 +203,8 @@ MD.Pane {
                     MD.IconButton {
                         icon.name: QA.Global.player.playing ? MD.Token.icon.pause : MD.Token.icon.play_arrow
 
-                        onClicked: {
-                            const player = QA.Global.player;
-                            if (player.playing)
-                                player.pause();
-                            else
-                                player.play();
-                        }
+                        onClicked: root.swich_play();
+
                         MD.CircleProgress {
                             anchors.centerIn: parent
                             progress: (QA.Global.player.position / QA.Global.player.duration)

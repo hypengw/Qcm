@@ -37,6 +37,12 @@ MD.Page {
         }
     ]
 
+    canBack: m_page_stack.canBack
+
+    function back() {
+        m_page_stack.back();
+    }
+
     Connections {
         function onSig_route(msg) {
             m_page_stack.push_page(msg.qml, msg.props);
@@ -44,39 +50,145 @@ MD.Page {
 
         target: QA.Global
     }
-    contentItem: RowLayout {
-        anchors.fill: parent
-        spacing: 0
-
-        LayoutItemProxy {
-            id: m_proxy_nav_rail
-            target: m_nav_rail
+    contentItem: Item {
+        RowLayout {
+            id: m_large_layout
+            anchors.fill: parent
             visible: false
-        }
 
-        ColumnLayout {
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-            spacing: 0
-            QA.PageStack {
-                id: m_page_stack
+            ColumnLayout {
+                Layout.topMargin: 12
+                Layout.bottomMargin: 12
+                Layout.preferredWidth: 56 + 24
+                Layout.fillWidth: false
                 Layout.fillHeight: true
-                Layout.fillWidth: true
-                clip: true
 
-                initialItem: QA.PageContainer {
-                    id: page_container
-                    initialItem: Item {}
+                StackLayout {
+                    Layout.fillHeight: false
+                    currentIndex: 1
+
+                    Binding on currentIndex {
+                        value: 0
+                        when: m_page_stack.depth > 1 || !!page_container.canBack
+                    }
+
+                    ColumnLayout {
+                        MD.IconButton {
+                            Layout.alignment: Qt.AlignHCenter
+                            action: Action {
+                                icon.name: MD.Token.icon.arrow_back
+
+                                onTriggered: {
+                                    if (m_page_stack.depth > 1)
+                                        m_page_stack.pop_page();
+                                    else if (page_container.canBack)
+                                        page_container.back();
+                                }
+                            }
+                        }
+                        Item {
+                            Layout.fillWidth: true
+                        }
+                    }
+                    MD.ListView {
+                        Layout.fillWidth: true
+                        implicitHeight: contentHeight
+                        interactive: false
+                        spacing: 12
+                        reuseItems: false
+                        currentIndex: root.pageIndex
+
+                        delegate: MD.RailItem {
+                            width: ListView.view.width
+                            icon.name: model.icon
+                            text: model.name
+                            checked: root.pageIndex == index
+                            onClicked: {
+                                if (model.action)
+                                    model.action.do();
+                                else
+                                    root.pageIndex = index;
+                            }
+                        }
+
+                        model: ListModel {}
+
+                        Component.onCompleted: {
+                            const pages = [
+                                {
+                                    "icon": MD.Token.icon.menu,
+                                    "name": qsTr('menu'),
+                                    "action": {
+                                        "do": function () {
+                                            item_drawer.open();
+                                        }
+                                    }
+                                },
+                                ...root.pages];
+                            if (QA.App.debug) {
+                                pages.push({
+                                    "icon": MD.Token.icon.queue_music,
+                                    "name": qsTr('test'),
+                                    "page": 'qrc:/Qcm/App/qml/page/MaterialTest.qml'
+                                });
+                            }
+                            pages.forEach(m => {
+                                model.append(m);
+                            });
+                            root.pageIndex = 1;
+                        }
+                        onCurrentIndexChanged: {
+                            const m = model.get(currentIndex);
+                            if (m.page)
+                                page_container.switchTo(m.page, m.props, m.cache);
+                        }
+                    }
+                }
+                Item {
+                    Layout.fillHeight: true
+                }
+                MD.IconButton {
+                    Layout.alignment: Qt.AlignHCenter
+                    action: Action {
+                        icon.name: MD.Token.icon.search
+                        onTriggered: {
+                            QA.Global.route('qrc:/Qcm/App/qml/page/SearchPage.qml');
+                        }
+                    }
+                }
+                MD.IconButton {
+                    Layout.alignment: Qt.AlignHCenter
+                    visible: !QA.Global.use_system_color_scheme
+                    action: QA.ColorSchemeAction {}
+                }
+                MD.IconButton {
+                    Layout.alignment: Qt.AlignHCenter
+                    action: Action {
+                        icon.name: MD.Token.icon.settings
+
+                        onTriggered: {
+                            QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/SettingsPage.qml', {});
+                        }
+                    }
                 }
             }
-            QA.PlayBar {
-                Layout.fillWidth: true
+
+            LayoutItemProxy {
+                target: m_content
+            }
+        }
+        ColumnLayout {
+            id: m_small_layout
+            visible: false
+            anchors.fill: parent
+            spacing: 0
+
+            LayoutItemProxy {
+                target: m_content
             }
 
             RowLayout {
-                id: m_nav_bar
-                visible: visible_ && m_page_stack.depth <= 1
-                property bool visible_: false
+                visible: m_page_stack.depth <= 1
                 Layout.fillWidth: true
                 Repeater {
                     model: root.pages
@@ -110,133 +222,44 @@ MD.Page {
     }
     Item {
         visible: false
-
         ColumnLayout {
-            id: m_nav_rail
-            Layout.topMargin: 12
-            Layout.bottomMargin: 12
-            Layout.preferredWidth: 56 + 24
-            Layout.fillWidth: false
+            id: m_content
             Layout.fillHeight: true
-
-            StackLayout {
-                Layout.fillHeight: false
-                currentIndex: 1
-
-                Binding on currentIndex {
-                    value: 0
-                    when: m_page_stack.depth > 1 || !!page_container.currentItem.canBack
-                }
-
-                ColumnLayout {
-                    MD.IconButton {
-                        Layout.alignment: Qt.AlignHCenter
-                        action: Action {
-                            icon.name: MD.Token.icon.arrow_back
-
-                            onTriggered: {
-                                if (m_page_stack.depth > 1)
-                                    m_page_stack.pop_page();
-                                else if (page_container.currentItem.canBack)
-                                    page_container.currentItem.back();
-                            }
-                        }
-                    }
-                    Item {
-                        Layout.fillWidth: true
-                    }
-                }
-                MD.ListView {
-                    Layout.fillWidth: true
-                    implicitHeight: contentHeight
-                    interactive: false
-                    spacing: 12
-                    reuseItems: false
-                    currentIndex: root.pageIndex
-
-                    delegate: MD.RailItem {
-                        width: ListView.view.width
-                        icon.name: model.icon
-                        text: model.name
-                        checked: root.pageIndex == index
-                        onClicked: {
-                            if (model.action)
-                                model.action.do();
-                            else
-                                root.pageIndex = index;
-                        }
-                    }
-
-                    model: ListModel {}
-
-                    Component.onCompleted: {
-                        const pages = [
-                            {
-                                "icon": MD.Token.icon.menu,
-                                "name": qsTr('menu'),
-                                "action": {
-                                    "do": function () {
-                                        item_drawer.open();
-                                    }
-                                }
-                            },
-                            ...root.pages];
-                        if (QA.App.debug) {
-                            pages.push({
-                                "icon": MD.Token.icon.queue_music,
-                                "name": qsTr('test'),
-                                "page": 'qrc:/Qcm/App/qml/page/MaterialTest.qml'
-                            });
-                        }
-                        pages.forEach(m => {
-                            model.append(m);
-                        });
-                        root.pageIndex = 1;
-                    }
-                    onCurrentIndexChanged: {
-                        const m = model.get(currentIndex);
-                        if (m.page)
-                            page_container.switchTo(m.page, m.props, m.cache);
-                    }
-                }
-            }
-            Item {
+            Layout.fillWidth: true
+            spacing: 0
+            QA.PageStack {
+                id: m_page_stack
                 Layout.fillHeight: true
-            }
-            MD.IconButton {
-                Layout.alignment: Qt.AlignHCenter
-                action: Action {
-                    icon.name: MD.Token.icon.search
-                    onTriggered: {
-                        QA.Global.route('qrc:/Qcm/App/qml/page/SearchPage.qml');
-                    }
-                }
-            }
-            MD.IconButton {
-                Layout.alignment: Qt.AlignHCenter
-                visible: !QA.Global.use_system_color_scheme
-                action: QA.ColorSchemeAction {}
-            }
-            MD.IconButton {
-                Layout.alignment: Qt.AlignHCenter
-                action: Action {
-                    icon.name: MD.Token.icon.settings
+                Layout.fillWidth: true
+                clip: true
 
-                    onTriggered: {
-                        QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/SettingsPage.qml', {});
+                initialItem: QA.PageContainer {
+                    id: page_container
+                    initialItem: Item {}
+                }
+
+                property bool canBack: (currentItem?.canBack ?? false) || depth > 1
+                function back() {
+                    if (this.currentItem?.canBack) {
+                        this.currentItem.back();
+                    } else {
+                        this.pop_page();
                     }
                 }
+            }
+            QA.PlayBar {
+                Layout.fillWidth: true
             }
         }
     }
 
     onWidthChanged: {
         if (width < 500) {
-            m_nav_bar.visible_ = true;
-            m_proxy_nav_rail.visible = false;
+            m_small_layout.visible = true;
+            m_large_layout.visible = false;
         } else {
-            m_proxy_nav_rail.visible = true;
-            m_nav_bar.visible_ = false;
+            m_large_layout.visible = true;
+            m_small_layout.visible = false;
         }
     }
 }

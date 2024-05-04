@@ -10,6 +10,12 @@ StackView {
     property string m_current_page: ''
     readonly property var m_page_cache: new Map()
 
+    readonly property bool canBack: currentItem?.canBack
+
+    function back() {
+        currentItem.back();
+    }
+
     function switchByKey(key, url_or_comp, props, is_cache) {
         if (is_cache) {
             let cache = m_page_cache.get(key);

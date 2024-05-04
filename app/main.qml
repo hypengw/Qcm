@@ -21,6 +21,14 @@ ApplicationWindow {
     visible: true
     width: 900
 
+    function back() {
+        if (win_stack.currentItem.canBack) {
+            win_stack.currentItem.back();
+        } else {
+            console.log("back to quit");
+        }
+    }
+
     Component.onCompleted: {
         QA.Global.main_win = win;
     }
@@ -56,11 +64,11 @@ ApplicationWindow {
             function onStatusChanged() {
                 if (target.status === QA.qcm.Error) {
                     win_stack.replace(win_stack.currentItem, comp_retry, {
-                            text: target.error,
-                            retryCallback: () => {
-                                target.query();
-                            }
-                        });
+                        text: target.error,
+                        retryCallback: () => {
+                            target.query();
+                        }
+                    });
                 } else if (target.status === QA.qcm.Finished) {
                     win_stack.replace(win_stack.currentItem, QA.Global.is_login ? comp_main : comp_login);
                 }
@@ -71,7 +79,13 @@ ApplicationWindow {
     }
     Shortcut {
         sequences: [StandardKey.Back, StandardKey.Cancel]
-        onActivated: console.error("back")
+        onActivated: win.back()
+    }
+
+    Shortcut {
+        sequence: StandardKey.Quit
+        context: Qt.ApplicationShortcut
+        onActivated: Qt.quit()
     }
     QA.SnakeView {
         /*
@@ -96,7 +110,15 @@ ApplicationWindow {
 
             clip: true
 
-            initialItem: QA.MainPage {
+            initialItem: QA.MainPage {}
+
+            property bool canBack: currentItem.canBack || depth > 1
+            function back() {
+                if (currentItem.canBack) {
+                    this.currentItem.back();
+                } else {
+                    this.pop(null);
+                }
             }
 
             Component.onDestruction: {
@@ -115,19 +137,16 @@ ApplicationWindow {
             }
             Component {
                 id: comp_playing
-                QA.PlayingPage {
-                }
+                QA.PlayingPage {}
             }
         }
     }
     Component {
         id: comp_login
-        QA.LoginPage {
-        }
+        QA.LoginPage {}
     }
     Component {
         id: comp_retry
-        QA.RetryPage {
-        }
+        QA.RetryPage {}
     }
 }

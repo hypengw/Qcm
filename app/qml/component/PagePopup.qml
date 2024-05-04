@@ -43,4 +43,6 @@ MD.Dialog {
     contentItem: Loader {
         id: loader
     }
+
+    closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 }
