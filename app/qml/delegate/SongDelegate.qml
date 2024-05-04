@@ -7,45 +7,73 @@ import Qcm.Material as MD
 MD.ListItem {
     id: root
 
-    readonly property bool is_playing: QA.Global.playlist.cur.itemId === model_.itemId
+    readonly property bool isPlaying: QA.Global.playlist.cur.itemId === model_.itemId
     property QA.t_song model_: modelData
     property string subtitle: ''
+    property bool showCover: false
+    readonly property int coverSize: 48
 
     enabled: model_.canPlay
-    highlighted: is_playing
+    highlighted: isPlaying
     heightMode: MD.Enum.ListItemTwoLine
 
     contentItem: RowLayout {
         spacing: 16
 
-        StackLayout {
-            Layout.fillHeight: false
-            Layout.fillWidth: false
-            Layout.minimumWidth: item_font_metrics.advanceWidth(root.count.toString()) + 2
-            currentIndex: 0
-
-            Binding on currentIndex  {
-                value: 1
-                when: root.is_playing
+        Item {
+            Layout.minimumWidth: {
+                const text_with = item_font_metrics.advanceWidth(root.count.toString()) + 2;
+                if (root.showCover) {
+                    return Math.max(text_with, root.coverSize);
+                }
+                return text_with;
             }
-
-            MD.FontMetrics {
-                id: item_font_metrics
-                typescale: MD.Token.typescale.body_medium
+            implicitWidth: Math.max(children[0].implicitWidth, children[1].implicitWidth)
+            implicitHeight: Math.max(children[0].implicitHeight, children[1].implicitHeight)
+            Loader {
+                anchors.centerIn: parent
+                active: root.showCover
+                sourceComponent: m_comp_song_image
             }
+            StackLayout {
+                anchors.centerIn: parent
+                visible: currentIndex === 1 || !root.showCover
+                Layout.fillHeight: false
+                Layout.fillWidth: false
 
-            MD.Text {
-                horizontalAlignment: Qt.AlignHCenter
-                verticalAlignment: Qt.AlignVCenter
-                typescale: MD.Token.typescale.body_medium
-                opacity: 0.6
-                text: index_ + 1
+                currentIndex: 0
+
+                Binding on currentIndex {
+                    value: 1
+                    when: root.isPlaying
+                }
+
+                MD.FontMetrics {
+                    id: item_font_metrics
+                    typescale: MD.Token.typescale.body_medium
+                }
+
+                MD.Text {
+                    horizontalAlignment: Qt.AlignHCenter
+                    verticalAlignment: Qt.AlignVCenter
+                    typescale: MD.Token.typescale.body_medium
+                    opacity: 0.6
+                    text: index_ + 1
+                }
+                MD.Icon {
+                    name: MD.Token.icon.equalizer
+                    size: 24
+                    MD.MatProp.textColor: MD.Token.color.primary
+                    horizontalAlignment: Qt.AlignHCenter
+                }
             }
-            MD.Icon {
-                name: MD.Token.icon.equalizer
-                size: 24
-                MD.MatProp.textColor: MD.Token.color.primary
-                horizontalAlignment: Qt.AlignHCenter
+            Component {
+                id: m_comp_song_image
+                QA.Image {
+                    radius: 8
+                    source: `image://ncm/${root.model_.album.picUrl}`
+                    displaySize: Qt.size(48, 48)
+                }
             }
         }
         ColumnLayout {
@@ -97,9 +125,9 @@ MD.ListItem {
 
                 onClicked: {
                     QA.Global.show_popup('qrc:/Qcm/App/qml/menu/SongMenu.qml', {
-                            "song": model_,
-                            "y": height
-                        }, this);
+                        "song": model_,
+                        "y": height
+                    }, this);
                 }
             }
         }

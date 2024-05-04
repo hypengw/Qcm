@@ -146,7 +146,7 @@ MD.Page {
 
                                 delegate: QA.SongDelegate {
                                     width: view.width
-
+                                    showCover: true
                                     onClicked: {
                                         QA.Global.playlist.switchTo(modelData);
                                     }

@@ -10,7 +10,7 @@ StackView {
     property string m_current_page: ''
     readonly property var m_page_cache: new Map()
 
-    readonly property bool canBack: currentItem?.canBack
+    readonly property bool canBack: currentItem?.canBack ?? false
 
     function back() {
         currentItem.back();
