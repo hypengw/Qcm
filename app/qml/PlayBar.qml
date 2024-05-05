@@ -8,8 +8,10 @@ import Qcm.Material as MD
 MD.Pane {
     id: root
 
-    readonly property bool is_small: root.width > 0 && root.width < 650
+    MD.MatProp.backgroundColor: QA.Global.main_win.smallLayout ? MD.MatProp.color.surface_container : MD.MatProp.color.surface
+    MD.MatProp.elevation: QA.Global.main_win.smallLayout ? MD.Token.elevation.level2 : MD.Token.elevation.level0
 
+    readonly property bool isSmall: root.width > 0 && root.width < 650
     padding: 0
 
     function swich_play() {
@@ -26,13 +28,13 @@ MD.Pane {
 
         Shortcut {
             sequences: ["Space"]
-            onActivated: root.swich_play();
+            onActivated: root.swich_play()
         }
 
         Item {
             Layout.fillWidth: true
             implicitHeight: 4
-            visible: !is_small
+            visible: !isSmall
             clip: false
             QA.PlaySlider {
                 id: slider
@@ -156,7 +158,7 @@ MD.Pane {
                         type: MD.Enum.IBtFilled
                         icon.name: QA.Global.player.playing ? MD.Token.icon.pause : MD.Token.icon.play_arrow
 
-                        onClicked: root.swich_play();
+                        onClicked: root.swich_play()
                     }
                     MD.IconButton {
                         enabled: QA.Global.playlist.canNext
@@ -203,7 +205,7 @@ MD.Pane {
                     MD.IconButton {
                         icon.name: QA.Global.player.playing ? MD.Token.icon.pause : MD.Token.icon.play_arrow
 
-                        onClicked: root.swich_play();
+                        onClicked: root.swich_play()
 
                         MD.CircleProgress {
                             anchors.centerIn: parent
@@ -222,7 +224,7 @@ MD.Pane {
             StackView {
                 id: ctl_stack
                 function switch_to() {
-                    replace(currentItem, root.is_small ? comp_ctl_small : comp_ctl);
+                    replace(currentItem, root.isSmall ? comp_ctl_small : comp_ctl);
                 }
 
                 Layout.fillHeight: true
@@ -245,8 +247,8 @@ MD.Pane {
                 }
 
                 Component.onCompleted: {
-                    root.is_smallChanged.connect(switch_to);
-                    root.is_smallChanged();
+                    root.isSmallChanged.connect(switch_to);
+                    root.isSmallChanged();
                 }
 
                 QA.PagePopup {

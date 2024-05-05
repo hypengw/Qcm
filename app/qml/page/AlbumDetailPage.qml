@@ -132,6 +132,7 @@ MD.Page {
         }
     }
     MD.FAB {
+        flickable: view
         action: Action {
             icon.name: MD.Token.icon.play_arrow
             onTriggered: {

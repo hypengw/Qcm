@@ -88,6 +88,7 @@ MD.Page {
                             target: QA.App
                         }
                         MD.FAB {
+                            flickable: view_playlist
                             action: Action {
                                 icon.name: MD.Token.icon.add
                                 onTriggered: {

@@ -187,26 +187,32 @@ MD.Page {
                 target: m_content
             }
 
-            RowLayout {
-                visible: m_page_stack.depth <= 1
+            MD.Pane {
                 Layout.fillWidth: true
-                Repeater {
-                    model: root.pages
-                    Item {
-                        Layout.fillWidth: true
-                        implicitHeight: 12 + children[0].implicitHeight + 16
-                        MD.BarItem {
-                            anchors.fill: parent
-                            anchors.topMargin: 12
-                            anchors.bottomMargin: 16
-                            icon.name: modelData.icon
-                            text: modelData.name
-                            checked: root.pageIndex == index + 1
-                            onClicked: {
-                                if (modelData.action)
-                                    modelData.action.do();
-                                else
-                                    root.pageIndex = index + 1;
+                visible: m_page_stack.depth <= 1
+                padding: 0
+                MD.MatProp.backgroundColor: MD.MatProp.color.surface_container
+                MD.MatProp.elevation: MD.Token.elevation.level2
+                RowLayout {
+                    anchors.fill: parent
+                    Repeater {
+                        model: root.pages
+                        Item {
+                            Layout.fillWidth: true
+                            implicitHeight: 12 + children[0].implicitHeight + 16
+                            MD.BarItem {
+                                anchors.fill: parent
+                                anchors.topMargin: 12
+                                anchors.bottomMargin: 16
+                                icon.name: modelData.icon
+                                text: modelData.name
+                                checked: root.pageIndex == index + 1
+                                onClicked: {
+                                    if (modelData.action)
+                                        modelData.action.do();
+                                    else
+                                        root.pageIndex = index + 1;
+                                }
                             }
                         }
                     }

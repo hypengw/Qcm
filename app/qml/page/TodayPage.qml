@@ -10,6 +10,7 @@ MD.Page {
     padding: 0
 
     MD.Flickable {
+        id: m_fk
         anchors.fill: parent
 
         ColumnLayout {
@@ -193,6 +194,7 @@ MD.Page {
     }
 
     MD.FAB {
+        flickable: m_fk
         action: Action {
             icon.name: MD.Token.icon.play_arrow
 

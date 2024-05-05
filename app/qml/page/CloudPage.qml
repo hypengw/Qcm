@@ -10,6 +10,7 @@ MD.Page {
     padding: 0
 
     MD.ListView {
+        id: m_view
         anchors.fill: parent
 
         header: Item {
@@ -96,6 +97,7 @@ MD.Page {
     }
 
     MD.FAB {
+        flickable: m_view
         action: Action {
             icon.name: MD.Token.icon.play_arrow
 
