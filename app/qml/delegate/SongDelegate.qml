@@ -1,6 +1,8 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Effects
+
 import Qcm.App as QA
 import Qcm.Material as MD
 
@@ -28,20 +30,14 @@ MD.ListItem {
                 }
                 return text_with;
             }
-            implicitWidth: Math.max(children[0].implicitWidth, children[1].implicitWidth)
-            implicitHeight: Math.max(children[0].implicitHeight, children[1].implicitHeight)
-            Loader {
-                anchors.centerIn: parent
-                active: root.showCover
-                sourceComponent: m_comp_song_image
-            }
+            implicitWidth: children[0].implicitWidth
+            implicitHeight: children[0].implicitHeight
             StackLayout {
-                anchors.centerIn: parent
-                visible: currentIndex === 1 || !root.showCover
+                anchors.fill: parent
                 Layout.fillHeight: false
                 Layout.fillWidth: false
 
-                currentIndex: 0
+                currentIndex: root.showCover ? 2 : 0
 
                 Binding on currentIndex {
                     value: 1
@@ -66,13 +62,17 @@ MD.ListItem {
                     MD.MatProp.textColor: MD.Token.color.primary
                     horizontalAlignment: Qt.AlignHCenter
                 }
-            }
-            Component {
-                id: m_comp_song_image
-                QA.Image {
-                    radius: 8
-                    source: `image://ncm/${root.model_.album.picUrl}`
-                    displaySize: Qt.size(48, 48)
+                Loader {
+                    active: root.showCover
+                    sourceComponent: m_comp_song_image
+                }
+                Component {
+                    id: m_comp_song_image
+                    QA.Image {
+                        radius: 8
+                        source: `image://ncm/${root.model_.album.picUrl}`
+                        displaySize: Qt.size(48, 48)
+                    }
                 }
             }
         }
@@ -81,6 +81,7 @@ MD.ListItem {
             MD.Text {
                 Layout.fillWidth: true
                 text: root.model_.name
+                color: root.isPlaying ? MD.Token.color.primary : MD.MatProp.textColor
                 typescale: MD.Token.typescale.body_large
                 verticalAlignment: Qt.AlignVCenter
             }
@@ -105,7 +106,7 @@ MD.ListItem {
             }
         }
         MD.Text {
-            visible: !QA.Global.main_win.smallLayout
+            visible: !(QA.Global.main_win?.smallLayout ?? false)
             typescale: MD.Token.typescale.body_medium
             text: Qt.formatDateTime(root.model_.duration, 'mm:ss')
             verticalAlignment: Qt.AlignVCenter
@@ -114,7 +115,7 @@ MD.ListItem {
             spacing: 0
 
             MD.IconButton {
-                visible: !QA.Global.main_win.smallLayout
+                visible: !(QA.Global.main_win?.smallLayout ?? false)
                 checked: QA.Global.user_song_set.contains(root.model_.itemId)
                 icon.name: checked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
 
