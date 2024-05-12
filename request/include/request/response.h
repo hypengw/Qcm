@@ -34,7 +34,7 @@ public:
     using executor_type  = asio::strand<asio::thread_pool::executor_type>;
     using allocator_type = std::pmr::polymorphic_allocator<char>;
     class Private;
-    static constexpr usize ReadSize { 4096 * 4 };
+    static constexpr usize ReadSize { 4096 * 1 };
 
 public:
     executor_type& get_executor();
