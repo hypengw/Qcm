@@ -39,8 +39,8 @@ struct ArtistSublist {
         return api_model::parse<ArtistSublist>(bs);
     }
 
-    i64                                   code;
-    i64                                   count;
+    i64 code;
+    std::optional<i64>                    count;
     bool                                  hasMore;
     std::vector<model::ArtistSublistItem> data;
 };

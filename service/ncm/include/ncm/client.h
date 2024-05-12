@@ -26,7 +26,7 @@ public:
 
     template<typename TApi>
         requires api::ApiCP<TApi>
-    awaitable<Result<typename TApi::out_type>> perform(const TApi& api) {
+    auto perform(const TApi& api) -> awaitable<Result<typename TApi::out_type>> {
         using out_type = typename TApi::out_type;
         Result<out_type> out;
         std::string_view base_url;
@@ -42,8 +42,14 @@ public:
 
         Result<std::vector<byte>> res = co_await post(req, body);
 
-        if (! res.has_value()) co_return nstd::unexpected(res.error());
-        co_return out_type::parse(std::move(res).value(), api.input);
+        if (! res.has_value()) {
+            out = nstd::unexpected(res.error());
+        } else {
+            out = out_type::parse(std::move(res).value(), api.input);
+        }
+        co_return out.map_error([&api](auto err) {
+            return Error::push(err, api::format_api(api.path(), api.query(), api.body()));
+        });
     }
 
     template<typename Fn, typename H>
@@ -54,16 +60,16 @@ public:
 
     executor_type& get_executor();
 
-    awaitable<rc<request::Response>> rsp(const request::Request&) const;
+    auto rsp(const request::Request&) const -> awaitable<rc<request::Response>>;
 
     template<api::CryptoType CT>
-    request::Request make_req(std::string_view url, const UrlParams&) const;
+    auto make_req(std::string_view url, const UrlParams&) const -> request::Request;
 
     template<api::CryptoType CT>
-    std::optional<std::string> encrypt(std::string_view path, const Params&);
+    auto encrypt(std::string_view path, const Params&) -> std::optional<std::string>;
 
 private:
-    awaitable<Result<std::vector<byte>>> post(const request::Request&, std::string_view);
+    auto post(const request::Request&, std::string_view) -> awaitable<Result<std::vector<byte>>>;
 
     rc<request::Session> m_session;
     rc<std::string>      m_csrf;

@@ -70,26 +70,33 @@ public:
 
     std::string what() const;
 
+    template<typename TErr>
+        requires std::same_as<std::decay_t<TErr>, Error>
+    static Error push(TErr&& err, std::string_view what = {},
+                      const std::source_location loc = std::source_location::current()) {
+        Msg msg;
+        msg.loc  = loc;
+        msg.what = what;
+        err.m_msg_stack.push_back(msg);
+        return err;
+    }
+
     template<typename Fmt>
-        requires fmt::formattable<std::decay_t<Fmt>> ||
-                 std::same_as<std::decay_t<Fmt>, std::nullopt_t>
+        requires(! std::same_as<std::decay_t<Fmt>, Error>) &&
+                (fmt::formattable<std::decay_t<Fmt>> ||
+                 std::same_as<std::decay_t<Fmt>, std::nullopt_t>)
     static Error push(Fmt&& f, const std::source_location loc = std::source_location::current()) {
         using T = std::decay_t<Fmt>;
+        Error e;
         Msg msg;
         msg.loc = loc;
-        if constexpr (std::same_as<Error, T>) {
-            f.m_msg_stack.push_back(msg);
-            return f;
+        if constexpr (fmt::formattable<T>) {
+            msg.what = fmt::format("{}", f);
         } else {
-            Error e;
-            if constexpr (fmt::formattable<T>) {
-                msg.what = fmt::format("{}", f);
-            } else {
-                msg.what = "nullopt";
-            }
-            e.m_msg_stack.push_back(msg);
-            return e;
+            msg.what = "nullopt";
         }
+        e.m_msg_stack.push_back(msg);
+        return e;
     }
 
     template<typename T>
@@ -132,13 +139,15 @@ template<>
 struct fmt::formatter<error::Error> : fmt::formatter<std::string> {
     template<typename FormatContext>
     auto format(const error::Error& e, FormatContext& ctx) const {
-        std::string out { "error:\n" };
+        std::string out { "err stack:\n" };
         if (e.m_msg_stack.empty()) {
             out.append("    error stack empty");
-        } else
+        } else {
+            std::size_t i { 0 };
             for (auto& msg : e.m_msg_stack) {
-                out.append(fmt::format("    {}", msg));
+                out.append(fmt::format("   {}# {}\n", i++, msg));
             }
+        }
         return fmt::formatter<std::string>::format(out, ctx);
     }
 };

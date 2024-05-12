@@ -60,6 +60,9 @@ concept ApiCP_Base = requires(T t) {
                          { T::base } -> std::convertible_to<std::string_view>;
                      };
 
+auto concat_query(std::string_view url, std::string_view query) -> std::string;
+
+auto format_api(std::string_view path, const UrlParams& query, const Params& body) -> std::string;
 } // namespace api
 
 namespace api_model
