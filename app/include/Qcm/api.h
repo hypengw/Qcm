@@ -8,6 +8,8 @@
 #include <asio/cancellation_signal.hpp>
 #include <asio/bind_cancellation_slot.hpp>
 #include <asio/use_awaitable.hpp>
+#include <asio/recycling_allocator.hpp>
+#include <asio/bind_allocator.hpp>
 
 #include "asio_helper/watch_dog.h"
 #include "ncm/api.h"
@@ -96,22 +98,24 @@ protected:
     void spawn(Ex&& ex, Fn&& f) {
         QPointer<ApiQuerierBase> self { this };
         asio::any_io_executor    main_ex { m_main_ex };
-        asio::co_spawn(
-            ex, m_wdog.watch(ex, std::forward<Fn>(f)), [self, main_ex](std::exception_ptr p) {
-                if (! p) return;
-                try {
-                    std::rethrow_exception(p);
-                } catch (const std::exception& e) {
-                    std::string e_str = e.what();
-                    asio::post(main_ex, [self, e_str]() {
-                        if (self) {
-                            self->set_error(convert_from<QString>(e_str));
-                            self->set_status(Status::Error);
-                        }
-                    });
-                    ERROR_LOG("{}", e_str);
-                }
-            });
+        auto                     alloc = asio::recycling_allocator<void>();
+        asio::co_spawn(ex,
+                       m_wdog.watch(ex, std::forward<Fn>(f), alloc),
+                       asio::bind_allocator(alloc, [self, main_ex](std::exception_ptr p) {
+                           if (! p) return;
+                           try {
+                               std::rethrow_exception(p);
+                           } catch (const std::exception& e) {
+                               std::string e_str = e.what();
+                               asio::post(main_ex, [self, e_str]() {
+                                   if (self) {
+                                       self->set_error(convert_from<QString>(e_str));
+                                       self->set_status(Status::Error);
+                                   }
+                               });
+                               ERROR_LOG("{}", e_str);
+                           }
+                       }));
     }
 
     void cancel() { m_wdog.cancel(); }

@@ -7,6 +7,7 @@
 #include <asio/deferred.hpp>
 #include <asio/co_spawn.hpp>
 #include <asio/as_tuple.hpp>
+#include <asio/bind_allocator.hpp>
 
 #include "core/core.h"
 #include "core/log.h"
@@ -29,12 +30,13 @@ public:
         return false;
     }
 
-    template<typename Ex, typename F>
-    asio::awaitable<void> watch(Ex&& ex, F&& f, const duration& t = asio::chrono::minutes(5)) {
+    template<typename Ex, typename F, typename Allocator = std::allocator<void>>
+    auto watch(Ex&& ex, F&& f, Allocator&& alloc, const duration& t = asio::chrono::minutes(5))
+        -> asio::awaitable<void> {
         cancel();
         m_timer = std::make_shared<asio::steady_timer>(ex);
         m_timer->expires_after(t);
-        return watch_impl<std::decay_t<F>>(m_timer, std::move(f));
+        return watch_impl<std::decay_t<F>>(m_timer, std::move(f), alloc);
     }
 
     void cancel() {
@@ -45,13 +47,16 @@ public:
     }
 
 private:
-    template<typename F>
-    static asio::awaitable<void> watch_impl(rc<asio::steady_timer> timer, F f) {
+    template<typename F, typename Allocator>
+    static auto watch_impl(rc<asio::steady_timer> timer, F f, Allocator alloc)
+        -> asio::awaitable<void> {
         auto ex = co_await asio::this_coro::executor;
         auto [order, exp, ec] =
             co_await asio::experimental::make_parallel_group(
-                asio::co_spawn(ex, std::move(f), asio::deferred),
-                asio::co_spawn(ex, timer->async_wait(asio::use_awaitable), asio::deferred))
+                asio::co_spawn(ex, std::move(f), asio::bind_allocator(alloc, asio::deferred)),
+                asio::co_spawn(ex,
+                               timer->async_wait(asio::use_awaitable),
+                               asio::bind_allocator(alloc, asio::deferred)))
                 .async_wait(asio::experimental::wait_for_one(), asio::deferred);
 
         timer->expires_after(asio::chrono::seconds(0));

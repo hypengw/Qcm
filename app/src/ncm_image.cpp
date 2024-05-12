@@ -4,6 +4,9 @@
 #include <cstdio>
 #include <fstream>
 
+#include <asio/bind_allocator.hpp>
+#include <asio/recycling_allocator.hpp>
+
 #include <ctre.hpp>
 #include <QtCore/QPointer>
 
@@ -29,7 +32,7 @@ constexpr int        MIN_IMG_SIZE { 300 };
 constexpr std::array IMG_DL_SIZES { 240, 480, 960, 1920 };
 
 inline QSize get_down_size(const QSize& req) {
-    usize  req_size = std::sqrt(req.width() * req.height());
+    usize req_size = std::sqrt(req.width() * req.height());
     auto  it       = std::lower_bound(IMG_DL_SIZES.begin(), IMG_DL_SIZES.end(), req_size);
     usize size     = it != IMG_DL_SIZES.end() ? *it : IMG_DL_SIZES.back();
 
@@ -181,6 +184,7 @@ QQuickImageResponse* NcmImageProvider::requestImageResponse(const QString& id,
     request::Request      req = NcmImageProvider::makeReq(id, requestedSize, m_inner->get_client());
     std::filesystem::path file_path = NcmImageProvider::genImageCachePath(req);
 
+    auto alloc = asio::recycling_allocator<void>();
     asio::co_spawn(
         ex,
         rsp->wdog().watch(
@@ -188,8 +192,9 @@ QQuickImageResponse* NcmImageProvider::requestImageResponse(const QString& id,
             [rsp_guard, requestedSize, req, file_path, inner = m_inner]() -> asio::awaitable<void> {
                 co_await inner->handle_request(rsp_guard, req, file_path, requestedSize);
                 co_return;
-            }),
-        [rsp_guard, file_path, id](std::exception_ptr p) {
+            },
+            alloc),
+        asio::bind_allocator(alloc, [rsp_guard, file_path, id](std::exception_ptr p) {
             if (p) {
                 try {
                     if (std::filesystem::exists(file_path)) {
@@ -203,6 +208,6 @@ QQuickImageResponse* NcmImageProvider::requestImageResponse(const QString& id,
                             fmt::format("NcmImageProvider, id: {}, error: {}", id, e.what()))));
                 }
             }
-        });
+        }));
     return rsp;
 }
