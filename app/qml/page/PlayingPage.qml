@@ -20,8 +20,8 @@ MD.Page {
                     icon.name: MD.Token.icon.arrow_back
 
                     onTriggered: {
-                        if (m_small.visible && m_small.depth > 1) {
-                            m_small.switch_pane();
+                        if (root.canBack) {
+                            root.back();
                         } else {
                             QA.Global.sig_route_special('main');
                         }
@@ -31,6 +31,11 @@ MD.Page {
         }
     }
 
+    property bool canBack: m_small.visible && m_small.depth > 1
+
+    function back() {
+        m_small.switch_pane();
+    }
 
     QA.SongLyricQuerier {
         id: querier_lyric

@@ -83,7 +83,7 @@ ApplicationWindow {
         }
     }
     Shortcut {
-        sequences: [StandardKey.Back, StandardKey.Cancel]
+        sequences: [StandardKey.Back, StandardKey.Cancel, StandardKey.Close]
         onActivated: win.back()
     }
 

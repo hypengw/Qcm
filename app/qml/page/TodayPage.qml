@@ -88,7 +88,7 @@ MD.Page {
                         }
                     }
                 }
-                PageIndicator {
+                MD.PageIndicator {
                     id: swipe_indicator
                     Layout.alignment: Qt.AlignHCenter
                     count: swipe_playlist.count
