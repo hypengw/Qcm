@@ -21,6 +21,8 @@ private:
 
     asio::streambuf m_send_buffer;
     rc<Connection>  m_connect;
+
+    std::pmr::polymorphic_allocator<char> m_allocator;
 };
 
 } // namespace request

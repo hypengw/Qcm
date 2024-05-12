@@ -22,11 +22,11 @@ public:
 
     void start(std::filesystem::path cache_dir, rc<DataBase>);
     void stop();
-    i32  port() const;
+    auto port() const -> i32;
 
 private:
-    void                  connection_done(rc<Connection>);
-    asio::awaitable<void> listener(rc<DataBase>);
+    void connection_done(rc<Connection>);
+    auto listener(rc<DataBase>) -> asio::awaitable<void>;
 
     asio::any_io_executor               m_ex;
     asio::strand<asio::any_io_executor> m_strand;

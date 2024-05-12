@@ -23,9 +23,9 @@ static constexpr auto PathPattern        = ctll::fixed_string { "GET /(.*) HTTP"
 static constexpr auto UrlPattern = ctll::fixed_string { "([0-9a-zA-Z]+)[?]url=(.+)" };
 } // namespace
 
-bool GetRequest::partial() const { return (bool)range_start; }
+auto GetRequest::partial() const -> bool { return (bool)range_start; }
 
-asio::awaitable<GetRequest> GetRequest::read(asio::ip::tcp::socket& s) {
+auto GetRequest::read(asio::ip::tcp::socket& s) -> asio::awaitable<GetRequest> {
     GetRequest      req;
     asio::streambuf buf;
 

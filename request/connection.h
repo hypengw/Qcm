@@ -27,9 +27,14 @@ public:
         Finished,
     };
 
+    template<typename Allocator>
     class Buffer {
     public:
-        Buffer(usize limit): m_full(false), m_limit(limit), m_transferred(0) {}
+        Buffer(usize limit, const Allocator& aloc)
+            : m_buf(std::numeric_limits<std::size_t>::max(), aloc),
+              m_full(false),
+              m_limit(limit),
+              m_transferred(0) {}
         bool is_full() const { return m_full; }
 
         auto size() const { return m_buf.size(); };
@@ -53,20 +58,21 @@ public:
     private:
         void check_full() { m_full = size() > m_limit; }
 
-        asio::streambuf   m_buf;
-        std::atomic<bool> m_full;
-        usize             m_limit;
-        usize             m_transferred;
+        asio::basic_streambuf<Allocator> m_buf;
+        std::atomic<bool>                m_full;
+        usize                            m_limit;
+        usize                            m_transferred;
     };
 
-    Connection(executor_type::inner_executor_type ex, rc<Session::channel_type> session_channel)
+    Connection(executor_type::inner_executor_type ex, rc<Session::channel_type> session_channel,
+               std::pmr::polymorphic_allocator<char> allocator)
         : m_finish_ec(CURLE_OK),
           m_state(State::NotStarted),
           m_recv_paused(false),
           m_ex(ex),
           m_easy(std::make_unique<CurlEasy>()),
           m_session_channel(session_channel),
-          m_recv_buf(RECV_LIMIT) {
+          m_recv_buf(RECV_LIMIT, allocator) {
         auto& easy = *m_easy;
         easy.setopt(CURLOPT_WRITEFUNCTION, Connection::write_callback);
         easy.setopt(CURLOPT_WRITEDATA, this);
@@ -258,7 +264,7 @@ private:
     CookieJar                                            m_cookie_jar;
     asio::any_completion_handler<void(asio::error_code)> m_wait_header_handler;
 
-    Buffer                                               m_recv_buf;
+    Buffer<std::pmr::polymorphic_allocator<char>>        m_recv_buf;
     asio::any_completion_handler<void(asio::error_code)> m_read_some_handler;
 };
 

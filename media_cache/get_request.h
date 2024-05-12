@@ -11,9 +11,9 @@ namespace media_cache
 {
 struct GetRequest {
 public:
-    static asio::awaitable<GetRequest> read(asio::ip::tcp::socket&);
+    static auto read(asio::ip::tcp::socket&) -> asio::awaitable<GetRequest>;
 
-    bool partial() const;
+    auto partial() const -> bool;
 
     std::string header;
     std::string path;

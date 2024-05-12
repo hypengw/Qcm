@@ -66,7 +66,9 @@ Response::Private::Private(Response* res, const Request& req, Operation oper,
     : m_q(res),
       m_req(req),
       m_operation(oper),
-      m_connect(std::make_shared<Connection>(ses->get_executor(), ses->channel_rc())) {}
+      m_connect(
+          std::make_shared<Connection>(ses->get_executor(), ses->channel_rc(), ses->allocator())),
+      m_allocator(ses->allocator()) {}
 
 Response::Response(const Request& req, Operation oper, rc<Session> ses) noexcept
     : m_d(std::make_unique<Private>(this, req, oper, ses)) {
@@ -83,6 +85,11 @@ Response::Response(const Request& req, Operation oper, rc<Session> ses) noexcept
 }
 
 Response::~Response() noexcept { cancel(); }
+
+auto Response::allocator() const -> const std::pmr::polymorphic_allocator<char>& {
+    C_D(const Response);
+    return d->m_allocator;
+}
 
 rc<Response> Response::make_response(const Request& req, Operation oper, rc<Session> ses) {
     return std::make_shared<Response>(req, oper, ses);

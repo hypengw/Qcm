@@ -17,20 +17,22 @@ public:
     Connection(asio::ip::tcp::socket, rc<DataBase>);
     ~Connection();
 
-    asio::awaitable<void> run(rc<request::Session>, std::filesystem::path cache_dir);
+    auto run(rc<request::Session>, std::filesystem::path cache_dir) -> asio::awaitable<void>;
 
-    void                             stop();
-    const std::optional<GetRequest>& get_req() { return m_req; }
+    void stop();
+    auto get_req() -> const std::optional<GetRequest>&;
 
 private:
-    asio::awaitable<void> http_source(std::filesystem::path, rc<request::Session>);
-    asio::awaitable<void> file_source(std::filesystem::path);
+    auto http_source(std::filesystem::path, rc<request::Session>) -> asio::awaitable<void>;
+    auto file_source(std::filesystem::path, std::pmr::polymorphic_allocator<byte>)
+        -> asio::awaitable<void>;
 
-    asio::awaitable<void> send_http_header(DataBase::Item& db_item, const request::Header& header,
-                                           const request::Request& proxy_req);
-    asio::awaitable<void> send_file_header(std::optional<DataBase::Item>, i64 offset, usize size);
+    auto send_http_header(DataBase::Item& db_item, const request::Header& header,
+                          const request::Request& proxy_req) -> asio::awaitable<void>;
+    auto send_file_header(std::optional<DataBase::Item>, i64 offset, usize size)
+        -> asio::awaitable<void>;
 
-    asio::awaitable<bool> check_cache(std::string key, std::filesystem::path);
+    auto check_cache(std::string key, std::filesystem::path) -> asio::awaitable<bool>;
 
     asio::ip::tcp::socket     m_s;
     rc<DataBase>              m_db;

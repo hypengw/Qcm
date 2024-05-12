@@ -17,6 +17,7 @@ namespace
 {
 static constexpr auto             DigitPattern = ctll::fixed_string { "\\d*" };
 static constexpr std::string_view DlSuffix { ".download" };
+static constexpr usize            WriteBuf { 4096 * 4 };
 
 std::filesystem::path get_dl_path(std::filesystem::path p) { return p.replace_extension(DlSuffix); }
 } // namespace
@@ -24,14 +25,17 @@ std::filesystem::path get_dl_path(std::filesystem::path p) { return p.replace_ex
 Connection::Connection(asio::ip::tcp::socket s, rc<DataBase> db): m_s(std::move(s)), m_db(db) {};
 Connection::~Connection() {}
 
-asio::awaitable<bool> Connection::check_cache(std::string key, std::filesystem::path file_path) {
+auto Connection::get_req() -> const std::optional<GetRequest>& { return m_req; }
+
+auto Connection::check_cache(std::string key, std::filesystem::path file_path)
+    -> asio::awaitable<bool> {
     auto has_entry = (bool)(co_await m_db->get(key));
 
     co_return has_entry&& std::filesystem::exists(file_path);
 }
 
-asio::awaitable<void> Connection::send_file_header(std::optional<DataBase::Item> db_item,
-                                                   i64 offset, usize size) {
+auto Connection::send_file_header(std::optional<DataBase::Item> db_item, i64 offset, usize size)
+    -> asio::awaitable<void> {
     std::string rsp_header;
 
     rsp_header.append(m_req->partial() ? "HTTP/1.1 206 PARTIAL CONTENT\n" : "HTTP/1.1 200 OK\n");
@@ -50,7 +54,9 @@ asio::awaitable<void> Connection::send_file_header(std::optional<DataBase::Item>
     co_return;
 }
 
-asio::awaitable<void> Connection::file_source(std::filesystem::path file_path) {
+auto Connection::file_source(std::filesystem::path                 file_path,
+                             std::pmr::polymorphic_allocator<byte> allocator)
+    -> asio::awaitable<void> {
     helper::SyncFile file { std::fstream(file_path.native(), std::ios::in | std::ios::binary) };
     file.handle().exceptions(std::ios_base::badbit);
     auto size   = std::filesystem::file_size(file_path);
@@ -67,8 +73,8 @@ asio::awaitable<void> Connection::file_source(std::filesystem::path file_path) {
     auto db_item = co_await m_db->get(m_req->proxy_id.value());
     co_await send_file_header(db_item, offset, size);
 
-    std::vector<std::byte> buf;
-    buf.resize(16 * 1024);
+    std::pmr::vector<std::byte> buf(allocator);
+    buf.resize(WriteBuf);
 
     for (;;) {
         file.read_some(asio::mutable_buffer((unsigned char*)buf.data(), buf.size()));
@@ -83,9 +89,8 @@ asio::awaitable<void> Connection::file_source(std::filesystem::path file_path) {
     co_return;
 }
 
-asio::awaitable<void> Connection::send_http_header(DataBase::Item&         db_item,
-                                                   const request::Header&  header,
-                                                   const request::Request& proxy_req) {
+auto Connection::send_http_header(DataBase::Item& db_item, const request::Header& header,
+                                  const request::Request& proxy_req) -> asio::awaitable<void> {
     std::string rsp_header;
 
     rsp_header.append(header.contains("content-range") ? "HTTP/1.1 206 PARTIAL CONTENT\n"
@@ -113,10 +118,9 @@ asio::awaitable<void> Connection::send_http_header(DataBase::Item&         db_it
         m_s, asio::buffer(rsp_header.c_str(), rsp_header.size()), asio::use_awaitable);
 }
 
-asio::awaitable<void> Connection::http_source(std::filesystem::path file_path,
-                                              rc<request::Session>  ses) {
-    const auto& req      = m_req.value();
-    std::string proxy_id = req.proxy_id.value();
+auto Connection::http_source(std::filesystem::path file_path, rc<request::Session> ses)
+    -> asio::awaitable<void> {
+    const auto& req = m_req.value();
 
     auto file_dl_path = get_dl_path(file_path);
 
@@ -126,23 +130,27 @@ asio::awaitable<void> Connection::http_source(std::filesystem::path file_path,
             std::ios::binary) };
     file.handle().exceptions(std::ios_base::badbit);
 
-    request::Request proxy_req;
-    proxy_req.set_url(req.proxy_url.value());
-    proxy_req.get_opt<request::req_opt::Timeout>().set_transfer_timeout(180);
-    proxy_req.get_opt<request::req_opt::Tcp>().set_keepalive(true);
-    proxy_req.set_header("Icy-MetaData", "1");
+    DataBase::Item                     db_item;
+    std::shared_ptr<request::Response> rsp;
+    {
+        std::string      proxy_id = req.proxy_id.value();
+        request::Request proxy_req;
+        proxy_req.set_url(req.proxy_url.value());
+        proxy_req.get_opt<request::req_opt::Timeout>().set_transfer_timeout(180);
+        proxy_req.get_opt<request::req_opt::Tcp>().set_keepalive(true);
+        proxy_req.set_header("Icy-MetaData", "1");
 
-    if (req.range_start) {
-        proxy_req.set_header("Host", proxy_req.url_info().host);
-        proxy_req.set_header("Range", fmt::format("bytes={}-", req.range_start.value()));
-        file.handle().seekg(m_req->range_start.value());
+        if (req.range_start) {
+            proxy_req.set_header("Host", proxy_req.url_info().host);
+            proxy_req.set_header("Range", fmt::format("bytes={}-", req.range_start.value()));
+            file.handle().seekg(m_req->range_start.value());
+        }
+
+        rsp = (co_await ses->get(proxy_req)).value();
+
+        db_item.key = proxy_id;
+        co_await send_http_header(db_item, rsp->header(), proxy_req);
     }
-
-    auto rsp = (co_await ses->get(proxy_req)).value();
-
-    DataBase::Item db_item;
-    db_item.key = proxy_id;
-    co_await send_http_header(db_item, rsp->header(), proxy_req);
 
     bool finished { false };
 
@@ -162,8 +170,8 @@ asio::awaitable<void> Connection::http_source(std::filesystem::path file_path,
         return false;
     };
 
-    std::vector<std::byte> buf;
-    buf.resize(16 * 1024);
+    std::pmr::vector<std::byte> buf(ses->allocator());
+    buf.resize(WriteBuf);
     auto buf_data = (unsigned char*)buf.data();
 
     for (;;) {
@@ -202,7 +210,8 @@ asio::awaitable<void> Connection::http_source(std::filesystem::path file_path,
     }
 }
 
-asio::awaitable<void> Connection::run(rc<request::Session> ses, std::filesystem::path cache_dir) {
+auto Connection::run(rc<request::Session> ses, std::filesystem::path cache_dir)
+    -> asio::awaitable<void> {
     auto req = co_await GetRequest::read(m_s);
     m_req    = req;
 
@@ -214,7 +223,7 @@ asio::awaitable<void> Connection::run(rc<request::Session> ses, std::filesystem:
         auto file = cache_dir / proxy_id;
         if (co_await check_cache(proxy_id, file)) {
             std::filesystem::remove(get_dl_path(file));
-            co_await file_source(file);
+            co_await file_source(file, ses->allocator());
         } else if (req.proxy_url) {
             co_await http_source(file, ses);
         }

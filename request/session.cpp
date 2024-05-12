@@ -68,16 +68,21 @@ Session::~Session() {
     d->m_poll_thread.join();
 }
 
-Session::executor_type& Session::get_executor() {
+auto Session::get_executor() -> Session::executor_type& {
     C_D(Session);
     return d->m_ex;
 }
-asio::strand<Session::executor_type>& Session::get_strand() {
+auto Session::get_strand() -> asio::strand<Session::executor_type>& {
     C_D(Session);
     return d->m_strand;
 }
 
-Request Session::prepare_req(const Request& req) const {
+auto Session::allocator() -> std::pmr::polymorphic_allocator<byte> {
+    C_D(Session);
+    return { &(d->m_memory) };
+}
+
+auto Session::prepare_req(const Request& req) const -> Request {
     C_D(const Session);
     Request o { req };
     if (d->m_proxy) o.set_opt(d->m_proxy.value());
@@ -85,7 +90,7 @@ Request Session::prepare_req(const Request& req) const {
     return o;
 }
 
-asio::awaitable<bool> Session::perform(rc<Response>& rsp) {
+auto Session::perform(rc<Response>& rsp) -> asio::awaitable<bool> {
     C_D(Session);
     auto& con = rsp->connection();
     rsp->prepare_perform();
@@ -101,7 +106,7 @@ asio::awaitable<bool> Session::perform(rc<Response>& rsp) {
     co_return true;
 }
 
-asio::awaitable<std::optional<rc<Response>>> Session::get(const Request& req) {
+auto Session::get(const Request& req) -> asio::awaitable<std::optional<rc<Response>>> {
     C_D(Session);
     auto res =
         Response::make_response(prepare_req(req), Operation::GetOperation, shared_from_this());
@@ -110,8 +115,8 @@ asio::awaitable<std::optional<rc<Response>>> Session::get(const Request& req) {
     co_return std::nullopt;
 }
 
-asio::awaitable<std::optional<rc<Response>>> Session::post(const Request&     req,
-                                                           asio::const_buffer buf) {
+auto Session::post(const Request& req, asio::const_buffer buf)
+    -> asio::awaitable<std::optional<rc<Response>>> {
     C_D(Session);
     rc<Response> res =
         Response::make_response(prepare_req(req), Operation::PostOperation, shared_from_this());
@@ -131,7 +136,10 @@ Session::Private::Private(Session& p, executor_type& ex) noexcept
       m_channel_with_notify(std::make_shared<channel_type>(asio::make_strand(ex), 1024)),
       m_stopped(false),
       m_proxy(),
-      m_ignore_certificate(false) {};
+      m_ignore_certificate(false),
+      // 1 MB
+      m_memory(std::pmr::pool_options { .max_blocks_per_chunk        = 2,
+                                        .largest_required_pool_block = 1024 * 1024 }) {};
 
 void Session::load_cookie(std::filesystem::path p) {
     C_D(Session);
@@ -157,7 +165,7 @@ Session::channel_type& Session::channel() {
     return *(d->m_channel_with_notify);
 }
 
-rc<Session::channel_type> Session::channel_rc() {
+auto Session::channel_rc() -> rc<Session::channel_type> {
     C_D(Session);
     return d->m_channel_with_notify;
 }
@@ -183,7 +191,7 @@ void Session::Private::remove_connect(const rc<Connection>& con) {
     m_connect_set.erase(con);
 }
 
-asio::awaitable<void> Session::Private::run() {
+auto Session::Private::run() -> asio::awaitable<void> {
     do {
         while (m_connect_set.empty() && ! m_stopped) {
             auto msg = co_await m_channel->async_receive(asio::use_awaitable);

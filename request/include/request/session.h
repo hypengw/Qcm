@@ -1,12 +1,13 @@
 #pragma once
 
+#include <optional>
+#include <filesystem>
+#include <memory_resource>
+
 #include <asio/thread_pool.hpp>
 #include <asio/awaitable.hpp>
 #include <asio/buffer.hpp>
 #include <asio/strand.hpp>
-
-#include <optional>
-#include <filesystem>
 
 #include "request/type.h"
 #include "request/request_opt.h"
@@ -33,12 +34,12 @@ public:
     Session(executor_type ex);
     ~Session();
 
-    executor_type&               get_executor();
-    asio::strand<executor_type>& get_strand();
-    auto                         get_rc() { return shared_from_this(); }
+    auto get_executor() -> executor_type&;
+    auto get_strand() -> asio::strand<executor_type>&;
+    auto get_rc() { return shared_from_this(); }
 
-    asio::awaitable<std::optional<rc<Response>>> get(const Request&);
-    asio::awaitable<std::optional<rc<Response>>> post(const Request&, asio::const_buffer);
+    auto get(const Request&) -> asio::awaitable<std::optional<rc<Response>>>;
+    auto post(const Request&, asio::const_buffer) -> asio::awaitable<std::optional<rc<Response>>>;
 
     void load_cookie(std::filesystem::path);
     void save_cookie(std::filesystem::path) const;
@@ -49,12 +50,13 @@ public:
 
     void test();
 
-    channel_type&    channel();
-    rc<channel_type> channel_rc();
+    auto channel() -> channel_type&;
+    auto channel_rc() -> rc<channel_type>;
+    auto allocator() -> std::pmr::polymorphic_allocator<byte>;
 
 private:
-    asio::awaitable<bool> perform(rc<Response>&);
-    Request prepare_req(const Request&) const;
+    auto perform(rc<Response>&) -> asio::awaitable<bool>;
+    auto prepare_req(const Request&) const -> Request;
 
     C_DECLARE_PRIVATE(Session, m_p)
 

@@ -31,20 +31,22 @@ class Response : public std::enable_shared_from_this<Response>, NoCopy {
     friend class Session;
 
 public:
-    using executor_type = asio::strand<asio::thread_pool::executor_type>;
+    using executor_type  = asio::strand<asio::thread_pool::executor_type>;
+    using allocator_type = std::pmr::polymorphic_allocator<char>;
     class Private;
+    static constexpr usize ReadSize { 4096 * 4 };
 
 public:
     executor_type& get_executor();
 
     template<Attribute A, typename T = attr_type<A>>
-    std::optional<T> attribute(void) const {
+    auto attribute(void) const -> std::optional<T> {
         return helper::to_optional<T>(attribute(A));
     }
 
-    attr_value attribute(Attribute) const;
+    auto attribute(Attribute) const -> attr_value;
 
-    const Header& header() const;
+    auto header() const -> const Header&;
 
     template<typename MB, typename CompletionToken>
         requires asio::is_const_buffer_sequence<MB>::value
@@ -60,9 +62,9 @@ public:
 
     template<typename SyncWriteStream>
         requires helper::is_sync_stream<SyncWriteStream>
-    asio::awaitable<std::size_t> read_to_stream(SyncWriteStream& writer) {
-        asio::streambuf buf;
-        buf.prepare(4096);
+    auto read_to_stream(SyncWriteStream& writer) -> asio::awaitable<usize> {
+        asio::basic_streambuf<allocator_type> buf(std::numeric_limits<usize>::max(), allocator());
+        buf.prepare(ReadSize);
 
         auto [ec, size] = co_await asio::async_read(
             *this,
@@ -78,22 +80,23 @@ public:
         co_return size;
     }
 
-    static rc<Response> make_response(const Request&, Operation, rc<Session>);
+    static auto make_response(const Request&, Operation, rc<Session>) -> rc<Response>;
     Response(const Request&, Operation, rc<Session>) noexcept;
     ~Response() noexcept;
 
-    bool           is_finished() const;
-    const Request& request() const;
-    Operation      operation() const;
+    auto is_finished() const -> bool;
+    auto request() const -> const Request&;
+    auto operation() const -> Operation;
 
-    const CookieJar& cookie_jar() const;
+    auto cookie_jar() const -> const CookieJar&;
 
-    bool pause_send(bool);
-    bool pause_recv(bool);
+    auto pause_send(bool) -> bool;
+    auto pause_recv(bool) -> bool;
 
-    rc<Response> get_rc();
+    auto get_rc() -> rc<Response>;
 
     void cancel();
+    auto allocator() const -> const allocator_type&;
 
 private:
     // CurlEasy& easy();
@@ -103,9 +106,9 @@ private:
     void async_read_some_impl(asio::mutable_buffer,
                               asio::any_completion_handler<void(asio::error_code, usize)>);
 
-    void              done(int);
-    Connection&       connection();
-    const Connection& connection() const;
+    void done(int);
+    auto connection() -> Connection&;
+    auto connection() const -> const Connection&;
 
 private:
     C_DECLARE_PRIVATE(Response, m_d)

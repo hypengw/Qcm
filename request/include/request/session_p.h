@@ -1,6 +1,7 @@
 #pragma once
 
 #include <set>
+#include <memory_resource>
 
 #include "core/core.h"
 #include "request/session.h"
@@ -39,8 +40,9 @@ private:
     rc<channel_type>      m_channel_with_notify;
     bool                  m_stopped;
 
-    std::optional<req_opt::Proxy> m_proxy;
-    bool                          m_ignore_certificate;
+    std::optional<req_opt::Proxy>        m_proxy;
+    bool                                 m_ignore_certificate;
+    std::pmr::synchronized_pool_resource m_memory;
 };
 
 } // namespace request
