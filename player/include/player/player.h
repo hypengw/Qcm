@@ -12,8 +12,10 @@ namespace player
 
 class Player {
 public:
+    using executor_type = asio::thread_pool::executor_type;
+
     class Private;
-    Player(std::string_view name, Notifier);
+    Player(std::string_view name, Notifier,  executor_type exc);
     ~Player();
 
     void play();

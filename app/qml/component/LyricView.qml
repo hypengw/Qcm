@@ -7,7 +7,13 @@ import Qcm.App as QA
 MD.ListView {
     id: lyric_view
     function posTo(idx) {
-        if (visible) {
+        if (!visible)
+            return;
+        if (idx === -1) {
+            anim_scroll.manual_stop();
+            positionViewAtIndex(0, ListView.Center);
+            forceLayout();
+        } else {
             anim_scroll.from = contentY;
             positionViewAtIndex(idx, ListView.Center);
             anim_scroll.to = contentY;
@@ -23,12 +29,14 @@ MD.ListView {
     }
 
     highlightFollowsCurrentItem: false
-    model: lrc
     reuseItems: true
     spacing: 4
 
-    SmoothedAnimation on contentY {
+    SmoothedAnimation {//on contentY {
         id: anim_scroll
+        target: lyric_view
+        property: 'contentY'
+        running: false
 
         property bool manual_stopped: false
 
@@ -45,8 +53,10 @@ MD.ListView {
                 manual_stopped = false;
                 return;
             }
+
             if (lyric_view.count === 0)
                 return;
+
             const cur = lyric_view.itemAtIndex(lrc.currentIndex);
             if (cur) {
                 const center = cur.y + cur.height / 2;

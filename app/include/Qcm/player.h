@@ -17,6 +17,8 @@ class Player : public QObject {
     Q_PROPERTY(int position READ position WRITE set_position NOTIFY positionChanged)
     Q_PROPERTY(int duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(PlaybackState playbackState READ playbackState NOTIFY playbackStateChanged)
+    Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
+
 public:
     using NotifyInfo   = player::notify::info;
     using channel_type = asio::experimental::concurrent_channel<asio::thread_pool::executor_type,
@@ -33,17 +35,19 @@ public:
     Player(QObject* = nullptr);
     ~Player();
 
-    const QUrl&   source() const;
-    void          set_source(const QUrl&);
-    int           position() const;
-    int           duration() const;
-    PlaybackState playbackState() const;
+    const QUrl& source() const;
+    void        set_source(const QUrl&);
+    auto        position() const -> int;
+    auto        duration() const -> int;
+    auto        busy() const -> bool;
+    auto        playbackState() const -> PlaybackState;
 
     Q_INVOKABLE void play();
     Q_INVOKABLE void pause();
     Q_INVOKABLE void stop();
 
     void set_position(int);
+    void set_busy(bool);
 
 private:
     void set_playback_state(PlaybackState);
@@ -54,6 +58,7 @@ signals:
     void sourceChanged();
     void positionChanged();
     void durationChanged();
+    void busyChanged();
     void playbackStateChanged();
     void notify(NotifyInfo);
 
@@ -68,6 +73,7 @@ private:
 
     std::atomic<int> m_position;
     int              m_duration;
+    bool             m_busy;
     PlaybackState    m_playback_state;
 };
 

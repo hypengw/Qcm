@@ -49,12 +49,14 @@ Player::Player(QObject* parent)
       m_end(false),
       m_position(0),
       m_duration(0),
+      m_busy(false),
       m_playback_state(PlaybackState::StoppedState) {
     connect(this, &Player::notify, this, &Player::processNotify, Qt::QueuedConnection);
 
     auto channel       = m_channel;
     auto notifer_inner = make_rc<NotifierInner>(channel);
-    m_player = std::make_unique<player::Player>(APP_NAME, player::Notifier(notifer_inner));
+    m_player           = std::make_unique<player::Player>(
+        APP_NAME, player::Notifier(notifer_inner), App::instance()->get_pool_executor());
 
     auto qt_exec = App::instance()->get_executor();
     asio::co_spawn(
@@ -83,26 +85,44 @@ Player::~Player() {
 const QUrl& Player::source() const { return m_source; }
 void        Player::set_source(const QUrl& v) {
     if (std::exchange(m_source, v) != v) {
-        emit sourceChanged();
-
+        set_busy(true);
         QString url = m_source.toString(QUrl::PreferLocalFile | QUrl::PrettyDecoded);
         m_player->set_source(url.toStdString());
+
+        emit sourceChanged();
     }
 }
 
-int                   Player::position() const { return m_position; }
-int                   Player::duration() const { return m_duration; }
-Player::PlaybackState Player::playbackState() const { return m_playback_state; }
+auto Player::position() const -> int { return m_position; }
+auto Player::duration() const -> int { return m_duration; }
+auto Player::busy() const -> bool { return m_busy; }
+auto Player::playbackState() const -> Player::PlaybackState { return m_playback_state; }
 
-void Player::play() { m_player->play(); }
-void Player::pause() { m_player->pause(); }
-void Player::stop() { m_player->stop(); }
+void Player::play() {
+    set_busy(true);
+    m_player->play();
+}
+void Player::pause() {
+    set_busy(true);
+    m_player->pause();
+}
+void Player::stop() {
+    set_busy(true);
+    m_player->stop();
+}
 
 void Player::set_position(int v) {
     if (m_duration > 0) {
+        set_busy(true);
         m_player->seek(v + 50);
         m_channel->cancel();
         m_channel->reset();
+    }
+}
+
+void Player::set_busy(bool v) {
+    if (std::exchange(m_busy, v) != v) {
+        emit busyChanged();
     }
 }
 
@@ -134,6 +154,9 @@ void Player::processNotify(NotifyInfo info) {
                             },
                             [this](notify::playstate s) {
                                 set_playback_state((PlaybackState)(int)s.value);
+                            },
+                            [this](notify::busy b) {
+                                set_busy(b.value);
                             } },
                info);
 }

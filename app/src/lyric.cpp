@@ -81,12 +81,15 @@ void LrcLyric::setCurrentIndex(qlonglong v) {
 QString LrcLyric::source() const { return m_source; }
 void    LrcLyric::setSource(QString v) {
     if (std::exchange(m_source, v) != v) {
-        setCurrentIndex(-1);
         emit sourceChanged();
     }
 }
 
 void LrcLyric::parseLrc() {
+    m_position = 0;
+    resetModel();
+    setCurrentIndex(-1);
+
     resetModel(parse_lrc(m_source));
     refreshIndex();
 }

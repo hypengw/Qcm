@@ -179,16 +179,21 @@ MD.Page {
 
             QA.LrcLyric {
                 id: lrc
-                position: QA.Global.player.position
+                Binding on position {
+                    when: !QA.Global.player.busy
+                    value: QA.Global.player.position
+                    restoreMode: Binding.RestoreNone
+                }
                 source: querier_lyric.combined_lrc
 
                 onCurrentIndexChanged: {
-                    lyric_view.posTo(currentIndex < 0 ? 0 : currentIndex);
+                    lyric_view.posTo(currentIndex);
                 }
             }
             QA.LyricView {
                 id: lyric_view
                 anchors.fill: parent
+                model: lrc
             }
         }
     }

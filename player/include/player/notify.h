@@ -19,11 +19,12 @@ struct base {
     T value {};
 };
 
-struct position : public base<i64> {};
-struct duration : public base<i64> {};
-struct playstate : public base<PlayState> {};
+struct position : base<i64> {};
+struct duration : base<i64> {};
+struct playstate : base<PlayState> {};
+struct busy : base<bool> {};
 
-using info = std::variant<position, duration, playstate>;
+using info = std::variant<position, duration, playstate, busy>;
 } // namespace notify
 //
 using Notifier = qcm::Sender<notify::info>;

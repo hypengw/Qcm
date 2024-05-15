@@ -10,9 +10,9 @@ MD.Slider {
     property bool in_anim: false
 
     Binding {
-        when: QA.Global.player.duration > 0
-        restoreMode: Binding.RestoreNone
+        when: QA.Global.player.duration > 0 && !QA.Global.player.busy
         root.playing_pos: QA.Global.player.position / QA.Global.player.duration
+        restoreMode: Binding.RestoreNone
     }
 
     live: false
