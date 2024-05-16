@@ -84,7 +84,7 @@ IMPL_CONVERT(qcm::model::Song, ncm::model::Song) {
     convert(out.name, in.name);
     convert(out.album.id, in.al.id);
     convert(out.album.name, in.al.name.value_or(""));
-    convert(out.album.picUrl, in.al.picUrl);
+    convert(out.album.picUrl, in.al.picUrl.value_or(""));
     convert(out.duration, in.dt);
     convert(out.artists, in.ar);
     convert(out.canPlay, (! in.privilege || in.privilege.value().st >= 0));
@@ -111,7 +111,7 @@ IMPL_CONVERT(qcm::model::Song, ncm::model::SongB) {
     convert(out.name, in.name);
     convert(out.album.id, in.album.id);
     convert(out.album.name, in.album.name.value_or(""));
-    convert(out.album.picUrl, in.album.picUrl);
+    convert(out.album.picUrl, in.album.picUrl.value_or(""));
     convert(out.duration, in.duration);
     convert(out.artists, in.artists);
     out.canPlay = true;

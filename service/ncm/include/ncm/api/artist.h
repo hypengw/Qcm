@@ -19,7 +19,9 @@ namespace api_model
 {
 
 struct Artist {
-    static Result<Artist> parse(std::span<const byte> bs, const params::Artist&) { return api_model::parse<Artist>(bs); }
+    static Result<Artist> parse(std::span<const byte> bs, const params::Artist&) { 
+        return api_model::parse<Artist>(bs); 
+    }
 
     i64                      code;
     model::Artist            artist;

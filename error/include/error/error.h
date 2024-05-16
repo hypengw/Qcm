@@ -154,5 +154,5 @@ struct fmt::formatter<error::Error> : fmt::formatter<std::string> {
 
 inline std::string error::Error::what() const {
     if (m_msg_stack.empty()) return {};
-    return m_msg_stack.back().what;
+    return m_msg_stack.front().what;
 }

@@ -50,7 +50,7 @@ auto Client::make_req<api::CryptoType::EAPI>(std::string_view          path,
     -> request::Request {
     Request req { *m_req_common };
     req.set_url(api::concat_query(path, q.encode()))
-        .set_header("Cookie", "os=pc; appver=2.10.6; versioncode=200601;");
+        .set_header("Cookie", "os=pc; appver=2.10.13; versioncode=202675");
     return req;
 }
 template<>

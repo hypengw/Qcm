@@ -39,7 +39,7 @@ struct Song {
     struct Al {
         i64                        id { 0 };
         std::optional<std::string> name;
-        std::string                picUrl;
+        std::optional<std::string> picUrl;
         std::optional<i64>         picId { 0 };
     };
 
