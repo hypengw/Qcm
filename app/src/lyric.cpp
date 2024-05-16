@@ -11,7 +11,7 @@ using namespace qcm;
 namespace
 {
 static constexpr auto RE_LrcLine =
-    ctll::fixed_string { "\\[([0-9]{2})[:]([0-9]{2})[.]([0-9]{2,3})\\](.*)" };
+    ctll::fixed_string { "\\[([0-9]{2})[:]([0-9]{2})[.:]([0-9]{2,3})\\](.*)" };
 static constexpr auto RE_LrcTagLine = ctll::fixed_string { "\\[([^:]+)[:](.*?)\\]" };
 
 QList<LrcLyricLine> parse_lrc(const QString& source) {
