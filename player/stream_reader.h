@@ -47,8 +47,14 @@ public:
             auto fmt_ctx = make_rc<FFmpegFormatContext>();
             read_thread(fmt_ctx, *pkt_queue);
             fmt_ctx->set_aborted(true);
+            reset_promise();
             DEBUG_LOG("ffmpeg read thread end");
         });
+    }
+
+    void reset_promise() {
+        m_promise_stream_info = {};
+        m_future_stream_info  = m_promise_stream_info.get_future();
     }
 
     void stop() {
@@ -56,8 +62,7 @@ public:
         m_aborted = true;
         m_waiter.notify_all();
         if (m_thread.joinable()) m_thread.join();
-        m_promise_stream_info = {};
-        m_future_stream_info  = m_promise_stream_info.get_future();
+        reset_promise();
         DEBUG_LOG("stream reader stopped");
     }
 

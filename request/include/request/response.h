@@ -20,7 +20,8 @@
 #include "core/variant_helper.h"
 #include "core/expected_helper.h"
 
-#include "request.h"
+#include "request/request.h"
+#include "request/http_header.h"
 
 namespace request
 {
@@ -46,7 +47,8 @@ public:
 
     auto attribute(Attribute) const -> attr_value;
 
-    auto header() const -> const Header&;
+    auto header() const -> const HttpHeader&;
+    auto code() const -> std::optional<i32>;
 
     template<typename MB, typename CompletionToken>
         requires asio::is_const_buffer_sequence<MB>::value
@@ -99,8 +101,6 @@ public:
     auto allocator() const -> const allocator_type&;
 
 private:
-    // CurlEasy& easy();
-
     void prepare_perform();
     void add_send_buffer(asio::const_buffer);
     void async_read_some_impl(asio::mutable_buffer,

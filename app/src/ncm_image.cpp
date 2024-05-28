@@ -47,12 +47,15 @@ inline std::string gen_file_name(const request::URI& url) {
             .map(convert_from<std::string, crypto::bytes_view>));
 }
 
-void header_record_db(const request::Header& h, CacheSql::Item& db_it) {
+void header_record_db(const request::HttpHeader& h, CacheSql::Item& db_it) {
     static constexpr auto DigitPattern = ctll::fixed_string { "\\d*" };
-    if (h.contains("content-type")) db_it.content_type = h.at("content-type");
-    if (h.contains("content-length")) {
-        if (auto whole = ctre::starts_with<DigitPattern>(h.at("content-length")); whole) {
-            db_it.content_length = whole.to_number();
+    for (auto& f : h.fields) {
+        if (helper::case_insensitive_compare(f.name, "content-type") == 0)
+            db_it.content_type = f.value;
+        else if (helper::case_insensitive_compare(f.name, "content-length") == 0) {
+            if (auto whole = ctre::starts_with<DigitPattern>(f.name); whole) {
+                db_it.content_length = whole.to_number();
+            }
         }
     }
 }
@@ -81,8 +84,8 @@ public:
           m_cli(App::instance()->ncm_client()),
           m_cache_sql(App::instance()->get_cache_sql()) {}
 
-    asio::awaitable<request::Header> dl_image(const request::Request& req,
-                                              std::filesystem::path   p) {
+    asio::awaitable<request::HttpHeader> dl_image(const request::Request& req,
+                                                  std::filesystem::path   p) {
         helper::SyncFile file { std::fstream(p, std::ios::out | std::ios::binary) };
         file.handle().exceptions(std::ios_base::failbit | std::ios_base::badbit);
 

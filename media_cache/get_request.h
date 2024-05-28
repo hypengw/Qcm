@@ -6,6 +6,7 @@
 #include <asio/ip/tcp.hpp>
 
 #include "core/core.h"
+#include "request/http_header.h"
 
 namespace media_cache
 {
@@ -15,8 +16,9 @@ public:
 
     auto partial() const -> bool;
 
-    std::string header;
-    std::string path;
+    std::string         header_str;
+    std::string         path;
+    request::HttpHeader header;
 
     std::optional<std::string> proxy_url;
     std::optional<std::string> proxy_id;

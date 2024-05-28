@@ -32,6 +32,7 @@ public:
 
     std::string header(std::string_view name) const;
     Request&    set_header(std::string_view name, std::string_view value);
+    Request&    remove_header(std::string_view name);
     void        set_option(const Header&);
 
     template<typename T>

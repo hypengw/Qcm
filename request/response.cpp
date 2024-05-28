@@ -169,12 +169,21 @@ attr_value Response::attribute(Attribute A) const {
 
 rc<Response> Response::get_rc() { return shared_from_this(); }
 
-const Header& Response::header() const { return connection().header(); }
-Connection&   Response::connection() {
+auto Response::header() const -> const HttpHeader& { return connection().header(); }
+auto Response::code() const -> std::optional<i32> {
+    auto& start = this->header().start;
+    if (start) {
+        if (auto status = std::get_if<HttpHeader::Status>(&start.value())) {
+            return status->code;
+        }
+    }
+    return std::nullopt;
+}
+auto Response::connection() -> Connection& {
     C_D(Response);
     return *(d->m_connect);
 }
-const Connection& Response::connection() const {
+auto Response::connection() const -> const Connection& {
     C_D(const Response);
     return *(d->m_connect);
 }

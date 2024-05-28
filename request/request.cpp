@@ -73,6 +73,12 @@ Request& Request::set_header(std::string_view name, std::string_view value) {
     return *this;
 }
 
+Request& Request::remove_header(std::string_view name) {
+    C_D(Request);
+    d->m_header.erase(std::string(name));
+    return *this;
+}
+
 void Request::set_option(const Header& header) {
     C_D(Request);
     d->m_header = header;

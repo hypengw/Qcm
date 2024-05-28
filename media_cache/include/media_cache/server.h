@@ -11,6 +11,7 @@
 #include "request/session.h"
 #include "core/core.h"
 #include "media_cache/database.h"
+#include "media_cache/writer.h"
 
 namespace media_cache
 {
@@ -32,6 +33,7 @@ private:
     asio::strand<asio::any_io_executor> m_strand;
 
     std::set<rc<Connection>> m_connections;
+    rc<Writer>               m_writer;
 
     asio::ip::tcp::acceptor m_acceptor;
     i32                     m_port;

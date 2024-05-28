@@ -6,7 +6,8 @@
 
 #include "curl_error.h"
 #include "curl_easy.h"
-#include "session.h"
+#include "request/session.h"
+#include "request/http_header.h"
 
 #include "core/str_helper.h"
 
@@ -92,7 +93,7 @@ public:
     auto& easy() const { return *m_easy; }
     auto& channel() { return m_session_channel; }
 
-    auto& header() const { return m_header; }
+    auto& header() const { return m_header_; }
     auto& url() const { return m_url; }
     void  set_url(std::string_view v) { m_url = v; }
 
@@ -144,20 +145,19 @@ private:
     static std::size_t header_callback(char* ptr, std::size_t size, std::size_t nmemb,
                                        Connection* self) {
         std::string_view header { ptr, size * nmemb };
-        if (! header.empty()) {
-            if (auto pos = header.find_first_of(':'); pos != std::string_view::npos) {
-                auto iter  = header.begin() + pos;
-                auto name  = helper::trims(std::string_view { header.begin(), iter });
-                auto value = helper::trims(std::string_view { iter + 1, header.end() });
-
-                if (helper::starts_with_i(name, "set-cookie")) {
+        self->m_header_raw.append(header);
+        if (! self->m_header_.start) {
+            self->m_header_.start = HttpHeader::parse_start_line(header);
+        } else {
+            auto field = HttpHeader::parse_field_line(header);
+            if (! field.name.empty()) {
+                self->m_header_.fields.push_back(field);
+                if (helper::starts_with_i(field.name, "set-cookie")) {
                     self->m_cookie_jar.raw_cookie.append(header).push_back('\n');
-                } else {
-                    self->m_header.insert({ std::string { name }, std::string { value } });
                 }
             }
         }
-        if (header == "\r\n" || header == "\n") {
+        if (self->m_header_.start && header == "\r\n") {
             self->try_wait_header_handler();
         }
         return header.size();
@@ -260,7 +260,8 @@ private:
     up<CurlEasy>              m_easy;
     rc<Session::channel_type> m_session_channel;
 
-    Header                                               m_header;
+    std::string                                          m_header_raw;
+    HttpHeader                                           m_header_;
     CookieJar                                            m_cookie_jar;
     asio::any_completion_handler<void(asio::error_code)> m_wait_header_handler;
 

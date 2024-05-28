@@ -12,6 +12,7 @@
 
 #include "core/log.h"
 #include "request/type.h"
+#include "request/http_header.h"
 
 using namespace media_cache;
 
@@ -20,7 +21,7 @@ namespace
 static constexpr auto RangeHeaderPattern = ctll::fixed_string { "[R,r]ange:[ ]?bytes=(\\d*)-" };
 static constexpr auto PathPattern        = ctll::fixed_string { "GET /(.*) HTTP" };
 
-static constexpr auto UrlPattern = ctll::fixed_string { "([0-9a-zA-Z]+)[?]url=(.+)" };
+static constexpr auto UrlPattern = ctll::fixed_string { "/([0-9a-zA-Z]+)[?]url=(.+)" };
 } // namespace
 
 auto GetRequest::partial() const -> bool { return (bool)range_start; }
@@ -35,8 +36,9 @@ auto GetRequest::read(asio::ip::tcp::socket& s) -> asio::awaitable<GetRequest> {
         auto line =
             std::string { asio::buffers_begin(buf.data()), asio::buffers_begin(buf.data()) + size };
         buf.consume(size);
-        req.header.append(line);
-        if (line == "\r\n" || line == "\n") {
+        req.header_str.append(line);
+
+        if (line == "\r\n") {
             break;
         }
 
@@ -48,16 +50,23 @@ auto GetRequest::read(asio::ip::tcp::socket& s) -> asio::awaitable<GetRequest> {
         }
     }
 
-    if (auto [whole, path] = ctre::search<PathPattern>(req.header); whole) {
-        req.path = path;
-        if (auto [whole, id, url] = ctre::match<UrlPattern>(path); whole) {
-            req.proxy_url = request::url_decode(url);
-            req.proxy_id  = id;
+    if (auto header = request::HttpHeader::parse_header(req.header_str)) {
+        req.header = header.value();
+        if (auto start = std::get_if<request::HttpHeader::Request>(&req.header.start.value())) {
+            req.path = start->target;
+            if (auto [whole, id, url] = ctre::match<UrlPattern>(req.path); whole) {
+                req.proxy_url = request::url_decode(url);
+                req.proxy_id  = id;
+            } else {
+                ERROR_LOG("failed get real url: {}", req.path);
+            }
         }
+    } else {
+        ERROR_LOG("failed to parse http:\n{}", req.header_str);
     }
-    if (auto [whole, range] = ctre::search<RangeHeaderPattern>(req.header); whole) {
+    if (auto [whole, range] = ctre::search<RangeHeaderPattern>(req.header_str); whole) {
         req.range_start = range.to_number();
     }
-    DEBUG_LOG("MediaCache GetRequest:\n{}", req.header);
+    DEBUG_LOG("MediaCache GetRequest:\n{}", req.header_str);
     co_return req;
 }

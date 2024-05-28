@@ -8,6 +8,8 @@ add_library(
   include/request/session.h
   include/request/session_p.h
   include/request/type.h
+  peg/uri.h
+  peg/http.h
   connection.h
   request_p.h
   request.cpp
@@ -17,12 +19,12 @@ add_library(
   curl_multi.h
   curl_error.h
   type.cpp
-  uri.cpp
+  peg.cpp
   )
 target_include_directories(
   request
   PUBLIC include
-  PRIVATE include/request
+  PRIVATE include/request .
   )
 target_link_libraries(request PRIVATE CURL::libcurl asio_helper core
                                       fmt::fmt
