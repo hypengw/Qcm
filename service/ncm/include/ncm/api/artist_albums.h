@@ -9,10 +9,10 @@ namespace ncm
 namespace params
 {
 struct ArtistAlbums {
-    std::string id;
-    i64         offset { 0 };
-    i64         limit { 25 };
-    bool        total { true };
+    model::ArtistId id;
+    i64             offset { 0 };
+    i64             limit { 25 };
+    bool            total { true };
 };
 } // namespace params
 
@@ -45,7 +45,7 @@ struct ArtistAlbums {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string path() const { return fmt::format("/weapi/artist/albums/{}", input.id); }
+    std::string path() const { return fmt::format("/weapi/artist/albums/{}", input.id.as_str()); }
     UrlParams   query() const { return {}; }
     Params      body() const {
         Params p;

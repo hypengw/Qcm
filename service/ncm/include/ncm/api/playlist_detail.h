@@ -9,9 +9,9 @@ namespace ncm
 namespace params
 {
 struct PlaylistDetail {
-    std::string id;
-    i64         n { 1000 };
-    i64         s { 8 }; // 歌单最近的 s 个收藏者
+    model::PlaylistId id;
+    i64               n { 1000 };
+    i64               s { 8 }; // 歌单最近的 s 个收藏者
 };
 } // namespace params
 
@@ -65,7 +65,7 @@ struct PlaylistDetail {
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;
-        p["id"] = input.id;
+        p["id"] = input.id.as_str();
         convert(p["n"], input.n);
         convert(p["s"], input.s);
         return p;

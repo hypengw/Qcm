@@ -9,9 +9,9 @@ namespace ncm
 namespace params
 {
 struct FeedbackWeblog {
-    std::string id;
-    std::string sourceId;
-    model::Time time;
+    model::SongId id;
+    std::string   sourceId;
+    model::Time   time;
 };
 } // namespace params
 } // namespace ncm
@@ -48,7 +48,7 @@ struct FeedbackWeblog {
     std::string path() const { return "/weapi/feedback/weblog"; }
     UrlParams   query() const { return {}; }
     Params      body() const;
-  
+
     in_type input;
 };
 static_assert(ApiCP<FeedbackWeblog>);

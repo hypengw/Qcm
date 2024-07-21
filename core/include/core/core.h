@@ -59,10 +59,17 @@ static inline typename Wrapper::pointer GetPtrHelper(const Wrapper& p) {
     return p.get();
 }
 
+template<class T>
+inline void hash_combine(std::size_t& seed, const T& v) {
+    std::hash<T> hasher;
+    seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+}
+
 template<typename, template<typename...> class>
 constexpr bool is_specialization_of = false;
 template<template<typename...> class T, typename... Args>
 constexpr bool is_specialization_of<T<Args...>, T> = true;
+
 } // namespace ycore
 
 template<typename Tout, typename Tin>
@@ -70,32 +77,43 @@ struct Convert;
 
 template<typename Tout, typename Fin>
 concept convertable = requires(Tout& t, const Fin& f) {
-    { Convert<std::decay_t<Tout>, std::decay_t<Fin>>(t, f) };
+    { Convert<std::decay_t<Tout>, std::decay_t<Fin>>::from(t, f) };
 };
 
 template<typename Tout, typename Tin>
     requires convertable<Tout, Tin>
 void convert(Tout& out, Tin&& in) {
-    Convert<std::decay_t<Tout>, std::decay_t<Tin>>(out, std::forward<Tin>(in));
+    Convert<std::decay_t<Tout>, std::decay_t<Tin>>::from(out, std::forward<Tin>(in));
 }
 
 template<typename Tout, typename Tin>
     requires convertable<Tout, Tin>
 Tout convert_from(Tin&& in) {
     Tout out;
-    Convert<std::decay_t<Tout>, std::decay_t<Tin>>(out, std::forward<Tin>(in));
+    Convert<std::decay_t<Tout>, std::decay_t<Tin>>::from(out, std::forward<Tin>(in));
     return out;
 }
 
-#define DECLARE_CONVERT(Ta, Tb)     \
-    template<>                      \
-    struct Convert<Ta, Tb> {        \
-        using out_type = Ta;        \
-        using in_type  = Tb;        \
-        Convert(Ta&, const Tb& in); \
+template<typename T, std::integral F>
+    requires std::integral<T> && (! std::same_as<T, bool>) // && (sizeof(T) >= sizeof(F))
+struct Convert<T, F> {
+    static void from(T& out, F in) { out = (T)in; }
+};
+
+template<std::integral T>
+struct Convert<bool, T> {
+    static void from(bool& out, T i) { out = (bool)(i); }
+};
+
+#define DECLARE_CONVERT(Ta, Tb)              \
+    template<>                               \
+    struct Convert<Ta, Tb> {                 \
+        using out_type = Ta;                 \
+        using in_type  = Tb;                 \
+        static void from(Ta&, const Tb& in); \
     };
 
-#define IMPL_CONVERT(Ta, Tb) Convert<Ta, Tb>::Convert(Ta& out, const Tb& in)
+#define IMPL_CONVERT(Ta, Tb) void Convert<Ta, Tb>::from(Ta& out, const Tb& in)
 #define DEFINE_CONVERT(Ta, Tb) \
     DECLARE_CONVERT(Ta, Tb)    \
     inline IMPL_CONVERT(Ta, Tb)
@@ -107,11 +125,11 @@ protected:
     const IMPL& crtp_impl() const { return *static_cast<const IMPL*>(this); }
 };
 
-#define C_DECLARE_PRIVATE(Class, DName)                                            \
-    inline Class::Private* d_func() {                                              \
+#define C_DECLARE_PRIVATE(Class, DName)                                             \
+    inline Class::Private* d_func() {                                               \
         return reinterpret_cast<Class::Private*>(ycore::GetPtrHelper(DName));       \
-    }                                                                              \
-    inline const Class::Private* d_func() const {                                  \
+    }                                                                               \
+    inline const Class::Private* d_func() const {                                   \
         return reinterpret_cast<const Class::Private*>(ycore::GetPtrHelper(DName)); \
     }
 

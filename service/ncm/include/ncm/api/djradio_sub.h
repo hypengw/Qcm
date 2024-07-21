@@ -9,8 +9,8 @@ namespace ncm
 namespace params
 {
 struct DjradioSub {
-    std::string id;
-    bool        sub { true };
+    model::DjradioId id;
+    bool             sub { true };
 };
 } // namespace params
 } // namespace ncm
@@ -45,11 +45,13 @@ struct DjradioSub {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string path() const { return fmt::format("/weapi/djradio/{}", input.sub ? "sub" : "unsub"); }
-    UrlParams   query() const { return {}; }
-    Params      body() const {
+    std::string path() const {
+        return fmt::format("/weapi/djradio/{}", input.sub ? "sub" : "unsub");
+    }
+    UrlParams query() const { return {}; }
+    Params    body() const {
         Params p;
-        p["id"] = input.id;
+        p["id"] = input.id.as_str();
         return p;
     }
     in_type input;

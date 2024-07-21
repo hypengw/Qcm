@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ranges>
+
 #include "ncm/api.h"
 #include "ncm/model.h"
 #include "core/str_helper.h"
@@ -9,7 +11,7 @@ namespace ncm
 namespace params
 {
 struct PlaylistDelete {
-    std::vector<std::string> ids;
+    std::vector<model::PlaylistId> ids;
 };
 } // namespace params
 } // namespace ncm
@@ -48,7 +50,7 @@ struct PlaylistDelete {
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;
-        p["ids"] = fmt::format("[{}]", fmt::join(input.ids, ","));
+        p["ids"] = fmt::format("[{}]", fmt::join(model::id_str_range_view(input.ids), ","));
         return p;
     }
     in_type input;

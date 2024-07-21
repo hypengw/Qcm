@@ -81,7 +81,8 @@ App::App()
       m_global(make_rc<Global>()),
       m_client(m_global->session(), m_global->pool_executor()),
       m_mpris(std::make_unique<mpris::Mpris>()),
-      m_media_cache(std::make_shared<media_cache::MediaCache>(m_global->pool_executor(), m_global->session())),
+      m_media_cache(std::make_shared<media_cache::MediaCache>(m_global->pool_executor(),
+                                                              m_global->session())),
       m_main_win(nullptr),
       m_qml_engine(std::make_unique<QQmlApplicationEngine>()) {
     _assert_msg_rel_(self == nullptr, "there should be only one app object");
@@ -185,9 +186,6 @@ void App::init() {
     _assert_msg_rel_(m_main_win, "main window must exist");
 }
 
-model::ArtistId App::artistId(QString id) const { return { id }; }
-model::AlbumId  App::albumId(QString id) const { return { id }; }
-
 QUrl App::getImageCache(QString url, QSize reqSize) const {
     auto path =
         NcmImageProvider::genImageCachePath(NcmImageProvider::makeReq(url, reqSize, m_client));
@@ -222,7 +220,8 @@ void App::loginPost(model::UserAccount* user) {
     auto& id = user->userId();
     if (id.valid()) {
         QSettings s;
-        s.setValue("session/user_id", convert_from<QString>((fmt::format("ncm-{}", id.id))));
+        s.setValue("session/user_id",
+                   convert_from<QString>(fmt::format("{}-{}", id.provider(), id.id())));
 
         save_session();
     }
@@ -334,14 +333,15 @@ model::Program App::program(const QJSValue& js) const {
 }
 
 QString App::itemIdPageUrl(const QJSValue& js) const {
-    auto variant = js.toVariant();
-    if (variant.canConvert<model::AlbumId>()) {
+    auto  itemId = js.toVariant().value<model::ItemId>();
+    auto& type   = itemId.type();
+    if (type == "album") {
         return "qrc:/Qcm/App/qml/page/AlbumDetailPage.qml";
-    } else if (variant.canConvert<model::ArtistId>()) {
+    } else if (type == "artist") {
         return "qrc:/Qcm/App/qml/page/ArtistDetailPage.qml";
-    } else if (variant.canConvert<model::PlaylistId>()) {
+    } else if (type == "playlist") {
         return "qrc:/Qcm/App/qml/page/PlaylistDetailPage.qml";
-    } else if (variant.canConvert<model::DjradioId>()) {
+    } else if (type == "djradio") {
         return "qrc:/Qcm/App/qml/page/DjradioDetailPage.qml";
     }
     return {};

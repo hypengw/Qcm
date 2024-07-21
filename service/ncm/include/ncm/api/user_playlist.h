@@ -9,10 +9,10 @@ namespace ncm
 namespace params
 {
 struct UserPlaylist {
-    std::string uid;
-    i64         offset { 0 };
-    i64         limit { 25 };
-    bool        includeVideo { true };
+    model::UserId uid;
+    i64           offset { 0 };
+    i64           limit { 25 };
+    bool          includeVideo { true };
 };
 } // namespace params
 
@@ -92,7 +92,7 @@ struct UserPlaylist {
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;
-        convert(p["uid"], input.uid);
+        convert(p["uid"], input.uid.as_str());
         convert(p["offset"], input.offset);
         convert(p["limit"], input.limit);
         convert(p["includeVideo"], input.includeVideo);

@@ -43,6 +43,6 @@ class ArtistQuerier : public ArtistQuerier_base {
 public:
     ArtistQuerier(QObject* parent = nullptr): ArtistQuerier_base(parent) {}
 
-    FORWARD_PROPERTY(model::ArtistId, itemId, id)
+    FORWARD_PROPERTY(model::ItemId, itemId, id)
 };
 } // namespace qcm

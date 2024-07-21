@@ -13,7 +13,9 @@ add_library(
   include/qcm_interface/model.h
   include/qcm_interface/enum.h
   include/qcm_interface/api.h
+  include/qcm_interface/item_id.h
   model.cpp
+  item_id.cpp
   enum.cpp
   global.cpp
   ${MODEL_SOURCES})
@@ -27,8 +29,7 @@ foreach(src ${MODEL_SOURCES})
     OUTPUT ${gen}
     COMMAND "${CMAKE_COMMAND}" -E make_directory "${gen_dir}"
     COMMAND "$<TARGET_FILE:qcm_interface_generator>" "${src}" "${gen}"
-    DEPENDS $<TARGET_FILE:qcm_interface_generator> ${src}
-    )
+    DEPENDS $<TARGET_FILE:qcm_interface_generator> ${src})
   target_sources(qcm_interface PRIVATE ${gen})
 endforeach(src ${})
 
@@ -38,4 +39,5 @@ target_include_directories(
   PRIVATE include/qcm_interface .)
 
 set_target_properties(qcm_interface PROPERTIES AUTOMOC ON)
-target_link_libraries(qcm_interface PUBLIC core asio_helper asio_qt request Qt::Quick)
+target_link_libraries(qcm_interface PUBLIC core asio_helper asio_qt request
+                                           Qt::Quick)

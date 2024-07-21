@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ranges>
 #include "ncm/api.h"
 #include "ncm/model.h"
 #include "core/str_helper.h"
@@ -17,9 +18,9 @@ struct SongUrl {
         Lossless,
         Hires
     };
-    std::vector<std::string> ids;
-    Level                    level { Level::Exhigh };
-    std::string              encodeType { "flac" };
+    std::vector<model::SongId> ids;
+    Level                      level { Level::Exhigh };
+    std::string                encodeType { "flac" };
 };
 } // namespace params
 } // namespace ncm
@@ -47,7 +48,7 @@ namespace ncm
 namespace model
 {
 struct SongUrl {
-    i64                        id;
+    SongId                     id;
     std::string                url;
     i64                        br;
     i64                        size;
@@ -88,7 +89,7 @@ struct SongUrl {
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;
-        p["ids"]        = fmt::format("[{}]", fmt::join(input.ids, ","));
+        p["ids"] = fmt::format("[{}]", fmt::join(model::id_str_range_view(input.ids), ","));
         p["level"]      = fmt::format("{}", input.level);
         p["encodeType"] = input.encodeType;
         return p;

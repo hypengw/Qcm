@@ -10,7 +10,14 @@ using namespace qcm;
 namespace
 {
 
-const QString& sid(const model::Song& s) { return s.id.id; }
+inline QString get_song_id_str(const model::ItemId& id) { 
+    _assert_(!QUrl("itemid://song@ncm2149019978").toString().isEmpty());
+    auto url = id.toUrl();
+    auto out = url.toString(); 
+    _assert_(!out.isEmpty());
+    return out;
+}
+inline QString get_song_id_str(const model::Song& s) { return get_song_id_str(s.id); }
 
 } // namespace
 
@@ -213,14 +220,13 @@ template<typename T>
              std::convertible_to<std::ranges::range_value_t<T>, model::Song>
 usize Playlist::insert(int index, const T& range) {
     auto filter = [this](const model::Song& s) -> bool {
-        return ! m_songs.contains(sid(s));
+        return ! m_songs.contains(s.id);
     };
     std::vector<QString> ids;
 
     for (auto& s : range | std::views::filter(filter)) {
-        auto id = sid(s);
-        m_songs.insert({ sid(s), s });
-        ids.emplace_back(id);
+        m_songs.insert({ s.id, s });
+        ids.emplace_back(get_song_id_str(s));
     }
     auto size = ids.size();
     if (size == 0) return size;
@@ -255,7 +261,9 @@ QVariant Playlist::data(const QModelIndex& index, int role) const {
     auto row = index.row();
     if (row >= rowCount()) return {};
     switch (role) {
-    case SongRole: return QVariant::fromValue(m_songs.at(m_list->at(row))); break;
+    case SongRole:
+        return QVariant::fromValue(m_songs.at(model::ItemId(QUrl(m_list->at(row)))));
+        break;
     }
     return {};
 };
@@ -308,17 +316,18 @@ void Playlist::switchList(const std::vector<model::Song>& songs) {
 }
 
 void Playlist::switchTo(const model::Song& song) {
-    if (! m_songs.contains(sid(song))) {
+    auto song_id = get_song_id_str(song);
+    if (! m_songs.contains(song.id)) {
         appendNext(song);
     }
-    m_list->set_cur(sid(song));
-    m_shuffle_list->set_cur(sid(song));
+    m_list->set_cur(song_id);
+    m_shuffle_list->set_cur(song_id);
 
     emit curIndexChanged(true);
 }
 
 void Playlist::appendNext(const model::Song& song) {
-    remove(sid(song));
+    remove(song.id);
 
     auto pos = std::distance(m_list->begin(), m_list->cur_it());
     if (pos != rowCount()) pos++;
@@ -327,16 +336,17 @@ void Playlist::appendNext(const model::Song& song) {
 
 void Playlist::append(const model::Song& song) { insert(rowCount(), std::array { song }); }
 
-void Playlist::remove(model::SongId id) {
-    if (! m_songs.contains(id.id)) return;
+void Playlist::remove(model::ItemId id) {
+    auto song_id = get_song_id_str(id);
+    if (! m_songs.contains(id)) return;
     CurGuard gd { *this };
 
-    auto pos = m_list->pos(id.id).value();
+    auto pos = m_list->pos(song_id).value();
     beginRemoveRows({}, pos, pos);
 
     m_list->erase(m_list->begin() + pos);
-    m_shuffle_list->erase(id.id);
-    m_songs.erase(id.id);
+    m_shuffle_list->erase(song_id);
+    m_songs.erase(id);
 
     endRemoveRows();
 }
@@ -393,10 +403,10 @@ void Playlist::prev() {
 }
 
 void Playlist::check_cur(bool refresh) {
-    auto old_id = std::make_optional(m_cur.id);
+    auto old_id = std::make_optional(get_song_id_str(m_cur));
     if (auto cur = cur_id(); cur != old_id) {
         if (cur)
-            m_cur = m_songs.at(cur.value());
+            m_cur = m_songs.at(model::ItemId(cur.value()));
         else
             m_cur = {};
 

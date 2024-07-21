@@ -55,7 +55,7 @@ class DjradioDetailQuerier : public DjradioDetailQuerier_base {
 public:
     DjradioDetailQuerier(QObject* parent = nullptr): DjradioDetailQuerier_base(parent) {}
 
-    FORWARD_PROPERTY(model::DjradioId, itemId, id)
+    FORWARD_PROPERTY(model::ItemId, itemId, id)
 };
 
 } // namespace qcm

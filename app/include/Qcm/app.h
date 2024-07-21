@@ -81,11 +81,13 @@ public:
     Q_INVOKABLE QUrl    media_file(const QString& id) const;
     Q_INVOKABLE QString media_url(const QString& ori, const QString& id) const;
     Q_INVOKABLE QString md5(QString) const;
-    Q_INVOKABLE model::ArtistId artistId(QString id) const;
-    Q_INVOKABLE model::AlbumId albumId(QString id) const;
-    Q_INVOKABLE QUrl           getImageCache(QString url, QSize reqSize) const;
-    Q_INVOKABLE bool           isItemId(const QJSValue&) const;
-    Q_INVOKABLE QString        itemIdPageUrl(const QJSValue&) const;
+
+    //    Q_INVOKABLE model::ItemId artistId(QString id) const;
+    //    Q_INVOKABLE model::ItemId ItemId(QString id) const;
+
+    Q_INVOKABLE QUrl    getImageCache(QString url, QSize reqSize) const;
+    Q_INVOKABLE bool    isItemId(const QJSValue&) const;
+    Q_INVOKABLE QString itemIdPageUrl(const QJSValue&) const;
 
     Q_INVOKABLE model::Song song(const QJSValue& = {}) const;
     Q_INVOKABLE model::Album album(const QJSValue& = {}) const;
@@ -103,12 +105,12 @@ public:
 signals:
     void instanceStarted();
     void errorOccurred(QString);
-    void songLiked(model::SongId, bool);
-    void artistLiked(model::ArtistId, bool);
-    void albumLiked(model::AlbumId, bool);
-    void playlistLiked(model::PlaylistId, bool);
-    void djradioLiked(model::DjradioId, bool);
-    void programLiked(model::ProgramId, bool);
+    void songLiked(model::ItemId, bool);
+    void artistLiked(model::ItemId, bool);
+    void albumLiked(model::ItemId, bool);
+    void playlistLiked(model::ItemId, bool);
+    void djradioLiked(model::ItemId, bool);
+    void programLiked(model::ItemId, bool);
     void playlistCreated();
     void playlistDeleted();
     void playlistChanged();

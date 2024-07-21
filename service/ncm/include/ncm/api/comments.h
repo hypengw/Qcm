@@ -17,11 +17,11 @@ struct Comments {
         Song,
         Program
     };
-    Type        type { 0 };
-    std::string id;
-    i32         offset { 0 };
-    i32         limit { 20 };
-    model::Time before;
+    Type             type { 0 };
+    model::CommentId id;
+    i32              offset { 0 };
+    i32              limit { 20 };
+    model::Time      before;
 };
 
 } // namespace params
@@ -56,12 +56,12 @@ struct Comments {
     std::string path() const {
         return fmt::format("/weapi/v1/resource/comments/{}{}",
                            prefixs[(int)input.type % prefixs.size()],
-                           input.id);
+                           input.id.as_str());
     };
     UrlParams query() const { return {}; }
     Params    body() const {
         Params p;
-        p["rid"] = input.id;
+        p["rid"] = input.id.as_str();
         convert(p["limit"], input.limit);
         convert(p["offset"], input.offset);
         convert(p["beforeTime"], input.before.milliseconds);

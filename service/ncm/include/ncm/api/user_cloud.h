@@ -23,7 +23,7 @@ struct UserCloudItem {
     std::string album;
     std::string artist;
     i64         bitrate { 0 };
-    i64         songId { 0 };
+    SongId      songId;
     Time        addTime;
     std::string songName;
     i64         cover { 0 };

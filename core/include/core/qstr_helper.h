@@ -8,7 +8,7 @@
 
 template<fmt::formattable Fmt>
 struct Convert<QString, Fmt> {
-    Convert(QString& out, const Fmt& fmt) { out = QString::fromStdString(fmt::format("{}", fmt)); }
+    static void from(QString& out, const Fmt& fmt) { out = QString::fromStdString(fmt::format("{}", fmt)); }
 };
 
 template<>

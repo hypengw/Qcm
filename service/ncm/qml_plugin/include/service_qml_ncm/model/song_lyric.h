@@ -49,6 +49,6 @@ class SongLyricQuerier : public SongLyricQuerier_base {
 public:
     SongLyricQuerier(QObject* parent = nullptr): SongLyricQuerier_base(parent) {}
 
-    FORWARD_PROPERTY(model::SongId, songId, id)
+    FORWARD_PROPERTY(model::ItemId, songId, id)
 };
 } // namespace qcm

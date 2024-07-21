@@ -54,7 +54,7 @@ class DjradioProgramQuerier : public DjradioProgramQuerier_base {
 public:
     DjradioProgramQuerier(QObject* parent = nullptr): DjradioProgramQuerier_base(parent) {}
 
-    FORWARD_PROPERTY(model::DjradioId, itemId, radioId)
+    FORWARD_PROPERTY(model::ItemId, itemId, radioId)
     FORWARD_PROPERTY(qint32, offset, offset)
     FORWARD_PROPERTY(qint32, limit, limit)
 

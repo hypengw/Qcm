@@ -9,7 +9,7 @@ namespace ncm
 namespace params
 {
 struct SongLyric {
-    std::string id;
+    model::SongId id;
 };
 } // namespace params
 } // namespace ncm
@@ -60,7 +60,7 @@ struct SongLyric {
     }
     Params body() const {
         Params p;
-        p["id"] = input.id;
+        p["id"] = input.id.as_str();
         p["tv"] = "-1";
         p["lv"] = "-1";
         p["rv"] = "-1";

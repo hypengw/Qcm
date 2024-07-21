@@ -71,7 +71,7 @@ public slots:
     void prev();
 
     void clear();
-    void remove(model::SongId);
+    void remove(model::ItemId);
     void append(const model::Song&);
     void appendNext(const model::Song&);
     void appendList(const std::vector<model::Song>&);
@@ -94,7 +94,7 @@ private:
     detail::PlayList&       sync_list();
 
     model::Song                    m_cur;
-    std::map<QString, model::Song> m_songs;
+    std::unordered_map<model::ItemId, model::Song> m_songs;
     up<detail::PlayList>           m_list;
     up<detail::PlayList>           m_shuffle_list;
     LoopMode                       m_loop_mode;

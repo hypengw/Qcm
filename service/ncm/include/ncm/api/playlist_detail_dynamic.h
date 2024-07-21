@@ -9,7 +9,7 @@ namespace ncm
 namespace params
 {
 struct PlaylistDetailDynamic {
-    std::string id;
+    model::PlaylistId id;
 };
 } // namespace params
 } // namespace ncm
@@ -48,7 +48,7 @@ struct PlaylistDetailDynamic {
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;
-        p["id"] = input.id;
+        p["id"] = input.id.as_str();
         return p;
     }
     in_type input;

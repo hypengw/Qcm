@@ -32,6 +32,6 @@ class PlaylistDeleteQuerier : public PlaylistDeleteQuerier_base {
 public:
     PlaylistDeleteQuerier(QObject* parent = nullptr): PlaylistDeleteQuerier_base(parent) {}
 
-    FORWARD_PROPERTY(QList<model::PlaylistId>, itemIds, ids)
+    FORWARD_PROPERTY(QList<model::ItemId>, itemIds, ids)
 };
 } // namespace qcm

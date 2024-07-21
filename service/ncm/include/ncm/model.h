@@ -3,12 +3,85 @@
 #include <chrono>
 
 #include "json_helper/helper.h"
+#include "core/strv_helper.h"
 #include "ncm/type.h"
+#include "core/str_helper.h"
 
 namespace ncm
 {
+constexpr auto provider { "ncm"sv };
 namespace model
 {
+
+enum class IdType
+{
+    Album,
+    Artist,
+    Program,
+    Playlist,
+    Song,
+    User,
+    Comment,
+    Djradio,
+};
+
+struct Id {
+    std::variant<i64, std::string> id { 0 };
+
+    auto as_str() const -> std::string {
+        return std::visit(
+            overloaded {
+                [](const auto& in) -> std::string {
+                    return convert_from<std::string>(in);
+                },
+            },
+            id);
+    }
+
+    std::strong_ordering operator<=>(const Id&) const = default;
+};
+
+struct AlbumId : Id {
+    static constexpr auto id_type { IdType::Album };
+};
+struct SongId : Id {
+    static constexpr auto id_type { IdType::Song };
+};
+struct ProgramId : Id {
+    static constexpr auto id_type { IdType::Program };
+};
+struct ArtistId : Id {
+    static constexpr auto id_type { IdType::Artist };
+};
+struct PlaylistId : Id {
+    static constexpr auto id_type { IdType::Playlist };
+};
+struct UserId : Id {
+    static constexpr auto id_type { IdType::User };
+};
+struct CommentId : Id {
+    static constexpr auto id_type { IdType::Comment };
+};
+struct DjradioId : Id {
+    static constexpr auto id_type { IdType::Djradio };
+};
+
+template<typename T>
+    requires std::ranges::range<T> && std::is_base_of_v<Id, std::ranges::range_value_t<T>>
+auto id_str_range_view(const T& r) {
+    return std::ranges::transform_view(r, [](const auto& id) -> std::string {
+        return id.as_str();
+    });
+}
+
+JSON_DEFINE(AlbumId);
+JSON_DEFINE(SongId);
+JSON_DEFINE(ProgramId);
+JSON_DEFINE(ArtistId);
+JSON_DEFINE(PlaylistId);
+JSON_DEFINE(UserId);
+JSON_DEFINE(CommentId);
+JSON_DEFINE(DjradioId);
 
 struct Time {
     using time_point = std::chrono::system_clock::time_point;
@@ -30,14 +103,14 @@ enum class SongFee
 
 struct Song {
     struct Ar {
-        i64                                     id { 0 };
+        ArtistId                                id {};
         std::optional<std::string>              name;
         std::optional<std::vector<std::string>> alia;
         std::optional<std::string>              picUrl;
         std::optional<i64>                      picId { 0 };
     };
     struct Al {
-        i64                        id { 0 };
+        AlbumId                    id {};
         std::optional<std::string> name;
         std::optional<std::string> picUrl;
         std::optional<i64>         picId { 0 };
@@ -125,7 +198,7 @@ struct Song {
     std::optional<Quality>     hr;
     std::optional<std::string> cd;
     std::string                name;
-    i64                        id { 0 };
+    SongId                     id {};
 
     std::optional<Privilege> privilege;
 
@@ -140,7 +213,7 @@ struct Song {
 
 struct SongB {
     std::string name;
-    i64         id { 0 };
+    SongId      id {};
     // position	0
     // alias	[]
     i64         status { 0 };
@@ -192,7 +265,7 @@ struct Artist {
     std::string                picUrl;
     std::string                img1v1Url;
     std::string                name;
-    i64                        id { 0 };
+    ArtistId                   id {};
     // std::string              picId_str;
     // std::string              img1v1Id_str;
 };
@@ -218,7 +291,7 @@ struct Album {
     i64                        status;
     std::string                subType;
     std::string                name;
-    i64                        id { 0 };
+    AlbumId                    id {};
     std::string                type;
     i64                        size;
     std::string                picId_str;
@@ -227,13 +300,13 @@ struct Album {
 };
 
 struct Playlist {
-    i64         id { 0 };
+    PlaylistId  id {};
     std::string name;
     // coverImgId	109951167805071570
     std::string coverImgUrl;
     // coverImgId_str	"109951167805071571"
     // adType	0
-    i64                userId;
+    UserId             userId;
     std::optional<i64> status;
     // opRecommend	false
     // highQuality	false
@@ -297,8 +370,8 @@ struct User {
     // authStatus	0
     // expertTags	null
     // experts	null
-    i64 vipType;
-    i64 userId;
+    i64    vipType;
+    UserId userId;
     // target	null
 };
 
@@ -308,7 +381,7 @@ struct Comment {
     // pendantData	null
     // showFloorComment	null
     i64                        status;
-    i64                        commentId;
+    CommentId                  commentId;
     std::string                content;
     std::optional<std::string> richContent;
     // contentResource	null
@@ -363,7 +436,7 @@ struct Djradio {
     i64                 feeScope { 0 };
     // intervenePicId":19115009649278426,
     std::string name;
-    i64         id { 0 };
+    DjradioId   id {};
     std::string desc;
     model::Time createTime;
     // rcmdtext":null,
@@ -423,7 +496,7 @@ struct Program {
     // bdAuditStatus	2
     i64         secondCategoryId { 0 };
     std::string name;
-    i64         id { 0 };
+    ProgramId   id {};
     std::string description;
     Time        createTime;
     i64         shareCount { 0 };
@@ -449,7 +522,7 @@ JSON_DEFINE(Program);
 
 template<>
 struct Convert<bool, ncm::model::Bool> {
-    Convert(bool& out, const ncm::model::Bool& i) {
+    static void from(bool& out, const ncm::model::Bool& i) {
         std::visit(
             [&out](auto v) {
                 out = (bool)v;

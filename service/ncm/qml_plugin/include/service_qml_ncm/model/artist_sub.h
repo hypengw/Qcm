@@ -31,7 +31,7 @@ class ArtistSubQuerier : public ArtistSubQuerier_base {
 public:
     ArtistSubQuerier(QObject* parent = nullptr): ArtistSubQuerier_base(parent) {}
 
-    FORWARD_PROPERTY(model::ArtistId, itemId, id)
+    FORWARD_PROPERTY(model::ItemId, itemId, id)
     FORWARD_PROPERTY(bool, sub, sub)
 };
 } // namespace qcm

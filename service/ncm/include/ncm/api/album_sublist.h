@@ -25,7 +25,7 @@ struct AlbumSublistItem {
     std::vector<model::Artist> artists;
     std::string                picUrl;
     std::string                name;
-    i64                        id;
+    AlbumId                    id;
     i64                        size;
     std::vector<std::string>   transNames;
 };

@@ -48,6 +48,6 @@ public:
     PlaylistDetailDynamicQuerier(QObject* parent = nullptr)
         : PlaylistDetailDynamicQuerier_base(parent) {}
 
-    FORWARD_PROPERTY(model::PlaylistId, itemId, id)
+    FORWARD_PROPERTY(model::ItemId, itemId, id)
 };
 } // namespace qcm

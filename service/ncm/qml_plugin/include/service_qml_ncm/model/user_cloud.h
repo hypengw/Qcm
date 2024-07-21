@@ -18,7 +18,7 @@ namespace model
 struct UserCloudItem {
     Q_GADGET
 public:
-    GADGET_PROPERTY_DEF(SongId, itemId, id)
+    GADGET_PROPERTY_DEF(ItemId, itemId, id)
     GADGET_PROPERTY_DEF(QString, name, name)
     GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
     GADGET_PROPERTY_DEF(QString, albumName, albumName)
@@ -57,9 +57,9 @@ public:
     void handle_output(const out_type& re, const auto& input) {
         if (input.offset == 0) {
             auto in_ = convert_from<std::vector<UserCloudItem>>(re.data);
-            convertModel(in_, [](const UserCloudItem& it) {
-                return convert_from<std::string>(it.id);
-            });
+            //convertModel(in_, [](const UserCloudItem& it) {
+            //    return convert_from<std::string>(it.id);
+            //});
         } else if (input.offset == (int)rowCount()) {
             insert(rowCount(), convert_from<std::vector<UserCloudItem>>(re.data));
         }

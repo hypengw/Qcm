@@ -9,8 +9,8 @@ namespace ncm
 namespace params
 {
 struct AlbumSub {
-    std::string id;
-    bool        sub { true };
+    model::AlbumId id;
+    bool           sub { true };
 };
 } // namespace params
 } // namespace ncm
@@ -50,7 +50,7 @@ struct AlbumSub {
     UrlParams   query() const { return {}; }
     Params      body() const {
         Params p;
-        p["id"] = input.id;
+        p["id"] = input.id.as_str();
         return p;
     }
     in_type input;

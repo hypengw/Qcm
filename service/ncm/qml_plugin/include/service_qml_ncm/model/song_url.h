@@ -16,7 +16,7 @@ namespace model
 class SongUrlItem {
     Q_GADGET
 public:
-    GADGET_PROPERTY_DEF(SongId, itemId, id)
+    GADGET_PROPERTY_DEF(ItemId, itemId, id)
     GADGET_PROPERTY_DEF(QString, url, url)
     GADGET_PROPERTY_DEF(QString, md5, md5)
 };
@@ -77,7 +77,7 @@ public:
 public:
     SongUrlQuerier(QObject* parent = nullptr): SongUrlQuerier_base(parent) {}
 
-    FORWARD_PROPERTY(std::vector<model::SongId>, ids, ids)
+    FORWARD_PROPERTY(std::vector<model::ItemId>, ids, ids)
     FORWARD_PROPERTY_DECLARE(Level, level, level)
 };
 } // namespace qcm

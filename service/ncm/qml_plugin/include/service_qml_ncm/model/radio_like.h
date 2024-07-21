@@ -31,7 +31,7 @@ class RadioLikeQuerier : public RadioLikeQuerier_base {
 public:
     RadioLikeQuerier(QObject* parent = nullptr): RadioLikeQuerier_base(parent) {}
 
-    FORWARD_PROPERTY(model::SongId, trackId, trackId)
+    FORWARD_PROPERTY(model::ItemId, trackId, trackId)
     FORWARD_PROPERTY(bool, like, like)
 };
 }

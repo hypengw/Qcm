@@ -54,7 +54,7 @@ class ArtistAlbumsQuerier : public ArtistAlbumsQuerier_base {
 public:
     ArtistAlbumsQuerier(QObject* parent = nullptr): ArtistAlbumsQuerier_base(parent) {}
 
-    FORWARD_PROPERTY(model::ArtistId, artistId, id)
+    FORWARD_PROPERTY(model::ItemId, artistId, id)
     FORWARD_PROPERTY(qint32, offset, offset)
     FORWARD_PROPERTY(qint32, limit, limit)
 

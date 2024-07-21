@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QSet>
+#include <unordered_set>
 #include <QQmlEngine>
 #include "service_qml_ncm/api.h"
 #include "service_qml_ncm/model.h"
@@ -17,20 +17,20 @@ class SongLike : public QObject {
 public:
     SongLike(QObject* parent = nullptr): QObject(parent) {}
 
-    Q_INVOKABLE bool contains(SongId id) const { return m_ids.contains(id.id); }
-    Q_INVOKABLE void insert(SongId id) { m_ids.insert(id.id); }
-    Q_INVOKABLE void remove(SongId id) { m_ids.remove(id.id); }
+    Q_INVOKABLE bool contains(ItemId id) const { return m_ids.contains(id); }
+    Q_INVOKABLE void insert(ItemId id) { m_ids.insert(id); }
+    Q_INVOKABLE void remove(ItemId id) { m_ids.erase(id); }
 
     using out_type = ncm::api_model::SongLike;
     void handle_output(const out_type& in, const auto&) {
         m_ids.clear();
         for (auto& id : in.ids) {
-            m_ids.insert(convert_from<QString>(id));
+            m_ids.insert(ncm::to_ncm_id(ncm::model::IdType::Song, id));
         }
     }
 
 private:
-    QSet<QString> m_ids;
+    std::unordered_set<ItemId> m_ids;
 };
 static_assert(modelable<SongLike, ncm::api::SongLike>);
 
@@ -43,6 +43,6 @@ class SongLikeQuerier : public SongLikeQuerier_base {
 public:
     SongLikeQuerier(QObject* parent = nullptr): SongLikeQuerier_base(parent) {}
 
-    FORWARD_PROPERTY(model::UserId, uid, uid)
+    FORWARD_PROPERTY(model::ItemId, uid, uid)
 };
 } // namespace qcm

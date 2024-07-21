@@ -31,7 +31,7 @@ class DjradioSubQuerier : public DjradioSubQuerier_base {
 public:
     DjradioSubQuerier(QObject* parent = nullptr): DjradioSubQuerier_base(parent) {}
 
-    FORWARD_PROPERTY(model::DjradioId, itemId, id)
+    FORWARD_PROPERTY(model::ItemId, itemId, id)
     FORWARD_PROPERTY(bool, sub, sub)
 };
 } // namespace qcm

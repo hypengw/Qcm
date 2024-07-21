@@ -9,7 +9,7 @@ namespace ncm
 namespace params
 {
 struct SongLike {
-    std::string uid;
+    model::SongId uid;
 };
 } // namespace params
 } // namespace ncm
@@ -50,7 +50,7 @@ struct SongLike {
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;
-        p["uid"] = input.uid;
+        p["uid"] = input.uid.as_str();
         return p;
     }
     in_type input;

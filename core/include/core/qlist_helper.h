@@ -7,7 +7,7 @@
 template<typename T, typename F>
     requires std::ranges::range<F> && convertable<T, std::ranges::range_value_t<F>>
 struct Convert<QList<T>, F> {
-    Convert(QList<T>& out, const F& f) {
+    static void from(QList<T>& out, const F& f) {
         using from_value_type = std::ranges::range_value_t<F>;
         out.clear();
         std::transform(std::ranges::begin(f),

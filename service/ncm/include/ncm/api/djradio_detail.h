@@ -9,7 +9,7 @@ namespace ncm
 namespace params
 {
 struct DjradioDetail {
-    std::string id;
+    model::DjradioId id;
 };
 } // namespace params
 
@@ -86,7 +86,7 @@ struct DjradioDetail {
     UrlParams   query() const { return {}; }
     Params      body() const {
         Params p;
-        p["id"] = input.id;
+        p["id"] = input.id.as_str();
         return p;
     }
 

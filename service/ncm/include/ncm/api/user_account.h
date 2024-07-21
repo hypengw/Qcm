@@ -17,7 +17,7 @@ namespace ncm
 namespace model
 {
 struct UserAccountProfile {
-    i64         userId { 0 };
+    UserId      userId;
     i64         userType;
     std::string nickname;
     // avatarImgId

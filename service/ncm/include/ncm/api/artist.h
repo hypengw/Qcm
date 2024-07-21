@@ -10,7 +10,7 @@ namespace params
 {
 
 struct Artist {
-    std::string id;
+    model::ArtistId id;
 };
 
 } // namespace params
@@ -41,7 +41,7 @@ struct Artist {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string path() const { return fmt::format("/weapi/v1/artist/{}", input.id); };
+    std::string path() const { return fmt::format("/weapi/v1/artist/{}", input.id.as_str()); };
     UrlParams   query() const { return {}; }
     Params      body() const { return {}; }
 

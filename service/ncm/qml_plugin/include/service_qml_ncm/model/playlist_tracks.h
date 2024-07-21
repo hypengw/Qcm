@@ -40,8 +40,8 @@ public:
     Q_ENUM(Oper)
 
     FORWARD_PROPERTY_DECLARE(Oper, operation, op)
-    FORWARD_PROPERTY(model::PlaylistId, playlistId, pid)
-    FORWARD_PROPERTY(QList<model::SongId>, trackIds, trackIds)
+    FORWARD_PROPERTY(model::ItemId, ItemId, pid)
+    FORWARD_PROPERTY(QList<model::ItemId>, trackIds, trackIds)
 };
 
 } // namespace qcm

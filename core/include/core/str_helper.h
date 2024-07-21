@@ -31,7 +31,7 @@ struct fmt::formatter<Bytes> : fmt::formatter<std::string> {
 
 template<fmt::formattable T>
 struct Convert<std::string, T> {
-    Convert(std::string& out, const T& fmt) { out = fmt::format("{}", fmt); }
+    static void from(std::string& out, const T& fmt) { out = fmt::format("{}", fmt); }
 };
 
 namespace helper

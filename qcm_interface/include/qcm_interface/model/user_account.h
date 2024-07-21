@@ -15,7 +15,7 @@ class UserAccount : public Model<UserAccount, QObject> {
 public:
     UserAccount(QObject* parent = nullptr) { this->setParent(parent); }
 
-    DECLARE_PROPERTY(UserId, userId, infoChanged)
+    DECLARE_PROPERTY(ItemId, userId, infoChanged)
     DECLARE_PROPERTY(QString, nickname, infoChanged)
     DECLARE_PROPERTY(QString, avatarUrl, infoChanged)
 

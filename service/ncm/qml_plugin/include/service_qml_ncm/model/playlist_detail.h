@@ -20,13 +20,13 @@ public:
 
     using out_type = ncm::api_model::PlaylistDetail;
 
-    READ_PROPERTY(PlaylistId, itemId, m_itemId, infoChanged)
+    READ_PROPERTY(ItemId, itemId, m_itemId, infoChanged)
     READ_PROPERTY(QString, name, m_name, infoChanged)
     READ_PROPERTY(QString, picUrl, m_picUrl, infoChanged)
     READ_PROPERTY(QString, description, m_description, infoChanged)
     READ_PROPERTY(QDateTime, updateTime, m_updateTime, infoChanged)
     READ_PROPERTY(qint32, playCount, m_playCount, infoChanged)
-    READ_PROPERTY(UserId, userId, m_userId, infoChanged)
+    READ_PROPERTY(ItemId, userId, m_userId, infoChanged)
     READ_PROPERTY(std::vector<Song>, songs, m_songs, infoChanged)
 
     void handle_output(const out_type& in, const auto&) {
@@ -63,7 +63,7 @@ class PlaylistDetailQuerier : public PlaylistDetailQuerier_base {
 public:
     PlaylistDetailQuerier(QObject* parent = nullptr): PlaylistDetailQuerier_base(parent) {}
 
-    FORWARD_PROPERTY(model::PlaylistId, itemId, id)
+    FORWARD_PROPERTY(model::ItemId, itemId, id)
 };
 
 } // namespace qcm

@@ -9,8 +9,8 @@ namespace ncm
 namespace params
 {
 struct ArtistSub {
-    std::string id;
-    bool        sub { true };
+    model::ArtistId id;
+    bool            sub { true };
 };
 } // namespace params
 } // namespace ncm
@@ -50,8 +50,8 @@ struct ArtistSub {
     UrlParams query() const { return {}; }
     Params    body() const {
         Params p;
-        p["artistId"]  = input.id;
-        p["artistIds"] = fmt::format("[{}]", input.id);
+        p["artistId"]  = input.id.as_str();
+        p["artistIds"] = fmt::format("[{}]", input.id.as_str());
         return p;
     }
     in_type input;

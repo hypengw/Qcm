@@ -9,7 +9,7 @@ namespace ncm
 namespace params
 {
 struct AlbumDetail {
-    std::string id;
+    model::AlbumId id;
 };
 } // namespace params
 
@@ -33,12 +33,12 @@ namespace api
 {
 
 struct AlbumDetail {
-    using in_type                   = params::AlbumDetail;
-    using out_type                  = api_model::AlbumDetail;
-    constexpr static Operation oper = Operation::PostOperation;
+    using in_type                      = params::AlbumDetail;
+    using out_type                     = api_model::AlbumDetail;
+    constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string path() const { return fmt::format("/weapi/v1/album/{}", input.id); };
+    std::string path() const { return fmt::format("/weapi/v1/album/{}", input.id.as_str()); };
     UrlParams   query() const { return {}; }
     Params      body() const { return {}; }
 

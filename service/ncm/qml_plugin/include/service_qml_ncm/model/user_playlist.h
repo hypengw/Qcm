@@ -19,14 +19,14 @@ namespace model
 class UserPlaylist : public meta_model::QGadgetListModel<Playlist> {
     Q_OBJECT
     Q_PROPERTY(
-        model::UserId onlyUserId READ onlyUserId WRITE setOnlyUserId NOTIFY onlyUserIdChanged)
+        model::ItemId onlyUserId READ onlyUserId WRITE setOnlyUserId NOTIFY onlyUserIdChanged)
 public:
     UserPlaylist(QObject* parent = nullptr)
         : meta_model::QGadgetListModel<Playlist>(parent), m_has_more(true) {}
     using out_type = ncm::api_model::UserPlaylist;
 
-    model::UserId onlyUserId() const { return m_user_id; }
-    void          setOnlyUserId(const model::UserId& v) {
+    model::ItemId onlyUserId() const { return m_user_id; }
+    void          setOnlyUserId(const model::ItemId& v) {
         if (std::exchange(m_user_id, v) != v) {
             Q_EMIT onlyUserIdChanged();
             m_has_more = true;
@@ -66,7 +66,7 @@ signals:
 
 private:
     bool          m_has_more;
-    model::UserId m_user_id;
+    model::ItemId m_user_id;
 };
 static_assert(modelable<UserPlaylist, ncm::api::UserPlaylist>);
 } // namespace model
@@ -78,7 +78,7 @@ class UserPlaylistQuerier : public UserPlaylistQuerier_base {
 public:
     UserPlaylistQuerier(QObject* parent = nullptr): UserPlaylistQuerier_base(parent) {}
 
-    FORWARD_PROPERTY(model::UserId, uid, uid)
+    FORWARD_PROPERTY(model::ItemId, uid, uid)
     FORWARD_PROPERTY(qint32, offset, offset)
     FORWARD_PROPERTY(qint32, limit, limit)
 

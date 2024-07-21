@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include <QObject>
 #include <QQmlEngine>
 #include <QDateTime>
@@ -10,136 +12,15 @@
 #include "qcm_interface/type.h"
 #include "qcm_interface/macro.h"
 
-namespace qcm
+#include "qcm_interface/item_id.h"
+namespace qcm::model
 {
-
-namespace model
-{
-
-struct ItemIdType : public QObject {
-    Q_OBJECT
-public:
-    enum Type
-    {
-        Unknown,
-        Song,
-        Album,
-        Artist,
-        Playlist,
-        User,
-        Comment,
-        Djradio,
-        Program
-    };
-    Q_ENUM(Type)
-};
-
-struct ItemId {
-    Q_GADGET
-public:
-    using Type = ItemIdType::Type;
-
-    Q_PROPERTY(ItemId::Type type READ type)
-    Q_PROPERTY(QString sid READ id_)
-    Q_PROPERTY(ItemIdType* objectType READ objectType)
-
-    Q_INVOKABLE bool valid() const {
-        auto& id = id_();
-        return ! id.isEmpty() && id != "0";
-    }
-
-    ItemId(QString id = ""): id(id) {}
-    virtual ~ItemId() = default;
-
-    const QString&       id_() const { return id; }
-    virtual ItemId::Type type() const { return Type::Unknown; }
-    ItemIdType*          objectType() const {
-        static ItemIdType t;
-        return &t;
-    }
-
-    std::strong_ordering operator<=>(const ItemId&) const = default;
-
-    QString id;
-};
-
-template<ItemId::Type TType>
-struct ItemIdBase : public ItemId {
-    using ItemId::ItemId;
-    virtual ~ItemIdBase() = default;
-
-    Type                 type() const override { return TType; }
-    std::strong_ordering operator<=>(const ItemIdBase<TType>&) const = default;
-};
-
-template<typename T>
-concept ItemIdCP = requires(T t) {
-    { t.id } -> std::convertible_to<QString>;
-    { t.type() } -> std::same_as<ItemId::Type>;
-};
-
-struct SongId : public ItemIdBase<ItemId::Type::Song> {
-    Q_GADGET
-public:
-    using ItemIdBase<ItemId::Type::Song>::ItemIdBase;
-    virtual ~SongId() = default;
-
-    Q_INVOKABLE QUrl url() const {
-        return QUrl(convert_from<QString>(fmt::format("https://music.163.com/song?id={}", id)));
-    }
-};
-
-struct AlbumId : public ItemIdBase<ItemId::Type::Album> {
-    Q_GADGET
-public:
-    using ItemIdBase<ItemId::Type::Album>::ItemIdBase;
-    virtual ~AlbumId() = default;
-};
-
-struct ArtistId : public ItemIdBase<ItemId::Type::Artist> {
-    Q_GADGET
-public:
-    using ItemIdBase<ItemId::Type::Artist>::ItemIdBase;
-    virtual ~ArtistId() = default;
-};
-struct PlaylistId : public ItemIdBase<ItemId::Type::Playlist> {
-    Q_GADGET
-public:
-    using ItemIdBase<ItemId::Type::Playlist>::ItemIdBase;
-    virtual ~PlaylistId() = default;
-};
-
-struct UserId : public ItemIdBase<ItemId::Type::User> {
-    Q_GADGET
-public:
-    using ItemIdBase<ItemId::Type::User>::ItemIdBase;
-    virtual ~UserId() = default;
-};
-
-struct CommentId : public ItemIdBase<ItemId::Type::Comment> {
-    Q_GADGET
-public:
-    using ItemIdBase<ItemId::Type::Comment>::ItemIdBase;
-    virtual ~CommentId() = default;
-};
-struct DjradioId : public ItemIdBase<ItemId::Type::Djradio> {
-    Q_GADGET
-public:
-    using ItemIdBase<ItemId::Type::Djradio>::ItemIdBase;
-    virtual ~DjradioId() = default;
-};
-struct ProgramId : public ItemIdBase<ItemId::Type::Program> {
-    Q_GADGET
-public:
-    using ItemIdBase<ItemId::Type::Program>::ItemIdBase;
-    virtual ~ProgramId() = default;
-};
 
 class Artist {
     Q_GADGET
     QML_VALUE_TYPE(t_artist)
 public:
-    GADGET_PROPERTY_DEF(ArtistId, itemId, id)
+    GADGET_PROPERTY_DEF(ItemId, itemId, id)
     GADGET_PROPERTY_DEF(QString, name, name)
     GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
     GADGET_PROPERTY_DEF(QString, briefDesc, briefDesc)
@@ -155,7 +36,7 @@ class Album {
     Q_GADGET
     QML_VALUE_TYPE(t_album)
 public:
-    GADGET_PROPERTY_DEF(AlbumId, itemId, id)
+    GADGET_PROPERTY_DEF(ItemId, itemId, id)
     GADGET_PROPERTY_DEF(QString, name, name)
     GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
     GADGET_PROPERTY_DEF(QDateTime, publishTime, publishTime)
@@ -170,7 +51,7 @@ class Playlist {
     Q_GADGET
     QML_VALUE_TYPE(t_playlist)
 public:
-    GADGET_PROPERTY_DEF(PlaylistId, itemId, id)
+    GADGET_PROPERTY_DEF(ItemId, itemId, id)
     GADGET_PROPERTY_DEF(QString, name, name)
     GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
     GADGET_PROPERTY_DEF(QString, description, description)
@@ -178,7 +59,7 @@ public:
     GADGET_PROPERTY_DEF(qint32, playCount, playCount)
     GADGET_PROPERTY_DEF(qint32, trackCount, trackCount)
     GADGET_PROPERTY_DEF(bool, subscribed, subscribed)
-    GADGET_PROPERTY_DEF(UserId, userId, userId)
+    GADGET_PROPERTY_DEF(ItemId, userId, userId)
 
     std::strong_ordering operator<=>(const Playlist&) const = default;
 };
@@ -187,7 +68,7 @@ class Song {
     Q_GADGET
     QML_VALUE_TYPE(t_song)
 public:
-    GADGET_PROPERTY_DEF(SongId, itemId, id)
+    GADGET_PROPERTY_DEF(ItemId, itemId, id)
     GADGET_PROPERTY_DEF(QString, name, name)
     GADGET_PROPERTY_DEF(Album, album, album)
     GADGET_PROPERTY_DEF(QDateTime, duration, duration)
@@ -205,7 +86,7 @@ public:
 class User {
     Q_GADGET
 public:
-    GADGET_PROPERTY_DEF(UserId, itemId, id)
+    GADGET_PROPERTY_DEF(ItemId, itemId, id)
     GADGET_PROPERTY_DEF(QString, name, name)
     GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
 
@@ -215,7 +96,7 @@ public:
 class Comment {
     Q_GADGET
 public:
-    GADGET_PROPERTY_DEF(CommentId, itemId, id)
+    GADGET_PROPERTY_DEF(ItemId, itemId, id)
     GADGET_PROPERTY_DEF(User, user, user)
     GADGET_PROPERTY_DEF(QString, content, content)
     GADGET_PROPERTY_DEF(QDateTime, time, time)
@@ -228,7 +109,7 @@ class Djradio {
     Q_GADGET
     QML_VALUE_TYPE(t_djradio)
 public:
-    GADGET_PROPERTY_DEF(DjradioId, itemId, id)
+    GADGET_PROPERTY_DEF(ItemId, itemId, id)
     GADGET_PROPERTY_DEF(QString, name, name)
     GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
     GADGET_PROPERTY_DEF(std::vector<Artist>, artists, artists)
@@ -241,7 +122,7 @@ class Program {
     Q_GADGET
     QML_VALUE_TYPE(t_program)
 public:
-    GADGET_PROPERTY_DEF(ProgramId, itemId, id)
+    GADGET_PROPERTY_DEF(ItemId, itemId, id)
     GADGET_PROPERTY_DEF(QString, name, name)
     GADGET_PROPERTY_DEF(QDateTime, duration, duration)
     GADGET_PROPERTY_DEF(QString, coverUrl, coverUrl)
@@ -252,21 +133,14 @@ public:
     std::strong_ordering operator<=>(const Program&) const = default;
 };
 
-} // namespace model
-} // namespace qcm
+} // namespace qcm::model
 
-template<qcm::model::ItemIdCP I>
-struct fmt::formatter<I> : fmt::formatter<std::string> {
+template<>
+struct fmt::formatter<qcm::model::ItemId> : fmt::formatter<std::string> {
     template<typename FormatContext>
-    auto format(const I& it, FormatContext& ctx) const {
-        return fmt::formatter<std::string>::format(it.id.toStdString(), ctx);
+    auto format(const qcm::model::ItemId& it, FormatContext& ctx) const {
+        return fmt::formatter<std::string>::format(it.toUrl().toString().toStdString(), ctx);
     }
-};
-
-template<typename T, typename F>
-    requires qcm::model::ItemIdCP<T> && (std::same_as<F, i64> || std::same_as<F, std::string>)
-struct Convert<T, F> {
-    Convert(T& out, const F& in) { out = convert_from<QString>(in); }
 };
 
 namespace qcm::model

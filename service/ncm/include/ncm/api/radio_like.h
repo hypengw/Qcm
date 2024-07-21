@@ -9,10 +9,10 @@ namespace ncm
 namespace params
 {
 struct RadioLike {
-    std::string alg { "itembased" };
-    i64         time { 3 };
-    std::string trackId;
-    bool        like;
+    std::string      alg { "itembased" };
+    i64              time { 3 };
+    model::DjradioId trackId;
+    bool             like;
 };
 } // namespace params
 } // namespace ncm
@@ -51,9 +51,9 @@ struct RadioLike {
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;
-        p["alg"]     = input.alg;
+        p["alg"] = input.alg;
         convert(p["time"], input.time);
-        p["trackId"] = input.trackId;
+        p["trackId"] = input.trackId.as_str();
         convert(p["like"], input.like);
         return p;
     }

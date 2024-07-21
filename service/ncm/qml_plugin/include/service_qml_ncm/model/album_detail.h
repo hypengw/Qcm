@@ -70,7 +70,7 @@ class AlbumDetailQuerier : public AlbumDetailQuerier_base {
 public:
     AlbumDetailQuerier(QObject* parent = nullptr): AlbumDetailQuerier_base(parent) {}
 
-    FORWARD_PROPERTY(model::AlbumId, itemId, id)
+    FORWARD_PROPERTY(model::ItemId, itemId, id)
 };
 
 } // namespace qcm

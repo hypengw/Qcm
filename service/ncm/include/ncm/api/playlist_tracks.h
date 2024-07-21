@@ -17,10 +17,10 @@ struct PlaylistTracks {
         Del = 1
     };
 
-    Oper                     op { Oper::Add }; // del
-    std::string              pid;
-    std::vector<std::string> trackIds;
-    bool                     imme { true };
+    Oper                       op { Oper::Add }; // del
+    model::ProgramId           pid;
+    std::vector<model::SongId> trackIds;
+    bool                       imme { true };
 };
 } // namespace params
 } // namespace ncm
@@ -59,9 +59,10 @@ struct PlaylistTracks {
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;
-        p["op"]       = params::PlaylistTracks::oper_strs[(int)input.op % 2];
-        p["pid"]      = input.pid;
-        p["trackIds"] = fmt::format("[{}]", fmt::join(input.trackIds, ","));
+        p["op"]  = params::PlaylistTracks::oper_strs[(int)input.op % 2];
+        p["pid"] = input.pid.as_str();
+        p["trackIds"] =
+            fmt::format("[{}]", fmt::join(model::id_str_range_view(input.trackIds), ","));
         convert(p["imme"], input.imme);
         return p;
     }

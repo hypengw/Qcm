@@ -9,10 +9,10 @@ namespace ncm
 namespace params
 {
 struct DjradioProgram {
-    std::string radioId;
-    i64         limit { 60 };
-    i64         offset { 0 };
-    bool        asc { false };
+    model::DjradioId radioId;
+    i64              limit { 60 };
+    i64              offset { 0 };
+    bool             asc { false };
 };
 } // namespace params
 
@@ -45,7 +45,7 @@ struct DjradioProgram {
     UrlParams   query() const { return {}; }
     Params      body() const {
         Params p;
-        p["radioId"] = input.radioId;
+        p["radioId"] = input.radioId.as_str();
         convert(p["offset"], input.offset);
         convert(p["limit"], input.limit);
         convert(p["asc"], input.asc);

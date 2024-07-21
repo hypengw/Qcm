@@ -32,7 +32,7 @@ class PlaylistSubscribeQuerier : public PlaylistSubscribeQuerier_base {
 public:
     PlaylistSubscribeQuerier(QObject* parent = nullptr): PlaylistSubscribeQuerier_base(parent) {}
 
-    FORWARD_PROPERTY(model::PlaylistId, itemId, id)
+    FORWARD_PROPERTY(model::ItemId, itemId, id)
     FORWARD_PROPERTY(bool, sub, sub)
 };
 } // namespace qcm

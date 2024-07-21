@@ -9,8 +9,8 @@ namespace ncm
 namespace params
 {
 struct PlaylistSubscribe {
-    std::string id;
-    bool        sub { true };
+    model::PlaylistId id;
+    bool              sub { true };
 };
 } // namespace params
 } // namespace ncm
@@ -30,7 +30,7 @@ struct PlaylistSubscribe {
         return api_model::parse<PlaylistSubscribe>(bs);
     }
     // 200
-    i64         code;
+    i64 code;
 };
 JSON_DEFINE(PlaylistSubscribe);
 
@@ -45,11 +45,13 @@ struct PlaylistSubscribe {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::EAPI;
 
-    std::string path() const { return fmt::format("/eapi/playlist/{}", input.sub ? "subscribe" : "unsubscribe"); }
-    UrlParams   query() const { return {}; }
-    Params      body() const {
+    std::string path() const {
+        return fmt::format("/eapi/playlist/{}", input.sub ? "subscribe" : "unsubscribe");
+    }
+    UrlParams query() const { return {}; }
+    Params    body() const {
         Params p;
-        p["id"] = input.id;
+        p["id"] = input.id.as_str();
         return p;
     }
     in_type input;
@@ -58,4 +60,4 @@ static_assert(ApiCP<PlaylistSubscribe>);
 
 } // namespace api
 
-}
+} // namespace ncm

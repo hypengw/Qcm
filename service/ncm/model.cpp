@@ -51,6 +51,21 @@ void from_json(const nlohmann::json& j, Time& t) {
     t.point        = Time::time_point { std::chrono::duration<i64, std::milli> { t.milliseconds } };
 }
 
+#define X(T)                                                  \
+    void to_json(nlohmann::json& j, const T& t) { j = t.id; } \
+    void from_json(const nlohmann::json& j, T& t) { t.id = j.get<decltype(t.id)>(); }
+
+X(AlbumId)
+X(SongId)
+X(ProgramId)
+X(ArtistId)
+X(PlaylistId)
+X(UserId)
+X(CommentId)
+X(DjradioId)
+
+#undef X
+
 JSON_DEFINE_IMPL(Song::Ar, id, name, alia, picId);
 JSON_DEFINE_IMPL(Song::Al, id, name, picUrl, picId);
 JSON_DEFINE_IMPL(Song::Quality, br, size);

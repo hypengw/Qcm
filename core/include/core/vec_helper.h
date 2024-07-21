@@ -9,13 +9,13 @@
 template<typename T>
     requires std::convertible_to<T, unsigned char>
 struct Convert<byte, T> {
-    Convert(byte& out, T c) { out = byte { (unsigned char)c }; }
+    static void from(byte& out, T c) { out = byte { (unsigned char)c }; }
 };
 
 template<typename T, typename F>
     requires std::ranges::range<F> && convertable<T, std::ranges::range_value_t<F>>
 struct Convert<std::vector<T>, F> {
-    Convert(std::vector<T>& out, const F& f) {
+    static void from(std::vector<T>& out, const F& f) {
         using from_value_type = std::ranges::range_value_t<F>;
         out.clear();
         std::transform(std::ranges::begin(f),

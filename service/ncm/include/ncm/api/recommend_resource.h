@@ -14,7 +14,7 @@ struct RecommendResource {};
 namespace model
 {
 struct RecommendResourceItem {
-    i64         id;
+    PlaylistId  id;
     i64         type;
     std::string name;
     std::string copywriter;

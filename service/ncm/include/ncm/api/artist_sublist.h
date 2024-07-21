@@ -19,7 +19,7 @@ namespace model
 {
 struct ArtistSublistItem {
     std::string                info;
-    i64                        id;
+    ArtistId                   id;
     std::string                name;
     std::optional<std::string> trans;
     std::vector<std::string>   alias;
@@ -39,7 +39,7 @@ struct ArtistSublist {
         return api_model::parse<ArtistSublist>(bs);
     }
 
-    i64 code;
+    i64                                   code;
     std::optional<i64>                    count;
     bool                                  hasMore;
     std::vector<model::ArtistSublistItem> data;

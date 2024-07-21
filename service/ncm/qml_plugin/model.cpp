@@ -38,8 +38,64 @@
 #include "qcm_interface/model/user_account.h"
 
 #include "core/qlist_helper.h"
+#include "core/strv_helper.h"
 
 using namespace qcm;
+
+namespace ncm
+{
+
+auto to_ncm_id(model::IdType t, i64 id) -> qcm::model::ItemId {
+    return to_ncm_id(t, std::to_string(id));
+}
+auto to_ncm_id(model::IdType t, std::string_view id) -> qcm::model::ItemId {
+    auto type_str = [](model::IdType t) -> std::string_view {
+        switch (t) {
+        case model::IdType::Album: return "album";
+        case model::IdType::User: return "user";
+        case model::IdType::Artist: return "artist";
+        case model::IdType::Comment: return "comment";
+        case model::IdType::Djradio: return "djradio";
+        case model::IdType::Song: return "song";
+        case model::IdType::Program: return "program";
+        case model::IdType::Playlist: return "playlist";
+        default: {
+            _assert_msg_rel_(false, "unknown id type: {}", (int)t);
+            return {};
+        }
+        }
+    };
+    ItemId out { provider, type_str(t), id };
+    out.set_validator([](const auto& id) -> bool {
+        return ! id.type().isEmpty() && id.id() != "0";
+    });
+    return out;
+}
+
+auto ncm_id_type(const ItemId& id) -> model::IdType {
+    auto& t = id.type();
+    if (t == "album")
+        return model::IdType::Album;
+    else if (t == "artist")
+        return model::IdType::Artist;
+    else if (t == "user")
+        return model::IdType::User;
+    else if (t == "program")
+        return model::IdType::Program;
+    else if (t == "djradio")
+        return model::IdType::Djradio;
+    else if (t == "song")
+        return model::IdType::Song;
+    else if (t == "comment")
+        return model::IdType::Comment;
+    else if (t == "playlist")
+        return model::IdType::Playlist;
+    else {
+        _assert_msg_rel_(false, "unknown id type: {}", t);
+        return {};
+    }
+}
+} // namespace ncm
 
 IMPL_CONVERT(qcm::model::Playlist, ncm::model::Playlist) {
     convert(out.id, in.id);

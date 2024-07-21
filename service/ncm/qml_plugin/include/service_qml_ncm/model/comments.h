@@ -75,22 +75,34 @@ public:
     QVariant itemId() const { return convert_from<QVariant>(m_id); }
     void     set_itemId(QVariant v) {
         using CT = ncm::params::Comments::Type;
+        using IT = ncm::model::IdType;
         if (v != m_id) {
             auto& id   = this->api().input.id;
             auto& type = this->api().input.type;
             m_id       = v;
-            if (v.canConvert<model::AlbumId>()) {
-                convert(id, v.value<model::AlbumId>());
-                type = CT::Album;
-            } else if (v.canConvert<model::PlaylistId>()) {
-                convert(id, v.value<model::PlaylistId>());
-                type = CT::Playlist;
-            } else if (v.canConvert<model::SongId>()) {
-                convert(id, v.value<model::SongId>());
-                type = CT::Song;
-            } else if(v.canConvert<model::ProgramId>()) {
-                convert(id, v.value<model::ProgramId>());
-                type = CT::Program;
+            if (v.canConvert<model::ItemId>()) {
+                auto item_id = v.value<model::ItemId>();
+                switch (ncm::ncm_id_type(item_id)) {
+                case IT::Album: {
+                    type = CT::Album;
+                    break;
+                }
+                case IT::Song: {
+                    type = CT::Song;
+                    break;
+                }
+                case IT::Playlist: {
+                    type = CT::Playlist;
+                    break;
+                }
+                case IT::Program: {
+                    type = CT::Program;
+                    break;
+                }
+                default: {
+                    _assert_msg_rel_(false, "unsupport comment type: {}", item_id.type());
+                }
+                }
             }
             this->mark_dirty();
             emit changed_itemId();
