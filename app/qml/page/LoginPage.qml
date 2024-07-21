@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Qcm.App as QA
+import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 MD.Page {
@@ -15,11 +16,11 @@ MD.Page {
             QA.Global.querier_user.query();
         }
 
-        QA.QrcodeLoginQuerier {
+        QNcm.QrcodeLoginQuerier {
             id: qr_qrlogin
             key: qr_unikey.data.key
         }
-        QA.QrcodeUnikeyQuerier {
+        QNcm.QrcodeUnikeyQuerier {
             id: qr_unikey
 
             readonly property int loginCode: qr_qrlogin.data.code
@@ -29,7 +30,7 @@ MD.Page {
                     query();
             }
         }
-        QA.LoginQuerier {
+        QNcm.LoginQuerier {
             id: qr_login
             function login() {
                 username = tf_username.text;
@@ -109,7 +110,7 @@ MD.Page {
                         }
                         MD.Button {
                             Layout.fillWidth: true
-                            enabled: qr_login.status !== QA.qcm.Querying
+                            enabled: qr_login.status !== QA.enums.Querying
                             font.capitalization: Font.Capitalize
                             highlighted: true
                             text: qsTr('log in')

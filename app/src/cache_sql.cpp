@@ -11,7 +11,7 @@
 #include <QDateTime>
 
 #include "Qcm/path.h"
-#include "Qcm/type.h"
+#include "qcm_interface/type.h"
 #include "core/log.h"
 
 using namespace qcm;

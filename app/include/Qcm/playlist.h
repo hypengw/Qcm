@@ -3,7 +3,7 @@
 #include <QQmlEngine>
 #include <QAbstractListModel>
 
-#include "Qcm/model.h"
+#include "qcm_interface/model.h"
 
 namespace qcm
 {

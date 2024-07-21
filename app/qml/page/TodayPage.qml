@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Qcm.App as QA
+import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 import "../js/util.mjs" as Util
 
@@ -81,7 +82,7 @@ MD.Page {
                                     }
                                 }
                                 footer: MD.ListBusyFooter {
-                                    running: qr_rmd_res.status === QA.qcm.Querying
+                                    running: qr_rmd_res.status === QA.enums.Querying
                                     width: GridView.view.width
                                 }
                             }
@@ -153,7 +154,7 @@ MD.Page {
                                     }
                                 }
                                 footer: MD.ListBusyFooter {
-                                    running: qr_rmd_songs.status === QA.qcm.Querying
+                                    running: qr_rmd_songs.status === QA.enums.Querying
                                     width: ListView.view.width
                                 }
                             }
@@ -162,34 +163,46 @@ MD.Page {
                 }
             }
         }
-        QA.RecommendSongsQuerier {
+        QNcm.RecommendSongsQuerier {
             id: qr_rmd_songs
         }
-        QA.RecommendResourceQuerier {
+        QNcm.RecommendResourceQuerier {
             id: qr_rmd_res
         }
+        // avoid loading with switch page
         Timer {
-            id: timer_refresh
+            id: timer_refresh_delay
 
             property bool dirty: false
-
-            function refreshSlot() {
+            interval: 3 * 1000
+            repeat: false
+            running: false
+            onTriggered: {
                 if (root.visible && dirty) {
                     qr_rmd_res.query();
                     qr_rmd_songs.query();
                     dirty = false;
                 }
             }
+            
+        }
+        Connections {
+            target: root
+            function onVisibleChanged() { 
+                timer_refresh_delay.start();
+            }
+        }
+        Timer {
+            id: timer_refresh
 
             interval: 15 * 60 * 1000
             repeat: true
             running: true
 
-            Component.onCompleted: {
-                root.visibleChanged.connect(refreshSlot);
-                dirtyChanged.connect(refreshSlot);
+            onTriggered: {
+                timer_refresh_delay.dirty = true
+                timer_refresh_delay.start();
             }
-            onTriggered: dirty = true
         }
     }
 

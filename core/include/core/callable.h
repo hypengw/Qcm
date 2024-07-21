@@ -4,7 +4,7 @@
 #include <type_traits>
 #include <concepts>
 
-namespace core
+namespace ycore
 {
 namespace detail
 {
@@ -100,4 +100,4 @@ public:
     R operator()(Arguments... args) { return base_type::call(std::forward<Arguments>(args)...); }
 };
 
-} // namespace core
+} // namespace ycore

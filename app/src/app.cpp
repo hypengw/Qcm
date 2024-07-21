@@ -16,8 +16,9 @@
 
 #include "core/qvariant_helper.h"
 
+#include "qcm_interface/type.h"
+
 #include "Qcm/path.h"
-#include "Qcm/type.h"
 #include "Qcm/ncm_image.h"
 #include "Qcm/qr_image.h"
 #include "ncm/api/user_account.h"
@@ -30,6 +31,8 @@
 #include "platform/platform.h"
 
 #include "meta_model/qgadget_helper.h"
+
+#include "core/type.h"
 
 using namespace qcm;
 
@@ -75,12 +78,10 @@ App* App::instance() { return self; }
 
 App::App()
     : QObject(nullptr),
-      m_qt_ex(std::make_shared<QtExecutionContext>(this)),
-      m_pool(get_pool_size()),
-      m_session(std::make_shared<request::Session>(m_pool.get_executor())),
-      m_client(m_session, m_pool.get_executor()),
+      m_global(make_rc<Global>()),
+      m_client(m_global->session(), m_global->pool_executor()),
       m_mpris(std::make_unique<mpris::Mpris>()),
-      m_media_cache(std::make_shared<media_cache::MediaCache>(m_pool.get_executor(), m_session)),
+      m_media_cache(std::make_shared<media_cache::MediaCache>(m_global->pool_executor(), m_global->session())),
       m_main_win(nullptr),
       m_qml_engine(std::make_unique<QQmlApplicationEngine>()) {
     _assert_msg_rel_(self == nullptr, "there should be only one app object");
@@ -103,13 +104,13 @@ App::~App() {
 
     save_session();
     m_media_cache->stop();
-    m_session->about_to_stop();
-    m_pool.join();
+    m_global->session()->about_to_stop();
+    m_global->join();
 }
 
 ncm::Client App::ncm_client() const { return m_client; }
 
-void App::init() { // QQmlApplicationEngine* engine) {
+void App::init() {
     auto engine = this->engine();
 
     qmlRegisterSingletonInstance("Qcm.App", 1, 0, "App", this);
@@ -218,7 +219,7 @@ QString App::md5(QString txt) const {
 }
 
 void App::loginPost(model::UserAccount* user) {
-    auto& id = user->m_userId;
+    auto& id = user->userId();
     if (id.valid()) {
         QSettings s;
         s.setValue("session/user_id", convert_from<QString>((fmt::format("ncm-{}", id.id))));
@@ -251,7 +252,7 @@ void App::load_session() {
     QSettings s;
     auto      user_id = convert_from<std::string>(s.value("session/user_id").toString());
     if (! user_id.empty()) {
-        m_session->load_cookie(config_path() / "session" / user_id);
+        m_global->session()->load_cookie(config_path() / "session" / user_id);
     }
 }
 
@@ -259,16 +260,16 @@ void App::save_session() {
     QSettings s;
     auto      user_id = convert_from<std::string>(s.value("session/user_id").toString());
     if (! user_id.empty()) {
-        m_session->save_cookie(config_path() / "session" / user_id);
+        m_global->session()->save_cookie(config_path() / "session" / user_id);
     }
 }
 
 void App::setProxy(ProxyType t, QString content) {
-    m_session->set_proxy(request::req_opt::Proxy {
+    m_global->session()->set_proxy(request::req_opt::Proxy {
         .type = convert_from<request::req_opt::Proxy::Type>(t), .content = content.toStdString() });
 }
 
-void App::setVerifyCertificate(bool v) { m_session->set_verify_certificate(v); }
+void App::setVerifyCertificate(bool v) { m_global->session()->set_verify_certificate(v); }
 
 bool App::isItemId(const QJSValue& v) const {
     auto var = v.toVariant();

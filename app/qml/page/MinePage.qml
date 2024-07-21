@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Qcm.App as QA
+import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 MD.Page {
@@ -61,7 +62,7 @@ MD.Page {
 
                     BaseView {
                         id: view_playlist
-                        busy: qr_playlist.status === QA.qcm.Querying
+                        busy: qr_playlist.status === QA.enums.Querying
                         delegate: dg_playlist
                         model: qr_playlist.data
                         refresh: function () {
@@ -99,7 +100,7 @@ MD.Page {
                     }
                     BaseView {
                         id: view_albumlist
-                        busy: qr_albumlist.status === QA.qcm.Querying
+                        busy: qr_albumlist.status === QA.enums.Querying
                         delegate: dg_albumlist
                         model: qr_albumlist.data
                         refresh: function () {
@@ -116,7 +117,7 @@ MD.Page {
                     BaseView {
                         id: view_artistlist
                         delegate: dg_artistlist
-                        busy: qr_artistlist.status === QA.qcm.Querying
+                        busy: qr_artistlist.status === QA.enums.Querying
                         model: qr_artistlist.data
                         refresh: function () {
                             root.refresh_list(qr_artistlist);
@@ -131,7 +132,7 @@ MD.Page {
                     }
                     BaseView {
                         id: view_djradiolist
-                        busy: qr_djradiolist.status === QA.qcm.Querying
+                        busy: qr_djradiolist.status === QA.enums.Querying
                         delegate: dg_djradiolist
                         model: qr_djradiolist.data
                         refresh: function () {
@@ -146,21 +147,21 @@ MD.Page {
                         }
                     }
                 }
-                QA.AlbumSublistQuerier {
+                QNcm.AlbumSublistQuerier {
                     id: qr_albumlist
                     autoReload: limit > 0
                 }
-                QA.ArtistSublistQuerier {
+                QNcm.ArtistSublistQuerier {
                     id: qr_artistlist
                     autoReload: limit > 0
                 }
-                QA.UserPlaylistQuerier {
+                QNcm.UserPlaylistQuerier {
                     id: qr_playlist
                     autoReload: uid.valid() && limit > 0
                     uid: QA.Global.user_info.userId
                     limit: 30
                 }
-                QA.DjradioSublistQuerier {
+                QNcm.DjradioSublistQuerier {
                     id: qr_djradiolist
                     autoReload: limit > 0
                 }

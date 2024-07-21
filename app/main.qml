@@ -4,6 +4,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
 import Qcm.App as QA
+import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 ApplicationWindow {
@@ -61,20 +62,20 @@ ApplicationWindow {
         initialItem: Item {
             BusyIndicator {
                 anchors.centerIn: parent
-                running: QA.Global.querier_user.status === QA.qcm.Querying
+                running: QA.Global.querier_user.status === QA.enums.Querying
             }
         }
 
         Connections {
             function onStatusChanged() {
-                if (target.status === QA.qcm.Error) {
+                if (target.status === QA.enums.Error) {
                     win_stack.replace(win_stack.currentItem, comp_retry, {
                         text: target.error,
                         retryCallback: () => {
                             target.query();
                         }
                     });
-                } else if (target.status === QA.qcm.Finished) {
+                } else if (target.status === QA.enums.Finished) {
                     win_stack.replace(win_stack.currentItem, QA.Global.is_login ? comp_main : comp_login);
                 }
             }

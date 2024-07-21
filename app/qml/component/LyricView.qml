@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import Qcm.Material as MD
 import Qcm.App as QA
+import Qcm.Service.Ncm as QNcm
 
 MD.ListView {
     id: lyric_view

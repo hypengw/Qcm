@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Qcm.App as QA
+import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 MD.Page {
@@ -78,7 +79,7 @@ MD.Page {
                     clip: true
                     implicitHeight: contentHeight
                     model: song_querier.data
-                    busy: song_querier.status === QA.qcm.Querying
+                    busy: song_querier.status === QA.enums.Querying
 
                     delegate: QA.SongDelegate {
                         width: ListView.view.width
@@ -88,7 +89,7 @@ MD.Page {
                         }
                     }
 
-                    QA.CloudSearchQuerier {
+                    QNcm.CloudSearchQuerier {
                         id: song_querier
                         autoReload: keywords
                         type: QA.CloudSearchQuerier.SongType
@@ -99,7 +100,7 @@ MD.Page {
                     clip: true
                     implicitHeight: contentHeight
                     model: album_querier.data
-                    busy: album_querier.status === QA.qcm.Querying
+                    busy: album_querier.status === QA.enums.Querying
 
                     delegate: MD.ListItem {
                         property var itemId: model.itemId
@@ -120,7 +121,7 @@ MD.Page {
                         }
                     }
 
-                    QA.CloudSearchQuerier {
+                    QNcm.CloudSearchQuerier {
                         id: album_querier
                         autoReload: keywords
                         type: QA.CloudSearchQuerier.AlbumType
@@ -131,7 +132,7 @@ MD.Page {
                     clip: true
                     implicitHeight: contentHeight
                     model: playlist_querier.data
-                    busy: playlist_querier.status === QA.qcm.Querying
+                    busy: playlist_querier.status === QA.enums.Querying
 
                     delegate: MD.ListItem {
                         property var itemId: model.itemId
@@ -152,7 +153,7 @@ MD.Page {
                         }
                     }
 
-                    QA.CloudSearchQuerier {
+                    QNcm.CloudSearchQuerier {
                         id: playlist_querier
                         autoReload: keywords
                         type: QA.CloudSearchQuerier.PlaylistType
@@ -162,7 +163,7 @@ MD.Page {
                     clip: true
                     implicitHeight: contentHeight
                     model: djradio_querier.data
-                    busy: djradio_querier.status === QA.qcm.Querying
+                    busy: djradio_querier.status === QA.enums.Querying
 
                     delegate: MD.ListItem {
                         property var itemId: model.itemId
@@ -183,7 +184,7 @@ MD.Page {
                         }
                     }
 
-                    QA.CloudSearchQuerier {
+                    QNcm.CloudSearchQuerier {
                         id: djradio_querier
                         autoReload: keywords
                         type: QA.CloudSearchQuerier.DjradioType

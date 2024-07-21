@@ -45,7 +45,7 @@ struct SSL {
     PROP(bool, verify_certificate, { true })
 };
 
-using opts = core::type_list<Timeout, Proxy, Tcp, SSL>;
+using opts = ycore::type_list<Timeout, Proxy, Tcp, SSL>;
 
 } // namespace req_opt
 

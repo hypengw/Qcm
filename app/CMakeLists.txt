@@ -1,18 +1,14 @@
 set(APP_ID io.github.hypengw.Qcm)
-set(APP_NAME Qcm)
-set(APP_VERSION 1.0.3)
-set(APP_SUMMARY "Qt client for netease cloud music")
+set(APP_NAME ${PROJECT_NAME})
+set(APP_VERSION ${PROJECT_VERSION})
+set(APP_SUMMARY ${PROJECT_DESCRIPTION})
 set(APP_AUTHOR "hypeng")
 
 find_package(Qt6 REQUIRED COMPONENTS QuickControls2 Sql)
 
 set(SOURCES
     include/Qcm/app.h
-    include/Qcm/api.h
-    include/Qcm/enum.h
     include/Qcm/info.h
-    include/Qcm/type.h
-    include/Qcm/model.h
     include/Qcm/path.h
     include/Qcm/playlist.h
     include/Qcm/ncm_image.h
@@ -21,44 +17,8 @@ set(SOURCES
     include/Qcm/lyric.h
     include/Qcm/clipboard.h
     include/Qcm/player.h
-    include/Qcm/model/album_detail.h
-    include/Qcm/model/album_detail_dynamic.h
-    include/Qcm/model/album_sub.h
-    include/Qcm/model/album_sublist.h
-    include/Qcm/model/artist.h
-    include/Qcm/model/artist_albums.h
-    include/Qcm/model/artist_sub.h
-    include/Qcm/model/artist_sublist.h
-    include/Qcm/model/comments.h
-    include/Qcm/model/cloudsearch.h
-    include/Qcm/model/djradio_detail.h
-    include/Qcm/model/djradio_sub.h
-    include/Qcm/model/djradio_sublist.h
-    include/Qcm/model/djradio_program.h
-    include/Qcm/model/login.h
-    include/Qcm/model/logout.h
-    include/Qcm/model/playlist_catalogue.h
-    include/Qcm/model/playlist_detail.h
-    include/Qcm/model/playlist_detail_dynamic.h
-    include/Qcm/model/playlist_list.h
-    include/Qcm/model/playlist_subscribe.h
-    include/Qcm/model/playlist_create.h
-    include/Qcm/model/playlist_delete.h
-    include/Qcm/model/playlist_tracks.h
-    include/Qcm/model/recommend_songs.h
-    include/Qcm/model/recommend_resource.h
-    include/Qcm/model/song_url.h
-    include/Qcm/model/song_lyric.h
-    include/Qcm/model/user_account.h
-    include/Qcm/model/user_playlist.h
-    include/Qcm/model/user_cloud.h
-    include/Qcm/model/qrcode_login.h
-    include/Qcm/model/qrcode_unikey.h
-    include/Qcm/model/radio_like.h
-    include/Qcm/model/song_like.h
+
     src/app.cpp
-    src/api.cpp
-    src/model.cpp
     src/path.cpp
     src/playlist.cpp
     src/ncm_image.cpp
@@ -66,9 +26,14 @@ set(SOURCES
     src/cache_sql.cpp
     src/lyric.cpp
     src/clipboard.cpp
-    src/player.cpp
-    src/enum.cpp
-    )
+    src/player.cpp)
+
+set(QCM_INTERFACE_HEADER
+    include/qcm_interface/enum.h
+    include/qcm_interface/model.h
+    include/qcm_interface/model/user_account.h
+)
+list(TRANSFORM QCM_INTERFACE_HEADER PREPEND "${CMAKE_SOURCE_DIR}/qcm_interface/")
 
 set(QML_FILES
     qml/js/util.mjs
@@ -132,12 +97,12 @@ set(QML_FILES
     qml/menu/ArtistMenu.qml
     qml/menu/DjradioMenu.qml
     qml/menu/PlaylistMenu.qml
-    qml/menu/ProgramMenu.qml
-    )
+    qml/menu/ProgramMenu.qml)
 set(RESOURCES assets/Qcm.svg)
 
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
-set_source_files_properties(qml/Global.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(qml/Global.qml PROPERTIES QT_QML_SINGLETON_TYPE
+                                                      TRUE)
 
 qt_add_qml_module(
   app
@@ -151,23 +116,21 @@ qt_add_qml_module(
   QML_FILES
   ${QML_FILES}
   SOURCES
+  ${QCM_INTERFACE_HEADER}
   ${SOURCES}
   RESOURCES
   ${RESOURCES}
   NO_PLUGIN_OPTIONAL)
 
-target_sources(app PRIVATE
-$<$<CONFIG:Debug>:src/util/QmlStackTraceHelper.cpp>
-)
+target_sources(app PRIVATE $<$<CONFIG:Debug>:src/util/QmlStackTraceHelper.cpp>)
 
-#target_compile_definitions(app PUBLIC
-#$<$<CONFIG:Debug>:QT_QML_DEBUG>
-#)
+# target_compile_definitions(app PUBLIC $<$<CONFIG:Debug>:QT_QML_DEBUG> )
 
 target_include_directories(
   app
   PUBLIC include
-  PRIVATE src/ include/Qcm include/Qcm/model include/Qcm/util)
+  PRIVATE src/ include/Qcm include/Qcm/util
+          ${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface)
 target_link_libraries(
   app
   PUBLIC Qt6::Core
@@ -175,7 +138,6 @@ target_link_libraries(
          Qt6::QuickControls2
          Qt6::Sql
          Qt6::QuickPrivate
-
          asio_qt
          sv_ncm
          request
@@ -186,10 +148,14 @@ target_link_libraries(
          media_cache
          ctre
          player
-         platform)
+         platform
+         qcm_interface)
+
 target_compile_definitions(
-  app PUBLIC APP_ID="${APP_ID}" APP_VERSION="${APP_VERSION}" APP_AUTHOR="${APP_AUTHOR}"
-             APP_NAME="${APP_NAME}" APP_SUMMARY="${APP_SUMMARY}")
+  app
+  PUBLIC APP_ID="${APP_ID}" APP_VERSION="${APP_VERSION}"
+         APP_AUTHOR="${APP_AUTHOR}" APP_NAME="${APP_NAME}"
+         APP_SUMMARY="${APP_SUMMARY}")
 
 qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cpp)
 
@@ -205,9 +171,7 @@ qt_add_qml_module(
 
 target_link_libraries(
   ${PROJECT_NAME} PRIVATE app appplugin qml_materialplugin
-  #SingleApplication::SingleApplication
-                          kdsingleapplication
-                          )
+                          service_qml_ncmplugin kdsingleapplication)
 
 set(APP_DESKTOP assets/Qcm.desktop)
 set(APP_METAINFO assets/Qcm.metainfo.xml)

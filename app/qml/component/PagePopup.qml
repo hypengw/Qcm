@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import QtQuick.Window
 
 import Qcm.App as QA
+import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 MD.Dialog {

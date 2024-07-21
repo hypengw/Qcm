@@ -51,7 +51,7 @@ protected:
     NoCopy& operator=(const NoCopy&) = delete;
 };
 
-namespace core
+namespace ycore
 {
 
 template<typename Wrapper>
@@ -63,7 +63,7 @@ template<typename, template<typename...> class>
 constexpr bool is_specialization_of = false;
 template<template<typename...> class T, typename... Args>
 constexpr bool is_specialization_of<T<Args...>, T> = true;
-} // namespace core
+} // namespace ycore
 
 template<typename Tout, typename Tin>
 struct Convert;
@@ -109,10 +109,10 @@ protected:
 
 #define C_DECLARE_PRIVATE(Class, DName)                                            \
     inline Class::Private* d_func() {                                              \
-        return reinterpret_cast<Class::Private*>(core::GetPtrHelper(DName));       \
+        return reinterpret_cast<Class::Private*>(ycore::GetPtrHelper(DName));       \
     }                                                                              \
     inline const Class::Private* d_func() const {                                  \
-        return reinterpret_cast<const Class::Private*>(core::GetPtrHelper(DName)); \
+        return reinterpret_cast<const Class::Private*>(ycore::GetPtrHelper(DName)); \
     }
 
 #define C_D(Class)       Class::Private* const d = d_func()

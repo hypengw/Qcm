@@ -1,7 +1,9 @@
 #include "Qcm/playlist.h"
 
-#include "core/random.h"
 #include <ranges>
+
+#include "core/random.h"
+#include "core/log.h"
 
 using namespace qcm;
 

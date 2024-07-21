@@ -11,7 +11,7 @@
 #include <QtCore/QPointer>
 
 #include "Qcm/app.h"
-#include "Qcm/type.h"
+#include "qcm_interface/type.h"
 #include "Qcm/path.h"
 #include "Qcm/cache_sql.h"
 
@@ -80,7 +80,7 @@ public:
     auto&          get_client() { return m_cli; }
 
     NcmImageProviderInner()
-        : m_ex(App::instance()->get_pool_executor()),
+        : m_ex(Global::instance()->pool_executor()),
           m_cli(App::instance()->ncm_client()),
           m_cache_sql(App::instance()->get_cache_sql()) {}
 

@@ -2,7 +2,7 @@
 
 #include <utility>
 
-namespace core 
+namespace ycore 
 {
 
 template <class F>

@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import Qcm.App as QA
+import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 MD.Page {
@@ -24,12 +25,12 @@ MD.Page {
             regularExpression: /.+/
         }
 
-        QA.PlaylistCreateQuerier {
+        QNcm.PlaylistCreateQuerier {
             id: qr_playlist_create
             name: item_input.text
             autoReload: false
             onStatusChanged: {
-                if (status === QA.qcm.Finished) {
+                if (status === QA.enums.Finished) {
                     QA.App.playlistCreated();
                     MD.Util.closePopup(root);
                 }

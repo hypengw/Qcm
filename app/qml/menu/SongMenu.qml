@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Qcm.App as QA
+import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 MD.Menu {
@@ -70,13 +71,13 @@ MD.Menu {
         }
     }
 
-    QA.PlaylistTracksQuerier {
+    QNcm.PlaylistTracksQuerier {
         id: qr_tracks
         operation: QA.PlaylistTracksQuerier.Del
         trackIds: [root.song.itemId]
         autoReload: playlistId.valid()
         onStatusChanged: {
-            if (status === QA.qcm.Finished) {
+            if (status === QA.enums.Finished) {
                 QA.App.playlistChanged()
             }
         }

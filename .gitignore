@@ -71,6 +71,9 @@ Thumbs.db
 *.dll
 *.exe
 
+# Qt
+.qmlls.ini
+
 # cm
 build
 build_release

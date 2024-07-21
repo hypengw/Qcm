@@ -18,10 +18,13 @@
 
 #include "ncm/client.h"
 
-#include "Qcm/model/user_account.h"
+// #include "service_qml_ncm/model/user_account.h"
 #include "mpris/mpris.h"
 #include "mpris/mediaplayer2.h"
 #include "media_cache/media_cache.h"
+#include "qcm_interface/model/user_account.h"
+
+#include "qcm_interface/global.h"
 
 namespace qcm
 {
@@ -67,10 +70,8 @@ public:
     static App*            instance();
     QQmlApplicationEngine* engine() const;
 
-    ncm::Client     ncm_client() const;
-    auto            get_executor() { return m_qt_ex; }
-    pool_executor_t get_pool_executor() { return m_pool.get_executor(); }
-    auto            get_cache_sql() { return m_cache_sql; }
+    ncm::Client ncm_client() const;
+    auto        get_cache_sql() { return m_cache_sql; }
 
     mpris::MediaPlayer2* mpris() const { return m_mpris->mediaplayer2(); }
 
@@ -120,12 +121,10 @@ public slots:
     void setVerifyCertificate(bool);
 
 private:
-    void              load_session();
-    void              save_session();
-    qt_executor_t     m_qt_ex;
-    asio::thread_pool m_pool;
+    void load_session();
+    void save_session();
 
-    rc<request::Session>        m_session;
+    rc<Global>                  m_global;
     mutable ncm::Client         m_client;
     up<mpris::Mpris>            m_mpris;
     rc<media_cache::MediaCache> m_media_cache;

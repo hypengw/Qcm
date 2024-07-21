@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Qcm.App as QA
+import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 MD.Page {
@@ -112,7 +113,7 @@ MD.Page {
             }
         }
         footer: MD.ListBusyFooter {
-            running: qr_pl.status === QA.qcm.Querying
+            running: qr_pl.status === QA.enums.Querying
             width: ListView.view.width
         }
     }
@@ -130,21 +131,21 @@ MD.Page {
         }
     }
 
-    QA.PlaylistDetailQuerier {
+    QNcm.PlaylistDetailQuerier {
         id: qr_pl
         autoReload: root.itemId.valid()
     }
-    QA.PlaylistDetailDynamicQuerier {
+    QNcm.PlaylistDetailDynamicQuerier {
         id: qr_dynamic
         autoReload: itemId.valid()
         itemId: qr_pl.itemId
     }
-    QA.PlaylistSubscribeQuerier {
+    QNcm.PlaylistSubscribeQuerier {
         id: qr_sub
         autoReload: false
 
         onStatusChanged: {
-            if (status === QA.qcm.Finished)
+            if (status === QA.enums.Finished)
                 QA.App.playlistLiked(itemId, sub);
         }
     }

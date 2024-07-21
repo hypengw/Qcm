@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Qcm.App as QA
+import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 import "../js/util.mjs" as Util
 
@@ -66,7 +67,7 @@ MD.Page {
             }
         }
 
-        QA.UserCloudQuerier {
+        QNcm.UserCloudQuerier {
             id: qr_cloud
         }
         Timer {

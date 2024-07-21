@@ -3,6 +3,7 @@ import QtCore
 import QtQml
 import QtQuick
 import Qcm.App as QA
+import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 Item {
@@ -191,11 +192,11 @@ Item {
         function songUrlSlot(key) {
             const status = m_querier_song.status;
             const songs = m_querier_song.data.songs;
-            if (status === QA.qcm.Finished) {
+            if (status === QA.enums.Finished) {
                 const song = songs.length ? songs[0] : null;
                 const media_url = song ? QA.App.media_url(song.url, key) : '';
                 m_player.source = media_url;
-            } else if (status === QA.qcm.Error) {
+            } else if (status === QA.enums.Error) {
                 m_player.stop();
             }
         }
@@ -231,7 +232,7 @@ Item {
             }
         }
     }
-    QA.UserAccountQuerier {
+    QNcm.UserAccountQuerier {
         id: m_querier_user
 
         readonly property bool loginOk: data.userId.valid()
@@ -242,7 +243,7 @@ Item {
                 QA.App.loginPost(data);
         }
     }
-    QA.SongLikeQuerier {
+    QNcm.SongLikeQuerier {
         id: m_querier_user_songlike
         function like_song(song_id, is_like) {
             const qu = m_querier_radio_like;
@@ -265,17 +266,17 @@ Item {
         target: QA.App
     }
 
-    QA.RadioLikeQuerier {
+    QNcm.RadioLikeQuerier {
         id: m_querier_radio_like
         autoReload: false
 
         onStatusChanged: {
-            if (status === QA.qcm.Finished) {
+            if (status === QA.enums.Finished) {
                 QA.App.songLiked(trackId, like);
             }
         }
     }
-    QA.SongUrlQuerier {
+    QNcm.SongUrlQuerier {
         id: m_querier_song
         autoReload: ids.length > 0
     }

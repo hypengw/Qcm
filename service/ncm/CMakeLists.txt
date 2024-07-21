@@ -32,6 +32,13 @@ add_library(
 
 target_include_directories(sv_ncm PUBLIC include .)
 
-target_link_libraries(sv_ncm PUBLIC core asio_helper crypto request json_helper
-                                    error)
+target_link_libraries(
+  sv_ncm
+  PUBLIC core
+         asio_helper
+         crypto
+         request
+         json_helper
+         error)
 
+add_subdirectory(qml_plugin)

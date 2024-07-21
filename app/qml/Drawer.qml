@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Qcm.App as QA
+import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 MD.Drawer {
@@ -91,13 +92,13 @@ MD.Drawer {
             }
         }
     }
-    QA.LogoutQuerier {
+    QNcm.LogoutQuerier {
         id: qr_logout
         function logout() {
             query();
         }
         onStatusChanged: {
-            if (status === QA.qcm.Finished) {
+            if (status === QA.enums.Finished) {
                 QA.Global.querier_user.query();
             }
         }

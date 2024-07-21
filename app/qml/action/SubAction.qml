@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 
 import Qcm.App as QA
+import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 Action {
@@ -19,6 +20,6 @@ Action {
     }
     Binding on liked {
         value: querier.sub
-        when: querier.status === QA.qcm.Finished
+        when: querier.status === QA.enums.Finished
     }
 }

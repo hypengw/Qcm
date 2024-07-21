@@ -62,7 +62,7 @@ void reset(URI& uri) {
 template<typename Rule>
 struct control : pegtl::normal<Rule> {
     static constexpr bool enable = pegtl::internal::enable_control<Rule> ||
-                                   core::is_specialization_of<Rule, pegtl::internal::seq>;
+                                   ycore::is_specialization_of<Rule, pegtl::internal::seq>;
 
     template<typename ParseInput, typename... States>
     static void failure(const ParseInput&, States&&... states) noexcept {

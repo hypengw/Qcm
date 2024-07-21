@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Qcm.App as QA
+import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 MD.Page {
@@ -16,7 +17,7 @@ MD.Page {
         anchors.fill: parent
         clip: true
         implicitHeight: contentHeight
-        busy: model_loader.item.status === QA.qcm.Querying
+        busy: model_loader.item.status === QA.enums.Querying
         model: model_loader.item.data
 
         delegate: QA.CommentDelegate {
@@ -28,7 +29,7 @@ MD.Page {
 
         Component {
             id: cm_querier
-            QA.CommentsQuerier {
+            QNcm.CommentsQuerier {
                 itemId: root.itemId
                 autoReload: itemId.valid()
             }

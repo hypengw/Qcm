@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
 import Qcm.App as QA
+import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 import "../js/util.mjs" as Util
 
@@ -37,7 +38,7 @@ MD.Page {
         m_small.switch_pane();
     }
 
-    QA.SongLyricQuerier {
+    QNcm.SongLyricQuerier {
         id: querier_lyric
 
         readonly property string combined_lrc: {

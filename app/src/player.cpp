@@ -9,6 +9,7 @@
 #include <asio/strand.hpp>
 #include <asio/thread_pool.hpp>
 #include <asio/use_awaitable.hpp>
+#include <asio/as_tuple.hpp>
 #include "asio_qt/qt_executor.h"
 
 using namespace qcm;
@@ -44,7 +45,7 @@ public:
 
 Player::Player(QObject* parent)
     : QObject(parent),
-      m_channel(make_rc<NotifierInner::channel_type>(App::instance()->get_pool_executor(),
+      m_channel(make_rc<NotifierInner::channel_type>(Global::instance()->pool_executor(),
                                                      MaxChannelSize)),
       m_end(false),
       m_position(0),
@@ -56,9 +57,9 @@ Player::Player(QObject* parent)
     auto channel       = m_channel;
     auto notifer_inner = make_rc<NotifierInner>(channel);
     m_player           = std::make_unique<player::Player>(
-        APP_NAME, player::Notifier(notifer_inner), App::instance()->get_pool_executor());
+        APP_NAME, player::Notifier(notifer_inner), Global::instance()->pool_executor());
 
-    auto qt_exec = App::instance()->get_executor();
+    auto qt_exec = Global::instance()->qexecutor();
     asio::co_spawn(
         asio::strand<NotifierInner::channel_type::executor_type>(channel->get_executor()),
         [this, channel]() -> asio::awaitable<void> {

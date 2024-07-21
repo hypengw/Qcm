@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Qcm.App as QA
+import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 MD.Page {
@@ -116,7 +117,7 @@ MD.Page {
             }
         }
         footer: MD.ListBusyFooter {
-            running: qr_dj.status === QA.qcm.Querying
+            running: qr_dj.status === QA.enums.Querying
             width: ListView.view.width
         }
     }
@@ -137,21 +138,21 @@ MD.Page {
         }
     }
 
-    QA.DjradioDetailQuerier {
+    QNcm.DjradioDetailQuerier {
         id: qr_dj
         autoReload: root.itemId.valid()
     }
-    QA.DjradioProgramQuerier {
+    QNcm.DjradioProgramQuerier {
         id: qr_program
         autoReload: itemId.valid()
         itemId: qr_dj.itemId
     }
-    QA.DjradioSubQuerier {
+    QNcm.DjradioSubQuerier {
         id: qr_sub
         autoReload: false
 
         onStatusChanged: {
-            if (status === QA.qcm.Finished) {
+            if (status === QA.enums.Finished) {
                 QA.App.djradioLiked(itemId, sub);
             }
         }

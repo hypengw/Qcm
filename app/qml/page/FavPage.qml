@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import Qcm.App as QA
+import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 MD.Page {
@@ -17,7 +18,7 @@ MD.Page {
         clip: true
         implicitHeight: contentHeight
 
-        busy: qr_playlist.status === QA.qcm.Querying
+        busy: qr_playlist.status === QA.enums.Querying
         model: qr_playlist.data
         delegate: MD.ListItem {
             text: model.name
@@ -35,7 +36,7 @@ MD.Page {
             }
         }
 
-        QA.UserPlaylistQuerier {
+        QNcm.UserPlaylistQuerier {
             id: qr_playlist
             autoReload: uid.valid() && limit > 0
             uid: QA.Global.user_info.userId
@@ -45,12 +46,12 @@ MD.Page {
             }
         }
 
-        QA.PlaylistTracksQuerier {
+        QNcm.PlaylistTracksQuerier {
             id: qr_tracks
             trackIds: [root.songId]
             autoReload: playlistId.valid()
             onStatusChanged: {
-                if (status === QA.qcm.Finished) {
+                if (status === QA.enums.Finished) {
                     if (playlistId === view.model.item(0)?.itemId) {
                         QA.App.songLiked(root.songId, true);
                     }

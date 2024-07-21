@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Qcm.App as QA
+import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 MD.Pane {
@@ -37,11 +38,11 @@ MD.Pane {
 
         footer: MD.ListBusyFooter {
             width: GridView.view.width
-            running: qr_pl.status === QA.qcm.Querying
+            running: qr_pl.status === QA.enums.Querying
         }
     }
 
-    QA.PlaylistListQuerier {
+    QNcm.PlaylistListQuerier {
         id: qr_pl
 
         autoReload: cat.length > 0

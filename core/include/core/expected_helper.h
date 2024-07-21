@@ -47,7 +47,7 @@ auto unexpected(T&& v) {
 }
 
 template<typename T>
-concept is_expected = core::is_specialization_of<T, tl::expected>;
+concept is_expected = ycore::is_specialization_of<T, tl::expected>;
 
 namespace detail_expected
 {
@@ -87,9 +87,9 @@ namespace helper
 {
 
 template<typename T>
-concept is_expected = core::is_specialization_of<std::decay_t<T>, tl::expected>;
+concept is_expected = ycore::is_specialization_of<std::decay_t<T>, tl::expected>;
 template<typename T>
-concept is_optional = core::is_specialization_of<std::decay_t<T>, std::optional>;
+concept is_optional = ycore::is_specialization_of<std::decay_t<T>, std::optional>;
 
 template<typename T, typename Fn>
 auto map(T&& t, Fn&& fn) -> std::optional<decltype(fn(t.value()))> {

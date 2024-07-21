@@ -5,13 +5,13 @@
 #include "qr_code/qrcodegen.hpp"
 
 #include "Qcm/app.h"
-#include "Qcm/type.h"
+#include "qcm_interface/type.h"
 #include "core/expected_helper.h"
 
 using namespace qcm;
 
 QrImageProvider::QrImageProvider()
-    : QQuickAsyncImageProvider(), m_ex(App::instance()->get_pool_executor()) {}
+    : QQuickAsyncImageProvider(), m_ex(Global::instance()->pool_executor()) {}
 
 QQuickImageResponse* QrImageProvider::requestImageResponse(const QString& id,
                                                            const QSize&   requestedSize) {

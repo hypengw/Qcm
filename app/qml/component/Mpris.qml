@@ -1,6 +1,7 @@
 import QtQuick
 
 import Qcm.App as QA
+import Qcm.Service.Ncm as QNcm
 
 Item {
     required property QtObject playlist

@@ -13,7 +13,7 @@ namespace
 
 template<typename Type>
 void from_json_opt(Type& out, const nlohmann::json& j, std::string_view name) {
-    if constexpr (core::is_specialization_of<Type, std::optional>) {
+    if constexpr (ycore::is_specialization_of<Type, std::optional>) {
         out = j.value<Type>(name, std::nullopt);
     } else {
         j.at(name).get_to(out);
