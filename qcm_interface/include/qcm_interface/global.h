@@ -8,6 +8,7 @@
 
 #include "core/core.h"
 #include "asio_qt/qt_executor.h"
+#include "qcm_interface/export.h"
 
 namespace request
 {
@@ -16,7 +17,7 @@ class Session;
 namespace qcm
 {
 
-class Global : public QObject {
+class QCM_INTERFACE_API Global : public QObject {
     Q_OBJECT
 
 public:

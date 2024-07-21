@@ -59,6 +59,16 @@ inline auto replace_identity(std::string_view src, std::string_view match, std::
     return out;
 }
 
+auto eat_until(std::string_view src, std::string_view ends, bool with = false) {
+    auto it  = src.begin();
+    auto end = src.end();
+    while (it < end && ! std::string_view { it, end }.starts_with(ends)) {
+        it++;
+    }
+    if (with) it += std::min<i32>(end - it, ends.size());
+    return it;
+};
+
 } // namespace details
 
 struct ClassInfo {
@@ -265,13 +275,6 @@ auto parse(std::string_view src, std::span<const std::string_view> macro_names) 
 
     auto it = src.begin();
 
-    auto eat_until = [&it, src](std::string_view ends, bool with = false) {
-        while (it < src.end() && ! std::string_view { it, src.end() }.starts_with(ends)) {
-            it++;
-        }
-        if (with) it += std::min<i32>(src.end() - it, ends.size());
-    };
-
     auto extend_word = [&ctx, &it, src](usize i) {
         ctx.word = ctx.word.empty() ? std::string_view { it, 1 }
                                     : std::string_view { ctx.word.begin(),
@@ -339,11 +342,11 @@ auto parse(std::string_view src, std::span<const std::string_view> macro_names) 
         auto sub = std::string_view { it, src.end() };
         if (sub.starts_with("//")) {
             do_del();
-            eat_until("\n", true);
+            it = details::eat_until(sub, "\n", true);
             continue;
         } else if (sub.starts_with("/*")) {
             do_del();
-            eat_until("*/", true);
+            it = details::eat_until(sub, "*/", true);
             continue;
         } else if (sub.starts_with("::")) {
             ctx.last_is_del = false;

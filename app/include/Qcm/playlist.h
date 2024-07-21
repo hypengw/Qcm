@@ -93,12 +93,12 @@ private:
     detail::PlayList&       oper_list();
     detail::PlayList&       sync_list();
 
-    model::Song                    m_cur;
+    model::Song                                    m_cur;
     std::unordered_map<model::ItemId, model::Song> m_songs;
-    up<detail::PlayList>           m_list;
-    up<detail::PlayList>           m_shuffle_list;
-    LoopMode                       m_loop_mode;
-    bool                           m_can_next;
-    bool                           m_can_prev;
+    up<detail::PlayList>                           m_list;
+    up<detail::PlayList>                           m_shuffle_list;
+    LoopMode                                       m_loop_mode;
+    bool                                           m_can_next;
+    bool                                           m_can_prev;
 };
 } // namespace qcm

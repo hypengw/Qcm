@@ -142,3 +142,11 @@ protected:
     friend class Class;
 
 #define C_Q(Class) Class* const q = q_func()
+
+#if defined(_WIN32)
+#    define C_DECL_EXPORT __declspec(dllexport)
+#    define C_DECL_IMPORT __declspec(dllimport)
+#else
+#    define C_DECL_EXPORT __attribute__((visibility("default")))
+#    define C_DECL_IMPORT __attribute__((visibility("default")))
+#endif

@@ -14,6 +14,8 @@
 #include "asio_helper/watch_dog.h"
 #include "qcm_interface/enum.h"
 #include "qcm_interface/type.h"
+#include "qcm_interface/macro.h"
+#include "qcm_interface/export.h"
 
 namespace qcm
 {
@@ -31,7 +33,7 @@ concept modelable =
     detail::modelable<M, A> && (! std::derived_from<M, QAbstractItemModel> ||
                                 requires(M t, qint32 offset) { t.fetchMoreReq(offset); });
 
-class ApiQuerierBase : public QObject, public QQmlParserStatus {
+class QCM_INTERFACE_API ApiQuerierBase : public QObject, public QQmlParserStatus {
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)
 public:
@@ -128,4 +130,4 @@ private:
     bool                  m_forward_error;
 };
 
-}
+} // namespace qcm

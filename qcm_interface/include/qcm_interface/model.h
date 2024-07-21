@@ -11,12 +11,13 @@
 
 #include "qcm_interface/type.h"
 #include "qcm_interface/macro.h"
+#include "qcm_interface/export.h"
 
 #include "qcm_interface/item_id.h"
 namespace qcm::model
 {
 
-class Artist {
+class QCM_INTERFACE_API Artist {
     Q_GADGET
     QML_VALUE_TYPE(t_artist)
 public:
@@ -32,7 +33,7 @@ public:
     std::strong_ordering operator<=>(const Artist&) const = default;
 };
 
-class Album {
+class QCM_INTERFACE_API Album {
     Q_GADGET
     QML_VALUE_TYPE(t_album)
 public:
@@ -47,7 +48,7 @@ public:
     std::strong_ordering operator<=>(const Album&) const = default;
 };
 
-class Playlist {
+class QCM_INTERFACE_API Playlist {
     Q_GADGET
     QML_VALUE_TYPE(t_playlist)
 public:
@@ -64,7 +65,7 @@ public:
     std::strong_ordering operator<=>(const Playlist&) const = default;
 };
 
-class Song {
+class QCM_INTERFACE_API Song {
     Q_GADGET
     QML_VALUE_TYPE(t_song)
 public:
@@ -83,7 +84,7 @@ public:
     std::strong_ordering operator<=>(const Song&) const = default;
 };
 
-class User {
+class QCM_INTERFACE_API User {
     Q_GADGET
 public:
     GADGET_PROPERTY_DEF(ItemId, itemId, id)
@@ -93,7 +94,7 @@ public:
     std::strong_ordering operator<=>(const User&) const = default;
 };
 
-class Comment {
+class QCM_INTERFACE_API Comment {
     Q_GADGET
 public:
     GADGET_PROPERTY_DEF(ItemId, itemId, id)
@@ -105,7 +106,7 @@ public:
     std::strong_ordering operator<=>(const Comment&) const = default;
 };
 
-class Djradio {
+class QCM_INTERFACE_API Djradio {
     Q_GADGET
     QML_VALUE_TYPE(t_djradio)
 public:
@@ -118,7 +119,7 @@ public:
     std::strong_ordering operator<=>(const Djradio&) const = default;
 };
 
-class Program {
+class QCM_INTERFACE_API Program {
     Q_GADGET
     QML_VALUE_TYPE(t_program)
 public:

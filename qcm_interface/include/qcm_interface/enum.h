@@ -1,5 +1,6 @@
 #pragma once
 #include <QQmlEngine>
+#include "qcm_interface/export.h"
 
 namespace qcm
 {
@@ -8,7 +9,7 @@ namespace enums
 Q_NAMESPACE
 QML_ELEMENT
 
-enum class ApiStatus
+enum class QCM_INTERFACE_API ApiStatus
 {
     Uninitialized,
     Querying,
@@ -17,7 +18,7 @@ enum class ApiStatus
 };
 Q_ENUM_NS(ApiStatus);
 
-enum class IdType
+enum class QCM_INTERFACE_API IdType
 {
     IdTypeUnknown,
     IdTypeSong,

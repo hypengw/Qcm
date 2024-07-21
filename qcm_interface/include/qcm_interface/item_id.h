@@ -4,6 +4,7 @@
 #include <QUrl>
 
 #include "core/core.h"
+#include "qcm_interface/export.h"
 
 namespace qcm
 {
@@ -13,7 +14,7 @@ namespace model
 
 // itemid url
 // itemid://{id_type}@{provider}/{id}
-class ItemId {
+class QCM_INTERFACE_API ItemId {
     Q_GADGET
 public:
     using validator_t = std::function<bool(const ItemId&)>;

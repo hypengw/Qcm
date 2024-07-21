@@ -45,9 +45,9 @@ struct dec_class_name : class_name {};
 struct inherit : seq<one<':'>, _, opt<sor<kw_public, kw_private, kw_protected>>, _,
                      alias::dec_class_inherit_name> {};
 
-struct dec_class
-    : seq<sor<kw_class, kw_struct>, _, alias::dec_class_name, _, opt<inherit>, _, end::dec_class> {
-};
+struct any_tag : seq<class_name, opt<one<'('>, star<not_one<')'>>, one<')'>>> {};
+struct dec_class : seq<sor<kw_class, kw_struct>, _, opt<any_tag, _>, alias::dec_class_name, _,
+                       opt<inherit>, _, end::dec_class> {};
 
 struct text : sor<dec_namespace, dec_class> {};
 
