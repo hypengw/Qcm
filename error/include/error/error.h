@@ -88,7 +88,7 @@ public:
     static Error push(Fmt&& f, const std::source_location loc = std::source_location::current()) {
         using T = std::decay_t<Fmt>;
         Error e;
-        Msg msg;
+        Msg   msg;
         msg.loc = loc;
         if constexpr (fmt::formattable<T>) {
             msg.what = fmt::format("{}", f);
@@ -132,6 +132,15 @@ struct fmt::formatter<error::Msg> : fmt::formatter<std::string> {
                                 msg.loc.line(),
                                 msg.loc.column()));
         return fmt::formatter<std::string>::format(out, ctx);
+    }
+};
+
+template<>
+struct fmt::formatter<std::error_code> : fmt::formatter<std::string> {
+    template<typename FormatContext>
+    auto format(const std::error_code& e, FormatContext& ctx) const {
+        return fmt::formatter<std::string>::format(fmt::format("{}({}:{})", e.message(), e.value(), e.category().name()),
+                                                   ctx);
     }
 };
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QQmlEngine>
+#include <QObject>
 #include "qcm_interface/model.h"
 
 #include "core/log.h"

@@ -42,9 +42,14 @@ public:
     std::mutex mutex;
 };
 
-auto Global::instance() -> Global* { return static_global(); }
+auto Global::instance() -> Global* { 
+    return static_global(); 
+}
 
-Global::Global(): d_ptr(make_up<Private>(this)) { _assert_(static_global(this) == this); }
+Global::Global(): d_ptr(make_up<Private>(this)) { 
+    DEBUG_LOG("init Global");
+    _assert_rel_(static_global(this) == this); 
+}
 Global::~Global() {}
 
 auto Global::client(std::string_view name, std::optional<std::function<std::any()>> init)

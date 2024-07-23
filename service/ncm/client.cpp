@@ -106,7 +106,7 @@ auto Client::post(const request::Request& req, std::string_view body)
     }
 
     if (ec != asio::error::eof && ec)
-        co_return nstd::unexpected(Error::push(ec.message()));
+        co_return nstd::unexpected(Error::push(ec));
     else
         co_return convert_from<std::vector<byte>>(buf);
 }

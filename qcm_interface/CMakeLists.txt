@@ -1,6 +1,6 @@
 find_package(
   Qt6 REQUIRED
-  COMPONENTS Quick)
+  COMPONENTS Qml)
 
 set(MODEL_SOURCES
     include/qcm_interface/model/user_account.h)
@@ -65,4 +65,4 @@ set_target_properties(
              CXX_VISIBILITY_PRESET hidden)
 target_link_libraries(
   qcm_interface
-  PUBLIC core asio_helper asio_qt request Qt::Quick)
+  PUBLIC core asio_helper asio_qt request Qt::Qml)

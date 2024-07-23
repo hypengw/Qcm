@@ -2,7 +2,6 @@
 
 #include <QObject>
 #include <QQmlParserStatus>
-#include <QQmlEngine>
 #include <QAbstractItemModel>
 
 #include <asio/cancellation_signal.hpp>

@@ -3,7 +3,7 @@
 #include <functional>
 
 #include <QObject>
-#include <QQmlEngine>
+#include <QtQml/qqmlregistration.h>
 #include <QDateTime>
 
 #include "core/core.h"
