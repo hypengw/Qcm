@@ -11,7 +11,7 @@ namespace params
 struct RadioLike {
     std::string      alg { "itembased" };
     i64              time { 3 };
-    model::DjradioId trackId;
+    model::SongId trackId;
     bool             like;
 };
 } // namespace params

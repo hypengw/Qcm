@@ -11,7 +11,6 @@ namespace
 {
 
 inline QString get_song_id_str(const model::ItemId& id) { 
-    _assert_(!QUrl("itemid://song@ncm2149019978").toString().isEmpty());
     auto url = id.toUrl();
     auto out = url.toString(); 
     _assert_(!out.isEmpty());

@@ -155,19 +155,19 @@ MD.Page {
                             [
                                 {
                                     "text": qsTr('Standard'),
-                                    "value": QA.SongUrlQuerier.LevelStandard
+                                    "value": QNcm.SongUrlQuerier.LevelStandard
                                 },
                                 {
                                     "text": qsTr('Higher'),
-                                    "value": QA.SongUrlQuerier.LevelHigher
+                                    "value": QNcm.SongUrlQuerier.LevelHigher
                                 },
                                 {
                                     "text": qsTr('Exhigh'),
-                                    "value": QA.SongUrlQuerier.LevelExhigh
+                                    "value": QNcm.SongUrlQuerier.LevelExhigh
                                 },
                                 {
                                     "text": qsTr('Lossless'),
-                                    "value": QA.SongUrlQuerier.LevelLossless
+                                    "value": QNcm.SongUrlQuerier.LevelLossless
                                 }
                             ].map(el => model.append(el));
                             currentIndex = indexOfValue(settings_play.play_quality);
@@ -398,7 +398,7 @@ MD.Page {
         Settings {
             id: settings_play
 
-            property int play_quality: QA.SongUrlQuerier.LevelExhigh
+            property int play_quality: QNcm.SongUrlQuerier.LevelExhigh
 
             category: 'play'
 

@@ -73,7 +73,7 @@ MD.Menu {
 
     QNcm.PlaylistTracksQuerier {
         id: qr_tracks
-        operation: QA.PlaylistTracksQuerier.Del
+        operation: QNcm.PlaylistTracksQuerier.Del
         trackIds: [root.song.itemId]
         autoReload: playlistId.valid()
         onStatusChanged: {

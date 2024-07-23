@@ -18,8 +18,14 @@ public:
     SongLike(QObject* parent = nullptr): QObject(parent) {}
 
     Q_INVOKABLE bool contains(ItemId id) const { return m_ids.contains(id); }
-    Q_INVOKABLE void insert(ItemId id) { m_ids.insert(id); }
-    Q_INVOKABLE void remove(ItemId id) { m_ids.erase(id); }
+    Q_INVOKABLE void insert(ItemId id) {
+        DEBUG_LOG("like {}", id);
+        m_ids.insert(id);
+    }
+    Q_INVOKABLE void remove(ItemId id) {
+        DEBUG_LOG("unlike {}", id);
+        m_ids.erase(id);
+    }
 
     using out_type = ncm::api_model::SongLike;
     void handle_output(const out_type& in, const auto&) {

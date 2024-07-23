@@ -37,5 +37,11 @@ struct Convert<ncm::ItemId, T> {
 template<typename T>
     requires std::is_base_of_v<ncm::model::Id, T>
 struct Convert<T, ncm::ItemId> {
-    static void from(T& out, const ncm::ItemId& in) { out.id = in.id().toStdString(); }
+    static void from(T& out, const ncm::ItemId& in) {
+        if (in.valid()) {
+            auto type = ncm::ncm_id_type(in);
+            _assert_rel_(T::id_type == type);
+            out.id = in.id().toStdString();
+        }
+    }
 };
