@@ -57,9 +57,9 @@ public:
     void handle_output(const out_type& re, const auto& input) {
         if (input.offset == 0) {
             auto in_ = convert_from<std::vector<UserCloudItem>>(re.data);
-            //convertModel(in_, [](const UserCloudItem& it) {
-            //    return convert_from<std::string>(it.id);
-            //});
+            convertModel(in_, [](const UserCloudItem& it) {
+                return convert_from<std::string>(it.id.toUrl().toString());
+            });
         } else if (input.offset == (int)rowCount()) {
             insert(rowCount(), convert_from<std::vector<UserCloudItem>>(re.data));
         }
