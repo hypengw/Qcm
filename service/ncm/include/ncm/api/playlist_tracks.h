@@ -18,7 +18,7 @@ struct PlaylistTracks {
     };
 
     Oper                       op { Oper::Add }; // del
-    model::ProgramId           pid;
+    model::PlaylistId          pid;
     std::vector<model::SongId> trackIds;
     bool                       imme { true };
 };

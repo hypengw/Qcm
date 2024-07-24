@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import Qcm.App as QA
+import Qcm.Material as MD
 import Qcm.Service.Ncm as QNcm
 
 StackView {

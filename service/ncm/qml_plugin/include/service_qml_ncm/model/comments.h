@@ -82,6 +82,7 @@ public:
             m_id       = v;
             if (v.canConvert<model::ItemId>()) {
                 auto item_id = v.value<model::ItemId>();
+                id.id = item_id.id().toStdString();
                 switch (ncm::ncm_id_type(item_id)) {
                 case IT::Album: {
                     type = CT::Album;

@@ -74,11 +74,11 @@ Item {
         return MD.Tool.show_popup('qrc:/Qcm/App/qml/component/PagePopup.qml', Object.assign({}, {
             "source": url,
             "props": props
-        }, popup_props));
+        }, popup_props), root.main_win);
     }
 
     function toast(text, duration) {
-        main_win.snake.show(text, duration);
+        root.main_win.snake.show(text, duration);
     }
 
     function toggleColorScheme() {
