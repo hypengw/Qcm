@@ -182,7 +182,8 @@ MD.Page {
                 id: lrc
                 Binding on position {
                     when: !QA.Global.player.busy
-                    value: QA.Global.player.position
+                    // offset to avoid flicking
+                    value: QA.Global.player.position + 50
                     restoreMode: Binding.RestoreNone
                 }
                 source: querier_lyric.combined_lrc
