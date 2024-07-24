@@ -57,6 +57,15 @@ inline void adjust_audio_sample(cubeb_sample_format, cubeb_sample_format, std::s
                                 std::span<const byte> in, float volume) {
     adjust_audio_sample(as_span<i16>(out), as_span<const i16>(in), volume);
 }
+
+template<typename T>
+inline constexpr auto fade_curve(T x, T left, T right) -> T {
+    x = std::clamp<T>((x - left) / (right - left), 0.0, 1.0);
+    // cubic smoothing (Catmull-Rom spline)
+    // return x * x * ((T)3.0 - (T)2.0 * x);
+    // lineaer
+    return x;
+}
 } // namespace details
 
 struct DeviceError {
@@ -157,8 +166,7 @@ public:
           m_paused(false),
           m_mark_pos(0),
           m_mark_serial(-1),
-          m_notifier(notifier),
-          m_last_pts(0) {
+          m_notifier(notifier) {
         cubeb_stream_params output_params;
 
         output_params.rate     = samplerate;
@@ -193,8 +201,14 @@ public:
         if (m_thread.joinable()) m_thread.join();
     };
 
-    void start() { cubeb_stream_start(m_stream.get()); }
-    void stop() { cubeb_stream_stop(m_stream.get()); }
+    void start() {
+        fade_reset();
+        cubeb_stream_start(m_stream.get());
+    }
+    void stop() {
+        fade_reset();
+        cubeb_stream_stop(m_stream.get());
+    }
 
     auto volume() const -> float { return m_volume; }
     void set_volume(float v) { m_volume = v; }
@@ -208,9 +222,16 @@ public:
         m_output_queue->set_audio_params(m_audio_params);
     }
 
+    bool fading() const { return m_fade.fading(); }
+    void fade_reset() { return m_fade.reset(); }
+    auto fade_duration() const { return m_fade.duration; }
+    void set_fade_duration(u32 val) { m_fade.duration = val; }
+
     bool paused() const { return m_paused; }
     void set_pause(bool v) {
         m_paused = v;
+        fade_reset();
+
         notify::playstate s;
         s.value = v ? PlayState::Paused : PlayState::Playing;
         m_notifier.send(s).wait();
@@ -230,13 +251,22 @@ private:
                     return Frame { .frame = std::move(f_), .data = {} };
                 } else {
                     _assert_rel_(! f_.is_planar());
-                    auto data = f_.channel_data(0);
-                    return Frame { .frame = std::move(f_), .data = data };
+                    auto data     = f_.channel_data(0);
+                    auto duration = (float)f_.ff->nb_samples / f_.ff->sample_rate;
+                    auto pts      = duration_cast<milliseconds>(f_.pts_duration()).count();
+                    return Frame { .frame     = std::move(f_),
+                                   .data      = data,
+                                   .full_size = data.size(),
+                                   .duration  = duration,
+                                   .timestamp = pts };
                 }
             });
         }
         AudioFrame            frame;
         std::span<const byte> data;
+        usize                 full_size { 0 };
+        float                 duration { 0 };
+        i64                   timestamp { 0 }; // milli
         bool                  notified { false };
     };
 
@@ -246,7 +276,7 @@ private:
             m_notifier.send(p);
         } else {
             notify::position pos;
-            pos.value = duration_cast<milliseconds>(frame.frame.pts_duration()).count();
+            pos.value = frame.timestamp;
             if (! dirty()) {
                 m_notifier.try_send(pos);
             }
@@ -265,7 +295,7 @@ private:
                 frame = Frame::from(self->m_output_queue->try_pop());
             }
 
-            while (frame && ! self->paused()) {
+            while (frame && (! self->paused() || self->fading())) {
                 if (! frame->notified) self->notify(frame.value());
 
                 auto copied = std::min(output.size(), frame->data.size());
@@ -273,10 +303,12 @@ private:
                                              CUBEB_SAMPLE_S16NE,
                                              output.subspan(0, copied),
                                              frame->data.subspan(0, copied),
-                                             self->volume());
+                                             self->volume() * self->fade_factor());
                 // std::copy_n(frame->data.begin(), copied, output.begin());
                 output      = output.subspan(copied);
                 frame->data = frame->data.subspan(copied);
+
+                self->fade_elapse(frame->duration * ((float)copied / frame->full_size));
 
                 if (frame->data.empty()) {
                     frame = Frame::from(self->m_output_queue->try_pop());
@@ -303,6 +335,9 @@ private:
         }
     }
 
+    void fade_elapse(float t) { m_fade.elapse(t); }
+    auto fade_factor() const -> float { return m_fade.factor(m_paused); }
+
 private:
     std::thread m_thread;
 
@@ -311,6 +346,43 @@ private:
 
     i32                m_channels;
     std::atomic<float> m_volume;
+    struct FadeInfo {
+        u32                       duration { 500 * 1000 }; // mill
+        std::atomic<float>        elapsed_time { 0 };
+        mutable std::atomic<bool> end { false };
+
+        template<typename T>
+        auto elapsed_micro() const -> T {
+            return std::min<float>(elapsed_time, 1.0f) * 1000.0 * 1000.0;
+        }
+
+        auto fading() const -> bool {
+            if (end || duration == 0) return false;
+            bool fading = elapsed_micro<u32>() < duration;
+            end         = ! fading;
+            return fading;
+        }
+        void reset() {
+            elapsed_time = 0.0;
+            end          = false;
+        }
+        auto factor(bool paused) const -> float {
+            return paused
+                       ? ((end || duration == 0)
+                              ? 0.0
+                              : details::fade_curve<float>(
+                                    -elapsed_micro<float>(), -(float)duration, 0.0f))
+                       : ((end || duration == 0)
+                              ? 1.0
+                              : details::fade_curve<float>(elapsed_micro<float>(), 0.0f, duration));
+        }
+        void elapse(float t) {
+            if (fading()) {
+                elapsed_time += t;
+            }
+        }
+    };
+    FadeInfo m_fade;
 
     std::optional<Frame> m_cached_frame;
     std::atomic<bool>    m_paused;
@@ -320,7 +392,7 @@ private:
     AudioParams         m_audio_params;
     rc<AudioFrameQueue> m_output_queue;
     Notifier            m_notifier;
-    i64                 m_last_pts;
+    // i64                 m_last_pts;
 };
 
 } // namespace player

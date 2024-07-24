@@ -133,6 +133,34 @@ MD.Page {
             MD.Divider {}
 
             SettingSection {
+                id: sec_audio
+                Layout.fillWidth: true
+                title: qsTr('audio')
+
+                SettingRow {
+                    Layout.fillWidth: true
+                    text: `${qsTr('Fade When Play/Pause')}: ${slider_fade.value} ms`
+                    font.capitalization: Font.MixedCase
+                    canInput: false
+                    belowItem: MD.Slider {
+                        id: slider_fade
+                        Layout.fillWidth: true
+                        from: 0
+                        stepSize: 20
+                        to: 1000
+                        onMoved: {
+                            QA.Global.player.fadeTime = value;
+                        }
+                        Component.onCompleted: {
+                            value = QA.Global.player.fadeTime;
+                        }
+                    }
+                }
+            }
+
+            MD.Divider {}
+
+            SettingSection {
                 id: sec_play
                 Layout.fillWidth: true
                 title: qsTr('quality')
@@ -440,6 +468,7 @@ MD.Page {
         property alias actionItem: sr_action.contentItem
         property alias belowItem: sr_below.contentItem
         property alias text: sr_label.text
+        property alias font: sr_label.font
         property bool canInput: true
 
         MD.InputBlock {

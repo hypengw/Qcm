@@ -130,12 +130,20 @@ void Player::set_busy(bool v) {
 }
 
 auto Player::volume() const -> float { return m_player->volume(); }
+auto Player::fadeTime() const -> u32 { return m_player->fade_time() / 1000; }
 
 void Player::set_volume(float val) {
     auto cur = volume();
     if (! ycore::equal_within_ulps(cur, val, 4)) {
         m_player->set_volume(val);
         volumeChanged();
+    }
+}
+void Player::set_fadeTime(u32 val) {
+    auto cur = m_player->fade_time();
+    if (cur != val) {
+        m_player->set_fade_time(val * 1000);
+        fadeTimeChanged();
     }
 }
 

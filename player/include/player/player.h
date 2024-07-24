@@ -28,8 +28,8 @@ public:
     auto volume() const -> float;
     void set_volume(float);
 
-    auto fade() const -> float;
-    void set_fade(float);
+    auto fade_time() const -> u32;
+    void set_fade_time(u32);
 
 private:
     C_DECLARE_PRIVATE(Player, m_d)

@@ -17,6 +17,7 @@ class Player : public QObject {
     Q_PROPERTY(int position READ position WRITE set_position NOTIFY positionChanged)
     Q_PROPERTY(int duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(float volume READ volume WRITE set_volume NOTIFY volumeChanged)
+    Q_PROPERTY(uint fadeTime READ fadeTime WRITE set_fadeTime NOTIFY fadeTimeChanged)
     Q_PROPERTY(PlaybackState playbackState READ playbackState NOTIFY playbackStateChanged)
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
 
@@ -43,6 +44,7 @@ public:
     auto        busy() const -> bool;
     auto        playbackState() const -> PlaybackState;
     auto        volume() const -> float;
+    auto        fadeTime() const -> u32;
 
     Q_INVOKABLE void play();
     Q_INVOKABLE void pause();
@@ -58,6 +60,7 @@ Q_SIGNALS:
     void positionChanged();
     void durationChanged();
     void volumeChanged();
+    void fadeTimeChanged();
     void busyChanged();
     void playbackStateChanged();
     void notify(NotifyInfo);
@@ -67,6 +70,7 @@ public Q_SLOTS:
     void set_position(int);
     void set_busy(bool);
     void set_volume(float);
+    void set_fadeTime(u32);
 
 private:
     up<player::Player> m_player;

@@ -138,5 +138,11 @@ void Player::set_volume(float val) {
     C_D(Player);
     d->m_dev->set_volume(val);
 }
-auto Player::fade() const -> float { return 0.0; }
-void Player::set_fade(float) {}
+auto Player::fade_time() const -> u32 {
+    C_D(const Player);
+    return d->m_dev->fade_duration();
+}
+void Player::set_fade_time(u32 val) {
+    C_D(Player);
+    d->m_dev->set_fade_duration(val);
+}

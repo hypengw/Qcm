@@ -103,7 +103,11 @@ Item {
         name: "qcm"
         defaultLogLevel: LoggingCategory.Warning
     }
-
+    Settings {
+        id: settings_audio
+        property alias fade_time: m_player.fadeTime
+        category: 'audio'
+    }
     Settings {
         id: settings_play
         property alias loop: m_playlist.loopMode
