@@ -181,11 +181,17 @@ MD.Pane {
                             pop_playlist.open();
                         }
                     }
+                    QA.VolumeButton {
+                        volume: QA.Global.player.volume
+                        onVolumeSeted: volume_ => {
+                            QA.Global.player.volume = volume_;
+                        }
+                    }
                     MD.IconButton {
                         icon.name: MD.Token.icon.more_vert
 
                         onClicked: {
-                            const popup = QA.Global.show_popup('qrc:/Qcm/App/qml/menu/SongMenu.qml', {
+                            const popup = MD.Tool.show_popup('qrc:/Qcm/App/qml/menu/SongMenu.qml', {
                                 "song": QA.Global.cur_song,
                                 "y": 0
                             }, this);

@@ -92,7 +92,7 @@ MD.Page {
                     QNcm.CloudSearchQuerier {
                         id: song_querier
                         autoReload: keywords
-                        type: QA.CloudSearchQuerier.SongType
+                        type: QNcm.CloudSearchQuerier.SongType
                     }
                 }
 
@@ -124,7 +124,7 @@ MD.Page {
                     QNcm.CloudSearchQuerier {
                         id: album_querier
                         autoReload: keywords
-                        type: QA.CloudSearchQuerier.AlbumType
+                        type: QNcm.CloudSearchQuerier.AlbumType
                     }
                 }
 
@@ -156,7 +156,7 @@ MD.Page {
                     QNcm.CloudSearchQuerier {
                         id: playlist_querier
                         autoReload: keywords
-                        type: QA.CloudSearchQuerier.PlaylistType
+                        type: QNcm.CloudSearchQuerier.PlaylistType
                     }
                 }
                 MD.ListView {
@@ -187,7 +187,7 @@ MD.Page {
                     QNcm.CloudSearchQuerier {
                         id: djradio_querier
                         autoReload: keywords
-                        type: QA.CloudSearchQuerier.DjradioType
+                        type: QNcm.CloudSearchQuerier.DjradioType
                     }
                 }
             }

@@ -172,7 +172,7 @@ MD.Page {
                         text: model.name
                         supportText: `${QA.Global.join_name(model.artists, '/')} - ${model.trackCount} tracks`
                         function showMenu(parent) {
-                            QA.Global.show_popup('qrc:/Qcm/App/qml/menu/AlbumMenu.qml', {
+                            MD.Tool.show_popup('qrc:/Qcm/App/qml/menu/AlbumMenu.qml', {
                                     "album": QA.App.album(model),
                                     "y": parent.height
                                 }, parent);
@@ -186,7 +186,7 @@ MD.Page {
                         text: model.name
                         supportText: `${model.albumSize} albums`
                         function showMenu(parent) {
-                            QA.Global.show_popup('qrc:/Qcm/App/qml/menu/ArtistMenu.qml', {
+                            MD.Tool.show_popup('qrc:/Qcm/App/qml/menu/ArtistMenu.qml', {
                                     "artist": QA.App.artist(model),
                                     "y": parent.height
                                 }, parent);
@@ -200,7 +200,7 @@ MD.Page {
                         text: model.name
                         supportText: `${model.trackCount} songs`
                         function showMenu(parent) {
-                            QA.Global.show_popup('qrc:/Qcm/App/qml/menu/PlaylistMenu.qml', {
+                            MD.Tool.show_popup('qrc:/Qcm/App/qml/menu/PlaylistMenu.qml', {
                                     "playlist": QA.App.playlist(model),
                                     "y": parent.height
                                 }, parent);
@@ -214,7 +214,7 @@ MD.Page {
                         text: model.name
                         supportText: `${model.programCount} programs`
                         function showMenu(parent) {
-                            QA.Global.show_popup('qrc:/Qcm/App/qml/menu/DjradioMenu.qml', {
+                            MD.Tool.show_popup('qrc:/Qcm/App/qml/menu/DjradioMenu.qml', {
                                     "djradio": QA.App.djradio(model),
                                     "y": parent.height
                                 }, parent);

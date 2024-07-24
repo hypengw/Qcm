@@ -46,22 +46,10 @@ Item {
     signal sig_route(QA.RouteMsg msg)
     signal sig_route_special(string name)
 
-    function create_item(url_or_comp, props, parent) {
-        const com = (url_or_comp instanceof Component) ? url_or_comp : Qt.createComponent(url_or_comp);
-        if (com.status === Component.Ready) {
-            try {
-                return com.createObject(parent, props);
-            } catch (e) {
-                console.error(e);
-            }
-        } else if (com.status == Component.Error) {
-            console.error(com.errorString());
-        }
-    }
     function join_name(objs, split) {
         const names = objs.map(o => {
-                return o.name;
-            });
+            return o.name;
+        });
         return names.join(split);
     }
     function route(dest, props = {}) {
@@ -76,29 +64,19 @@ Item {
             console.error('route to:', url);
         sig_route_special('main');
         const msg = m_comp_route_msg.createObject(root, {
-                "qml": url,
-                "props": props
-            });
+            "qml": url,
+            "props": props
+        });
         sig_route(msg);
         msg.destroy(3000);
     }
     function show_page_popup(url, props, popup_props = {}) {
-        return show_popup('qrc:/Qcm/App/qml/component/PagePopup.qml', Object.assign({}, {
-                    "source": url,
-                    "props": props
-                }, popup_props));
+        return MD.Tool.show_popup('qrc:/Qcm/App/qml/component/PagePopup.qml', Object.assign({}, {
+            "source": url,
+            "props": props
+        }, popup_props));
     }
-    function show_popup(url, props, parent = null, open_and_destry = true) {
-        const popup = create_item(url, props, parent ? parent : main_win);
-        if (open_and_destry) {
-            popup.closed.connect(() => {
-                    if (popup.destroy)
-                        popup.destroy(1000);
-                });
-            popup.open();
-        }
-        return popup;
-    }
+
     function toast(text, duration) {
         main_win.snake.show(text, duration);
     }
@@ -109,16 +87,15 @@ Item {
 
     Component.onCompleted: {
         QA.App.errorOccurred.connect(s => {
-                // ignore 'Operation aborted'
-                if (!s.endsWith('Operation aborted.'))
-                    root.toast(s, 5000);
-            });
+            // ignore 'Operation aborted'
+            if (!s.endsWith('Operation aborted.'))
+                root.toast(s, 5000);
+        });
     }
 
     Component {
         id: m_comp_route_msg
-        QA.RouteMsg {
-        }
+        QA.RouteMsg {}
     }
 
     LoggingCategory {
@@ -130,6 +107,7 @@ Item {
     Settings {
         id: settings_play
         property alias loop: m_playlist.loopMode
+        property alias volume: m_player.volume
         category: 'play'
     }
     Settings {
@@ -147,23 +125,23 @@ Item {
 
         Component.onCompleted: {
             MD.Token.color.useSysColorSM = Qt.binding(() => {
-                    return root.use_system_color_scheme;
-                });
+                return root.use_system_color_scheme;
+            });
             MD.Token.color.useSysAccentColor = Qt.binding(() => {
-                    return root.use_system_accent_color;
-                });
+                return root.use_system_accent_color;
+            });
             if (root.use_system_accent_color) {
                 root.primary_color = MD.Token.color.accentColor;
             }
             MD.Token.color.accentColor = Qt.binding(() => {
-                    return primary_color;
-                });
+                return primary_color;
+            });
             if (MD.Token.color.useSysColorSM) {
                 root.color_scheme = MD.Token.color.colorScheme;
             }
             MD.Token.color.colorScheme = Qt.binding(() => {
-                    return root.color_scheme;
-                });
+                return root.color_scheme;
+            });
         }
     }
     QA.Playlist {

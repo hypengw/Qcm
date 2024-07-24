@@ -15,7 +15,7 @@ public:
     using executor_type = asio::thread_pool::executor_type;
 
     class Private;
-    Player(std::string_view name, Notifier,  executor_type exc);
+    Player(std::string_view name, Notifier, executor_type exc);
     ~Player();
 
     void play();
@@ -24,6 +24,12 @@ public:
     void seek(i32);
 
     void set_source(std::string_view);
+
+    auto volume() const -> float;
+    void set_volume(float);
+
+    auto fade() const -> float;
+    void set_fade(float);
 
 private:
     C_DECLARE_PRIVATE(Player, m_d)

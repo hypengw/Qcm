@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import Qcm.App as QA
 import Qcm.Service.Ncm as QNcm
+import Qcm.Material as MD
 
 StackView {
     id: root
@@ -21,7 +22,7 @@ StackView {
         if (is_cache) {
             let cache = m_page_cache.get(key);
             if (!cache) {
-                cache = QA.Global.create_item(url_or_comp, props, null);
+                cache = MD.Tool.create_item(url_or_comp, props, null);
                 cache.visible = false;
                 m_page_cache.set(key, cache);
             }

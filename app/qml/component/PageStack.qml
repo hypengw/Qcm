@@ -19,7 +19,7 @@ StackView {
         if (item) {
             popup(item);
         } else {
-            item = QA.Global.create_item(url, props, null);
+            item = MD.Tool.create_item(url, props, null);
             pages.set(key, item);
             push(item);
         }

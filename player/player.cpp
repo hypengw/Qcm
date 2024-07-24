@@ -129,3 +129,14 @@ void Player::seek(i32 p) {
     C_D(Player);
     d->m_action_channel->try_send(asio::error_code {}, action::seek { p, d->m_action_id++ });
 }
+
+auto Player::volume() const -> float {
+    C_D(const Player);
+    return d->m_dev->volume();
+}
+void Player::set_volume(float val) {
+    C_D(Player);
+    d->m_dev->set_volume(val);
+}
+auto Player::fade() const -> float { return 0.0; }
+void Player::set_fade(float) {}

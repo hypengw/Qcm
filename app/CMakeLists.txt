@@ -88,6 +88,7 @@ set(QML_FILES
     qml/component/PageContainer.qml
     qml/component/PagePopup.qml
     qml/component/PageStack.qml
+    qml/component/VolumeButton.qml
     qml/action/PlaynextAction.qml
     qml/action/CommentAction.qml
     qml/action/ColorSchemeAction.qml

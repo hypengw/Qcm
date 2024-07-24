@@ -36,6 +36,29 @@ DEFINE_CONVERT(player::AudioParams, cubeb_stream_params) {
 namespace player
 {
 
+namespace details
+{
+
+template<typename Tout, typename Tin>
+inline auto as_span(std::span<Tin> in) -> std::span<Tout> {
+    _assert_((in.size() * sizeof(Tin)) % sizeof(Tout) == 0);
+    return { (Tout*)in.data(), in.size() * sizeof(Tin) / sizeof(Tout) };
+}
+
+template<typename Tout, typename Tin>
+inline void adjust_audio_sample(std::span<Tout> out, std::span<const Tin> in, float volume) {
+    usize size = std::min(out.size(), in.size());
+    for (usize i = 0; i < size; i++) {
+        out[i] = in[i] * volume;
+    }
+}
+
+inline void adjust_audio_sample(cubeb_sample_format, cubeb_sample_format, std::span<byte> out,
+                                std::span<const byte> in, float volume) {
+    adjust_audio_sample(as_span<i16>(out), as_span<const i16>(in), volume);
+}
+} // namespace details
+
 struct DeviceError {
     using Self = DeviceError;
 
@@ -173,7 +196,10 @@ public:
     void start() { cubeb_stream_start(m_stream.get()); }
     void stop() { cubeb_stream_stop(m_stream.get()); }
 
-    bool set_volume(float v) const {
+    auto volume() const -> float { return m_volume; }
+    void set_volume(float v) { m_volume = v; }
+
+    bool set_output_volume(float v) {
         return CUBEB_OK == cubeb_stream_set_volume(m_stream.get(), v);
     }
 
@@ -203,6 +229,7 @@ private:
                 if (f_.eof()) {
                     return Frame { .frame = std::move(f_), .data = {} };
                 } else {
+                    _assert_rel_(! f_.is_planar());
                     auto data = f_.channel_data(0);
                     return Frame { .frame = std::move(f_), .data = data };
                 }
@@ -242,7 +269,12 @@ private:
                 if (! frame->notified) self->notify(frame.value());
 
                 auto copied = std::min(output.size(), frame->data.size());
-                std::copy_n(frame->data.begin(), copied, output.begin());
+                details::adjust_audio_sample(CUBEB_SAMPLE_S16NE,
+                                             CUBEB_SAMPLE_S16NE,
+                                             output.subspan(0, copied),
+                                             frame->data.subspan(0, copied),
+                                             self->volume());
+                // std::copy_n(frame->data.begin(), copied, output.begin());
                 output      = output.subspan(copied);
                 frame->data = frame->data.subspan(copied);
 
@@ -277,8 +309,8 @@ private:
     rc<DeviceContext> m_ctx;
     rc<cubeb_stream>  m_stream;
 
-    i32   m_channels;
-    float m_volume;
+    i32                m_channels;
+    std::atomic<float> m_volume;
 
     std::optional<Frame> m_cached_frame;
     std::atomic<bool>    m_paused;

@@ -10,7 +10,9 @@
 #include <asio/thread_pool.hpp>
 #include <asio/use_awaitable.hpp>
 #include <asio/as_tuple.hpp>
+
 #include "asio_qt/qt_executor.h"
+#include "core/math.h"
 
 using namespace qcm;
 using NotifyInfo = player::notify::info;
@@ -124,6 +126,16 @@ void Player::set_position(int v) {
 void Player::set_busy(bool v) {
     if (std::exchange(m_busy, v) != v) {
         emit busyChanged();
+    }
+}
+
+auto Player::volume() const -> float { return m_player->volume(); }
+
+void Player::set_volume(float val) {
+    auto cur = volume();
+    if (! ycore::equal_within_ulps(cur, val, 4)) {
+        m_player->set_volume(val);
+        volumeChanged();
     }
 }
 
