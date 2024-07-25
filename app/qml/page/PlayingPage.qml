@@ -53,6 +53,7 @@ MD.Page {
         visible: false
         MD.Pane {
             id: play_pane
+            property int minimumWidth: row_slider.implicitWidth
             Layout.fillWidth: true
             contentHeight: contentChildren[1].implicitHeight
             contentWidth: contentChildren[1].implicitWidth
@@ -149,6 +150,7 @@ MD.Page {
                     }
                 }
                 RowLayout {
+                    id: row_slider
                     Layout.alignment: Qt.AlignHCenter
 
                     MD.Text {
@@ -201,7 +203,7 @@ MD.Page {
     }
 
     onWidthChanged: {
-        if (width < (play_pane.implicitWidth + 10) * 2) {
+        if (width < (play_pane.minimumWidth + 32) * 2) {
             m_large.visible = false;
             m_small.visible = true;
         } else {
