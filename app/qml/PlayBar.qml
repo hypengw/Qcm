@@ -198,11 +198,32 @@ MD.Pane {
                             popup.y = -popup.height;
                         }
                     }
-                    MD.Text {
-                        verticalAlignment: Qt.AlignVCenter
-                        typescale: MD.Token.typescale.body_medium
-                        readonly property date position: new Date(QA.Global.player.duration * slider.position)
-                        text: `${Qt.formatDateTime(position, 'mm:ss')} / ${Qt.formatDateTime(QA.Global.player.duration_date, 'mm:ss')}`
+                    RowLayout {
+                        spacing: 0
+                        MD.FontMetrics {
+                            id: fm_time
+                            typescale: MD.Token.typescale.body_medium
+                        }
+                        MD.Text {
+                            Layout.preferredWidth: fm_time.advanceWidth("00:00") + 2
+                            horizontalAlignment: Qt.AlignHCenter
+                            verticalAlignment: Qt.AlignVCenter
+                            typescale: MD.Token.typescale.body_medium
+                            readonly property date position: new Date(QA.Global.player.duration * slider.position)
+                            text: `${Qt.formatDateTime(position, 'mm:ss')}`
+                        }
+                        MD.Text {
+                            verticalAlignment: Qt.AlignVCenter
+                            typescale: MD.Token.typescale.body_medium
+                            text: '/'
+                        }
+                        MD.Text {
+                            Layout.preferredWidth: fm_time.advanceWidth("00:00") + 2
+                            horizontalAlignment: Qt.AlignHCenter
+                            verticalAlignment: Qt.AlignVCenter
+                            typescale: MD.Token.typescale.body_medium
+                            text: `${Qt.formatDateTime(QA.Global.player.duration_date, 'mm:ss')}`
+                        }
                     }
                 }
             }
