@@ -159,7 +159,7 @@ MD.Page {
                         typescale: MD.Token.typescale.body_medium
                     }
                     MD.Text {
-                        Layout.preferredWidth: fm_time.advanceWidth("00:00") + 2
+                        Layout.preferredWidth: fm_time.rect("00:00").width + 2
                         horizontalAlignment: Qt.AlignHCenter
                         readonly property date position: new Date(QA.Global.player.duration * slider.position)
 
@@ -171,7 +171,7 @@ MD.Page {
                         Layout.preferredWidth: 220
                     }
                     MD.Text {
-                        Layout.preferredWidth: fm_time.advanceWidth("00:00") + 2
+                        Layout.preferredWidth: fm_time.rect("00:00").width + 2
                         horizontalAlignment: Qt.AlignHCenter
                         opacity: QA.Global.player.duration > 0 ? 1 : 0
                         text: `${Qt.formatDateTime(QA.Global.player.duration_date, 'mm:ss')}`

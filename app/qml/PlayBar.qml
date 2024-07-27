@@ -205,7 +205,7 @@ MD.Pane {
                             typescale: MD.Token.typescale.body_medium
                         }
                         MD.Text {
-                            Layout.preferredWidth: fm_time.advanceWidth("00:00") + 2
+                            Layout.preferredWidth: fm_time.rect("00:00").width + 2
                             horizontalAlignment: Qt.AlignHCenter
                             verticalAlignment: Qt.AlignVCenter
                             typescale: MD.Token.typescale.body_medium
@@ -218,7 +218,7 @@ MD.Pane {
                             text: '/'
                         }
                         MD.Text {
-                            Layout.preferredWidth: fm_time.advanceWidth("00:00") + 2
+                            Layout.preferredWidth: fm_time.rect("00:00").width + 2
                             horizontalAlignment: Qt.AlignHCenter
                             verticalAlignment: Qt.AlignVCenter
                             typescale: MD.Token.typescale.body_medium
