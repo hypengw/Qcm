@@ -126,6 +126,7 @@ MD.Page {
                         onClicked: QA.Global.playlist.prev()
                     }
                     MD.IconButton {
+                        type: MD.Enum.IBtFilled
                         icon.name: QA.Global.player.playing ? MD.Token.icon.pause : MD.Token.icon.play_arrow
 
                         onClicked: {
@@ -153,7 +154,13 @@ MD.Page {
                     id: row_slider
                     Layout.alignment: Qt.AlignHCenter
 
+                    MD.FontMetrics {
+                        id: fm_time
+                        typescale: MD.Token.typescale.body_medium
+                    }
                     MD.Text {
+                        Layout.preferredWidth: fm_time.advanceWidth("00:00") + 2
+                        horizontalAlignment: Qt.AlignHCenter
                         readonly property date position: new Date(QA.Global.player.duration * slider.position)
 
                         opacity: QA.Global.player.duration > 0 ? 1 : 0
@@ -164,6 +171,8 @@ MD.Page {
                         Layout.preferredWidth: 220
                     }
                     MD.Text {
+                        Layout.preferredWidth: fm_time.advanceWidth("00:00") + 2
+                        horizontalAlignment: Qt.AlignHCenter
                         opacity: QA.Global.player.duration > 0 ? 1 : 0
                         text: `${Qt.formatDateTime(QA.Global.player.duration_date, 'mm:ss')}`
                     }
