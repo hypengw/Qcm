@@ -77,6 +77,7 @@ public:
 
     bool                    debug() const;
     Q_INVOKABLE QVariantMap info() const;
+    Q_INVOKABLE QString     mpris_trackid(model::ItemId) const;
 
     Q_INVOKABLE QUrl    media_file(const QString& id) const;
     Q_INVOKABLE QString media_url(const QString& ori, const QString& id) const;

@@ -301,12 +301,25 @@ void App::test() {
 }
 
 QVariantMap App::info() const {
+    // clang-format off
     return QVariantMap {
+        { "id", APP_ID },
         { "name", APP_NAME },
         { "version", APP_VERSION },
         { "summary", APP_SUMMARY },
         { "author", APP_AUTHOR },
     };
+    // clang-format on
+}
+
+auto App::mpris_trackid(model::ItemId id) const -> QString {
+    static const auto dbus_path = QString(APP_ID).replace('.', '/');
+    auto              provider  = id.provider();
+    auto              sid       = id.id();
+    return QString("/%1/TrackId/%2/%3")
+        .arg(dbus_path)
+        .arg(provider.isEmpty() ? u"unknown"_qs : provider)
+        .arg(sid.isEmpty() ? u"0"_qs : sid);
 }
 
 bool App::debug() const {

@@ -6,8 +6,6 @@
 
 using namespace mpris;
 
-static const QString MprisRootInterface { u"org.mpris.MediaPlayer2"_qs };
-
 MediaPlayer2Adaptor::MediaPlayer2Adaptor(MediaPlayer2* parent)
     : QDBusAbstractAdaptor(parent), m_realobj(parent) {
     // need signal to slot
@@ -159,11 +157,14 @@ void MediaPlayer2PlayerAdaptor::SetPosition(const QDBusObjectPath& id, qlonglong
 }
 void MediaPlayer2PlayerAdaptor::OpenUri(const QString& v) { emit m_realobj->openUriRequested(v); }
 
-#define CON(_type_, _prop_)                                                                       \
-    void _type_::on##_prop_##Changed() const {                                                    \
-        QVariantMap changedProperties;                                                            \
-        changedProperties[QStringLiteral(#_prop_)] = QVariant(_prop_());                          \
-        m_realobj->notifyPropertiesChanged(MprisRootInterface, changedProperties, QStringList()); \
+#define CON(_type_, _prop_)                                                                  \
+    void _type_::on##_prop_##Changed() const {                                               \
+        QVariantMap changedProperties;                                                       \
+        auto        meta = _type_::metaObject();                                             \
+        QString     interfaceName =                                                          \
+            meta->classInfo(meta->indexOfClassInfo("D-Bus Interface")).value();              \
+        changedProperties[QStringLiteral(#_prop_)] = QVariant(_prop_());                     \
+        m_realobj->notifyPropertiesChanged(interfaceName, changedProperties, QStringList()); \
     }
 
 CON(MediaPlayer2Adaptor, CanQuit);

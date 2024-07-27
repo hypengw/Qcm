@@ -12,6 +12,7 @@ using namespace mpris;
 namespace
 {
 static const QString MprisObjectPath { u"/org/mpris/MediaPlayer2"_qs };
+static const QString MprisPlayerObjectPath { u"/org/mpris/MediaPlayer2.Player"_qs };
 static const QString DBusPropertiesInterface { u"org.freedesktop.DBus.Properties"_qs };
 static const QString DBusPropertiesChangedSignal { u"PropertiesChanged"_qs };
 } // namespace
@@ -231,7 +232,7 @@ void MediaPlayer2::setMetadata(const QVariantMap& metadata) {
     auto key_trackid = metakey(MetaTrackId);
     if (m_typedMetadata.contains(key_trackid)) {
         m_typedMetadata[key_trackid] = QVariant::fromValue(
-            QDBusObjectPath(u"/trackid/"_qs + m_metadata[key_trackid].toString()));
+            QDBusObjectPath(m_metadata[key_trackid].toString()));
     }
     metadata_type_map(m_typedMetadata,
                       std::array {

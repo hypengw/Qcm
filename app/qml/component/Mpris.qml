@@ -57,15 +57,17 @@ Item {
         mpris.metadata = Qt.binding(() => {
                 const meta = {};
                 const song = playlist.cur;
-                if (song.itemId.valid())
-                    meta[key(QA.MprisMediaPlayer.MetaTrackId)] = song.itemId.sid;
+
+                meta[key(QA.MprisMediaPlayer.MetaTrackId)] = QA.App.mpris_trackid(song.itemId);
                 if (root.song_cover)
                     meta[key(QA.MprisMediaPlayer.MetaArtUrl)] = root.song_cover;
                 meta[key(QA.MprisMediaPlayer.MetaTitle)] = song.name;
                 meta[key(QA.MprisMediaPlayer.MetaAlbum)] = song.album.name;
-                meta[key(QA.MprisMediaPlayer.MetaAlbumArtist)] = song.artists.map(a => {
+                const artist = song.artists.map(a => {
                         return a.name;
-                    });
+                });
+                meta[key(QA.MprisMediaPlayer.MetaArtist)] = artist;
+                meta[key(QA.MprisMediaPlayer.MetaAlbumArtist)] = artist;
                 meta[key(QA.MprisMediaPlayer.MetaLength)] = player.duration * 1000;
                 return meta;
             });
