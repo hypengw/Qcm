@@ -1,4 +1,5 @@
 #pragma once
+#include "core/macro.h"
 
 #define GADGET_PROPERTY(_type_, _prop_, _var_, _val_) \
     Q_PROPERTY(_type_ _prop_ MEMBER _var_)            \
@@ -62,9 +63,27 @@ Q_SIGNALS:                                                                      
         }                                                         \
     }
 
-#define DECLARE_PROPERTY(_type_, _prop_, _sig_)        \
-    Q_PROPERTY(_type_ _prop_ READ _prop_ NOTIFY _sig_) \
-    auto _prop_() const -> const _type_&;              \
-    void set_##_prop_(const _type_&);
+#define _DECLARE_FLAG_NO_EMIT(...)
+#define _DECLARE_FLAG_WRITE(prop)       WRITE set_##prop
+#define _DECLARE_FLAG_NOTIFY(prop)      NOTIFY prop##_changed
+#define _DECLARE_FLAG_NOTIFY_NAME(name) NOTIFY name YCORE_EMPTY
+
+#define _DECLARE_FLAG_EACH(act, extra) _DECLARE_FLAG_##act extra
+#define _PARSE_DECLARE_FLAG(prop, ...) YCORE_FOR_EACH_EX(_DECLARE_FLAG_EACH, (prop), __VA_ARGS__)
+
+#define _DECLARE_FUNC_NO_EMIT(...)
+#define _DECLARE_FUNC_WRITE(...)
+#define _DECLARE_FUNC_NOTIFY(prop, type) Q_SIGNAL void prop##_changed();
+#define _DECLARE_FUNC_NOTIFY_NAME(name)  YCORE_EMPTY
+
+#define _DECLARE_FUNC_EACH(act, extra) _DECLARE_FUNC_##act extra
+#define _PARSE_DECLARE_FUNC(prop, type, ...) \
+    YCORE_FOR_EACH_EX(_DECLARE_FUNC_EACH, (prop, type), __VA_ARGS__)
+
+#define DECLARE_PROPERTY(_type_, _prop_, ...)                                      \
+    Q_PROPERTY(_type_ _prop_ READ _prop_ _PARSE_DECLARE_FLAG(_prop_, __VA_ARGS__)) \
+    auto _prop_() const -> const _type_&;                                          \
+    void set_##_prop_(const _type_&);                                              \
+    _PARSE_DECLARE_FUNC(_prop_, _type_, __VA_ARGS__)
 
 #define DECLARE_MODEL(...)

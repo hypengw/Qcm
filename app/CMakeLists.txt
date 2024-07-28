@@ -152,12 +152,6 @@ target_link_libraries(
          platform
          qcm_interface)
 
-target_compile_definitions(
-  app
-  PUBLIC APP_ID="${APP_ID}" APP_VERSION="${APP_VERSION}"
-         APP_AUTHOR="${APP_AUTHOR}" APP_NAME="${APP_NAME}"
-         APP_SUMMARY="${APP_SUMMARY}")
-
 qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cpp)
 
 qt_add_qml_module(

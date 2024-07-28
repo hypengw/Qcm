@@ -16,9 +16,9 @@ public:
     UserAccount(QObject* parent = nullptr);
     ~UserAccount();
 
-    DECLARE_PROPERTY(ItemId, userId, infoChanged)
-    DECLARE_PROPERTY(QString, nickname, infoChanged)
-    DECLARE_PROPERTY(QString, avatarUrl, infoChanged)
+    DECLARE_PROPERTY(ItemId, userId, NOTIFY_NAME(infoChanged))
+    DECLARE_PROPERTY(QString, nickname, NOTIFY_NAME(infoChanged))
+    DECLARE_PROPERTY(QString, avatarUrl, NOTIFY_NAME(infoChanged))
 
 Q_SIGNALS:
     void infoChanged();

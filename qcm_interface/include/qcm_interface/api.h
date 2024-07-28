@@ -10,6 +10,7 @@
 #include <asio/recycling_allocator.hpp>
 #include <asio/bind_allocator.hpp>
 
+#include "core/qstr_helper.h"
 #include "asio_helper/watch_dog.h"
 #include "qcm_interface/enum.h"
 #include "qcm_interface/type.h"

@@ -7,13 +7,14 @@
 #include <QDateTime>
 
 #include "core/core.h"
+#include "core/qstr_helper.h"
 #include "core/vec_helper.h"
 
 #include "qcm_interface/type.h"
 #include "qcm_interface/macro.h"
 #include "qcm_interface/export.h"
-
 #include "qcm_interface/item_id.h"
+
 namespace qcm::model
 {
 
@@ -158,7 +159,7 @@ class ModelBase<void> {};
 
 constexpr auto MF_COPY { 1 };
 
-template<typename T, typename TBase>
+template<typename T, typename TBase = void>
 class Model : public details::ModelBase<TBase> {
     using Base = details::ModelBase<TBase>;
 
@@ -197,4 +198,4 @@ private:
     up<Private> m_ptr;
 };
 
-} // namespace qcm::model
+}

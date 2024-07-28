@@ -16,6 +16,7 @@
 #include "core/fmt.h"
 #include "core/log.h"
 #include "core/type.h"
+#include "core/str_helper.h"
 #include "core/variant_helper.h"
 
 using namespace std::literals::string_view_literals;
@@ -90,10 +91,14 @@ struct InputInfo {
 };
 
 struct OutputInfo {
+    static constexpr auto VF_NO_EMIT { "NO_EMIT"sv };
+    static constexpr auto VF_WRITE { "WRITE"sv };
+    static constexpr auto VF_NOTIFY { "NOTIFY"sv };
+    static constexpr auto VF_NOTIFY_NAME { "NOTIFY_NAME"sv };
     struct VarInfo {
-        std::string type;
-        std::string name;
-        std::string sig;
+        std::string                                     type;
+        std::string                                     name;
+        std::map<std::string, std::string, std::less<>> flags;
     };
     struct ModelInfo {
         std::vector<std::string> ns;
@@ -276,9 +281,9 @@ auto parse(std::string_view src, std::span<const std::string_view> macro_names) 
     auto it = src.begin();
 
     auto extend_word = [&ctx, &it, src](usize i) {
-        ctx.word = ctx.word.empty() ? std::string_view { it, 1 }
-                                    : std::string_view { ctx.word.begin(),
-                                                         std::min(ctx.word.end() + i, src.end()) };
+        ctx.word = ctx.word.empty()
+                       ? std::string_view { it, 1 }
+                       : std::string_view { ctx.word.begin(), std::min(it + i, src.end()) };
     };
 
     auto emit_word = [&ctx, &it, has_bracket, src, macro_names]() {
@@ -410,12 +415,24 @@ auto collect(const InputInfo& info) -> OutputInfo {
                 auto& model = out.models.back();
                 auto  name  = collect_class_name(m);
                 if (name == model.name) {
-                    _assert_msg_rel_(m.params.size() == 3, "wrong param of {}", DECLARE_PROPERTY);
+                    _assert_msg_rel_(m.params.size() >= 2, "wrong param of {}", DECLARE_PROPERTY);
                     model.vars.push_back({
-                        .type = m.params.at(0),
-                        .name = m.params.at(1),
-                        .sig  = m.params.at(2),
+                        .type  = m.params.at(0),
+                        .name  = m.params.at(1),
+                        .flags = {},
                     });
+                    for (auto it = m.params.begin() + 2; it < m.params.end(); it++) {
+                        auto&      el = *it;
+                        std::array seps { "("sv, ")"sv };
+                        auto       sps  = helper::split(el, seps);
+                        auto       name = std::string(helper::trims(sps.at(0)));
+
+                        std::string value;
+                        if (sps.size() > 1) {
+                            value = std::string(helper::trims(sps.at(1)));
+                        }
+                        model.vars.back().flags.insert({ name, value });
+                    }
                 }
             }
         }
@@ -436,7 +453,18 @@ auto format_model(const OutputInfo::ModelInfo& info) -> std::tuple<std::string, 
     });
     auto view_prop_funcs = std::ranges::transform_view(
         info.vars, [&info, parent](const OutputInfo::VarInfo& v) -> std::string {
-            return fmt::format(R"(
+            std::string sig_emit;
+            if (! v.flags.contains(OutputInfo::VF_NO_EMIT)) {
+                if (v.flags.contains(OutputInfo::VF_NOTIFY_NAME)) {
+                    sig_emit =
+                        fmt::format("Q_EMIT {}();", v.flags.at(OutputInfo::VF_NOTIFY_NAME.data()));
+                } else if (v.flags.contains(OutputInfo::VF_NOTIFY)) {
+                    sig_emit = fmt::format("Q_EMIT {}_changed();", v.name);
+                }
+            }
+
+            return fmt::format(
+                R"(
 auto {}::{}() const -> const {}& {{
     auto d = qcm::model::{}::d_func();
     return d->{};
@@ -445,20 +473,24 @@ auto {}::{}() const -> const {}& {{
 void {}::set_{}(const {}& val) {{
     auto d = qcm::model::{}::d_func();
     auto& p = d->{};
-    p = val;
+    if(val != p) {{
+        p = val;
+        {}
+    }}
 }}
 )",
-                               info.fullname,
-                               v.name,
-                               v.type,
-                               parent,
-                               v.name,
-                               // set
-                               info.fullname,
-                               v.name,
-                               v.type,
-                               parent,
-                               v.name);
+                info.fullname,
+                v.name,
+                v.type,
+                parent,
+                v.name,
+                // set
+                info.fullname,
+                v.name,
+                v.type,
+                parent,
+                v.name,
+                sig_emit);
         });
 
     std::string forward_declare { fmt::format("namespace {} {{ {} {}; }}",
@@ -469,12 +501,14 @@ void {}::set_{}(const {}& val) {{
     std::string copy;
     if (info.copyable) {
         copy = fmt::format(R"(
-
+template<>
 {}::Model(const Model& m) : Model() {{
-    Base::Base(static_cast<const Base&>(m));
+    Base::operator = (m);
     *(this->m_ptr) = *(m.m_ptr);
 }}
-Model& {}::operator=(const Model& m) {{
+
+template<>
+auto {}::operator=(const Model& m) -> Model& {{
     Base::operator = (m);
     *(this->m_ptr) = *(m.m_ptr);
     return *this;

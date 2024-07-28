@@ -59,8 +59,6 @@ private:
     auto prepare_req(const Request&) const -> Request;
 
     C_DECLARE_PRIVATE(Session, m_p)
-
-    up<Private> m_p;
 };
 
 } // namespace request

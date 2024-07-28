@@ -1,9 +1,22 @@
+set(APP_ID
+    io.github.hypengw.Qcm)
+set(APP_NAME
+    ${PROJECT_NAME})
+set(APP_VERSION
+    ${PROJECT_VERSION})
+set(APP_SUMMARY
+    ${PROJECT_DESCRIPTION})
+set(APP_AUTHOR
+    "hypeng")
+
 find_package(
   Qt6 REQUIRED
   COMPONENTS Qml)
 
 set(MODEL_SOURCES
-    include/qcm_interface/model/user_account.h)
+    include/qcm_interface/model/user_account.h
+    include/qcm_interface/model/app_info.h
+)
 
 add_executable(
   qcm_interface_generator
@@ -66,3 +79,9 @@ set_target_properties(
 target_link_libraries(
   qcm_interface
   PUBLIC core asio_helper asio_qt request Qt::Qml)
+
+target_compile_definitions(
+  qcm_interface
+  PUBLIC APP_ID="${APP_ID}" APP_VERSION="${APP_VERSION}"
+         APP_AUTHOR="${APP_AUTHOR}" APP_NAME="${APP_NAME}"
+         APP_SUMMARY="${APP_SUMMARY}")

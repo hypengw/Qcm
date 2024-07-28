@@ -1,5 +1,4 @@
 #pragma once
-#include <string_view>
 #include <string>
 #include <algorithm>
 #include <cctype>
@@ -9,6 +8,9 @@
 #include "core/core.h"
 #include "core/fmt.h"
 #include "core/vec_helper.h"
+#include "core/strv_helper.h"
+
+using namespace std::literals::string_literals;
 
 namespace helper
 {
@@ -36,40 +38,6 @@ struct Convert<std::string, T> {
 
 namespace helper
 {
-
-constexpr std::string_view trims_left(std::string_view in) noexcept {
-    auto iter = std::find_if(in.begin(), in.end(), [](char c) {
-        return ! std::isspace(c);
-    });
-    return { iter != in.end() ? iter : in.begin(), in.end() };
-}
-
-constexpr std::string_view trims_right(std::string_view in) noexcept {
-    auto iter = std::find_if(in.rbegin(), in.rend(), [](char c) {
-        return ! std::isspace(c);
-    });
-    return { in.begin(), iter != in.rend() ? iter.base() : in.end() };
-}
-
-constexpr std::string_view trims(std::string_view in) noexcept {
-    return trims_left(trims_right(in));
-}
-
-constexpr auto case_insensitive_compare(std::string_view a, std::string_view b) noexcept {
-    return std::lexicographical_compare_three_way(
-        a.begin(), a.end(), b.begin(), b.end(), [](unsigned char a, unsigned char b) {
-            const auto la = std::tolower(a);
-            const auto lb = std::tolower(b);
-            return (la < lb)   ? std::weak_ordering::less
-                   : (la > lb) ? std::weak_ordering::greater
-                               : std::weak_ordering::equivalent;
-        });
-}
-
-constexpr bool starts_with_i(std::string_view str, std::string_view start) noexcept {
-    return str.size() >= start.size() &&
-           case_insensitive_compare({ str.begin(), str.begin() + start.size() }, start) == 0;
-}
 
 template<size_t N>
 struct literal_string_bytes {

@@ -112,8 +112,6 @@ private:
 
 private:
     C_DECLARE_PRIVATE(Response, m_d)
-
-    up<Private> m_d;
 };
 
 } // namespace request

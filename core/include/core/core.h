@@ -125,28 +125,4 @@ protected:
     const IMPL& crtp_impl() const { return *static_cast<const IMPL*>(this); }
 };
 
-#define C_DECLARE_PRIVATE(Class, DName)                                             \
-    inline Class::Private* d_func() {                                               \
-        return reinterpret_cast<Class::Private*>(ycore::GetPtrHelper(DName));       \
-    }                                                                               \
-    inline const Class::Private* d_func() const {                                   \
-        return reinterpret_cast<const Class::Private*>(ycore::GetPtrHelper(DName)); \
-    }
-
-#define C_D(Class)       Class::Private* const d = d_func()
-#define C_DP(Class, Ptr) Class::Private* const d = Ptr->d_func()
-
-#define C_DECLARE_PUBLIC(Class, QName)                                              \
-    inline Class*       q_func() { return static_cast<Class*>(QName); }             \
-    inline const Class* q_func() const { return static_cast<const Class*>(QName); } \
-    friend class Class;
-
-#define C_Q(Class) Class* const q = q_func()
-
-#if defined(_WIN32)
-#    define C_DECL_EXPORT __declspec(dllexport)
-#    define C_DECL_IMPORT __declspec(dllimport)
-#else
-#    define C_DECL_EXPORT __attribute__((visibility("default")))
-#    define C_DECL_IMPORT __attribute__((visibility("default")))
-#endif
+#include "core/macro.h"

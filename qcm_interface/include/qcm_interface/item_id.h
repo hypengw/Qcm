@@ -51,7 +51,6 @@ public Q_SLOTS:
 
 private:
     class Private;
-    up<Private> d_ptr;
     C_DECLARE_PRIVATE(ItemId, d_ptr);
 };
 } // namespace model

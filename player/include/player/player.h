@@ -33,7 +33,6 @@ public:
 
 private:
     C_DECLARE_PRIVATE(Player, m_d)
-    up<Private> m_d;
 };
 
 } // namespace player

@@ -43,7 +43,6 @@ Q_SIGNALS:
 
 private:
     class Private;
-    up<Private> d_ptr;
     C_DECLARE_PRIVATE(Global, d_ptr);
 };
 

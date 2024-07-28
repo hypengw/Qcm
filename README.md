@@ -29,6 +29,7 @@ cmake --build build
 ### Todo:
 - [ ] jellyfin
 - [ ] subsonic
+- [ ] upload
 - [ ] sql api cache
 - [x] fade in/out
 - [x] sidebar popup

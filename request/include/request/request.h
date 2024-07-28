@@ -56,7 +56,6 @@ private:
     voidp       get_opt(usize);
 
     C_DECLARE_PRIVATE(Request, m_d)
-    up<Private> m_d;
 };
 
 } // namespace request
