@@ -17,11 +17,11 @@ class Playlist : public QAbstractListModel {
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(model::Song cur READ cur NOTIFY curChanged)
-    Q_PROPERTY(qint32 curIndex READ curIndex NOTIFY curIndexChanged)
-    Q_PROPERTY(LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged)
-    Q_PROPERTY(bool canNext READ canNext NOTIFY canMoveChanged)
-    Q_PROPERTY(bool canPrev READ canPrev NOTIFY canMoveChanged)
+    Q_PROPERTY(model::Song cur READ cur NOTIFY curChanged FINAL)
+    Q_PROPERTY(qint32 curIndex READ curIndex NOTIFY curIndexChanged FINAL)
+    Q_PROPERTY(LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged FINAL)
+    Q_PROPERTY(bool canNext READ canNext NOTIFY canMoveChanged FINAL)
+    Q_PROPERTY(bool canPrev READ canPrev NOTIFY canMoveChanged FINAL)
 public:
     enum LoopMode
     {

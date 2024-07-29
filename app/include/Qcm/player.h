@@ -13,13 +13,13 @@ class Player : public QObject {
     Q_OBJECT
     QML_NAMED_ELEMENT(QcmPlayer)
 
-    Q_PROPERTY(QUrl source READ source WRITE set_source NOTIFY sourceChanged)
-    Q_PROPERTY(int position READ position WRITE set_position NOTIFY positionChanged)
-    Q_PROPERTY(int duration READ duration NOTIFY durationChanged)
-    Q_PROPERTY(float volume READ volume WRITE set_volume NOTIFY volumeChanged)
-    Q_PROPERTY(uint fadeTime READ fadeTime WRITE set_fadeTime NOTIFY fadeTimeChanged)
-    Q_PROPERTY(PlaybackState playbackState READ playbackState NOTIFY playbackStateChanged)
-    Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
+    Q_PROPERTY(QUrl source READ source WRITE set_source NOTIFY sourceChanged FINAL)
+    Q_PROPERTY(int position READ position WRITE set_position NOTIFY positionChanged FINAL)
+    Q_PROPERTY(int duration READ duration NOTIFY durationChanged FINAL)
+    Q_PROPERTY(float volume READ volume WRITE set_volume NOTIFY volumeChanged FINAL)
+    Q_PROPERTY(uint fadeTime READ fadeTime WRITE set_fadeTime NOTIFY fadeTimeChanged FINAL)
+    Q_PROPERTY(PlaybackState playbackState READ playbackState NOTIFY playbackStateChanged FINAL)
+    Q_PROPERTY(bool busy READ busy NOTIFY busyChanged FINAL)
 
 public:
     using NotifyInfo   = player::notify::info;

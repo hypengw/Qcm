@@ -12,8 +12,8 @@ class Clipboard : public QObject {
     QML_ELEMENT
     QML_SINGLETON
 
-    Q_PROPERTY(QString text READ text WRITE setText NOTIFY changed)
-    Q_PROPERTY(QClipboard::Mode mode READ mode WRITE setMode NOTIFY modeChanged)
+    Q_PROPERTY(QString text READ text WRITE setText NOTIFY changed FINAL)
+    Q_PROPERTY(QClipboard::Mode mode READ mode WRITE setMode NOTIFY modeChanged FINAL)
 
 public:
     Clipboard(QObject* parent = nullptr);
