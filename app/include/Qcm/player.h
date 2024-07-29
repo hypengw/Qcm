@@ -1,8 +1,6 @@
 #pragma once
 
 #include <QQmlEngine>
-#include "asio/thread_pool.hpp"
-#include "cache_sql.h"
 #include "player/player.h"
 #include "player/notify.h"
 
@@ -22,9 +20,9 @@ class Player : public QObject {
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged FINAL)
 
 public:
-    using NotifyInfo   = player::notify::info;
-    using channel_type = asio::experimental::concurrent_channel<asio::thread_pool::executor_type,
-                                                                void(asio::error_code, NotifyInfo)>;
+    using NotifyInfo = player::notify::info;
+    class NotifyChannel;
+
 
     enum PlaybackState
     {
@@ -45,6 +43,8 @@ public:
     auto        playbackState() const -> PlaybackState;
     auto        volume() const -> float;
     auto        fadeTime() const -> u32;
+
+    auto sender() const -> Sender<NotifyInfo>;
 
     Q_INVOKABLE void play();
     Q_INVOKABLE void pause();
@@ -75,7 +75,7 @@ public Q_SLOTS:
 private:
     up<player::Player> m_player;
     QUrl               m_source;
-    rc<channel_type>   m_channel;
+    rc<NotifyChannel>  m_channel;
     bool               m_end;
 
     std::atomic<int> m_position;

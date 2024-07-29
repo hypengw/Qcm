@@ -21,34 +21,41 @@ namespace
 {
 constexpr usize MaxChannelSize { 64 };
 
-class NotifierInner : public detail::Sender<NotifyInfo> {
+} // namespace
+
+class Player::NotifyChannel : public detail::Sender<NotifyInfo> {
 public:
-    using channel_type = Player::channel_type;
+    using channel_type = asio::experimental::concurrent_channel<asio::thread_pool::executor_type,
+                                                                void(asio::error_code, NotifyInfo)>;
 
-    NotifierInner(rc<channel_type> ch): channel(ch), strand(ch->get_executor()) {}
-    virtual ~NotifierInner() {}
+    NotifyChannel(rc<channel_type> ch): m_channel(ch), m_strand(ch->get_executor()) {}
+    virtual ~NotifyChannel() {}
 
-    bool try_send(NotifyInfo info) override { return channel->try_send(asio::error_code {}, info); }
+    bool try_send(NotifyInfo info) override {
+        return m_channel->try_send(asio::error_code {}, info);
+    }
     std::future<void> send(NotifyInfo info) override {
         return asio::co_spawn(
-            strand,
+            m_strand,
             [info, this]() -> asio::awaitable<void> {
-                co_await channel->async_send(asio::error_code {}, info, asio::use_awaitable);
+                co_await m_channel->async_send(asio::error_code {}, info, asio::use_awaitable);
             },
             asio::use_future);
     }
-    void reset() override { channel.reset(); }
+    void reset() override { m_channel->reset(); }
 
-    rc<channel_type>                          channel;
-    asio::strand<channel_type::executor_type> strand;
+    auto channel() { return m_channel; }
+    auto cancel() { m_channel->cancel(); }
+
+private:
+    rc<channel_type>                          m_channel;
+    asio::strand<channel_type::executor_type> m_strand;
 };
-
-} // namespace
 
 Player::Player(QObject* parent)
     : QObject(parent),
-      m_channel(make_rc<NotifierInner::channel_type>(Global::instance()->pool_executor(),
-                                                     MaxChannelSize)),
+      m_channel(make_rc<NotifyChannel>(make_rc<NotifyChannel::channel_type>(
+          Global::instance()->pool_executor(), MaxChannelSize))),
       m_end(false),
       m_position(0),
       m_duration(0),
@@ -56,14 +63,13 @@ Player::Player(QObject* parent)
       m_playback_state(PlaybackState::StoppedState) {
     connect(this, &Player::notify, this, &Player::processNotify, Qt::QueuedConnection);
 
-    auto channel       = m_channel;
-    auto notifer_inner = make_rc<NotifierInner>(channel);
-    m_player           = std::make_unique<player::Player>(
-        APP_NAME, player::Notifier(notifer_inner), Global::instance()->pool_executor());
+    auto channel = m_channel->channel();
+    m_player     = std::make_unique<player::Player>(
+        APP_NAME, player::Notifier(m_channel), Global::instance()->pool_executor());
 
     auto qt_exec = Global::instance()->qexecutor();
     asio::co_spawn(
-        asio::strand<NotifierInner::channel_type::executor_type>(channel->get_executor()),
+        asio::strand<NotifyChannel::channel_type::executor_type>(channel->get_executor()),
         [this, channel]() -> asio::awaitable<void> {
             while (! m_end) {
                 auto [ec, info] =
@@ -132,6 +138,8 @@ void Player::set_busy(bool v) {
 auto Player::volume() const -> float { return m_player->volume(); }
 auto Player::fadeTime() const -> u32 { return m_player->fade_time() / 1000; }
 
+auto Player::sender() const -> Sender<NotifyInfo> { return { m_channel }; }
+
 void Player::set_volume(float val) {
     auto cur = volume();
     if (! ycore::equal_within_ulps(cur, val, 4)) {
@@ -178,6 +186,8 @@ void Player::processNotify(NotifyInfo info) {
                             },
                             [this](notify::busy b) {
                                 set_busy(b.value);
+                            },
+                            [](notify::cache) {
                             } },
                info);
 }
