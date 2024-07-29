@@ -23,8 +23,12 @@ struct position : base<i64> {};
 struct duration : base<i64> {};
 struct playstate : base<PlayState> {};
 struct busy : base<bool> {};
+struct cache {
+    usize begin;
+    usize end;
+};
 
-using info = std::variant<position, duration, playstate, busy>;
+using info = std::variant<position, duration, playstate, busy, cache>;
 } // namespace notify
 //
 using Notifier = qcm::Sender<notify::info>;

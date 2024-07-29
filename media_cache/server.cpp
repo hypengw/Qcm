@@ -10,7 +10,7 @@
 
 using namespace media_cache;
 
-Server::Server(asio::any_io_executor ex, rc<request::Session> s)
+Server::Server(executor_type ex, rc<request::Session> s)
     : m_ex(ex),
       m_strand(ex),
       m_writer(make_rc<Writer>()),
@@ -85,7 +85,7 @@ void Server::start(std::filesystem::path cache_dir, rc<DataBase> db) {
 
     auto self = shared_from_this();
     asio::co_spawn(
-        m_ex,
+        m_strand,
         [self, db]() -> asio::awaitable<void> {
             co_await self->listener(db);
             co_return;

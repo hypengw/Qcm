@@ -18,7 +18,9 @@ namespace media_cache
 class Connection;
 class Server : public std::enable_shared_from_this<Server>, NoCopy {
 public:
-    Server(asio::any_io_executor ex, rc<request::Session>);
+    using executor_type = asio::thread_pool::executor_type;
+
+    Server(executor_type ex, rc<request::Session>);
     ~Server();
 
     void start(std::filesystem::path cache_dir, rc<DataBase>);
@@ -29,7 +31,7 @@ private:
     void connection_done(rc<Connection>);
     auto listener(rc<DataBase>) -> asio::awaitable<void>;
 
-    asio::any_io_executor               m_ex;
+    executor_type                       m_ex;
     asio::strand<asio::any_io_executor> m_strand;
 
     std::set<rc<Connection>> m_connections;

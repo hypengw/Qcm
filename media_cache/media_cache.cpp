@@ -6,7 +6,7 @@
 
 using namespace media_cache;
 
-MediaCache::MediaCache(asio::any_io_executor ex, rc<request::Session> s)
+MediaCache::MediaCache(executor_type ex, rc<request::Session> s)
     : m_server(std::make_shared<Server>(ex, s)) {}
 MediaCache::~MediaCache() { stop(); }
 
