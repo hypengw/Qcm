@@ -39,16 +39,16 @@ public:
 
     std::map<std::string, std::any, std::less<>> clients;
 
+    model::AppInfo info;
+
     std::mutex mutex;
 };
 
-auto Global::instance() -> Global* { 
-    return static_global(); 
-}
+auto Global::instance() -> Global* { return static_global(); }
 
-Global::Global(): d_ptr(make_up<Private>(this)) { 
+Global::Global(): d_ptr(make_up<Private>(this)) {
     DEBUG_LOG("init Global");
-    _assert_rel_(static_global(this) == this); 
+    _assert_rel_(static_global(this) == this);
 }
 Global::~Global() {}
 
@@ -66,6 +66,10 @@ auto Global::client(std::string_view name, std::optional<std::function<std::any(
     } else {
         return d->clients.at(std::string(name));
     }
+}
+auto Global::info() const -> const model::AppInfo& {
+    C_D(const Global);
+    return d->info;
 }
 
 auto Global::qexecutor() -> qt_executor_t& {

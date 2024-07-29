@@ -3,8 +3,6 @@
 #include <QObject>
 #include "qcm_interface/model.h"
 
-#include "core/log.h"
-
 namespace qcm
 {
 namespace model
@@ -17,8 +15,11 @@ public:
     AppInfo();
     ~AppInfo();
 
-    DECLARE_PROPERTY(QString, id)
-    DECLARE_PROPERTY(QString, version)
+    DECLARE_PROPERTY(QString, id, CONSTANT)
+    DECLARE_PROPERTY(QString, name, CONSTANT)
+    DECLARE_PROPERTY(QString, version, CONSTANT)
+    DECLARE_PROPERTY(QString, author, CONSTANT)
+    DECLARE_PROPERTY(QString, summary, CONSTANT)
 };
 
 } // namespace model

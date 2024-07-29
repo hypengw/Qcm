@@ -300,18 +300,6 @@ void App::test() {
     */
 }
 
-QVariantMap App::info() const {
-    // clang-format off
-    return QVariantMap {
-        { "id", APP_ID },
-        { "name", APP_NAME },
-        { "version", APP_VERSION },
-        { "summary", APP_SUMMARY },
-        { "author", APP_AUTHOR },
-    };
-    // clang-format on
-}
-
 auto App::mpris_trackid(model::ItemId id) const -> QString {
     static const auto dbus_path = QString(APP_ID).replace('.', '/');
     auto              provider  = id.provider();
@@ -360,7 +348,8 @@ QString App::itemIdPageUrl(const QJSValue& js) const {
     return {};
 }
 
-QQmlApplicationEngine* App::engine() const { return m_qml_engine.get(); }
+auto App::engine() const -> QQmlApplicationEngine* { return m_qml_engine.get(); }
+auto App::global() const -> Global* { return m_global.get(); }
 
 // #include <private/qquickpixmapcache_p.h>
 void App::releaseResources(QQuickWindow* win) {

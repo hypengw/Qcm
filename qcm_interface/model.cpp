@@ -9,7 +9,10 @@ UserAccount::UserAccount(QObject* parent) { this->setParent(parent); }
 UserAccount::~UserAccount() {}
 AppInfo::AppInfo() { 
     set_id(APP_ID); 
+    set_name(APP_NAME);
     set_version(APP_VERSION);
+    set_author(APP_AUTHOR);
+    set_summary(APP_SUMMARY);
 }
 AppInfo::~AppInfo() {}
 } // namespace qcm::model

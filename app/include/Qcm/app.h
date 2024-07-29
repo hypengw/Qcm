@@ -33,8 +33,10 @@ class CacheSql;
 class App : public QObject {
     Q_OBJECT
 
-    Q_PROPERTY(mpris::MediaPlayer2* mpris READ mpris)
-    Q_PROPERTY(bool debug READ debug)
+    Q_PROPERTY(mpris::MediaPlayer2* mpris READ mpris CONSTANT FINAL)
+    Q_PROPERTY(bool debug READ debug CONSTANT FINAL)
+    Q_PROPERTY(Global* global READ global CONSTANT FINAL)
+
 public:
     using pool_executor_t = asio::thread_pool::executor_type;
     using qt_executor_t   = QtExecutor;
@@ -67,8 +69,9 @@ public:
 
     void init();
 
-    static App*            instance();
-    QQmlApplicationEngine* engine() const;
+    static auto instance() -> App*;
+    auto        engine() const -> QQmlApplicationEngine*;
+    auto        global() const -> Global*;
 
     ncm::Client ncm_client() const;
     auto        get_cache_sql() { return m_cache_sql; }
@@ -76,7 +79,6 @@ public:
     mpris::MediaPlayer2* mpris() const { return m_mpris->mediaplayer2(); }
 
     bool                    debug() const;
-    Q_INVOKABLE QVariantMap info() const;
     Q_INVOKABLE QString     mpris_trackid(model::ItemId) const;
 
     Q_INVOKABLE QUrl    media_file(const QString& id) const;

@@ -9,7 +9,6 @@ MD.Page {
     id: root
     title: qsTr('about')
     padding: 0
-    readonly property var info: QA.App.info()
 
     MD.Flickable {
         id: flick
@@ -37,18 +36,18 @@ MD.Page {
             MD.Text {
                 Layout.alignment: Qt.AlignHCenter
                 typescale: MD.Token.typescale.headline_small
-                text: root.info.name
+                text: QA.App.global.info.name
             }
             MD.Text {
                 Layout.alignment: Qt.AlignHCenter
                 typescale: MD.Token.typescale.label_medium
                 opacity: 0.8
-                text: root.info.version
+                text: QA.App.global.info.version
             }
             MD.Text {
                 Layout.alignment: Qt.AlignHCenter
                 typescale: MD.Token.typescale.label_large
-                text: root.info.author
+                text: QA.App.global.info.author
             }
 
             MD.Text {
@@ -56,7 +55,7 @@ MD.Page {
                 Layout.bottomMargin: 8
                 Layout.alignment: Qt.AlignHCenter
                 typescale: MD.Token.typescale.body_large
-                text: root.info.summary
+                text: QA.App.global.info.summary
             }
 
             MD.DrawerItem {

@@ -10,6 +10,8 @@
 #include "asio_qt/qt_executor.h"
 #include "qcm_interface/export.h"
 
+#include "qcm_interface/model/app_info.h"
+
 namespace request
 {
 class Session;
@@ -20,6 +22,7 @@ namespace qcm
 class QCM_INTERFACE_API Global : public QObject {
     Q_OBJECT
 
+    Q_PROPERTY(model::AppInfo info READ info CONSTANT FINAL)
 public:
     using pool_executor_t = asio::thread_pool::executor_type;
     using qt_executor_t   = QtExecutor;
@@ -35,6 +38,8 @@ public:
     auto qexecutor() -> qt_executor_t&;
     auto pool_executor() -> pool_executor_t;
     auto session() -> rc<request::Session>;
+
+    auto info() const -> const model::AppInfo&;
 
     void join();
 
