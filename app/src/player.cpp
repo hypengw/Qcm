@@ -61,6 +61,7 @@ Player::Player(QObject* parent)
       m_duration(0),
       m_busy(false),
       m_playback_state(PlaybackState::StoppedState) {
+    App::instance()->set_player_sender(sender());
     connect(this, &Player::notify, this, &Player::processNotify, Qt::QueuedConnection);
 
     auto channel = m_channel->channel();
@@ -99,13 +100,18 @@ void        Player::set_source(const QUrl& v) {
         m_player->set_source(url.toStdString());
 
         emit sourceChanged();
+
+        if (m_source.isLocalFile()) {
+            set_cache_progress(QVector2D { 0.0f, 1.0f });
+        }
     }
 }
 
 auto Player::position() const -> int { return m_position; }
 auto Player::duration() const -> int { return m_duration; }
 auto Player::busy() const -> bool { return m_busy; }
-auto Player::playbackState() const -> Player::PlaybackState { return m_playback_state; }
+auto Player::playback_state() const -> Player::PlaybackState { return m_playback_state; }
+auto Player::cache_progress() const -> QVector2D { return m_cache_progress; }
 
 void Player::play() {
     set_busy(true);
@@ -137,6 +143,14 @@ void Player::set_busy(bool v) {
 
 auto Player::volume() const -> float { return m_player->volume(); }
 auto Player::fadeTime() const -> u32 { return m_player->fade_time() / 1000; }
+
+auto Player::seekable() const -> bool { return true; }
+auto Player::playing() const -> bool {
+    switch (playback_state()) {
+    case PlayingState: return true;
+    default: return false;
+    }
+}
 
 auto Player::sender() const -> Sender<NotifyInfo> { return { m_channel }; }
 
@@ -174,6 +188,28 @@ void Player::set_playback_state(PlaybackState v) {
     }
 }
 
+void Player::set_cache_progress(QVector2D val) {
+    do {
+        if (m_source.isLocalFile()) {
+            val = { 0.0, 1.0 };
+            break;
+        }
+        if (! ycore::equal_within_ulps(m_cache_progress.x(), val.x(), 4)) break;
+        if (ycore::equal_within_ulps(1.0f, val.y(), 4)) break;
+        auto delta = val.y() - m_cache_progress.y();
+        if (delta < 0) break;
+        if (delta > 0.05) break;
+        return;
+    } while (false);
+    m_cache_progress = val;
+    Q_EMIT cacheProgressChanged();
+}
+
+void Player::seek(double pos) {
+    set_position(pos * duration());
+    Q_EMIT seeked(position() * 1000.0);
+}
+
 void Player::processNotify(NotifyInfo info) {
     using namespace player;
     std::visit(overloaded { [](notify::position) {
@@ -187,7 +223,8 @@ void Player::processNotify(NotifyInfo info) {
                             [this](notify::busy b) {
                                 set_busy(b.value);
                             },
-                            [](notify::cache) {
+                            [this](notify::cache c) {
+                                set_cache_progress({ c.begin, c.end });
                             } },
                info);
 }

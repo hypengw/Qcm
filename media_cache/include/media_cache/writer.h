@@ -9,6 +9,7 @@
 #include <asio/thread_pool.hpp>
 
 #include "media_cache/fragment.h"
+#include "media_cache/fallbacks.h"
 #include "asio_helper/sync_file.h"
 
 namespace media_cache
@@ -29,6 +30,7 @@ public:
         ~File() {}
 
         auto is_fill(usize s) const -> bool { return m_frag->is_fill(s); }
+        void set_expected_size(usize val) { m_frag->set_expected_size(val); };
 
         auto& handle() { return m_file.handle(); }
 
@@ -72,7 +74,7 @@ public:
         rc<Fragment>                   m_frag;
     };
 
-    Writer(): m_context(1), m_ex(m_context.get_executor()) {}
+    Writer(rc<Fallbacks> fbs): m_context(1), m_ex(m_context.get_executor()), m_fbs(fbs) {}
     ~Writer() {}
 
     auto create(std::filesystem::path path) -> rc<File> {
@@ -80,7 +82,7 @@ public:
         {
             std::unique_lock lock { m_mutex };
             if (! m_frags.contains(path)) {
-                m_frags.insert({ path, make_rc<Fragment>() });
+                m_frags.insert({ path, make_rc<Fragment>(m_fbs) });
             }
             frag = m_frags.at(path);
             refresh_lru(path);
@@ -114,8 +116,10 @@ private:
     }
 
 private:
-    asio::thread_pool                             m_context;
-    executor_type                                 m_ex;
+    asio::thread_pool m_context;
+    executor_type     m_ex;
+    rc<Fallbacks>     m_fbs;
+
     std::map<std::filesystem::path, rc<Fragment>> m_frags;
     std::deque<std::filesystem::path>             m_lru;
     std::mutex                                    m_mutex;

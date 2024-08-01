@@ -102,4 +102,6 @@ MD.Slider {
             blocked = false;
         }
     }
+
+    overlay: QA.Global.player.cacheProgress
 }

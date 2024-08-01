@@ -20,7 +20,7 @@ class Server : public std::enable_shared_from_this<Server>, NoCopy {
 public:
     using executor_type = asio::thread_pool::executor_type;
 
-    Server(executor_type ex, rc<request::Session>);
+    Server(executor_type ex, rc<request::Session>, rc<Fallbacks>);
     ~Server();
 
     void start(std::filesystem::path cache_dir, rc<DataBase>);
@@ -36,6 +36,7 @@ private:
 
     std::set<rc<Connection>> m_connections;
     rc<Writer>               m_writer;
+    rc<Fallbacks>            m_fbs;
 
     asio::ip::tcp::acceptor m_acceptor;
     i32                     m_port;

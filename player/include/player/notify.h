@@ -24,8 +24,8 @@ struct duration : base<i64> {};
 struct playstate : base<PlayState> {};
 struct busy : base<bool> {};
 struct cache {
-    usize begin;
-    usize end;
+    float begin;
+    float end;
 };
 
 using info = std::variant<position, duration, playstate, busy, cache>;

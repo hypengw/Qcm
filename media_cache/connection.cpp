@@ -22,12 +22,24 @@ static constexpr usize            WriteBuf { 4096 * 4 };
 std::filesystem::path get_dl_path(std::filesystem::path p) { return p.replace_extension(DlSuffix); }
 
 void init_db_item(const request::HttpHeader::Field& f, DataBase::Item& db_item) {
-    if (helper::case_insensitive_compare(f.name, "content-Length") == 0) {
+    if (helper::case_insensitive_compare(f.name, "content-length") == 0) {
         if (auto whole = ctre::starts_with<DigitPattern>(f.value); whole) {
-            db_item.content_length = whole.to_number();
+            auto length = whole.to_number();
+            if (length > 0 && db_item.content_length < (usize)length)
+                db_item.content_length += length;
         }
     } else if (helper::case_insensitive_compare(f.name, "content-type") == 0) {
         db_item.content_type = f.value;
+    } else if (helper::case_insensitive_compare(f.name, "content-range") == 0) {
+        auto pos = f.value.find_last_of('/');
+        if (pos != std::string_view::npos && f.value.size() >= pos) {
+            auto num_str = std::string_view { f.value.begin() + pos + 1, f.value.end() };
+            if (auto whole = ctre::starts_with<DigitPattern>(num_str); whole) {
+                auto length = whole.to_number();
+                if (length > 0 && db_item.content_length < (usize)length)
+                    db_item.content_length = length;
+            }
+        }
     }
 }
 void init_db_item(const request::HttpHeader& header, DataBase::Item& db_item) {
@@ -70,7 +82,7 @@ auto Connection::send_file_header(std::optional<DataBase::Item> db_item, i64 off
     co_return;
 }
 
-auto Connection::file_source(std::filesystem::path                 file_path,
+auto Connection::file_source(std::filesystem::path file_path, rc<Fallbacks> fbs,
                              std::pmr::polymorphic_allocator<byte> allocator)
     -> asio::awaitable<void> {
     helper::SyncFile file { std::fstream(file_path.native(), std::ios::in | std::ios::binary) };
@@ -81,6 +93,8 @@ auto Connection::file_source(std::filesystem::path                 file_path,
         ERROR_LOG("wrong range start {}", offset);
         co_return;
     }
+
+    if (fbs->fragment) fbs->fragment(0, size, size);
 
     if (m_req->partial()) {
         file.handle().seekg(offset);
@@ -133,65 +147,77 @@ auto Connection::http_source(std::filesystem::path file_path, rc<request::Sessio
                              rc<Writer> writer) -> asio::awaitable<void> {
     const auto& req = m_req.value();
 
-    auto file_dl_path = get_dl_path(file_path);
+    struct Ctx {
+        std::filesystem::path              file_dl_path;
+        rc<Writer::File>                   file;
+        DataBase::Item                     db_item;
+        std::shared_ptr<request::Response> rsp;
+    };
+    Ctx ctx;
 
-    auto file = writer->create(file_dl_path);
+    ctx.file_dl_path = get_dl_path(file_path);
+    ctx.file         = writer->create(ctx.file_dl_path);
 
-    DataBase::Item                     db_item;
-    std::shared_ptr<request::Response> rsp;
-    bool                               need_pre_download { false };
+    bool need_pre_download { false };
     {
         std::string      proxy_id = req.proxy_id.value();
         request::Request proxy_req;
-        proxy_req.set_url(req.proxy_url.value());
-        for (auto& f : req.header.fields) {
-            if (helper::case_insensitive_compare(f.name, "host") == 0) continue;
-            proxy_req.set_header(f.name, f.value);
+        {
+            proxy_req.set_url(req.proxy_url.value());
+            for (auto& f : req.header.fields) {
+                if (helper::case_insensitive_compare(f.name, "host") == 0) continue;
+                proxy_req.set_header(f.name, f.value);
+            }
+            proxy_req.get_opt<request::req_opt::Timeout>().set_transfer_timeout(180);
+            proxy_req.get_opt<request::req_opt::Tcp>().set_keepalive(true);
         }
-        proxy_req.get_opt<request::req_opt::Timeout>().set_transfer_timeout(180);
-        proxy_req.get_opt<request::req_opt::Tcp>().set_keepalive(true);
 
         if (req.range_start) {
-            file->handle().seekg(m_req->range_start.value());
+            ctx.file->handle().seekg(m_req->range_start.value());
         }
 
-        rsp = (co_await ses->get(proxy_req)).value();
+        // do request
+        ctx.rsp = (co_await ses->get(proxy_req)).value();
 
-        db_item.key       = proxy_id;
-        auto code         = rsp->code().value_or(0);
+        ctx.db_item.key   = proxy_id;
+        auto code         = ctx.rsp->code().value_or(0);
         need_pre_download = code != 206 && req.range_start;
         if (! need_pre_download) {
-            co_await send_http_header(db_item, rsp->header(), proxy_req);
-            co_await m_db->insert(db_item);
+            ctx.db_item.content_length = req.range_start.value();
+            co_await send_http_header(ctx.db_item, ctx.rsp->header(), proxy_req);
+            ctx.file->set_expected_size(ctx.db_item.content_length);
+            co_await m_db->insert(ctx.db_item);
         } else {
             // full download
-            rsp->cancel();
+            ctx.rsp->cancel();
             proxy_req.remove_header("Range");
             proxy_req.remove_header("range");
-            rsp = (co_await ses->get(proxy_req)).value();
-            file->handle().seekg(0);
+
+            // do full request
+            ctx.rsp = (co_await ses->get(proxy_req)).value();
+
+            ctx.file->handle().seekg(0);
             if (auto db_opt = co_await m_db->get(proxy_id)) {
-                db_item = db_opt.value();
+                ctx.db_item = db_opt.value();
             } else {
-                init_db_item(rsp->header(), db_item);
+                init_db_item(ctx.rsp->header(), ctx.db_item);
             }
-            assert(db_item.content_length > 0);
-            co_await m_db->insert(db_item);
+            assert(ctx.db_item.content_length > 0);
+            ctx.file->set_expected_size(ctx.db_item.content_length);
+            co_await m_db->insert(ctx.db_item);
         }
     }
 
-    bool finished { false };
-
-    auto check_finished = [&file_dl_path, &db_item, &file_path, &file, &rsp]() -> bool {
-        if (file->is_fill(db_item.content_length)) {
-            file->handle().sync();
+    auto check_finished = [&ctx, file_path]() -> bool {
+        if (ctx.file->is_fill(ctx.db_item.content_length)) {
+            ctx.file->handle().sync();
             std::error_code ec;
-            std::filesystem::rename(file_dl_path, file_path, ec);
+            std::filesystem::rename(ctx.file_dl_path, file_path, ec);
             if (ec) {
                 ERROR_LOG("{}", ec.message());
             }
             DEBUG_LOG("finished: {}", file_path.native());
-            rsp->cancel();
+            ctx.rsp->cancel();
             return true;
         }
         return false;
@@ -201,17 +227,18 @@ auto Connection::http_source(std::filesystem::path file_path, rc<request::Sessio
     buf.resize(WriteBuf);
     auto buf_data = (unsigned char*)buf.data();
 
+    bool finished { false };
     for (;;) {
         if (! finished) {
             if (finished = check_finished(); finished) {
                 if (need_pre_download) {
                     co_await send_file_header(
-                        db_item, req.range_start.value_or(0), db_item.content_length);
+                        ctx.db_item, req.range_start.value_or(0), ctx.db_item.content_length);
                 }
                 continue;
             }
 
-            auto [ec, size] = co_await asio::async_read(*rsp,
+            auto [ec, size] = co_await asio::async_read(*ctx.rsp,
                                                         asio::mutable_buffer(buf_data, buf.size()),
                                                         asio::as_tuple(asio::use_awaitable));
 
@@ -219,35 +246,39 @@ auto Connection::http_source(std::filesystem::path file_path, rc<request::Sessio
                 co_await asio::async_write(m_s, asio::buffer(buf_data, size), asio::use_awaitable);
             }
 
-            co_await asio::async_write(*file, asio::buffer(buf_data, size), asio::use_awaitable);
+            co_await asio::async_write(
+                *ctx.file, asio::buffer(buf_data, size), asio::use_awaitable);
 
             if (ec) {
                 if (ec != asio::error::eof) {
                     ERROR_LOG("{}", ec.message());
                     m_s.cancel();
+                } else {
+                    ERROR_LOG("eof");
                 }
                 if (finished = check_finished(); finished) {
                     if (need_pre_download) {
                         co_await send_file_header(
-                            db_item, req.range_start.value_or(0), db_item.content_length);
+                            ctx.db_item, req.range_start.value_or(0), ctx.db_item.content_length);
                         continue;
                     }
                 }
                 break;
             }
         } else {
-            file->read_some(asio::mutable_buffer(buf_data, buf.size()));
-            auto size = file->handle().gcount();
+            DEBUG_LOG("using cache file");
+            ctx.file->read_some(asio::mutable_buffer(buf_data, buf.size()));
+            auto size = ctx.file->handle().gcount();
 
             co_await asio::async_write(m_s, asio::buffer(buf_data, size), asio::use_awaitable);
 
-            if (file->handle().eof()) break;
+            if (ctx.file->handle().eof()) break;
         }
     }
 }
 
-auto Connection::run(rc<request::Session> ses, rc<Writer> writer, std::filesystem::path cache_dir)
-    -> asio::awaitable<void> {
+auto Connection::run(rc<request::Session> ses, rc<Writer> writer, rc<Fallbacks> fbs,
+                     std::filesystem::path cache_dir) -> asio::awaitable<void> {
     auto req = co_await GetRequest::read(m_s);
     m_req    = req;
 
@@ -259,7 +290,7 @@ auto Connection::run(rc<request::Session> ses, rc<Writer> writer, std::filesyste
         auto file = cache_dir / proxy_id;
         if (co_await check_cache(proxy_id, file)) {
             std::filesystem::remove(get_dl_path(file));
-            co_await file_source(file, ses->allocator());
+            co_await file_source(file, fbs, ses->allocator());
         } else if (req.proxy_url) {
             co_await http_source(file, ses, writer);
         }

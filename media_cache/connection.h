@@ -19,14 +19,14 @@ public:
     Connection(asio::ip::tcp::socket, rc<DataBase>);
     ~Connection();
 
-    auto run(rc<request::Session>, rc<Writer>, std::filesystem::path cache_dir) -> asio::awaitable<void>;
+    auto run(rc<request::Session>, rc<Writer>, rc<Fallbacks>, std::filesystem::path cache_dir) -> asio::awaitable<void>;
 
     void stop();
     auto get_req() -> const std::optional<GetRequest>&;
 
 private:
     auto http_source(std::filesystem::path, rc<request::Session>, rc<Writer>) -> asio::awaitable<void>;
-    auto file_source(std::filesystem::path, std::pmr::polymorphic_allocator<byte>)
+    auto file_source(std::filesystem::path, rc<Fallbacks>, std::pmr::polymorphic_allocator<byte>)
         -> asio::awaitable<void>;
 
     auto send_http_header(DataBase::Item& db_item, const request::HttpHeader& header,

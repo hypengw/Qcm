@@ -23,6 +23,7 @@
 #include "mpris/mediaplayer2.h"
 #include "media_cache/media_cache.h"
 #include "qcm_interface/model/user_account.h"
+#include "Qcm/player.h"
 
 #include "qcm_interface/global.h"
 
@@ -72,14 +73,15 @@ public:
     static auto instance() -> App*;
     auto        engine() const -> QQmlApplicationEngine*;
     auto        global() const -> Global*;
+    void        set_player_sender(Sender<Player::NotifyInfo>);
 
     ncm::Client ncm_client() const;
     auto        get_cache_sql() { return m_cache_sql; }
 
     mpris::MediaPlayer2* mpris() const { return m_mpris->mediaplayer2(); }
 
-    bool                    debug() const;
-    Q_INVOKABLE QString     mpris_trackid(model::ItemId) const;
+    bool                debug() const;
+    Q_INVOKABLE QString mpris_trackid(model::ItemId) const;
 
     Q_INVOKABLE QUrl    media_file(const QString& id) const;
     Q_INVOKABLE QString media_url(const QString& ori, const QString& id) const;
@@ -137,7 +139,8 @@ private:
     rc<CacheSql> m_media_cache_sql;
     rc<CacheSql> m_cache_sql;
 
-    QPointer<QQuickWindow>    m_main_win;
-    up<QQmlApplicationEngine> m_qml_engine;
+    std::optional<Sender<Player::NotifyInfo>> m_player_sender;
+    QPointer<QQuickWindow>                    m_main_win;
+    up<QQmlApplicationEngine>                 m_qml_engine;
 };
 } // namespace qcm

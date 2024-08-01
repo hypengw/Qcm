@@ -10,10 +10,11 @@
 
 using namespace media_cache;
 
-Server::Server(executor_type ex, rc<request::Session> s)
+Server::Server(executor_type ex, rc<request::Session> s, rc<Fallbacks> fbs)
     : m_ex(ex),
       m_strand(ex),
-      m_writer(make_rc<Writer>()),
+      m_writer(make_rc<Writer>(fbs)),
+      m_fbs(fbs),
       m_acceptor(m_strand),
       m_port(0),
       m_session(s) {}
@@ -52,7 +53,7 @@ asio::awaitable<void> Server::listener(rc<DataBase> db) {
         asio::co_spawn(
             asio::make_strand(m_ex),
             [c, this]() -> asio::awaitable<void> {
-                co_await c->run(m_session, m_writer, m_cache_dir);
+                co_await c->run(m_session, m_writer, m_fbs, m_cache_dir);
             },
             [self, c](std::exception_ptr p) {
                 if (p) {

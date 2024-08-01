@@ -111,7 +111,7 @@ Item {
     Settings {
         id: settings_play
         property alias loop: m_playlist.loopMode
-        property alias volume: m_player.volume
+        property real volume: m_player.volume
         category: 'play'
     }
     Settings {
@@ -196,9 +196,9 @@ Item {
             const file = QA.App.media_file(key);
             // seems empty url is true, use string
             if (file.toString()) {
-                if (refresh && m_player.source === file)
-                    m_player.source = '';
-                m_player.source = file;
+                if (refresh && root.player.source === file)
+                    root.player.source = '';
+                root.player.source = file;
                 m_querier_song.ids = [];
             } else {
                 song_url_slot = () => {
@@ -265,40 +265,27 @@ Item {
 
     QA.Mpris {
         id: m_mpris
-        player: m_player
+        player: root.player
         playlist: m_playlist
     }
 
     QA.QcmPlayer {
         id: m_player
+        readonly property date durationDate: new Date(duration)
+    }
 
-        readonly property bool seekable: true
-        readonly property date duration_date: new Date(duration)
-        readonly property bool playing: {
-            switch (playbackState) {
-            case QA.QcmPlayer.PlayingState:
-                return true;
-            default:
-                return false;
+    Connections {
+        target: m_player
+        function onSourceChanged() {
+            if (m_player.source) {
+                m_player.play();
             }
         }
-
-        signal seeked(real position)
-        function seek(pos) {
-            position = pos * duration;
-            seeked(position * 1000);
-        }
-
-        source: ''
-        onSourceChanged: {
-            if (source) {
-                play();
-            }
-        }
-        onPlaybackStateChanged: {
-            console.debug(root.category, `state: ${playbackState}, ${position}, ${duration}, ${source}`);
-            if (playbackState === QA.QcmPlayer.StoppedState && source) {
-                if (position / duration > 0.98) {
+        function onPlaybackStateChanged() {
+            const p = m_player;
+            console.debug(root.category, `state: ${p.playbackState}, ${p.position}, ${p.duration}, ${p.source}`);
+            if (p.playbackState === QA.QcmPlayer.StoppedState && p.source) {
+                if (p.position / p.duration > 0.98) {
                     m_playlist.next();
                 }
             }

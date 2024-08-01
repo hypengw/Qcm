@@ -174,7 +174,7 @@ MD.Page {
                         Layout.preferredWidth: fm_time.rect("00:00").width + 2
                         horizontalAlignment: Qt.AlignHCenter
                         opacity: QA.Global.player.duration > 0 ? 1 : 0
-                        text: `${Qt.formatDateTime(QA.Global.player.duration_date, 'mm:ss')}`
+                        text: `${Qt.formatDateTime(QA.Global.player.durationDate, 'mm:ss')}`
                     }
                 }
                 Item {

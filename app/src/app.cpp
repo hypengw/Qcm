@@ -80,13 +80,17 @@ App::App()
     : QObject(nullptr),
       m_global(make_rc<Global>()),
       m_client(m_global->session(), m_global->pool_executor()),
-      m_mpris(std::make_unique<mpris::Mpris>()),
-      m_media_cache(std::make_shared<media_cache::MediaCache>(m_global->pool_executor(),
-                                                              m_global->session())),
+      m_mpris(make_up<mpris::Mpris>()),
+      m_media_cache(),
       m_main_win(nullptr),
-      m_qml_engine(std::make_unique<QQmlApplicationEngine>()) {
+      m_qml_engine(make_up<QQmlApplicationEngine>()) {
     _assert_msg_rel_(self == nullptr, "there should be only one app object");
     self = this;
+    {
+        auto fbs = make_rc<media_cache::Fallbacks>();
+        m_media_cache =
+            make_rc<media_cache::MediaCache>(m_global->pool_executor(), m_global->session(), fbs);
+    }
 
     DEBUG_LOG("thread pool size: {}", get_pool_size());
 
@@ -184,6 +188,7 @@ void App::init() {
     }
 
     _assert_msg_rel_(m_main_win, "main window must exist");
+    _assert_msg_rel_(m_player_sender, "player must init");
 }
 
 QUrl App::getImageCache(QString url, QSize reqSize) const {
@@ -389,4 +394,15 @@ auto App::bound_image_size(QSizeF displaySize) const -> QSizeF {
     auto size = std::max(displaySize.width(), displaySize.height());
     size      = 30 * (1 << (usize)std::ceil(std::log2(size / 30)));
     return displaySize.scaled(QSizeF(size, size), Qt::AspectRatioMode::KeepAspectRatioByExpanding);
+}
+
+void App::set_player_sender(Sender<Player::NotifyInfo> sender) {
+    m_player_sender                      = sender;
+    m_media_cache->fallbacks()->fragment = [sender](usize begin, usize end, usize totle) mutable {
+        if (totle >= end && totle >= begin) {
+            float db = begin / (double)totle;
+            float de = end / (double)totle;
+            sender.try_send(player::notify::cache { db, de });
+        }
+    };
 }

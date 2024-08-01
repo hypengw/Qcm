@@ -6,8 +6,8 @@
 
 using namespace media_cache;
 
-MediaCache::MediaCache(executor_type ex, rc<request::Session> s)
-    : m_server(std::make_shared<Server>(ex, s)) {}
+MediaCache::MediaCache(executor_type ex, rc<request::Session> s, rc<Fallbacks> fbs)
+    : m_server(std::make_shared<Server>(ex, s, fbs)), m_fbs(fbs) {}
 MediaCache::~MediaCache() { stop(); }
 
 void MediaCache::start(std::filesystem::path cache_dir, rc<DataBase> db) {
@@ -15,6 +15,8 @@ void MediaCache::start(std::filesystem::path cache_dir, rc<DataBase> db) {
 }
 
 void MediaCache::stop() { m_server->stop(); }
+
+auto MediaCache::fallbacks() const -> rc<Fallbacks> { return m_fbs; }
 
 std::string MediaCache::get_url(std::string_view ori, std::string_view id) const {
     request::UrlParams p;

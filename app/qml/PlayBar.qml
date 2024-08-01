@@ -35,7 +35,7 @@ MD.Pane {
         Item {
             Layout.fillWidth: true
             implicitHeight: 4
-            visible: !isSmall
+            visible: !root.isSmall
             clip: false
             QA.PlaySlider {
                 id: slider
@@ -222,7 +222,7 @@ MD.Pane {
                             horizontalAlignment: Qt.AlignHCenter
                             verticalAlignment: Qt.AlignVCenter
                             typescale: MD.Token.typescale.body_medium
-                            text: `${Qt.formatDateTime(QA.Global.player.duration_date, 'mm:ss')}`
+                            text: `${Qt.formatDateTime(QA.Global.player.durationDate, 'mm:ss')}`
                         }
                     }
                 }
