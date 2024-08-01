@@ -158,8 +158,6 @@ void Session::set_verify_certificate(bool v) {
     d->m_ignore_certificate = ! v;
 }
 
-void Session::test() { C_D(Session); }
-
 Session::channel_type& Session::channel() {
     C_D(Session);
     return *(d->m_channel_with_notify);

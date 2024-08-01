@@ -48,8 +48,6 @@ public:
 
     void about_to_stop();
 
-    void test();
-
     auto channel() -> channel_type&;
     auto channel_rc() -> rc<channel_type>;
     auto allocator() -> std::pmr::polymorphic_allocator<byte>;
