@@ -12,6 +12,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_LINKER_TYPE "$<IF:$<CONFIG:Debug>,MOLD,DEFAULT>")
 set(QT_QML_GENERATE_QMLLS_INI ON)
 
 if(UNIX AND NOT APPLE)
@@ -69,6 +70,8 @@ add_subdirectory(asio_helper)
 add_subdirectory(asio_qt)
 add_subdirectory(request)
 add_subdirectory(crypto)
+
+add_subdirectory(generator/model)
 add_subdirectory(qcm_interface)
 
 add_subdirectory(service/ncm)

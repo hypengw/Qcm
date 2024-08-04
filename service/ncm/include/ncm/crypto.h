@@ -3,13 +3,11 @@
 #include "crypto/crypto.h"
 
 #include <optional>
-#include <vector>
-#include <span>
 
 namespace ncm
 {
 
-using Rsa = qcm::crypto::rsa::Rsa;
+using Rsa        = qcm::crypto::rsa::Rsa;
 using bytes_view = qcm::crypto::bytes_view;
 
 class Crypto : NoCopy {
@@ -17,8 +15,8 @@ public:
     Crypto();
     ~Crypto();
 
-    std::optional<std::string> weapi(bytes_view);
-    std::optional<std::string> eapi(std::string_view url, bytes_view);
+    auto weapi(bytes_view) -> std::optional<std::string>;
+    auto eapi(std::string_view url, bytes_view) -> std::optional<std::string>;
 
 private:
     Rsa m_rsa;

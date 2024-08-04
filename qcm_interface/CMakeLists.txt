@@ -18,16 +18,6 @@ set(MODEL_SOURCES
     include/qcm_interface/model/app_info.h
 )
 
-add_executable(
-  qcm_interface_generator
-  peg_cpp.hpp generator.cpp)
-target_include_directories(
-  qcm_interface_generator
-  PRIVATE .)
-target_link_libraries(
-  qcm_interface_generator
-  PRIVATE core pegtl Qt::Core)
-
 add_library(
   qcm_interface SHARED
   include/qcm_interface/global.h
@@ -56,8 +46,8 @@ foreach(
   add_custom_command(
     OUTPUT ${gen}
     COMMAND "${CMAKE_COMMAND}" -E make_directory "${gen_dir}"
-    COMMAND "$<TARGET_FILE:qcm_interface_generator>" "${src}" "${gen}"
-    DEPENDS $<TARGET_FILE:qcm_interface_generator> ${src})
+    COMMAND "$<TARGET_FILE:qcm_model_generator>" "${src}" "${gen}"
+    DEPENDS $<TARGET_FILE:qcm_model_generator> ${src})
   target_sources(
     qcm_interface
     PRIVATE ${gen})
