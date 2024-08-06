@@ -77,8 +77,16 @@ Item {
         }, popup_props), root.main_win);
     }
 
-    function toast(text, duration=4000) {
+    function toast(text, duration = 4000) {
         root.main_win.snake.show(text, duration);
+    }
+
+    function appendList(songs_) {
+        const songs = songs_.filter(s => {
+            return s.canPlay;
+        });
+        const num = root.playlist.appendList(songs);
+        root.toast(num ? qsTr(`Add ${num} songs to queue`) : qsTr('Already added'));
     }
 
     function toggleColorScheme() {

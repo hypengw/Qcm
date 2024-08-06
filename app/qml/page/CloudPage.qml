@@ -40,17 +40,14 @@ MD.Page {
                     Layout.alignment: Qt.AlignHCenter
 
                     MD.IconButton {
-                        action: Action {
-                            icon.name: MD.Token.icon.playlist_add
-                            // text: qsTr('add to list')
-                            onTriggered: {
+                        action: QA.AppendListAction {
+                            getSongs: function () {
                                 const songs = [];
                                 const model = qr_cloud.data;
                                 for (let i = 0; i < model.rowCount(); i++) {
                                     songs.push(model.item(i).song);
                                 }
-                                if (songs.length)
-                                    QA.Global.playlist.appendList(songs);
+                                return songs;
                             }
                         }
                     }

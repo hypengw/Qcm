@@ -115,10 +115,9 @@ MD.Page {
                 RowLayout {
                     Layout.alignment: Qt.AlignHCenter
                     MD.IconButton {
-                        action: Action {
-                            icon.name: MD.Token.icon.playlist_add
-                            onTriggered: {
-                                QA.Global.playlist.appendList(qr_rmd_songs.data.dailySongs);
+                        action: QA.AppendListAction {
+                            getSongs: function () {
+                                return qr_rmd_songs.data.dailySongs;
                             }
                         }
                     }

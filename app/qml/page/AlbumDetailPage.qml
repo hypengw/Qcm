@@ -94,15 +94,9 @@ MD.Page {
                 RowLayout {
                     Layout.alignment: Qt.AlignHCenter
                     MD.IconButton {
-                        action: Action {
-                            icon.name: MD.Token.icon.playlist_add
-                            // text: qsTr('add to list')
-                            onTriggered: {
-                                const songs = itemData.songs.filter(s => {
-                                    return s.canPlay;
-                                });
-                                const num = QA.Global.playlist.appendList(songs);
-                                QA.Global.toast(num ? qsTr(`Add ${num} songs to queue`) : qsTr('Already added'));
+                        action: QA.AppendListAction {
+                            getSongs: function () {
+                                return itemData.songs;
                             }
                         }
                     }

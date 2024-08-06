@@ -77,16 +77,14 @@ MD.Page {
                 RowLayout {
                     Layout.alignment: Qt.AlignHCenter
                     MD.IconButton {
-                        action: Action {
-                            icon.name: MD.Token.icon.playlist_add
-                            // text: qsTr('add to list')
-                            onTriggered: {
+                        action: QA.AppendListAction {
+                            getSongs: function () {
                                 const songs = [];
                                 const model = qr_program.data;
                                 for (let i = 0; i < model.rowCount(); i++) {
                                     songs.push(model.item(i).song);
                                 }
-                                QA.Global.playlist.appendList(songs);
+                                return songs;
                             }
                         }
                     }
