@@ -42,6 +42,8 @@ public:
     model::AppInfo info;
 
     std::mutex mutex;
+
+    QList<QObject*> datas;
 };
 
 auto Global::instance() -> Global* { return static_global(); }
@@ -87,5 +89,10 @@ auto Global::session() -> rc<request::Session> {
 void Global::join() {
     C_D(Global);
     d->pool.join();
+}
+
+auto Global::datas() -> QQmlListProperty<QObject> {
+    C_D(Global);
+    return { this, &d->datas };
 }
 } // namespace qcm

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <QObject>
+#include <QtCore/QObject>
+#include <QtQml/QQmlListProperty>
 #include <any>
 
 #include <asio/thread_pool.hpp>
@@ -21,7 +22,10 @@ namespace qcm
 
 class QCM_INTERFACE_API Global : public QObject {
     Q_OBJECT
+    Q_CLASSINFO("DefaultProperty", "datas")
+    QML_NAMED_ELEMENT(GlobalImpl)
 
+    Q_PROPERTY(QQmlListProperty<QObject> datas READ datas FINAL)
     Q_PROPERTY(model::AppInfo info READ info CONSTANT FINAL)
 public:
     using pool_executor_t = asio::thread_pool::executor_type;
@@ -42,6 +46,8 @@ public:
     auto info() const -> const model::AppInfo&;
 
     void join();
+
+    auto datas() -> QQmlListProperty<QObject>;
 
 Q_SIGNALS:
     void errorOccurred(QString);

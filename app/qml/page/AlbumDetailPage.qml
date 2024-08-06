@@ -98,7 +98,11 @@ MD.Page {
                             icon.name: MD.Token.icon.playlist_add
                             // text: qsTr('add to list')
                             onTriggered: {
-                                QA.Global.playlist.appendList(itemData.songs);
+                                const songs = itemData.songs.filter(s => {
+                                    return s.canPlay;
+                                });
+                                const num = QA.Global.playlist.appendList(songs);
+                                QA.Global.toast(num ? qsTr(`Add ${num} songs to queue`) : qsTr('Already added'));
                             }
                         }
                     }

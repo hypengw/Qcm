@@ -68,7 +68,6 @@ set(QML_FILES
     qml/delegate/ProgramDelegate.qml
     qml/component/ArtistsPopup.qml
     qml/component/InfoRow.qml
-    qml/component/SnakeBar.qml
     qml/component/SnakeView.qml
     qml/component/Mpris.qml
     qml/component/PlaylistListView.qml

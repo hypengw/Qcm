@@ -57,14 +57,16 @@ public:
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
     QHash<int, QByteArray> roleNames() const override;
 
-signals:
+    Q_INVOKABLE u32 appendList(const std::vector<model::Song>&);
+
+Q_SIGNALS:
     void curChanged(bool refresh = false);
     void curIndexChanged(bool refresh = false);
     void loopModeChanged();
     void canMoveChanged();
     void end();
 
-public slots:
+public Q_SLOTS:
     void switchList(const std::vector<model::Song>&);
     void switchTo(const model::Song&);
     void next();
@@ -74,9 +76,8 @@ public slots:
     void remove(model::ItemId);
     void append(const model::Song&);
     void appendNext(const model::Song&);
-    void appendList(const std::vector<model::Song>&);
 
-private slots:
+private Q_SLOTS:
     void setCanNext(bool);
     void setCanPrev(bool);
     void check_cur(bool refresh = false);

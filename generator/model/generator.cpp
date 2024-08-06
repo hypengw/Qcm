@@ -502,13 +502,13 @@ void {}::set_{}(const {}& val) {{
     if (info.copyable) {
         copy = fmt::format(R"(
 template<>
-{}::Model(const Model& m) : Model() {{
+Q_DECL_EXPORT {}::Model(const Model& m) : Model() {{
     Base::operator = (m);
     *(this->m_ptr) = *(m.m_ptr);
 }}
 
 template<>
-auto {}::operator=(const Model& m) -> Model& {{
+Q_DECL_EXPORT auto {}::operator=(const Model& m) -> Model& {{
     Base::operator = (m);
     *(this->m_ptr) = *(m.m_ptr);
     return *this;

@@ -77,7 +77,7 @@ Item {
         }, popup_props), root.main_win);
     }
 
-    function toast(text, duration) {
+    function toast(text, duration=4000) {
         root.main_win.snake.show(text, duration);
     }
 
@@ -111,7 +111,7 @@ Item {
     Settings {
         id: settings_play
         property alias loop: m_playlist.loopMode
-        property real volume: m_player.volume
+        property alias volume: m_player.volume
         category: 'play'
     }
     Settings {

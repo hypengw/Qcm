@@ -10,10 +10,10 @@ using namespace qcm;
 namespace
 {
 
-inline QString get_song_id_str(const model::ItemId& id) { 
+inline QString get_song_id_str(const model::ItemId& id) {
     auto url = id.toUrl();
-    auto out = url.toString(); 
-    _assert_(!out.isEmpty());
+    auto out = url.toString();
+    _assert_(! out.isEmpty());
     return out;
 }
 inline QString get_song_id_str(const model::Song& s) { return get_song_id_str(s.id); }
@@ -350,9 +350,11 @@ void Playlist::remove(model::ItemId id) {
     endRemoveRows();
 }
 
-void Playlist::appendList(const std::vector<model::Song>& songs) {
+u32 Playlist::appendList(const std::vector<model::Song>& songs) {
+    auto old = rowCount();
     insert(rowCount(), songs);
     emit curIndexChanged(false);
+    return std::max(rowCount() - old, 0);
 }
 
 void Playlist::clear() {
