@@ -23,8 +23,8 @@ MD.Menu {
         text: qsTr('Add to Playlist')
         onTriggered: {
             QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/FavPage.qml', {
-                    songId: root.song.itemId
-                });
+                songId: root.song.itemId
+            });
         }
     }
 
@@ -46,20 +46,12 @@ MD.Menu {
                 QA.Global.route(artists[0].itemId);
             else
                 QA.Global.show_page_popup('qrc:/Qcm/App/qml/component/ArtistsPopup.qml', {
-                        "model": artists
-                    });
+                    "model": artists
+                });
         }
     }
     QA.CommentAction {
         itemId: root.song.itemId
-    }
-    Action {
-        icon.name: MD.Token.icon.link
-        text: qsTr('copy URL')
-
-        onTriggered: {
-            QA.Clipboard.text = QA.App.global.server_url(song.itemId);
-        }
     }
 
     Action {
@@ -71,6 +63,26 @@ MD.Menu {
         }
     }
 
+    MD.Menu {
+        title: qsTr('copy')
+        Action {
+            text: qsTr('title')
+            icon.name: MD.Token.icon.title
+            onTriggered: {
+                QA.Clipboard.text = root.song.name;
+                QA.Global.toast(qsTr("Copied to clipboard"));
+            }
+        }
+        Action {
+            text: qsTr('url')
+            icon.name: MD.Token.icon.link
+            onTriggered: {
+                QA.Clipboard.text = QA.App.global.server_url(root.song.itemId);
+                QA.Global.toast(qsTr("Copied to clipboard"));
+            }
+        }
+    }
+
     QNcm.PlaylistTracksQuerier {
         id: qr_tracks
         operation: QNcm.PlaylistTracksQuerier.Del
@@ -78,7 +90,7 @@ MD.Menu {
         autoReload: playlistId.valid()
         onStatusChanged: {
             if (status === QA.enums.Finished) {
-                QA.App.playlistChanged()
+                QA.App.playlistChanged();
             }
         }
     }
