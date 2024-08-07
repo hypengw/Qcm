@@ -58,7 +58,7 @@ MD.Menu {
         text: qsTr('copy URL')
 
         onTriggered: {
-            QA.Clipboard.text = song.itemId.url();
+            QA.Clipboard.text = QA.App.global.server_url(song.itemId);
         }
     }
 

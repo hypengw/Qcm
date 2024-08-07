@@ -37,8 +37,17 @@ public:
     Global();
     ~Global();
 
-    auto client(std::string_view name, std::optional<std::function<std::any()>> = std::nullopt)
-        -> std::any;
+    struct Client {
+        struct Api {
+            auto (*server_url)(std::any&, const model::ItemId&) -> std::string;
+        };
+        rc<Api>  api;
+        std::any instance;
+    };
+
+    auto client(std::string_view name, std::optional<std::function<Client()>> = std::nullopt)
+        -> Client;
+
     auto qexecutor() -> qt_executor_t&;
     auto pool_executor() -> pool_executor_t;
     auto session() -> rc<request::Session>;
@@ -48,6 +57,8 @@ public:
     void join();
 
     auto datas() -> QQmlListProperty<QObject>;
+
+    Q_INVOKABLE QVariant server_url(const model::ItemId&);
 
 Q_SIGNALS:
     void errorOccurred(QString);

@@ -37,7 +37,7 @@ public:
     rc<request::Session> session;
     //    mutable ncm::Client         m_client;
 
-    std::map<std::string, std::any, std::less<>> clients;
+    std::map<std::string, Client, std::less<>> clients;
 
     model::AppInfo info;
 
@@ -54,19 +54,20 @@ Global::Global(): d_ptr(make_up<Private>(this)) {
 }
 Global::~Global() {}
 
-auto Global::client(std::string_view name, std::optional<std::function<std::any()>> init)
-    -> std::any {
+auto Global::client(std::string_view name_view, std::optional<std::function<Client()>> init)
+    -> Client {
     C_D(Global);
     std::unique_lock l { d->mutex };
-    if (! d->clients.contains(name)) {
+    auto             name = std::string(name_view);
+    if (! d->clients.contains(name_view)) {
         if (init) {
-            d->clients.insert({ std::string(name), init.value()() });
-            return d->clients.at(std::string(name));
+            d->clients.insert({ name, init.value()() });
+            return d->clients.at(name);
         } else {
             return {};
         }
     } else {
-        return d->clients.at(std::string(name));
+        return d->clients.at(name);
     }
 }
 auto Global::info() const -> const model::AppInfo& {
@@ -94,5 +95,15 @@ void Global::join() {
 auto Global::datas() -> QQmlListProperty<QObject> {
     C_D(Global);
     return { this, &d->datas };
+}
+
+auto Global::server_url(const model::ItemId& id) -> QVariant {
+    C_D(Global);
+    const auto& p = id.provider().toStdString();
+    if (d->clients.contains(p)) {
+        auto& c = d->clients.at(p);
+        return convert_from<QString>(c.api->server_url(c.instance, id));
+    }
+    return {};
 }
 } // namespace qcm
