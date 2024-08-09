@@ -15,3 +15,7 @@ set_target_properties(
   asio_helper
   PROPERTIES CXX_VISIBILITY_PRESET hidden
              OUTPUT_NAME qcm_asio)
+install(
+  TARGETS asio_helper
+  BUNDLE DESTINATION .
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

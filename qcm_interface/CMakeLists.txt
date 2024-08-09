@@ -75,3 +75,7 @@ target_compile_definitions(
   PUBLIC APP_ID="${APP_ID}" APP_VERSION="${APP_VERSION}"
          APP_AUTHOR="${APP_AUTHOR}" APP_NAME="${APP_NAME}"
          APP_SUMMARY="${APP_SUMMARY}")
+install(
+  TARGETS qcm_interface
+  BUNDLE DESTINATION .
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

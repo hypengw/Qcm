@@ -37,7 +37,7 @@ option(KDSingleApplication_STATIC "" ON)
 option(KDSingleApplication_TESTS "" OFF)
 option(KDSingleApplication_EXAMPLES "" OFF)
 option(KDSingleApplication_DOCS "" OFF)
-add_subdirectory(KDSingleApplication)
+add_subdirectory(KDSingleApplication EXCLUDE_FROM_ALL)
 
 
 add_library(pegtl INTERFACE)
