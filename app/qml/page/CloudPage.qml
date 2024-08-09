@@ -13,6 +13,10 @@ MD.Page {
     MD.ListView {
         id: m_view
         anchors.fill: parent
+        topMargin: 8
+        bottomMargin: 8
+        leftMargin: 16
+        rightMargin: 16
 
         header: Item {
             width: parent.width
@@ -56,7 +60,7 @@ MD.Page {
         }
         model: qr_cloud.data
         delegate: QA.SongDelegate {
-            width: ListView.view.width
+            width: ListView.view.contentWidth
             model_: model.song
 
             onClicked: {

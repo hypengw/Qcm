@@ -37,7 +37,6 @@ StackView {
                 "url": page_url,
                 "props": props
             });
-        switchToComp;
         if (key === m_current_page)
             return;
         switchByKey(key, page_url, props, is_cache);

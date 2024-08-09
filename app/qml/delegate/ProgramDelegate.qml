@@ -16,6 +16,15 @@ MD.ListItem {
     highlighted: is_playing
     heightMode: MD.Enum.ListItemTwoLine
 
+    rightPadding: 16
+    
+    radius: [index_ == 0 ? 16 : 0, index_ + 1 == count ? 16 : 0]
+
+    mdState: MD.StateListItem {
+        item: root
+        backgroundColor: ctx.color.surface_container
+    }
+
     contentItem: RowLayout {
         spacing: 16
 
@@ -72,7 +81,7 @@ MD.ListItem {
                     Layout.fillWidth: true
                     verticalAlignment: Qt.AlignVCenter
                     typescale: MD.Token.typescale.body_medium
-                    color: MD.MatProp.supportTextColor
+                    color: root.mdState.supportTextColor
                     text: root.subtitle ? root.subtitle : `${Qt.formatDateTime(root.model_.createTime, 'yyyy.MM.dd')} - ${QA.Global.join_name(root.model_.song.artists, '/')}`
                 }
             }

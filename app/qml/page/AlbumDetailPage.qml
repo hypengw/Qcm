@@ -17,10 +17,12 @@ MD.Page {
         id: view
         anchors.fill: parent
         reuseItems: true
-        clip: true
         contentY: 0
 
         topMargin: 8
+        bottomMargin: 8
+        leftMargin: 24
+        rightMargin: 24
 
         model: itemData.songs
         // listview will takeover the pos
@@ -30,8 +32,6 @@ MD.Page {
             ColumnLayout {
                 anchors.fill: parent
                 anchors.bottomMargin: 8
-                anchors.leftMargin: 8
-                anchors.rightMargin: 8
 
                 spacing: 4
 
@@ -118,16 +118,18 @@ MD.Page {
             }
         }
         delegate: QA.SongDelegate {
-            width: view.width
-            subtitle: QA.Global.join_name(modelData.artists, '/')
+                width: ListView.view.contentWidth
 
-            onClicked: {
-                QA.Global.playlist.switchTo(modelData);
+                subtitle: QA.Global.join_name(modelData.artists, '/')
+
+                onClicked: {
+                    QA.Global.playlist.switchTo(modelData);
+                }
             }
-        }
+
         footer: MD.ListBusyFooter {
             running: qr_al.status === QA.enums.Querying
-            width: ListView.view.width
+            width: ListView.view.contentWidth
         }
     }
     MD.FAB {

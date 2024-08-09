@@ -12,7 +12,6 @@ MD.Pane {
 
     QA.MGridView {
         anchors.fill: parent
-        clip: true
         model: qr_pl.data
         fixedCellWidth: Math.max(160, QA.Global.main_win.width / 6.0)
 

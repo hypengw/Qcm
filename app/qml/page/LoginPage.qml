@@ -127,7 +127,6 @@ MD.Page {
                 }
                 MD.Pane {
                     id: qr_pane
-                    clip: true
 
                     StackView {
                         id: qr_stack

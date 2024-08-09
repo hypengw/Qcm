@@ -49,7 +49,6 @@ MD.Page {
                         readonly property int itemCount: column * row
 
                         anchors.fill: parent
-                        clip: true
                         currentIndex: swipe_indicator.currentIndex
 
                         Repeater {
@@ -57,7 +56,6 @@ MD.Page {
 
                             QA.MGridView {
                                 fixedCellWidth: swipe_playlist.fixedCellWidth
-                                clip: true
                                 implicitHeight: contentHeight
                                 interactive: false
                                 model: modelData
@@ -140,13 +138,18 @@ MD.Page {
                             MD.ListView {
                                 id: view
                                 anchors.fill: parent
-                                clip: true
                                 implicitHeight: contentHeight
                                 interactive: false
+                                topMargin: 8
+                                bottomMargin: 8
+                                leftMargin: 24
+                                rightMargin: 24
+
+
                                 model: qr_rmd_songs.data.dailySongs
 
                                 delegate: QA.SongDelegate {
-                                    width: view.width
+                                    width: ListView.view.contentWidth
                                     showCover: true
                                     onClicked: {
                                         QA.Global.playlist.switchTo(modelData);
@@ -154,7 +157,7 @@ MD.Page {
                                 }
                                 footer: MD.ListBusyFooter {
                                     running: qr_rmd_songs.status === QA.enums.Querying
-                                    width: ListView.view.width
+                                    width: ListView.view.contentWidth
                                 }
                             }
                         }

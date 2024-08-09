@@ -17,7 +17,6 @@ MD.Page {
     MD.Flickable {
         id: flick
         anchors.fill: parent
-        clip: true
         contentHeight: content.implicitHeight
         ScrollBar.vertical.visible: false
 
@@ -117,10 +116,14 @@ MD.Page {
                         currentIndex: bar.currentIndex
 
                         MD.ListView {
-                            clip: true
                             implicitHeight: contentHeight
                             interactive: flick.atYEnd
                             model: itemData.hotSongs
+                            topMargin: 8
+                            bottomMargin: 8
+                            leftMargin: 24
+                            rightMargin: 24
+
                             onAtYBeginningChanged: {
                                 if (interactive) {
                                     flick.contentY -= 1;
@@ -129,7 +132,7 @@ MD.Page {
 
                             delegate: QA.SongDelegate {
                                 subtitle: `${modelData.album.name}`
-                                width: ListView.view.width
+                                width: ListView.view.contentWidth
 
                                 onClicked: {
                                     QA.Global.playlist.switchTo(modelData);
@@ -142,7 +145,6 @@ MD.Page {
                         }
                         QA.MGridView {
                             fixedCellWidth: Math.max(160, QA.Global.main_win.width / 6.0)
-                            clip: true
                             interactive: flick.atYEnd
                             model: qr_artist_albums.data
                             onAtYBeginningChanged: {

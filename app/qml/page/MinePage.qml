@@ -267,7 +267,6 @@ MD.Page {
             }
         }
 
-        clip: true
         currentIndex: -1
         highlightMoveDuration: 1000
         highlightMoveVelocity: -1

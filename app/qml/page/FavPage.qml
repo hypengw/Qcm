@@ -15,7 +15,6 @@ MD.Page {
     MD.ListView {
         id: view
         anchors.fill: parent
-        clip: true
         implicitHeight: contentHeight
 
         busy: qr_playlist.status === QA.enums.Querying

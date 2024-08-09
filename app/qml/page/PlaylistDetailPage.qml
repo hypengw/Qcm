@@ -17,10 +17,12 @@ MD.Page {
         id: view
         anchors.fill: parent
         reuseItems: true
-        clip: true
         contentY: 0
 
         topMargin: 8
+        bottomMargin: 8
+        leftMargin: 24
+        rightMargin: 24
 
         model: itemData.songs
 
@@ -30,8 +32,6 @@ MD.Page {
             ColumnLayout {
                 anchors.fill: parent
                 anchors.bottomMargin: 8
-                anchors.leftMargin: 8
-                anchors.rightMargin: 8
 
                 spacing: 4
 
@@ -104,7 +104,7 @@ MD.Page {
             }
         }
         delegate: QA.SongDelegate {
-            width: view.width
+            width: ListView.view.contentWidth
 
             onClicked: {
                 QA.Global.playlist.switchTo(modelData);

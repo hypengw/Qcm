@@ -17,10 +17,12 @@ MD.Page {
         id: view
         anchors.fill: parent
         reuseItems: true
-        clip: true
         contentY: 0
 
         topMargin: 8
+        bottomMargin: 8
+        leftMargin: 24
+        rightMargin: 24
 
         model: qr_program.data
 
@@ -30,8 +32,6 @@ MD.Page {
             ColumnLayout {
                 anchors.fill: parent
                 anchors.bottomMargin: 8
-                anchors.leftMargin: 8
-                anchors.rightMargin: 8
 
                 spacing: 4
 
@@ -106,7 +106,7 @@ MD.Page {
             }
         }
         delegate: QA.ProgramDelegate {
-            width: view.width
+            width: ListView.view.contentWidth
 
             model_: QA.App.program(model)
 

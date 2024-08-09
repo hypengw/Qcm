@@ -15,7 +15,6 @@ MD.Page {
         id: view_playlist
         anchors.fill: parent
         bottomMargin: 8
-        clip: true
         currentIndex: model.curIndex
         highlightMoveDuration: 1000
         highlightMoveVelocity: -1

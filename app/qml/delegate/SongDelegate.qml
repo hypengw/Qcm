@@ -20,6 +20,25 @@ MD.ListItem {
     highlighted: isPlaying
     heightMode: MD.Enum.ListItemTwoLine
 
+    rightPadding: 16
+
+    radius: [index_ == 0 ? 16 : 0, index_ + 1 == count ? 16 : 0]
+
+    mdState: MD.StateListItem {
+        item: root
+        backgroundColor: ctx.color.surface_container
+    }
+
+    divider: MD.Divider {
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.leftMargin: 16
+        anchors.rightMargin: 16
+        full: false
+        height: 1
+    }
+
     contentItem: RowLayout {
         spacing: 16
 
@@ -101,7 +120,7 @@ MD.ListItem {
                     Layout.fillWidth: true
                     verticalAlignment: Qt.AlignVCenter
                     typescale: MD.Token.typescale.body_medium
-                    color: MD.MatProp.supportTextColor
+                    color: root.mdState.supportTextColor
                     text: root.subtitle ? root.subtitle : `${QA.Global.join_name(root.model_.artists, '/')} - ${root.model_.album.name}`
                 }
             }

@@ -15,7 +15,6 @@ MD.Page {
     MD.ListView {
         id: view
         anchors.fill: parent
-        clip: true
         implicitHeight: contentHeight
         busy: model_loader.item.status === QA.enums.Querying
         model: model_loader.item.data

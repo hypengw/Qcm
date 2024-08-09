@@ -76,7 +76,6 @@ MD.Page {
                 currentIndex: bar.currentIndex
 
                 MD.ListView {
-                    clip: true
                     implicitHeight: contentHeight
                     model: song_querier.data
                     busy: song_querier.status === QA.enums.Querying
@@ -97,7 +96,6 @@ MD.Page {
                 }
 
                 MD.ListView {
-                    clip: true
                     implicitHeight: contentHeight
                     model: album_querier.data
                     busy: album_querier.status === QA.enums.Querying
@@ -129,7 +127,6 @@ MD.Page {
                 }
 
                 MD.ListView {
-                    clip: true
                     implicitHeight: contentHeight
                     model: playlist_querier.data
                     busy: playlist_querier.status === QA.enums.Querying
@@ -160,7 +157,6 @@ MD.Page {
                     }
                 }
                 MD.ListView {
-                    clip: true
                     implicitHeight: contentHeight
                     model: djradio_querier.data
                     busy: djradio_querier.status === QA.enums.Querying
