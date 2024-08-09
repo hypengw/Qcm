@@ -253,8 +253,6 @@ auto Connection::http_source(std::filesystem::path file_path, rc<request::Sessio
                 if (ec != asio::error::eof) {
                     ERROR_LOG("{}", ec.message());
                     m_s.cancel();
-                } else {
-                    ERROR_LOG("eof");
                 }
                 if (finished = check_finished(); finished) {
                     if (need_pre_download) {

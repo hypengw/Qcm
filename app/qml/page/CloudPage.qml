@@ -15,8 +15,8 @@ MD.Page {
         anchors.fill: parent
         topMargin: 8
         bottomMargin: 8
-        leftMargin: 16
-        rightMargin: 16
+        leftMargin: 24
+        rightMargin: 24
 
         header: Item {
             width: parent.width
@@ -24,8 +24,6 @@ MD.Page {
             ColumnLayout {
                 anchors.fill: parent
                 anchors.bottomMargin: 8
-                anchors.leftMargin: 8
-                anchors.rightMargin: 8
                 spacing: 4
 
                 MD.Pane {
