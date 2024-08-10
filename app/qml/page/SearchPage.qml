@@ -79,9 +79,11 @@ MD.Page {
                     implicitHeight: contentHeight
                     model: song_querier.data
                     busy: song_querier.status === QA.enums.Querying
+                    leftMargin: 24
+                    rightMargin: 24
 
                     delegate: QA.SongDelegate {
-                        width: ListView.view.width
+                        width: ListView.view.contentWidth
                         model_: QA.App.song(model)
                         onClicked: {
                             QA.Global.playlist.switchTo(model_);

@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
 
     int re { 0 };
     {
-        qcm::App app;
+        qcm::App app {{}};
         QObject::connect(&single, &KDSingleApplication::messageReceived, app.instance(), []() {
             emit qcm::App::instance()->instanceStarted();
         });

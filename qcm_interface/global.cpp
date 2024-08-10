@@ -42,8 +42,6 @@ public:
     model::AppInfo info;
 
     std::mutex mutex;
-
-    QList<QObject*> datas;
 };
 
 auto Global::instance() -> Global* { return static_global(); }
@@ -92,11 +90,6 @@ void Global::join() {
     d->pool.join();
 }
 
-auto Global::datas() -> QQmlListProperty<QObject> {
-    C_D(Global);
-    return { this, &d->datas };
-}
-
 auto Global::server_url(const model::ItemId& id) -> QVariant {
     C_D(Global);
     const auto& p = id.provider().toStdString();
@@ -106,4 +99,27 @@ auto Global::server_url(const model::ItemId& id) -> QVariant {
     }
     return {};
 }
+
+namespace
+{
+template<typename T>
+T* test(T GlobalWrapper::*) {
+    return {};
+}
+} // namespace
+
+GlobalWrapper::GlobalWrapper(): m_g(Global::instance()) {
+    auto x = test(&GlobalWrapper::errorOccurred);
+
+    connect_from_global(m_g, &Global::errorOccurred, &GlobalWrapper::errorOccurred);
+    connect_from_global(m_g, &Global::toast, &GlobalWrapper::toast);
+
+    connect_to_global(m_g, &Global::errorOccurred, &GlobalWrapper::errorOccurred);
+    connect_to_global(m_g, &Global::toast, &GlobalWrapper::toast);
+}
+GlobalWrapper::~GlobalWrapper() {}
+auto GlobalWrapper::datas() -> QQmlListProperty<QObject> { return { this, &m_datas }; }
+auto GlobalWrapper::info() -> const model::AppInfo& { return m_g->info(); }
+auto GlobalWrapper::server_url(const model::ItemId& id) -> QVariant { return m_g->server_url(id); }
+
 } // namespace qcm

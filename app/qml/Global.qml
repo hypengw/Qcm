@@ -6,7 +6,7 @@ import Qcm.App as QA
 import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
-Item {
+QA.GlobalWrapper {
     id: root
 
     readonly property QA.t_song cur_song: m_playlist.cur
@@ -75,10 +75,6 @@ Item {
             "source": url,
             "props": props
         }, popup_props), root.main_win);
-    }
-
-    function toast(text, duration = 4000) {
-        root.main_win.snake.show(text, duration);
     }
 
     function appendList(songs_) {

@@ -36,7 +36,6 @@ MD.Page {
                 }
                 MD.Pane {
                     Layout.fillWidth: true
-                    MD.MatProp.backgroundColor: MD.Token.color.surface
                     padding: 0
 
                     SwipeView {

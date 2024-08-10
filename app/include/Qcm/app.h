@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QQuickItem>
 #include <QQuickWindow>
 
 #include <iostream>
@@ -33,6 +34,8 @@ class CacheSql;
 
 class App : public QObject {
     Q_OBJECT
+    QML_ELEMENT
+    QML_SINGLETON
 
     Q_PROPERTY(mpris::MediaPlayer2* mpris READ mpris CONSTANT FINAL)
     Q_PROPERTY(bool debug READ debug CONSTANT FINAL)
@@ -63,10 +66,12 @@ public:
     };
     Q_ENUMS(ProxyType)
 
-    static App* self;
-
-    App();
+    App(std::monostate);
     virtual ~App();
+    static App* create(QQmlEngine* qmlEngine, QJSEngine* jsEngine);
+
+    // make qml prefer create
+    App() = delete;
 
     void init();
 

@@ -103,6 +103,14 @@ ApplicationWindow {
         id: m_snake
         anchors.fill: parent
     }
+
+    Connections {
+        target: QA.Global
+        function onToast(text, duration) {
+            win.snake.show(text, duration);
+        }
+    }
+
     Component {
         id: comp_main
         StackView {

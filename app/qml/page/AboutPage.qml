@@ -36,18 +36,18 @@ MD.Page {
             MD.Text {
                 Layout.alignment: Qt.AlignHCenter
                 typescale: MD.Token.typescale.headline_small
-                text: QA.App.global.info.name
+                text: QA.Global.info.name
             }
             MD.Text {
                 Layout.alignment: Qt.AlignHCenter
                 typescale: MD.Token.typescale.label_medium
                 opacity: 0.8
-                text: QA.App.global.info.version
+                text: QA.Global.info.version
             }
             MD.Text {
                 Layout.alignment: Qt.AlignHCenter
                 typescale: MD.Token.typescale.label_large
-                text: QA.App.global.info.author
+                text: QA.Global.info.author
             }
 
             MD.Text {
@@ -55,7 +55,7 @@ MD.Page {
                 Layout.bottomMargin: 8
                 Layout.alignment: Qt.AlignHCenter
                 typescale: MD.Token.typescale.body_large
-                text: QA.App.global.info.summary
+                text: QA.Global.info.summary
             }
 
             MD.DrawerItem {

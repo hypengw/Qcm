@@ -70,13 +70,25 @@ auto get_pool_size() -> std::size_t {
     return std::clamp<u32>(std::thread::hardware_concurrency(), 4, 12);
 }
 
+auto app_instance(App* in = nullptr) -> App* {
+    static App* instance { in };
+    _assert_msg_rel_(instance != nullptr, "app object not inited");
+    _assert_msg_rel_(in == nullptr || instance == in, "there should be only one app object");
+    return instance;
+}
+
 } // namespace
 
-App* App::self { nullptr };
+App* App::create(QQmlEngine*, QJSEngine*) {
+    auto app = app_instance();
+    // not delete on qml
+    QJSEngine::setObjectOwnership(app, QJSEngine::CppOwnership);
+    return app;
+}
 
-App* App::instance() { return self; }
+App* App::instance() { return app_instance(); }
 
-App::App()
+App::App(std::monostate)
     : QObject(nullptr),
       m_global(make_rc<Global>()),
       m_client(m_global->session(), m_global->pool_executor()),
@@ -84,8 +96,7 @@ App::App()
       m_media_cache(),
       m_main_win(nullptr),
       m_qml_engine(make_up<QQmlApplicationEngine>()) {
-    _assert_msg_rel_(self == nullptr, "there should be only one app object");
-    self = this;
+    app_instance(this);
     {
         auto fbs = make_rc<media_cache::Fallbacks>();
         m_media_cache =
@@ -118,7 +129,7 @@ ncm::Client App::ncm_client() const { return m_client; }
 void App::init() {
     auto engine = this->engine();
 
-    qmlRegisterSingletonInstance("Qcm.App", 1, 0, "App", this);
+    // qmlRegisterSingletonInstance("Qcm.App", 1, 0, "App", this);
     qcm::init_path(std::array { config_path() / "session", data_path() });
 
     {

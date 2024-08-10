@@ -77,7 +77,7 @@ MD.Menu {
             text: qsTr('url')
             icon.name: MD.Token.icon.link
             onTriggered: {
-                QA.Clipboard.text = QA.App.global.server_url(root.song.itemId);
+                QA.Clipboard.text = QA.Global.server_url(root.song.itemId);
                 QA.Global.toast(qsTr("Copied to clipboard"));
             }
         }
