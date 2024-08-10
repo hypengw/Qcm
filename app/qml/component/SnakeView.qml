@@ -8,30 +8,19 @@ ListView {
     property int m_snake_id: 0
     property bool bottomToTop: false
 
-    function show(text, duration) {
-        model.insert(0, {
-            "text": text,
-            "duration": duration,
-            "id": get_snake_id()
-        });
-        if (model.count > 1) {
-            model.remove(1);
-        }
+    model: m_snake
+
+    MD.SnakeModel {
+        id: m_snake
     }
 
-    function get_snake_id() {
-        m_snake_id = (m_snake_id + 1) % 1000;
-        return m_snake_id;
-    }
-
-    function model_remove(snake_id) {
-        for (let i = 0; i < model.count; i++) {
-            const m = model.get(i);
-            if (m.id === snake_id) {
-                model.remove(i);
-                return;
-            }
-        }
+    function show2(text, duration, flag, action) {
+        const snake = m_snake.createSnake();
+        snake.text = text;
+        snake.duration = duration;
+        snake.flag = flag;
+        snake.action = action;
+        m_snake.showSnake(snake);
     }
 
     z: Infinity
@@ -80,8 +69,9 @@ ListView {
         implicitHeight: children[0].implicitHeight
         clip: true
         required property var model
+
         function close() {
-            model_remove(model.id);
+            m_snake.removeById(model.sid);
         }
 
         MD.SnakeBar {
@@ -89,19 +79,18 @@ ListView {
             y: 0
             width: parent.width
             height: implicitHeight
-
             text: dg_bar.model.text
-
+            showClose: dg_bar.model.flag
             onClosed: dg_bar.close()
-
-            Timer {
-                running: true
-                repeat: false
-                interval: dg_bar.model.duration
-                onTriggered: dg_bar.close()
+            action: dg_bar.model.action
+            Component.onCompleted: {
+                const sid = dg_bar.model.sid;
+                if (dg_bar.model.action) {
+                    dg_bar.model.action.triggered.connect(() => {
+                        m_snake.removeById(sid);
+                    });
+                }
             }
         }
     }
-
-    model: ListModel {}
 }

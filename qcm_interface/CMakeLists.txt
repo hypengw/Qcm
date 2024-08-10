@@ -27,6 +27,7 @@ add_library(
   include/qcm_interface/api.h
   include/qcm_interface/item_id.h
   include/qcm_interface/export.h
+  api.cpp
   model.cpp
   item_id.cpp
   enum.cpp

@@ -22,13 +22,54 @@ auto static_global(qcm::Global* set = nullptr) -> qcm::Global* {
 
 namespace qcm
 {
+namespace
+{
+template<typename T>
+bool get_stop_signal(T&& t) {
+    if constexpr (std::same_as<std::remove_cvref_t<T>, StopSignal>) {
+        return t.val;
+    } else {
+        return false;
+    }
+}
+template<typename T>
+auto hook_stop_signal(T&& t) {
+    if constexpr (std::same_as<std::remove_cvref_t<T>, StopSignal>) {
+        return StopSignal { true };
+    } else {
+        return std::forward<T>(t);
+    }
+}
+
+} // namespace
+template<typename R, typename... ARGS>
+void GlobalWrapper::connect_from_global(Global* g, R (Global::*g_func)(ARGS...),
+                                        R (GlobalWrapper::*gw_func)(ARGS...)) {
+    QObject::connect(g, g_func, this, [this, gw_func](ARGS... args) {
+        auto stop = (get_stop_signal(args) || ...);
+        if (! stop) {
+            (this->*gw_func)(hook_stop_signal(args)...);
+        }
+    });
+}
+template<typename R, typename... ARGS>
+void GlobalWrapper::connect_to_global(Global* g, R (Global::*g_func)(ARGS...),
+                                      R (GlobalWrapper::*gw_func)(ARGS...)) {
+    QObject::connect(this, gw_func, g, [g, g_func](ARGS... args) {
+        auto stop = (get_stop_signal(args) || ...);
+        if (! stop) {
+            (g->*g_func)(hook_stop_signal(args)...);
+        }
+    });
+}
 
 class Global::Private {
 public:
     Private(Global* p)
         : qt_ex(std::make_shared<QtExecutionContext>(p)),
           pool(get_pool_size()),
-          session(std::make_shared<request::Session>(pool.get_executor())) {}
+          session(std::make_shared<request::Session>(pool.get_executor())),
+          copy_action_comp(nullptr) {}
     ~Private() {}
 
     qt_executor_t     qt_ex;
@@ -40,6 +81,7 @@ public:
     std::map<std::string, Client, std::less<>> clients;
 
     model::AppInfo info;
+    QQmlComponent* copy_action_comp;
 
     std::mutex mutex;
 };
@@ -85,6 +127,16 @@ auto Global::session() -> rc<request::Session> {
     C_D(Global);
     return d->session;
 }
+auto Global::copy_action_comp() const -> QQmlComponent* {
+    C_D(const Global);
+    return d->copy_action_comp;
+}
+void Global::set_copy_action_comp(QQmlComponent* val) {
+    C_D(Global);
+    if (std::exchange(d->copy_action_comp, val) != val) {
+        copyActionCompChanged();
+    }
+}
 void Global::join() {
     C_D(Global);
     d->pool.join();
@@ -100,26 +152,32 @@ auto Global::server_url(const model::ItemId& id) -> QVariant {
     return {};
 }
 
-namespace
-{
-template<typename T>
-T* test(T GlobalWrapper::*) {
-    return {};
-}
-} // namespace
-
 GlobalWrapper::GlobalWrapper(): m_g(Global::instance()) {
-    auto x = test(&GlobalWrapper::errorOccurred);
-
+    connect_from_global(m_g, &Global::copyActionCompChanged, &GlobalWrapper::copyActionCompChanged);
     connect_from_global(m_g, &Global::errorOccurred, &GlobalWrapper::errorOccurred);
     connect_from_global(m_g, &Global::toast, &GlobalWrapper::toast);
 
     connect_to_global(m_g, &Global::errorOccurred, &GlobalWrapper::errorOccurred);
     connect_to_global(m_g, &Global::toast, &GlobalWrapper::toast);
+
+    connect(this, &GlobalWrapper::errorOccurred, this, [this](const QString& error) {
+        if (! error.endsWith("Operation aborted.")) {
+            QObject* act { nullptr };
+            auto     comp = copy_action_comp();
+            if (comp) {
+                QVariantMap map;
+                map.insert("error", error);
+                act = comp->createWithInitialProperties(map);
+            }
+            toast(error, 0, enums::ToastFlag::TFCloseable, act);
+        }
+    });
 }
 GlobalWrapper::~GlobalWrapper() {}
 auto GlobalWrapper::datas() -> QQmlListProperty<QObject> { return { this, &m_datas }; }
 auto GlobalWrapper::info() -> const model::AppInfo& { return m_g->info(); }
 auto GlobalWrapper::server_url(const model::ItemId& id) -> QVariant { return m_g->server_url(id); }
+auto GlobalWrapper::copy_action_comp() const -> QQmlComponent* { return m_g->copy_action_comp(); }
+void GlobalWrapper::set_copy_action_comp(QQmlComponent* val) { m_g->set_copy_action_comp(val); }
 
 } // namespace qcm

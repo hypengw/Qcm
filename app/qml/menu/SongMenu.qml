@@ -65,20 +65,18 @@ MD.Menu {
 
     MD.Menu {
         title: qsTr('copy')
-        Action {
+        QA.CopyAction {
             text: qsTr('title')
             icon.name: MD.Token.icon.title
-            onTriggered: {
-                QA.Clipboard.text = root.song.name;
-                QA.Global.toast(qsTr("Copied to clipboard"));
+            getCopyString: function() {
+                return root.song.name;
             }
         }
-        Action {
+        QA.CopyAction {
             text: qsTr('url')
             icon.name: MD.Token.icon.link
-            onTriggered: {
-                QA.Clipboard.text = QA.Global.server_url(root.song.itemId);
-                QA.Global.toast(qsTr("Copied to clipboard"));
+            getCopyString: function() {
+                return QA.Global.server_url(root.song.itemId);
             }
         }
     }

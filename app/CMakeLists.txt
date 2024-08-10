@@ -91,6 +91,7 @@ set(QML_FILES
     qml/component/VolumeButton.qml
     qml/action/AppendListAction.qml
     qml/action/PlaynextAction.qml
+    qml/action/CopyAction.qml
     qml/action/CommentAction.qml
     qml/action/ColorSchemeAction.qml
     qml/action/SubAction.qml

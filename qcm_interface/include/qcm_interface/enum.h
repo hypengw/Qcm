@@ -32,6 +32,14 @@ enum class QCM_INTERFACE_API IdType
 };
 Q_ENUM_NS(IdType)
 
+enum class QCM_INTERFACE_API ToastFlag
+{
+    TFCloseable = 1,
+    TFSave      = 1 << 1,
+};
+Q_ENUM_NS(ToastFlag);
+Q_DECLARE_FLAGS(ToastFlags, ToastFlag);
+Q_DECLARE_OPERATORS_FOR_FLAGS(ToastFlags);
 } // namespace enums
 
 } // namespace qcm

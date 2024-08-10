@@ -106,8 +106,8 @@ ApplicationWindow {
 
     Connections {
         target: QA.Global
-        function onToast(text, duration) {
-            win.snake.show(text, duration);
+        function onToast(text, duration, flag, action) {
+            win.snake.show2(text, duration, flag, action);
         }
     }
 

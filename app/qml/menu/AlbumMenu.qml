@@ -25,12 +25,12 @@ MD.Menu {
         itemId: root.itemId
     }
 
-    QNcm.AlbumSublistQuerier {
+    QNcm.AlbumSubQuerier {
         id: qr_sub
         autoReload: false
         onStatusChanged: {
             if (status === QA.enums.Finished)
-                QA.App.playlistLiked(itemId, sub);
+                QA.App.albumLiked(itemId, sub);
         }
     }
 }

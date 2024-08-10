@@ -267,6 +267,13 @@ MD.Page {
             }
         }
 
+        Timer {
+            id: timer_dirty
+            repeat: false
+            interval: 1000
+            onTriggered: parent.checkDirty();
+        }
+
         currentIndex: -1
         highlightMoveDuration: 1000
         highlightMoveVelocity: -1
@@ -275,7 +282,7 @@ MD.Page {
             visibleChanged.connect(checkCur);
             currentItemChanged.connect(checkCur);
             visibleChanged.connect(checkDirty);
-            dirtyChanged.connect(visibleChanged);
+            dirtyChanged.connect(timer_dirty.restart);
         }
     }
 

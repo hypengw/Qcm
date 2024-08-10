@@ -46,6 +46,16 @@ QA.GlobalWrapper {
     signal sig_route(QA.RouteMsg msg)
     signal sig_route_special(string name)
 
+    copy_action_comp: Component {
+        QA.CopyAction {
+            icon.name: MD.Token.icon.title
+            property string error
+            getCopyString: function () {
+                return error;
+            }
+        }
+    }
+
     function join_name(objs, split) {
         const names = objs.map(o => {
             return o.name;
@@ -87,14 +97,6 @@ QA.GlobalWrapper {
 
     function toggleColorScheme() {
         color_scheme = color_scheme == MD.MdColorMgr.Dark ? MD.MdColorMgr.Light : MD.MdColorMgr.Dark;
-    }
-
-    Component.onCompleted: {
-        QA.App.errorOccurred.connect(s => {
-            // ignore 'Operation aborted'
-            if (!s.endsWith('Operation aborted.'))
-                root.toast(s, 5000);
-        });
     }
 
     Component {

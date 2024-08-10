@@ -1,5 +1,4 @@
-find_package(Qt6 REQUIRED COMPONENTS Core)
-
+find_package(Qt6 REQUIRED COMPONENTS Qml)
 
 set(SOURCES
     include/service_qml_ncm/api/user_account.h
@@ -67,4 +66,4 @@ target_include_directories(
   include/service_qml_ncm/api
   )
 
-target_link_libraries(service_qml_ncm PUBLIC sv_ncm qcm_interface meta_model)
+target_link_libraries(service_qml_ncm PUBLIC Qt::Qml sv_ncm qcm_interface meta_model)

@@ -114,7 +114,6 @@ public:
 
 signals:
     void instanceStarted();
-    void errorOccurred(QString);
     void songLiked(model::ItemId, bool);
     void artistLiked(model::ItemId, bool);
     void albumLiked(model::ItemId, bool);
