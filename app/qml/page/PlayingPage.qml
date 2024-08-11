@@ -73,7 +73,7 @@ MD.Page {
                 width: parent.width
                 QA.Image {
                     Layout.alignment: Qt.AlignHCenter
-                    MD.MatProp.elevation: MD.Token.elevation.level2
+                    elevation: MD.Token.elevation.level2
                     source: `image://ncm/${QA.Global.cur_song.album.picUrl}`
                     radius: 16
 

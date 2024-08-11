@@ -6,7 +6,7 @@ import Qcm.Material as MD
 MD.ListItem {
     id: root
     property string description
-    visible: !!root.description
+    visible: root.description.length > 0
 
     contentItem: Item {
         implicitHeight: item_text.implicitHeight
