@@ -1,8 +1,9 @@
-find_package(Qt6 REQUIRED COMPONENTS Qml)
+find_package(
+  Qt6 REQUIRED
+  COMPONENTS Qml)
 
 set(SOURCES
     include/service_qml_ncm/api/user_account.h
-
     include/service_qml_ncm/model.h
     include/service_qml_ncm/model/album_detail.h
     include/service_qml_ncm/model/album_detail_dynamic.h
@@ -38,7 +39,9 @@ set(SOURCES
     include/service_qml_ncm/model/qrcode_unikey.h
     include/service_qml_ncm/model/radio_like.h
     include/service_qml_ncm/model/song_like.h
+    include/service_qml_ncm/model/radar_playlist_id.h
     model.cpp
+    model/radar_playlist_id.cpp
     api.cpp)
 
 qt_add_qml_module(
@@ -61,9 +64,9 @@ qt_add_qml_module(
 target_include_directories(
   service_qml_ncm
   PUBLIC include
-  PRIVATE . include/service_qml_ncm 
-  include/service_qml_ncm/model
-  include/service_qml_ncm/api
-  )
+  PRIVATE . include/service_qml_ncm include/service_qml_ncm/model
+          include/service_qml_ncm/api)
 
-target_link_libraries(service_qml_ncm PUBLIC Qt::Qml sv_ncm qcm_interface meta_model)
+target_link_libraries(
+  service_qml_ncm
+  PUBLIC Qt::Qml sv_ncm qcm_interface meta_model)

@@ -42,12 +42,14 @@ public:
     using Status = enums::ApiStatus;
 
 public:
-    Q_PROPERTY(Status status READ status WRITE set_status NOTIFY statusChanged)
-    Q_PROPERTY(QString error READ error NOTIFY errorChanged)
-    Q_PROPERTY(bool autoReload READ autoReload WRITE set_autoReload NOTIFY autoReloadChanged)
-    Q_PROPERTY(QObject* data READ data NOTIFY dataChanged)
+    Q_PROPERTY(Status status READ status WRITE set_status NOTIFY statusChanged FINAL)
+    Q_PROPERTY(QString error READ error NOTIFY errorChanged FINAL)
+    Q_PROPERTY(bool autoReload READ autoReload WRITE set_autoReload NOTIFY autoReloadChanged FINAL)
+    Q_PROPERTY(QObject* data READ data NOTIFY dataChanged FINAL)
+    Q_PROPERTY(QObject* parent READ parent CONSTANT FINAL)
+
     Q_PROPERTY(
-        bool forwardError READ forwardError WRITE set_forwardError NOTIFY forwardErrorChanged)
+        bool forwardError READ forwardError WRITE set_forwardError NOTIFY forwardErrorChanged FINAL)
 
     Q_INVOKABLE void query() { reload(); }
 

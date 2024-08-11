@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -57,9 +58,11 @@ MD.Page {
                                 fixedCellWidth: swipe_playlist.fixedCellWidth
                                 implicitHeight: contentHeight
                                 interactive: false
+                                required property var modelData
                                 model: modelData
 
                                 delegate: Item {
+                                    required property var modelData
                                     width: GridView.view.cellWidth
                                     height: GridView.view.cellHeight
                                     QA.PicGridDelegate {
@@ -70,11 +73,11 @@ MD.Page {
                                         picWidth: parent.GridView.view.fixedCellWidth
                                         width: picWidth
                                         height: Math.min(implicitHeight, parent.height)
-                                        image.source: `image://ncm/${modelData.picUrl}`
-                                        text: modelData.name
+                                        image.source: `image://ncm/${parent.modelData.picUrl}`
+                                        text: parent.modelData.name
 
                                         onClicked: {
-                                            QA.Global.route(modelData.itemId);
+                                            QA.Global.route(parent.modelData.itemId);
                                         }
                                     }
                                 }
@@ -96,6 +99,59 @@ MD.Page {
             }
             ColumnLayout {
                 spacing: 4
+                MD.Pane {
+                    ColumnLayout {
+                        anchors.fill: parent
+
+                        MD.Text {
+                            font.capitalization: Font.Capitalize
+                            typescale: MD.Token.typescale.headline_large
+                            text: qsTr('radar playlists')
+                        }
+                    }
+                }
+
+                MD.Pane {
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    padding: 0
+
+                    QA.MGridView {
+                        anchors.fill: parent
+
+                        fixedCellWidth: Math.max(160, QA.Global.main_win.width / 6.0)
+                        implicitHeight: contentHeight
+                        interactive: false
+                        model: QNcm.RadarPlaylistIdModel {}
+
+                        delegate: Item {
+                            required property var model
+                            width: GridView.view.cellWidth
+                            height: GridView.view.cellHeight
+
+                            QA.PicGridDelegate {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                anchors.top: parent.top
+                                anchors.topMargin: 12
+
+                                picWidth: parent.GridView.view.fixedCellWidth
+                                width: picWidth
+                                height: Math.min(implicitHeight, parent.height)
+                                image.source: `image://ncm/${pl_querier.data.picUrl}`
+                                text: pl_querier.data.name
+
+                                onClicked: {
+                                    QA.Global.route(parent.model.id);
+                                }
+                            }
+
+                            QNcm.PlaylistDetailQuerier {
+                                id: pl_querier
+                                itemId: parent.model.id
+                            }
+                        }
+                    }
+                }
 
                 MD.Pane {
                     id: title_pane
@@ -144,10 +200,11 @@ MD.Page {
                                 leftMargin: 24
                                 rightMargin: 24
 
-
                                 model: qr_rmd_songs.data.dailySongs
 
                                 delegate: QA.SongDelegate {
+                                    required property int index
+                                    required property var modelData
                                     width: ListView.view.contentWidth
                                     showCover: true
                                     onClicked: {
@@ -185,11 +242,10 @@ MD.Page {
                     dirty = false;
                 }
             }
-            
         }
         Connections {
             target: root
-            function onVisibleChanged() { 
+            function onVisibleChanged() {
                 timer_refresh_delay.start();
             }
         }
@@ -201,7 +257,7 @@ MD.Page {
             running: true
 
             onTriggered: {
-                timer_refresh_delay.dirty = true
+                timer_refresh_delay.dirty = true;
                 timer_refresh_delay.start();
             }
         }
@@ -214,8 +270,8 @@ MD.Page {
 
             onTriggered: {
                 const songs = qr_rmd_songs.data.dailySongs.filter(s => {
-                        return s.canPlay;
-                    });
+                    return s.canPlay;
+                });
                 if (songs.length)
                     QA.Global.playlist.switchList(songs);
             }

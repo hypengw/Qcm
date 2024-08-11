@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 
 project(
   Qcm
-  VERSION 1.0.4
+  VERSION 1.0.5
   LANGUAGES CXX
   HOMEPAGE_URL "https://github.com/hypengw/Qcm"
   DESCRIPTION "Qt client for netease cloud music"

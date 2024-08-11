@@ -7,16 +7,6 @@
 namespace qcm
 {
 
-// void handle_output(const out_type& in, const auto&) {
-//     auto& o = *this;
-//
-//     const auto& profile = in.profile.value_or(ncm::model::UserAccountProfile {});
-//     convert(o.m_userId, profile.userId);
-//     convert(o.m_nickname, profile.nickname);
-//     convert(o.m_avatarUrl, profile.avatarUrl);
-//     emit infoChanged();
-// }
-
 namespace model
 {
 inline void handle_output(qcm::model::UserAccount& self, const ncm::api_model::UserAccount& in) {
