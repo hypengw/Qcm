@@ -6,7 +6,7 @@ namespace qcm
 {
 namespace enums
 {
-Q_NAMESPACE
+QCM_INTERFACE_API Q_NAMESPACE
 QML_ELEMENT
 
 enum class QCM_INTERFACE_API ApiStatus

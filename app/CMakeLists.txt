@@ -26,7 +26,9 @@ set(SOURCES
     src/cache_sql.cpp
     src/lyric.cpp
     src/clipboard.cpp
-    src/player.cpp)
+    src/player.cpp
+    src/fake_moc.cpp
+    )
 
 set(QCM_INTERFACE_HEADER
     include/qcm_interface/enum.h
@@ -34,7 +36,9 @@ set(QCM_INTERFACE_HEADER
     include/qcm_interface/model.h
     include/qcm_interface/model/user_account.h
 )
+
 list(TRANSFORM QCM_INTERFACE_HEADER PREPEND "${CMAKE_SOURCE_DIR}/qcm_interface/")
+
 
 set(QML_FILES
     qml/js/util.mjs
@@ -128,6 +132,7 @@ qt_add_qml_module(
 target_sources(app PRIVATE $<$<CONFIG:Debug>:src/util/QmlStackTraceHelper.cpp>)
 
 # target_compile_definitions(app PUBLIC $<$<CONFIG:Debug>:QT_QML_DEBUG> )
+
 
 target_include_directories(
   app
