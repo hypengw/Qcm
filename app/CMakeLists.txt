@@ -1,10 +1,17 @@
-set(APP_ID io.github.hypengw.Qcm)
-set(APP_NAME ${PROJECT_NAME})
-set(APP_VERSION ${PROJECT_VERSION})
-set(APP_SUMMARY ${PROJECT_DESCRIPTION})
-set(APP_AUTHOR "hypeng")
+set(APP_ID
+    io.github.hypengw.Qcm)
+set(APP_NAME
+    ${PROJECT_NAME})
+set(APP_VERSION
+    ${PROJECT_VERSION})
+set(APP_SUMMARY
+    ${PROJECT_DESCRIPTION})
+set(APP_AUTHOR
+    "hypeng")
 
-find_package(Qt6 REQUIRED COMPONENTS QuickControls2 Sql)
+find_package(
+  Qt6 REQUIRED
+  COMPONENTS QuickControls2 Sql)
 
 set(SOURCES
     include/Qcm/app.h
@@ -15,7 +22,6 @@ set(SOURCES
     include/Qcm/lyric.h
     include/Qcm/clipboard.h
     include/Qcm/player.h
-
     src/app.cpp
     src/playlist.cpp
     src/qr_image.cpp
@@ -23,18 +29,15 @@ set(SOURCES
     src/lyric.cpp
     src/clipboard.cpp
     src/player.cpp
-    src/fake_moc.cpp
-    )
+    src/fake_moc.cpp)
 
 set(QCM_INTERFACE_HEADER
-    include/qcm_interface/enum.h
-    include/qcm_interface/global.h
-    include/qcm_interface/model.h
-    include/qcm_interface/model/user_account.h
-)
+    include/qcm_interface/enum.h include/qcm_interface/global.h
+    include/qcm_interface/model.h include/qcm_interface/model/user_account.h)
 
-list(TRANSFORM QCM_INTERFACE_HEADER PREPEND "${CMAKE_SOURCE_DIR}/qcm_interface/")
-
+list(
+  TRANSFORM QCM_INTERFACE_HEADER
+  PREPEND "${CMAKE_SOURCE_DIR}/qcm_interface/")
 
 set(QML_FILES
     qml/js/util.mjs
@@ -101,11 +104,15 @@ set(QML_FILES
     qml/menu/DjradioMenu.qml
     qml/menu/PlaylistMenu.qml
     qml/menu/ProgramMenu.qml)
-set(RESOURCES assets/Qcm.svg)
+set(RESOURCES
+    assets/Qcm.svg)
 
-set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
-set_source_files_properties(qml/Global.qml PROPERTIES QT_QML_SINGLETON_TYPE
-                                                      TRUE)
+set_source_files_properties(
+  qml/Theme.qml
+  PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(
+  qml/Global.qml
+  PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 qt_add_qml_module(
   app
@@ -125,16 +132,17 @@ qt_add_qml_module(
   ${RESOURCES}
   NO_PLUGIN_OPTIONAL)
 
-target_sources(app PRIVATE $<$<CONFIG:Debug>:src/util/QmlStackTraceHelper.cpp>)
+target_sources(
+  app
+  PRIVATE $<$<CONFIG:Debug>:src/util/QmlStackTraceHelper.cpp>)
 
 # target_compile_definitions(app PUBLIC $<$<CONFIG:Debug>:QT_QML_DEBUG> )
-
-
 target_include_directories(
   app
   PUBLIC include
   PRIVATE src/ include/Qcm include/Qcm/util
-          ${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface)
+          ${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface
+          ${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface/model)
 target_link_libraries(
   app
   PUBLIC Qt6::Core
@@ -168,13 +176,15 @@ qt_add_qml_module(
   /)
 
 target_link_libraries(
-  ${PROJECT_NAME} PRIVATE app appplugin qml_materialplugin
-#service_qml_ncmplugin
-                           kdsingleapplication)
+  ${PROJECT_NAME}
+  PRIVATE app appplugin qml_materialplugin kdsingleapplication)
 
-set(APP_DESKTOP assets/Qcm.desktop)
-set(APP_METAINFO assets/Qcm.metainfo.xml)
-set(APP_SVG assets/Qcm.svg)
+set(APP_DESKTOP
+    assets/Qcm.desktop)
+set(APP_METAINFO
+    assets/Qcm.metainfo.xml)
+set(APP_SVG
+    assets/Qcm.svg)
 configure_file(${APP_DESKTOP}.in ${APP_DESKTOP} @ONLY)
 configure_file(${APP_METAINFO}.in ${APP_METAINFO} @ONLY)
 
@@ -188,7 +198,8 @@ install(
 # DEPLOY_USER_QML_MODULES_ON_UNSUPPORTED_PLATFORM) install(SCRIPT
 # ${deploy_script})
 
-if(LINUX AND NOT ANDROID)
+if(LINUX
+   AND NOT ANDROID)
   install(
     FILES "${CMAKE_CURRENT_BINARY_DIR}/${APP_DESKTOP}"
     RENAME ${APP_ID}.desktop

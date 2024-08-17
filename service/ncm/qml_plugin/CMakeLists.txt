@@ -49,14 +49,13 @@ set(SOURCES
     api.cpp)
 
 set(QML_FILES
-    qml/page/CloudUploadPage.qml
-)
+    qml/page/CloudUploadPage.qml)
 
 qt_add_qml_module(
   service_qml_ncm
   URI
   Qcm.Service.Ncm
-  SHARED 
+  SHARED
   RESOURCE_PREFIX
   /
   VERSION
@@ -68,11 +67,11 @@ qt_add_qml_module(
   RESOURCES
   ${RESOURCES}
   NO_PLUGIN_OPTIONAL
-  NO_GENERATE_PLUGIN_SOURCE
-  )
+  NO_GENERATE_PLUGIN_SOURCE)
 
-  target_sources(service_qml_ncmplugin PRIVATE plugin.cpp)
-    
+target_sources(
+  service_qml_ncmplugin
+  PRIVATE plugin.cpp)
 
 target_include_directories(
   service_qml_ncm
@@ -83,3 +82,7 @@ target_include_directories(
 target_link_libraries(
   service_qml_ncm
   PUBLIC Qt::Quick ctre platform sv_ncm qcm_interface meta_model)
+
+set_target_properties(
+  service_qml_ncm
+  PROPERTIES OUTPUT_NAME qcm_service_qml_ncm)

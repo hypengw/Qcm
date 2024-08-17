@@ -53,7 +53,7 @@ foreach(
   target_sources(
     qcm_interface
     PRIVATE ${gen})
-endforeach(src ${})
+endforeach()
 
 target_include_directories(
   qcm_interface
