@@ -19,8 +19,7 @@
 
 #include "qcm_interface/type.h"
 
-#include "Qcm/path.h"
-#include "Qcm/ncm_image.h"
+#include "qcm_interface/path.h"
 #include "Qcm/qr_image.h"
 #include "ncm/api/user_account.h"
 #include "crypto/crypto.h"
@@ -92,7 +91,6 @@ App* App::instance() { return app_instance(); }
 App::App(std::monostate)
     : QObject(nullptr),
       m_global(make_rc<Global>()),
-      m_client(m_global->session(), m_global->pool_executor()),
       m_mpris(make_up<mpris::Mpris>()),
       m_media_cache(),
       m_main_win(nullptr),
@@ -115,6 +113,7 @@ App::App(std::monostate)
 
     m_media_cache_sql = std::make_shared<CacheSql>("media_cache", 0);
     m_cache_sql       = std::make_shared<CacheSql>("cache", 0);
+    m_global->set_cache_sql(m_cache_sql);
 }
 App::~App() {
     m_qml_engine = nullptr;
@@ -124,8 +123,6 @@ App::~App() {
     m_global->session()->about_to_stop();
     m_global->join();
 }
-
-ncm::Client App::ncm_client() const { return m_client; }
 
 void App::init() {
     auto engine = this->engine();
@@ -209,7 +206,6 @@ void App::init() {
 
     connect(engine, &QQmlApplicationEngine::quit, gui_app, &QGuiApplication::quit);
 
-    engine->addImageProvider(u"ncm"_qs, new NcmImageProvider {});
     engine->addImageProvider(u"qr"_qs, new QrImageProvider {});
 
     engine->load(u"qrc:/main/main.qml"_qs);
@@ -224,10 +220,13 @@ void App::init() {
     _assert_msg_rel_(m_player_sender, "player must init");
 }
 
-QUrl App::getImageCache(QString url, QSize reqSize) const {
-    auto path =
-        NcmImageProvider::genImageCachePath(NcmImageProvider::makeReq(url, reqSize, m_client));
-    return QUrl::fromLocalFile(path.native().c_str());
+QUrl App::getImageCache(QString provider, QUrl url, QSize reqSize) const {
+    auto client = Global::instance()->client(provider.toStdString());
+    if (client) {
+        auto path = client.api->image_cache(client.instance, url, reqSize);
+        return QUrl::fromLocalFile(path.c_str());
+    }
+    return {};
 }
 
 QUrl App::media_file(const QString& id_) const {

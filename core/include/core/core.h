@@ -55,7 +55,7 @@ namespace ycore
 {
 
 template<typename Wrapper>
-static inline typename Wrapper::pointer GetPtrHelper(const Wrapper& p) {
+static inline typename Wrapper::element_type* GetPtrHelper(const Wrapper& p) {
     return p.get();
 }
 

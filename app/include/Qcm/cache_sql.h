@@ -18,7 +18,7 @@ public:
     CacheSql(std::string_view table, i64 limit);
     ~CacheSql();
 
-    auto& get_executor() { return m_ex; }
+    auto get_executor() -> asio::any_io_executor override { return m_ex; }
 
     void set_limit(i64);
     void set_clean_cb(clean_cb_t);

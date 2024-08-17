@@ -80,8 +80,6 @@ public:
     auto        global() const -> Global*;
     void        set_player_sender(Sender<Player::NotifyInfo>);
 
-    ncm::Client ncm_client() const;
-    auto        get_cache_sql() { return m_cache_sql; }
 
     mpris::MediaPlayer2* mpris() const { return m_mpris->mediaplayer2(); }
 
@@ -95,7 +93,7 @@ public:
     //    Q_INVOKABLE model::ItemId artistId(QString id) const;
     //    Q_INVOKABLE model::ItemId ItemId(QString id) const;
 
-    Q_INVOKABLE QUrl    getImageCache(QString url, QSize reqSize) const;
+    Q_INVOKABLE QUrl    getImageCache(QString provider, QUrl url, QSize reqSize) const;
     Q_INVOKABLE bool    isItemId(const QJSValue&) const;
     Q_INVOKABLE QString itemIdPageUrl(const QJSValue&) const;
 
@@ -136,7 +134,6 @@ private:
     void save_session();
 
     rc<Global>                  m_global;
-    mutable ncm::Client         m_client;
     up<mpris::Mpris>            m_mpris;
     rc<media_cache::MediaCache> m_media_cache;
 

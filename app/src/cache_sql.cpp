@@ -10,7 +10,7 @@
 #include <QSqlRecord>
 #include <QDateTime>
 
-#include "Qcm/path.h"
+#include "qcm_interface/path.h"
 #include "qcm_interface/type.h"
 #include "core/log.h"
 

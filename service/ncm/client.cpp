@@ -18,15 +18,24 @@
 using namespace ncm;
 using namespace request;
 
-Client::Client(rc<Session> sess, asio::any_io_executor ex)
-    : m_session(sess),
-      m_csrf(make_rc<std::string>()),
-      m_crypto(make_rc<Crypto>()),
-      m_ex(make_rc<executor_type>(ex)),
-      m_req_common(make_rc<Request>()) {
-    m_req_common->get_opt<request::req_opt::Timeout>().set_connect_timeout(30).set_transfer_timeout(
+class Client::Private {
+public:
+    Private(rc<Session> sess, executor_type ex, std::string device_id)
+        : session(sess), device_id(device_id), csrf(), crypto(), ex(ex), req_common() {}
+    rc<request::Session> session;
+    std::string          device_id;
+    std::string          csrf;
+    Crypto               crypto;
+    executor_type        ex;
+    request::Request     req_common;
+};
+
+Client::Client(rc<Session> sess, executor_type ex, std::string device_id)
+    : d_ptr(make_rc<Private>(sess, ex, device_id)) {
+    C_D(Client);
+    d->req_common.get_opt<request::req_opt::Timeout>().set_connect_timeout(30).set_transfer_timeout(
         60);
-    m_req_common->set_header("Referer", "https://music.163.com")
+    d->req_common.set_header("Referer", "https://music.163.com")
         .set_header("User-Agent",
                     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, "
                     "like Gecko) Version/13.1.2 Safari/605.1.15");
@@ -34,19 +43,24 @@ Client::Client(rc<Session> sess, asio::any_io_executor ex)
 
 Client::~Client() {}
 
-Client::executor_type& Client::get_executor() { return *m_ex; }
+Client::executor_type& Client::get_executor() { 
+    C_D(Client);
+    return (d->ex); 
+}
 
 template<>
 auto Client::make_req<api::CryptoType::WEAPI>(
     std::string_view path, const request::UrlParams& q) const -> request::Request {
-    Request req { *m_req_common };
+    C_D(const Client);
+    Request req { d->req_common };
     req.set_url(api::concat_query(path, q.encode()));
     return req;
 }
 template<>
 auto Client::make_req<api::CryptoType::EAPI>(
     std::string_view path, const request::UrlParams& q) const -> request::Request {
-    Request req { *m_req_common };
+    C_D(const Client);
+    Request req { d->req_common };
     req.set_url(api::concat_query(path, q.encode()))
         .set_header("Cookie", "os=pc; appver=2.10.13; versioncode=202675");
     return req;
@@ -54,21 +68,24 @@ auto Client::make_req<api::CryptoType::EAPI>(
 template<>
 auto Client::make_req<api::CryptoType::NONE>(
     std::string_view path, const request::UrlParams& q) const -> request::Request {
-    return Request { *m_req_common }.set_url(api::concat_query(path, q.encode()));
+    C_D(const Client);
+    return Request { d->req_common }.set_url(api::concat_query(path, q.encode()));
 }
 
 template<>
 auto Client::encrypt<api::CryptoType::WEAPI>(std::string_view,
                                              const Params& p) -> std::optional<std::string> {
+    C_D(Client);
     // p.insert_or_assign(std::string("csrf_token"), *csrf);
-    return m_crypto->weapi(convert_from<std::vector<byte>>(to_json_str(p)));
+    return d->crypto.weapi(convert_from<std::vector<byte>>(to_json_str(p)));
 }
 
 template<>
 auto Client::encrypt<api::CryptoType::EAPI>(std::string_view path,
                                             const Params&    p) -> std::optional<std::string> {
+    C_D(Client);
     std::string path_ = fmt::format("/api{}", path);
-    return m_crypto->eapi(path_, convert_from<std::vector<byte>>(to_json_str(p)));
+    return d->crypto.eapi(path_, convert_from<std::vector<byte>>(to_json_str(p)));
 }
 
 template<>
@@ -79,6 +96,7 @@ auto Client::encrypt<api::CryptoType::NONE>(std::string_view,
 
 template<api::CryptoType CT>
 auto Client::format_url(std::string_view base, std::string_view path) -> std::string {
+    C_D(const Client);
     std::string_view prefix;
     if constexpr (CT == api::CryptoType::EAPI) {
         prefix = "/eapi";
@@ -96,16 +114,17 @@ template auto Client::format_url<api::CryptoType::NONE>(std::string_view base,
                                                         std::string_view path) -> std::string;
 
 auto Client::rsp(const request::Request& q) const -> awaitable<rc<request::Response>> {
-    rc<request::Response> rsp = UNWRAP(co_await m_session->get(q));
+    C_D(const Client);
+    rc<request::Response> rsp = UNWRAP(co_await d->session->get(q));
     co_return rsp;
 }
 
 auto Client::post(const request::Request& req,
                   std::string_view        body) -> awaitable<Result<std::vector<byte>>> {
-    rc<std::string> csrf = m_csrf;
-
+    C_D(Client);
+    // rc<std::string> csrf = m_csrf;
     rc<Response> rsp;
-    EC_RET_CO(rsp, co_await m_session->post(req, asio::buffer(body)));
+    EC_RET_CO(rsp, co_await d->session->post(req, asio::buffer(body)));
 
     _assert_(rsp);
 

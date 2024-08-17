@@ -1,9 +1,11 @@
 #pragma once
 
+#include <any>
+#include <filesystem>
+
 #include <QtCore/QObject>
 #include <QtQml/QQmlListProperty>
 #include <QtQml/QQmlComponent>
-#include <any>
 
 #include <asio/thread_pool.hpp>
 #include <asio/steady_timer.hpp>
@@ -13,6 +15,7 @@
 #include "qcm_interface/export.h"
 #include "qcm_interface/model/app_info.h"
 #include "qcm_interface/enum.h"
+#include "qcm_interface/cache_sql.h"
 
 namespace request
 {
@@ -20,6 +23,7 @@ class Session;
 }
 namespace qcm
 {
+class App;
 
 struct StopSignal {
     bool val { false };
@@ -32,13 +36,13 @@ class QCM_INTERFACE_API Global : public QObject {
     Q_PROPERTY(QQmlComponent* copy_action_comp READ copy_action_comp WRITE set_copy_action_comp
                    NOTIFY copyActionCompChanged FINAL)
     friend class GlobalWrapper;
+    friend class App;
 
 public:
     using pool_executor_t = asio::thread_pool::executor_type;
     using qt_executor_t   = QtExecutor;
 
     static auto instance() -> Global*;
-    static void setInstance(Global*);
 
     Global();
     ~Global();
@@ -46,7 +50,11 @@ public:
     struct Client {
         struct Api {
             auto (*server_url)(std::any&, const model::ItemId&) -> std::string;
+            auto (*image_cache)(std::any&, const QUrl& url, QSize req) -> std::filesystem::path;
         };
+
+        operator bool() const { return instance.has_value(); }
+
         rc<Api>  api;
         std::any instance;
     };
@@ -57,6 +65,8 @@ public:
     auto qexecutor() -> qt_executor_t&;
     auto pool_executor() -> pool_executor_t;
     auto session() -> rc<request::Session>;
+    auto get_cache_sql() const -> rc<media_cache::DataBase>;
+
     auto copy_action_comp() const -> QQmlComponent*;
     auto uuid() const -> const QUuid&;
 
@@ -75,9 +85,12 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     void set_copy_action_comp(QQmlComponent*);
-    void set_uuid(const QUuid&);
 
 private:
+    void        set_uuid(const QUuid&);
+    void        set_cache_sql(rc<media_cache::DataBase>);
+    static void setInstance(Global*);
+
     class Private;
     C_DECLARE_PRIVATE(Global, d_ptr);
 };

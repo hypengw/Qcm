@@ -80,7 +80,8 @@ public:
     rc<request::Session> session;
     //    mutable ncm::Client         m_client;
 
-    QUuid uuid;
+    QUuid                     uuid;
+    rc<media_cache::DataBase> cache_sql;
 
     std::map<std::string, Client, std::less<>> clients;
 
@@ -135,7 +136,10 @@ auto Global::uuid() const -> const QUuid& {
     C_D(const Global);
     return d->uuid;
 }
-
+auto Global::get_cache_sql() const -> rc<media_cache::DataBase> {
+    C_D(const Global);
+    return d->cache_sql;
+}
 auto Global::copy_action_comp() const -> QQmlComponent* {
     C_D(const Global);
     return d->copy_action_comp;
@@ -151,6 +155,10 @@ void Global::set_uuid(const QUuid& val) {
     if (std::exchange(d->uuid, val) != val) {
         uuidChanged();
     }
+}
+void Global::set_cache_sql(rc<media_cache::DataBase> val) {
+    C_D(Global);
+    d->cache_sql = val;
 }
 void Global::join() {
     C_D(Global);

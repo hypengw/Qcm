@@ -8,7 +8,6 @@
 #include "request/session.h"
 #include "request/request.h"
 #include "ncm/type.h"
-#include "ncm/model.h"
 #include "ncm/api.h"
 
 namespace ncm
@@ -20,9 +19,9 @@ using bytes_view                    = std::span<const byte>;
 class Crypto;
 class Client {
 public:
-    Client(rc<request::Session>, asio::any_io_executor);
+    using executor_type = asio::thread_pool::executor_type;
+    Client(rc<request::Session> session, executor_type ex, std::string device_id);
     ~Client();
-    using executor_type = asio::any_io_executor;
 
     template<typename TApi>
         requires api::ApiCP<TApi>
@@ -74,12 +73,9 @@ public:
 private:
     auto post(const request::Request&, std::string_view) -> awaitable<Result<std::vector<byte>>>;
 
-    rc<request::Session> m_session;
-    rc<std::string>      m_csrf;
-    rc<Crypto>           m_crypto;
-
-    rc<executor_type>    m_ex;
-    rc<request::Request> m_req_common;
+    class Private;
+    rc<Private> d_ptr;
+    C_DECLARE_PRIVATE_FUNC(Client, d_ptr);
 };
 
 } // namespace ncm

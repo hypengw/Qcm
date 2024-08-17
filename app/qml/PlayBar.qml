@@ -59,7 +59,7 @@ MD.Pane {
 
                 onStatusChanged: {
                     if (status == Image.Ready)
-                        QA.Global.song_cover = QA.App.getImageCache(picUrl, sourceSize);
+                        QA.Global.song_cover = QA.App.getImageCache("ncm", picUrl, sourceSize);
                 }
 
                 MouseArea {

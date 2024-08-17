@@ -9,9 +9,7 @@ find_package(Qt6 REQUIRED COMPONENTS QuickControls2 Sql)
 set(SOURCES
     include/Qcm/app.h
     include/Qcm/info.h
-    include/Qcm/path.h
     include/Qcm/playlist.h
-    include/Qcm/ncm_image.h
     include/Qcm/qr_image.h
     include/Qcm/cache_sql.h
     include/Qcm/lyric.h
@@ -19,9 +17,7 @@ set(SOURCES
     include/Qcm/player.h
 
     src/app.cpp
-    src/path.cpp
     src/playlist.cpp
-    src/ncm_image.cpp
     src/qr_image.cpp
     src/cache_sql.cpp
     src/lyric.cpp
@@ -173,7 +169,8 @@ qt_add_qml_module(
 
 target_link_libraries(
   ${PROJECT_NAME} PRIVATE app appplugin qml_materialplugin
-                          service_qml_ncmplugin kdsingleapplication)
+#service_qml_ncmplugin
+                           kdsingleapplication)
 
 set(APP_DESKTOP assets/Qcm.desktop)
 set(APP_METAINFO assets/Qcm.metainfo.xml)

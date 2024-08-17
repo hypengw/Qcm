@@ -1,4 +1,4 @@
-#include "Qcm/ncm_image.h"
+#include "service_qml_ncm/ncm_image.h"
 
 #include <filesystem>
 #include <cstdio>
@@ -10,10 +10,9 @@
 #include <ctre.hpp>
 #include <QtCore/QPointer>
 
-#include "Qcm/app.h"
-#include "qcm_interface/type.h"
-#include "Qcm/path.h"
-#include "Qcm/cache_sql.h"
+#include "qcm_interface/path.h"
+#include "qcm_interface/cache_sql.h"
+#include "qcm_interface/global.h"
 
 #include "core/expected_helper.h"
 #include "request/response.h"
@@ -22,6 +21,7 @@
 #include "ncm/client.h"
 
 #include "platform/platform.h"
+#include "service_qml_ncm/api.h"
 
 using namespace qcm;
 
@@ -47,7 +47,7 @@ inline std::string gen_file_name(const request::URI& url) {
             .map(convert_from<std::string, crypto::bytes_view>));
 }
 
-void header_record_db(const request::HttpHeader& h, CacheSql::Item& db_it) {
+void header_record_db(const request::HttpHeader& h, media_cache::DataBase::Item& db_it) {
     static constexpr auto DigitPattern = ctll::fixed_string { "\\d*" };
     for (auto& f : h.fields) {
         if (helper::case_insensitive_compare(f.name, "content-type") == 0)
@@ -81,8 +81,8 @@ public:
 
     NcmImageProviderInner()
         : m_ex(Global::instance()->pool_executor()),
-          m_cli(App::instance()->ncm_client()),
-          m_cache_sql(App::instance()->get_cache_sql()) {}
+          m_cli(qcm::detail::get_client()),
+          m_cache_sql(Global::instance()->get_cache_sql()) {}
 
     asio::awaitable<request::HttpHeader> dl_image(const request::Request& req,
                                                   std::filesystem::path   p) {
@@ -98,7 +98,7 @@ public:
 
     asio::awaitable<void> cache_new_image(const request::Request& req, std::string_view key,
                                           std::filesystem::path cache_file, QSize req_size) {
-        CacheSql::Item db_it;
+        media_cache::DataBase::Item db_it;
         db_it.key = key;
 
         auto file_dl = cache_file;
@@ -146,9 +146,9 @@ public:
     };
 
 private:
-    executor_type m_ex;
-    ncm::Client   m_cli;
-    rc<CacheSql>  m_cache_sql;
+    executor_type             m_ex;
+    ncm::Client               m_cli;
+    rc<media_cache::DataBase> m_cache_sql;
 };
 } // namespace qcm
 

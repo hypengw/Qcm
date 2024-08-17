@@ -1,6 +1,6 @@
 find_package(
   Qt6 REQUIRED
-  COMPONENTS Qml)
+  COMPONENTS Qml Quick)
 
 set(SOURCES
     include/service_qml_ncm/api/user_account.h
@@ -41,9 +41,11 @@ set(SOURCES
     include/service_qml_ncm/model/song_like.h
     include/service_qml_ncm/model/radar_playlist_id.h
     include/service_qml_ncm/model/cloud_upload.h
+    include/service_qml_ncm/ncm_image.h
     model.cpp
     model/radar_playlist_id.cpp
     model/cloud_upload.cpp
+    ncm_image.cpp
     api.cpp)
 
 set(QML_FILES
@@ -54,7 +56,7 @@ qt_add_qml_module(
   service_qml_ncm
   URI
   Qcm.Service.Ncm
-  STATIC
+  SHARED 
   RESOURCE_PREFIX
   /
   VERSION
@@ -65,7 +67,12 @@ qt_add_qml_module(
   ${SOURCES}
   RESOURCES
   ${RESOURCES}
-  NO_PLUGIN_OPTIONAL)
+  NO_PLUGIN_OPTIONAL
+  NO_GENERATE_PLUGIN_SOURCE
+  )
+
+  target_sources(service_qml_ncmplugin PRIVATE plugin.cpp)
+    
 
 target_include_directories(
   service_qml_ncm
@@ -75,4 +82,4 @@ target_include_directories(
 
 target_link_libraries(
   service_qml_ncm
-  PUBLIC Qt::Qml sv_ncm qcm_interface meta_model)
+  PUBLIC Qt::Quick ctre platform sv_ncm qcm_interface meta_model)

@@ -63,6 +63,8 @@ concept ApiCP_Base = requires(T t) {
 auto concat_query(std::string_view url, std::string_view query) -> std::string;
 
 auto format_api(std::string_view path, const UrlParams& query, const Params& body) -> std::string;
+
+auto device_id_from_uuid(std::string_view uuid) -> std::string;
 } // namespace api
 
 namespace api_model
