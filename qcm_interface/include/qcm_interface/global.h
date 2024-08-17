@@ -31,7 +31,6 @@ class QCM_INTERFACE_API Global : public QObject {
     Q_PROPERTY(model::AppInfo info READ info CONSTANT FINAL)
     Q_PROPERTY(QQmlComponent* copy_action_comp READ copy_action_comp WRITE set_copy_action_comp
                    NOTIFY copyActionCompChanged FINAL)
-
     friend class GlobalWrapper;
 
 public:
@@ -52,13 +51,14 @@ public:
         std::any instance;
     };
 
-    auto client(std::string_view name, std::optional<std::function<Client()>> = std::nullopt)
-        -> Client;
+    auto client(std::string_view name,
+                std::optional<std::function<Client()>> = std::nullopt) -> Client;
 
     auto qexecutor() -> qt_executor_t&;
     auto pool_executor() -> pool_executor_t;
     auto session() -> rc<request::Session>;
     auto copy_action_comp() const -> QQmlComponent*;
+    auto uuid() const -> const QUuid&;
 
     auto info() const -> const model::AppInfo&;
 
@@ -71,9 +71,11 @@ Q_SIGNALS:
     void toast(QString text, qint32 duration = 4000, enums::ToastFlags = {},
                QObject* action = nullptr, StopSignal stop = {});
     void copyActionCompChanged(StopSignal stop = {});
+    void uuidChanged(StopSignal stop = {});
 
 public Q_SLOTS:
     void set_copy_action_comp(QQmlComponent*);
+    void set_uuid(const QUuid&);
 
 private:
     class Private;
@@ -89,6 +91,7 @@ class QCM_INTERFACE_API GlobalWrapper : public QObject {
     Q_PROPERTY(model::AppInfo info READ info CONSTANT FINAL)
     Q_PROPERTY(QQmlComponent* copy_action_comp READ copy_action_comp WRITE set_copy_action_comp
                    NOTIFY copyActionCompChanged FINAL)
+    Q_PROPERTY(QString uuid READ uuid NOTIFY uuidChanged FINAL)
 
 public:
     GlobalWrapper();
@@ -97,6 +100,7 @@ public:
     auto                 datas() -> QQmlListProperty<QObject>;
     auto                 info() -> const model::AppInfo&;
     auto                 copy_action_comp() const -> QQmlComponent*;
+    auto                 uuid() const -> QString;
     Q_INVOKABLE QVariant server_url(const model::ItemId&);
 
 Q_SIGNALS:
@@ -104,6 +108,7 @@ Q_SIGNALS:
     void toast(QString text, qint32 duration = 4000, enums::ToastFlags flag = {},
                QObject* action = nullptr, StopSignal stop = {});
     void copyActionCompChanged(StopSignal stop = {});
+    void uuidChanged(StopSignal stop = {});
 
 public Q_SLOTS:
     void set_copy_action_comp(QQmlComponent*);

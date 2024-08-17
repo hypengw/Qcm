@@ -1,8 +1,9 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+
 import Qcm.App as QA
-import Qcm.Service.Ncm as QNcm
+import Qcm.Service.Ncm as QNCM
 import Qcm.Material as MD
 import "../js/util.mjs" as Util
 
@@ -53,6 +54,14 @@ MD.Page {
                             }
                         }
                     }
+                    MD.IconButton {
+                        action: Action {
+                            icon.name: MD.Token.icon.upload
+                            onTriggered: {
+                                QA.Global.show_page_popup('qrc:/Qcm/Service/Ncm/qml/page/CloudUploadPage.qml', {});
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -66,7 +75,7 @@ MD.Page {
             }
         }
 
-        QNcm.UserCloudQuerier {
+        QNCM.UserCloudQuerier {
             id: qr_cloud
         }
         Timer {

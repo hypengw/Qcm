@@ -3,6 +3,8 @@
 #include <thread>
 #include <mutex>
 
+#include <QUuid>
+
 #include "core/log.h"
 #include "request/session.h"
 
@@ -78,6 +80,8 @@ public:
     rc<request::Session> session;
     //    mutable ncm::Client         m_client;
 
+    QUuid uuid;
+
     std::map<std::string, Client, std::less<>> clients;
 
     model::AppInfo info;
@@ -94,8 +98,8 @@ Global::Global(): d_ptr(make_up<Private>(this)) {
 }
 Global::~Global() {}
 
-auto Global::client(std::string_view name_view, std::optional<std::function<Client()>> init)
-    -> Client {
+auto Global::client(std::string_view                       name_view,
+                    std::optional<std::function<Client()>> init) -> Client {
     C_D(Global);
     std::unique_lock l { d->mutex };
     auto             name = std::string(name_view);
@@ -127,6 +131,11 @@ auto Global::session() -> rc<request::Session> {
     C_D(Global);
     return d->session;
 }
+auto Global::uuid() const -> const QUuid& {
+    C_D(const Global);
+    return d->uuid;
+}
+
 auto Global::copy_action_comp() const -> QQmlComponent* {
     C_D(const Global);
     return d->copy_action_comp;
@@ -135,6 +144,12 @@ void Global::set_copy_action_comp(QQmlComponent* val) {
     C_D(Global);
     if (std::exchange(d->copy_action_comp, val) != val) {
         copyActionCompChanged();
+    }
+}
+void Global::set_uuid(const QUuid& val) {
+    C_D(Global);
+    if (std::exchange(d->uuid, val) != val) {
+        uuidChanged();
     }
 }
 void Global::join() {
@@ -156,6 +171,7 @@ GlobalWrapper::GlobalWrapper(): m_g(Global::instance()) {
     connect_from_global(m_g, &Global::copyActionCompChanged, &GlobalWrapper::copyActionCompChanged);
     connect_from_global(m_g, &Global::errorOccurred, &GlobalWrapper::errorOccurred);
     connect_from_global(m_g, &Global::toast, &GlobalWrapper::toast);
+    connect_from_global(m_g, &Global::uuidChanged, &GlobalWrapper::uuidChanged);
 
     connect_to_global(m_g, &Global::errorOccurred, &GlobalWrapper::errorOccurred);
     connect_to_global(m_g, &Global::toast, &GlobalWrapper::toast);
@@ -178,6 +194,7 @@ auto GlobalWrapper::datas() -> QQmlListProperty<QObject> { return { this, &m_dat
 auto GlobalWrapper::info() -> const model::AppInfo& { return m_g->info(); }
 auto GlobalWrapper::server_url(const model::ItemId& id) -> QVariant { return m_g->server_url(id); }
 auto GlobalWrapper::copy_action_comp() const -> QQmlComponent* { return m_g->copy_action_comp(); }
+auto GlobalWrapper::uuid() const -> QString { return m_g->uuid().toString(QUuid::WithoutBraces); }
 void GlobalWrapper::set_copy_action_comp(QQmlComponent* val) { m_g->set_copy_action_comp(val); }
 
 } // namespace qcm

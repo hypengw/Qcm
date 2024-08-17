@@ -11,6 +11,7 @@
 #include <QSettings>
 #include <QJSValueIterator>
 #include <QQuickItem>
+#include <QUuid>
 
 #include <asio/deferred.hpp>
 
@@ -132,6 +133,22 @@ void App::init() {
     // qmlRegisterSingletonInstance("Qcm.App", 1, 0, "App", this);
     qcm::init_path(std::array { config_path() / "session", data_path() });
 
+    // uuid
+    {
+        QSettings s;
+        QUuid     uuid;
+        auto      uuid_str = s.value("device/uuid").toString();
+        if (uuid_str.isEmpty()) {
+            uuid     = QUuid::createUuid();
+            uuid_str = uuid.toString();
+            s.setValue("device/uuid", uuid_str);
+        } else {
+            uuid = QUuid(uuid_str);
+        }
+        Global::instance()->set_uuid(uuid);
+    }
+
+    // mpris
     {
         m_mpris->registerService("Qcm");
         auto m = mpris();
@@ -142,6 +159,7 @@ void App::init() {
             "Qcm.App", 1, 0, "MprisMediaPlayer", "uncreatable");
     }
 
+    // cache
     {
         auto cache_dir = cache_path() / "cache";
         m_cache_sql->set_clean_cb([cache_dir](std::string_view key) {
@@ -153,6 +171,7 @@ void App::init() {
             m_cache_sql->get_executor(), scan_media_cache(m_cache_sql, cache_dir), asio::detached);
     }
 
+    // media cache
     {
         auto media_cache_dir = cache_path() / "media";
         m_media_cache_sql->set_clean_cb([media_cache_dir](std::string_view key) {
@@ -168,8 +187,10 @@ void App::init() {
     }
     triggerCacheLimit();
 
+    // session cookie
     load_session();
 
+    // session proxy
     {
         QSettings s;
         auto      type    = s.value("network/proxy_type").value<ProxyType>();
@@ -181,6 +202,7 @@ void App::init() {
         setVerifyCertificate(! ignore_cert);
     }
 
+    // qml engine
     QQuickStyle::setStyle("Material");
 
     auto gui_app = QGuiApplication::instance();
