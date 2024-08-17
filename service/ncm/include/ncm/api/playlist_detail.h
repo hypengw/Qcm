@@ -61,7 +61,7 @@ struct PlaylistDetail {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::EAPI;
 
-    std::string_view path() const { return "/eapi/v6/playlist/detail"; };
+    std::string_view path() const { return "/v6/playlist/detail"; };
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;

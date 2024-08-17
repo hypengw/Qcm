@@ -46,7 +46,7 @@ struct PlaylistSubscribe {
     constexpr static CryptoType crypto = CryptoType::EAPI;
 
     std::string path() const {
-        return fmt::format("/eapi/playlist/{}", input.sub ? "subscribe" : "unsubscribe");
+        return fmt::format("/playlist/{}", input.sub ? "subscribe" : "unsubscribe");
     }
     UrlParams query() const { return {}; }
     Params    body() const {

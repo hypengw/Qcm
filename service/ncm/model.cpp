@@ -39,6 +39,7 @@
 #include "ncm/api/feedback_weblog.h"
 
 #include "ncm/api/cloud_upload_check.h"
+#include "ncm/api/nos_token_alloc.h"
 
 namespace ncm
 {
@@ -199,6 +200,8 @@ JSON_DEFINE_IMPL(PlaylistDelete, code);
 JSON_DEFINE_IMPL(PlaylistTracks, code);
 
 JSON_DEFINE_IMPL(CloudUploadCheck, code, songId, needUpload);
+JSON_DEFINE_IMPL(NosTokenAlloc::Result_, objectKey, token);
+JSON_DEFINE_IMPL(NosTokenAlloc, code, result);
 
 } // namespace api_model
 
@@ -244,6 +247,7 @@ JSON_GET_IMPL(api_model::DjradioProgram);
 JSON_GET_IMPL(api_model::DjradioSub);
 JSON_GET_IMPL(api_model::UserCloud);
 JSON_GET_IMPL(api_model::CloudUploadCheck);
+JSON_GET_IMPL(api_model::NosTokenAlloc);
 
 JSON_GET_IMPL(model::Album);
 JSON_GET_IMPL(model::Song);

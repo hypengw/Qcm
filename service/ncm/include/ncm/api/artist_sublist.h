@@ -57,7 +57,7 @@ struct ArtistSublist {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string_view path() const { return "/weapi/artist/sublist"; }
+    std::string_view path() const { return "/artist/sublist"; }
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;

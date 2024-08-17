@@ -46,7 +46,7 @@ struct PlaylistDelete {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string_view path() const { return "/weapi/playlist/remove"; }
+    std::string_view path() const { return "/playlist/remove"; }
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;

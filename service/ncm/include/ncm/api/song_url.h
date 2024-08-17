@@ -85,7 +85,7 @@ struct SongUrl {
     constexpr static CryptoType       crypto = CryptoType::EAPI;
     constexpr static std::string_view base   = "https://interface.music.163.com";
 
-    std::string_view path() const { return "/eapi/song/enhance/player/url/v1"; }
+    std::string_view path() const { return "/song/enhance/player/url/v1"; }
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;

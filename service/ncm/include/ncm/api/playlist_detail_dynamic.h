@@ -44,7 +44,7 @@ struct PlaylistDetailDynamic {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string_view path() const { return "/weapi/playlist/detail/dynamic"; }
+    std::string_view path() const { return "/playlist/detail/dynamic"; }
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;

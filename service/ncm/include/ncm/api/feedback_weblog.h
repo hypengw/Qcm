@@ -45,7 +45,7 @@ struct FeedbackWeblog {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string path() const { return "/weapi/feedback/weblog"; }
+    std::string path() const { return "/feedback/weblog"; }
     UrlParams   query() const { return {}; }
     Params      body() const;
 

@@ -80,7 +80,7 @@ struct UserAccount {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string_view path() const { return "/weapi/nuser/account/get"; }
+    std::string_view path() const { return "/nuser/account/get"; }
     UrlParams        query() const { return {}; }
     Params           body() const { return {}; }
     in_type          input;

@@ -30,14 +30,14 @@ struct NosTokenAlloc {
     }
 
     i64 code;
-    struct Result {
+    struct Result_ {
         std::string objectKey;
         std::string token;
     };
-    Result result;
+    Result_ result;
 };
 JSON_DEFINE(NosTokenAlloc);
-JSON_DEFINE(NosTokenAlloc::Result);
+JSON_DEFINE(NosTokenAlloc::Result_);
 
 } // namespace api_model
 
@@ -50,7 +50,7 @@ struct NosTokenAlloc {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string path() const { return "/weapi/nos/token/alloc"; };
+    std::string path() const { return "/nos/token/alloc"; };
     UrlParams   query() const { return {}; }
     Params      body() const {
         Params p;

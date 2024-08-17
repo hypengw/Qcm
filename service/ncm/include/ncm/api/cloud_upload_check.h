@@ -46,7 +46,7 @@ struct CloudUploadCheck {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string path() const { return "/weapi/cloud/upload/check"; };
+    std::string path() const { return "/cloud/upload/check"; };
     UrlParams   query() const { return {}; }
     Params      body() const {
         Params p;

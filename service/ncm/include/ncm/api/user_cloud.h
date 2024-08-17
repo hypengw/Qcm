@@ -63,7 +63,7 @@ struct UserCloud {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string_view path() const { return "/weapi/v1/cloud/get"; }
+    std::string_view path() const { return "/v1/cloud/get"; }
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;

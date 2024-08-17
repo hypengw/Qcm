@@ -39,7 +39,7 @@ struct RecommendSongs {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string_view path() const { return "/weapi/v3/discovery/recommend/songs"; }
+    std::string_view path() const { return "/v3/discovery/recommend/songs"; }
     UrlParams        query() const { return {}; }
     Params           body() const { return {}; }
     in_type          input;

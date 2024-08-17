@@ -36,7 +36,7 @@ public:
         else
             base_url = BASE_URL;
 
-        auto        url  = fmt::format("{}{}", base_url, api.path());
+        auto        url  = format_url<TApi::crypto>(base_url, api.path());
         auto        req  = make_req<TApi::crypto>(url, api.query());
         std::string body = UNWRAP(encrypt<TApi::crypto>(api.path(), api.body()));
 
@@ -67,6 +67,9 @@ public:
 
     template<api::CryptoType CT>
     auto encrypt(std::string_view path, const Params&) -> std::optional<std::string>;
+
+    template<api::CryptoType CT>
+    auto format_url(std::string_view base, std::string_view path) -> std::string;
 
 private:
     auto post(const request::Request&, std::string_view) -> awaitable<Result<std::vector<byte>>>;

@@ -37,58 +37,71 @@ Client::~Client() {}
 Client::executor_type& Client::get_executor() { return *m_ex; }
 
 template<>
-auto Client::make_req<api::CryptoType::WEAPI>(std::string_view          path,
-                                              const request::UrlParams& q) const
-    -> request::Request {
+auto Client::make_req<api::CryptoType::WEAPI>(
+    std::string_view path, const request::UrlParams& q) const -> request::Request {
     Request req { *m_req_common };
     req.set_url(api::concat_query(path, q.encode()));
     return req;
 }
 template<>
-auto Client::make_req<api::CryptoType::EAPI>(std::string_view          path,
-                                             const request::UrlParams& q) const
-    -> request::Request {
+auto Client::make_req<api::CryptoType::EAPI>(
+    std::string_view path, const request::UrlParams& q) const -> request::Request {
     Request req { *m_req_common };
     req.set_url(api::concat_query(path, q.encode()))
         .set_header("Cookie", "os=pc; appver=2.10.13; versioncode=202675");
     return req;
 }
 template<>
-auto Client::make_req<api::CryptoType::NONE>(std::string_view          path,
-                                             const request::UrlParams& q) const
-    -> request::Request {
+auto Client::make_req<api::CryptoType::NONE>(
+    std::string_view path, const request::UrlParams& q) const -> request::Request {
     return Request { *m_req_common }.set_url(api::concat_query(path, q.encode()));
 }
 
 template<>
-auto Client::encrypt<api::CryptoType::WEAPI>(std::string_view, const Params& p)
-    -> std::optional<std::string> {
+auto Client::encrypt<api::CryptoType::WEAPI>(std::string_view,
+                                             const Params& p) -> std::optional<std::string> {
     // p.insert_or_assign(std::string("csrf_token"), *csrf);
     return m_crypto->weapi(convert_from<std::vector<byte>>(to_json_str(p)));
 }
 
 template<>
-auto Client::encrypt<api::CryptoType::EAPI>(std::string_view path, const Params& p)
-    -> std::optional<std::string> {
-    assert(path.starts_with("/eapi"));
-    path.remove_prefix(5);
+auto Client::encrypt<api::CryptoType::EAPI>(std::string_view path,
+                                            const Params&    p) -> std::optional<std::string> {
     std::string path_ = fmt::format("/api{}", path);
     return m_crypto->eapi(path_, convert_from<std::vector<byte>>(to_json_str(p)));
 }
 
 template<>
-auto Client::encrypt<api::CryptoType::NONE>(std::string_view, const Params&)
-    -> std::optional<std::string> {
+auto Client::encrypt<api::CryptoType::NONE>(std::string_view,
+                                            const Params&) -> std::optional<std::string> {
     return std::nullopt;
 }
+
+template<api::CryptoType CT>
+auto Client::format_url(std::string_view base, std::string_view path) -> std::string {
+    std::string_view prefix;
+    if constexpr (CT == api::CryptoType::EAPI) {
+        prefix = "/eapi";
+    } else if constexpr (CT == api::CryptoType::WEAPI) {
+        prefix = "/weapi";
+    }
+    return std::format("{}{}{}", base, prefix, path);
+}
+
+template auto Client::format_url<api::CryptoType::WEAPI>(std::string_view base,
+                                                         std::string_view path) -> std::string;
+template auto Client::format_url<api::CryptoType::EAPI>(std::string_view base,
+                                                        std::string_view path) -> std::string;
+template auto Client::format_url<api::CryptoType::NONE>(std::string_view base,
+                                                        std::string_view path) -> std::string;
 
 auto Client::rsp(const request::Request& q) const -> awaitable<rc<request::Response>> {
     rc<request::Response> rsp = UNWRAP(co_await m_session->get(q));
     co_return rsp;
 }
 
-auto Client::post(const request::Request& req, std::string_view body)
-    -> awaitable<Result<std::vector<byte>>> {
+auto Client::post(const request::Request& req,
+                  std::string_view        body) -> awaitable<Result<std::vector<byte>>> {
     rc<std::string> csrf = m_csrf;
 
     rc<Response> rsp;

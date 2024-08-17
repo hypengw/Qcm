@@ -54,7 +54,7 @@ struct Comments {
     constexpr static std::array prefixs { "R_AL_3_", "A_PL_0_", "R_SO_4_", "A_DJ_1_" };
 
     std::string path() const {
-        return fmt::format("/weapi/v1/resource/comments/{}{}",
+        return fmt::format("/v1/resource/comments/{}{}",
                            prefixs[(int)input.type % prefixs.size()],
                            input.id.as_str());
     };

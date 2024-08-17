@@ -46,7 +46,7 @@ struct AlbumDetailDynamic {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string_view path() const { return "/weapi/album/detail/dynamic"; }
+    std::string_view path() const { return "/album/detail/dynamic"; }
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;

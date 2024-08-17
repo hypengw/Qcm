@@ -52,7 +52,7 @@ struct SongLyric {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string_view path() const { return "/weapi/song/lyric"; }
+    std::string_view path() const { return "/song/lyric"; }
     UrlParams        query() const {
         UrlParams p;
         p.set_param("_nmclfl", "1");

@@ -38,7 +38,7 @@ struct QrcodeUnikey {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string_view path() const { return "/weapi/login/qrcode/unikey"; }
+    std::string_view path() const { return "/login/qrcode/unikey"; }
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;

@@ -41,7 +41,7 @@ struct DjradioSublist {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string_view path() const { return "/weapi/djradio/get/subed"; }
+    std::string_view path() const { return "/djradio/get/subed"; }
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;

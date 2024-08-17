@@ -88,7 +88,7 @@ struct UserPlaylist {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string_view path() const { return "/weapi/user/playlist"; }
+    std::string_view path() const { return "/user/playlist"; }
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;

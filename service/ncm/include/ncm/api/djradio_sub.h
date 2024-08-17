@@ -46,7 +46,7 @@ struct DjradioSub {
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
     std::string path() const {
-        return fmt::format("/weapi/djradio/{}", input.sub ? "sub" : "unsub");
+        return fmt::format("/djradio/{}", input.sub ? "sub" : "unsub");
     }
     UrlParams query() const { return {}; }
     Params    body() const {

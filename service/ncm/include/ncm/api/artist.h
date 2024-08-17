@@ -41,7 +41,7 @@ struct Artist {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string path() const { return fmt::format("/weapi/v1/artist/{}", input.id.as_str()); };
+    std::string path() const { return fmt::format("/v1/artist/{}", input.id.as_str()); };
     UrlParams   query() const { return {}; }
     Params      body() const { return {}; }
 

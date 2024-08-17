@@ -53,7 +53,7 @@ struct PlaylistCatalogue {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string_view path() const { return "/weapi/playlist/catalogue"; };
+    std::string_view path() const { return "/playlist/catalogue"; };
     UrlParams        query() const { return {}; }
     Params           body() const { return {}; }
     in_type          input;

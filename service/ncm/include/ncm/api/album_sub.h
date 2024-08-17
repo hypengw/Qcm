@@ -46,7 +46,7 @@ struct AlbumSub {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string path() const { return fmt::format("/weapi/album/{}", input.sub ? "sub" : "unsub"); }
+    std::string path() const { return fmt::format("/album/{}", input.sub ? "sub" : "unsub"); }
     UrlParams   query() const { return {}; }
     Params      body() const {
         Params p;

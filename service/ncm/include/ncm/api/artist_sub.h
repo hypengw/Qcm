@@ -45,7 +45,7 @@ struct ArtistSub {
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
     std::string path() const {
-        return fmt::format("/weapi/artist/{}", input.sub ? "sub" : "unsub");
+        return fmt::format("/artist/{}", input.sub ? "sub" : "unsub");
     }
     UrlParams query() const { return {}; }
     Params    body() const {

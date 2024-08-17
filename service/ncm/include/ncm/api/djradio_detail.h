@@ -82,7 +82,7 @@ struct DjradioDetail {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string path() const { return "/weapi/djradio/v2/get"; };
+    std::string path() const { return "/djradio/v2/get"; };
     UrlParams   query() const { return {}; }
     Params      body() const {
         Params p;

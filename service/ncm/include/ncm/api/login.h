@@ -36,7 +36,7 @@ struct Login {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string_view path() const { return "/weapi/login"; }
+    std::string_view path() const { return "/login"; }
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;

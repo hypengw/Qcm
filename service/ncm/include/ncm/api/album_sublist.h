@@ -57,7 +57,7 @@ struct AlbumSublist {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
-    std::string_view path() const { return "/weapi/album/sublist"; }
+    std::string_view path() const { return "/album/sublist"; }
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;

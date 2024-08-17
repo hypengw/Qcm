@@ -47,7 +47,7 @@ struct RadioLike {
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::EAPI;
 
-    std::string_view path() const { return "/eapi/radio/like"; }
+    std::string_view path() const { return "/radio/like"; }
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;
