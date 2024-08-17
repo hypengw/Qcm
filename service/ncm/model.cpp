@@ -38,6 +38,8 @@
 #include "ncm/api/song_like.h"
 #include "ncm/api/feedback_weblog.h"
 
+#include "ncm/api/cloud_upload_check.h"
+
 namespace ncm
 {
 namespace model
@@ -196,6 +198,8 @@ JSON_DEFINE_IMPL(PlaylistCreate, id, playlist);
 JSON_DEFINE_IMPL(PlaylistDelete, code);
 JSON_DEFINE_IMPL(PlaylistTracks, code);
 
+JSON_DEFINE_IMPL(CloudUploadCheck, code);
+
 } // namespace api_model
 
 } // namespace ncm
@@ -239,6 +243,7 @@ JSON_GET_IMPL(api_model::DjradioDetail);
 JSON_GET_IMPL(api_model::DjradioProgram);
 JSON_GET_IMPL(api_model::DjradioSub);
 JSON_GET_IMPL(api_model::UserCloud);
+JSON_GET_IMPL(api_model::CloudUploadCheck);
 
 JSON_GET_IMPL(model::Album);
 JSON_GET_IMPL(model::Song);

@@ -4,6 +4,7 @@
 #include "ncm/client.h"
 
 #include "qcm_interface/api.h"
+#include "asio_qt/qt_executor.h"
 
 namespace qcm
 {
@@ -75,7 +76,7 @@ protected:
 
 private:
     struct Context {
-        asio::any_io_executor              main_ex;
+        QtExecutor                         main_ex;
         ncm::Client                        client;
         api_type                           api;
         QPointer<ApiQuerier<TApi, TModel>> self;
