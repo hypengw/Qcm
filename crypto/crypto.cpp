@@ -151,6 +151,28 @@ nstd::expected<std::vector<byte>, int> crypto::digest(const md* type, bytes_view
     return out;
 }
 
+auto crypto::digest(const md* type, usize buf_size,
+                    const reader& reader) -> nstd::expected<std::vector<byte>, int> {
+    evp_md_ctx        ctx_ { EVP_MD_CTX_new(), ::EVP_MD_CTX_free };
+    auto              ctx = ctx_.get();
+    std::vector<byte> out(EVP_MAX_MD_SIZE);
+    unsigned int      out_size = out.size();
+
+    std::vector<byte> buf(buf_size);
+
+    if (EVP_DigestInit(ctx, type) != 1) return nstd::unexpected(1);
+    for (;;) {
+        auto size = reader(buf);
+        if (size == 0) break;
+        if (EVP_DigestUpdate(ctx, buf.data(), size) != 1) return nstd::unexpected(1);
+    }
+    if (EVP_DigestFinal(ctx, (unsigned char*)out.data(), &out_size) != 1)
+        return nstd::unexpected(1);
+
+    out.resize(out_size);
+    return out;
+}
+
 std::vector<byte> crypto::hex::encode_low(bytes_view data) {
     constexpr std::array hex_digits = "0123456789abcdef"_sb;
 

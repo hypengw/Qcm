@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <span>
+#include <functional>
 
 #include "core/expected_helper.h"
 
@@ -13,6 +14,7 @@ namespace qcm
 
 namespace crypto
 {
+using reader     = std::function<usize(std::span<byte>)>;
 using bytes_view = std::span<const byte>;
 using cipher     = evp_cipher_st;
 using md         = evp_md_st;
@@ -21,15 +23,14 @@ const cipher* aes_128_ecb() noexcept;
 const cipher* aes_128_cbc() noexcept;
 const md*     md5() noexcept;
 
-nstd::expected<std::vector<byte>, int> encrypt(const cipher* cipher, bytes_view key, bytes_view iv,
-                                               bytes_view data);
-nstd::expected<std::vector<byte>, int> decrypt(const cipher* cipher, bytes_view key, bytes_view iv,
-                                               bytes_view data);
-
-nstd::expected<std::vector<byte>, int> encode(bytes_view data);
-nstd::expected<std::vector<byte>, int> decode(bytes_view data);
-
-nstd::expected<std::vector<byte>, int> digest(const md* type, bytes_view data);
+auto encrypt(const cipher* cipher, bytes_view key, bytes_view iv,
+             bytes_view data) -> nstd::expected<std::vector<byte>, int>;
+auto decrypt(const cipher* cipher, bytes_view key, bytes_view iv,
+             bytes_view data) -> nstd::expected<std::vector<byte>, int>;
+auto encode(bytes_view data) -> nstd::expected<std::vector<byte>, int>;
+auto decode(bytes_view data) -> nstd::expected<std::vector<byte>, int>;
+auto digest(const md* type, bytes_view data) -> nstd::expected<std::vector<byte>, int>;
+auto digest(const md* type, usize buf_size, const reader&) -> nstd::expected<std::vector<byte>, int>;
 
 namespace hex
 {
@@ -57,9 +58,8 @@ public:
     Rsa(Rsa&&) noexcept;
     Rsa& operator=(Rsa&&) noexcept;
 
-    static std::optional<Rsa> from_pem(bytes_view data, bytes_view pass);
-
-    nstd::expected<std::vector<byte>, int> encrypt(Padding, bytes_view data);
+    static auto from_pem(bytes_view data, bytes_view pass) -> std::optional<Rsa>;
+    auto        encrypt(Padding, bytes_view data) -> nstd::expected<std::vector<byte>, int>;
 
 private:
     up<Pkey> key;
