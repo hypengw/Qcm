@@ -198,7 +198,7 @@ JSON_DEFINE_IMPL(PlaylistCreate, id, playlist);
 JSON_DEFINE_IMPL(PlaylistDelete, code);
 JSON_DEFINE_IMPL(PlaylistTracks, code);
 
-JSON_DEFINE_IMPL(CloudUploadCheck, code);
+JSON_DEFINE_IMPL(CloudUploadCheck, code, songId, needUpload);
 
 } // namespace api_model
 

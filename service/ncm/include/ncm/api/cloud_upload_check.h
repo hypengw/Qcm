@@ -12,10 +12,10 @@ namespace params
 struct CloudUploadCheck {
     std::string bitrate;
     std::string ext;
-    usize       length;
+    usize       length { 0 };
     std::string md5;
-    std::string songId;
-    i64         version;
+    std::string songId { "0" };
+    i64         version { 1 };
 };
 
 } // namespace params
@@ -29,7 +29,9 @@ struct CloudUploadCheck {
         return api_model::parse<CloudUploadCheck>(bs);
     }
 
-    i64 code;
+    i64         code;
+    std::string songId;
+    bool        needUpload;
 };
 JSON_DEFINE(CloudUploadCheck);
 
