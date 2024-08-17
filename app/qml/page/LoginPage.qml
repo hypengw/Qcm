@@ -151,8 +151,8 @@ MD.Page {
                         ColumnLayout {
                             MD.Pane {
                                 Layout.alignment: Qt.AlignCenter
-                                MD.MatProp.backgroundColor: 'white'
-                                MD.MatProp.elevation: MD.Token.elevation.level3
+                                backgroundColor: 'white'
+                                elevation: MD.Token.elevation.level3
                                 padding: 12
                                 radius: 12
                                 MD.Image {

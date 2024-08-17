@@ -15,8 +15,7 @@ find_package(
 
 set(MODEL_SOURCES
     include/qcm_interface/model/user_account.h
-    include/qcm_interface/model/app_info.h
-)
+    include/qcm_interface/model/app_info.h)
 
 add_library(
   qcm_interface SHARED
@@ -61,21 +60,20 @@ target_include_directories(
 
 target_compile_definitions(
   qcm_interface
-  PRIVATE QCM_INTERFACE_EXPORT)
+  PUBLIC APP_ID="${APP_ID}" APP_VERSION="${APP_VERSION}"
+         APP_AUTHOR="${APP_AUTHOR}" APP_NAME="${APP_NAME}"
+         APP_SUMMARY="${APP_SUMMARY}"
+  PRIVATE QCM_INTERFACE_EXPORT QT_NO_SIGNALS_SLOTS_KEYWORDS)
 
 set_target_properties(
   qcm_interface
   PROPERTIES AUTOMOC ON
              CXX_VISIBILITY_PRESET hidden)
+
 target_link_libraries(
   qcm_interface
   PUBLIC core asio_helper asio_qt request Qt::Qml)
 
-target_compile_definitions(
-  qcm_interface
-  PUBLIC APP_ID="${APP_ID}" APP_VERSION="${APP_VERSION}"
-         APP_AUTHOR="${APP_AUTHOR}" APP_NAME="${APP_NAME}"
-         APP_SUMMARY="${APP_SUMMARY}")
 install(
   TARGETS qcm_interface
   BUNDLE DESTINATION .

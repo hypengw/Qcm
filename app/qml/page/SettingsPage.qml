@@ -13,7 +13,7 @@ MD.Page {
     title: qsTr('settings')
 
     MD.MatProp.textColor: MD.Token.color.on_surface
-    MD.MatProp.elevation: MD.Token.elevation.level0
+    elevation: MD.Token.elevation.level0
 
     MD.Flickable {
         id: flick

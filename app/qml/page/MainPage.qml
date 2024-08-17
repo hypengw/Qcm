@@ -192,8 +192,8 @@ MD.Page {
                 Layout.fillWidth: true
                 visible: m_page_stack.depth <= 1
                 padding: 0
-                MD.MatProp.backgroundColor: MD.MatProp.color.surface_container
-                MD.MatProp.elevation: MD.Token.elevation.level2
+                backgroundColor: MD.MatProp.color.surface_container
+                elevation: MD.Token.elevation.level2
                 RowLayout {
                     anchors.fill: parent
                     Repeater {

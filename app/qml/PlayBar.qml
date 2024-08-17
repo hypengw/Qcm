@@ -10,7 +10,7 @@ MD.Pane {
     id: root
 
     MD.MatProp.backgroundColor: QA.Global.main_win.smallLayout ? MD.MatProp.color.surface_container : MD.MatProp.color.surface
-    MD.MatProp.elevation: QA.Global.main_win.smallLayout ? MD.Token.elevation.level2 : MD.Token.elevation.level0
+    elevation: QA.Global.main_win.smallLayout ? MD.Token.elevation.level2 : MD.Token.elevation.level0
 
     readonly property bool isSmall: root.width > 0 && root.width < 650
     padding: 0

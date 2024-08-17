@@ -73,6 +73,13 @@ MD.Menu {
             }
         }
         QA.CopyAction {
+            text: qsTr('album')
+            icon.name: MD.Token.icon.album
+            getCopyString: function() {
+                return root.song.album.name;
+            }
+        }
+        QA.CopyAction {
             text: qsTr('url')
             icon.name: MD.Token.icon.link
             getCopyString: function() {

@@ -13,9 +13,9 @@
 #include "core/qstr_helper.h"
 #include "asio_helper/watch_dog.h"
 #include "qcm_interface/enum.h"
-#include "qcm_interface/type.h"
 #include "qcm_interface/macro.h"
 #include "qcm_interface/export.h"
+#include "asio_qt/qt_executor.h"
 
 namespace qcm
 {
@@ -36,27 +36,23 @@ concept modelable =
 class QCM_INTERFACE_API ApiQuerierBase : public QObject, public QQmlParserStatus {
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)
+
+    Q_PROPERTY(QString error READ error NOTIFY errorChanged FINAL)
+    Q_PROPERTY(Status status READ status WRITE set_status NOTIFY statusChanged FINAL)
+    Q_PROPERTY(bool autoReload READ autoReload WRITE set_autoReload NOTIFY autoReloadChanged FINAL)
+    Q_PROPERTY(QObject* data READ data NOTIFY dataChanged FINAL)
+    Q_PROPERTY(QObject* parent READ parent CONSTANT FINAL)
+    Q_PROPERTY(
+        bool forwardError READ forwardError WRITE set_forwardError NOTIFY forwardErrorChanged FINAL)
 public:
     ApiQuerierBase(QObject* parent = nullptr);
     virtual ~ApiQuerierBase();
     using Status = enums::ApiStatus;
 
-public:
-    Q_PROPERTY(Status status READ status WRITE set_status NOTIFY statusChanged FINAL)
-    Q_PROPERTY(QString error READ error NOTIFY errorChanged FINAL)
-    Q_PROPERTY(bool autoReload READ autoReload WRITE set_autoReload NOTIFY autoReloadChanged FINAL)
-    Q_PROPERTY(QObject* data READ data NOTIFY dataChanged FINAL)
-    Q_PROPERTY(QObject* parent READ parent CONSTANT FINAL)
+    Q_INVOKABLE void query();
+    auto             status() const -> Status;
 
-    Q_PROPERTY(
-        bool forwardError READ forwardError WRITE set_forwardError NOTIFY forwardErrorChanged FINAL)
-
-    Q_INVOKABLE void query() { reload(); }
-
-    Status status() const;
-    void   set_status(Status);
-
-    QString error() const;
+    auto error() const -> const QString&;
 
     bool autoReload() const;
     bool forwardError() const;
@@ -66,29 +62,25 @@ public:
     void classBegin() override;
     void componentComplete() override;
 
-    virtual QObject* data() const = 0;
-    virtual void     reload()     = 0;
+    virtual auto data() const -> QObject* = 0;
+    virtual void reload()                 = 0;
     // virtual bool can_relaod() const = 0;
 
-public slots:
-    void set_autoReload(bool);
-    void set_forwardError(bool);
-    void reload_if_needed() {
-        if (! is_qml_parsing() && autoReload() && dirty()) {
-            reload();
-            mark_dirty(false);
-        }
-    }
-
+public Q_SLOTS:
+    void         set_status(Status);
+    void         set_autoReload(bool);
+    void         set_forwardError(bool);
+    void         reload_if_needed();
     void         mark_dirty(bool = true);
-    virtual void fetch_more(qint32) {}
+    virtual void fetch_more(qint32);
 
-signals:
-    void statusChanged();
-    void errorChanged();
+Q_SIGNALS:
     void forwardErrorChanged();
     void autoReloadChanged();
     void dataChanged();
+
+    void statusChanged();
+    void errorChanged();
 
 protected:
     void set_error(QString);
@@ -96,10 +88,10 @@ protected:
     template<typename Ex, typename Fn>
     void spawn(Ex&& ex, Fn&& f) {
         QPointer<ApiQuerierBase> self { this };
-        asio::any_io_executor    main_ex { m_main_ex };
+        auto                     main_ex { get_executor() };
         auto                     alloc = asio::recycling_allocator<void>();
         asio::co_spawn(ex,
-                       m_wdog.watch(ex, std::forward<Fn>(f), alloc),
+                       watch_dog().watch(ex, std::forward<Fn>(f), alloc),
                        asio::bind_allocator(alloc, [self, main_ex](std::exception_ptr p) {
                            if (! p) return;
                            try {
@@ -117,19 +109,14 @@ protected:
                        }));
     }
 
-    void cancel() { m_wdog.cancel(); }
-
-    asio::any_io_executor& get_executor() { return m_main_ex; }
+    void cancel();
+    auto get_executor() -> QtExecutor&;
 
 private:
-    asio::any_io_executor m_main_ex;
-    helper::WatchDog      m_wdog;
-    Status                m_status;
-    QString               m_error;
-    bool                  m_auto_reload;
-    bool                  m_qml_parsing;
-    bool                  m_dirty;
-    bool                  m_forward_error;
+    auto watch_dog() -> helper::WatchDog&;
+
+    class Private;
+    C_DECLARE_PRIVATE(ApiQuerierBase, d_ptr);
 };
 
 } // namespace qcm
