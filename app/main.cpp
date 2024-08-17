@@ -10,7 +10,6 @@
 
 #include <QtQml/QQmlExtensionPlugin>
 Q_IMPORT_QML_PLUGIN(Qcm_AppPlugin)
-Q_IMPORT_QML_PLUGIN(Qcm_MaterialPlugin)
 
 #include <kdsingleapplication.h>
 

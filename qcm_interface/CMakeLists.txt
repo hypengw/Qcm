@@ -76,7 +76,4 @@ target_link_libraries(
   qcm_interface
   PUBLIC core asio_helper asio_qt request Qt::Qml)
 
-install(
-  TARGETS qcm_interface
-  BUNDLE DESTINATION .
-  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS qcm_interface)

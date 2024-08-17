@@ -1,4 +1,5 @@
 #include "service_qml_ncm/ncm_image.h"
+#include "service_qml_ncm/ncm_image_p.h"
 
 #include <filesystem>
 #include <cstdio>
@@ -214,3 +215,9 @@ QQuickImageResponse* NcmImageProvider::requestImageResponse(const QString& id,
         }));
     return rsp;
 }
+
+namespace qcm::qml_ncm
+{
+
+auto create_ncm_imageprovider() -> QQuickImageProvider* { return new NcmImageProvider(); }
+} // namespace qcm::qml_ncm

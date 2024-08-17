@@ -3,7 +3,7 @@
 #include <QUuid>
 #include "qcm_interface/global.h"
 #include "service_qml_ncm/model.h"
-#include "service_qml_ncm/ncm_image.h"
+#include "service_qml_ncm/ncm_image_p.h"
 
 namespace ncm::impl
 {

@@ -11,21 +11,16 @@
 
 class QtExecEvent : public QEvent {
 public:
-    QtExecEvent(): QEvent(generated_type()) {}
+    QtExecEvent(QEvent::Type t): QEvent(t) {}
 
     virtual ~QtExecEvent() = default;
 
     virtual void invoke() = 0;
-
-    static QEvent::Type generated_type() {
-        static int event_type = QEvent::registerEventType();
-        return static_cast<QEvent::Type>(event_type);
-    }
 };
 
 template<class F>
 struct QtExecFuncEvent : QtExecEvent {
-    QtExecFuncEvent(F f): m_f(std::move(f)) {}
+    QtExecFuncEvent(F&& f, QEvent::Type t): QtExecEvent(t), m_f(std::forward<F>(f)) {}
 
     void invoke() override { m_f(); }
 
@@ -35,22 +30,21 @@ private:
 
 class QtExecutionContext : public asio::execution_context, NoCopy {
 public:
-    QtExecutionContext(QObject*);
+    QtExecutionContext(QObject*, QEvent::Type);
     virtual ~QtExecutionContext();
 
     template<class F>
-    void post(F f) {
+    void post(F&& f) {
         if (m_target) {
-            auto event = new QtExecFuncEvent(std::move(f));
+            auto event = new QtExecFuncEvent(std::forward<F>(f), event_type());
             QCoreApplication::postEvent(m_target, event);
         }
     }
 
-    struct filter : QObject {
-        auto eventFilter(QObject*, QEvent* event) -> bool override;
-    };
+    auto event_type() const -> QEvent::Type;
 
 private:
+    struct Filter;
     QPointer<QObject> m_target;
-    filter            m_filter;
+    Filter*           m_filter;
 };

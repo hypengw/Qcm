@@ -177,7 +177,7 @@ qt_add_qml_module(
 
 target_link_libraries(
   ${PROJECT_NAME}
-  PRIVATE app appplugin qml_materialplugin kdsingleapplication)
+  PRIVATE app appplugin kdsingleapplication)
 
 set(APP_DESKTOP
     assets/Qcm.desktop)

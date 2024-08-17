@@ -42,6 +42,7 @@ set(SOURCES
     include/service_qml_ncm/model/radar_playlist_id.h
     include/service_qml_ncm/model/cloud_upload.h
     include/service_qml_ncm/ncm_image.h
+    include/service_qml_ncm/ncm_image_p.h
     model.cpp
     model/radar_playlist_id.cpp
     model/cloud_upload.cpp
@@ -81,8 +82,16 @@ target_include_directories(
 
 target_link_libraries(
   service_qml_ncm
-  PUBLIC Qt::Quick ctre platform sv_ncm qcm_interface meta_model)
+  PUBLIC Qt::Quick core
+  PRIVATE ctre platform sv_ncm qcm_interface meta_model)
+
+target_compile_definitions(
+  service_qml_ncm
+  PRIVATE SERVICE_QML_NCM_EXPORT)
 
 set_target_properties(
   service_qml_ncm
-  PROPERTIES OUTPUT_NAME qcm_service_qml_ncm)
+  PROPERTIES CXX_VISIBILITY_PRESET hidden
+             OUTPUT_NAME qcm_service_qml_ncm)
+
+qt_install_qml_module(service_qml_ncm)

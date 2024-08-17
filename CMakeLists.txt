@@ -28,6 +28,8 @@ if(UNIX AND NOT APPLE)
   set(LINUX CACHE INTERNAL TRUE "")
 endif()
 
+include(GNUInstallDirs)
+
 find_package(PkgConfig REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Core Quick ShaderTools)
 qt_standard_project_setup()
@@ -69,6 +71,25 @@ add_link_options(
 add_subdirectory(third_party)
 
 add_compile_options(${WARN_OPTS})
+
+function(qt_install_qml_module target_)
+  get_target_property(QML_TARGET_PATH ${target_} QT_QML_MODULE_TARGET_PATH)
+  get_target_property(QML_TYEPINFO ${target_} QT_QML_MODULE_TYPEINFO)
+  get_target_property(QML_PLUGIN_TARGET ${target_} QT_QML_MODULE_PLUGIN_TARGET)
+  set(QML_INSTALL_DIR
+      "${CMAKE_INSTALL_LIBDIR}/qml/${QML_TARGET_PATH}")
+
+  install(TARGETS ${target_})
+
+  install(
+    TARGETS ${QML_PLUGIN_TARGET}
+    LIBRARY DESTINATION ${QML_INSTALL_DIR})
+
+  install(
+    FILES "${QT_QML_OUTPUT_DIRECTORY}/${QML_TARGET_PATH}/qmldir"
+          "${QT_QML_OUTPUT_DIRECTORY}/${QML_TARGET_PATH}/${QML_TYEPINFO}"
+    DESTINATION ${QML_INSTALL_DIR})
+endfunction()
 
 add_subdirectory(core)
 add_subdirectory(binder)

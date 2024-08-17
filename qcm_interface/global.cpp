@@ -68,7 +68,7 @@ void GlobalWrapper::connect_to_global(Global* g, R (Global::*g_func)(ARGS...),
 class Global::Private {
 public:
     Private(Global* p)
-        : qt_ex(std::make_shared<QtExecutionContext>(p)),
+        : qt_ex(std::make_shared<QtExecutionContext>(p, (QEvent::Type)QEvent::registerEventType())),
           pool(get_pool_size()),
           session(std::make_shared<request::Session>(pool.get_executor())),
           copy_action_comp(nullptr) {}
