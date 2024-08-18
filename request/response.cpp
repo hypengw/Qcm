@@ -78,10 +78,17 @@ Response::Response(const Request& req, Operation oper, rc<Session> ses) noexcept
     case Operation::GetOperation: break;
     case Operation::PostOperation:
         easy.setopt(CURLOPT_POST, 1);
-        easy.setopt(CURLOPT_POSTFIELDSIZE, 0);
+        easy.setopt(CURLOPT_POSTFIELDS, NULL);
+        easy.setopt(CURLOPT_POSTFIELDSIZE_LARGE, 0);
         break;
     }
     apply_easy_request(easy, req);
+    {
+        auto& p = req.get_opt<req_opt::Read>();
+        if (p.callback) {
+            connection().set_send_callback(p.callback);
+        }
+    }
 }
 
 Response::~Response() noexcept { cancel(); }
@@ -125,17 +132,30 @@ void Response::async_read_some_impl(
     connection().async_read_some(buffer, std::move(handler));
 }
 
+void Response::async_write_some_impl(
+    asio::const_buffer                                          buffer,
+    asio::any_completion_handler<void(asio::error_code, usize)> handler) {
+    C_D(Response);
+    connection().async_write_some(buffer, std::move(handler));
+}
+
 void Response::prepare_perform() {
     C_D(Response);
     auto& easy = connection().easy();
 
     switch (d->m_operation) {
     case Operation::GetOperation: break;
-    case Operation::PostOperation:
-        auto& send_buffer = d->m_send_buffer;
-        easy.setopt(CURLOPT_POSTFIELDS, send_buffer.data());
-        easy.setopt(CURLOPT_POSTFIELDSIZE, send_buffer.size());
+    case Operation::PostOperation: {
+        auto& p = d->m_req.get_opt<req_opt::Read>();
+        if (p.callback) {
+            easy.setopt(CURLOPT_POSTFIELDSIZE_LARGE, p.size ? p.size : -1);
+        } else {
+            auto& send_buffer = d->m_send_buffer;
+            easy.setopt(CURLOPT_POSTFIELDS, send_buffer.data());
+            easy.setopt(CURLOPT_POSTFIELDSIZE_LARGE, send_buffer.size());
+        }
         break;
+    }
     }
 
     connection().set_url(d->m_req.url());

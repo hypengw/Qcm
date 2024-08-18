@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import Qt.labs.platform
 
 import Qcm.App as QA
 import Qcm.Service.Ncm as QNCM
@@ -58,7 +59,7 @@ MD.Page {
                         action: Action {
                             icon.name: MD.Token.icon.upload
                             onTriggered: {
-                                QA.Global.show_page_popup('qrc:/Qcm/Service/Ncm/qml/page/CloudUploadPage.qml', {});
+                                m_file_dialog.open();
                             }
                         }
                     }
@@ -118,6 +119,22 @@ MD.Page {
                 }
                 if (songs.length)
                     QA.Global.playlist.switchList(songs);
+            }
+        }
+    }
+
+    FileDialog {
+        id: m_file_dialog
+        onAccepted: {
+            m_upload_api.upload(currentFile);
+        }
+    }
+
+    QNCM.CloudUploadApi {
+        id: m_upload_api
+        onStatusChanged: {
+            if (status === QA.enums.Finished) {
+                qr_cloud.reset();
             }
         }
     }

@@ -114,6 +114,7 @@ App::App(std::monostate)
     m_media_cache_sql = std::make_shared<CacheSql>("media_cache", 0);
     m_cache_sql       = std::make_shared<CacheSql>("cache", 0);
     m_global->set_cache_sql(m_cache_sql);
+    m_global->set_metadata_impl(player::get_metadata);
 }
 App::~App() {
     m_qml_engine = nullptr;

@@ -39,6 +39,7 @@ public:
     auto get_rc() { return shared_from_this(); }
 
     auto get(const Request&) -> asio::awaitable<std::optional<rc<Response>>>;
+    auto post(const Request&) -> asio::awaitable<std::optional<rc<Response>>>;
     auto post(const Request&, asio::const_buffer) -> asio::awaitable<std::optional<rc<Response>>>;
 
     void load_cookie(std::filesystem::path);

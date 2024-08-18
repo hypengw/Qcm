@@ -115,8 +115,16 @@ auto Session::get(const Request& req) -> asio::awaitable<std::optional<rc<Respon
     co_return std::nullopt;
 }
 
-auto Session::post(const Request& req, asio::const_buffer buf)
-    -> asio::awaitable<std::optional<rc<Response>>> {
+auto Session::post(const Request& req) -> asio::awaitable<std::optional<rc<Response>>> {
+    C_D(Session);
+    rc<Response> res =
+        Response::make_response(prepare_req(req), Operation::PostOperation, shared_from_this());
+    if (co_await perform(res)) co_return res;
+    co_return std::nullopt;
+}
+
+auto Session::post(const Request&     req,
+                   asio::const_buffer buf) -> asio::awaitable<std::optional<rc<Response>>> {
     C_D(Session);
     rc<Response> res =
         Response::make_response(prepare_req(req), Operation::PostOperation, shared_from_this());
@@ -247,8 +255,14 @@ void Session::Private::handle_message(const SessionMessage& msg) {
                                     con_act.con->cancel();
                                     remove_connect(con_act.con);
                                     break;
-                                case Pause: con_act.con->easy().pause(CURLPAUSE_RECV); break;
-                                case UnPause: con_act.con->easy().pause(CURLPAUSE_CONT); break;
+                                case PauseRecv: con_act.con->easy().pause(CURLPAUSE_RECV); break;
+                                case UnPauseRecv:
+                                    con_act.con->easy().pause(CURLPAUSE_RECV_CONT);
+                                    break;
+                                case PauseSend: con_act.con->easy().pause(CURLPAUSE_SEND); break;
+                                case UnPauseSend:
+                                    con_act.con->easy().pause(CURLPAUSE_SEND_CONT);
+                                    break;
                                 default: break;
                                 }
                             } },

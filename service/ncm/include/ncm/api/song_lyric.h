@@ -34,7 +34,7 @@ struct SongLyric {
     // 200
     i64 code;
     // sgc, sfy, qfy
-    model::SongLyricItem                lrc;
+    std::optional<model::SongLyricItem> lrc;
     std::optional<model::SongLyricItem> klyric;
     std::optional<model::SongLyricItem> tlyric;
     std::optional<model::SongLyricItem> romalrc;

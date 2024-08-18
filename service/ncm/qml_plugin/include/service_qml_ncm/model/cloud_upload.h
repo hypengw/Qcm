@@ -5,6 +5,7 @@
 #include <QtQml/QQmlEngine>
 
 #include "qcm_interface/api.h"
+#include "error/error.h"
 
 namespace qcm::qml_ncm
 {
@@ -12,7 +13,7 @@ namespace qcm::qml_ncm
 class CloudUploadModel : public QAbstractListModel {
     Q_OBJECT
 public:
-    CloudUploadModel(QObject* parent=nullptr);
+    CloudUploadModel(QObject* parent = nullptr);
     ~CloudUploadModel();
 
     int      rowCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -28,7 +29,7 @@ class CloudUploadApi : public ApiQuerierBase {
     Q_OBJECT
     QML_ELEMENT
 public:
-    CloudUploadApi(QObject* parent=nullptr);
+    CloudUploadApi(QObject* parent = nullptr);
     ~CloudUploadApi();
 
     auto data() const -> QObject* override;
@@ -38,7 +39,7 @@ public Q_SLOTS:
     void upload(const QUrl&);
 
 private:
-    auto upload_impl(std::filesystem::path) -> asio::awaitable<void>;
+    auto upload_impl(std::filesystem::path) -> asio::awaitable<nstd::expected<std::monostate, error::Error>>;
 
     CloudUploadModel* m_data;
 };

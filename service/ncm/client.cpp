@@ -36,6 +36,8 @@ Client::Client(rc<Session> sess, executor_type ex, std::string device_id)
     d->req_common.get_opt<request::req_opt::Timeout>().set_connect_timeout(30).set_transfer_timeout(
         60);
     d->req_common.set_header("Referer", "https://music.163.com")
+        .set_header("deviceId", d->device_id)
+        .set_header("resolution", "1920x1080")
         .set_header("User-Agent",
                     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, "
                     "like Gecko) Version/13.1.2 Safari/605.1.15");
@@ -43,9 +45,9 @@ Client::Client(rc<Session> sess, executor_type ex, std::string device_id)
 
 Client::~Client() {}
 
-Client::executor_type& Client::get_executor() { 
+Client::executor_type& Client::get_executor() {
     C_D(Client);
-    return (d->ex); 
+    return (d->ex);
 }
 
 template<>
@@ -91,7 +93,7 @@ auto Client::encrypt<api::CryptoType::EAPI>(std::string_view path,
 template<>
 auto Client::encrypt<api::CryptoType::NONE>(std::string_view,
                                             const Params&) -> std::optional<std::string> {
-    return std::nullopt;
+    return std::string {};
 }
 
 template<api::CryptoType CT>

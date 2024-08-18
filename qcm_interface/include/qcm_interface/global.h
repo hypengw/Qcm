@@ -16,6 +16,7 @@
 #include "qcm_interface/model/app_info.h"
 #include "qcm_interface/enum.h"
 #include "qcm_interface/cache_sql.h"
+#include "qcm_interface/metadata.h"
 
 namespace request
 {
@@ -41,6 +42,7 @@ class QCM_INTERFACE_API Global : public QObject {
 public:
     using pool_executor_t = asio::thread_pool::executor_type;
     using qt_executor_t   = QtExecutor;
+    using Metadata        = player::Metadata;
 
     static auto instance() -> Global*;
 
@@ -72,6 +74,8 @@ public:
 
     auto info() const -> const model::AppInfo&;
 
+    auto get_metadata(const std::filesystem::path&) const -> Metadata;
+
     void join();
 
     Q_INVOKABLE QVariant server_url(const model::ItemId&);
@@ -87,8 +91,10 @@ public Q_SLOTS:
     void set_copy_action_comp(QQmlComponent*);
 
 private:
+    using MetadataImpl = std::function<Metadata(const std::filesystem::path&)>;
     void        set_uuid(const QUuid&);
     void        set_cache_sql(rc<media_cache::DataBase>);
+    void        set_metadata_impl(const MetadataImpl&);
     static void setInstance(Global*);
 
     class Private;

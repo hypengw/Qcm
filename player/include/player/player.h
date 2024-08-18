@@ -1,14 +1,19 @@
 #pragma once
 
+#include <map>
+#include <filesystem>
 #include <asio/experimental/concurrent_channel.hpp>
 #include <asio/thread_pool.hpp>
 #include <asio/strand.hpp>
 
 #include "core/core.h"
 #include "player/notify.h"
+#include "player/metadata.h"
 
 namespace player
 {
+
+auto get_metadata(const std::filesystem::path&) -> Metadata;
 
 class Player {
 public:

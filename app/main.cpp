@@ -1,4 +1,4 @@
-#include <QGuiApplication>
+#include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QCommandLineParser>
 #include <QSurfaceFormat>
@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
     auto logger = qcm::LogManager::init();
     request::global_init();
 
-    QGuiApplication gui_app(argc, argv);
+    QApplication gui_app(argc, argv);
 
     QCoreApplication::setApplicationName(APP_NAME);
     QCoreApplication::setApplicationVersion(APP_VERSION);

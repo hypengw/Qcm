@@ -2,13 +2,16 @@
 
 #include <string>
 #include <variant>
+#include <functional>
+#include <any>
+
 #include "core/type_list.h"
 
 namespace request
 {
 namespace req_opt
 {
-#define PROP(Type, Name, Init)            \
+#define REQ_OPT_PROP(Type, Name, Init)    \
     Type Name Init;                       \
     auto&     set_##Name(const Type& v) { \
         Name = v;                     \
@@ -16,9 +19,9 @@ namespace req_opt
     }
 
 struct Timeout {
-    PROP(i64, low_speed, {})
-    PROP(i64, connect_timeout, {})
-    PROP(i64, transfer_timeout, {})
+    REQ_OPT_PROP(i64, low_speed, {})
+    REQ_OPT_PROP(i64, connect_timeout, {})
+    REQ_OPT_PROP(i64, transfer_timeout, {})
 };
 
 struct Proxy {
@@ -31,21 +34,27 @@ struct Proxy {
         SOCKS4A = 6,
         SOCKS5H = 7
     };
-    PROP(Type, type, { Type::HTTP })
-    PROP(std::string, content, {})
+    REQ_OPT_PROP(Type, type, { Type::HTTP })
+    REQ_OPT_PROP(std::string, content, {})
 };
 
 struct Tcp {
-    PROP(bool, keepalive, {})
-    PROP(i64, keepidle, {})
-    PROP(i64, keepintvl, {})
+    REQ_OPT_PROP(bool, keepalive, {})
+    REQ_OPT_PROP(i64, keepidle, {})
+    REQ_OPT_PROP(i64, keepintvl, {})
 };
 
 struct SSL {
-    PROP(bool, verify_certificate, { true })
+    REQ_OPT_PROP(bool, verify_certificate, { true })
 };
 
-using opts = ycore::type_list<Timeout, Proxy, Tcp, SSL>;
+struct Read {
+    using Callback = std::function<usize(byte* ptr, usize size)>;
+    REQ_OPT_PROP(Callback, callback, {})
+    REQ_OPT_PROP(usize, size, { 0 })
+};
+
+using opts = ycore::type_list<Timeout, Proxy, Tcp, SSL, Read>;
 
 } // namespace req_opt
 

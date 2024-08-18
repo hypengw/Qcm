@@ -13,13 +13,8 @@ MD.Page {
     elevation: MD.Token.elevation.level0
 
     MD.ListView {
-        model: m_api.data
+ //       model: m_api.data
     }
 
-    QNCM.CloudUploadApi {
-        id: m_api
-        Component.onCompleted: {
-            upload(encodeURI('file:///var/home/out/Music/local music/Alone/01 Alone.m4a'));
-        }
-    }
+
 }

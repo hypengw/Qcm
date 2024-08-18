@@ -11,7 +11,7 @@ set(APP_AUTHOR
 
 find_package(
   Qt6 REQUIRED
-  COMPONENTS QuickControls2 Sql)
+  COMPONENTS QuickControls2 Sql Widgets)
 
 set(SOURCES
     include/Qcm/app.h
@@ -150,6 +150,7 @@ target_link_libraries(
          Qt6::QuickControls2
          Qt6::Sql
          Qt6::QuickPrivate
+         Qt6::Widgets
          asio_qt
          sv_ncm
          request

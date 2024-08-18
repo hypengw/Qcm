@@ -11,8 +11,9 @@ namespace ncm
 
 namespace json = qcm::json;
 
-using Params = std::map<std::string, std::string, std::less<>>;
-using Error  = error::Error;
+using Params     = std::map<std::string, std::string, std::less<>>;
+using Error      = error::Error;
+using BodyReader = request::req_opt::Read;
 
 using Operation = request::Operation;
 using UrlParams = request::UrlParams;

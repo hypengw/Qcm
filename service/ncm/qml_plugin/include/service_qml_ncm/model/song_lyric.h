@@ -23,7 +23,10 @@ public:
 
     using out_type = ncm::api_model::SongLyric;
     void handle_output(const out_type& in, const auto&) {
-        convert(m_lrc, in.lrc.lyric);
+        m_lrc.clear();
+        if (in.lrc) {
+            convert(m_lrc, in.lrc->lyric);
+        }
         m_trans_lrc.clear();
         if (in.tlyric) {
             convert(m_trans_lrc, in.tlyric->lyric);

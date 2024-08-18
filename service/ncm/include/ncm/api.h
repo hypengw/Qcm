@@ -12,8 +12,9 @@ namespace api_model
 {
 
 struct ApiError {
-    i64                        code;
+    std::optional<i64>         code;
     std::optional<std::string> message;
+    std::optional<std::string> errMsg;
 };
 JSON_DEFINE(ApiError);
 } // namespace api_model
@@ -23,7 +24,8 @@ template<>
 struct fmt::formatter<ncm::api_model::ApiError> : fmt::formatter<std::string> {
     template<typename FormatContext>
     auto format(const ncm::api_model::ApiError& a, FormatContext& ctx) const {
-        auto out = fmt::format("code({}) {}", a.code, a.message.value_or(""));
+        auto out = fmt::format(
+            "code({}) {}", a.code.value_or(-1), a.message.value_or(a.errMsg.value_or("")));
         return fmt::formatter<std::string>::format(out, ctx);
     }
 };
@@ -42,27 +44,41 @@ enum class CryptoType
 
 template<typename T, typename Tin>
 concept ApiOutCp = requires(T t, std::span<const byte> bs, Tin tin) {
-                       { T::parse(bs, tin) } -> std::same_as<Result<T>>;
-                   };
+    { T::parse(bs, tin) } -> std::same_as<Result<T>>;
+};
 
 template<typename T>
 concept ApiCP = requires(T t) {
-                    { T::oper } -> std::convertible_to<Operation>;
-                    { T::crypto } -> std::convertible_to<CryptoType>;
-                    { t.path() } -> std::convertible_to<std::string_view>;
-                    { t.query() } -> std::convertible_to<UrlParams>;
-                    { t.body() } -> std::convertible_to<Params>;
-                    { t.input } -> std::convertible_to<typename T::in_type>;
-                    requires ApiOutCp<typename T::out_type, typename T::in_type>;
-                };
+    { T::oper } -> std::convertible_to<Operation>;
+    { T::crypto } -> std::convertible_to<CryptoType>;
+    { t.path() } -> std::convertible_to<std::string_view>;
+    { t.query() } -> std::convertible_to<UrlParams>;
+    { t.body() } -> ycore::convertible_to_any<Params, BodyReader>;
+    { t.input } -> std::convertible_to<typename T::in_type>;
+    requires ApiOutCp<typename T::out_type, typename T::in_type>;
+};
 template<typename T>
 concept ApiCP_Base = requires(T t) {
-                         { T::base } -> std::convertible_to<std::string_view>;
-                     };
+    { T::base } -> std::convertible_to<std::string_view>;
+};
+template<typename T>
+concept ApiCP_BaseFunc = requires(T t) {
+    { t.base() } -> std::convertible_to<std::string_view>;
+};
+template<typename T>
+concept ApiCP_Reader = requires(T t) {
+    { t.body() } -> std::convertible_to<BodyReader>;
+};
+
+template<typename T>
+concept ApiCP_Header = requires(T t) {
+    { t.header() } -> std::convertible_to<request::Header>;
+};
 
 auto concat_query(std::string_view url, std::string_view query) -> std::string;
 
 auto format_api(std::string_view path, const UrlParams& query, const Params& body) -> std::string;
+auto format_api(std::string_view path, const UrlParams& query, const BodyReader&) -> std::string;
 
 auto device_id_from_uuid(std::string_view uuid) -> std::string;
 } // namespace api
@@ -99,7 +115,8 @@ Result<T> parse(std::span<const byte> bs) {
         .and_then([](auto j) -> Result<T> {
             if (auto err_ = json::get<ApiError>(*j, {}); err_) {
                 auto& err = err_.value();
-                if (err.code != 200) return nstd::unexpected(Error::push(err));
+                if ((err.code && err.code.value() != 200) || err.errMsg)
+                    return nstd::unexpected(Error::push(err));
             }
 
             return json::get<T>(*j, {}).map_error([](auto err) {

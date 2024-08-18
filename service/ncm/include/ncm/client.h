@@ -25,21 +25,44 @@ public:
 
     template<typename TApi>
         requires api::ApiCP<TApi>
-    auto perform(const TApi& api) -> awaitable<Result<typename TApi::out_type>> {
+    auto get_base(const TApi& api) {
+        if constexpr (api::ApiCP_Base<TApi>) {
+            return TApi::base;
+        } else if constexpr (api::ApiCP_BaseFunc<TApi>) {
+            return api.base();
+        } else {
+            return BASE_URL;
+        }
+    }
+
+    template<typename TApi>
+        requires api::ApiCP<TApi>
+    auto prepare_body(const TApi& api, request::Request& req) {
+        if constexpr (api::ApiCP_Reader<TApi>) {
+            req.set_opt(api.body());
+            return ""sv;
+        } else {
+            return UNWRAP(encrypt<TApi::crypto>(api.path(), api.body()));
+        }
+    }
+
+    template<typename TApi>
+        requires api::ApiCP<TApi>
+    auto perform(const TApi& api, u32 timeout = 60) -> awaitable<Result<typename TApi::out_type>> {
         using out_type = typename TApi::out_type;
         Result<out_type> out;
-        std::string_view base_url;
 
-        if constexpr (api::ApiCP_Base<TApi>)
-            base_url = TApi::base;
-        else
-            base_url = BASE_URL;
+        auto base_url = get_base(api);
+        auto url      = format_url<TApi::crypto>(base_url, api.path());
+        auto req      = make_req<TApi::crypto>(url, api.query());
 
-        auto        url  = format_url<TApi::crypto>(base_url, api.path());
-        auto        req  = make_req<TApi::crypto>(url, api.query());
-        std::string body = UNWRAP(encrypt<TApi::crypto>(api.path(), api.body()));
+        if constexpr (api::ApiCP_Header<TApi>) {
+            req.update_header(api.header());
+        }
+        req.template get_opt<request::req_opt::Timeout>().set_transfer_timeout(timeout);
 
-        Result<std::vector<byte>> res = co_await post(req, body);
+        auto                      body = prepare_body(api, req);
+        Result<std::vector<byte>> res  = co_await post(req, body);
 
         if (! res.has_value()) {
             out = nstd::unexpected(res.error());

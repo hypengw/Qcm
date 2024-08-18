@@ -35,7 +35,8 @@ Request::Private::Private(Request* q)
       m_opts { req_opt::Timeout { .low_speed = 30, .connect_timeout = 180, .transfer_timeout = 0 },
                req_opt::Proxy {},
                req_opt::Tcp { .keepalive = false, .keepidle = 120, .keepintvl = 60 },
-               req_opt::SSL { .verify_certificate = true } } {}
+               req_opt::SSL { .verify_certificate = true },
+               {} } {}
 Request::Private::~Private() {}
 
 std::string_view Request::url() const {
@@ -67,6 +68,14 @@ const Header& Request::header() const {
     return d->m_header;
 }
 
+auto Request::update_header(const Header& h) -> Request& {
+    C_D(Request);
+    for (auto& el : h) {
+        d->m_header.insert_or_assign(el.first, el.second);
+    }
+    return *this;
+}
+
 Request& Request::set_header(std::string_view name, std::string_view value) {
     C_D(Request);
     d->m_header.insert_or_assign(std::string(name), value);
@@ -79,7 +88,7 @@ Request& Request::remove_header(std::string_view name) {
     return *this;
 }
 
-void Request::set_option(const Header& header) {
+void Request::set_opt(const Header& header) {
     C_D(Request);
     d->m_header = header;
 }

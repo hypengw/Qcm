@@ -2,6 +2,7 @@
 
 #include "ncm/api.h"
 #include "ncm/model.h"
+#include "core/strv_helper.h"
 
 namespace ncm
 {
@@ -10,6 +11,8 @@ namespace params
 {
 
 struct NosTokenAlloc {
+    static constexpr auto bucket_private_cloud { "jd-musicrep-privatecloud-audio-public"sv };
+
     std::string bucket;
     std::string ext;
     std::string filename;
@@ -33,6 +36,7 @@ struct NosTokenAlloc {
     struct Result_ {
         std::string objectKey;
         std::string token;
+        i64         resourceId;
     };
     Result_ result;
 };

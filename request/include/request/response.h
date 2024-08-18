@@ -35,7 +35,7 @@ public:
     using executor_type  = asio::strand<asio::thread_pool::executor_type>;
     using allocator_type = std::pmr::polymorphic_allocator<char>;
     class Private;
-    static constexpr usize ReadSize { 4096 * 1 };
+    static constexpr usize ReadSize { 1024 * 16 };
 
 public:
     executor_type& get_executor();
@@ -58,6 +58,18 @@ public:
             [&](auto&& handler) {
                 asio::mutable_buffer mu_buf { asio::buffer(buffer) };
                 async_read_some_impl(mu_buf, std::move(handler));
+            },
+            token);
+    }
+
+    template<typename MB, typename CompletionToken>
+        requires asio::is_const_buffer_sequence<MB>::value
+    auto async_write_some(const MB& buffer, CompletionToken&& token) {
+        using ret = void(asio::error_code, std::size_t);
+        return asio::async_initiate<CompletionToken, ret>(
+            [&](auto&& handler) {
+                auto const_buf = asio::const_buffer(buffer);
+                async_read_some_impl(const_buf, std::move(handler));
             },
             token);
     }
@@ -105,6 +117,9 @@ private:
     void add_send_buffer(asio::const_buffer);
     void async_read_some_impl(asio::mutable_buffer,
                               asio::any_completion_handler<void(asio::error_code, usize)>);
+
+    void async_write_some_impl(asio::const_buffer,
+                               asio::any_completion_handler<void(asio::error_code, usize)>);
 
     void done(int);
     auto connection() -> Connection&;

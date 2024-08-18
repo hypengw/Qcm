@@ -83,6 +83,8 @@ public:
     QUuid                     uuid;
     rc<media_cache::DataBase> cache_sql;
 
+    MetadataImpl metadata_impl;
+
     std::map<std::string, Client, std::less<>> clients;
 
     model::AppInfo info;
@@ -140,6 +142,14 @@ auto Global::get_cache_sql() const -> rc<media_cache::DataBase> {
     C_D(const Global);
     return d->cache_sql;
 }
+
+auto Global::get_metadata(const std::filesystem::path& path) const -> Metadata {
+    C_D(const Global);
+    if (d->metadata_impl) {
+        return d->metadata_impl(path);
+    }
+    return {};
+}
 auto Global::copy_action_comp() const -> QQmlComponent* {
     C_D(const Global);
     return d->copy_action_comp;
@@ -159,6 +169,11 @@ void Global::set_uuid(const QUuid& val) {
 void Global::set_cache_sql(rc<media_cache::DataBase> val) {
     C_D(Global);
     d->cache_sql = val;
+}
+
+void Global::set_metadata_impl(const MetadataImpl& impl) {
+    C_D(Global);
+    d->metadata_impl = impl;
 }
 void Global::join() {
     C_D(Global);

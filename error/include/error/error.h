@@ -104,7 +104,11 @@ public:
     static auto expected_chain(T&&                        exp,
                                const std::source_location loc = std::source_location::current()) {
         return std::forward<T>(exp).map_error([&loc](auto err) {
-            return Error::push(err, loc);
+            if constexpr (std::same_as<std::decay_t<decltype(err)>, Error>) {
+                return Error::push(err, {}, loc);
+            } else {
+                return Error::push(err, loc);
+            }
         });
     }
 
@@ -139,8 +143,8 @@ template<>
 struct fmt::formatter<std::error_code> : fmt::formatter<std::string> {
     template<typename FormatContext>
     auto format(const std::error_code& e, FormatContext& ctx) const {
-        return fmt::formatter<std::string>::format(fmt::format("{}({}:{})", e.message(), e.value(), e.category().name()),
-                                                   ctx);
+        return fmt::formatter<std::string>::format(
+            fmt::format("{}({}:{})", e.message(), e.value(), e.category().name()), ctx);
     }
 };
 

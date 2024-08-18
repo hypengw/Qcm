@@ -29,6 +29,11 @@ auto api::format_api(std::string_view path, const UrlParams& query,
     return j.dump(2);
 }
 
+auto api::format_api(std::string_view path, const UrlParams& query,
+                     const BodyReader&) -> std::string {
+    return format_api(path, query, Params {});
+}
+
 auto api::device_id_from_uuid(std::string_view uuid) -> std::string {
     auto out = std::string(uuid);
     std::erase_if(out, [](auto c) {

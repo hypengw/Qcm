@@ -82,8 +82,10 @@ struct ConnectAction {
     {
         Add,
         Cancel,
-        Pause,
-        UnPause,
+        PauseRecv,
+        UnPauseRecv,
+        PauseSend,
+        UnPauseSend,
     };
     rc<Connection> con;
     Action         action;

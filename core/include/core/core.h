@@ -70,6 +70,9 @@ constexpr bool is_specialization_of = false;
 template<template<typename...> class T, typename... Args>
 constexpr bool is_specialization_of<T<Args...>, T> = true;
 
+template<typename T, typename... Ts>
+concept convertible_to_any = (std::convertible_to<T, Ts> || ...);
+
 } // namespace ycore
 
 template<typename Tout, typename Tin>

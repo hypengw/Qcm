@@ -26,14 +26,16 @@ public:
     Request(const Request&);
     Request& operator=(const Request&);
 
-    std::string_view url() const;
-    const URI&       url_info() const;
-    Request&         set_url(std::string_view);
+    auto url() const -> std::string_view;
+    auto url_info() const -> const URI&;
+    auto set_url(std::string_view) -> Request&;
 
-    std::string header(std::string_view name) const;
-    Request&    set_header(std::string_view name, std::string_view value);
-    Request&    remove_header(std::string_view name);
-    void        set_option(const Header&);
+    auto header() const -> const Header&;
+    auto header(std::string_view name) const -> std::string;
+    auto update_header(const Header&) -> Request&;
+    auto set_header(std::string_view name, std::string_view value) -> Request&;
+    auto remove_header(std::string_view name) -> Request&;
+    void set_opt(const Header&);
 
     template<typename T>
     T& get_opt() {
@@ -48,8 +50,6 @@ public:
     }
 
     void set_opt(const RequestOpt&);
-
-    const Header& header() const;
 
 private:
     const_voidp get_opt(usize) const;

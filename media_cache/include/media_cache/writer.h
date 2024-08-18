@@ -94,6 +94,7 @@ public:
                                                                       : std::ios::out) |
                                            std::ios::binary),
                           frag);
+        file->m_file.handle().exceptions(std::ios_base::badbit);
         return file;
     }
 
