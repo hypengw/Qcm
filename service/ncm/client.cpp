@@ -1,10 +1,12 @@
 #include "ncm/client.h"
 
 #include <regex>
+#include <ranges>
 
 #include "request/request.h"
 #include "request/response.h"
 #include "core/log.h"
+#include "core/random.h"
 #include "core/str_helper.h"
 #include "core/vec_helper.h"
 #include "asio_helper/helper.h"
@@ -28,6 +30,9 @@ public:
     Crypto               crypto;
     executor_type        ex;
     request::Request     req_common;
+
+    std::map<std::string, std::string, std::less<>> web_params;
+    std::map<std::string, std::string, std::less<>> device_params;
 };
 
 Client::Client(rc<Session> sess, executor_type ex, std::string device_id)
@@ -36,11 +41,27 @@ Client::Client(rc<Session> sess, executor_type ex, std::string device_id)
     d->req_common.get_opt<request::req_opt::Timeout>().set_connect_timeout(30).set_transfer_timeout(
         60);
     d->req_common.set_header("Referer", "https://music.163.com")
-        .set_header("deviceId", d->device_id)
-        .set_header("resolution", "1920x1080")
         .set_header("User-Agent",
                     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, "
                     "like Gecko) Version/13.1.2 Safari/605.1.15");
+
+    auto player_id = std::ranges::transform_view(std::ranges::views::iota(0, 8), [](auto) {
+        return qcm::Random::get('0', '9');
+    });
+
+    d->web_params    = { { "playerid", std::string(player_id.begin(), player_id.end()) },
+                         { "sDeviceId", d->device_id } };
+    d->device_params = {
+        { "deviceId", d->device_id },
+        { "resolution", "1920x1080" },
+        { "appver", "2.10.13" },
+        { "os", "pc" },
+        { "versioncode", "202675" },
+        { "osver", "8.1.0" },
+        { "brand", "hw" },
+        { "model", "" },
+        { "channel", "" },
+    };
 }
 
 Client::~Client() {}
@@ -55,7 +76,13 @@ auto Client::make_req<api::CryptoType::WEAPI>(
     std::string_view path, const request::UrlParams& q) const -> request::Request {
     C_D(const Client);
     Request req { d->req_common };
-    req.set_url(api::concat_query(path, q.encode()));
+
+    auto cookie_item = std::ranges::transform_view(d->web_params, [](auto& el) -> std::string {
+        return fmt::format("{}={}", el.first, el.second);
+    });
+    req.set_url(api::concat_query(path, q.encode()))
+        .set_header("Cookie", fmt::format("{}", fmt::join(cookie_item, "; ")));
+
     return req;
 }
 template<>
@@ -63,8 +90,13 @@ auto Client::make_req<api::CryptoType::EAPI>(
     std::string_view path, const request::UrlParams& q) const -> request::Request {
     C_D(const Client);
     Request req { d->req_common };
+
+    auto cookie_item = std::ranges::transform_view(d->device_params, [](auto& el) -> std::string {
+        return fmt::format("{}={}", el.first, el.second);
+    });
+
     req.set_url(api::concat_query(path, q.encode()))
-        .set_header("Cookie", "os=pc; appver=2.10.13; versioncode=202675");
+        .set_header("Cookie", fmt::format("{}", fmt::join(cookie_item, "; ")));
     return req;
 }
 template<>
