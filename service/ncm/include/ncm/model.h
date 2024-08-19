@@ -38,6 +38,19 @@ struct Id {
             },
             id);
     }
+    auto as_i64() const -> i64 {
+        return std::visit(overloaded {
+                              [](i64 in) -> i64 {
+                                  return in;
+                              },
+                              [](const std::string& str) -> i64 {
+                                  i64 num { 0 };
+                                  std::from_chars(str.data(), str.data() + str.size(), num);
+                                  return num;
+                              },
+                          },
+                          id);
+    }
 
     std::strong_ordering operator<=>(const Id&) const = default;
 };

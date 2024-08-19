@@ -15,28 +15,22 @@ struct FeedbackWeblog {
         End,
     };
 
-    enum class FileType
-    {
-        Download  = 0,
-        Local     = 1,
-        Cache     = 2,
-        CloudDesk = 3,
-        Online    = 4
-    };
-
     Action                                        act { Action::End };
-    FileType                                      file { FileType::Cache };
     std::variant<model::SongId, model::ProgramId> id;
-    // 推荐算法字段
-    std::string alg;
-    std::string end { "playend" };
-    // played duration, second
-    double time;
-    // mill
-    double start_log_time;
 
-    // optional
-    // 最近常听必传
+    std::string content;
+    std::string mainsite { "1" };
+
+    // End
+    // played duration, second
+    i64         time;
+    i64         wifi { 0 };
+    i64         download { 0 };
+    std::string alg;
+    // interrupt, ui
+    std::string end { "playend" };
+
+    // std::string source;
     std::variant<std::monostate, model::PlaylistId, model::AlbumId, model::SpecialId,
                  model::DjradioId>
         sourceId { std::monostate {} };
@@ -46,9 +40,6 @@ struct FeedbackWeblog {
 
 DEFINE_CONVERT(std::string, ncm::params::FeedbackWeblog::Action) {
     out = in == in_type::Start ? "startplay"sv : "play"sv;
-}
-DEFINE_CONVERT(std::string, ncm::params::FeedbackWeblog::FileType) {
-    out = std::to_string((i32)in);
 }
 
 namespace ncm

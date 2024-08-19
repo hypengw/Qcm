@@ -273,52 +273,58 @@ Params api::FeedbackWeblog::body() const {
     j["action"] = convert_from<std::string>(input.act);
     {
         qcm::json::njson j_;
-        if (input.act == params::FeedbackWeblog::Action::End) {
-            j_["time"] = input.time;
-            j_["end"]  = input.end;
-        }
-        j_["file"] = convert_from<std::string>(input.file);
 
+        j_["mainsite"] = input.mainsite;
         if (! input.alg.empty()) j_["alg"] = input.alg;
+
+        bool is_end = input.act == params::FeedbackWeblog::Action::End;
 
         std::visit(overloaded {
                        [&j_](model::SongId id) {
-                           j_["id"]   = id.as_str();
+                           j_["id"]   = id.as_i64();
                            j_["type"] = "song";
                        },
                        [&j_](model::ProgramId id) {
-                           j_["id"]   = id.as_str();
+                           j_["id"]   = id.as_i64();
                            j_["type"] = "dj";
                        },
                    },
                    input.id);
 
-        std::visit(overloaded { [&j_](model::PlaylistId id) {
-                                   j_["sourceId"]   = id.as_str();
-                                   j_["source"]     = "list";
-                                   j_["sourceType"] = "list";
+        auto get_source = [](model::IdType t) -> std::string_view {
+            switch (t) {
+            case ncm::model::IdType::Playlist: return "list"sv;
+            case ncm::model::IdType::Album: return "album"sv;
+            case ncm::model::IdType::Djradio: return "djradio"sv;
+            default: return "list"sv;
+            }
+        };
+
+        std::visit(overloaded { [&j_](model::SpecialId id) {
+                                   auto sid       = id.as_str();
+                                   j_["sourceId"] = sid;
+                                   j_["source"]   = j_["id"];
+                                   j_["content"]  = "";
                                },
-                                [&j_](model::AlbumId id) {
-                                    j_["sourceId"]   = id.as_str();
-                                    j_["source"]     = "album";
-                                    j_["sourceType"] = "album";
-                                },
-                                [&j_](model::SpecialId id) {
-                                    j_["sourceId"]   = id.as_str();
-                                    j_["source"]     = id.as_str();
-                                    j_["sourceType"] = id.as_str();
-                                },
-                                [&j_](model::DjradioId id) {
-                                    j_["sourceId"]   = id.as_str();
-                                    j_["source"]     = "djradio";
-                                    j_["sourceType"] = "djradio";
+                                [&j_, &get_source](auto id) {
+                                    auto sid       = id.as_str();
+                                    j_["sourceId"] = sid;
+                                    j_["source"]   = get_source(id.id_type);
+                                    j_["content"] =
+                                        sid.empty() ? std::string {} : fmt::format("id={}", sid);
                                 },
                                 [](std::monostate) {
                                 } },
                    input.sourceId);
-
-        j_["wifi"]     = 0;
-        j_["download"] = 0;
+        if (is_end) {
+            j_["wifi"]     = input.wifi;
+            j_["download"] = input.download;
+            j_["time"]     = input.time;
+            j_["end"]      = input.end;
+        } else {
+            j_.erase("source");
+            j_.erase("sourceId");
+        }
 
         j["json"] = j_;
     }

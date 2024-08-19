@@ -1,0 +1,116 @@
+[
+    {
+        "action": "sysaction",
+        "json": {
+            "dataType": "cdnCompare",
+            "cdnType": "NetEase",
+            "loadeddataTime": 112,
+            "resourceType": "audiomp3",
+            "resourceId": 2607960345,
+            "resourceUrl": "https://m10.music.126.net/...",
+            "xySupport": true,
+            "error": false,
+            "errorType": "",
+            "ua": "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0",
+            "mainsite": "1"
+        }
+    },
+    {
+        "action": "sysaction",
+        "json": {
+            "dataType": "cdnCompare",
+            "cdnType": "NetEase",
+            "loadeddataTime": 772,
+            "resourceType": "audiom4a",
+            "resourceId": 2002006884,
+            "resourceUrl": "https://m804.music.126.net/...",
+            "xySupport": true,
+            "error": false,
+            "errorType": "",
+            "ua": "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0",
+            "mainsite": "1"
+        }
+    },
+    {
+        "action": "play",
+        "json": {
+            "type": "song",
+            "wifi": 0,
+            "download": 0,
+            "id": 2002006884,
+            "time": 10,
+            "end": "interrupt",
+            "source": "list",
+            "sourceId": "8374925988",
+            "mainsite": "1",
+            "content": "id=8374925988"
+        }
+    },
+    {
+        "action": "play",
+        "json": {
+            "type": "dj",
+            "wifi": 0,
+            "download": 0,
+            "id": 3057631347,
+            "time": 81,
+            "end": "ui",
+            "sourceId": "1209091615",
+            "mainsite": "1",
+            "content": ""
+        }
+    },
+    {
+        "action": "play",
+        "json": {
+            "type": "song",
+            "wifi": 0,
+            "download": 0,
+            "id": 640565,
+            "time": 50,
+            "end": "interrupt",
+            "source": "dailySongRecommend",
+            "sourceId": "640565",
+            "alg": "alg-music-rec-unite-daily-vec-MIND_Embedding_202312044",
+            "mainsite": "1",
+            "content": ""
+        }
+    },
+    {
+        "action": "startplay",
+        "json": {
+            "id": 3057461385,
+            "type": "dj",
+            "content": "",
+            "mainsite": "1"
+        }
+    },
+    {
+        "action": "startplay",
+        "json": {
+            "id": 2605958916,
+            "type": "song",
+            "content": "id=8374925988",
+            "mainsite": "1"
+        }
+    },
+    {
+        "action": "startplay",
+        "json": {
+            "id": 1442466883,
+            "type": "song",
+            "content": "",
+            "mainsite": "1"
+        }
+    },
+    {
+        "action": "recommendclick",
+        "json": {
+            "id": 1442466883,
+            "alg": "alg-music-rec-unite-daily-vec-MIND_Embedding_202312042",
+            "scene": "user-song",
+            "position": 4,
+            "mainsite": "1"
+        }
+    }
+]
