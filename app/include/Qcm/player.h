@@ -4,6 +4,7 @@
 #include <QQmlEngine>
 #include "player/player.h"
 #include "player/notify.h"
+#include "qcm_interface/enum.h"
 
 namespace qcm
 {
@@ -27,20 +28,12 @@ class Player : public QObject {
 public:
     using NotifyInfo = player::notify::info;
     class NotifyChannel;
-
-    enum PlaybackState
-    {
-        PlayingState = 0,
-        PausedState,
-        StoppedState,
-    };
-    Q_ENUM(PlaybackState)
+    using PlaybackState = enums::PlaybackState;
 
     Player(QObject* = nullptr);
     ~Player();
 
     const QUrl& source() const;
-    void        set_source(const QUrl&);
     auto        position() const -> int;
     auto        duration() const -> int;
     auto        busy() const -> bool;
@@ -74,6 +67,7 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     void processNotify(NotifyInfo);
+    void set_source(const QUrl&);
     void set_position(int);
     void set_busy(bool);
     void set_volume(float);

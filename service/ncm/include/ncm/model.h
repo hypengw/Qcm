@@ -23,6 +23,7 @@ enum class IdType
     User,
     Comment,
     Djradio,
+    Special,
 };
 
 struct Id {
@@ -66,6 +67,13 @@ struct DjradioId : Id {
     static constexpr auto id_type { IdType::Djradio };
 };
 
+struct SpecialId : Id {
+    static constexpr auto id_type { IdType::Special };
+};
+
+constexpr auto SpecialId_DailySongRecommend { "dailySongRecommend"sv };
+constexpr auto SpecialId_UserFM { "userfm"sv };
+
 template<typename T>
     requires std::ranges::range<T> && std::is_base_of_v<Id, std::ranges::range_value_t<T>>
 auto id_str_range_view(const T& r) {
@@ -82,6 +90,7 @@ JSON_DEFINE(PlaylistId);
 JSON_DEFINE(UserId);
 JSON_DEFINE(CommentId);
 JSON_DEFINE(DjradioId);
+JSON_DEFINE(SpecialId);
 
 struct Time {
     using time_point = std::chrono::system_clock::time_point;

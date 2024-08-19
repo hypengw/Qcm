@@ -53,6 +53,8 @@ public:
         struct Api {
             auto (*server_url)(std::any&, const model::ItemId&) -> std::string;
             auto (*image_cache)(std::any&, const QUrl& url, QSize req) -> std::filesystem::path;
+            void (*play_state)(std::any&, model::ItemId item, enums::PlaybackState state,
+                               i64 played_second, QVariantMap extra);
         };
 
         operator bool() const { return instance.has_value(); }
@@ -86,15 +88,19 @@ Q_SIGNALS:
                QObject* action = nullptr, StopSignal stop = {});
     void copyActionCompChanged(StopSignal stop = {});
     void uuidChanged(StopSignal stop = {});
+    void playbackLog(model::ItemId item, enums::PlaybackState state, QVariantMap extra = {},
+                     StopSignal stop = {});
 
 public Q_SLOTS:
     void set_copy_action_comp(QQmlComponent*);
 
 private:
     using MetadataImpl = std::function<Metadata(const std::filesystem::path&)>;
-    void        set_uuid(const QUuid&);
-    void        set_cache_sql(rc<media_cache::DataBase>);
-    void        set_metadata_impl(const MetadataImpl&);
+    void set_uuid(const QUuid&);
+    void set_cache_sql(rc<media_cache::DataBase>);
+    void set_metadata_impl(const MetadataImpl&);
+    auto get_client(std::string_view) -> Client*;
+
     static void setInstance(Global*);
 
     class Private;
@@ -128,6 +134,8 @@ Q_SIGNALS:
                QObject* action = nullptr, StopSignal stop = {});
     void copyActionCompChanged(StopSignal stop = {});
     void uuidChanged(StopSignal stop = {});
+    void playbackLog(model::ItemId item, enums::PlaybackState state, QVariantMap extra = {},
+                     StopSignal stop = {});
 
 public Q_SLOTS:
     void set_copy_action_comp(QQmlComponent*);

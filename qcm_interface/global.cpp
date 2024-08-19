@@ -98,6 +98,36 @@ auto Global::instance() -> Global* { return static_global(); }
 Global::Global(): d_ptr(make_up<Private>(this)) {
     DEBUG_LOG("init Global");
     _assert_rel_(static_global(this) == this);
+
+    struct Timer {
+        std::chrono::time_point<std::chrono::steady_clock> point;
+        std::chrono::milliseconds                          passed;
+    };
+
+    auto t = make_rc<Timer>();
+
+    connect(this,
+            &Global::playbackLog,
+            this,
+            [this, t](model::ItemId item, enums::PlaybackState state, QVariantMap extra) {
+                std::chrono::milliseconds passed;
+                if (state == enums::PlaybackState::PlayingState) {
+                    t->point = std::chrono::steady_clock::now();
+                } else if (state == enums::PlaybackState::PausedState) {
+                    t->passed += std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::steady_clock::now() - t->point);
+                    t->point = std::chrono::steady_clock::now();
+                } else {
+                    passed = t->passed + std::chrono::duration_cast<std::chrono::milliseconds>(
+                                             std::chrono::steady_clock::now() - t->point);
+                    t->passed = {};
+                }
+                auto client = get_client(item.provider().toStdString());
+                if (client) {
+                    client->api->play_state(
+                        client->instance, item, state, passed.count() / 1000.0, extra);
+                }
+            });
 }
 Global::~Global() {}
 
@@ -175,6 +205,16 @@ void Global::set_metadata_impl(const MetadataImpl& impl) {
     C_D(Global);
     d->metadata_impl = impl;
 }
+
+auto Global::get_client(std::string_view name) -> Client* {
+    C_D(Global);
+    auto it = d->clients.find(name);
+    if (it != d->clients.end()) {
+        return &(it->second);
+    }
+    return nullptr;
+}
+
 void Global::join() {
     C_D(Global);
     d->pool.join();
@@ -182,10 +222,10 @@ void Global::join() {
 
 auto Global::server_url(const model::ItemId& id) -> QVariant {
     C_D(Global);
-    const auto& p = id.provider().toStdString();
-    if (d->clients.contains(p)) {
-        auto& c = d->clients.at(p);
-        return convert_from<QString>(c.api->server_url(c.instance, id));
+    const auto& p      = id.provider().toStdString();
+    auto        client = get_client(p);
+    if (client) {
+        return convert_from<QString>(client->api->server_url(client->instance, id));
     }
     return {};
 }
@@ -198,6 +238,7 @@ GlobalWrapper::GlobalWrapper(): m_g(Global::instance()) {
 
     connect_to_global(m_g, &Global::errorOccurred, &GlobalWrapper::errorOccurred);
     connect_to_global(m_g, &Global::toast, &GlobalWrapper::toast);
+    connect_to_global(m_g, &Global::playbackLog, &GlobalWrapper::playbackLog);
 
     connect(this, &GlobalWrapper::errorOccurred, this, [this](const QString& error) {
         if (! error.endsWith("Operation aborted.")) {

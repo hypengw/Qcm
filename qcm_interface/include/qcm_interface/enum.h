@@ -6,21 +6,19 @@ namespace qcm
 {
 namespace enums
 {
-QCM_INTERFACE_API Q_NAMESPACE
-QML_ELEMENT
+QCM_INTERFACE_API Q_NAMESPACE QML_ELEMENT
 
-enum class QCM_INTERFACE_API ApiStatus
-{
-    Uninitialized,
-    Querying,
-    Finished,
-    Error
-};
+    enum class QCM_INTERFACE_API ApiStatus {
+        Uninitialized = 0,
+        Querying,
+        Finished,
+        Error
+    };
 Q_ENUM_NS(ApiStatus);
 
 enum class QCM_INTERFACE_API IdType
 {
-    IdTypeUnknown,
+    IdTypeUnknown = 0,
     IdTypeSong,
     IdTypeAlbum,
     IdTypeArtist,
@@ -40,6 +38,14 @@ enum class QCM_INTERFACE_API ToastFlag
 Q_ENUM_NS(ToastFlag);
 Q_DECLARE_FLAGS(ToastFlags, ToastFlag);
 Q_DECLARE_OPERATORS_FOR_FLAGS(ToastFlags);
+
+enum class PlaybackState
+{
+    PlayingState = 0,
+    PausedState,
+    StoppedState,
+};
+Q_ENUM_NS(PlaybackState)
 } // namespace enums
 
 } // namespace qcm

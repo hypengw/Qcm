@@ -286,15 +286,30 @@ QA.GlobalWrapper {
             if (m_player.source) {
                 m_player.play();
             }
+
         }
         function onPlaybackStateChanged() {
             const p = m_player;
-            console.debug(root.category, `state: ${p.playbackState}, ${p.position}, ${p.duration}, ${p.source}`);
-            if (p.playbackState === QA.QcmPlayer.StoppedState && p.source) {
+            // console.debug(root.category, `state: ${p.playbackState}, ${p.position}, ${p.duration}, ${p.source}`);
+
+            if (p.playbackState === QA.enums.StoppedState && p.source) {
                 if (p.position / p.duration > 0.98) {
                     m_playlist.next();
                 }
             }
+            if (p.playbackState !== QA.enums.StoppedState) {
+                root.playbackLog(root.cur_song.itemId, m_player.playbackState);
+            }
+        }
+    }
+
+    Connections {
+        target: m_playlist
+
+        property QA.t_song old
+        function onCurChanged() {
+            root.playbackLog(old.itemId, QA.enums.StoppedState);
+            old = m_playlist.cur;
         }
     }
 }

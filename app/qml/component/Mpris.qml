@@ -14,11 +14,11 @@ Item {
         mpris.canControl = true;
         mpris.playbackStatus = Qt.binding(() => {
                 switch (player.playbackState) {
-                case QA.QcmPlayer.PlayingState:
+                case QA.enums.PlayingState:
                     return QA.MprisMediaPlayer.Playing;
-                case QA.QcmPlayer.PausedState:
+                case QA.enums.PausedState:
                     return QA.MprisMediaPlayer.Paused;
-                case QA.QcmPlayer.StoppedState:
+                case QA.enums.StoppedState:
                 default:
                     return QA.MprisMediaPlayer.Stopped;
                 }
@@ -76,7 +76,7 @@ Item {
         mpris.pauseRequested.connect(player.pause);
         mpris.stopRequested.connect(player.stop);
         mpris.playPauseRequested.connect(() => {
-                if (player.playbackState === QA.QcmPlayer.PlayingState)
+                if (player.playbackState === QA.enums.PlayingState)
                     player.pause();
                 else
                     player.play();

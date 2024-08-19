@@ -59,6 +59,7 @@ auto to_ncm_id(model::IdType t, std::string_view id) -> qcm::model::ItemId {
         case model::IdType::Song: return "song";
         case model::IdType::Program: return "program";
         case model::IdType::Playlist: return "playlist";
+        case model::IdType::Special: return "special";
         default: {
             _assert_msg_rel_(false, "unknown id type: {}", (int)t);
             return {};
@@ -90,6 +91,8 @@ auto ncm_id_type(const ItemId& id) -> model::IdType {
         return model::IdType::Comment;
     else if (t == "playlist")
         return model::IdType::Playlist;
+    else if (t == "special")
+        return model::IdType::Special;
     else {
         _assert_msg_rel_(false, "unknown id type: {}", t);
         return {};

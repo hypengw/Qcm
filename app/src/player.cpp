@@ -147,7 +147,7 @@ auto Player::fadeTime() const -> u32 { return m_player->fade_time() / 1000; }
 auto Player::seekable() const -> bool { return true; }
 auto Player::playing() const -> bool {
     switch (playback_state()) {
-    case PlayingState: return true;
+    case PlaybackState::PlayingState: return true;
     default: return false;
     }
 }

@@ -25,7 +25,7 @@ public:
 
     template<typename TApi>
         requires api::ApiCP<TApi>
-    auto get_base(const TApi& api) {
+    auto get_base(const TApi& api) const {
         if constexpr (api::ApiCP_Base<TApi>) {
             return TApi::base;
         } else if constexpr (api::ApiCP_BaseFunc<TApi>) {
@@ -74,12 +74,6 @@ public:
         });
     }
 
-    template<typename Fn, typename H>
-        requires std::invocable<Fn> || helper::is_awaitable<Fn>
-    void spawn(Fn&& t, H&& h = asio::detached) {
-        asio::co_spawn(get_executor(), std::forward<Fn>(t), std::move(h));
-    }
-
     executor_type& get_executor();
 
     auto rsp(const request::Request&) const -> awaitable<rc<request::Response>>;
@@ -91,10 +85,11 @@ public:
     auto encrypt(std::string_view path, const Params&) -> std::optional<std::string>;
 
     template<api::CryptoType CT>
-    auto format_url(std::string_view base, std::string_view path) -> std::string;
+    auto format_url(std::string_view base, std::string_view path) const -> std::string;
 
 private:
-    auto post(const request::Request&, std::string_view) -> awaitable<Result<std::vector<byte>>>;
+    auto post(const request::Request&,
+              std::string_view) const -> awaitable<Result<std::vector<byte>>>;
 
     class Private;
     rc<Private> d_ptr;

@@ -38,8 +38,8 @@
 #include "ncm/api/song_like.h"
 #include "ncm/api/feedback_weblog.h"
 
-#include "ncm/api/upload_cloud_info.h" 
-#include "ncm/api/cloud_upload_check.h" 
+#include "ncm/api/upload_cloud_info.h"
+#include "ncm/api/cloud_upload_check.h"
 #include "ncm/api/cloud_pub.h"
 #include "ncm/api/nos_token_alloc.h"
 #include "ncm/api/upload_addr.h"
@@ -70,6 +70,7 @@ X(PlaylistId)
 X(UserId)
 X(CommentId)
 X(DjradioId)
+X(SpecialId)
 
 #undef X
 
@@ -210,6 +211,7 @@ JSON_DEFINE_IMPL(NosTokenAlloc::Result_, objectKey, token, resourceId);
 JSON_DEFINE_IMPL(NosTokenAlloc, code, result);
 JSON_DEFINE_IMPL(UploadAddr, lbs, upload);
 JSON_DEFINE_IMPL(Upload, requestId, offset);
+JSON_DEFINE_IMPL(FeedbackWeblog, code, data);
 
 } // namespace api_model
 
@@ -260,6 +262,7 @@ JSON_GET_IMPL(api_model::CloudPub);
 JSON_GET_IMPL(api_model::NosTokenAlloc);
 JSON_GET_IMPL(api_model::UploadAddr);
 JSON_GET_IMPL(api_model::Upload);
+JSON_GET_IMPL(api_model::FeedbackWeblog);
 
 JSON_GET_IMPL(model::Album);
 JSON_GET_IMPL(model::Song);
@@ -267,17 +270,55 @@ JSON_GET_IMPL(model::Song);
 Params api::FeedbackWeblog::body() const {
     Params           p;
     qcm::json::njson j;
-    j["action"] = "play";
+    j["action"] = convert_from<std::string>(input.act);
     {
         qcm::json::njson j_;
-        j_["download"] = 0;
-        j_["end"]      = "playend";
-        j_["id"]       = input.id;
-        j_["sourceId"] = input.sourceId;
-        j_["time"]     = input.time.milliseconds;
-        j_["type"]     = "song";
+        if (input.act == params::FeedbackWeblog::Action::End) {
+            j_["time"] = input.time;
+            j_["end"]  = input.end;
+        }
+        j_["file"] = convert_from<std::string>(input.file);
+
+        if (! input.alg.empty()) j_["alg"] = input.alg;
+
+        std::visit(overloaded {
+                       [&j_](model::SongId id) {
+                           j_["id"]   = id.as_str();
+                           j_["type"] = "song";
+                       },
+                       [&j_](model::ProgramId id) {
+                           j_["id"]   = id.as_str();
+                           j_["type"] = "dj";
+                       },
+                   },
+                   input.id);
+
+        std::visit(overloaded { [&j_](model::PlaylistId id) {
+                                   j_["sourceId"]   = id.as_str();
+                                   j_["source"]     = "list";
+                                   j_["sourceType"] = "list";
+                               },
+                                [&j_](model::AlbumId id) {
+                                    j_["sourceId"]   = id.as_str();
+                                    j_["source"]     = "album";
+                                    j_["sourceType"] = "album";
+                                },
+                                [&j_](model::SpecialId id) {
+                                    j_["sourceId"]   = id.as_str();
+                                    j_["source"]     = id.as_str();
+                                    j_["sourceType"] = id.as_str();
+                                },
+                                [&j_](model::DjradioId id) {
+                                    j_["sourceId"]   = id.as_str();
+                                    j_["source"]     = "djradio";
+                                    j_["sourceType"] = "djradio";
+                                },
+                                [](std::monostate) {
+                                } },
+                   input.sourceId);
+
         j_["wifi"]     = 0;
-        j_["source"]   = "list";
+        j_["download"] = 0;
 
         j["json"] = j_;
     }

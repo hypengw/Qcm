@@ -129,7 +129,7 @@ auto Client::encrypt<api::CryptoType::NONE>(std::string_view,
 }
 
 template<api::CryptoType CT>
-auto Client::format_url(std::string_view base, std::string_view path) -> std::string {
+auto Client::format_url(std::string_view base, std::string_view path) const -> std::string {
     C_D(const Client);
     std::string_view prefix;
     if constexpr (CT == api::CryptoType::EAPI) {
@@ -140,12 +140,13 @@ auto Client::format_url(std::string_view base, std::string_view path) -> std::st
     return std::format("{}{}{}", base, prefix, path);
 }
 
-template auto Client::format_url<api::CryptoType::WEAPI>(std::string_view base,
-                                                         std::string_view path) -> std::string;
+template auto
+              Client::format_url<api::CryptoType::WEAPI>(std::string_view base,
+                                           std::string_view path) const -> std::string;
 template auto Client::format_url<api::CryptoType::EAPI>(std::string_view base,
-                                                        std::string_view path) -> std::string;
+                                                        std::string_view path) const -> std::string;
 template auto Client::format_url<api::CryptoType::NONE>(std::string_view base,
-                                                        std::string_view path) -> std::string;
+                                                        std::string_view path) const -> std::string;
 
 auto Client::rsp(const request::Request& q) const -> awaitable<rc<request::Response>> {
     C_D(const Client);
@@ -154,8 +155,8 @@ auto Client::rsp(const request::Request& q) const -> awaitable<rc<request::Respo
 }
 
 auto Client::post(const request::Request& req,
-                  std::string_view        body) -> awaitable<Result<std::vector<byte>>> {
-    C_D(Client);
+                  std::string_view        body) const -> awaitable<Result<std::vector<byte>>> {
+    C_D(const Client);
     // rc<std::string> csrf = m_csrf;
     rc<Response> rsp;
     EC_RET_CO(rsp, co_await d->session->post(req, asio::buffer(body)));
