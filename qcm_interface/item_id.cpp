@@ -15,6 +15,7 @@ public:
 };
 
 ItemId::ItemId(): d_ptr(make_up<Private>()) {}
+ItemId::ItemId(std::nullptr_t): ItemId() {}
 
 ItemId::ItemId(QStringView provider, QStringView type, QStringView id): ItemId() {
     set_provider(provider);

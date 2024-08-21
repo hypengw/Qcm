@@ -53,8 +53,8 @@ public:
         struct Api {
             auto (*server_url)(std::any&, const model::ItemId&) -> std::string;
             auto (*image_cache)(std::any&, const QUrl& url, QSize req) -> std::filesystem::path;
-            void (*play_state)(std::any&, model::ItemId item, enums::PlaybackState state,
-                               i64 played_second, QVariantMap extra);
+            void (*play_state)(std::any&, enums::PlaybackState state, model::ItemId item,
+                               model::ItemId source, i64 played_second, QVariantMap extra);
         };
 
         operator bool() const { return instance.has_value(); }
@@ -88,8 +88,8 @@ Q_SIGNALS:
                QObject* action = nullptr, StopSignal stop = {});
     void copyActionCompChanged(StopSignal stop = {});
     void uuidChanged(StopSignal stop = {});
-    void playbackLog(model::ItemId item, enums::PlaybackState state, QVariantMap extra = {},
-                     StopSignal stop = {});
+    void playbackLog(enums::PlaybackState state, model::ItemId item, model::ItemId souce,
+                     QVariantMap extra = {}, StopSignal stop = {});
 
 public Q_SLOTS:
     void set_copy_action_comp(QQmlComponent*);
@@ -134,8 +134,8 @@ Q_SIGNALS:
                QObject* action = nullptr, StopSignal stop = {});
     void copyActionCompChanged(StopSignal stop = {});
     void uuidChanged(StopSignal stop = {});
-    void playbackLog(model::ItemId item, enums::PlaybackState state, QVariantMap extra = {},
-                     StopSignal stop = {});
+    void playbackLog(enums::PlaybackState state, model::ItemId item, model::ItemId souce,
+                     QVariantMap extra = {}, StopSignal stop = {});
 
 public Q_SLOTS:
     void set_copy_action_comp(QQmlComponent*);

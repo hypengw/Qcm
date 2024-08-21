@@ -12,7 +12,7 @@ namespace ncm::impl
 
 static auto server_url(std::any& client, const qcm::model::ItemId& id) -> std::string {
     auto c = std::any_cast<ncm::Client>(&client);
-    switch (ncm_id_type(id)) {
+    switch (UNWRAP(ncm_id_type(id))) {
     case ncm::model::IdType::Song: {
         return fmt::format("{}/#song?id={}", ncm::BASE_URL, id.id());
     }
@@ -27,24 +27,17 @@ static auto image_cache(std::any& client, const QUrl& url, QSize reqSize) -> std
         qcm::NcmImageProvider::makeReq(url.toString(), reqSize, *c));
 }
 
-static void play_state(std::any& client, qcm::model::ItemId itemId, qcm::enums::PlaybackState state,
-                       i64 played_second, QVariantMap) {
+static void play_state(std::any& client, qcm::enums::PlaybackState state, qcm::model::ItemId itemId,
+                       qcm::model::ItemId sourceId, i64 played_second, QVariantMap) {
     if (state == qcm::enums::PlaybackState::PausedState) return;
 
     auto                     c  = *std::any_cast<ncm::Client>(&client);
     auto                     ex = asio::make_strand(c.get_executor());
     ncm::api::FeedbackWeblog api;
-    auto                     id_type = ncm_id_type(itemId);
-    switch (id_type) {
-    case ncm::model::IdType::Song: {
-        api.input.id = ncm::model::SongId { itemId.id().toStdString() };
-        break;
-    }
-    case ncm::model::IdType::Program: {
-        api.input.id = ncm::model::ProgramId { itemId.id().toStdString() };
-        break;
-    }
-    default: return;
+
+    if (! helper::variant_convert(api.input.id, to_ncm_id(itemId))) {
+        ERROR_LOG("");
+        return;
     }
 
     api.input.act  = state == qcm::enums::PlaybackState::PlayingState
@@ -52,7 +45,7 @@ static void play_state(std::any& client, qcm::model::ItemId itemId, qcm::enums::
                          : ncm::params::FeedbackWeblog::Action::End;
     api.input.time = played_second;
 
-    api.input.sourceId = ncm::model::PlaylistId { "0" };
+    helper::variant_convert(api.input.sourceId, to_ncm_id(sourceId));
 
     asio::co_spawn(
         ex,

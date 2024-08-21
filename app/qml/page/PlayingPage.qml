@@ -108,6 +108,7 @@ MD.Page {
                     text: QA.Global.join_name(QA.Global.cur_song.artists, '/')
                 }
                 RowLayout {
+                    id: row_control
                     Layout.alignment: Qt.AlignHCenter
 
                     MD.IconButton {
@@ -175,6 +176,38 @@ MD.Page {
                         horizontalAlignment: Qt.AlignHCenter
                         opacity: QA.Global.player.duration > 0 ? 1 : 0
                         text: `${Qt.formatDateTime(QA.Global.player.durationDate, 'mm:ss')}`
+                    }
+                }
+
+                RowLayout {
+                    Layout.preferredWidth: row_control.width
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.fillWidth: false
+                    Item {
+                        Layout.fillWidth: true
+                    }
+                    MD.IconButton {
+                        icon.name: MD.Token.icon.playlist_play
+
+                        onClicked: {
+                            QA.Global.sig_popup_special('queue');
+                        }
+                    }
+                    MD.IconButton {
+                        action: QA.CommentAction {
+                            itemId: QA.Global.cur_song.itemId
+                        }
+                    }
+                    MD.IconButton {
+                        icon.name: MD.Token.icon.more_vert
+
+                        onClicked: {
+                            const popup = MD.Tool.show_popup('qrc:/Qcm/App/qml/menu/SongMenu.qml', {
+                                "song": QA.Global.cur_song,
+                                "y": 0
+                            }, this);
+                            popup.y = -popup.height;
+                        }
                     }
                 }
                 Item {

@@ -178,7 +178,7 @@ MD.Pane {
                         icon.name: MD.Token.icon.playlist_play
 
                         onClicked: {
-                            pop_playlist.open();
+                            QA.Global.sig_popup_special('queue');
                         }
                     }
                     QA.VolumeButton {
@@ -282,6 +282,14 @@ MD.Pane {
                 QA.PagePopup {
                     id: pop_playlist
                     source: 'qrc:/Qcm/App/qml/page/PlayQueuePage.qml'
+
+                    Connections {
+                        target: QA.Global
+                        function onSig_popup_special(str) {
+                            if (str === 'queue')
+                                pop_playlist.open();
+                        }
+                    }
                 }
             }
         }

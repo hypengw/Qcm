@@ -109,7 +109,10 @@ Global::Global(): d_ptr(make_up<Private>(this)) {
     connect(this,
             &Global::playbackLog,
             this,
-            [this, t](model::ItemId item, enums::PlaybackState state, QVariantMap extra) {
+            [this, t](enums::PlaybackState state,
+                      model::ItemId        item,
+                      model::ItemId        source,
+                      QVariantMap          extra) {
                 std::chrono::milliseconds passed;
                 if (state == enums::PlaybackState::PlayingState) {
                     t->point = std::chrono::steady_clock::now();
@@ -125,7 +128,7 @@ Global::Global(): d_ptr(make_up<Private>(this)) {
                 auto client = get_client(item.provider().toStdString());
                 if (client) {
                     client->api->play_state(
-                        client->instance, item, state, passed.count() / 1000.0, extra);
+                        client->instance, state, item, source, passed.count() / 1000.0, extra);
                 }
             });
 }

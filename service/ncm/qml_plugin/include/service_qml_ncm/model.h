@@ -21,7 +21,8 @@ using ItemId = qcm::model::ItemId;
 
 auto to_ncm_id(model::IdType, std::string_view) -> qcm::model::ItemId;
 auto to_ncm_id(model::IdType, i64) -> qcm::model::ItemId;
-auto ncm_id_type(const ItemId&) -> model::IdType;
+auto to_ncm_id(const ItemId&) -> model::IdTypes::append<std::monostate>::to<std::variant>;
+auto ncm_id_type(const ItemId&) -> std::optional<model::IdType>;
 
 } // namespace ncm
 

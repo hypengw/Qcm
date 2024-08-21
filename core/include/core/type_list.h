@@ -6,30 +6,111 @@
 namespace ycore
 {
 
+// forward
+template<typename... TS>
+struct type_list;
+
 namespace detail
 {
 
+// must retrun
 template<typename Func, usize I, typename T, typename... Ts>
 auto runtime_select(usize i, Func&& func) {
     if constexpr (sizeof...(Ts) > 0) {
         return i == I ? func.template operator()<I, T>()
                       : runtime_select<Func, I + 1, Ts...>(i, std::forward<Func>(func));
     } else {
-        return func.template operator()<I, T>();
+        return i == I ? func.template operator()<I, T>()
+                      : func.template operator()<I, std::monostate>();
     }
 }
 
-template<usize Idx, typename T, typename... Ts>
-struct get_nth_type;
+// template<usize Idx, typename T, typename... Ts>
+// struct get_nth_type;
+//
+// template<typename T, typename... Ts>
+// struct get_nth_type<0, T, Ts...> {
+//     using type = T;
+// };
+//
+// template<usize Idx, typename T, typename... Ts>
+// struct get_nth_type {
+//     using type = get_nth_type<Idx - 1, Ts...>::type;
+// };
 
-template<typename T, typename... Ts>
-struct get_nth_type<0, T, Ts...> {
-    using type = T;
+template<usize I, typename T, typename... TS>
+struct split;
+
+template<typename T>
+struct split<0, T> {
+    using nth    = T;
+    using before = type_list<>;
+    using after  = type_list<>;
 };
 
-template<usize Idx, typename T, typename... Ts>
-struct get_nth_type {
-    using type = get_nth_type<Idx - 1, Ts...>::type;
+template<typename T, typename... TS>
+struct split<0, T, TS...> {
+    using nth    = T;
+    using before = type_list<>;
+    using after  = type_list<TS...>;
+};
+
+template<typename T, typename... TS>
+struct split<1, T, TS...> {
+    using nth    = split<0, TS...>::nth;
+    using before = type_list<T>;
+    using after  = split<0, TS...>::after;
+};
+
+template<usize I, typename T, typename... TS>
+struct split {
+    using nth    = split<I - 1, TS...>::nth;
+    using before = split<I - 1, TS...>::before::template prepend<T>;
+    using after  = split<I - 1, TS...>::after;
+};
+
+template<usize I, typename... TS>
+struct split_ {
+    using nth    = split<I, TS...>::nth;
+    using before = split<I, TS...>::before;
+    using after  = split<I, TS...>::after;
+};
+
+template<typename T, typename... Ts>
+struct one {
+    using type = type_list<T>;
+};
+
+template<typename T, typename... TS>
+struct extend {
+    static_assert(false);
+};
+
+template<typename... TS, typename... TS2>
+struct extend<type_list<TS...>, type_list<TS2...>> {
+    using type = type_list<TS..., TS2...>;
+};
+
+template<typename... TS, typename... T>
+struct extend<type_list<TS...>, T...> {
+    using type = extend<type_list<TS...>, typename extend<T...>::type>::type;
+};
+
+template<typename T, typename... TS>
+struct intersection {
+    static_assert(false);
+};
+
+template<typename... TS, typename... TS2>
+struct intersection<type_list<TS...>, type_list<TS2...>> {
+    using A    = type_list<TS...>;
+    using type = extend<
+        std::conditional_t<(A::template contains<TS2>()), type_list<TS2>, type_list<>>...>::type;
+};
+
+template<typename... TS, typename... T>
+struct intersection<type_list<TS...>, T...> {
+    using type = intersection<type_list<TS...>, typename intersection<T...>::type>::type;
 };
 
 } // namespace detail
@@ -49,10 +130,6 @@ constexpr usize find_type_in_pack() {
     return n;
 }
 
-// forward
-template<typename... TS>
-struct type_list;
-
 template<typename... TS>
 struct type_list {
     // Compile time operations
@@ -62,11 +139,31 @@ struct type_list {
     template<template<typename> class M>
     using map = type_list<typename M<TS>::type...>;
 
-    template<typename T>
-    using append = type_list<TS..., T>;
+    template<typename... TS2>
+    using append = type_list<TS..., TS2...>;
+
+    template<typename... TS2>
+    using prepend = type_list<TS2..., TS...>;
 
     template<typename T>
-    using prepend = type_list<T, TS...>;
+    using extend = detail::extend<T, type_list<TS...>>::type;
+
+    template<typename T>
+    using intersection = detail::intersection<T, type_list<TS...>>::type;
+
+    template<usize Idx>
+    using before = detail::split_<Idx, TS...>::before;
+
+    template<usize Idx>
+    using after = detail::split_<Idx, TS...>::after;
+
+    template<usize I>
+    using erase = detail::extend<before<I>, after<I>>::type;
+
+    template<typename T>
+    constexpr static auto contains() -> bool {
+        return (std::same_as<T, TS> || ...);
+    }
 
     template<template<typename...> class T>
     using to = T<TS...>;
@@ -82,7 +179,7 @@ struct type_list {
     }
 
     template<usize I>
-    using at = detail::get_nth_type<I, TS...>::type;
+    using at = detail::split_<I, TS...>::nth;
 
     template<typename Func>
         requires requires(Func f) { f.template operator()<0, at<0>>(); }
@@ -91,4 +188,12 @@ struct type_list {
     }
 };
 
-} // namespace core
+static_assert(std::same_as<float, type_list<int, float, bool>::at<1>>);
+static_assert(std::same_as<type_list<int, bool>, type_list<int, float, bool>::erase<1>>);
+static_assert(std::same_as<type_list<float, bool>, type_list<int, float, bool>::erase<0>>);
+static_assert(std::same_as<type_list<int, float>, type_list<int, float, bool>::erase<2>>);
+static_assert(std::same_as<type_list<>, type_list<int>::erase<0>>);
+
+static_assert(
+    std::same_as<type_list<int, float>::intersection<type_list<float>>, type_list<float>>);
+} // namespace ycore

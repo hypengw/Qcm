@@ -73,7 +73,7 @@ auto to_ncm_id(model::IdType t, std::string_view id) -> qcm::model::ItemId {
     return out;
 }
 
-auto ncm_id_type(const ItemId& id) -> model::IdType {
+auto ncm_id_type(const ItemId& id) -> std::optional<model::IdType> {
     auto& t = id.type();
     if (t == "album")
         return model::IdType::Album;
@@ -94,10 +94,25 @@ auto ncm_id_type(const ItemId& id) -> model::IdType {
     else if (t == "special")
         return model::IdType::Special;
     else {
-        _assert_msg_rel_(false, "unknown id type: {}", t);
-        return {};
+        //_assert_msg_rel_(false, "unknown id type: {}", t);
+        return std::nullopt;
     }
 }
+
+auto to_ncm_id(const ItemId& id) -> model::IdTypes::append<std::monostate>::to<std::variant> {
+    model::IdTypes::append<std::monostate>::to<std::variant> out { std::monostate {} };
+
+    auto idx = ncm_id_type(id);
+    do {
+        if (! idx) break;
+        model::IdTypes::runtime_select((u32)idx.value(), [&out, &id]<usize Idx, typename T>() {
+            out = convert_from<T>(id);
+        });
+    } while (false);
+
+    return out;
+}
+
 } // namespace ncm
 
 IMPL_CONVERT(qcm::model::Playlist, ncm::model::Playlist) {

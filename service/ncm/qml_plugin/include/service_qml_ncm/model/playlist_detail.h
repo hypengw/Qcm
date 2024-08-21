@@ -45,6 +45,7 @@ public:
         convert(pl, in.playlist);
         for (auto& s : o.m_songs) {
             s.source = QVariant::fromValue(pl);
+            s.sourceId = pl.id;
         }
         emit infoChanged();
     }

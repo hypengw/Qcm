@@ -23,6 +23,7 @@ public:
     Q_PROPERTY(QString provider READ provider)
 
     ItemId();
+    ItemId(std::nullptr_t);
     ItemId(QStringView provider, QStringView type, QStringView id);
     ItemId(std::string_view provider, std::string_view type, std::string_view id);
     explicit ItemId(const QUrl&);

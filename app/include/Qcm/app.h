@@ -80,7 +80,6 @@ public:
     auto        global() const -> Global*;
     void        set_player_sender(Sender<Player::NotifyInfo>);
 
-
     mpris::MediaPlayer2* mpris() const { return m_mpris->mediaplayer2(); }
 
     bool                debug() const;
@@ -97,6 +96,7 @@ public:
     Q_INVOKABLE bool    isItemId(const QJSValue&) const;
     Q_INVOKABLE QString itemIdPageUrl(const QJSValue&) const;
 
+    Q_INVOKABLE model::ItemId emptyId() const;
     Q_INVOKABLE model::Song song(const QJSValue& = {}) const;
     Q_INVOKABLE model::Album album(const QJSValue& = {}) const;
     Q_INVOKABLE model::Artist artist(const QJSValue& = {}) const;

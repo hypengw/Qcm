@@ -46,6 +46,9 @@ public:
         convert(o.m_size, in.album.size);
         convert(o.m_publishTime, in.album.publishTime);
         convert(o.m_songs, in.songs);
+        for(auto& s:o.m_songs) {
+            convert(s.sourceId, in.album.id);
+        }
         if (! in.album.picUrl.empty()) {
             for (auto& s : o.m_songs) {
                 if (s.album.picUrl.isEmpty()) {

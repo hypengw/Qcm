@@ -45,6 +45,7 @@ QA.GlobalWrapper {
 
     signal sig_route(QA.RouteMsg msg)
     signal sig_route_special(string name)
+    signal sig_popup_special(string name)
 
     copy_action_comp: Component {
         QA.CopyAction {
@@ -286,7 +287,6 @@ QA.GlobalWrapper {
             if (m_player.source) {
                 m_player.play();
             }
-
         }
         function onPlaybackStateChanged() {
             const p = m_player;
@@ -298,7 +298,7 @@ QA.GlobalWrapper {
                 }
             }
             if (p.playbackState !== QA.enums.StoppedState) {
-                root.playbackLog(root.cur_song.itemId, m_player.playbackState);
+                root.playbackLog(m_player.playbackState, root.cur_song.itemId, root.cur_song.source?.itemId ?? QA.App.emptyId());
             }
         }
     }
@@ -308,7 +308,7 @@ QA.GlobalWrapper {
 
         property QA.t_song old
         function onCurChanged() {
-            root.playbackLog(old.itemId, QA.enums.StoppedState);
+            root.playbackLog(QA.enums.StoppedState, old.itemId, old.source?.itemId ?? QA.App.emptyId());
             old = m_playlist.cur;
         }
     }

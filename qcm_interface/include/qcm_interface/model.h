@@ -79,6 +79,7 @@ public:
     GADGET_PROPERTY_DEF(QList<QString>, tags, tags)
 
     GADGET_PROPERTY_DEF(QVariant, source, source)
+    GADGET_PROPERTY_DEF(ItemId, sourceId, sourceId)
 
     GATGET_LIST_PROPERTY(Artist, artists, artists)
 
@@ -131,6 +132,7 @@ public:
     GADGET_PROPERTY_DEF(Song, song, song)
     GADGET_PROPERTY_DEF(QDateTime, createTime, createTime)
     GADGET_PROPERTY_DEF(qint32, serialNum, serialNum)
+    GADGET_PROPERTY_DEF(ItemId, sourceId, sourceId)
 
     std::strong_ordering operator<=>(const Program&) const = default;
 };
@@ -198,4 +200,4 @@ private:
     up<Private> m_ptr;
 };
 
-}
+} // namespace qcm::model

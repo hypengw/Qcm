@@ -356,6 +356,8 @@ bool App::debug() const {
 #endif
 }
 
+auto App::emptyId() const -> model::ItemId { return {}; }
+
 model::Song  App::song(const QJSValue& js) const { return meta_model::toGadget<model::Song>(js); }
 model::Album App::album(const QJSValue& js) const { return meta_model::toGadget<model::Album>(js); }
 model::Artist App::artist(const QJSValue& js) const {

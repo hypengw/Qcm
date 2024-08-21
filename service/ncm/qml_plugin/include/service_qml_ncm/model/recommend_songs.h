@@ -24,6 +24,11 @@ public:
     void handle_output(const out_type& in, const auto&) {
         auto& o = *this;
         convert(o.m_dailySongs, in.data.dailySongs);
+        for (auto& s : o.m_dailySongs) {
+            convert(
+                s.sourceId,
+                ncm::model::SpecialId { std::string(ncm::model::SpecialId_DailySongRecommend) });
+        }
         emit infoChanged();
     }
 

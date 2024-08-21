@@ -15,14 +15,14 @@ namespace model
 
 enum class IdType
 {
-    Album,
-    Artist,
+    Song = 0,
     Program,
+    Album,
     Playlist,
-    Song,
+    Djradio,
+    Artist,
     User,
     Comment,
-    Djradio,
     Special,
 };
 
@@ -83,6 +83,9 @@ struct DjradioId : Id {
 struct SpecialId : Id {
     static constexpr auto id_type { IdType::Special };
 };
+
+using IdTypes = ycore::type_list<SongId, ProgramId, AlbumId, PlaylistId, DjradioId, ArtistId,
+                                 UserId, CommentId, SpecialId>;
 
 constexpr auto SpecialId_DailySongRecommend { "dailySongRecommend"sv };
 constexpr auto SpecialId_UserFM { "userfm"sv };

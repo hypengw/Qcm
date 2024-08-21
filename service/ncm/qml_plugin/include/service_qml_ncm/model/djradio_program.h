@@ -27,7 +27,12 @@ public:
     void handle_output(const out_type& re, const auto& input) {
         if (input.offset == (int)rowCount()) {
             if (! re.programs.empty()) {
-                insert(rowCount(), convert_from<std::vector<Program>>(re.programs));
+                auto view = std::ranges::transform_view(
+                    convert_from<std::vector<Program>>(re.programs), [&](auto p) -> Program {
+                        convert(p.sourceId, input.radioId);
+                        return p;
+                    });
+                insert(rowCount(), view);
             }
             m_has_more = re.more;
         }

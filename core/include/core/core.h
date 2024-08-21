@@ -42,6 +42,11 @@ auto make_rc(Args&&... args) {
     return std::make_shared<T>(std::forward<Args>(args)...);
 }
 
+namespace std
+{
+struct monostate;
+}
+
 struct NoCopy {
 protected:
     NoCopy()  = default;
@@ -53,6 +58,7 @@ protected:
 
 namespace ycore
 {
+struct monostate {};
 
 template<typename Wrapper>
 static inline typename Wrapper::element_type* GetPtrHelper(const Wrapper& p) {
@@ -106,6 +112,15 @@ struct Convert<T, F> {
 template<std::integral T>
 struct Convert<bool, T> {
     static void from(bool& out, T i) { out = (bool)(i); }
+};
+template<typename T>
+struct Convert<ycore::monostate, T> {
+    static void from(ycore::monostate&, const T&) {};
+};
+
+template<typename T>
+struct Convert<std::monostate, T> {
+    static void from(std::monostate&, const T&) {};
 };
 
 #define DECLARE_CONVERT(Ta, Tb)              \
