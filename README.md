@@ -23,7 +23,11 @@ git submodule update --init
 
 cmake -S . -B build -GNinja -DCMAKE_BUILD_TYPE=Release  
 cmake --build build
-./build/app/QcmApp
+export QML_IMPORT_PATH=$PWD/build/Debug/qml_modules
+./build/app/Qcm
+
+# install
+cmake --install build
 ```
 
 ### Todo:
