@@ -25,7 +25,7 @@ cmake -S . -B build -GNinja -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 
 # run without install
-export QML_IMPORT_PATH=$PWD/build/Debug/qml_modules
+export QML_IMPORT_PATH=$PWD/build/qml_modules
 ./build/app/Qcm
 
 # install
