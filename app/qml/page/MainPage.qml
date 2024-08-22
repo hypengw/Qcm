@@ -35,6 +35,12 @@ MD.Page {
             "name": qsTr('cloud'),
             "page": 'qrc:/Qcm/App/qml/page/CloudPage.qml',
             "cache": true
+        },
+        {
+            "icon": MD.Token.icon.history,
+            "name": qsTr('history'),
+            "page": 'qrc:/Qcm/Service/Ncm/qml/page/RecordPage.qml',
+            "cache": false
         }
     ]
 

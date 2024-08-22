@@ -32,6 +32,7 @@ struct fmt::formatter<Bytes> : fmt::formatter<std::string> {
 };
 
 template<fmt::formattable T>
+    requires(ycore::extra_cvt<std::string, T>)
 struct Convert<std::string, T> {
     static void from(std::string& out, const T& fmt) { out = fmt::format("{}", fmt); }
 };

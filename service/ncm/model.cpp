@@ -45,6 +45,8 @@
 #include "ncm/api/upload_addr.h"
 #include "ncm/api/upload.h"
 
+#include "ncm/api/play_record.h"
+
 namespace ncm
 {
 namespace model
@@ -81,10 +83,32 @@ JSON_DEFINE_IMPL(Song::Privilege, downloadMaxBrLevel, playMaxBrLevel, downloadMa
                  playMaxbr, preSell, plLevel, flLevel, dlLevel, toast, payed, maxbr, subp, flag, sp,
                  pl, fl, dl, cs, fee, st, id, cp);
 
-JSON_DEFINE_IMPL(Song, ar, al, st, rtype, pst, alia, pop, rt, mst, cp, cf, dt, ftype, no, fee, mv,
-                 t, v, h, m, l, sq, hr, cd, name, id, privilege);
 JSON_DEFINE_IMPL(SongB, name, ftype, album, artists, commentThreadId, copyright, copyrightId, disc,
                  duration, fee, hearTime, id, status, starred, score, popularity, playedNum)
+
+struct Song_ : Song {};
+JSON_DEFINE_IMPL(Song_, ar, al, st, rtype, pst, alia, pop, rt, mst, cp, cf, dt, ftype, no, fee, mv,
+                 t, v, h, m, l, sq, hr, cd, name, id, privilege);
+void to_json(nlohmann::json& j, const Song& s) {
+    auto w = static_cast<const Song_*>(&s);
+    to_json(j, *w);
+}
+void from_json(const nlohmann::json& j, Song& s) {
+    if (j.contains("al")) {
+        auto w = static_cast<Song_*>(&s);
+        from_json(j, *w);
+    } else {
+        SongB sb;
+        from_json(j, sb);
+        s.al    = sb.album;
+        s.ar    = sb.artists;
+        s.id    = sb.id;
+        s.name  = sb.name;
+        s.fee   = sb.fee;
+        s.dt    = sb.duration;
+        s.ftype = sb.ftype;
+    }
+}
 
 JSON_DEFINE_WITH_DEFAULT_IMPL(Artist, followed, alias, trans, musicSize, albumSize, briefDesc,
                               picUrl, img1v1Url, name, id);
@@ -103,6 +127,7 @@ JSON_DEFINE_IMPL(Djradio, createTime, buyed, category, categoryId, secondCategor
                  feeScope, finished, id, intervenePicUrl, name, originalPrice, picId, picUrl,
                  playCount, privacy, radioFeeType, programCount, lastProgramCreateTime,
                  lastProgramId)
+JSON_DEFINE_IMPL(DjradioB, categoryId, id, name, picUrl, playCount, programCount, lastProgramId)
 
 JSON_DEFINE_IMPL(AlbumSublistItem, subTime, size, artists, id, name, picUrl, alias, transNames);
 
@@ -140,8 +165,41 @@ JSON_DEFINE_IMPL(Program, programFeeType, privacy, auditDisPlayStatus, auditStat
                  commentThreadId, auditDisPlayStatus, id, mainSong, existLyric, duration, serialNum,
                  subscribed, score, name)
 
+// clang-format off
+JSON_DEFINE_IMPL(Creator, 
+    defaultAvatar,
+    province,
+    authStatus,
+    followed,
+    avatarUrl,
+    accountStatus,
+    gender,
+    city,
+    birthday,
+    userId,
+    userType,
+    nickname,
+    signature,
+    description,
+    detailDescription,
+    avatarImgId,
+    backgroundImgId,
+    backgroundUrl,
+    authority,
+    mutual,
+    djStatus,
+    vipType,
+    avatarImgIdStr,
+    backgroundImgIdStr
+);
+// clang-format on
+
 JSON_DEFINE_IMPL(UserCloudItem, fileName, fileSize, simpleSong, songName, songId, addTime, album,
                  artist, bitrate, cover, coverId, songId, lyricId, version)
+
+JSON_DEFINE_IMPL(PlayRecordItem, playTime, banned, multiTerminalInfo, resourceId, resourceType);
+JSON_DEFINE_IMPL(PlayRecordItem::MultiTerminalInfo, icon, os, osText);
+JSON_DEFINE_IMPL(PlayRecordItem::Playlist, coverImgUrl, id, lastSong, name, creator);
 
 } // namespace model
 
@@ -213,6 +271,9 @@ JSON_DEFINE_IMPL(UploadAddr, lbs, upload);
 JSON_DEFINE_IMPL(Upload, requestId, offset);
 JSON_DEFINE_IMPL(FeedbackWeblog, code, data);
 
+JSON_DEFINE_IMPL(PlayRecord, code, data);
+JSON_DEFINE_IMPL(PlayRecord::Data, list, total);
+
 } // namespace api_model
 
 } // namespace ncm
@@ -263,6 +324,8 @@ JSON_GET_IMPL(api_model::NosTokenAlloc);
 JSON_GET_IMPL(api_model::UploadAddr);
 JSON_GET_IMPL(api_model::Upload);
 JSON_GET_IMPL(api_model::FeedbackWeblog);
+
+JSON_GET_IMPL(api_model::PlayRecord);
 
 JSON_GET_IMPL(model::Album);
 JSON_GET_IMPL(model::Song);
@@ -332,3 +395,93 @@ Params api::FeedbackWeblog::body() const {
     p["logs"] = j.dump();
     return p;
 }
+
+// used by record api
+IMPL_CONVERT(std::string, ncm::model::IdType) {
+    switch (in) {
+    case model::IdType::Album: out = "album"sv; break;
+    case model::IdType::User: out = "user"sv; break;
+    case model::IdType::Artist: out = "artist"sv; break;
+    case model::IdType::Comment: out = "comment"sv; break;
+    case model::IdType::Djradio: out = "djradio"sv; break;
+    case model::IdType::Song: out = "song"sv; break;
+    case model::IdType::Program: out = "program"sv; break;
+    case model::IdType::Playlist: out = "playlist"sv; break;
+    case model::IdType::Special: out = "special"sv; break;
+    default: {
+        out = {};
+    }
+    }
+}
+
+namespace ncm::model
+{
+
+namespace
+{
+template<typename T>
+struct get_model_type;
+template<>
+struct get_model_type<SongId> {
+    using type = Song;
+};
+template<>
+struct get_model_type<AlbumId> {
+    using type = Album;
+};
+template<>
+struct get_model_type<PlaylistId> {
+    using type = PlayRecordItem::Playlist;
+};
+template<>
+struct get_model_type<DjradioId> {
+    using type = DjradioB;
+};
+template<typename T>
+using get_model_type_t = typename get_model_type<T>::type;
+} // namespace
+} // namespace ncm::model
+namespace ncm::api_model
+{
+
+auto PlayRecord::parse(std::span<const byte>     bs,
+                       const params::PlayRecord& input) -> Result<PlayRecord> {
+    return json::parse(convert_from<std::string>(bs))
+        .map_error([](auto err) {
+            return Error::push(err);
+        })
+        .and_then([&input](auto j) -> Result<PlayRecord> {
+            if (auto err = check_api_error(*j)) {
+                return nstd::unexpected(Error::push(err.value()));
+            }
+            Result<PlayRecord> out = json::get<PlayRecord>(*j, {}).map_error([](auto err) {
+                return Error::push(err);
+            });
+            if (out) {
+                json::njson& list = j->at("/data/list"_json_pointer);
+
+                model::IdTypes::runtime_select(
+                    (u32)input.type, [&out, &list]<usize I, typename T>() {
+                        if constexpr (ycore::type_list<model::SongId,
+                                                       model::AlbumId,
+                                                       model::PlaylistId,
+                                                       model::DjradioId>::contains<T>()) {
+                            auto n = std::min(list.size(), out->data.list.size());
+                            for (usize i = 0; i < n; i++) {
+                                auto res = parse_no_apierr<model::get_model_type_t<T>>(
+                                               list.at(i).at("data"))
+                                               .map([&out, i](const auto& val) {
+                                                   out->data.list[i].data = val;
+                                               });
+                                if (! res) {
+                                    out = nstd::unexpected(res.error());
+                                    break;
+                                }
+                            }
+                        }
+                    });
+            }
+            return out;
+        });
+}
+} // namespace ncm::api_model

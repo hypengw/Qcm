@@ -16,19 +16,19 @@ QCM_INTERFACE_API Q_NAMESPACE QML_ELEMENT
     };
 Q_ENUM_NS(ApiStatus);
 
-enum class QCM_INTERFACE_API IdType
-{
-    IdTypeUnknown = 0,
-    IdTypeSong,
-    IdTypeAlbum,
-    IdTypeArtist,
-    IdTypePlaylist,
-    IdTypeUser,
-    IdTypeComment,
-    IdTypeDjradio,
-    IdTypeProgram
-};
-Q_ENUM_NS(IdType)
+//enum class QCM_INTERFACE_API IdType
+//{
+//    IdTypeUnknown = 0,
+//    IdTypeSong,
+//    IdTypeAlbum,
+//    IdTypeArtist,
+//    IdTypePlaylist,
+//    IdTypeUser,
+//    IdTypeComment,
+//    IdTypeDjradio,
+//    IdTypeProgram
+//};
+//Q_ENUM_NS(IdType)
 
 enum class QCM_INTERFACE_API ToastFlag
 {

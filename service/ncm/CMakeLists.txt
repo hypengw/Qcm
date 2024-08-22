@@ -1,6 +1,7 @@
 add_library(
   sv_ncm STATIC
   include/ncm/client.h
+  include/ncm/enum.h
   include/ncm/crypto.h
   include/ncm/api.h
   include/ncm/api/album_detail.h

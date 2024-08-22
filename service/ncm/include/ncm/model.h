@@ -2,6 +2,7 @@
 
 #include <chrono>
 
+#include "ncm/enum.h"
 #include "json_helper/helper.h"
 #include "core/strv_helper.h"
 #include "ncm/type.h"
@@ -13,18 +14,7 @@ constexpr auto provider { "ncm"sv };
 namespace model
 {
 
-enum class IdType
-{
-    Song = 0,
-    Program,
-    Album,
-    Playlist,
-    Djradio,
-    Artist,
-    User,
-    Comment,
-    Special,
-};
+using IdType = enums::IdType;
 
 struct Id {
     std::variant<i64, std::string> id { 0 };
@@ -222,8 +212,11 @@ struct Song {
     std::optional<Quality>     sq;
     std::optional<Quality>     hr;
     std::optional<std::string> cd;
-    std::string                name;
+    std::optional<std::string> name;
     SongId                     id {};
+
+    // some title for anime,film
+    std::vector<std::string> tns;
 
     std::optional<Privilege> privilege;
 
@@ -293,6 +286,42 @@ struct Artist {
     ArtistId                   id {};
     // std::string              picId_str;
     // std::string              img1v1Id_str;
+};
+
+struct Creator {
+    //  "extProperties": {
+    //      "avatarImgId_str":
+    //  },
+    bool        defaultAvatar;
+    i64         province;   // 520000
+    i64         authStatus; // 0,
+    bool        followed;   // false,
+    std::string avatarUrl;
+    i64         accountStatus; // 0,
+    i64         gender;        // 0,
+    i64         city;          // 522400,
+    i64         birthday;      // -2209017600000,
+    UserId      userId;
+    i64         userType; // 0,
+    std::string nickname;
+    std::string signature;         // "",
+    std::string description;       // "",
+    std::string detailDescription; // "",
+    i64         avatarImgId;
+    i64         backgroundImgId;
+    std::string backgroundUrl; //
+    i64         authority;     // 0,
+    bool        mutual;        // false,
+    //  expertTags;// null,
+    //  experts;// null,
+    i64 djStatus; // 0,
+    i64 vipType;  // 11,
+    //  remarkName;// null,
+    std::string avatarImgIdStr;
+    std::string backgroundImgIdStr;
+    //  xInfo {
+    //      "avatarImgId_str;// "1"
+    //  }
 };
 
 struct Album {
@@ -530,6 +559,19 @@ struct Program {
     i64         commentCount { 0 };
 };
 
+struct DjradioB {
+    DjradioId                  id {};
+    std::string                name;
+    std::string                picUrl;
+    ProgramId                  lastProgramId;
+    i64                        programCount;
+    i64                        playCount;
+    std::optional<std::string> replaceName;
+    std::optional<std::string> icon;
+    std::optional<std::string> programData;
+    i64                        categoryId;
+};
+
 JSON_DEFINE(Song);
 JSON_DEFINE(SongB);
 JSON_DEFINE(Artist);
@@ -539,7 +581,9 @@ JSON_DEFINE(Time);
 JSON_DEFINE(Comment);
 JSON_DEFINE(User);
 JSON_DEFINE(Djradio);
+JSON_DEFINE(DjradioB);
 JSON_DEFINE(Program);
+JSON_DEFINE(Creator);
 
 } // namespace model
 
@@ -555,3 +599,5 @@ struct Convert<bool, ncm::model::Bool> {
             i);
     }
 };
+
+DECLARE_CONVERT(std::string, ncm::model::IdType);

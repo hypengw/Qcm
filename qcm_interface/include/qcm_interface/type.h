@@ -8,8 +8,9 @@
 #include "core/qstr_helper.h"
 
 template<typename T>
+    requires ycore::extra_cvt<QVariant, T>
 struct Convert<QVariant, T> {
     static void from(QVariant& out, const T& in) { out = QVariant::fromValue(in); }
 };
 
- // namespace qcm
+// namespace qcm

@@ -79,14 +79,17 @@ constexpr bool is_specialization_of<T<Args...>, T> = true;
 template<typename T, typename... Ts>
 concept convertible_to_any = (std::convertible_to<T, Ts> || ...);
 
+template<typename T, typename F>
+concept extra_cvt = (! std::same_as<std::decay_t<T>, std::decay_t<F>>);
+
 } // namespace ycore
 
 template<typename Tout, typename Tin>
 struct Convert;
 
 template<typename Tout, typename Fin>
-concept convertable = requires(Tout& t, const Fin& f) {
-    { Convert<std::decay_t<Tout>, std::decay_t<Fin>>::from(t, f) };
+concept convertable = requires(Tout& t, Fin&& f) {
+    { Convert<std::decay_t<Tout>, std::decay_t<Fin>>::from(t, std::forward<Fin>(f)) };
 };
 
 template<typename Tout, typename Tin>
@@ -103,22 +106,30 @@ Tout convert_from(Tin&& in) {
     return out;
 }
 
-template<typename T, std::integral F>
-    requires std::integral<T> && (! std::same_as<T, bool>) // && (sizeof(T) >= sizeof(F))
+template<typename T>
+struct Convert<T, T> {
+    static void from(T& out, const T& in) { out = in; }
+};
+
+template<std::integral T, std::integral F>
+    requires(! std::same_as<T, bool> && ycore::extra_cvt<T, F>) // && (sizeof(T) >= sizeof(F))
 struct Convert<T, F> {
     static void from(T& out, F in) { out = (T)in; }
 };
 
 template<std::integral T>
+    requires ycore::extra_cvt<bool, T>
 struct Convert<bool, T> {
     static void from(bool& out, T i) { out = (bool)(i); }
 };
 template<typename T>
+    requires ycore::extra_cvt<ycore::monostate, T>
 struct Convert<ycore::monostate, T> {
     static void from(ycore::monostate&, const T&) {};
 };
 
 template<typename T>
+    requires ycore::extra_cvt<std::monostate, T>
 struct Convert<std::monostate, T> {
     static void from(std::monostate&, const T&) {};
 };
@@ -135,6 +146,10 @@ struct Convert<std::monostate, T> {
 #define DEFINE_CONVERT(Ta, Tb) \
     DECLARE_CONVERT(Ta, Tb)    \
     inline IMPL_CONVERT(Ta, Tb)
+
+#define STATIC_CAST_CONVERT(Ta, Tb)                            \
+    DEFINE_CONVERT(Ta, Tb) { out = static_cast<out_type>(in); } \
+    DEFINE_CONVERT(Tb, Ta) { out = static_cast<out_type>(in); }
 
 template<typename IMPL>
 struct CRTP {

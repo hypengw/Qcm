@@ -33,6 +33,9 @@
 #include "service_qml_ncm/model/qrcode_unikey.h"
 #include "service_qml_ncm/model/radio_like.h"
 #include "service_qml_ncm/model/song_like.h"
+
+#include "service_qml_ncm/model/play_record.h"
+
 #include "service_qml_ncm/api/user_account.h"
 
 #include "qcm_interface/model/user_account.h"
@@ -49,24 +52,15 @@ auto to_ncm_id(model::IdType t, i64 id) -> qcm::model::ItemId {
     return to_ncm_id(t, std::to_string(id));
 }
 auto to_ncm_id(model::IdType t, std::string_view id) -> qcm::model::ItemId {
-    auto type_str = [](model::IdType t) -> std::string_view {
-        switch (t) {
-        case model::IdType::Album: return "album";
-        case model::IdType::User: return "user";
-        case model::IdType::Artist: return "artist";
-        case model::IdType::Comment: return "comment";
-        case model::IdType::Djradio: return "djradio";
-        case model::IdType::Song: return "song";
-        case model::IdType::Program: return "program";
-        case model::IdType::Playlist: return "playlist";
-        case model::IdType::Special: return "special";
-        default: {
-            _assert_msg_rel_(false, "unknown id type: {}", (int)t);
-            return {};
-        }
-        }
-    };
-    ItemId out { provider, type_str(t), id };
+    auto type_str = convert_from<std::string>(t);
+
+    if (type_str.empty()) {
+        _assert_msg_rel_(false, "unknown id type: {}", (int)t);
+        return {};
+    }
+
+    ItemId out { provider, type_str, id };
+
     out.set_validator([](const auto& id) -> bool {
         return ! id.type().isEmpty() && id.id() != "0";
     });
@@ -158,7 +152,7 @@ IMPL_CONVERT(qcm::model::Album, ncm::model::Album) {
 
 IMPL_CONVERT(qcm::model::Song, ncm::model::Song) {
     convert(out.id, in.id);
-    convert(out.name, in.name);
+    convert(out.name, in.name.value_or(""));
     convert(out.album.id, in.al.id);
     convert(out.album.name, in.al.name.value_or(""));
     convert(out.album.picUrl, in.al.picUrl.value_or(""));
@@ -177,7 +171,7 @@ IMPL_CONVERT(qcm::model::Song, ncm::model::Song) {
         case DigitalAlbum: tag = "dg"; break;
         case Free:
         case Free128k: break;
-        default: WARN_LOG("unknown fee: {}, {}", (i64)fee, in.name);
+        default: WARN_LOG("unknown fee: {}, {}", (i64)fee, in.name.value_or(""));
         }
         if (! tag.isEmpty()) out.tags.push_back(tag);
     }
@@ -209,6 +203,12 @@ IMPL_CONVERT(qcm::model::Comment, ncm::model::Comment) {
 };
 
 IMPL_CONVERT(qcm::model::Djradio, ncm::model::Djradio) {
+    convert(out.id, in.id);
+    convert(out.name, in.name);
+    convert(out.picUrl, in.picUrl);
+    convert(out.programCount, in.programCount);
+}
+IMPL_CONVERT(qcm::model::Djradio, ncm::model::DjradioB) {
     convert(out.id, in.id);
     convert(out.name, in.name);
     convert(out.picUrl, in.picUrl);

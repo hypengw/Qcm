@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+
 import Qcm.App as QA
 import Qcm.Service.Ncm as QNCM
 import Qcm.Material as MD
@@ -8,55 +9,15 @@ MD.Page {
     id: root
     padding: 0
 
-    // MD.MatProp.backgroundColor: item_search.focus ? item_search.MD.MatProp.backgroundColor : MD.Token.color.surface
-
-    function search() {
-        this.keywords = item_search.text;
-    }
-
-    component BaseView: MD.ListView {
-        implicitHeight: contentHeight
-        model: querier.data
-        busy: querier.status === QA.enums.Querying
-        leftMargin: 24
-        rightMargin: 24
-
-        property alias querier: querier
-        property alias type: querier.type
-
-        QNCM.CloudSearchQuerier {
-            id: querier
-            autoReload: keywords
-        }
-    }
-
     ColumnLayout {
+        spacing: 0
         anchors.fill: parent
-        MD.Pane {
-            Layout.fillWidth: true
-            padding: 16
-            MD.SearchBar {
-                id: item_search
-                anchors.fill: parent
-            }
-        }
 
         MD.TabBar {
             id: bar
             Layout.fillWidth: true
 
-            function get_querier() {
-                return m_stack.children[currentIndex]?.querier;
-            }
-
             Component.onCompleted: {
-                item_search.accepted.connect(() => {
-                    let querier = get_querier();
-                    if (querier) {
-                        querier.keywords = '';
-                        querier.keywords = item_search.text;
-                    }
-                });
                 currentIndexChanged();
             }
 
@@ -73,99 +34,113 @@ MD.Page {
                 text: qsTr("Djradio")
             }
 
-            onCurrentIndexChanged: {
-                let querier = get_querier();
-                if (querier && querier.keywords != item_search.text) {
-                    querier.keywords = item_search.text;
-                }
-            }
+            onCurrentIndexChanged: {}
         }
 
         MD.Pane {
             Layout.fillHeight: true
             Layout.fillWidth: true
             padding: 0
-
             backgroundColor: MD.Token.color.surface
 
             StackLayout {
-                id: m_stack
+                id: item_stack
                 anchors.fill: parent
                 currentIndex: bar.currentIndex
 
                 BaseView {
+                    type: QNCM.enums.IdTypeSong
                     delegate: QA.SongDelegate {
                         width: ListView.view.contentWidth
-                        model_: QA.App.song(model)
+                        model_: model.data
                         onClicked: {
                             QA.Global.playlist.switchTo(model_);
                         }
                     }
-                    type: QNCM.CloudSearchQuerier.SongType
                 }
-
                 BaseView {
+                    type: QNCM.enums.IdTypeAlbum
                     delegate: MD.ListItem {
+                        required property var model
+                        required property var index
+
                         width: ListView.view.contentWidth
-                        text: model.name
+                        text: model.data.name
                         maximumLineCount: 2
-                        supportText: `${QA.Global.join_name(model.artists, '/')} - ${Qt.formatDateTime(model.publishTime, 'yyyy.M.d')} - ${model.trackCount} tracks`
+                        supportText: `${QA.Global.join_name(model.data.artists, '/')} - ${Qt.formatDateTime(model.data.publishTime, 'yyyy.M.d')} - ${model.data.trackCount} tracks`
                         leader: MD.Image {
                             radius: 8
-                            source: `image://ncm/${model.picUrl}`
+                            source: `image://ncm/${model.data.picUrl}`
                             sourceSize.height: 48
                             sourceSize.width: 48
                         }
                         onClicked: {
-                            QA.Global.route(model.itemId);
+                            QA.Global.route(model.data.itemId);
                             ListView.view.currentIndex = index;
                         }
                     }
-
-                    type: QNCM.CloudSearchQuerier.AlbumType
                 }
-
                 BaseView {
-                    implicitHeight: contentHeight
+                    type: QNCM.enums.IdTypePlaylist
                     delegate: MD.ListItem {
+                        required property var model
+                        required property var index
+
                         width: ListView.view.contentWidth
-                        text: model.name
+                        text: model.data.name
                         maximumLineCount: 2
-                        supportText: `${model.trackCount} songs`
+                        supportText: `${model.data.trackCount} songs`
                         leader: MD.Image {
                             radius: 8
-                            source: `image://ncm/${model.picUrl}`
+                            source: `image://ncm/${model.data.picUrl}`
                             sourceSize.height: 48
                             sourceSize.width: 48
                         }
                         onClicked: {
-                            QA.Global.route(model.itemId);
+                            QA.Global.route(model.data.itemId);
                             ListView.view.currentIndex = index;
                         }
                     }
-                    type: QNCM.CloudSearchQuerier.PlaylistType
                 }
                 BaseView {
+                    type: QNCM.enums.IdTypeDjradio
                     delegate: MD.ListItem {
+                        required property var model
+                        required property var index
+
                         width: ListView.view.contentWidth
-                        text: model.name
+                        text: model.data.name
                         maximumLineCount: 2
-                        supportText: `${model.programCount} programs`
+                        supportText: `${model.data.programCount} programs`
                         leader: MD.Image {
                             radius: 8
-                            source: `image://ncm/${model.picUrl}`
+                            source: `image://ncm/${model.data.picUrl}`
                             sourceSize.height: 48
                             sourceSize.width: 48
                         }
                         onClicked: {
-                            QA.Global.route(model.itemId);
+                            QA.Global.route(model.data.itemId);
                             ListView.view.currentIndex = index;
                         }
                     }
-
-                    type: QNCM.CloudSearchQuerier.DjradioType
                 }
             }
+        }
+    }
+
+    component BaseView: MD.ListView {
+        implicitHeight: contentHeight
+        model: querier.data
+        busy: querier.status === QA.enums.Querying
+        leftMargin: 24
+        rightMargin: 24
+        topMargin: 4
+        bottomMargin: 4
+
+        property alias type: querier.type
+
+        QNCM.PlayRecordQuerier {
+            id: querier
         }
     }
 }

@@ -106,6 +106,16 @@ namespace api_model
 512 	未付费歌曲无法收藏
  */
 
+inline auto check_api_error(json::njson& j) -> std::optional<ApiError> {
+    if (auto err_ = json::get<ApiError>(j, {}); err_) {
+        auto& err = err_.value();
+        if ((err.code && err.code.value() != 200) || err.errMsg) {
+            return err;
+        }
+    }
+    return std::nullopt;
+}
+
 template<typename T>
 Result<T> parse(std::span<const byte> bs) {
     return json::parse(convert_from<std::string>(bs))
@@ -113,16 +123,21 @@ Result<T> parse(std::span<const byte> bs) {
             return Error::push(err);
         })
         .and_then([](auto j) -> Result<T> {
-            if (auto err_ = json::get<ApiError>(*j, {}); err_) {
-                auto& err = err_.value();
-                if ((err.code && err.code.value() != 200) || err.errMsg)
-                    return nstd::unexpected(Error::push(err));
+            if (auto err = check_api_error(*j)) {
+                return nstd::unexpected(Error::push(err.value()));
             }
 
             return json::get<T>(*j, {}).map_error([](auto err) {
                 return Error::push(err);
             });
         });
+}
+
+template<typename T>
+Result<T> parse_no_apierr(json::njson& j) {
+    return json::get<T>(j, {}).map_error([](auto err) {
+        return Error::push(err);
+    });
 }
 
 template<typename T>

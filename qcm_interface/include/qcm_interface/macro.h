@@ -28,7 +28,7 @@ public:                                                                         
     Q_PROPERTY(_type_ _prop_ READ _prop_ WRITE set_##_prop_ NOTIFY changed_##_prop_)  \
     _type_ _prop_() const { return convert_from<_type_>(this->api().input._input_); } \
     void   set_##_prop_(_type_ v) {                                                   \
-        auto& cur = this -> api().input._input_;                                    \
+        auto& cur = this->api().input._input_;                                      \
         auto  v_  = convert_from<std::decay_t<decltype(cur)>>(v);                   \
         if (cur != v_) {                                                            \
             cur = v_;                                                               \
@@ -53,7 +53,7 @@ Q_SIGNALS:                                                                      
         return convert_from<_type_>(this->api().input._input_);   \
     }                                                             \
     inline void _class_::set_##_prop_(_type_ v) {                 \
-        auto& cur = this -> api().input._input_;                  \
+        auto& cur = this->api().input._input_;                    \
         auto  v_  = convert_from<std::decay_t<decltype(cur)>>(v); \
         if (cur != v_) {                                          \
             cur = v_;                                             \
