@@ -29,21 +29,18 @@ MD.Page {
             "icon": MD.Token.icon.queue_music,
             "name": qsTr('playlist'),
             "page": 'qrc:/Qcm/App/qml/page/PlaylistListPage.qml'
-        },
-        {
-            "icon": MD.Token.icon.cloud,
-            "name": qsTr('cloud'),
-            "page": 'qrc:/Qcm/App/qml/page/CloudPage.qml',
-            "cache": true
-        },
-        {
-            "icon": MD.Token.icon.history,
-            "name": qsTr('history'),
-            "page": 'qrc:/Qcm/Service/Ncm/qml/page/RecordPage.qml',
-            "cache": false
         }
     ]
 
+    header: MD.AppBar {
+        visible: m_small_layout.visible
+        title: root.title
+        leadingAction: Action {
+            icon.name: root.canBack ? MD.Token.icon.arrow_back : MD.Token.icon.menu
+            onTriggered: root.back()
+        }
+    }
+    title:  m_page_stack.currentItem?.title ?? ""
     canBack: m_page_stack.canBack
 
     function back() {
@@ -131,7 +128,20 @@ MD.Page {
                                         }
                                     }
                                 },
-                                ...root.pages];
+                                ...root.pages,
+                                {
+                                    "icon": MD.Token.icon.cloud,
+                                    "name": qsTr('cloud'),
+                                    "page": 'qrc:/Qcm/App/qml/page/CloudPage.qml',
+                                    "cache": true
+                                },
+                                {
+                                    "icon": MD.Token.icon.history,
+                                    "name": qsTr('history'),
+                                    "page": 'qrc:/Qcm/Service/Ncm/qml/page/RecordPage.qml',
+                                    "cache": false
+                                }
+                            ];
                             if (QA.App.debug) {
                                 pages.push({
                                     "icon": MD.Token.icon.queue_music,
@@ -249,6 +259,7 @@ MD.Page {
                 initialItem: QA.PageContainer {
                     id: page_container
                     initialItem: Item {}
+                    property string title: currentItem?.title ?? "" 
                 }
 
                 property bool canBack: (currentItem?.canBack ?? false) || depth > 1

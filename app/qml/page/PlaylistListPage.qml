@@ -8,6 +8,7 @@ import Qcm.Material as MD
 
 MD.Page {
     id: root
+    title: qsTr("playlist")
 
     // list<string>
     readonly property var cat_list: ['全部歌单', '官方'].concat(custom_cat_list)

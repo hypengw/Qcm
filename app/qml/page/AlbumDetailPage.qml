@@ -11,6 +11,7 @@ MD.Page {
 
     property alias itemData: qr_al.data
     property alias itemId: qr_al.itemId
+    title: qsTr("album")
 
     padding: 0
 

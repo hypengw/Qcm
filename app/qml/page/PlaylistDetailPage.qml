@@ -12,6 +12,7 @@ MD.Page {
     property alias itemData: qr_pl.data
     property alias itemId: qr_pl.itemId
 
+    title: qsTr("playlist")
     padding: 0
 
     MD.ListView {

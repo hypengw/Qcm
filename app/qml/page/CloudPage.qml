@@ -11,6 +11,7 @@ import "../js/util.mjs" as Util
 MD.Page {
     id: root
     padding: 0
+    title: qsTr("cloud")
 
     MD.ListView {
         id: m_view

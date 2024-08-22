@@ -11,8 +11,10 @@ MD.Page {
 
     readonly property bool canBack: leaf.folded && leaf.rightAbove
 
+    title: m_content.currentItem?.title ?? qsTr("library")
+
     function back() {
-        content.pop(null);
+        m_content.pop(null);
     }
     function refresh_list(qr) {
         const old_limit = qr.limit;
@@ -25,7 +27,7 @@ MD.Page {
         id: leaf
         anchors.fill: parent
         leftMin: 280
-        rightAbove: content.depth === 2
+        rightAbove: m_content.depth === 2
         rightMin: 400
 
         leftPage: MD.Pane {
@@ -224,15 +226,15 @@ MD.Page {
             }
         }
         rightPage: MD.StackView {
-            id: content
+            id: m_content
 
             property var currentItemId: null
 
             function push_page(item, params, oper) {
-                if (content.depth === 1)
-                    content.push(item, params, oper);
+                if (m_content.depth === 1)
+                    m_content.push(item, params, oper);
                 else
-                    content.replace(content.currentItem, item, params, oper);
+                    m_content.replace(m_content.currentItem, item, params, oper);
             }
             function route(itemId) {
                 currentItemId = itemId;
@@ -256,7 +258,7 @@ MD.Page {
 
         function checkCur() {
             if (currentItem) {
-                if (currentItem.itemId !== content.currentItemId)
+                if (currentItem.itemId !== m_content.currentItemId)
                     currentIndex = -1;
             }
         }
@@ -318,7 +320,7 @@ MD.Page {
             height: 1
         }
         onClicked: {
-            content.route(itemId);
+            m_content.route(itemId);
             ListView.view.currentIndex = index;
         }
     }

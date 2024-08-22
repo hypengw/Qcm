@@ -9,7 +9,7 @@ import Qcm.Material as MD
 MD.Pane {
     id: root
 
-    MD.MatProp.backgroundColor: QA.Global.main_win.smallLayout ? MD.MatProp.color.surface_container : MD.MatProp.color.surface
+    backgroundColor: QA.Global.main_win.smallLayout ? MD.MatProp.color.surface_container : MD.MatProp.color.surface
     elevation: QA.Global.main_win.smallLayout ? MD.Token.elevation.level2 : MD.Token.elevation.level0
 
     readonly property bool isSmall: root.width > 0 && root.width < 650

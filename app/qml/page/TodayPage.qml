@@ -10,6 +10,7 @@ import "../js/util.mjs" as Util
 MD.Page {
     id: root
     padding: 0
+    title: qsTr("today")
 
     MD.Flickable {
         id: m_fk

@@ -27,6 +27,8 @@ ApplicationWindow {
         smallLayout = width < 500;
     }
 
+
+
     function back() {
         if (win_stack.currentItem.canBack) {
             win_stack.currentItem.back();
@@ -35,26 +37,6 @@ ApplicationWindow {
         }
     }
 
-    Component.onCompleted: {
-        QA.Global.main_win = win;
-    }
-
-    Connections {
-        function onInstanceStarted() {
-            win.raise();
-            win.requestActivate();
-        }
-
-        target: QA.App
-    }
-    Settings {
-        property alias height: win.height
-        property alias width: win.width
-        property alias x: win.x
-        property alias y: win.y
-
-        category: 'window'
-    }
     StackView {
         id: win_stack
         anchors.fill: parent
@@ -83,16 +65,7 @@ ApplicationWindow {
             target: QA.Global.querier_user
         }
     }
-    Shortcut {
-        sequences: [StandardKey.Back, StandardKey.Cancel, StandardKey.Close]
-        onActivated: win.back()
-    }
 
-    Shortcut {
-        sequence: StandardKey.Quit
-        context: Qt.ApplicationShortcut
-        onActivated: Qt.quit()
-    }
     QA.SnakeView {
         /*
         anchors.top: parent.top
@@ -104,11 +77,42 @@ ApplicationWindow {
         anchors.fill: parent
     }
 
+    Settings {
+        property alias height: win.height
+        property alias width: win.width
+        property alias x: win.x
+        property alias y: win.y
+
+        category: 'window'
+    }
+
+    Shortcut {
+        sequences: [StandardKey.Back, StandardKey.Cancel, StandardKey.Close]
+        onActivated: win.back()
+    }
+    Shortcut {
+        sequence: StandardKey.Quit
+        context: Qt.ApplicationShortcut
+        onActivated: Qt.quit()
+    }
+
     Connections {
         target: QA.Global
         function onToast(text, duration, flag, action) {
             win.snake.show2(text, duration, flag, action);
         }
+    }
+    Connections {
+        function onInstanceStarted() {
+            win.raise();
+            win.requestActivate();
+        }
+
+        target: QA.App
+    }
+
+    Component.onCompleted: {
+        QA.Global.main_win = win;
     }
 
     Component {

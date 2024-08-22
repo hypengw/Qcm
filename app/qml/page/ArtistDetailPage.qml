@@ -12,6 +12,7 @@ MD.Page {
     property alias itemData: qr_artist.data
     property alias itemId: qr_artist.itemId
 
+    title: qsTr("artist")
     padding: 0
 
     MD.Flickable {
