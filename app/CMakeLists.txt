@@ -136,7 +136,10 @@ target_sources(
   app
   PRIVATE $<$<CONFIG:Debug>:src/util/QmlStackTraceHelper.cpp>)
 
-# target_compile_definitions(app PUBLIC $<$<CONFIG:Debug>:QT_QML_DEBUG> )
+target_compile_definitions(app PUBLIC 
+  $<$<OR:$<BOOL:${QCM_QML_DEBUG}>,$<CONFIG:Debug>>:QT_QML_DEBUG> 
+)
+
 target_include_directories(
   app
   PUBLIC include

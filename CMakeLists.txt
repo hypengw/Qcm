@@ -42,6 +42,7 @@ set(QML_IMPORT_PATH
     CACHE STRING "Qt Creator extra qml import paths" FORCE)
 
 option(QCM_USE_ASAN "use asan" OFF)
+option(QCM_QML_DEBUG "qml debug" OFF)
 
 # -Wconversion -Wsign-conversion
 set(WARN_OPTS

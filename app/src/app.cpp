@@ -393,9 +393,10 @@ auto App::global() const -> Global* { return m_global.get(); }
 
 // #include <private/qquickpixmapcache_p.h>
 void App::releaseResources(QQuickWindow* win) {
+    INFO_LOG("gc");
+    win->releaseResources();
     m_qml_engine->trimComponentCache();
     m_qml_engine->collectGarbage();
-    win->releaseResources();
     // QQuickPixmap::purgeCache();
     plt::malloc_trim(0);
 }

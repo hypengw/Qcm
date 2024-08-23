@@ -7,6 +7,7 @@
 #include "Qcm/app.h"
 #include "request/request.h"
 #include "core/log.h"
+#include "platform/platform.h"
 
 #include <QtQml/QQmlExtensionPlugin>
 Q_IMPORT_QML_PLUGIN(Qcm_AppPlugin)
@@ -14,6 +15,8 @@ Q_IMPORT_QML_PLUGIN(Qcm_AppPlugin)
 #include <kdsingleapplication.h>
 
 int main(int argc, char* argv[]) {
+    plt::malloc_init();
+
     auto logger = qcm::LogManager::init();
     request::global_init();
 
@@ -47,9 +50,9 @@ int main(int argc, char* argv[]) {
 
     int re { 0 };
     {
-        qcm::App app {{}};
+        qcm::App app { {} };
         QObject::connect(&single, &KDSingleApplication::messageReceived, app.instance(), []() {
-            emit qcm::App::instance()->instanceStarted();
+            emit qcm::App::instance() -> instanceStarted();
         });
         app.init();
 

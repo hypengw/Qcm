@@ -1,6 +1,7 @@
 #include "platform/platform.h"
 #include <cstdio>
 #include <atomic>
+#include <cstdlib>
 
 #if defined(__GLIBC__)
 #    include <malloc.h>
@@ -8,6 +9,16 @@
 
 namespace plt
 {
+
+void malloc_init() {
+    // glibc fragmentation 
+    // https://github.com/prestodb/presto/issues/8993
+#if defined(__GLIBC__)
+    putenv((char*)"MALLOC_ARENA_MAX=2");
+    mallopt(M_ARENA_MAX, 2);
+#endif
+}
+
 std::size_t malloc_trim(std::size_t pad) {
 #if defined(__GLIBC__)
     return ::malloc_trim(pad);

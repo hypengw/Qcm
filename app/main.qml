@@ -1,8 +1,10 @@
 import QtCore
 import QtQuick
+import QtQml
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
+
 import Qcm.App as QA
 import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
@@ -26,8 +28,6 @@ ApplicationWindow {
     onWidthChanged: {
         smallLayout = width < 500;
     }
-
-
 
     function back() {
         if (win_stack.currentItem.canBack) {
@@ -75,6 +75,12 @@ ApplicationWindow {
         */
         id: m_snake
         anchors.fill: parent
+    }
+
+    Timer {
+        running: !win.active
+        interval: 10 * 1000
+        onTriggered: QA.App.releaseResources(win)
     }
 
     Settings {
