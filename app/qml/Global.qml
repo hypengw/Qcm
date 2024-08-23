@@ -288,7 +288,7 @@ QA.GlobalWrapper {
                 m_player.play();
             }
         }
-        function onPlaybackStateChanged() {
+        function onPlaybackStateChanged(old, new_) {
             const p = m_player;
             // console.debug(root.category, `state: ${p.playbackState}, ${p.position}, ${p.duration}, ${p.source}`);
 

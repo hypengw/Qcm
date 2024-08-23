@@ -157,6 +157,11 @@ void Session::save_cookie(std::filesystem::path p) const {
     C_D(const Session);
     d->m_curl_multi->save_cookie(p);
 }
+
+auto Session::cookies() -> std::vector<std::string> {
+    C_D(const Session);
+    return d->m_curl_multi->cookies();
+}
 void Session::set_proxy(const req_opt::Proxy& p) {
     C_D(Session);
     d->m_proxy = p;

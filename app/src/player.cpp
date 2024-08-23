@@ -183,8 +183,8 @@ void Player::set_duration(int v) {
 }
 
 void Player::set_playback_state(PlaybackState v) {
-    if (v != std::exchange(m_playback_state, v)) {
-        emit playbackStateChanged();
+    if (auto old = std::exchange(m_playback_state, v); old != v) {
+        emit playbackStateChanged(old, v);
     }
 }
 

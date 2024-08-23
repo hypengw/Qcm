@@ -83,6 +83,23 @@ public:
         return out;
     }
 
+    auto cookies() const -> std::vector<std::string> {
+        std::vector<std::string> out;
+        CurlEasy                 x;
+
+        x.setopt(CURLOPT_SHARE, m_share);
+        auto list_ = x.get_info<curl_slist*>(CURLINFO_COOKIELIST);
+        if (list_) {
+            auto list = *list_;
+            while (list) {
+                out.emplace_back(list->data);
+                list = list->next;
+            }
+            curl_slist_free_all(*list_);
+        }
+        return out;
+    }
+
     void load_cookie(std::filesystem::path p) {
         CurlEasy x;
         x.setopt(CURLOPT_SHARE, m_share);
@@ -118,6 +135,6 @@ private:
     CURLM*  m_multi;
     CURLSH* m_share;
 
-    std::mutex        m_share_mutex;
+    std::mutex m_share_mutex;
 };
 } // namespace request

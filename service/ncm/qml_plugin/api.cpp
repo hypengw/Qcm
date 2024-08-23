@@ -30,8 +30,17 @@ static auto image_cache(std::any& client, const QUrl& url, QSize reqSize) -> std
 static void play_state(std::any& client, qcm::enums::PlaybackState state, qcm::model::ItemId itemId,
                        qcm::model::ItemId sourceId, i64 played_second, QVariantMap) {
     if (state == qcm::enums::PlaybackState::PausedState) return;
+    auto c         = *std::any_cast<ncm::Client>(&client);
+    auto state_old = c.prop("play_state");
+    if (state == qcm::enums::PlaybackState::PlayingState) {
+        if (state_old) {
+            if (std::any_cast<qcm::enums::PlaybackState>(state_old.value()) == state) {
+                return;
+            }
+        }
+    }
+    c.set_prop("play_state", state);
 
-    auto                     c  = *std::any_cast<ncm::Client>(&client);
     auto                     ex = asio::make_strand(c.get_executor());
     ncm::api::FeedbackWeblog api;
 

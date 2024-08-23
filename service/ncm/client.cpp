@@ -31,6 +31,8 @@ public:
     executor_type        ex;
     request::Request     req_common;
 
+    std::map<std::string, std::any, std::less<>> props;
+
     std::map<std::string, std::string, std::less<>> web_params;
     std::map<std::string, std::string, std::less<>> device_params;
 };
@@ -131,13 +133,13 @@ auto Client::encrypt<api::CryptoType::NONE>(std::string_view,
 template<api::CryptoType CT>
 auto Client::format_url(std::string_view base, std::string_view path) const -> std::string {
     C_D(const Client);
-    std::string_view prefix;
+    std::string_view prefix, suffix;
     if constexpr (CT == api::CryptoType::EAPI) {
         prefix = "/eapi";
     } else if constexpr (CT == api::CryptoType::WEAPI) {
         prefix = "/weapi";
     }
-    return std::format("{}{}{}", base, prefix, path);
+    return std::format("{}{}{}{}", base, prefix, path, suffix);
 }
 
 template auto
@@ -176,4 +178,17 @@ auto Client::post(const request::Request& req,
         co_return nstd::unexpected(Error::push(ec));
     else
         co_return convert_from<std::vector<byte>>(buf);
+}
+
+auto Client::prop(std::string_view name) const -> std::optional<std::any> {
+    C_D(const Client);
+    auto it = d->props.find(name);
+    if (it != d->props.end()) {
+        return it->second;
+    }
+    return std::nullopt;
+}
+void Client::set_prop(std::string_view name, std::any val) {
+    C_D(Client);
+    d->props.insert_or_assign(std::string(name), val);
 }

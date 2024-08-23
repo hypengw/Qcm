@@ -392,7 +392,7 @@ Params api::FeedbackWeblog::body() const {
         j["json"] = j_;
     }
 
-    p["logs"] = j.dump();
+    p["logs"] = fmt::format("[{}]", j.dump());
     return p;
 }
 

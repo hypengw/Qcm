@@ -42,6 +42,7 @@ public:
     auto post(const Request&) -> asio::awaitable<std::optional<rc<Response>>>;
     auto post(const Request&, asio::const_buffer) -> asio::awaitable<std::optional<rc<Response>>>;
 
+    auto cookies() -> std::vector<std::string>;
     void load_cookie(std::filesystem::path);
     void save_cookie(std::filesystem::path) const;
     void set_proxy(const req_opt::Proxy&);

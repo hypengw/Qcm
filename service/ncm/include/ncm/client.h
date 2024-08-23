@@ -87,6 +87,9 @@ public:
     template<api::CryptoType CT>
     auto format_url(std::string_view base, std::string_view path) const -> std::string;
 
+    auto prop(std::string_view) const -> std::optional<std::any>;
+    void set_prop(std::string_view, std::any);
+
 private:
     auto post(const request::Request&,
               std::string_view) const -> awaitable<Result<std::vector<byte>>>;

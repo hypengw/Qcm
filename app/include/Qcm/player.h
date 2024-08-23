@@ -60,7 +60,7 @@ Q_SIGNALS:
     void volumeChanged();
     void fadeTimeChanged();
     void busyChanged();
-    void playbackStateChanged();
+    void playbackStateChanged(PlaybackState old, PlaybackState new_);
     void cacheProgressChanged();
     void seeked(double position);
     void notify(NotifyInfo);
