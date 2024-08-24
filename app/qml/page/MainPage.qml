@@ -2,6 +2,7 @@ import QtCore
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+
 import Qcm.App as QA
 import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
@@ -12,7 +13,7 @@ MD.Page {
     padding: 0
 
     property int pageIndex: -1
-    property var pages: [
+    readonly property list<var> pages: [
         {
             "icon": MD.Token.icon.library_music,
             "name": qsTr('library'),
@@ -31,16 +32,35 @@ MD.Page {
             "page": 'qrc:/Qcm/App/qml/page/PlaylistListPage.qml'
         }
     ]
+    readonly property list<var> extra_pages: [
+        {
+            "icon": MD.Token.icon.cloud,
+            "name": qsTr('cloud'),
+            "page": 'qrc:/Qcm/App/qml/page/CloudPage.qml',
+            "cache": true
+        },
+        {
+            "icon": MD.Token.icon.history,
+            "name": qsTr('history'),
+            "page": 'qrc:/Qcm/Service/Ncm/qml/page/RecordPage.qml',
+            "cache": false
+        }
+    ]
 
     header: MD.AppBar {
         visible: m_small_layout.visible
         title: root.title
         leadingAction: Action {
             icon.name: root.canBack ? MD.Token.icon.arrow_back : MD.Token.icon.menu
-            onTriggered: root.back()
+            onTriggered: {
+                if (root.canBack)
+                    root.back();
+                else
+                    m_drawer.open();
+            }
         }
     }
-    title:  m_page_stack.currentItem?.title ?? ""
+    title: m_page_stack.currentItem?.title ?? ""
     canBack: m_page_stack.canBack
 
     function back() {
@@ -124,24 +144,11 @@ MD.Page {
                                     "name": qsTr('menu'),
                                     "action": {
                                         "do": function () {
-                                            item_drawer.open();
+                                            m_drawer.open();
                                         }
                                     }
                                 },
-                                ...root.pages,
-                                {
-                                    "icon": MD.Token.icon.cloud,
-                                    "name": qsTr('cloud'),
-                                    "page": 'qrc:/Qcm/App/qml/page/CloudPage.qml',
-                                    "cache": true
-                                },
-                                {
-                                    "icon": MD.Token.icon.history,
-                                    "name": qsTr('history'),
-                                    "page": 'qrc:/Qcm/Service/Ncm/qml/page/RecordPage.qml',
-                                    "cache": false
-                                }
-                            ];
+                                ...root.pages, ...root.extra_pages];
                             if (QA.App.debug) {
                                 pages.push({
                                     "icon": MD.Token.icon.queue_music,
@@ -239,7 +246,7 @@ MD.Page {
     }
 
     QA.Drawer {
-        id: item_drawer
+        id: m_drawer
         width: Math.min(400, QA.Global.main_win.width * 0.8)
         height: root.height
     }
@@ -259,7 +266,7 @@ MD.Page {
                 initialItem: QA.PageContainer {
                     id: page_container
                     initialItem: Item {}
-                    property string title: currentItem?.title ?? "" 
+                    property string title: currentItem?.title ?? ""
                 }
 
                 property bool canBack: (currentItem?.canBack ?? false) || depth > 1
