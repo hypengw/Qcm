@@ -80,7 +80,9 @@ ApplicationWindow {
     Timer {
         running: !win.active
         interval: 10 * 1000
-        onTriggered: QA.App.releaseResources(win)
+        onTriggered: {
+            QA.App.releaseResources(win)
+        }
     }
 
     Settings {

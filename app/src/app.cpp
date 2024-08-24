@@ -399,6 +399,19 @@ void App::releaseResources(QQuickWindow* win) {
     m_qml_engine->collectGarbage();
     // QQuickPixmap::purgeCache();
     plt::malloc_trim(0);
+    auto as_mb = [](usize n) {
+        return fmt::format("{:.2f} MB", n / (1024.0 * 1024.0));
+    };
+    auto info = plt::mem_info();
+    DEBUG_LOG(R"(
+heap: {}
+mmap({}): {}
+in use: {}
+)",
+              as_mb(info.heap),
+              info.mmap_num,
+              as_mb(info.mmap),
+              as_mb(info.totle_in_use));
 }
 
 qreal App::devicePixelRatio() const {
