@@ -134,9 +134,9 @@ struct Convert<std::monostate, T> {
     static void from(std::monostate&, const T&) {};
 };
 
-#define DECLARE_CONVERT(Ta, Tb)              \
+#define DECLARE_CONVERT(Ta, Tb, ...)         \
     template<>                               \
-    struct Convert<Ta, Tb> {                 \
+    struct __VA_ARGS__ Convert<Ta, Tb> {     \
         using out_type = Ta;                 \
         using in_type  = Tb;                 \
         static void from(Ta&, const Tb& in); \
@@ -147,7 +147,7 @@ struct Convert<std::monostate, T> {
     DECLARE_CONVERT(Ta, Tb)    \
     inline IMPL_CONVERT(Ta, Tb)
 
-#define STATIC_CAST_CONVERT(Ta, Tb)                            \
+#define STATIC_CAST_CONVERT(Ta, Tb)                             \
     DEFINE_CONVERT(Ta, Tb) { out = static_cast<out_type>(in); } \
     DEFINE_CONVERT(Tb, Ta) { out = static_cast<out_type>(in); }
 

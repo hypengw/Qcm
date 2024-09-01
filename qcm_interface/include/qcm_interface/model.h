@@ -139,7 +139,8 @@ public:
 
 } // namespace qcm::model
 
-DECLARE_CONVERT(std::string, qcm::model::ItemId);
+DECLARE_CONVERT(std::string, qcm::model::ItemId, QCM_INTERFACE_API);
+
 namespace qcm::model
 {
 
