@@ -27,14 +27,35 @@ bool CaseInsensitiveCompare::operator()(std::string_view a, std::string_view b) 
 }
 
 std::string_view UrlParams::param(std::string_view name) const {
-    if (m_params.contains(name)) {
-        return m_params.at(std::string(name));
+    if (auto it = m_params.find(name); it != m_params.end()) {
+        return it->second.front();
     }
     return {};
 }
 
 UrlParams& UrlParams::set_param(std::string_view name, std::string_view val) {
-    m_params.insert({ std::string(name), std::string(val) });
+    m_params.insert_or_assign(std::string(name), std::vector { std::string(val) });
+    return *this;
+}
+
+auto UrlParams::params(std::string_view name) const -> std::vector<std::string_view> {
+    if (auto it = m_params.find(name); it != m_params.end()) {
+        return { it->second.begin(), it->second.end() };
+    }
+    return {};
+}
+auto UrlParams::is_array(std::string_view name) const -> bool {
+    if (auto it = m_params.find(name); it != m_params.end()) {
+        return it->second.size() > 1;
+    }
+    return false;
+}
+auto UrlParams::add_param(std::string_view name, std::string_view val) -> UrlParams& {
+    if (auto it = m_params.find(name); it != m_params.end()) {
+        it->second.push_back(std::string(val));
+    } else {
+        set_param(name, val);
+    }
     return *this;
 }
 
@@ -49,11 +70,17 @@ std::string UrlParams::encode() const {
         else
             first = false;
 
-        res.append(fmt::format("{}={}", url_encode(k), url_encode(v)));
+        if (v.size() > 1) {
+            usize i = 0;
+            for (auto& el : v) {
+                res.append(fmt::format("{}[{}]={}", url_encode(k), i, url_encode(el)));
+            }
+        } else {
+            res.append(fmt::format("{}={}", url_encode(k), url_encode(v.front())));
+        }
     }
     return res;
 }
-
 
 /*
 Url Url::from(std::string_view url_) {

@@ -105,6 +105,7 @@ add_subdirectory(crypto)
 add_subdirectory(generator/model)
 add_subdirectory(qcm_interface)
 
+add_subdirectory(service/jellyfin)
 add_subdirectory(service/ncm)
 
 add_subdirectory(mpris)

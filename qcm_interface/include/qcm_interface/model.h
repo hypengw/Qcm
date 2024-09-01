@@ -139,14 +139,7 @@ public:
 
 } // namespace qcm::model
 
-template<>
-struct fmt::formatter<qcm::model::ItemId> : fmt::formatter<std::string> {
-    template<typename FormatContext>
-    auto format(const qcm::model::ItemId& it, FormatContext& ctx) const {
-        return fmt::formatter<std::string>::format(it.toUrl().toString().toStdString(), ctx);
-    }
-};
-
+DECLARE_CONVERT(std::string, qcm::model::ItemId);
 namespace qcm::model
 {
 

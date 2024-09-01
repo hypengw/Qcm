@@ -1,12 +1,13 @@
 #include "ncm/crypto.h"
+
+#include <span>
+#include <array>
+#include <iostream>
+
 #include "core/str_helper.h"
 #include "core/random.h"
 #include "core/log.h"
-
 #include "request/type.h"
-
-#include <array>
-#include <iostream>
 
 using namespace qcm;
 

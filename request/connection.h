@@ -4,6 +4,7 @@
 #include <mutex>
 #include <asio/streambuf.hpp>
 #include <asio/any_completion_handler.hpp>
+#include <asio/experimental/concurrent_channel.hpp>
 
 #include "curl_error.h"
 #include "curl_easy.h"

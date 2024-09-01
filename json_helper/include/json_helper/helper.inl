@@ -130,4 +130,23 @@ struct adl_serializer<std::variant<Ts...>> {
         }
     }
 };
+
+template<typename T>
+struct adl_serializer<rc<T>> {
+    static void to_json(json& j, const rc<T>& opt) {
+        if (opt) {
+            j = *opt;
+        } else {
+            j = nullptr;
+        }
+    }
+    static void from_json(const json& j, rc<T>& opt) {
+        if (j.is_null()) {
+            opt = nullptr;
+        } else {
+            if (! opt) opt = make_rc<T>();
+            j.get_to(*opt);
+        }
+    }
+};
 NLOHMANN_JSON_NAMESPACE_END

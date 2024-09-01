@@ -4,6 +4,7 @@
 #include <cctype>
 #include <array>
 #include <concepts>
+#include <span>
 
 #include "core/core.h"
 #include "core/fmt.h"
@@ -19,24 +20,51 @@ concept ByteRangeCP =
     std::ranges::range<T> && std::same_as<std::decay_t<std::ranges::range_value_t<T>>, byte>;
 } // namespace helper
 
-template<helper::ByteRangeCP Bytes>
-struct fmt::formatter<Bytes> : fmt::formatter<std::string> {
+template<typename T>
+    requires convertable<std::string, T> && ycore::extra_cvt<std::string, T> &&
+             (! requires() { Convert<std::string, T>::AsFormat == false; })
+struct fmt::formatter<T> : fmt::formatter<std::string> {
     template<typename FormatContext>
-    auto format(const Bytes& bs, FormatContext& ctx) const {
-        std::string out;
-        for (auto& b : bs) {
-            out.push_back(std::to_integer<char>(b));
-        }
-        return fmt::formatter<std::string>::format(out, ctx);
+    auto format(const T& t, FormatContext& ctx) const {
+        return fmt::formatter<std::string>::format(convert_from<std::string>(t), ctx);
     }
 };
 
-template<fmt::formattable T>
-    requires(ycore::extra_cvt<std::string, T>)
-struct Convert<std::string, T> {
-    static void from(std::string& out, const T& fmt) { out = fmt::format("{}", fmt); }
+template<usize N>
+struct Convert<std::string, char[N]> {
+    static void from(std::string& out, const char fmt[N]) {
+        out.resize(N);
+        std::copy_n(fmt, N, out.begin());
+    }
 };
 
+template<typename T>
+    requires std::integral<T> || std::floating_point<T>
+struct Convert<std::string, T> {
+    constexpr static bool AsFormat { false };
+    static void           from(std::string& out, T in) { out = std::to_string(in); }
+};
+
+template<helper::ByteRangeCP Bytes>
+struct Convert<std::string, Bytes> {
+    static void from(std::string& out, const Bytes& in) {
+        out.resize(in.size());
+        auto view = std::ranges::transform_view(in, std::to_integer<char>);
+        std::copy(view.begin(), view.end(), out.begin());
+    }
+};
+
+template<typename T>
+    requires convertable<std::string, T>
+struct Convert<std::string, rc<T>> {
+    static void from(std::string& out, const rc<T>& in) { convert(out, *in); }
+};
+
+template<typename T>
+    requires convertable<std::string, T>
+struct Convert<std::string, up<T>> {
+    static void from(std::string& out, const up<T>& in) { convert(out, *in); }
+};
 namespace helper
 {
 

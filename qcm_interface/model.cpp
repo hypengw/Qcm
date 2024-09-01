@@ -7,8 +7,8 @@ namespace qcm::model
 {
 UserAccount::UserAccount(QObject* parent) { this->setParent(parent); }
 UserAccount::~UserAccount() {}
-AppInfo::AppInfo() { 
-    set_id(APP_ID); 
+AppInfo::AppInfo() {
+    set_id(APP_ID);
     set_name(APP_NAME);
     set_version(APP_VERSION);
     set_author(APP_AUTHOR);
@@ -16,3 +16,5 @@ AppInfo::AppInfo() {
 }
 AppInfo::~AppInfo() {}
 } // namespace qcm::model
+
+IMPL_CONVERT(std::string, qcm::model::ItemId) { out = in.toUrl().toString().toStdString(); }

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string_view>
-#include <list>
 
 #include "core/core.h"
 #include "request/type.h"

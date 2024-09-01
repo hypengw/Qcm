@@ -26,3 +26,5 @@ JSON_GET_IMPL(int);
 JSON_GET_IMPL(i64);
 JSON_GET_IMPL(std::string);
 JSON_GET_IMPL(std::vector<std::string>);
+
+IMPL_CONVERT(std::string, qcm::json::njson) { out = in.dump(); }

@@ -3,10 +3,10 @@
 #include <string_view>
 #include <map>
 
-#include <asio/experimental/concurrent_channel.hpp>
+// #include <asio/experimental/concurrent_channel.hpp>
 
-#include "core/variant_helper.h"
 #include "core/core.h"
+#include "core/variant_helper.h"
 
 #include "request/uri.h"
 
@@ -42,8 +42,14 @@ using attr_value = std::variant<std::monostate, i32, bool>;
 
 enum class Operation
 {
-    GetOperation,
-    PostOperation
+    GetOperation    = 0,
+    PostOperation   = 1,
+    DeleteOperation = 2,
+    HeadOperation   = 3,
+    GET             = GetOperation,
+    POST            = PostOperation,
+    DELETE          = DeleteOperation,
+    HEAD            = HeadOperation,
 };
 
 struct CaseInsensitiveCompare {
@@ -55,13 +61,31 @@ using Header = std::map<std::string, std::string, CaseInsensitiveCompare>;
 
 class UrlParams {
 public:
-    std::string_view param(std::string_view) const;
-    UrlParams&       set_param(std::string_view, std::string_view);
-    void             decode(std::string_view);
-    std::string      encode() const;
+    auto param(std::string_view) const -> std::string_view;
+    auto params(std::string_view) const -> std::vector<std::string_view>;
+    auto is_array(std::string_view) const -> bool;
+    auto set_param(std::string_view, std::string_view) -> UrlParams&;
+    auto add_param(std::string_view, std::string_view) -> UrlParams&;
+
+    template<typename T>
+        requires(! std::convertible_to<T, std::string_view>) && std::ranges::range<T>
+    auto set_param(std::string_view name, const T& arr) -> UrlParams& {
+        if constexpr (std::same_as<std::string, T> || std::same_as<std::string_view, T>) {
+            for (const auto& el : arr) add_param(name, el);
+        } else {
+            for (const auto& el : arr) add_param(name, convert_from<std::string>(el));
+        }
+        return *this;
+    }
+    auto set_param(std::string_view, const std::map<std::string, std::string>&) -> UrlParams& {
+        return *this;
+    }
+
+    void decode(std::string_view);
+    auto encode() const -> std::string;
 
 private:
-    std::map<std::string, std::string, std::less<>> m_params;
+    std::map<std::string, std::vector<std::string>, std::less<>> m_params;
 };
 
 std::string url_encode(std::string_view);

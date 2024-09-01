@@ -8,6 +8,7 @@
 #include <asio/awaitable.hpp>
 #include <asio/buffer.hpp>
 #include <asio/strand.hpp>
+#include <asio/experimental/concurrent_channel.hpp>
 
 #include "request/type.h"
 #include "request/request_opt.h"

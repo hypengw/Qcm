@@ -69,6 +69,8 @@ nstd::expected<up_njson, Error> parse(std::string_view source);
 } // namespace json
 } // namespace qcm
 
+DECLARE_CONVERT(std::string, qcm::json::njson)
+
 template<>
 struct fmt::formatter<qcm::json::Error> : fmt::formatter<std::string> {
     template<typename FormatContext>

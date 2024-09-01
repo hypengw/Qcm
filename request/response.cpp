@@ -81,6 +81,7 @@ Response::Response(const Request& req, Operation oper, rc<Session> ses) noexcept
         easy.setopt(CURLOPT_POSTFIELDS, NULL);
         easy.setopt(CURLOPT_POSTFIELDSIZE_LARGE, 0);
         break;
+    default: break;
     }
     apply_easy_request(easy, req);
     {
@@ -156,6 +157,7 @@ void Response::prepare_perform() {
         }
         break;
     }
+    default: break;
     }
 
     connection().set_url(d->m_req.url());

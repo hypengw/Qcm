@@ -1,0 +1,40 @@
+{{#models}}{{#model}}
+#include "{{namespace}}/model/{{classname}}.h"{{/model}}{{/models}}
+#include "json_helper/helper.inl"
+
+namespace {{namespace}}::model {
+{{#models}}{{#model}}
+{{#oneOf}}{{#-first}}
+void to_json(nlohmann::json& j, const {{classname}}& o) {
+}
+void from_json(const nlohmann::json& j, {{classname}}& o) {
+}
+{{/-first}}{{/oneOf}}
+{{^oneOf}}
+{{#isModel}}
+void to_json(nlohmann::json& j, const {{classname}}& o) {
+{{#vars}}
+        j["{{name}}"] = o.{{name}};
+{{/vars}}
+}
+void from_json(const nlohmann::json& j, {{classname}}& o) {
+{{#vars}}
+    j.at("{{name}}").get_to(o.{{name}});
+{{/vars}}
+}
+{{/isModel}}
+{{/oneOf}}
+{{/model}}{{/models}}
+}
+
+{{#models}}{{#model}}
+{{^oneOf}}
+{{#isModel}}
+IMPL_CONVERT(std::string, {{namespace}}::model::{{classname}}) {
+    nlohmann::json j;
+    to_json(j, in);
+    out = j.dump();
+}
+{{/isModel}}
+{{/oneOf}}
+{{/model}}{{/models}}
