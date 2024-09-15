@@ -1,19 +1,14 @@
 #include "qcm_interface/global.h"
+#include "qcm_interface/global_p.h"
 
 #include <thread>
-#include <mutex>
-
-#include <QUuid>
+#include <QPluginLoader>
 
 #include "core/log.h"
 #include "request/session.h"
 
 namespace
 {
-
-auto get_pool_size() -> std::size_t {
-    return std::clamp<u32>(std::thread::hardware_concurrency(), 4, 12);
-}
 
 auto static_global(qcm::Global* set = nullptr) -> qcm::Global* {
     static qcm::Global* theGlobal { set };
@@ -24,6 +19,10 @@ auto static_global(qcm::Global* set = nullptr) -> qcm::Global* {
 
 namespace qcm
 {
+
+auto get_pool_size() -> std::size_t {
+    return std::clamp<u32>(std::thread::hardware_concurrency(), 4, 12);
+}
 namespace
 {
 template<typename T>
@@ -65,33 +64,12 @@ void GlobalWrapper::connect_to_global(Global* g, R (Global::*g_func)(ARGS...),
     });
 }
 
-class Global::Private {
-public:
-    Private(Global* p)
-        : qt_ex(std::make_shared<QtExecutionContext>(p, (QEvent::Type)QEvent::registerEventType())),
-          pool(get_pool_size()),
-          session(std::make_shared<request::Session>(pool.get_executor())),
-          copy_action_comp(nullptr) {}
-    ~Private() {}
-
-    qt_executor_t     qt_ex;
-    asio::thread_pool pool;
-
-    rc<request::Session> session;
-    //    mutable ncm::Client         m_client;
-
-    QUuid                     uuid;
-    rc<media_cache::DataBase> cache_sql;
-
-    MetadataImpl metadata_impl;
-
-    std::map<std::string, Client, std::less<>> clients;
-
-    model::AppInfo info;
-    QQmlComponent* copy_action_comp;
-
-    std::mutex mutex;
-};
+Global::Private::Private(Global* p)
+    : qt_ex(std::make_shared<QtExecutionContext>(p, (QEvent::Type)QEvent::registerEventType())),
+      pool(get_pool_size()),
+      session(std::make_shared<request::Session>(pool.get_executor())),
+      copy_action_comp(nullptr) {}
+Global::Private::~Private() {}
 
 auto Global::instance() -> Global* { return static_global(); }
 
@@ -218,6 +196,20 @@ auto Global::get_client(std::string_view name) -> Client* {
     return nullptr;
 }
 
+auto Global::load_plugin(const std::filesystem::path& path) -> bool {
+    C_D(Global);
+    auto loader = new QPluginLoader(path.c_str(), this);
+    if (loader->load()) {
+        auto p = qobject_cast<QcmPluginInterface*>(loader->instance());
+        if (p) {
+            d->plugins.insert_or_assign(p->info().name(), p);
+        } else {
+            return false;
+        }
+    }
+    return loader->isLoaded();
+}
+
 void Global::join() {
     C_D(Global);
     d->pool.join();
@@ -264,4 +256,61 @@ auto GlobalWrapper::copy_action_comp() const -> QQmlComponent* { return m_g->cop
 auto GlobalWrapper::uuid() const -> QString { return m_g->uuid().toString(QUuid::WithoutBraces); }
 void GlobalWrapper::set_copy_action_comp(QQmlComponent* val) { m_g->set_copy_action_comp(val); }
 
+} // namespace qcm
+
+namespace qcm
+{
+
+auto qml_dyn_count() -> std::atomic<i32>& {
+    static std::atomic<i32> n { 0 };
+    return n;
+}
+
+auto create_item(QQmlEngine* engine, const QJSValue& url_or_comp, const QVariantMap& props,
+                 QObject* parent) -> QObject* {
+    std::unique_ptr<QQmlComponent, void (*)(QQmlComponent*)> comp { nullptr, nullptr };
+    if (auto p = qobject_cast<QQmlComponent*>(url_or_comp.toQObject())) {
+        comp = decltype(comp)(p, [](QQmlComponent*) {
+        });
+    } else if (auto p = url_or_comp.toVariant(); ! p.isNull()) {
+        QUrl url;
+        if (p.canConvert<QUrl>()) {
+            url = p.toUrl();
+        } else if (p.canConvert<QString>()) {
+            url = p.toString();
+        }
+
+        comp = decltype(comp)(new QQmlComponent(engine, url, nullptr), [](QQmlComponent* q) {
+            delete q;
+        });
+    } else {
+        ERROR_LOG("url not valid");
+        return nullptr;
+    }
+
+    switch (comp->status()) {
+    case QQmlComponent::Status::Ready: {
+        auto obj = comp->createWithInitialProperties(props);
+        if (obj != nullptr) {
+            if (parent != nullptr) obj->setParent(parent);
+            QQmlEngine::setObjectOwnership(obj, QJSEngine::JavaScriptOwnership);
+            qml_dyn_count()++;
+            QObject::connect(obj, &QObject::destroyed, [](QObject*) {
+                DEBUG_LOG("delete ------");
+                qml_dyn_count()--;
+            });
+        } else {
+            ERROR_LOG("{}", comp->errorString());
+        }
+        return obj;
+        break;
+    }
+    case QQmlComponent::Status::Error: {
+        ERROR_LOG("{}", comp->errorString());
+        break;
+    }
+    default: break;
+    }
+    return nullptr;
+}
 } // namespace qcm

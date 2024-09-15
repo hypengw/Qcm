@@ -33,7 +33,8 @@ set(SOURCES
 
 set(QCM_INTERFACE_HEADER
     include/qcm_interface/enum.h include/qcm_interface/global.h
-    include/qcm_interface/model.h include/qcm_interface/model/user_account.h)
+    include/qcm_interface/model.h include/qcm_interface/model/user_account.h
+    include/qcm_interface/model/plugin_model.h)
 
 list(
   TRANSFORM QCM_INTERFACE_HEADER
@@ -44,13 +45,13 @@ set(QML_FILES
     qml/PlayBar.qml
     qml/Drawer.qml
     qml/Global.qml
-    qml/page/LoginPage.qml
     qml/page/AboutPage.qml
     qml/page/AlbumDetailPage.qml
     qml/page/ArtistDetailPage.qml
     qml/page/CommentPage.qml
     qml/page/DescriptionPage.qml
     qml/page/DjradioDetailPage.qml
+    qml/page/LoginPage.qml
     qml/page/PlaylistCataloguePage.qml
     qml/page/PlaylistDetailPage.qml
     qml/page/PlaylistListPage.qml
@@ -136,9 +137,9 @@ target_sources(
   app
   PRIVATE $<$<CONFIG:Debug>:src/util/QmlStackTraceHelper.cpp>)
 
-target_compile_definitions(app PUBLIC 
-  $<$<OR:$<BOOL:${QCM_QML_DEBUG}>,$<CONFIG:Debug>>:QT_QML_DEBUG> 
-)
+target_compile_definitions(
+  app
+  PUBLIC $<$<OR:$<BOOL:${QCM_QML_DEBUG}>,$<CONFIG:Debug>>:QT_QML_DEBUG>)
 
 target_include_directories(
   app

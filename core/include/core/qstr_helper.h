@@ -1,5 +1,6 @@
 #pragma once
 #include <QString>
+#include <QStringView>
 #include <QVariant>
 
 #include "core/core.h"
@@ -33,6 +34,14 @@ struct fmt::formatter<QString> : fmt::formatter<std::string> {
     template<typename FormatContext>
     auto format(const QString& qs, FormatContext& ctx) const {
         return fmt::formatter<std::string>::format(qs.toStdString(), ctx);
+    }
+};
+
+template<>
+struct fmt::formatter<QStringView> : fmt::formatter<std::string> {
+    template<typename FormatContext>
+    auto format(QStringView qs, FormatContext& ctx) const {
+        return fmt::formatter<std::string>::format(qs.toString().toStdString(), ctx);
     }
 };
 

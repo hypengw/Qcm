@@ -129,7 +129,7 @@ ApplicationWindow {
             id: sv_main
 
             property var playing_page: {
-                const page = MD.Tool.create_item(comp_playing, {}, sv_main);
+                const page = MD.Util.create_item(comp_playing, {}, sv_main);
                 page.visible = false;
                 playing_page = page;
             }

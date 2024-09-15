@@ -4,14 +4,19 @@
 #include <array>
 #include <thread>
 
-#include <QQuickWindow>
-#include <QQuickStyle>
-#include <QGlobalStatic>
+#include <QtCore/QGlobalStatic>
 #include <qapplicationstatic.h>
-#include <QSettings>
-#include <QJSValueIterator>
-#include <QQuickItem>
-#include <QUuid>
+#include <QtCore/QSettings>
+#include <QtCore/QUuid>
+#include <QtCore/QDir>
+#include <QtCore/QLibrary>
+#include <QtCore/QPluginLoader>
+
+#include <QtQuick/QQuickWindow>
+#include <QtQuick/QQuickItem>
+#include <QtQml/QJSValueIterator>
+#include <QtQml/QQmlEngineExtensionPlugin>
+#include <QQuickStyle>
 
 #include <asio/deferred.hpp>
 
@@ -209,6 +214,8 @@ void App::init() {
 
     engine->addImageProvider(u"qr"_qs, new QrImageProvider {});
 
+    load_plugins();
+
     engine->load(u"qrc:/main/main.qml"_qs);
 
     for (auto el : engine->rootObjects()) {
@@ -298,6 +305,37 @@ void App::save_session() {
     auto      user_id = convert_from<std::string>(s.value("session/user_id").toString());
     if (! user_id.empty()) {
         m_global->session()->save_cookie(config_path() / "session" / user_id);
+    }
+}
+
+void App::load_plugins() {
+    std::optional<QDir> plugin_path;
+    for (auto& el : this->engine()->importPathList()) {
+        auto dir = QDir(el + QDir::separator() + "Qcm" + QDir::separator() + "Service");
+        if (dir.exists()) {
+            plugin_path = dir;
+            break;
+        }
+    }
+
+    if (plugin_path) {
+        for (auto& dir_name : plugin_path->entryList(QDir::AllDirs | QDir::NoDotAndDotDot)) {
+            auto dir   = QDir(plugin_path->filePath(dir_name));
+            auto files = dir.entryList(QDir::Filter::Files);
+            if (auto it = std::find_if(files.begin(),
+                                       files.end(),
+                                       [](const QString& f) {
+                                           return QLibrary::isLibrary(f);
+                                       });
+                it != files.end()) {
+                auto plugin_so = dir.filePath(*it);
+                if (this->global()->load_plugin(plugin_so.toStdString())) {
+                    INFO_LOG("load plugin: {}", plugin_so);
+                } else {
+                    ERROR_LOG("load plugin failed: {}", plugin_so);
+                }
+            }
+        }
     }
 }
 
@@ -407,11 +445,13 @@ void App::releaseResources(QQuickWindow* win) {
 heap: {}
 mmap({}): {}
 in use: {}
+dyn create: {}
 )",
               as_mb(info.heap),
               info.mmap_num,
               as_mb(info.mmap),
-              as_mb(info.totle_in_use));
+              as_mb(info.totle_in_use),
+              qml_dyn_count().load());
 }
 
 qreal App::devicePixelRatio() const {

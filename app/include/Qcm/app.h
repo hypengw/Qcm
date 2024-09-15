@@ -132,6 +132,7 @@ public slots:
 private:
     void load_session();
     void save_session();
+    void load_plugins();
 
     rc<Global>                  m_global;
     up<mpris::Mpris>            m_mpris;

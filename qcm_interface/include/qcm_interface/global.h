@@ -17,6 +17,7 @@
 #include "qcm_interface/enum.h"
 #include "qcm_interface/cache_sql.h"
 #include "qcm_interface/metadata.h"
+#include "qcm_interface/router.h"
 
 namespace request
 {
@@ -25,10 +26,15 @@ class Session;
 namespace qcm
 {
 class App;
+class PluginModel;
 
 struct StopSignal {
     bool val { false };
 };
+
+QCM_INTERFACE_API auto qml_dyn_count() -> std::atomic<i32>&;
+QCM_INTERFACE_API auto create_item(QQmlEngine* engine, const QJSValue& url_or_comp,
+                                   const QVariantMap& props, QObject* parent) -> QObject*;
 
 class GlobalWrapper;
 class QCM_INTERFACE_API Global : public QObject {
@@ -38,6 +44,7 @@ class QCM_INTERFACE_API Global : public QObject {
                    NOTIFY copyActionCompChanged FINAL)
     friend class GlobalWrapper;
     friend class App;
+    friend class PluginModel;
 
 public:
     using pool_executor_t = asio::thread_pool::executor_type;
@@ -55,6 +62,7 @@ public:
             auto (*image_cache)(std::any&, const QUrl& url, QSize req) -> std::filesystem::path;
             void (*play_state)(std::any&, enums::PlaybackState state, model::ItemId item,
                                model::ItemId source, i64 played_second, QVariantMap extra);
+            auto (*router)(std::any&) -> rc<Router>;
         };
 
         operator bool() const { return instance.has_value(); }
@@ -69,6 +77,7 @@ public:
     auto qexecutor() -> qt_executor_t&;
     auto pool_executor() -> pool_executor_t;
     auto session() -> rc<request::Session>;
+
     auto get_cache_sql() const -> rc<media_cache::DataBase>;
 
     auto copy_action_comp() const -> QQmlComponent*;
@@ -100,6 +109,7 @@ private:
     void set_cache_sql(rc<media_cache::DataBase>);
     void set_metadata_impl(const MetadataImpl&);
     auto get_client(std::string_view) -> Client*;
+    auto load_plugin(const std::filesystem::path&) -> bool;
 
     static void setInstance(Global*);
 

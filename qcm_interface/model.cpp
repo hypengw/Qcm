@@ -2,6 +2,7 @@
 
 #include "qcm_interface/model/user_account.h"
 #include "qcm_interface/model/app_info.h"
+#include "qcm_interface/model/plugin_info.h"
 
 namespace qcm::model
 {
@@ -15,6 +16,10 @@ AppInfo::AppInfo() {
     set_summary(APP_SUMMARY);
 }
 AppInfo::~AppInfo() {}
+
+PluginInfo::PluginInfo() {}
+PluginInfo::~PluginInfo() {}
+
 } // namespace qcm::model
 
 IMPL_CONVERT(std::string, qcm::model::ItemId) { out = in.toUrl().toString().toStdString(); }

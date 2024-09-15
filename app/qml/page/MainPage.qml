@@ -269,14 +269,6 @@ MD.Page {
                     property string title: currentItem?.title ?? ""
                 }
 
-                property bool canBack: (currentItem?.canBack ?? false) || depth > 1
-                function back() {
-                    if (this.currentItem?.canBack) {
-                        this.currentItem.back();
-                    } else {
-                        this.pop_page();
-                    }
-                }
             }
             QA.PlayBar {
                 Layout.fillWidth: true

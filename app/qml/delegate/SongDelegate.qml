@@ -22,7 +22,7 @@ MD.ListItem {
 
     rightPadding: 16
 
-    radius: [index_ == 0 ? 16 : 0, index_ + 1 == count ? 16 : 0]
+    radius: indexRadius(index_, count, 16)
 
     mdState: MD.StateListItem {
         item: root

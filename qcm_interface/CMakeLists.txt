@@ -15,11 +15,14 @@ find_package(
 
 set(MODEL_SOURCES
     include/qcm_interface/model/user_account.h
-    include/qcm_interface/model/app_info.h)
+    include/qcm_interface/model/app_info.h
+    include/qcm_interface/model/plugin_info.h
+    )
 
 add_library(
   qcm_interface SHARED
   include/qcm_interface/global.h
+  include/qcm_interface/global_p.h
   include/qcm_interface/type.h
   include/qcm_interface/model.h
   include/qcm_interface/enum.h
@@ -27,12 +30,17 @@ add_library(
   include/qcm_interface/item_id.h
   include/qcm_interface/export.h
   include/qcm_interface/path.h
+  include/qcm_interface/router.h
+  include/qcm_interface/plugin.h
+  include/qcm_interface/model/plugin_model.h
   api.cpp
   model.cpp
   item_id.cpp
   enum.cpp
   path.cpp
+  router.cpp
   global.cpp
+  model/plugin.cpp
   ${MODEL_SOURCES})
 
 foreach(
