@@ -20,6 +20,7 @@ class Crypto;
 class Client {
 public:
     using executor_type = asio::thread_pool::executor_type;
+
     Client(rc<request::Session> session, executor_type ex, std::string device_id);
     ~Client();
 

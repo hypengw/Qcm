@@ -52,8 +52,10 @@ set(SOURCES
     api.cpp)
 
 set(QML_FILES
-    qml/page/CloudUploadPage.qml
-    qml/page/RecordPage.qml)
+    qml/page/CloudUploadPage.qml qml/page/LoginPage.qml qml/page/RecordPage.qml)
+
+set(RESOURCES
+    assets/netease-line.svg assets/netease.svg)
 
 qt_add_qml_module(
   service_qml_ncm
@@ -85,8 +87,8 @@ target_include_directories(
 
 target_link_libraries(
   service_qml_ncm
-  PUBLIC Qt::Quick core
-  PRIVATE ctre platform sv_ncm qcm_interface meta_model)
+  PUBLIC Qt::Quick core qcm_interface
+  PRIVATE ctre platform sv_ncm meta_model)
 
 target_compile_definitions(
   service_qml_ncm

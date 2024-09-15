@@ -65,6 +65,17 @@ static void play_state(std::any& client, qcm::enums::PlaybackState state, qcm::m
         helper::asio_detached_log);
 }
 
+static auto router(std::any& client) -> rc<qcm::Router> {
+    auto c          = *std::any_cast<ncm::Client>(&client);
+    auto router_any = c.prop("router"sv);
+    if (! router_any) {
+        c.set_prop("router"sv, make_rc<qcm::Router>());
+        router_any = c.prop("router"sv);
+    }
+    auto router = std::any_cast<rc<qcm::Router>>(router_any);
+    return router;
+}
+
 } // namespace ncm::impl
 
 namespace qcm
@@ -76,6 +87,7 @@ ncm::Client detail::get_client() {
         api->server_url  = ncm::impl::server_url;
         api->image_cache = ncm::impl::image_cache;
         api->play_state  = ncm::impl::play_state;
+        api->router      = ncm::impl::router;
 
         return { .api = api,
                  .instance =
