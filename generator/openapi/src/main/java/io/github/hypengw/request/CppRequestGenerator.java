@@ -334,7 +334,7 @@ public class CppRequestGenerator extends AbstractCppCodegen {
     if (model.classname == property.dataType) {
       String t = property.dataType;
       property.dataType = "rc<%s>".formatted(t);
-      property.defaultValue = "make_rc<%s>()".formatted(t);
+      property.defaultValue = "nullptr";
     }
   }
 

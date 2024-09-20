@@ -29,8 +29,8 @@ constexpr std::string_view trims(std::string_view in) noexcept {
     return trims_left(trims_right(in));
 }
 
-constexpr auto split(std::string_view in, std::span<std::string_view> seps)
-    -> std::vector<std::string_view> {
+constexpr auto split(std::string_view            in,
+                     std::span<std::string_view> seps) -> std::vector<std::string_view> {
     std::vector<std::string_view> out;
     auto                          last_it = in.begin();
     auto                          it      = in.begin();
@@ -47,7 +47,7 @@ constexpr auto split(std::string_view in, std::span<std::string_view> seps)
         }
         it++;
     }
-    if(it != last_it) out.emplace_back(last_it, it);
+    if (it != last_it) out.emplace_back(last_it, it);
     return out;
 }
 
@@ -68,3 +68,14 @@ constexpr bool starts_with_i(std::string_view str, std::string_view start) noexc
 }
 
 } // namespace helper
+
+template<typename T>
+    requires std::ranges::sized_range<T> &&
+             (std::convertible_to<std::ranges::range_value_t<T>, char> ||
+              std::convertible_to<std::ranges::range_value_t<T>, byte>) &&
+             (sizeof(std::ranges::range_value_t<T>) == sizeof(byte))
+struct Convert<std::string_view, T> {
+    static void from(std::string_view& out, const T& in) {
+        out = std::string_view { (const char*)in.data(), in.size() };
+    }
+};

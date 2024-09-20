@@ -67,6 +67,13 @@ public:
     Error()  = default;
     ~Error() = default;
     Error(std::nullopt_t): Error() {}
+    Error(const Error&)            = default;
+    Error& operator=(const Error&) = default;
+    Error(Error&& o) noexcept: m_msg_stack(std::move(o.m_msg_stack)) {}
+    Error& operator=(Error&& o) noexcept {
+        m_msg_stack = std::move(o.m_msg_stack);
+        return *this;
+    }
 
     std::string what() const;
 

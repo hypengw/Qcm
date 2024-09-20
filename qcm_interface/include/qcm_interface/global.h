@@ -18,6 +18,7 @@
 #include "qcm_interface/cache_sql.h"
 #include "qcm_interface/metadata.h"
 #include "qcm_interface/router.h"
+#include "qcm_interface/model/user_model.h"
 
 namespace request
 {
@@ -42,6 +43,9 @@ class QCM_INTERFACE_API Global : public QObject {
     Q_PROPERTY(model::AppInfo info READ info CONSTANT FINAL)
     Q_PROPERTY(QQmlComponent* copy_action_comp READ copy_action_comp WRITE set_copy_action_comp
                    NOTIFY copyActionCompChanged FINAL)
+
+    Q_PROPERTY(UserModel* user_model READ user_model CONSTANT FINAL)
+
     friend class GlobalWrapper;
     friend class App;
     friend class PluginModel;
@@ -80,12 +84,16 @@ public:
 
     auto get_cache_sql() const -> rc<media_cache::DataBase>;
 
+    auto user_model() const -> UserModel*;
+
     auto copy_action_comp() const -> QQmlComponent*;
     auto uuid() const -> const QUuid&;
 
     auto info() const -> const model::AppInfo&;
 
     auto get_metadata(const std::filesystem::path&) const -> Metadata;
+
+    auto user_agent() const -> std::string_view;
 
     void join();
 
@@ -102,6 +110,8 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     void set_copy_action_comp(QQmlComponent*);
+    void load_user();
+    void save_user();
 
 private:
     using MetadataImpl = std::function<Metadata(const std::filesystem::path&)>;
@@ -127,6 +137,7 @@ class QCM_INTERFACE_API GlobalWrapper : public QObject {
     Q_PROPERTY(QQmlComponent* copy_action_comp READ copy_action_comp WRITE set_copy_action_comp
                    NOTIFY copyActionCompChanged FINAL)
     Q_PROPERTY(QString uuid READ uuid NOTIFY uuidChanged FINAL)
+    Q_PROPERTY(UserModel* user_model READ user_model CONSTANT FINAL)
 
 public:
     GlobalWrapper();
@@ -134,6 +145,7 @@ public:
 
     auto                 datas() -> QQmlListProperty<QObject>;
     auto                 info() -> const model::AppInfo&;
+    auto                 user_model() const -> UserModel*;
     auto                 copy_action_comp() const -> QQmlComponent*;
     auto                 uuid() const -> QString;
     Q_INVOKABLE QVariant server_url(const model::ItemId&);

@@ -33,6 +33,7 @@ add_library(
   include/qcm_interface/router.h
   include/qcm_interface/plugin.h
   include/qcm_interface/model/plugin_model.h
+  include/qcm_interface/model/user_model.h
   api.cpp
   model.cpp
   item_id.cpp
@@ -41,6 +42,7 @@ add_library(
   router.cpp
   global.cpp
   model/plugin.cpp
+  model/user_model.cpp
   ${MODEL_SOURCES})
 
 foreach(
@@ -82,6 +84,6 @@ set_target_properties(
 
 target_link_libraries(
   qcm_interface
-  PUBLIC core asio_helper asio_qt request Qt::Qml)
+  PUBLIC core asio_helper asio_qt request json_helper meta_model Qt::Qml)
 
 install(TARGETS qcm_interface)

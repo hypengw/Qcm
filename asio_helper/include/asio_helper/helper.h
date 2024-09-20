@@ -35,7 +35,7 @@ struct fmt::formatter<asio::streambuf> : fmt::formatter<std::string> {
 namespace helper
 {
 template<typename T>
-concept is_awaitable = ycore::is_specialization_of<T, asio::awaitable>;
+concept is_awaitable = ycore::is_specialization_of_v<T, asio::awaitable>;
 
 template<typename T>
 concept is_sync_stream = requires(T s, asio::const_buffer buf) {

@@ -71,10 +71,12 @@ inline void hash_combine(std::size_t& seed, const T& v) {
     seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
 
-template<typename, template<typename...> class>
-constexpr bool is_specialization_of = false;
-template<template<typename...> class T, typename... Args>
-constexpr bool is_specialization_of<T<Args...>, T> = true;
+template<class T, template<class...> class Primary>
+struct is_specialization_of : std::false_type {};
+template<template<class...> class Primary, class... Args>
+struct is_specialization_of<Primary<Args...>, Primary> : std::true_type {};
+template<class T, template<class...> class Primary>
+inline constexpr bool is_specialization_of_v = is_specialization_of<T, Primary>::value;
 
 template<typename T, typename... Ts>
 concept convertible_to_any = (std::convertible_to<T, Ts> || ...);

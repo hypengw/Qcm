@@ -32,8 +32,8 @@ constexpr auto dels { " :;,(){}<>[]|+=*/\\\n"sv };
 
 inline auto is_del(char c) -> bool { return dels.find(c) != std::string_view::npos; };
 
-inline auto replace_identity(std::string_view src, std::string_view match, std::string_view replace)
-    -> std::string {
+inline auto replace_identity(std::string_view src, std::string_view match,
+                             std::string_view replace) -> std::string {
     std::string out;
     out.reserve(src.size());
     auto is_del = [src](std::string_view::iterator it) -> bool {
@@ -518,6 +518,33 @@ Q_DECL_EXPORT auto {}::operator=(const Model& m) -> Model& {{
                            model_class);
     }
 
+    std::string json;
+    {
+        auto view_from_json = std::ranges::transform_view(info.vars, [](auto& v) -> std::string {
+            return fmt::format("j.at(\"{}\"sv).get_to(m_ptr->{});", v.name, v.name);
+        });
+        auto view_to_json   = std::ranges::transform_view(info.vars, [](auto& v) -> std::string {
+            return fmt::format("j[\"{}\"sv] = m_ptr->{};", v.name, v.name);
+        });
+        ;
+        json = fmt::format(R"(
+template<>
+void {}::from_json(const json::njson& j) {{
+{}
+}}
+
+template<>
+void {}::to_json(json::njson& j) const {{
+{}
+}}
+
+)",
+                           model_class,
+                           fmt::join(view_from_json, "\n"),
+                           model_class,
+                           fmt::join(view_to_json, "\n"));
+    }
+
     return { fmt::format(
                  R"(
 {}
@@ -536,6 +563,7 @@ template<>
 {}::~Model() {{}}
 
 {}
+{}
 
 }}
 
@@ -545,7 +573,8 @@ template<>
                  fmt::join(view_members, ";\n"),
                  model_class, // ct
                  model_class, // dct
-                 copy),
+                 copy,
+                 json),
              fmt::format(R"(
 namespace {} {{
 {}
@@ -558,6 +587,7 @@ namespace {} {{
 auto generate(const OutputInfo& info, std::filesystem::path include) -> std::string {
     std::string out { R"(
 #include "qcm_interface/model.h"
+#include "json_helper/helper.inl"
 )" };
     std::string out_ { fmt::format(R"(
 

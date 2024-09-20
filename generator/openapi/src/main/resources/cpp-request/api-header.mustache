@@ -15,13 +15,20 @@
 {{#imports}}{{{import}}}
 {{/imports}}
 
-namespace {{namespace}}::api {
-namespace param 
+namespace {{namespace}} {
+namespace model
+{
+{{#operation}}
+using return_type_{{operationId}} = {{{returnType}}}{{^returnType}}std::nullptr_t{{/returnType}};
+{{/operation}}
+}
+
+namespace api::param 
 {
 {{#operation}}
 struct {{operationId}} {
     {{#allParams}}
-    {{^required}}std::optional<{{/required}}{{{dataType}}}{{^required}}>{{/required}} {{paramName}}; // {{description}}
+    {{^required}}std::optional<{{/required}}{{{dataType}}}{{^required}}>{{/required}} {{^isBodyParam}}{{paramName}}{{/isBodyParam}}{{#isBodyParam}}body{{/isBodyParam}}; // {{description}}
     {{/allParams}}
 };
 {{/operation}}
@@ -34,9 +41,9 @@ namespace api
 struct {{operationId}} {
 public:
     using in_type                      = param::{{operationId}};
-    //using out_type                     = 
+    using out_type                     = model::return_type_{{operationId}};
     constexpr static Operation  oper   = Operation::{{httpMethod}};
-    auto path() { 
+    auto path() const { 
         {{^hasPathParams}}
         return "{{path}}"sv; 
         {{/hasPathParams}}
@@ -60,8 +67,8 @@ public:
     auto body() const -> std::string { 
         std::string out;
         {{#bodyParam}}
-        {{^required}}if(input.{{paramName}})
-            {{/required}}out = format_param(input.{{paramName}}{{^required}}.value(){{/required}});
+        {{^required}}if(input.body)
+            {{/required}}out = format_param(input.body{{^required}}.value(){{/required}});
         {{/bodyParam}}
         return out; 
     }

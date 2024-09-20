@@ -30,6 +30,7 @@ public:
     std::map<std::string, Client, std::less<>> clients;
 
     model::AppInfo info;
+    UserModel*     user_model;
     QQmlComponent* copy_action_comp;
 
     std::map<QString, QcmPluginInterface*> plugins;

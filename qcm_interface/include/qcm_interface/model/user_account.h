@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <QObject>
 #include "qcm_interface/model.h"
 
@@ -19,6 +20,9 @@ public:
     DECLARE_PROPERTY(ItemId, userId, NOTIFY_NAME(infoChanged))
     DECLARE_PROPERTY(QString, nickname, NOTIFY_NAME(infoChanged))
     DECLARE_PROPERTY(QString, avatarUrl, NOTIFY_NAME(infoChanged))
+    DECLARE_PROPERTY(QUrl, server, NOTIFY_NAME(infoChanged))
+    DECLARE_PROPERTY(QUrl, session_file, NOTIFY_NAME(infoChanged))
+    DECLARE_PROPERTY(Extra, extra, NOTIFY_NAME(infoChanged))
 
 Q_SIGNALS:
     void infoChanged();

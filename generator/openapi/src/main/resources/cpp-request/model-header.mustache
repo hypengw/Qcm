@@ -17,7 +17,7 @@
 {{#oneOf}}{{#-first}}
 #include <variant>{{/-first}}{{/oneOf}}
 
-#include "json_helper/helper.h"
+#include "jellyfin/type.h"
 {{/model}}{{/models}}
 
 {{#imports}}{{{import}}}
@@ -49,8 +49,8 @@ namespace {{namespace}}::model {
     protected:
         VariantType m_variantValue;
     };
-    extern void to_json(nlohmann::json&, const {{classname}}&);
-    extern void from_json(const nlohmann::json&, {{classname}}&);
+    extern void to_json(json_t&, const {{classname}}&);
+    extern void from_json(const json_t&, {{classname}}&);
 {{/-first}}{{/oneOf}}
 {{^oneOf}}
 {{#isEnum}}
@@ -63,10 +63,12 @@ namespace {{namespace}}::model {
         /// {{.}}
         /// </summary>
         {{/enumDescription}}
-        {{{name}}}{{^last}},{{/last}}
+        {{{name}}}{{^last}},{{/last}} // {{value}}
         {{/enumVars}}
         {{/allowableValues}}
     };
+    extern void to_json(json_t&, const {{classname}}&);
+    extern void from_json(const json_t&, {{classname}}&);
 {{/isEnum}}
 
 {{#isModel}}
@@ -75,14 +77,14 @@ namespace {{namespace}}::model {
     {{#vars}}{{#title}}
         // {{this}}{{/title}}{{#description}}
         // {{this}}{{/description}}
-        {{#deprecated}}[[deprecated]] {{/deprecated}}{{{dataType}}} {{name}};
+        {{#deprecated}}[[deprecated]] {{/deprecated}}{{#isNullable}}std::optional<{{/isNullable}}{{{dataType}}}{{#isNullable}}>{{/isNullable}} {{name}};
     {{/vars}}
 
         {{classname}}();
         ~{{classname}}();
     };
-    extern void to_json(nlohmann::json&, const {{classname}}&);
-    extern void from_json(const nlohmann::json&, {{classname}}&);
+    extern void to_json(json_t&, const {{classname}}&);
+    extern void from_json(const json_t&, {{classname}}&);
 {{/isModel}}
 {{/oneOf}}
 } // namespace {{namespace}}::model

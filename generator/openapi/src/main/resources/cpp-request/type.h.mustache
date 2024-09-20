@@ -31,7 +31,7 @@ auto format_param(const T& in) -> std::string {
 }
 
 template<typename T>
-    requires ycore::is_specialization_of<T, std::vector>
+    requires ycore::is_specialization_of_v<T, std::vector>
 auto format_param(const T& in) -> std::string {
     return fmt::format("[{}]", fmt::join(in, ","));
 }

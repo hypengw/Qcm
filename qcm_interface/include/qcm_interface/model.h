@@ -9,6 +9,7 @@
 #include "core/core.h"
 #include "core/qstr_helper.h"
 #include "core/vec_helper.h"
+#include "json_helper/helper.h"
 
 #include "qcm_interface/type.h"
 #include "qcm_interface/macro.h"
@@ -17,6 +18,7 @@
 
 namespace qcm::model
 {
+using Extra = std::map<QString, QString, std::less<>>;
 
 class QCM_INTERFACE_API Artist {
     Q_GADGET
@@ -141,6 +143,22 @@ public:
 
 DECLARE_CONVERT(std::string, qcm::model::ItemId, QCM_INTERFACE_API);
 
+DECLARE_JSON_SERIALIZER(QString, QCM_INTERFACE_API);
+DECLARE_JSON_SERIALIZER(QUrl, QCM_INTERFACE_API);
+DECLARE_JSON_SERIALIZER(qcm::model::ItemId, QCM_INTERFACE_API);
+
+JSON_SERIALIZER_NAMESPACE_BEGIN
+template<typename T>
+    requires requires(T t, qcm::json::njson j) {
+        t.from_json(j);
+        t.to_json(j);
+    }
+struct adl_serializer<T> {
+    static void to_json(qcm::json::njson& j, const T& t) { t.to_json(j); }
+    static void from_json(const qcm::json::njson& j, T& t) { t.from_json(j); }
+};
+JSON_SERIALIZER_NAMESPACE_END
+
 namespace qcm::model
 {
 
@@ -158,6 +176,10 @@ constexpr auto MF_COPY { 1 };
 template<typename T, typename TBase = void>
 class Model : public details::ModelBase<TBase> {
     using Base = details::ModelBase<TBase>;
+
+public:
+    void from_json(const json::njson&);
+    void to_json(json::njson&) const;
 
 protected:
     Model();
@@ -178,6 +200,10 @@ template<typename T, typename TBase>
     requires std::same_as<void, TBase> || std::copy_constructible<TBase>
 class Model<T, TBase> : public details::ModelBase<TBase> {
     using Base = details::ModelBase<TBase>;
+
+public:
+    void from_json(const json::njson&);
+    void to_json(json::njson&) const;
 
 protected:
     Model();

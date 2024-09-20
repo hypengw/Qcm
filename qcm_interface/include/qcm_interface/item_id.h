@@ -49,6 +49,7 @@ public Q_SLOTS:
     void set_type(QStringView);
     void set_id(QStringView);
     void set_provider(QStringView);
+    void set_url(const QUrl&);
 
 private:
     class Private;

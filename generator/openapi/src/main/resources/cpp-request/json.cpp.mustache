@@ -1,25 +1,61 @@
+#include <sstream>
 {{#models}}{{#model}}
 #include "{{namespace}}/model/{{classname}}.h"{{/model}}{{/models}}
 #include "json_helper/helper.inl"
 
+using namespace std::literals::string_view_literals;
+
 namespace {{namespace}}::model {
 {{#models}}{{#model}}
 {{#oneOf}}{{#-first}}
-void to_json(nlohmann::json& j, const {{classname}}& o) {
+void to_json(json_t& j, const {{classname}}& o) {
 }
-void from_json(const nlohmann::json& j, {{classname}}& o) {
+void from_json(const json_t& j, {{classname}}& o) {
 }
 {{/-first}}{{/oneOf}}
 {{^oneOf}}
+
+{{#isEnum}}
+void to_json(json_t& j, const {{classname}}& e) {
+    switch (e)
+    {
+    {{#allowableValues}}{{#enumVars}}
+        {{#-first}}
+        case {{classname}}::INVALID_VALUE_OPENAPI_GENERATED:
+            j = {{#isInteger}}0{{/isInteger}}{{^isInteger}}"INVALID_VALUE_OPENAPI_GENERATED"{{/isInteger}};
+            break;
+        {{/-first}}
+        case {{classname}}::{{name}}:
+            j = {{#isInteger}}{{value}}{{/isInteger}}{{^isInteger}}"{{value}}"{{/isInteger}};
+            break;
+    {{/enumVars}}{{/allowableValues}}
+    }
+}
+void from_json(const json_t& j, {{classname}}& e) {
+    auto s = j.get<{{#isInteger}}{{dataType}}{{/isInteger}}{{^isInteger}}std::string{{/isInteger}}>();
+    {{#allowableValues}}{{#enumVars}}
+    {{#-first}}if{{/-first}}{{^-first}}else if{{/-first}} (s == {{#isInteger}}{{value}}{{/isInteger}}{{^isInteger}}"{{value}}"sv{{/isInteger}}) {
+        e = ({{classname}}::{{name}});
+    } {{#-last}} else {
+        std::stringstream ss;
+        ss << "Unexpected value " << s << " in json cannot be converted to enum of type"
+           << " {{classname}}";
+        throw std::invalid_argument(ss.str());
+    } {{/-last}}
+    {{/enumVars}}{{/allowableValues}}
+}
+{{/isEnum}}
+
 {{#isModel}}
-void to_json(nlohmann::json& j, const {{classname}}& o) {
+void to_json(json_t& j, const {{classname}}& o) {
 {{#vars}}
-        j["{{name}}"] = o.{{name}};
+        j["{{name}}"sv] = o.{{name}};
 {{/vars}}
 }
-void from_json(const nlohmann::json& j, {{classname}}& o) {
+void from_json(const json_t& j, {{classname}}& o) {
 {{#vars}}
-    j.at("{{name}}").get_to(o.{{name}});
+    {{#isNullable}}if(j.contains("{{name}}"sv)){{/isNullable}}
+    j.at("{{name}}"sv).get_to(o.{{name}});
 {{/vars}}
 }
 {{/isModel}}
@@ -31,7 +67,7 @@ void from_json(const nlohmann::json& j, {{classname}}& o) {
 {{^oneOf}}
 {{#isModel}}
 IMPL_CONVERT(std::string, {{namespace}}::model::{{classname}}) {
-    nlohmann::json j;
+    {{namespace}}::json_t j;
     to_json(j, in);
     out = j.dump();
 }

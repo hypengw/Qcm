@@ -13,7 +13,7 @@ namespace
 
 template<typename Type>
 void from_json_opt(Type& out, const nlohmann::json& j, std::string_view name) {
-    if constexpr (ycore::is_specialization_of<Type, std::optional>) {
+    if constexpr (ycore::is_specialization_of_v<Type, std::optional>) {
         out = j.value<Type>(name, std::nullopt);
     } else {
         j.at(name).get_to(out);
@@ -32,9 +32,9 @@ std::string variant_from_json(const nlohmann::json& j, std::variant<Ts...>& data
 
 } // namespace
 
-#define JSON_GET_IMPL(_TYPE_)                                                 \
-    template nstd::expected<_TYPE_, qcm::json::Error> qcm::json::get<_TYPE_>( \
-        const qcm::json::njson&, std::span<const qcm::json::Key>)
+#define JSON_GET_IMPL(Type)                                                                     \
+    template auto qcm::json::detail::get_to<Type>(const qcm::json::njson& j, Type& v) -> Type&; \
+    template auto qcm::json::detail::assign<Type>(qcm::json::njson & j, const Type& v) -> void;
 
 #define JSON_DEFINE_IMPL(Type, ...)                                                \
     void to_json(nlohmann::json& nlohmann_json_j, const Type& nlohmann_json_t) {   \
@@ -54,39 +54,21 @@ std::string variant_from_json(const nlohmann::json& j, std::variant<Ts...>& data
 
 namespace qcm
 {
-namespace json
+namespace json::detail
 {
 
-template<typename T>
-nstd::expected<T, Error> get(const njson& j_in, std::span<const Key> keys) {
-    using ET = Error::Id;
-    try {
-        const njson& j = at_keys(j_in, keys);
-        return j.get<T>();
-    } catch (const njson::type_error& e) {
-        return nstd::unexpected(Error { .id = ET::TypeError, .what = e.what() });
-    } catch (const njson::parse_error& e) {
-        return nstd::unexpected(Error { .id = ET::ParseError, .what = e.what() });
-    } catch (const njson::out_of_range& e) {
-        return nstd::unexpected(Error { .id = ET::OutOfRange, .what = e.what() });
-    }
+template<typename ValueType>
+auto get_to(const njson& j, ValueType& v) -> ValueType& {
+    j.get_to(v);
+    return v;
 }
 
-} // namespace json
-
-const json::njson& json::at_keys(const njson& j_in, std::span<const Key> keys) {
-    return *std::accumulate(keys.begin(), keys.end(), &j_in, [](const njson* j, const Key& key) {
-        const njson* out;
-        std::visit(overloaded { [&out, j](std::string_view k) {
-                                   out = &((*j).at(k));
-                               },
-                                [&out, j](usize idx) {
-                                    out = &((*j).at(idx));
-                                } },
-                   key);
-        return out;
-    });
+template<typename ValueType>
+void assign(njson& j, const ValueType& v) {
+    j = v;
 }
+
+} // namespace json::detail
 
 } // namespace qcm
 

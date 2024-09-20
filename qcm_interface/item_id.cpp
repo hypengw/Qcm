@@ -29,16 +29,7 @@ ItemId::ItemId(std::string_view provider, std::string_view type, std::string_vie
     set_id(convert_from<QString>(id));
 }
 
-ItemId::ItemId(const QUrl& u): ItemId() {
-    C_D(ItemId);
-    _assert_(u.scheme() == "itemid");
-    auto p = u.path();
-    // remove '/'
-    _assert_(p.startsWith('/'));
-    d->id       = p.isEmpty() ? p : p.sliced(1);
-    d->provider = u.host();
-    d->type     = u.userName();
-}
+ItemId::ItemId(const QUrl& u): ItemId() { set_url(u); }
 ItemId::ItemId(const QUrl& url, validator_t v): ItemId(url) {
     C_D(ItemId);
     set_validator(v);
@@ -90,6 +81,17 @@ void ItemId::set_provider(QStringView v) {
     std::exchange(d->provider, v.toString());
 }
 
+void ItemId::set_url(const QUrl& u) {
+    C_D(ItemId);
+    _assert_(u.scheme() == "itemid");
+    auto p = u.path();
+    // remove '/'
+    _assert_(p.startsWith('/'));
+    d->id       = p.isEmpty() ? p : p.sliced(1);
+    d->provider = u.host();
+    d->type     = u.userName();
+}
+
 QUrl ItemId::toUrl() const {
     QUrl url;
     url.setScheme("itemid");
@@ -113,6 +115,7 @@ std::strong_ordering ItemId::operator<=>(const ItemId& o) const {
 bool ItemId::operator==(const ItemId& o) const {
     return (*this <=> o) == std::strong_ordering::equal;
 }
+
 } // namespace qcm::model
 
 std::size_t std::hash<qcm::model::ItemId>::operator()(const qcm::model::ItemId& k) const {

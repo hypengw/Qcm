@@ -6,6 +6,7 @@
 
 #include "core/log.h"
 #include "request/session.h"
+#include "qcm_interface/path.h"
 
 namespace
 {
@@ -68,6 +69,7 @@ Global::Private::Private(Global* p)
     : qt_ex(std::make_shared<QtExecutionContext>(p, (QEvent::Type)QEvent::registerEventType())),
       pool(get_pool_size()),
       session(std::make_shared<request::Session>(pool.get_executor())),
+      user_model(new UserModel(p)),
       copy_action_comp(nullptr) {}
 Global::Private::~Private() {}
 
@@ -76,6 +78,7 @@ auto Global::instance() -> Global* { return static_global(); }
 Global::Global(): d_ptr(make_up<Private>(this)) {
     DEBUG_LOG("init Global");
     _assert_rel_(static_global(this) == this);
+    load_user();
 
     struct Timer {
         std::chrono::time_point<std::chrono::steady_clock> point;
@@ -110,7 +113,9 @@ Global::Global(): d_ptr(make_up<Private>(this)) {
                 }
             });
 }
-Global::~Global() {}
+Global::~Global() {
+    save_user();
+}
 
 auto Global::client(std::string_view                       name_view,
                     std::optional<std::function<Client()>> init) -> Client {
@@ -161,6 +166,16 @@ auto Global::get_metadata(const std::filesystem::path& path) const -> Metadata {
     }
     return {};
 }
+auto Global::user_agent() const -> std::string_view {
+    return "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, "
+           "like Gecko) Version/13.1.2 Safari/605.1.15"sv;
+}
+
+auto Global::user_model() const -> UserModel* {
+    C_D(const Global);
+    return d->user_model;
+}
+
 auto Global::copy_action_comp() const -> QQmlComponent* {
     C_D(const Global);
     return d->copy_action_comp;
@@ -171,6 +186,27 @@ void Global::set_copy_action_comp(QQmlComponent* val) {
         copyActionCompChanged();
     }
 }
+
+void Global::load_user() {
+    C_D(Global);
+    auto user_path = config_path() / "user.json";
+    json::parse(user_path.string()).transform([d](const auto& j) {
+        json::get_to(*j, *(d->user_model));
+    });
+}
+
+void Global::save_user() {
+    C_D(Global);
+    auto user_path = config_path() / "user.json";
+    auto j         = json::create();
+    json::assign(*j, *(d->user_model));
+    auto j_str = convert_from<std::string>(*j);
+
+    auto file = std::fopen(user_path.c_str(), "w+");
+    std::fwrite(j_str.data(), j_str.size(), 1, file);
+    std::fclose(file);
+}
+
 void Global::set_uuid(const QUuid& val) {
     C_D(Global);
     if (std::exchange(d->uuid, val) != val) {
@@ -252,6 +288,7 @@ GlobalWrapper::~GlobalWrapper() {}
 auto GlobalWrapper::datas() -> QQmlListProperty<QObject> { return { this, &m_datas }; }
 auto GlobalWrapper::info() -> const model::AppInfo& { return m_g->info(); }
 auto GlobalWrapper::server_url(const model::ItemId& id) -> QVariant { return m_g->server_url(id); }
+auto GlobalWrapper::user_model() const -> UserModel* { return m_g->user_model(); }
 auto GlobalWrapper::copy_action_comp() const -> QQmlComponent* { return m_g->copy_action_comp(); }
 auto GlobalWrapper::uuid() const -> QString { return m_g->uuid().toString(QUuid::WithoutBraces); }
 void GlobalWrapper::set_copy_action_comp(QQmlComponent* val) { m_g->set_copy_action_comp(val); }

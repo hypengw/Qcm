@@ -14,6 +14,7 @@
 #include "asio_helper/watch_dog.h"
 #include "qcm_interface/enum.h"
 #include "qcm_interface/macro.h"
+#include "qcm_interface/type.h"
 #include "qcm_interface/export.h"
 #include "asio_qt/qt_executor.h"
 
@@ -83,7 +84,9 @@ Q_SIGNALS:
     void errorChanged();
 
 protected:
+    void cancel();
     void set_error(QString);
+    auto get_executor() -> QtExecutor&;
 
     template<typename Ex, typename Fn>
     void spawn(Ex&& ex, Fn&& f) {
@@ -108,9 +111,39 @@ protected:
                            }
                        }));
     }
+    template<typename TProp, typename TIn>
+    TProp prop(const TIn& in) const {
+        if constexpr (ycore::is_specialization_of_v<TIn, std::optional>) {
+            if (in)
+                return convert_from<TProp>(in.value());
+            else {
+                return {};
+            }
+        } else {
+            return convert_from<TProp>(in);
+        }
+    }
 
-    void cancel();
-    auto get_executor() -> QtExecutor&;
+    template<typename TProp, typename TOut, typename TSig>
+        requires std::invocable<TSig>
+    void set_prop(const TProp& v, TOut& out, TSig&& sig) {
+        using out_type = std::decay_t<TOut>;
+        auto set       = [this, &sig](TOut& out, const auto& v) {
+            if (out != v) {
+                out = v;
+                this->mark_dirty();
+                sig();
+                this->reload_if_needed();
+            }
+        };
+        if constexpr (std::same_as<out_type, TProp>) {
+            set(out, v);
+        } else if constexpr (ycore::is_specialization_of_v<out_type, std::optional>) {
+            set(out, convert_from<typename out_type::value_type>(v));
+        } else {
+            set(out, convert_from<out_type>(v));
+        }
+    }
 
 private:
     auto watch_dog() -> helper::WatchDog&;

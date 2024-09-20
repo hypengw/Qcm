@@ -85,7 +85,7 @@ public:
 
     QVariant item(int idx) const override {
         if ((usize)std::max(idx, 0) >= crtp_impl().size()) return {};
-        if constexpr (ycore::is_specialization_of<value_type, std::variant>) {
+        if constexpr (ycore::is_specialization_of_v<value_type, std::variant>) {
             return std::visit(
                 [](const auto& v) -> QVariant {
                     return QVariant::fromValue(v);
@@ -140,27 +140,28 @@ private:
     const auto& crtp_impl() const { return *static_cast<const IMPL*>(this); }
 };
 
-template<typename TItem>
-class QMetaListModel : public QMetaListModelPre<TItem, QMetaListModel<TItem>> {
-    friend class QMetaListModelPre<TItem, QMetaListModel<TItem>>;
+template<typename TItem, typename CRTP, typename Allocator = std::allocator<TItem>>
+class QMetaListModel : public QMetaListModelPre<TItem, CRTP> {
+    friend class QMetaListModelPre<TItem, CRTP>;
 
 public:
-    QMetaListModel(QObject* parent = nullptr)
-        : QMetaListModelPre<TItem, QMetaListModel<TItem>>(parent) {}
+    QMetaListModel(QObject* parent = nullptr, Allocator allc = Allocator())
+        : QMetaListModelPre<TItem, CRTP>(parent), m_items(allc) {}
     virtual ~QMetaListModel() {}
 
+    using allocator_type = Allocator;
     using container_type = std::vector<TItem>;
     using iterator       = container_type::iterator;
 
-    const auto& begin() const { return std::begin(m_items); }
-    const auto& end() const { return std::end(m_items); }
+    auto        begin() const { return std::begin(m_items); }
+    auto        end() const { return std::end(m_items); }
     auto        begin() { return std::begin(m_items); }
     auto        end() { return std::end(m_items); }
     auto        size() const { return std::size(m_items); }
     const auto& at(std::size_t idx) const { return m_items.at(idx); }
     void        assign(std::size_t idx, const TItem& t) { m_items.at(idx) = t; }
 
-private:
+protected:
     template<typename Tin>
     void insert_impl(std::size_t it, Tin beg, Tin end) {
         m_items.insert(begin() + it, beg, end);
@@ -180,7 +181,7 @@ private:
     }
 
 private:
-    std::vector<TItem> m_items;
+    std::vector<TItem, Allocator> m_items;
 };
 
 } // namespace meta_model

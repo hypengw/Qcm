@@ -10,9 +10,10 @@ namespace meta_model
 
 template<typename TGadget>
     requires cp_is_gadget<TGadget>
-class QGadgetListModel : public QMetaListModel<TGadget> {
+class QGadgetListModel : public QMetaListModel<TGadget, QGadgetListModel<TGadget>> {
 public:
-    QGadgetListModel(QObject* parent = nullptr): QMetaListModel<TGadget>(parent) {
+    QGadgetListModel(QObject* parent = nullptr)
+        : QMetaListModel<TGadget, QGadgetListModel<TGadget>>(parent) {
         this->updateRoleNames(TGadget::staticMetaObject);
     }
     virtual ~QGadgetListModel() {}

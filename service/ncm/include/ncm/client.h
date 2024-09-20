@@ -51,7 +51,6 @@ public:
         requires api::ApiCP<TApi>
     auto perform(const TApi& api, u32 timeout = 60) -> awaitable<Result<typename TApi::out_type>> {
         using out_type = typename TApi::out_type;
-        Result<out_type> out;
 
         auto base_url = get_base(api);
         auto url      = format_url<TApi::crypto>(base_url, api.path());
@@ -65,14 +64,13 @@ public:
         auto                      body = prepare_body(api, req);
         Result<std::vector<byte>> res  = co_await post(req, body);
 
-        if (! res.has_value()) {
-            out = nstd::unexpected(res.error());
-        } else {
-            out = out_type::parse(std::move(res).value(), api.input);
-        }
-        co_return out.map_error([&api](auto err) {
-            return Error::push(err, api::format_api(api.path(), api.query(), api.body()));
-        });
+        co_return res
+            .and_then([&api](const auto& res) {
+                return out_type::parse(res, api.input);
+            })
+            .map_error([&api](auto err) {
+                return Error::push(err, api::format_api(api.path(), api.query(), api.body()));
+            });
     }
 
     executor_type& get_executor();
