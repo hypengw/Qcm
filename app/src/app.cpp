@@ -101,6 +101,7 @@ App::App(std::monostate)
       m_main_win(nullptr),
       m_qml_engine(make_up<QQmlApplicationEngine>()) {
     app_instance(this);
+    { QGuiApplication::setDesktopFileName(APP_ID); }
     {
         auto fbs = make_rc<media_cache::Fallbacks>();
         m_media_cache =
@@ -110,10 +111,6 @@ App::App(std::monostate)
     DEBUG_LOG("thread pool size: {}", get_pool_size());
 
     m_qml_engine->addImportPath(u"qrc:/"_qs);
-
-    QGuiApplication::setApplicationName(AppName.data());
-    QGuiApplication::setOrganizationName(AppName.data());
-    QGuiApplication::setDesktopFileName(APP_ID);
     // QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
 
     m_media_cache_sql = std::make_shared<CacheSql>("media_cache", 0);
@@ -215,6 +212,8 @@ void App::init() {
     engine->addImageProvider(u"qr"_qs, new QrImageProvider {});
 
     load_plugins();
+
+    global()->load_user();
 
     engine->load(u"qrc:/main/main.qml"_qs);
 
@@ -376,16 +375,6 @@ void App::test() {
     */
 }
 
-auto App::mpris_trackid(model::ItemId id) const -> QString {
-    static const auto dbus_path = QString(APP_ID).replace('.', '/');
-    auto              provider  = id.provider();
-    auto              sid       = id.id();
-    return QString("/%1/TrackId/%2/%3")
-        .arg(dbus_path)
-        .arg(provider.isEmpty() ? u"unknown"_qs : provider)
-        .arg(sid.isEmpty() ? u"0"_qs : sid);
-}
-
 bool App::debug() const {
 #ifndef NDEBUG
     return 1;
@@ -393,8 +382,6 @@ bool App::debug() const {
     return 0;
 #endif
 }
-
-auto App::emptyId() const -> model::ItemId { return {}; }
 
 model::Song  App::song(const QJSValue& js) const { return meta_model::toGadget<model::Song>(js); }
 model::Album App::album(const QJSValue& js) const { return meta_model::toGadget<model::Album>(js); }

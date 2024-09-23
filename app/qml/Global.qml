@@ -10,7 +10,7 @@ QA.GlobalWrapper {
     id: root
 
     readonly property QA.t_song cur_song: m_playlist.cur
-    readonly property bool is_login: m_querier_user.data.userId.valid()
+
     readonly property string loop_icon: switch (m_playlist.loopMode) {
     case QA.Playlist.SingleLoop:
         return MD.Token.icon.repeat_one;
@@ -27,7 +27,7 @@ QA.GlobalWrapper {
     property alias player: m_player
     property alias playlist: m_playlist
     property alias querier_song: m_querier_song
-    property alias querier_user: m_querier_user
+
     property alias querier_user_song: m_querier_user_songlike
     property string song_cover: ''
 
@@ -39,8 +39,10 @@ QA.GlobalWrapper {
     property int cover_quality: -1
 
     readonly property string title: 'Qcm'
-    readonly property alias user_info: m_querier_user.data
-    readonly property string user_setting_category: `user_${user_info.userId.sid}`
+
+    readonly property QtObject user_info: root.userModel.activeUser
+    readonly property string user_setting_category: 'user_test'//`user_${user_info.userId.sid}`
+
     readonly property alias user_song_set: m_querier_user_songlike.data
 
     signal sig_route(QA.RouteMsg msg)
@@ -82,7 +84,7 @@ QA.GlobalWrapper {
         msg.destroy(3000);
     }
     function show_page_popup(url, props, popup_props = {}) {
-        return MD.Tool.show_popup('qrc:/Qcm/App/qml/component/PagePopup.qml', Object.assign({}, {
+        return MD.Util.show_popup('qrc:/Qcm/App/qml/component/PagePopup.qml', Object.assign({}, {
             "source": url,
             "props": props
         }, popup_props), root.main_win);
@@ -221,17 +223,6 @@ QA.GlobalWrapper {
             }
         }
     }
-    QNcm.UserAccountQuerier {
-        id: m_querier_user
-
-        readonly property bool loginOk: data.userId.valid()
-        forwardError: false
-
-        onLoginOkChanged: {
-            if (loginOk)
-                QA.App.loginPost(data);
-        }
-    }
     QNcm.SongLikeQuerier {
         id: m_querier_user_songlike
         function like_song(song_id, is_like) {
@@ -241,7 +232,7 @@ QA.GlobalWrapper {
             qu.query();
         }
 
-        autoReload: m_querier_user.loginOk
+        autoReload: false
     }
     Connections {
         function onSongLiked(trackId, liked) {
@@ -298,7 +289,7 @@ QA.GlobalWrapper {
                 }
             }
             if (p.playbackState !== QA.enums.StoppedState) {
-                root.playbackLog(m_player.playbackState, root.cur_song.itemId, root.cur_song.source?.itemId ?? QA.App.emptyId());
+                root.playbackLog(m_player.playbackState, root.cur_song.itemId, root.cur_song.source?.itemId ?? QA.Util.create_itemid());
             }
         }
     }
@@ -308,7 +299,7 @@ QA.GlobalWrapper {
 
         property QA.t_song old
         function onCurChanged() {
-            root.playbackLog(QA.enums.StoppedState, old.itemId, old.source?.itemId ?? QA.App.emptyId());
+            root.playbackLog(QA.enums.StoppedState, old.itemId, old.source?.itemId ?? QA.Util.create_itemid());
             old = m_playlist.cur;
         }
     }

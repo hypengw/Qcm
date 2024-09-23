@@ -46,6 +46,15 @@ MD.Drawer {
                     }
 
                     MD.IconButton {
+                        id: m_expand
+                        checkable: true
+                        action: Action {
+                            icon.name: MD.Token.icon.keyboard_arrow_down
+                            onTriggered: {}
+                        }
+                    }
+
+                    MD.IconButton {
                         action: Action {
                             icon.name: MD.Token.icon.logout
                             onTriggered: {
@@ -61,6 +70,37 @@ MD.Drawer {
                 Layout.topMargin: 8
                 Layout.leftMargin: 16
                 Layout.rightMargin: 16
+                Layout.bottomMargin: 8
+            }
+
+            MD.ListView {
+                Layout.fillWidth: true
+                Layout.preferredHeight: contentHeight
+                model: QA.Global.userModel
+                visible: m_expand.checked
+                delegate: MD.ListItem {
+                    required property var model
+                    required property int index
+                    width: ListView.view.contentWidth
+                    text: model.nickname
+                }
+                //footer: MD.ListItem {
+                //    width: ListView.view.contentWidth
+                //    height: implicitHeight
+                //    text: qsTr('add account')
+                //    font.capitalization: Font.Capitalize
+
+                //    leader: MD.Icon {
+                //        name: MD.Token.icon.add_circle
+                //    }
+                //}
+            }
+            MD.Divider {
+                visible: m_expand.checked
+                Layout.topMargin: 8
+                Layout.leftMargin: 16
+                Layout.rightMargin: 16
+                Layout.bottomMargin: 8
             }
 
             MD.DrawerItem {

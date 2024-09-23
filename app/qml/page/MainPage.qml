@@ -1,5 +1,6 @@
 import QtCore
 import QtQuick
+import QtQuick.Window
 import QtQuick.Controls
 import QtQuick.Layouts
 
@@ -13,53 +14,21 @@ MD.Page {
     padding: 0
 
     property int pageIndex: -1
-    readonly property list<var> pages: [
-        {
-            "icon": MD.Token.icon.library_music,
-            "name": qsTr('library'),
-            "page": 'qrc:/Qcm/App/qml/page/MinePage.qml',
-            "cache": true
-        },
-        {
-            "icon": MD.Token.icon.today,
-            "name": qsTr('today'),
-            "page": 'qrc:/Qcm/App/qml/page/TodayPage.qml',
-            "cache": true
-        },
-        {
-            "icon": MD.Token.icon.queue_music,
-            "name": qsTr('playlist'),
-            "page": 'qrc:/Qcm/App/qml/page/PlaylistListPage.qml'
-        }
-    ]
-    readonly property list<var> extra_pages: [
-        {
-            "icon": MD.Token.icon.cloud,
-            "name": qsTr('cloud'),
-            "page": 'qrc:/Qcm/App/qml/page/CloudPage.qml',
-            "cache": true
-        },
-        {
-            "icon": MD.Token.icon.history,
-            "name": qsTr('history'),
-            "page": 'qrc:/Qcm/Service/Ncm/qml/page/RecordPage.qml',
-            "cache": false
-        }
-    ]
 
-    header: MD.AppBar {
-        visible: m_small_layout.visible
-        title: root.title
-        leadingAction: Action {
-            icon.name: root.canBack ? MD.Token.icon.arrow_back : MD.Token.icon.menu
-            onTriggered: {
-                if (root.canBack)
-                    root.back();
-                else
-                    m_drawer.open();
-            }
-        }
-    }
+    //header: MD.AppBar {
+    //    visible: m_small_layout.visible
+    //    title: root.title
+    //    leadingAction: Action {
+    //        icon.name: root.canBack ? MD.Token.icon.arrow_back : MD.Token.icon.menu
+    //        onTriggered: {
+    //            if (root.canBack)
+    //                root.back();
+    //            else
+    //                m_drawer.open();
+    //        }
+    //    }
+    //}
+    header.visible: false
     title: m_page_stack.currentItem?.title ?? ""
     canBack: m_page_stack.canBack
 
@@ -69,6 +38,7 @@ MD.Page {
 
     Connections {
         function onSig_route(msg) {
+
             m_page_stack.push_page(msg.qml, msg.props);
         }
 
@@ -111,7 +81,7 @@ MD.Page {
                             }
                         }
                         Item {
-                            Layout.fillWidth: true
+                            implicitWidth: 56 + 24
                         }
                     }
                     MD.ListView {
@@ -122,9 +92,27 @@ MD.Page {
                         reuseItems: false
                         currentIndex: root.pageIndex
 
-                        delegate: MD.RailItem {
+                        header: ColumnLayout {
                             width: ListView.view.width
-                            icon.name: model.icon
+                            spacing: 0
+                            MD.RailItem {
+                                icon.name: MD.Token.icon.menu
+                                text: qsTr('menu')
+                                onClicked: {
+                                    m_drawer.open();
+                                }
+                            }
+                            Item {
+                                implicitHeight: 12
+                            }
+                        }
+
+                        delegate: MD.RailItem {
+                            required property var model
+                            required property int index
+
+                            width: ListView.view.width
+                            icon.name: MD.Token.icon[model.icon]
                             text: model.name
                             checked: root.pageIndex == index
                             onClicked: {
@@ -135,36 +123,26 @@ MD.Page {
                             }
                         }
 
-                        model: ListModel {}
+                        model: {
+                            const p = [...QA.Global.session.pages];
+                            if (QA.App.debug) {
+                                const page = QA.Util.create_page();
+                                page.name = qsTr('test');
+                                page.icon = 'queue_music';
+                                page.source = 'qrc:/Qcm/App/qml/page/MaterialTest.qml';
+                                p.push(page);
+                            }
+                            return p;
+                        }
 
                         Component.onCompleted: {
-                            const pages = [
-                                {
-                                    "icon": MD.Token.icon.menu,
-                                    "name": qsTr('menu'),
-                                    "action": {
-                                        "do": function () {
-                                            m_drawer.open();
-                                        }
-                                    }
-                                },
-                                ...root.pages, ...root.extra_pages];
-                            if (QA.App.debug) {
-                                pages.push({
-                                    "icon": MD.Token.icon.queue_music,
-                                    "name": qsTr('test'),
-                                    "page": 'qrc:/Qcm/App/qml/page/MaterialTest.qml'
-                                });
-                            }
-                            pages.forEach(m => {
-                                model.append(m);
-                            });
-                            root.pageIndex = 1;
+                            root.pageIndex = 0;
                         }
                         onCurrentIndexChanged: {
-                            const m = model.get(currentIndex);
-                            if (m.page)
-                                page_container.switchTo(m.page, m.props, m.cache);
+                            const m = model[currentIndex];
+                            if (m.source) {
+                                page_container.switchTo(m.source, m.props ?? {}, m.cache);
+                            }
                         }
                     }
                 }
@@ -220,7 +198,7 @@ MD.Page {
                 RowLayout {
                     anchors.fill: parent
                     Repeater {
-                        model: root.pages
+                        model: QA.Global.session.pages.filter(el => el.primary)
                         Item {
                             Layout.fillWidth: true
                             implicitHeight: 12 + children[0].implicitHeight + 16
@@ -230,12 +208,12 @@ MD.Page {
                                 anchors.bottomMargin: 16
                                 icon.name: modelData.icon
                                 text: modelData.name
-                                checked: root.pageIndex == index + 1
+                                checked: root.pageIndex == index
                                 onClicked: {
                                     if (modelData.action)
                                         modelData.action.do();
                                     else
-                                        root.pageIndex = index + 1;
+                                        root.pageIndex = index;
                                 }
                             }
                         }
@@ -247,7 +225,7 @@ MD.Page {
 
     QA.Drawer {
         id: m_drawer
-        width: Math.min(400, QA.Global.main_win.width * 0.8)
+        width: Math.min(400, root.Window.window.width * 0.8)
         height: root.height
     }
     Item {
@@ -268,7 +246,6 @@ MD.Page {
                     initialItem: Item {}
                     property string title: currentItem?.title ?? ""
                 }
-
             }
             QA.PlayBar {
                 Layout.fillWidth: true
@@ -277,9 +254,9 @@ MD.Page {
     }
 
     Connections {
-        target: QA.Global.main_win
-        function onSmallLayoutChanged() {
-            if (this.target.smallLayout) {
+        target: root.Window.window
+        function onWindowClassChanged() {
+            if (this.target.windowClass === MD.Enum.WindowClassCompact) {
                 m_small_layout.visible = true;
                 m_large_layout.visible = false;
             } else {
@@ -288,7 +265,7 @@ MD.Page {
             }
         }
         Component.onCompleted: {
-            this.onSmallLayoutChanged();
+            this.onWindowClassChanged();
         }
     }
 }

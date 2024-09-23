@@ -13,8 +13,10 @@ MD.Page {
     MD.Flickable {
         id: flick
         anchors.fill: parent
+        topMargin: 4
         leftMargin: 24
         rightMargin: 24
+        bottomMargin: 4
 
         ColumnLayout {
             id: content

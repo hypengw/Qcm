@@ -10,6 +10,7 @@ MD.Page {
     id: root
     padding: 0
     title: 'Playlist'
+    implicitHeight: view_playlist.contentHeight
 
     MD.ListView {
         id: view_playlist
@@ -18,7 +19,6 @@ MD.Page {
         currentIndex: model.curIndex
         highlightMoveDuration: 1000
         highlightMoveVelocity: -1
-        implicitHeight: contentHeight + 2 * topMargin
         model: QA.Global.playlist
         reuseItems: true
         topMargin: 8

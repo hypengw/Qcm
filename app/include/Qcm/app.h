@@ -83,20 +83,15 @@ public:
     mpris::MediaPlayer2* mpris() const { return m_mpris->mediaplayer2(); }
 
     bool                debug() const;
-    Q_INVOKABLE QString mpris_trackid(model::ItemId) const;
 
     Q_INVOKABLE QUrl    media_file(const QString& id) const;
     Q_INVOKABLE QString media_url(const QString& ori, const QString& id) const;
     Q_INVOKABLE QString md5(QString) const;
 
-    //    Q_INVOKABLE model::ItemId artistId(QString id) const;
-    //    Q_INVOKABLE model::ItemId ItemId(QString id) const;
-
     Q_INVOKABLE QUrl    getImageCache(QString provider, QUrl url, QSize reqSize) const;
     Q_INVOKABLE bool    isItemId(const QJSValue&) const;
     Q_INVOKABLE QString itemIdPageUrl(const QJSValue&) const;
 
-    Q_INVOKABLE model::ItemId emptyId() const;
     Q_INVOKABLE model::Song song(const QJSValue& = {}) const;
     Q_INVOKABLE model::Album album(const QJSValue& = {}) const;
     Q_INVOKABLE model::Artist artist(const QJSValue& = {}) const;

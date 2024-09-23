@@ -13,9 +13,8 @@ ApplicationWindow {
     id: win
 
     // load QA
-    readonly property string _QA: QA.Global.user_info.nickname
     readonly property alias snake: m_snake
-    property bool smallLayout: false
+    property int windowClass: MD.Enum.WindowClassMedium
 
     MD.MatProp.backgroundColor: MD.MatProp.color.background
     MD.MatProp.textColor: MD.MatProp.color.getOn(MD.MatProp.backgroundColor)
@@ -26,7 +25,7 @@ ApplicationWindow {
     width: 900
 
     onWidthChanged: {
-        smallLayout = width < 500;
+        windowClass = MD.Token.window_class.select_type(width);
     }
 
     function back() {
@@ -44,8 +43,12 @@ ApplicationWindow {
         initialItem: Item {
             BusyIndicator {
                 anchors.centerIn: parent
-                running: QA.Global.querier_user.status === QA.enums.Querying
+                running: QA.Global.userModel.checkResult.status === QA.enums.Querying
             }
+        }
+
+        Component.onCompleted: {
+            QA.Global.userModel.check_user();
         }
 
         Connections {
@@ -58,11 +61,15 @@ ApplicationWindow {
                         }
                     });
                 } else if (target.status === QA.enums.Finished) {
-                    win_stack.replace(win_stack.currentItem, QA.Global.is_login ? comp_main : comp_login);
+                    if (QA.Global.userModel.activeUser) {
+                        win_stack.replace(win_stack.currentItem, comp_main);
+                    } else {
+                        win_stack.replace(win_stack.currentItem, comp_login);
+                    }
                 }
             }
 
-            target: QA.Global.querier_user
+            target: QA.Global.userModel.checkResult
         }
     }
 
@@ -81,7 +88,7 @@ ApplicationWindow {
         running: !win.active
         interval: 10 * 1000
         onTriggered: {
-            QA.App.releaseResources(win)
+            QA.App.releaseResources(win);
         }
     }
 
@@ -145,6 +152,9 @@ ApplicationWindow {
                 } else {
                     this.pop(null);
                 }
+            }
+            Component.onCompleted: {
+                console.error("win:", Window.window)
             }
 
             Component.onDestruction: {

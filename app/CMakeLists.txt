@@ -22,6 +22,7 @@ set(SOURCES
     include/Qcm/lyric.h
     include/Qcm/clipboard.h
     include/Qcm/player.h
+    include/Qcm/qml_util.h
     src/app.cpp
     src/playlist.cpp
     src/qr_image.cpp
@@ -29,11 +30,13 @@ set(SOURCES
     src/lyric.cpp
     src/clipboard.cpp
     src/player.cpp
-    src/fake_moc.cpp)
+    src/fake_moc.cpp
+    src/qml_util.cpp
+    )
 
 set(QCM_INTERFACE_HEADER
     include/qcm_interface/enum.h include/qcm_interface/global.h
-    include/qcm_interface/model.h include/qcm_interface/model/user_account.h
+    include/qcm_interface/model.h
     include/qcm_interface/model/plugin_model.h)
 
 list(
@@ -54,17 +57,13 @@ set(QML_FILES
     qml/page/LoginPage.qml
     qml/page/PlaylistCataloguePage.qml
     qml/page/PlaylistDetailPage.qml
-    qml/page/PlaylistListPage.qml
     qml/page/PlaylistCreatePage.qml
-    qml/page/MinePage.qml
     qml/page/RetryPage.qml
     qml/page/SettingsPage.qml
     qml/page/SearchPage.qml
-    qml/page/TodayPage.qml
     qml/page/PlayingPage.qml
     qml/page/PlayQueuePage.qml
     qml/page/MainPage.qml
-    qml/page/CloudPage.qml
     qml/page/FavPage.qml
     qml/page/MaterialTest.qml
     qml/delegate/CommentDelegate.qml

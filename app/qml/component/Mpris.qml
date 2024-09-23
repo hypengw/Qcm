@@ -58,7 +58,7 @@ Item {
                 const meta = {};
                 const song = playlist.cur;
 
-                meta[key(QA.MprisMediaPlayer.MetaTrackId)] = QA.App.mpris_trackid(song.itemId);
+                meta[key(QA.MprisMediaPlayer.MetaTrackId)] = QA.Util.mpris_trackid(song.itemId);
                 if (root.song_cover)
                     meta[key(QA.MprisMediaPlayer.MetaArtUrl)] = root.song_cover;
                 meta[key(QA.MprisMediaPlayer.MetaTitle)] = song.name;
