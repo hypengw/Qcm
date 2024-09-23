@@ -3,6 +3,8 @@
 
 #include <thread>
 #include <QPluginLoader>
+#include <QCoreApplication>
+#include <QtQuick/QQuickItem>
 
 #include "core/log.h"
 #include "request/session.h"
@@ -69,16 +71,24 @@ Global::Private::Private(Global* p)
     : qt_ex(std::make_shared<QtExecutionContext>(p, (QEvent::Type)QEvent::registerEventType())),
       pool(get_pool_size()),
       session(std::make_shared<request::Session>(pool.get_executor())),
-      user_model(new UserModel(p)),
+      user_model(nullptr),
       copy_action_comp(nullptr) {}
 Global::Private::~Private() {}
 
 auto Global::instance() -> Global* { return static_global(); }
 
 Global::Global(): d_ptr(make_up<Private>(this)) {
+    C_D(Global);
     DEBUG_LOG("init Global");
     _assert_rel_(static_global(this) == this);
-    load_user();
+
+    {
+        QCoreApplication::setApplicationName(APP_NAME);
+        QCoreApplication::setOrganizationName(APP_NAME);
+    }
+
+    // init after set static
+    d->user_model = new UserModel(this);
 
     struct Timer {
         std::chrono::time_point<std::chrono::steady_clock> point;
@@ -112,10 +122,24 @@ Global::Global(): d_ptr(make_up<Private>(this)) {
                         client->instance, state, item, source, passed.count() / 1000.0, extra);
                 }
             });
+
+    connect(user_model(), &UserModel::activeUserChanged, this, [this] {
+        auto auser  = user_model()->active_user();
+        auto cur_ss = qsession();
+        if (cur_ss == nullptr || auser != cur_ss->user()) {
+            auto ss = new model::Session(this);
+            ss->set_user(auser);
+            plugin(auser->userId().provider())
+                .transform([ss](std::reference_wrapper<QcmPluginInterface> ref) {
+                    ss->set_pages(ref.get().main_pages());
+                    return nullptr;
+                });
+            set_session(ss);
+            if (cur_ss) cur_ss->deleteLater();
+        }
+    });
 }
-Global::~Global() {
-    save_user();
-}
+Global::~Global() { save_user(); }
 
 auto Global::client(std::string_view                       name_view,
                     std::optional<std::function<Client()>> init) -> Client {
@@ -150,9 +174,22 @@ auto Global::session() -> rc<request::Session> {
     C_D(Global);
     return d->session;
 }
+
+auto Global::qsession() const -> model::Session* {
+    C_D(const Global);
+    return d->qsession;
+}
 auto Global::uuid() const -> const QUuid& {
     C_D(const Global);
     return d->uuid;
+}
+auto Global::plugin(QStringView name) const
+    -> std::optional<std::reference_wrapper<QcmPluginInterface>> {
+    C_D(const Global);
+    if (auto it = d->plugins.find(name); it != d->plugins.end()) {
+        return *(it->second);
+    }
+    return std::nullopt;
 }
 auto Global::get_cache_sql() const -> rc<media_cache::DataBase> {
     C_D(const Global);
@@ -190,7 +227,7 @@ void Global::set_copy_action_comp(QQmlComponent* val) {
 void Global::load_user() {
     C_D(Global);
     auto user_path = config_path() / "user.json";
-    json::parse(user_path.string()).transform([d](const auto& j) {
+    json::parse(user_path).transform([d](const auto& j) {
         json::get_to(*j, *(d->user_model));
     });
 }
@@ -211,6 +248,12 @@ void Global::set_uuid(const QUuid& val) {
     C_D(Global);
     if (std::exchange(d->uuid, val) != val) {
         uuidChanged();
+    }
+}
+void Global::set_session(model::Session* val) {
+    C_D(Global);
+    if (std::exchange(d->qsession, val) != val) {
+        sessionChanged();
     }
 }
 void Global::set_cache_sql(rc<media_cache::DataBase> val) {
@@ -242,6 +285,8 @@ auto Global::load_plugin(const std::filesystem::path& path) -> bool {
         } else {
             return false;
         }
+    } else {
+        DEBUG_LOG("{}", loader->errorString());
     }
     return loader->isLoaded();
 }
@@ -266,6 +311,7 @@ GlobalWrapper::GlobalWrapper(): m_g(Global::instance()) {
     connect_from_global(m_g, &Global::errorOccurred, &GlobalWrapper::errorOccurred);
     connect_from_global(m_g, &Global::toast, &GlobalWrapper::toast);
     connect_from_global(m_g, &Global::uuidChanged, &GlobalWrapper::uuidChanged);
+    connect_from_global(m_g, &Global::sessionChanged, &GlobalWrapper::sessionChanged);
 
     connect_to_global(m_g, &Global::errorOccurred, &GlobalWrapper::errorOccurred);
     connect_to_global(m_g, &Global::toast, &GlobalWrapper::toast);
@@ -291,6 +337,7 @@ auto GlobalWrapper::server_url(const model::ItemId& id) -> QVariant { return m_g
 auto GlobalWrapper::user_model() const -> UserModel* { return m_g->user_model(); }
 auto GlobalWrapper::copy_action_comp() const -> QQmlComponent* { return m_g->copy_action_comp(); }
 auto GlobalWrapper::uuid() const -> QString { return m_g->uuid().toString(QUuid::WithoutBraces); }
+auto GlobalWrapper::qsession() const -> model::Session* { return m_g->qsession(); }
 void GlobalWrapper::set_copy_action_comp(QQmlComponent* val) { m_g->set_copy_action_comp(val); }
 
 } // namespace qcm
@@ -327,13 +374,25 @@ auto create_item(QQmlEngine* engine, const QJSValue& url_or_comp, const QVariant
 
     switch (comp->status()) {
     case QQmlComponent::Status::Ready: {
-        auto obj = comp->createWithInitialProperties(props);
+        // auto obj = comp->createWithInitialProperties(props);
+        QObject* obj { nullptr };
+        QMetaObject::invokeMethod(comp.get(),
+                                            "createObject",
+                                            Q_RETURN_ARG(QObject*, obj),
+                                            Q_ARG(QObject*, parent),
+                                            Q_ARG(const QVariantMap&, props));
         if (obj != nullptr) {
-            if (parent != nullptr) obj->setParent(parent);
-            QQmlEngine::setObjectOwnership(obj, QJSEngine::JavaScriptOwnership);
+            // if (parent != nullptr) obj->setParent(parent);
+            // if (auto o = prop_parent.value<QObject*>()) {
+            //     auto name = obj->metaObject()->className();
+            //     DEBUG_LOG("{}", name);
+            // }
+            // QQmlEngine::setObjectOwnership(obj, QJSEngine::JavaScriptOwnership);
+            // QQmlEngine::set
             qml_dyn_count()++;
-            QObject::connect(obj, &QObject::destroyed, [](QObject*) {
-                DEBUG_LOG("delete ------");
+            auto name = obj->metaObject()->className();
+            QObject::connect(obj, &QObject::destroyed, [name](QObject*) {
+                DEBUG_LOG("dyn_delete {}", name);
                 qml_dyn_count()--;
             });
         } else {
@@ -344,6 +403,10 @@ auto create_item(QQmlEngine* engine, const QJSValue& url_or_comp, const QVariant
     }
     case QQmlComponent::Status::Error: {
         ERROR_LOG("{}", comp->errorString());
+        break;
+    }
+    case QQmlComponent::Status::Loading: {
+        ERROR_LOG("use before loading");
         break;
     }
     default: break;

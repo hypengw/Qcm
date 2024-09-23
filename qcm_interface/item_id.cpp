@@ -68,6 +68,10 @@ void ItemId::set_validator(const validator_t& v) {
     C_D(ItemId);
     std::exchange(d->validtor, v);
 }
+void ItemId::set_type(std::string_view v) { set_type(convert_from<QString>(v)); }
+void ItemId::set_id(std::string_view v) { set_id(convert_from<QString>(v)); }
+void ItemId::set_provider(std::string_view v) { set_provider(convert_from<QString>(v)); }
+
 void ItemId::set_type(QStringView v) {
     C_D(ItemId);
     std::exchange(d->type, v.toString());
@@ -114,6 +118,19 @@ std::strong_ordering ItemId::operator<=>(const ItemId& o) const {
 
 bool ItemId::operator==(const ItemId& o) const {
     return (*this <=> o) == std::strong_ordering::equal;
+}
+
+bool ItemId::operator==(const QUrl& url) const {
+    ItemId o(url);
+    return o == *this;
+}
+bool ItemId::operator==(std::string_view b) const {
+    QUrl url(convert_from<QString>(b));
+    return *this == url;
+}
+bool ItemId::operator==(QStringView b) const {
+    QUrl url(convert_from<QString>(b));
+    return *this == url;
 }
 
 } // namespace qcm::model

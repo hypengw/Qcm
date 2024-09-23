@@ -7,6 +7,8 @@
 #include "core/strv_helper.h"
 #include "core/qstr_helper.h"
 #include "core/qvariant_helper.h"
+#include "qcm_interface/model/page.h"
+#include "meta_model/qgadgetlistmodel.h"
 
 namespace qcm
 {
@@ -33,11 +35,16 @@ struct PathProcessImpl {
 
 class Router::Private {
 public:
+    using page_model_t = meta_model::QGadgetListModel<model::Page>;
+
+    Private(Router* p): main_page_model(new page_model_t(p)) {}
+
     ItemIdProcess             item_process;
     std::set<PathProcessImpl> pathes;
+    page_model_t*             main_page_model;
 };
 
-Router::Router(QObject* parent): QObject(parent), d_ptr(make_up<Private>()) {}
+Router::Router(QObject* parent): QObject(parent), d_ptr(make_up<Private>(this)) {}
 Router::~Router() {}
 
 auto Router::register_itemid(const ItemIdProcess& p) -> Router& {
@@ -119,6 +126,15 @@ auto Router::basic_page_static(enums::PluginBasicPage p) -> QStringView {
 }
 auto Router::basic_page(enums::PluginBasicPage p) const -> QUrl {
     return QUrl(basic_page_static(p).toString());
+}
+auto Router::main_page_model() const -> QAbstractListModel* {
+    C_D(const Router);
+    return d->main_page_model;
+}
+void Router::add_main_page(const model::Page& p) {
+    C_D(Router);
+    auto m = d->main_page_model;
+    m->insert(m->rowCount(), p);
 }
 
 } // namespace qcm

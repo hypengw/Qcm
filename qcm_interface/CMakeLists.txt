@@ -17,10 +17,14 @@ set(MODEL_SOURCES
     include/qcm_interface/model/user_account.h
     include/qcm_interface/model/app_info.h
     include/qcm_interface/model/plugin_info.h
+    include/qcm_interface/model/page.h
+    include/qcm_interface/model/session.h
     )
 
 add_library(
   qcm_interface SHARED
+  include/qcm_interface/async.h
+  include/qcm_interface/client.h
   include/qcm_interface/global.h
   include/qcm_interface/global_p.h
   include/qcm_interface/type.h

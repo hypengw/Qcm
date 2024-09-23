@@ -1,17 +1,25 @@
 #pragma once
 
+#include <QtCore/QObject>
+#include <QtCore/QAbstractListModel>
+
 #include "core/core.h"
 #include "qcm_interface/export.h"
 #include "qcm_interface/enum.h"
 #include "qcm_interface/item_id.h"
 
-#include <QtCore/QObject>
-
 namespace qcm
 {
 
+namespace model
+{
+class Page;
+}
+
 class QCM_INTERFACE_API Router : public QObject {
     Q_OBJECT
+
+    Q_PROPERTY(QAbstractListModel* mainPageModel READ main_page_model CONSTANT FINAL)
 public:
     using ItemIdProcess = std::function<std::optional<QUrl>(const model::ItemId&)>;
     using PathProcess   = std::function<std::optional<QUrl>(std::span<const QStringView>)>;
@@ -35,6 +43,9 @@ public:
 
     Q_INVOKABLE QUrl basic_page(enums::PluginBasicPage) const;
     static auto      basic_page_static(enums::PluginBasicPage) -> QStringView;
+
+    auto main_page_model() const -> QAbstractListModel*;
+    void add_main_page(const model::Page&);
 
 private:
     class Private;

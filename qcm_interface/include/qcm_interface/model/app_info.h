@@ -10,7 +10,7 @@ namespace model
 
 class QCM_INTERFACE_API AppInfo : public Model<AppInfo> {
     Q_GADGET
-    DECLARE_MODEL(MT_COPY)
+    DECLARE_MODEL()
 public:
     AppInfo();
     ~AppInfo();

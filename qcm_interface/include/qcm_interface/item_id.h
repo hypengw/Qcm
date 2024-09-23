@@ -41,9 +41,16 @@ public:
     void                 set_validator(const validator_t&);
     std::strong_ordering operator<=>(const ItemId&) const;
     bool                 operator==(const ItemId&) const;
+    bool                 operator==(const QUrl&) const;
+    bool                 operator==(std::string_view) const;
+    bool                 operator==(QStringView) const;
 
     Q_INVOKABLE bool valid() const;
     Q_INVOKABLE QUrl toUrl() const;
+
+    void set_type(std::string_view);
+    void set_id(std::string_view);
+    void set_provider(std::string_view);
 
 public Q_SLOTS:
     void set_type(QStringView);

@@ -18,6 +18,7 @@ public:
     ~UserAccount();
 
     DECLARE_PROPERTY(ItemId, userId, NOTIFY_NAME(infoChanged))
+    DECLARE_PROPERTY(QString, token, NOTIFY_NAME(infoChanged))
     DECLARE_PROPERTY(QString, nickname, NOTIFY_NAME(infoChanged))
     DECLARE_PROPERTY(QString, avatarUrl, NOTIFY_NAME(infoChanged))
     DECLARE_PROPERTY(QUrl, server, NOTIFY_NAME(infoChanged))

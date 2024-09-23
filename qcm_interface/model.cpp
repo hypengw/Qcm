@@ -4,6 +4,8 @@
 #include "qcm_interface/model/app_info.h"
 #include "qcm_interface/model/plugin_info.h"
 #include "qcm_interface/model/user_model.h"
+#include "qcm_interface/model/page.h"
+#include "qcm_interface/model/session.h"
 
 #include "json_helper/helper.inl"
 
@@ -22,6 +24,18 @@ AppInfo::~AppInfo() {}
 
 PluginInfo::PluginInfo() {}
 PluginInfo::~PluginInfo() {}
+
+Page::Page() {
+    set_cache(false);
+    set_primary(false);
+}
+Page::~Page() {}
+
+Session::Session(QObject* parent) {
+    this->setParent(parent);
+    set_user(nullptr);
+}
+Session::~Session() {}
 
 } // namespace qcm::model
 
@@ -56,16 +70,25 @@ IMPL_JSON_SERIALIZER_FROM(qcm::UserModel) {
             t.add_user(u.release());
         }
     }
+    if (j.contains("active_user")) {
+        auto user_idx = j.at("active_user").get<i64>();
+        if (user_idx < (i64)t.size()) {
+            t.set_active_user(t.at(user_idx));
+        }
+    }
 }
 
 IMPL_JSON_SERIALIZER_TO(qcm::UserModel) {
     qcm::json::njson j_user;
     for (auto el : t) {
-        if (auto u = qobject_cast<qcm::model::UserAccount*>(el)) {
-            j_user.push_back(*u);
-        }
+        j_user.push_back(*el);
     }
     j["users"] = j_user;
+    if (t.active_user() != nullptr) {
+        if (auto it = t.find(t.active_user()); it != t.end()) {
+            j["active_user"] = std::distance(t.begin(), it);
+        }
+    }
 }
 
 IMPL_CONVERT(std::string, qcm::model::ItemId) { out = in.toUrl().toString().toStdString(); }

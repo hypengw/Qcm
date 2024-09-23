@@ -1,8 +1,5 @@
 #pragma once
 
-#include <any>
-#include <filesystem>
-
 #include <QtCore/QObject>
 #include <QtQml/QQmlListProperty>
 #include <QtQml/QQmlComponent>
@@ -17,8 +14,9 @@
 #include "qcm_interface/enum.h"
 #include "qcm_interface/cache_sql.h"
 #include "qcm_interface/metadata.h"
-#include "qcm_interface/router.h"
+#include "qcm_interface/client.h"
 #include "qcm_interface/model/user_model.h"
+#include "qcm_interface/model/session.h"
 
 namespace request
 {
@@ -28,6 +26,7 @@ namespace qcm
 {
 class App;
 class PluginModel;
+class QcmPluginInterface;
 
 struct StopSignal {
     bool val { false };
@@ -44,7 +43,8 @@ class QCM_INTERFACE_API Global : public QObject {
     Q_PROPERTY(QQmlComponent* copy_action_comp READ copy_action_comp WRITE set_copy_action_comp
                    NOTIFY copyActionCompChanged FINAL)
 
-    Q_PROPERTY(UserModel* user_model READ user_model CONSTANT FINAL)
+    Q_PROPERTY(UserModel* userModel READ user_model CONSTANT FINAL)
+    Q_PROPERTY(model::Session* session READ qsession NOTIFY sessionChanged FINAL)
 
     friend class GlobalWrapper;
     friend class App;
@@ -54,26 +54,12 @@ public:
     using pool_executor_t = asio::thread_pool::executor_type;
     using qt_executor_t   = QtExecutor;
     using Metadata        = player::Metadata;
+    using Client          = qcm::Client;
 
     static auto instance() -> Global*;
 
     Global();
     ~Global();
-
-    struct Client {
-        struct Api {
-            auto (*server_url)(std::any&, const model::ItemId&) -> std::string;
-            auto (*image_cache)(std::any&, const QUrl& url, QSize req) -> std::filesystem::path;
-            void (*play_state)(std::any&, enums::PlaybackState state, model::ItemId item,
-                               model::ItemId source, i64 played_second, QVariantMap extra);
-            auto (*router)(std::any&) -> rc<Router>;
-        };
-
-        operator bool() const { return instance.has_value(); }
-
-        rc<Api>  api;
-        std::any instance;
-    };
 
     auto client(std::string_view name,
                 std::optional<std::function<Client()>> = std::nullopt) -> Client;
@@ -81,6 +67,7 @@ public:
     auto qexecutor() -> qt_executor_t&;
     auto pool_executor() -> pool_executor_t;
     auto session() -> rc<request::Session>;
+    auto qsession() const -> model::Session*;
 
     auto get_cache_sql() const -> rc<media_cache::DataBase>;
 
@@ -94,6 +81,7 @@ public:
     auto get_metadata(const std::filesystem::path&) const -> Metadata;
 
     auto user_agent() const -> std::string_view;
+    auto plugin(QStringView) const -> std::optional<std::reference_wrapper<QcmPluginInterface>>;
 
     void join();
 
@@ -105,6 +93,7 @@ Q_SIGNALS:
                QObject* action = nullptr, StopSignal stop = {});
     void copyActionCompChanged(StopSignal stop = {});
     void uuidChanged(StopSignal stop = {});
+    void sessionChanged(StopSignal stop = {});
     void playbackLog(enums::PlaybackState state, model::ItemId item, model::ItemId souce,
                      QVariantMap extra = {}, StopSignal stop = {});
 
@@ -116,6 +105,7 @@ public Q_SLOTS:
 private:
     using MetadataImpl = std::function<Metadata(const std::filesystem::path&)>;
     void set_uuid(const QUuid&);
+    void set_session(model::Session*);
     void set_cache_sql(rc<media_cache::DataBase>);
     void set_metadata_impl(const MetadataImpl&);
     auto get_client(std::string_view) -> Client*;
@@ -137,7 +127,8 @@ class QCM_INTERFACE_API GlobalWrapper : public QObject {
     Q_PROPERTY(QQmlComponent* copy_action_comp READ copy_action_comp WRITE set_copy_action_comp
                    NOTIFY copyActionCompChanged FINAL)
     Q_PROPERTY(QString uuid READ uuid NOTIFY uuidChanged FINAL)
-    Q_PROPERTY(UserModel* user_model READ user_model CONSTANT FINAL)
+    Q_PROPERTY(UserModel* userModel READ user_model CONSTANT FINAL)
+    Q_PROPERTY(model::Session* session READ qsession NOTIFY sessionChanged FINAL)
 
 public:
     GlobalWrapper();
@@ -148,6 +139,7 @@ public:
     auto                 user_model() const -> UserModel*;
     auto                 copy_action_comp() const -> QQmlComponent*;
     auto                 uuid() const -> QString;
+    auto                 qsession() const -> model::Session*;
     Q_INVOKABLE QVariant server_url(const model::ItemId&);
 
 Q_SIGNALS:
@@ -156,6 +148,7 @@ Q_SIGNALS:
                QObject* action = nullptr, StopSignal stop = {});
     void copyActionCompChanged(StopSignal stop = {});
     void uuidChanged(StopSignal stop = {});
+    void sessionChanged(StopSignal stop = {});
     void playbackLog(enums::PlaybackState state, model::ItemId item, model::ItemId souce,
                      QVariantMap extra = {}, StopSignal stop = {});
 

@@ -17,7 +17,11 @@ namespace qcm
 {
 template<typename TApi>
 struct api_traits {
-    void handle_output();
+    using api_type = TApi;
+    using out_type = typename TApi::out_type;
+
+    template<typename T>
+    static void handle_output(const api_type&, T&);
 };
 } // namespace qcm
 

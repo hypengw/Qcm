@@ -10,7 +10,7 @@ namespace model
 
 class QCM_INTERFACE_API PluginInfo : public Model<PluginInfo> {
     Q_GADGET
-    DECLARE_MODEL(MT_COPY)
+    DECLARE_MODEL()
 public:
     PluginInfo();
     ~PluginInfo();

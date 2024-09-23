@@ -77,8 +77,11 @@ public:                                                                         
 
 #define DECLARE_PROPERTY(_type_, _prop_, ...)                                            \
     Q_PROPERTY(_type_ _prop_ READ _prop_ _PARSE_DECLARE_FLAG(_prop_, __VA_ARGS__) FINAL) \
-    auto _prop_() const -> const _type_&;                                                \
-    void set_##_prop_(const _type_&);                                                    \
+    auto _prop_() const -> to_param<_type_>;                                             \
+    void set_##_prop_(to_param<_type_>);                                                 \
     _PARSE_DECLARE_FUNC(_prop_, _type_, __VA_ARGS__)
 
-#define DECLARE_MODEL(...)
+#define DECLARE_MODEL(Class, ...) public:
+
+
+

@@ -20,6 +20,7 @@ public:
     asio::thread_pool pool;
 
     rc<request::Session> session;
+    model::Session*      qsession;
     //    mutable ncm::Client         m_client;
 
     QUuid                     uuid;
@@ -33,7 +34,7 @@ public:
     UserModel*     user_model;
     QQmlComponent* copy_action_comp;
 
-    std::map<QString, QcmPluginInterface*> plugins;
+    std::map<QString, QcmPluginInterface*, std::less<>> plugins;
 
     std::mutex mutex;
 };

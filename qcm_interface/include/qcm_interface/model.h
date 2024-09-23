@@ -20,6 +20,10 @@ namespace qcm::model
 {
 using Extra = std::map<QString, QString, std::less<>>;
 
+template<typename T>
+using to_param =
+    std::conditional_t<std::is_pointer_v<T>, T, std::add_lvalue_reference_t<std::add_const_t<T>>>;
+
 class QCM_INTERFACE_API Artist {
     Q_GADGET
     QML_VALUE_TYPE(t_artist)
@@ -119,6 +123,7 @@ public:
     GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
     GADGET_PROPERTY_DEF(std::vector<Artist>, artists, artists)
     GADGET_PROPERTY_DEF(qint32, programCount, programCount)
+    GADGET_PROPERTY_DEF(bool, subscribed, subscribed)
 
     std::strong_ordering operator<=>(const Djradio&) const = default;
 };
@@ -164,59 +169,66 @@ namespace qcm::model
 
 namespace details
 {
-template<typename T>
-class ModelBase : public T {};
+struct ModelBase {};
 
-template<>
-class ModelBase<void> {};
+template<typename T>
+using model_base_t = std::conditional_t<std::is_void_v<T>, ModelBase, T>;
 } // namespace details
 
 constexpr auto MF_COPY { 1 };
 
 template<typename T, typename TBase = void>
-class Model : public details::ModelBase<TBase> {
-    using Base = details::ModelBase<TBase>;
+class Model : public details::model_base_t<TBase> {
+    using Base             = details::model_base_t<TBase>;
+    using is_base_copyable = std::integral_constant<bool, std::same_as<void, TBase> ||
+                                                              std::is_copy_constructible_v<TBase>>;
+    using is_base_moveable = std::integral_constant<bool, std::same_as<void, TBase> ||
+                                                              std::is_move_constructible_v<TBase>>;
 
 public:
     void from_json(const json::njson&);
     void to_json(json::njson&) const;
 
-protected:
-    Model();
-    ~Model();
-
-    Model(const Model&)            = delete;
-    Model& operator=(const Model&) = delete;
-
-    class Private;
-    inline auto d_func() -> Private* { return m_ptr.get(); }
-    inline auto d_func() const -> const Private* { return m_ptr.get(); };
-
-private:
-    up<Private> m_ptr;
-};
-
-template<typename T, typename TBase>
-    requires std::same_as<void, TBase> || std::copy_constructible<TBase>
-class Model<T, TBase> : public details::ModelBase<TBase> {
-    using Base = details::ModelBase<TBase>;
-
-public:
-    void from_json(const json::njson&);
-    void to_json(json::njson&) const;
+    bool operator==(const Model&) const;
 
 protected:
     Model();
     ~Model();
 
-    Model(const Model&);
-    Model& operator=(const Model&);
+    Model(const Model& o)
+        requires std::is_copy_constructible_v<Base>
+        : Model() {
+        *this = o;
+    }
+    Model& operator=(const Model& o)
+        requires std::is_copy_constructible_v<Base>
+    {
+        Base::operator=(o);
+        assign(o);
+        return *this;
+    }
 
+    Model(Model&& o) noexcept
+        requires std::is_move_constructible_v<TBase>
+        : Model() {
+        *this = std::move(o);
+    }
+    Model& operator=(Model&& o) noexcept
+        requires std::is_move_assignable_v<TBase>
+    {
+        Base::operator=(o);
+        assign(std::move(o));
+        return *this;
+    }
     class Private;
     inline auto d_func() -> Private* { return m_ptr.get(); }
     inline auto d_func() const -> const Private* { return m_ptr.get(); };
 
 private:
+    struct Helper;
+    void assign(const Model&);
+    void assign(Model&&) noexcept;
+
     up<Private> m_ptr;
 };
 

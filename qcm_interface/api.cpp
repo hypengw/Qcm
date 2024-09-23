@@ -4,28 +4,118 @@
 namespace qcm
 {
 
-class ApiQuerierBase::Private {
+class QAsyncResult::Private {
 public:
     Private()
         : m_main_ex(Global::instance()->qexecutor()),
           m_status(Status::Uninitialized),
-          m_auto_reload(true),
-          m_dirty(true),
-          m_forward_error(true) {}
+          m_forward_error(true),
+          m_data(nullptr) {}
+
+    QtExecutor m_main_ex;
+    Status     m_status;
+    bool       m_forward_error;
+    QObject*   m_data;
+
+    helper::WatchDog                         m_wdog;
+    QString                                  m_error;
+    std::map<QString, QObject*, std::less<>> m_hold;
+};
+
+QAsyncResult::QAsyncResult(QObject* parent): QObject(parent), d_ptr(make_up<Private>()) {}
+QAsyncResult::~QAsyncResult() {}
+
+void QAsyncResult::hold(QStringView name, QObject* o) {
+    C_D(QAsyncResult);
+    if (o != nullptr) {
+        o->setParent(this);
+        if (auto it = d->m_hold.find(name); it != d->m_hold.end()) {
+            it->second->deleteLater();
+            it->second = o;
+        } else {
+            d->m_hold.insert({ name.toString(), o });
+        }
+    }
+}
+
+auto QAsyncResult::status() const -> Status {
+    C_D(const QAsyncResult);
+    return d->m_status;
+}
+
+void QAsyncResult::set_status(Status v) {
+    C_D(QAsyncResult);
+    if (d->m_status != v) {
+        d->m_status = v;
+        emit statusChanged(v);
+        if (forwardError() && d->m_status == Status::Error) {
+            emit Global::instance() -> errorOccurred(d->m_error);
+        }
+    }
+}
+
+auto QAsyncResult::error() const -> const QString& {
+    C_D(const QAsyncResult);
+    return d->m_error;
+}
+void QAsyncResult::set_error(QString v) {
+    C_D(QAsyncResult);
+    if (d->m_error != v) {
+        d->m_error = v;
+        emit errorChanged();
+    }
+}
+
+bool QAsyncResult::forwardError() const {
+    C_D(const QAsyncResult);
+    return d->m_forward_error;
+}
+void QAsyncResult::set_forwardError(bool v) {
+    C_D(QAsyncResult);
+    if (std::exchange(d->m_forward_error, v) != v) {
+        emit forwardErrorChanged();
+    }
+}
+void QAsyncResult::cancel() {
+    C_D(QAsyncResult);
+    d->m_wdog.cancel();
+}
+auto QAsyncResult::get_executor() -> QtExecutor& {
+    C_D(QAsyncResult);
+    return d->m_main_ex;
+}
+
+auto QAsyncResult::watch_dog() -> helper::WatchDog& {
+    C_D(QAsyncResult);
+    return d->m_wdog;
+}
+
+auto QAsyncResult::data() const -> QObject* {
+    C_D(const QAsyncResult);
+    return d->m_data;
+}
+void QAsyncResult::set_data(QObject* v) {
+    C_D(QAsyncResult);
+    if (std::exchange(d->m_data, v) != v) {
+        dataChanged();
+    }
+    if(d->m_data->parent() != this) {
+        d->m_data->setParent(this);
+    }
+}
+
+class ApiQuerierBase::Private {
+public:
+    Private(): m_auto_reload(true), m_dirty(true) {}
 
     ~Private() {}
 
-    QtExecutor       m_main_ex;
-    helper::WatchDog m_wdog;
-    Status           m_status;
-    QString          m_error;
-    bool             m_auto_reload;
-    bool             m_qml_parsing;
-    bool             m_dirty;
-    bool             m_forward_error;
+    bool m_auto_reload;
+    bool m_qml_parsing;
+    bool m_dirty;
 };
 
-ApiQuerierBase::ApiQuerierBase(QObject* parent): QObject(parent), d_ptr(make_up<Private>()) {
+ApiQuerierBase::ApiQuerierBase(QObject* parent): QAsyncResult(parent), d_ptr(make_up<Private>()) {
     connect(this,
             &ApiQuerierBase::autoReloadChanged,
             this,
@@ -35,33 +125,6 @@ ApiQuerierBase::ApiQuerierBase(QObject* parent): QObject(parent), d_ptr(make_up<
 
 ApiQuerierBase::~ApiQuerierBase() {}
 
-ApiQuerierBase::Status ApiQuerierBase::status() const {
-    C_D(const ApiQuerierBase);
-    return d->m_status;
-}
-void ApiQuerierBase::set_status(ApiQuerierBase::Status v) {
-    C_D(ApiQuerierBase);
-    if (d->m_status != v) {
-        d->m_status = v;
-        emit statusChanged();
-        if (forwardError() && d->m_status == Status::Error) {
-            emit Global::instance() -> errorOccurred(d->m_error);
-        }
-    }
-}
-
-auto ApiQuerierBase::error() const -> const QString& {
-    C_D(const ApiQuerierBase);
-    return d->m_error;
-}
-void ApiQuerierBase::set_error(QString v) {
-    C_D(ApiQuerierBase);
-    if (d->m_error != v) {
-        d->m_error = v;
-        emit errorChanged();
-    }
-}
-
 bool ApiQuerierBase::autoReload() const {
     C_D(const ApiQuerierBase);
     return d->m_auto_reload;
@@ -70,17 +133,6 @@ void ApiQuerierBase::set_autoReload(bool v) {
     C_D(ApiQuerierBase);
     if (std::exchange(d->m_auto_reload, v) != v) {
         emit autoReloadChanged();
-    }
-}
-
-bool ApiQuerierBase::forwardError() const {
-    C_D(const ApiQuerierBase);
-    return d->m_forward_error;
-}
-void ApiQuerierBase::set_forwardError(bool v) {
-    C_D(ApiQuerierBase);
-    if (std::exchange(d->m_forward_error, v) != v) {
-        emit forwardErrorChanged();
     }
 }
 
@@ -106,19 +158,6 @@ bool ApiQuerierBase::dirty() const {
 void ApiQuerierBase::mark_dirty(bool v) {
     C_D(ApiQuerierBase);
     d->m_dirty = v;
-}
-void ApiQuerierBase::cancel() {
-    C_D(ApiQuerierBase);
-    d->m_wdog.cancel();
-}
-auto ApiQuerierBase::get_executor() -> QtExecutor& {
-    C_D(ApiQuerierBase);
-    return d->m_main_ex;
-}
-
-auto ApiQuerierBase::watch_dog() -> helper::WatchDog& {
-    C_D(ApiQuerierBase);
-    return d->m_wdog;
 }
 
 void ApiQuerierBase::reload_if_needed() {
