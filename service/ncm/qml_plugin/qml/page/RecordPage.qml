@@ -52,9 +52,9 @@ MD.Page {
                     type: QNCM.enums.IdTypeSong
                     delegate: QA.SongDelegate {
                         width: ListView.view.contentWidth
-                        model_: model.data
+                        dgModel: model.data
                         onClicked: {
-                            QA.Global.playlist.switchTo(model_);
+                            QA.Global.playlist.switchTo(dgModel);
                         }
                     }
                 }
@@ -129,7 +129,6 @@ MD.Page {
     }
 
     component BaseView: MD.ListView {
-        implicitHeight: contentHeight
         model: querier.data
         busy: querier.status === QA.enums.Querying
         leftMargin: 24

@@ -37,6 +37,9 @@ public:
             }
             m_has_more = re.hasMore;
         }
+        for (auto i = input.offset; i < rowCount(); i++) {
+            at(i).subscribed = true;
+        }
     }
 
     bool canFetchMore(const QModelIndex&) const override { return m_has_more; }

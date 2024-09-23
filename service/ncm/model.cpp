@@ -446,7 +446,7 @@ namespace ncm::api_model
 
 auto PlayRecord::parse(std::span<const byte>     bs,
                        const params::PlayRecord& input) -> Result<PlayRecord> {
-    return json::parse(convert_from<std::string>(bs))
+    return json::parse(convert_from<std::string_view>(bs))
         .map_error([](auto err) {
             return Error::push(err);
         })

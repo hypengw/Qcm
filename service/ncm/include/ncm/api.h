@@ -118,7 +118,7 @@ inline auto check_api_error(json::njson& j) -> std::optional<ApiError> {
 
 template<typename T>
 Result<T> parse(std::span<const byte> bs) {
-    return json::parse(convert_from<std::string>(bs))
+    return json::parse(convert_from<std::string_view>(bs))
         .map_error([](auto err) {
             return Error::push(err);
         })
@@ -142,7 +142,7 @@ Result<T> parse_no_apierr(json::njson& j) {
 
 template<typename T>
 Result<T> parse_no_apierr(std::span<const byte> bs) {
-    return json::parse(convert_from<std::string>(bs))
+    return json::parse(convert_from<std::string_view>(bs))
         .and_then([](auto j) {
             return json::get<T>(*j, {});
         })

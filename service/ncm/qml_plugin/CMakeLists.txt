@@ -52,7 +52,13 @@ set(SOURCES
     api.cpp)
 
 set(QML_FILES
-    qml/page/CloudUploadPage.qml qml/page/LoginPage.qml qml/page/RecordPage.qml)
+    qml/page/CloudUploadPage.qml
+    qml/page/LoginPage.qml
+    qml/page/RecordPage.qml
+    qml/page/MinePage.qml
+    qml/page/TodayPage.qml
+    qml/page/CloudPage.qml
+    qml/page/PlaylistListPage.qml)
 
 set(RESOURCES
     assets/netease-line.svg assets/netease.svg)

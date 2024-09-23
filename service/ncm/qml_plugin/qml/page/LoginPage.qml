@@ -14,10 +14,6 @@ MD.Page {
 
         readonly property bool loginCodeOk: qr_login.data.code === 200 || qr_qrlogin.data.code === 803
 
-        onLoginCodeOkChanged: {
-            QA.Global.querier_user.query();
-        }
-
         QNcm.QrcodeLoginQuerier {
             id: qr_qrlogin
             key: qr_unikey.data.key
