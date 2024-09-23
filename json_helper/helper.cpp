@@ -1,5 +1,6 @@
 #include "json_helper/helper.h"
 #include "json_helper/helper.inl"
+#include <fstream>
 
 using Error = qcm::json::Error;
 using ET    = Error::Id;
@@ -14,7 +15,20 @@ void json::detail::deleter(njson* j) {
 
 auto json::create() -> up_njson { return up_njson(new njson(), &detail::deleter); }
 
-auto json::parse(std::string_view source) -> nstd::expected<json::up_njson, Error> {
+auto json::parse(const std::filesystem::path& p) -> Result<up_njson> {
+    try {
+        std::ifstream file(p);
+        file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+        std::string content((std::istreambuf_iterator<char>(file)),
+                            std::istreambuf_iterator<char>());
+        return up_njson(new njson(njson::parse(content)), &detail::deleter);
+    } catch (njson::parse_error& e) {
+        return nstd::unexpected(Error { .id = ET::ParseError, .what = e.what() });
+    } catch (const std::ios_base::failure& e) {
+        return nstd::unexpected(Error { .id = ET::IoError, .what = e.what() });
+    }
+}
+auto json::parse(std::string_view source) -> Result<up_njson> {
     try {
         return up_njson(new njson(njson::parse(source)), &detail::deleter);
     } catch (njson::parse_error& e) {

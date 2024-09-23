@@ -63,3 +63,22 @@
 #    define C_DECL_EXPORT __attribute__((visibility("default")))
 #    define C_DECL_IMPORT __attribute__((visibility("default")))
 #endif
+
+// Convert macro
+#define DECLARE_CONVERT(Ta, Tb, ...)         \
+    template<>                               \
+    struct __VA_ARGS__ Convert<Ta, Tb> {     \
+        using out_type = Ta;                 \
+        using in_type  = Tb;                 \
+        static void from(Ta&, const Tb& in); \
+    };
+
+#define IMPL_CONVERT(Ta, Tb) void Convert<Ta, Tb>::from(Ta& out, const Tb& in)
+#define DEFINE_CONVERT(Ta, Tb) \
+    DECLARE_CONVERT(Ta, Tb)    \
+    inline IMPL_CONVERT(Ta, Tb)
+
+#define STATIC_CAST_CONVERT(Ta, Tb)                             \
+    DEFINE_CONVERT(Ta, Tb) { out = static_cast<out_type>(in); } \
+    DEFINE_CONVERT(Tb, Ta) { out = static_cast<out_type>(in); }
+

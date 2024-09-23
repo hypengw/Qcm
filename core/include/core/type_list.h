@@ -1,6 +1,8 @@
 #pragma once
 
 #include <numeric>
+#include <utility>
+#include <type_traits>
 #include "core/core.h"
 
 namespace ycore
@@ -113,7 +115,19 @@ struct intersection<type_list<TS...>, T...> {
     using type = intersection<type_list<TS...>, typename intersection<T...>::type>::type;
 };
 
+template<typename T>
+struct index_sequence_helper;
+
+template<std::size_t... IS>
+struct index_sequence_helper<std::integer_sequence<std::size_t, IS...>> {
+    template<template<std::size_t I, typename Arg> class F, typename... T>
+    using test = std::integral_constant<bool, (F<IS, T>::value && ...)>;
+};
+
 } // namespace detail
+
+template<std::size_t N>
+using make_index_sequence_helper = detail::index_sequence_helper<std::make_index_sequence<N>>;
 
 template<typename _Tp, typename... _Types>
 constexpr usize find_type_in_pack() {
@@ -187,6 +201,18 @@ struct type_list {
         return detail::runtime_select<Func, 0, TS...>(idx, std::forward<Func>(func));
     }
 };
+
+template<typename T>
+struct get_type_list {
+    using type = type_list<T>;
+};
+template<template<typename...> class T, typename... TS>
+struct get_type_list<T<TS...>> {
+    using type = type_list<TS...>;
+};
+
+template<typename T>
+using get_type_list_t = get_type_list<T>::type;
 
 static_assert(std::same_as<float, type_list<int, float, bool>::at<1>>);
 static_assert(std::same_as<type_list<int, bool>, type_list<int, float, bool>::erase<1>>);

@@ -5,6 +5,7 @@
 #include <variant>
 #include <array>
 #include <span>
+#include <filesystem>
 
 #include <nlohmann/json_fwd.hpp>
 
@@ -48,6 +49,7 @@ using adl_serializer = NLOHMANN_JSON_NAMESPACE::adl_serializer<T, SFINAE>;
 struct Error {
     enum class Id
     {
+        IoError = 0,
         ParseError,
         TypeError,
         OutOfRange,
@@ -173,6 +175,7 @@ void assign(njson& j_in, std::span<const Key> keys, const T& v) {
 }
 
 auto create() -> up_njson;
+auto parse(const std::filesystem::path&) -> Result<up_njson>;
 auto parse(std::string_view source) -> Result<up_njson>;
 
 } // namespace json

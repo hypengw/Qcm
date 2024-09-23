@@ -2,6 +2,7 @@ add_library(asio_qt STATIC
 
     include/asio_qt/qt_execution_context.h
     include/asio_qt/qt_executor.h
+    include/asio_qt/qt_holder.h
 
     qt_execution_context.cpp
     qt_executor.cpp

@@ -8,18 +8,31 @@
 namespace meta_model
 {
 
-class QObjectListModel : public QMetaListModel<QObject*, QObjectListModel> {
+namespace detail
+{
+template<typename T>
+    requires std::is_base_of_v<QObject, T>
+class QObjectListModel : public QMetaListModel<T*, QObjectListModel<T>> {
 public:
-    using base_type = QMetaListModel<QObject*, QObjectListModel>;
+    using base_type    = QMetaListModel<T*, QObjectListModel<T>>;
+    QObjectListModel() = delete;
 
+    template<typename U = T>
+        requires std::same_as<U, QObject>
     QObjectListModel(const QMetaObject& meta, bool is_owner, QObject* parent = nullptr)
         : base_type(parent), m_is_owner(is_owner) {
         this->updateRoleNames(meta);
     }
+    template<typename U = T>
+        requires(! std::same_as<U, QObject>)
+    QObjectListModel(bool is_owner, QObject* parent = nullptr)
+        : base_type(parent), m_is_owner(is_owner) {
+        this->updateRoleNames(T::staticMetaObject);
+    }
     virtual ~QObjectListModel() {}
 
     template<typename Tin>
-        requires std::convertible_to<typename std::iterator_traits<Tin>::value_type, QObject*>
+        requires std::convertible_to<typename std::iterator_traits<Tin>::value_type, T*>
     void insert_impl(std::size_t pos, Tin beg, Tin end) {
         if (m_is_owner) {
             auto it = beg;
@@ -40,5 +53,7 @@ public:
 private:
     bool m_is_owner;
 };
+} // namespace detail
 
+using QObjectListModel = detail::QObjectListModel<QObject>;
 } // namespace meta_model

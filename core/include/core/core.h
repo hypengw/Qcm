@@ -42,6 +42,15 @@ auto make_rc(Args&&... args) {
     return std::make_shared<T>(std::forward<Args>(args)...);
 }
 
+template<typename T>
+decltype(auto) as_ref(T&& value) {
+    if constexpr (std::is_pointer_v<std::remove_reference_t<T>>) {
+        return *std::forward<T>(value);
+    } else {
+        return std::forward<T>(value);
+    }
+}
+
 namespace std
 {
 struct monostate;
@@ -83,6 +92,11 @@ concept convertible_to_any = (std::convertible_to<T, Ts> || ...);
 
 template<typename T, typename F>
 concept extra_cvt = (! std::same_as<std::decay_t<T>, std::decay_t<F>>);
+
+template<typename T, typename U = T>
+concept has_equal_operator = requires(T a, U b) {
+    { a == b } -> std::convertible_to<bool>;
+};
 
 } // namespace ycore
 
@@ -135,23 +149,6 @@ template<typename T>
 struct Convert<std::monostate, T> {
     static void from(std::monostate&, const T&) {};
 };
-
-#define DECLARE_CONVERT(Ta, Tb, ...)         \
-    template<>                               \
-    struct __VA_ARGS__ Convert<Ta, Tb> {     \
-        using out_type = Ta;                 \
-        using in_type  = Tb;                 \
-        static void from(Ta&, const Tb& in); \
-    };
-
-#define IMPL_CONVERT(Ta, Tb) void Convert<Ta, Tb>::from(Ta& out, const Tb& in)
-#define DEFINE_CONVERT(Ta, Tb) \
-    DECLARE_CONVERT(Ta, Tb)    \
-    inline IMPL_CONVERT(Ta, Tb)
-
-#define STATIC_CAST_CONVERT(Ta, Tb)                             \
-    DEFINE_CONVERT(Ta, Tb) { out = static_cast<out_type>(in); } \
-    DEFINE_CONVERT(Tb, Ta) { out = static_cast<out_type>(in); }
 
 template<typename IMPL>
 struct CRTP {

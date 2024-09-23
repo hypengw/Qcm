@@ -22,13 +22,14 @@
 using namespace std::literals::string_view_literals;
 constexpr auto DECLARE_MODEL { "DECLARE_MODEL"sv };
 constexpr auto DECLARE_PROPERTY { "DECLARE_PROPERTY"sv };
-constexpr auto MT_COPY { "MT_COPY"sv };
+constexpr auto MT_NO_COPY { "MT_NO_COPY"sv };
+constexpr auto MT_NO_MOVE { "MT_NO_MOVE"sv };
 
 namespace pegtl = tao::pegtl;
 
 namespace details
 {
-constexpr auto dels { " :;,(){}<>[]|+=*/\\\n"sv };
+constexpr auto dels { " :;,(){}<>[]|+=/\\\n"sv };
 
 inline auto is_del(char c) -> bool { return dels.find(c) != std::string_view::npos; };
 
@@ -87,7 +88,8 @@ struct MacroInfo {
 };
 
 struct InputInfo {
-    std::vector<MacroInfo> macros;
+    std::vector<MacroInfo>   macros;
+    std::vector<std::string> includes;
 };
 
 struct OutputInfo {
@@ -107,11 +109,13 @@ struct OutputInfo {
         std::string              parent;
         std::vector<VarInfo>     vars;
 
-        bool copyable { false };
+        bool no_copy { false };
+        bool no_move { false };
         bool is_struct { false };
     };
 
-    std::vector<ModelInfo> models;
+    std::vector<ModelInfo>   models;
+    std::vector<std::string> includes;
 };
 
 namespace cpp_rule
@@ -176,107 +180,125 @@ template<>
 struct action<grammer_cpp::dec_class> : match_end {};
 } // namespace cpp_rule
 
-auto parse(std::string_view src, std::span<const std::string_view> macro_names) -> InputInfo {
-    enum class StatusType
-    {
-        Start,
-        MacroCall
+namespace parse_ns
+{
+enum class StatusType
+{
+    Start,
+    MacroCall
+};
+
+enum class BracketType
+{
+    Round,
+    Square,
+    Curly
+};
+
+enum class BracketContextType
+{
+    Namespace,
+    Class,
+    MacroCall,
+    Other
+};
+
+struct Context {
+    std::vector<std::string> ns;
+    std::vector<ClassInfo>   class_;
+    InputInfo                info;
+    bool                     last_is_del { true };
+    std::string_view         word {};
+
+    struct Status {
+        StatusType               type {};
+        std::vector<std::string> words {};
     };
 
-    enum class BracketType
-    {
-        Round,
-        Square,
-        Curly
+    struct BracketStatus {
+        BracketType              type { BracketType::Round };
+        BracketContextType       ctx_type { BracketContextType::Other };
+        bool                     is_open { true };
+        std::vector<std::string> words {};
     };
+    std::vector<Status>        status { Status { StatusType::Start } };
+    std::vector<BracketStatus> bracket_stack;
+};
 
-    enum class BracketContextType
-    {
-        Namespace,
-        Class,
-        MacroCall,
-        Other
-    };
+auto is_next_word(std::string_view in, std::string_view word) -> bool {
+    return in.starts_with(word) && details::is_del(in.at(word.size()));
+};
 
-    struct Context {
-        std::vector<std::string> ns;
-        std::vector<ClassInfo>   class_;
-        InputInfo                info;
-        bool                     last_is_del { true };
-        std::string_view         word {};
+auto has_status(const Context& ctx, StatusType t) {
+    return std::find_if(ctx.status.begin(), ctx.status.end(), [t](auto& s) {
+               return s.type == t;
+           }) != ctx.status.end();
+};
 
-        struct Status {
-            StatusType               type {};
-            std::vector<std::string> words {};
-        };
+auto has_bracket(const Context& ctx, BracketType t, BracketContextType ct) {
+    return std::find_if(ctx.bracket_stack.begin(), ctx.bracket_stack.end(), [t, ct](auto& s) {
+               return s.type == t && s.ctx_type == ct;
+           }) != ctx.bracket_stack.end();
+};
 
-        struct BracketStatus {
-            BracketType              type { BracketType::Round };
-            BracketContextType       ctx_type { BracketContextType::Other };
-            bool                     is_open { true };
-            std::vector<std::string> words {};
-        };
-        std::vector<Status>        status { Status { StatusType::Start } };
-        std::vector<BracketStatus> bracket_stack;
-    };
-    Context ctx;
+auto is_in_macro_call(const Context& ctx) -> bool {
+    return ! ctx.bracket_stack.empty() &&
+           ctx.bracket_stack.back().ctx_type == BracketContextType::MacroCall;
+};
 
-    auto is_next_word = [](std::string_view in, std::string_view word) -> bool {
-        return in.starts_with(word) && details::is_del(in.at(word.size()));
-    };
-
-    auto has_status = [&ctx](StatusType t) {
-        return std::find_if(ctx.status.begin(), ctx.status.end(), [t](auto& s) {
-                   return s.type == t;
-               }) != ctx.status.end();
-    };
-
-    auto has_bracket = [&ctx](BracketType t, BracketContextType ct) {
-        return std::find_if(ctx.bracket_stack.begin(), ctx.bracket_stack.end(), [t, ct](auto& s) {
-                   return s.type == t && s.ctx_type == ct;
-               }) != ctx.bracket_stack.end();
-    };
-
-    auto open_bracket = [&ctx](BracketType type) {
-        if (! ctx.bracket_stack.empty() && ! ctx.bracket_stack.back().is_open) {
-            ctx.bracket_stack.back().is_open = true;
-        } else {
-            ctx.bracket_stack.push_back(
-                Context::BracketStatus { type, BracketContextType::Other, true });
-            auto s = ctx.status.back();
-            switch (s.type) {
-            case StatusType::MacroCall: {
-                ctx.status.pop_back();
-                ctx.bracket_stack.back().ctx_type = BracketContextType::MacroCall;
-                break;
-            }
-            default: {
-            }
-            }
-        }
-    };
-
-    auto close_bracket = [&ctx] {
-        auto status = ctx.bracket_stack.back();
-        switch (status.ctx_type) {
-        case BracketContextType::Namespace: {
-            ctx.ns.pop_back();
-            break;
-        }
-        case BracketContextType::Class: {
-            ctx.class_.pop_back();
-            break;
-        }
-        case BracketContextType::MacroCall: {
-            ctx.info.macros.back().params.emplace_back(std::string { ctx.word });
-            ctx.word = {};
+auto open_bracket(Context& ctx, BracketType type) {
+    if (! ctx.bracket_stack.empty() && ! ctx.bracket_stack.back().is_open) {
+        ctx.bracket_stack.back().is_open = true;
+    } else {
+        ctx.bracket_stack.push_back(
+            Context::BracketStatus { type, BracketContextType::Other, true });
+        auto s = ctx.status.back();
+        switch (s.type) {
+        case StatusType::MacroCall: {
+            ctx.status.pop_back();
+            ctx.bracket_stack.back().ctx_type = BracketContextType::MacroCall;
             break;
         }
         default: {
         }
         }
-        ctx.bracket_stack.pop_back();
-    };
+    }
+};
+
+auto close_bracket(Context& ctx) {
+    auto status = ctx.bracket_stack.back();
+    switch (status.ctx_type) {
+    case BracketContextType::Namespace: {
+        ctx.ns.pop_back();
+        break;
+    }
+    case BracketContextType::Class: {
+        ctx.class_.pop_back();
+        break;
+    }
+    case BracketContextType::MacroCall: {
+        ctx.info.macros.back().params.emplace_back(std::string { ctx.word });
+        ctx.word = {};
+        break;
+    }
+    default: {
+    }
+    }
+    ctx.bracket_stack.pop_back();
+};
+
+auto do_comma(Context& ctx) {
+    if (is_in_macro_call(ctx)) {
+        ctx.info.macros.back().params.emplace_back(ctx.word);
+        ctx.word = {};
+    }
+};
+
+} // namespace parse_ns
+
+auto parse(std::string_view src, std::span<const std::string_view> macro_names) -> InputInfo {
+    using namespace parse_ns;
+    Context ctx;
 
     auto it = src.begin();
 
@@ -286,8 +308,8 @@ auto parse(std::string_view src, std::span<const std::string_view> macro_names) 
                        : std::string_view { ctx.word.begin(), std::min(it + i, src.end()) };
     };
 
-    auto emit_word = [&ctx, &it, has_bracket, src, macro_names]() {
-        if (has_bracket(BracketType::Round, BracketContextType::MacroCall)) {
+    auto emit_word = [&ctx, &it, src, macro_names]() {
+        if (has_bracket(ctx, BracketType::Round, BracketContextType::MacroCall)) {
         } else {
             cpp_rule::state          state;
             auto                     t = std::string_view { ctx.word.begin(), src.end() };
@@ -329,28 +351,25 @@ auto parse(std::string_view src, std::span<const std::string_view> macro_names) 
         }
     };
 
-    auto do_del = [emit_word, &ctx]() {
-        if (! ctx.last_is_del) emit_word();
-        ctx.last_is_del = true;
-    };
-
-    auto do_comma = [&ctx, do_del] {
-        if (! ctx.bracket_stack.empty() &&
-            ctx.bracket_stack.back().ctx_type == BracketContextType::MacroCall) {
-            ctx.info.macros.back().params.push_back(std::string { ctx.word });
-            ctx.word = {};
+    auto do_del = [&emit_word, &ctx, &extend_word](char c) {
+        if (is_in_macro_call(ctx) && c != ',' && c != ' ') {
+            extend_word(1);
         }
+        if (! ctx.last_is_del) {
+            emit_word();
+        }
+        ctx.last_is_del = true;
     };
 
     while (it < src.end()) {
         auto c   = *it;
         auto sub = std::string_view { it, src.end() };
         if (sub.starts_with("//")) {
-            do_del();
+            do_del(c);
             it = details::eat_until(sub, "\n", true);
             continue;
         } else if (sub.starts_with("/*")) {
-            do_del();
+            do_del(c);
             it = details::eat_until(sub, "*/", true);
             continue;
         } else if (sub.starts_with("::")) {
@@ -358,25 +377,32 @@ auto parse(std::string_view src, std::span<const std::string_view> macro_names) 
             extend_word(2);
             it += 2;
             continue;
+        } else if (c == '#') {
+            do_del(c);
+            it = details::eat_until(sub, "\n", true);
+            if (sub.starts_with("#include")) {
+                ctx.info.includes.emplace_back(sub.substr(0, std::distance(sub.begin(), it)));
+            }
+            continue;
         } else if (c == ',') {
-            do_del();
-            do_comma();
+            do_comma(ctx);
+            do_del(c);
         } else if (c == '(') {
-            do_del();
-            open_bracket(BracketType::Round);
+            do_del(c);
+            open_bracket(ctx, BracketType::Round);
         } else if (c == '[') {
-            do_del();
-            open_bracket(BracketType::Square);
+            do_del(c);
+            open_bracket(ctx, BracketType::Square);
         } else if (c == '{') {
-            do_del();
-            open_bracket(BracketType::Curly);
+            do_del(c);
+            open_bracket(ctx, BracketType::Curly);
         } else if (c == '}' || c == ')' || c == ']') {
-            do_del();
+            do_del(c);
             _assert_msg_rel_(ctx.bracket_stack.size() && ctx.bracket_stack.back().is_open,
                              "wrong pair of {{}}");
-            close_bracket();
+            close_bracket(ctx);
         } else if (details::is_del(c)) {
-            do_del();
+            do_del(c);
         } else {
             ctx.last_is_del = false;
             extend_word(1);
@@ -388,6 +414,7 @@ auto parse(std::string_view src, std::span<const std::string_view> macro_names) 
 
 auto collect(const InputInfo& info) -> OutputInfo {
     OutputInfo out;
+    out.includes = info.includes;
 
     auto collect_class_name = [](const MacroInfo& m) -> std::string {
         auto view = std::ranges::transform_view(m.class_, [](auto& c) -> std::string {
@@ -405,8 +432,10 @@ auto collect(const InputInfo& info) -> OutputInfo {
                                           .vars     = {} };
 
             for (auto& p : m.params) {
-                if (p.ends_with(MT_COPY)) {
-                    model.copyable = true;
+                if (p.ends_with(MT_NO_COPY)) {
+                    model.no_copy = true;
+                } else if (p.ends_with(MT_NO_MOVE)) {
+                    model.no_move = true;
                 }
             }
             out.models.push_back(model);
@@ -465,12 +494,12 @@ auto format_model(const OutputInfo::ModelInfo& info) -> std::tuple<std::string, 
 
             return fmt::format(
                 R"(
-auto {}::{}() const -> const {}& {{
+auto {}::{}() const -> to_param<{}> {{
     auto d = qcm::model::{}::d_func();
     return d->{};
 }}
 
-void {}::set_{}(const {}& val) {{
+void {}::set_{}(to_param<{}> val) {{
     auto d = qcm::model::{}::d_func();
     auto& p = d->{};
     if(val != p) {{
@@ -498,72 +527,101 @@ void {}::set_{}(const {}& val) {{
                                               info.is_struct ? "struct" : "class",
                                               info.name) };
 
-    std::string copy;
-    if (info.copyable) {
-        copy = fmt::format(R"(
+    std::string assign_funcs = fmt::format(R"(
 template<>
-Q_DECL_EXPORT {}::Model(const Model& m) : Model() {{
-    Base::operator = (m);
-    *(this->m_ptr) = *(m.m_ptr);
+C_DECL_EXPORT void {0}::assign(const Model& m) {{
+    Helper::copy_assign<std::is_move_assignable_v<Base> && !{1}>(*this, m);
 }}
-
 template<>
-Q_DECL_EXPORT auto {}::operator=(const Model& m) -> Model& {{
-    Base::operator = (m);
-    *(this->m_ptr) = *(m.m_ptr);
-    return *this;
+C_DECL_EXPORT void {0}::assign(Model&& m) noexcept {{
+    Helper::move_assign<std::is_move_assignable_v<Base> && !{2}>(*this, std::move(m));
+}}
+template<>
+C_DECL_EXPORT bool {0}::operator==(const Model& m) const {{
+    return Helper::partial_equal(*this, m);
 }}
 )",
-                           model_class,
-                           model_class);
-    }
+                                           model_class,
+                                           info.no_copy,
+                                           info.no_move);
 
     std::string json;
     {
         auto view_from_json = std::ranges::transform_view(info.vars, [](auto& v) -> std::string {
-            return fmt::format("j.at(\"{}\"sv).get_to(m_ptr->{});", v.name, v.name);
+            return fmt::format("j.at(\"{0}\"sv).get_to(as_ref(m_ptr->{0}));", v.name);
         });
         auto view_to_json   = std::ranges::transform_view(info.vars, [](auto& v) -> std::string {
-            return fmt::format("j[\"{}\"sv] = m_ptr->{};", v.name, v.name);
+            return fmt::format("j[\"{0}\"sv] = as_ref(m_ptr->{0});", v.name);
         });
-        ;
-        json = fmt::format(R"(
+        json                = fmt::format(R"(
 template<>
-void {}::from_json(const json::njson& j) {{
-{}
+void {0}::from_json(const json::njson& j) {{
+{1}
 }}
 
 template<>
-void {}::to_json(json::njson& j) const {{
-{}
+void {0}::to_json(json::njson& j) const {{
+{2}
 }}
 
 )",
                            model_class,
                            fmt::join(view_from_json, "\n"),
-                           model_class,
                            fmt::join(view_to_json, "\n"));
+    }
+    std::string helper;
+    {
+        auto view_equal = std::ranges::transform_view(info.vars, [](auto& v) -> std::string {
+            return fmt::format("        if constexpr(ycore::has_equal_operator<decltype(self.d_func()->{0})>) {{ if(!(self.d_func()->{0} == m.d_func()->{0})) return false; }}", v.name);
+        });
+        helper          = fmt::format(R"(
+// Helper
+template<>
+struct {0}::Helper {{
+    template<bool B, typename T>
+    static void copy_assign(T& self, const T& m) {{
+        if constexpr(B) {{
+            *(self.m_ptr) = *(m.m_ptr);
+        }}
+    }}
+    template<bool B, typename T>
+    static void move_assign(T& self, T&& m) {{
+        if constexpr(B) {{
+            std::swap(self.m_ptr, m.m_ptr);
+        }}
+    }}
+    template<typename T>
+    static bool partial_equal(const T& self, const T& m) {{
+{1}
+        return true;
+    }}
+}};
+)",
+                             model_class,
+                             fmt::join(view_equal, "\n"));
     }
 
     return { fmt::format(
                  R"(
-{}
+{0}
 namespace qcm::model {{
 
 template<>
-class {}::Private {{
+class {1}::Private {{
 public:
-{};
+{2};
 }};
 
-template<>
-{}::Model() : m_ptr(make_up<Private>()) {{}}
+{5}
 
 template<>
-{}::~Model() {{}}
+C_DECL_EXPORT {1}::Model() : m_ptr(make_up<Private>()) {{}}
 
-{}
-{}
+template<>
+C_DECL_EXPORT {1}::~Model() {{}}
+
+{3}
+{4}
 
 }}
 
@@ -571,10 +629,9 @@ template<>
                  forward_declare,
                  model_class,
                  fmt::join(view_members, ";\n"),
-                 model_class, // ct
-                 model_class, // dct
-                 copy,
-                 json),
+                 assign_funcs,
+                 json,
+                 helper),
              fmt::format(R"(
 namespace {} {{
 {}
@@ -585,10 +642,12 @@ namespace {} {{
 };
 
 auto generate(const OutputInfo& info, std::filesystem::path include) -> std::string {
-    std::string out { R"(
+    std::string out = fmt::format(R"(
 #include "qcm_interface/model.h"
 #include "json_helper/helper.inl"
-)" };
+{}
+)",
+                                  fmt::join(info.includes, "\n"));
     std::string out_ { fmt::format(R"(
 
 #include "{}"

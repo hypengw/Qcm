@@ -39,11 +39,12 @@ template<typename TItem, typename IMPL>
 class QMetaListModelPre : public QMetaListModelBase {
 public:
     using value_type = TItem;
+    using param_type = std::conditional_t<std::is_pointer_v<TItem>, TItem, const TItem&>;
 
     QMetaListModelPre(QObject* parent = nullptr): QMetaListModelBase(parent) {};
     virtual ~QMetaListModelPre() {};
 
-    void insert(int index, const TItem& item) { insert(index, std::array { item }); }
+    void insert(int index, param_type item) { insert(index, std::array { item }); }
     template<typename T>
         requires std::ranges::sized_range<T>
     // std::same_as<std::decay_t<typename T::value_type>, TItem>
@@ -62,7 +63,7 @@ public:
         crtp_impl().erase_impl(index, last);
         endRemoveRows();
     }
-    void replace(int row, const TItem& item) {
+    void replace(int row, param_type item) {
         crtp_impl().assign(row, item);
         auto idx = index(row);
         dataChanged(idx, idx);
@@ -145,13 +146,15 @@ class QMetaListModel : public QMetaListModelPre<TItem, CRTP> {
     friend class QMetaListModelPre<TItem, CRTP>;
 
 public:
-    QMetaListModel(QObject* parent = nullptr, Allocator allc = Allocator())
-        : QMetaListModelPre<TItem, CRTP>(parent), m_items(allc) {}
-    virtual ~QMetaListModel() {}
-
+    using base_type      = QMetaListModelPre<TItem, CRTP>;
     using allocator_type = Allocator;
     using container_type = std::vector<TItem>;
     using iterator       = container_type::iterator;
+    using param_type     = base_type::param_type;
+
+    QMetaListModel(QObject* parent = nullptr, Allocator allc = Allocator())
+        : base_type(parent), m_items(allc) {}
+    virtual ~QMetaListModel() {}
 
     auto        begin() const { return std::begin(m_items); }
     auto        end() const { return std::end(m_items); }
@@ -159,7 +162,10 @@ public:
     auto        end() { return std::end(m_items); }
     auto        size() const { return std::size(m_items); }
     const auto& at(std::size_t idx) const { return m_items.at(idx); }
+    auto&       at(std::size_t idx) { return m_items.at(idx); }
     void        assign(std::size_t idx, const TItem& t) { m_items.at(idx) = t; }
+    auto        find(param_type t) const { return std::find(begin(), end(), t); }
+    auto        find(param_type t) { return std::find(begin(), end(), t); }
 
 protected:
     template<typename Tin>
