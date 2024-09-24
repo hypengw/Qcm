@@ -178,7 +178,7 @@ MD.Pane {
                         icon.name: MD.Token.icon.playlist_play
 
                         onClicked: {
-                            QA.Action.popup_special('queue');
+                            QA.Action.popup_special(QA.enums.SRQueue);
                         }
                     }
                     QA.VolumeButton {
@@ -244,7 +244,7 @@ MD.Pane {
                         icon.name: MD.Token.icon.playlist_play
 
                         onClicked: {
-                            pop_playlist.open();
+                            QA.Action.popup_special(QA.enums.SRQueue);
                         }
                     }
                 }
@@ -279,18 +279,6 @@ MD.Pane {
                     root.isSmallChanged();
                 }
 
-                QA.PagePopup {
-                    id: pop_playlist
-                    source: 'qrc:/Qcm/App/qml/page/PlayQueuePage.qml'
-
-                    Connections {
-                        target: QA.Action
-                        function onPopup_special(str) {
-                            if (str === 'queue')
-                                pop_playlist.open();
-                        }
-                    }
-                }
             }
         }
     }

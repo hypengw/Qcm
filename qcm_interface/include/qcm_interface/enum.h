@@ -52,6 +52,14 @@ enum class PlaybackState
     StoppedState,
 };
 Q_ENUM_NS(PlaybackState)
+
+enum class SpecialRoute
+{
+    SRQueue = 0,
+    SRSetting,
+    SRAbout,
+};
+Q_ENUM_NS(SpecialRoute)
 } // namespace enums
 
 } // namespace qcm

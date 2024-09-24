@@ -24,8 +24,8 @@ Q_SIGNALS:
     void open_drawer();
     void logout();
     void route(model::RouteMsg msg);
-    void route_special(QString name);
-    void popup_special(QString name);
+    void route_special(QVariant name_id);
+    void popup_special(QVariant name_id);
     void toast(QString text, qint32 duration = 4000, enums::ToastFlags flags = {},
                QObject* action = nullptr);
 

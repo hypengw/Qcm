@@ -48,35 +48,17 @@ MD.ListItem {
             }
             implicitWidth: children[0].implicitWidth
             implicitHeight: children[0].implicitHeight
-            StackLayout {
+            QA.ListenIcon {
                 anchors.fill: parent
                 Layout.fillHeight: false
                 Layout.fillWidth: false
 
                 currentIndex: root.showCover ? 2 : 0
-
-                Binding on currentIndex {
-                    value: 1
-                    when: root.isPlaying
-                }
-
+                isPlaying: root.isPlaying
+                index: root.dgIndex
                 MD.FontMetrics {
                     id: item_font_metrics
                     typescale: MD.Token.typescale.body_medium
-                }
-
-                MD.Text {
-                    horizontalAlignment: Qt.AlignHCenter
-                    verticalAlignment: Qt.AlignVCenter
-                    typescale: MD.Token.typescale.body_medium
-                    opacity: 0.6
-                    text: dgIndex + 1
-                }
-                MD.Icon {
-                    name: MD.Token.icon.equalizer
-                    size: 24
-                    color: MD.Token.color.primary
-                    horizontalAlignment: Qt.AlignHCenter
                 }
                 Loader {
                     active: root.showCover

@@ -91,6 +91,19 @@ ApplicationWindow {
         anchors.fill: parent
     }
 
+    QA.PagePopup {
+        id: queue_popup
+        source: 'qrc:/Qcm/App/qml/page/PlayQueuePage.qml'
+
+        Connections {
+            target: QA.Action
+            function onPopup_special(str) {
+                if (str === QA.enums.SRQueue)
+                    queue_popup.open();
+            }
+        }
+    }
+
     Timer {
         running: !win.active
         interval: 10 * 1000

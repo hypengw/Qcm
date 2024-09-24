@@ -80,6 +80,7 @@ set(QML_FILES
     qml/component/RouteMsg.qml
     qml/component/PlaySlider.qml
     qml/component/ListDescription.qml
+    qml/component/ListenIcon.qml
     qml/component/LyricView.qml
     qml/component/Image.qml
     qml/component/IconRowLayout.qml

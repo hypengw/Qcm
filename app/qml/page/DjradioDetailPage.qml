@@ -163,6 +163,7 @@ MD.Page {
                     }
                     MD.IconButton {
                         id: btn_comment
+                        visible: false
                         action: QA.CommentAction {
                             itemId: root.itemId
                         }
@@ -174,10 +175,11 @@ MD.Page {
             }
         }
         delegate: QA.ProgramDelegate {
+            required property int index
             required property var model
             width: ListView.view.contentWidth
 
-            model_: QA.App.program(model)
+            dgModel: QA.Util.create_program(model)
 
             onClicked: {
                 QA.App.playlist.switchTo(model.song);
