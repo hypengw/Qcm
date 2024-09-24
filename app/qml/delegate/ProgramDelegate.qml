@@ -8,7 +8,7 @@ import Qcm.Material as MD
 MD.ListItem {
     id: root
 
-    readonly property bool is_playing: QA.Global.playlist.cur.itemId === model_.song.itemId
+    readonly property bool is_playing: QA.App.playlist.cur.itemId === model_.song.itemId
     property QA.t_program model_: modelData
     property string subtitle: ''
 

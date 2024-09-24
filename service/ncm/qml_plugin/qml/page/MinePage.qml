@@ -175,7 +175,7 @@ MD.Page {
                         supportText: `${QA.Global.join_name(model.artists, '/')} - ${model.trackCount} tracks`
                         function showMenu(parent) {
                             MD.Util.show_popup('qrc:/Qcm/App/qml/menu/AlbumMenu.qml', {
-                                "album": QA.App.album(model),
+                                "album": QA.Util.create_album(model),
                                 "y": parent.height
                             }, parent);
                         }
@@ -189,7 +189,7 @@ MD.Page {
                         supportText: `${model.albumSize} albums`
                         function showMenu(parent) {
                             MD.Util.show_popup('qrc:/Qcm/App/qml/menu/ArtistMenu.qml', {
-                                "artist": QA.App.artist(model),
+                                "artist": QA.Util.create_artist(model),
                                 "y": parent.height
                             }, parent);
                         }
@@ -203,7 +203,7 @@ MD.Page {
                         supportText: `${model.trackCount} songs`
                         function showMenu(parent) {
                             MD.Util.show_popup('qrc:/Qcm/App/qml/menu/PlaylistMenu.qml', {
-                                "playlist": QA.App.playlist(model),
+                                "playlist": QA.Util.create_playlist(model),
                                 "y": parent.height
                             }, parent);
                         }
@@ -217,7 +217,7 @@ MD.Page {
                         supportText: `${model.programCount} programs`
                         function showMenu(parent) {
                             MD.Util.show_popup('qrc:/Qcm/App/qml/menu/DjradioMenu.qml', {
-                                "djradio": QA.App.djradio(model),
+                                "djradio": QA.Util.create_djradio(model),
                                 "y": parent.height
                             }, parent);
                         }

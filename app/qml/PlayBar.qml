@@ -68,7 +68,7 @@ MD.Pane {
                     hoverEnabled: true
 
                     onClicked: {
-                        QA.Global.sig_route_special('playing');
+                        QA.Action.route_special('playing');
                     }
                 }
             }
@@ -150,10 +150,10 @@ MD.Pane {
                         }
                     }
                     MD.IconButton {
-                        enabled: QA.Global.playlist.canPrev
+                        enabled: QA.App.playlist.canPrev
                         icon.name: MD.Token.icon.skip_previous
 
-                        onClicked: QA.Global.playlist.prev()
+                        onClicked: QA.App.playlist.prev()
                     }
                     MD.IconButton {
                         type: MD.Enum.IBtFilled
@@ -162,23 +162,23 @@ MD.Pane {
                         onClicked: root.swich_play()
                     }
                     MD.IconButton {
-                        enabled: QA.Global.playlist.canNext
+                        enabled: QA.App.playlist.canNext
                         icon.name: MD.Token.icon.skip_next
 
-                        onClicked: QA.Global.playlist.next()
+                        onClicked: QA.App.playlist.next()
                     }
                     MD.IconButton {
                         icon.name: QA.Global.loop_icon
 
                         onClicked: {
-                            QA.Global.playlist.iterLoopMode();
+                            QA.App.playlist.iterLoopMode();
                         }
                     }
                     MD.IconButton {
                         icon.name: MD.Token.icon.playlist_play
 
                         onClicked: {
-                            QA.Global.sig_popup_special('queue');
+                            QA.Action.popup_special('queue');
                         }
                     }
                     QA.VolumeButton {
@@ -284,8 +284,8 @@ MD.Pane {
                     source: 'qrc:/Qcm/App/qml/page/PlayQueuePage.qml'
 
                     Connections {
-                        target: QA.Global
-                        function onSig_popup_special(str) {
+                        target: QA.Action
+                        function onPopup_special(str) {
                             if (str === 'queue')
                                 pop_playlist.open();
                         }

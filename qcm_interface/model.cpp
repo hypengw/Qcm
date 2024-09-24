@@ -6,6 +6,7 @@
 #include "qcm_interface/model/user_model.h"
 #include "qcm_interface/model/page.h"
 #include "qcm_interface/model/session.h"
+#include "qcm_interface/model/router_msg.h"
 
 #include "json_helper/helper.inl"
 
@@ -36,6 +37,9 @@ Session::Session(QObject* parent) {
     set_user(nullptr);
 }
 Session::~Session() {}
+
+RouteMsg::RouteMsg() {}
+RouteMsg::~RouteMsg() {}
 
 } // namespace qcm::model
 
@@ -89,6 +93,16 @@ IMPL_JSON_SERIALIZER_TO(qcm::UserModel) {
             j["active_user"] = std::distance(t.begin(), it);
         }
     }
+}
+
+
+IMPL_JSON_SERIALIZER_FROM(QVariantMap) {
+    Q_UNUSED(j)
+    Q_UNUSED(t)
+}
+IMPL_JSON_SERIALIZER_TO(QVariantMap) {
+    Q_UNUSED(j)
+    Q_UNUSED(t)
 }
 
 IMPL_CONVERT(std::string, qcm::model::ItemId) { out = in.toUrl().toString().toStdString(); }

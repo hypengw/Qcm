@@ -10,7 +10,7 @@ import Qcm.Material as MD
 MD.ListItem {
     id: root
 
-    readonly property bool isPlaying: QA.Global.playlist.cur.itemId === dgModel.itemId
+    readonly property bool isPlaying: QA.App.playlist.cur.itemId === dgModel.itemId
     property QA.t_song dgModel: modelData
     property string subtitle: ''
     property bool showCover: false
@@ -75,7 +75,7 @@ MD.ListItem {
                 MD.Icon {
                     name: MD.Token.icon.equalizer
                     size: 24
-                    MD.MatProp.textColor: MD.Token.color.primary
+                    color: MD.Token.color.primary
                     horizontalAlignment: Qt.AlignHCenter
                 }
                 Loader {

@@ -76,6 +76,7 @@ public Q_SLOTS:
     void remove(model::ItemId);
     void append(const model::Song&);
     void appendNext(const model::Song&);
+    void iterLoopMode();
 
 private Q_SLOTS:
     void setCanNext(bool);

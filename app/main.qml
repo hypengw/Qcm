@@ -15,6 +15,13 @@ ApplicationWindow {
     // load QA
     readonly property alias snake: m_snake
     property int windowClass: MD.Enum.WindowClassMedium
+    property Action barAction: Action {
+        icon.name: MD.Token.icon.menu
+        text: qsTr('menu')
+        onTriggered: {
+            QA.Action.open_drawer();
+        }
+    }
 
     MD.MatProp.backgroundColor: MD.MatProp.color.background
     MD.MatProp.textColor: MD.MatProp.color.getOn(MD.MatProp.backgroundColor)
@@ -112,9 +119,9 @@ ApplicationWindow {
     }
 
     Connections {
-        target: QA.Global
-        function onToast(text, duration, flag, action) {
-            win.snake.show2(text, duration, flag, action);
+        target: QA.Action
+        function onToast(text, duration, flags, action) {
+            win.snake.show2(text, duration, flags, action);
         }
     }
     Connections {
@@ -154,7 +161,7 @@ ApplicationWindow {
                 }
             }
             Component.onCompleted: {
-                console.error("win:", Window.window)
+                console.error("win:", Window.window);
             }
 
             Component.onDestruction: {
@@ -162,14 +169,14 @@ ApplicationWindow {
             }
 
             Connections {
-                function onSig_route_special(name) {
+                function onRoute_special(name) {
                     if (name === 'main')
                         sv_main.pop(null);
                     else if (name === 'playing')
                         sv_main.push(sv_main.playing_page);
                 }
 
-                target: QA.Global
+                target: QA.Action
             }
             Component {
                 id: comp_playing

@@ -37,12 +37,11 @@ MD.Page {
     }
 
     Connections {
-        function onSig_route(msg) {
-
-            m_page_stack.push_page(msg.qml, msg.props);
+        function onRoute(msg) {
+            m_page_stack.push_page(msg.url, msg.props);
         }
 
-        target: QA.Global
+        target: QA.Action
     }
     contentItem: Item {
         RowLayout {

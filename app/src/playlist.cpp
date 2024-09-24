@@ -429,6 +429,18 @@ void Playlist::RefreshCanMove() {
     }
 }
 
+void Playlist::iterLoopMode() {
+    using M   = LoopMode;
+    auto mode = loopMode();
+    switch (mode) {
+    case M::NoneLoop: mode = M::SingleLoop; break;
+    case M::SingleLoop: mode = M::ListLoop; break;
+    case M::ListLoop: mode = M::ShuffleLoop; break;
+    case M::ShuffleLoop: mode = M::NoneLoop; break;
+    }
+    setLoopMode(mode);
+}
+
 detail::PlayList& Playlist::oper_list() {
     return m_loop_mode == ShuffleLoop ? *m_shuffle_list : *m_list;
 }

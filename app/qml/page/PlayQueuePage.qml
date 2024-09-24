@@ -19,7 +19,7 @@ MD.Page {
         currentIndex: model.curIndex
         highlightMoveDuration: 1000
         highlightMoveVelocity: -1
-        model: QA.Global.playlist
+        model: QA.App.playlist
         reuseItems: true
         topMargin: 8
 
@@ -29,11 +29,13 @@ MD.Page {
             readonly property real minimumWidth: item_font_metrics.advanceWidth(view_playlist.count.toString())
         }
 
+        footer: Item {}
+
         delegate: MD.ListItem {
             width: ListView.view.width
-            readonly property bool is_playing: model.song.itemId === QA.Global.playlist.cur.itemId
+            readonly property bool is_playing: model.song.itemId === QA.App.playlist.cur.itemId
             onClicked: {
-                QA.Global.playlist.switchTo(model.song);
+                QA.App.playlist.switchTo(model.song);
             }
 
             RowLayout {
@@ -80,7 +82,7 @@ MD.Page {
                     icon.name: MD.Token.icon.remove
 
                     onClicked: {
-                        QA.Global.playlist.remove(model.song.itemId);
+                        QA.App.playlist.remove(model.song.itemId);
                     }
                 }
             }

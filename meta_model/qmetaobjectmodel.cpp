@@ -35,3 +35,15 @@ std::optional<QMetaProperty> QMetaListModelBase::propertyOfRole(int role) const 
     }
     return std::nullopt;
 }
+
+namespace meta_model
+{
+auto readOnGadget(const QVariant& obj, const char* name) -> QVariant {
+    if (auto meta = obj.metaType().metaObject()) {
+        if (auto p = meta->property(meta->indexOfProperty(name)); p.isValid()) {
+            return p.readOnGadget(obj.constData());
+        }
+    }
+    return {};
+}
+} // namespace meta_model

@@ -65,13 +65,7 @@ MD.Drawer {
                     }
                 }
             }
-
-            MD.Divider {
-                Layout.topMargin: 8
-                Layout.leftMargin: 16
-                Layout.rightMargin: 16
-                Layout.bottomMargin: 8
-            }
+            Divider {}
 
             MD.ListView {
                 Layout.fillWidth: true
@@ -95,17 +89,27 @@ MD.Drawer {
                 //    }
                 //}
             }
-            MD.Divider {
+            Divider {
                 visible: m_expand.checked
-                Layout.topMargin: 8
-                Layout.leftMargin: 16
-                Layout.rightMargin: 16
-                Layout.bottomMargin: 8
+            }
+
+            Repeater {
+                model: QA.Global.session.pages.filter(el => !el.primary)
+                MD.DrawerItem {
+                    Layout.fillWidth: true
+                    action: Action {
+                        icon.name: MD.Token.icon[modelData.icon]
+                        text: modelData.name
+                        onTriggered: {
+                            //QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/SettingsPage.qml', {});
+                            //root.close();
+                        }
+                    }
+                }
             }
 
             MD.DrawerItem {
                 Layout.fillWidth: true
-                font.capitalization: Font.Capitalize
                 action: Action {
                     icon.name: MD.Token.icon.settings
                     text: qsTr('settings')
@@ -119,7 +123,6 @@ MD.Drawer {
 
             MD.DrawerItem {
                 Layout.fillWidth: true
-                font.capitalization: Font.Capitalize
                 action: Action {
                     icon.name: MD.Token.icon.info
                     text: qsTr('about')
@@ -131,6 +134,13 @@ MD.Drawer {
                 }
             }
         }
+    }
+
+    component Divider: MD.Divider {
+        Layout.topMargin: 8
+        Layout.leftMargin: 16
+        Layout.rightMargin: 16
+        Layout.bottomMargin: 8
     }
     QNcm.LogoutQuerier {
         id: qr_logout
@@ -144,5 +154,12 @@ MD.Drawer {
         }
 
         autoReload: false
+    }
+
+    Connections {
+        target: QA.Action
+        function onOpen_drawer() {
+            root.open();
+        }
     }
 }

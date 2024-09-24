@@ -19,7 +19,7 @@ set(MODEL_SOURCES
     include/qcm_interface/model/plugin_info.h
     include/qcm_interface/model/page.h
     include/qcm_interface/model/session.h
-    )
+    include/qcm_interface/model/router_msg.h)
 
 add_library(
   qcm_interface SHARED
@@ -38,6 +38,7 @@ add_library(
   include/qcm_interface/plugin.h
   include/qcm_interface/model/plugin_model.h
   include/qcm_interface/model/user_model.h
+  action.cpp
   api.cpp
   model.cpp
   item_id.cpp
@@ -88,6 +89,12 @@ set_target_properties(
 
 target_link_libraries(
   qcm_interface
-  PUBLIC core asio_helper asio_qt request json_helper meta_model Qt::Qml)
+  PUBLIC core
+         asio_helper
+         asio_qt
+         request
+         json_helper
+         meta_model
+         Qt::Qml)
 
 install(TARGETS qcm_interface)

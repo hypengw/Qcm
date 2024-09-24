@@ -7,6 +7,7 @@ import Qcm.Material as MD
 MD.Page {
     id: root
     padding: 0
+    title: qsTr('search')
 
     // MD.MatProp.backgroundColor: item_search.focus ? item_search.MD.MatProp.backgroundColor : MD.Token.color.surface
 
@@ -96,9 +97,9 @@ MD.Page {
                 BaseView {
                     delegate: QA.SongDelegate {
                         width: ListView.view.contentWidth
-                        model_: QA.App.song(model)
+                        dgModel: QA.Util.create_song(model)
                         onClicked: {
-                            QA.Global.playlist.switchTo(model_);
+                            QA.App.playlist.switchTo(dgModel);
                         }
                     }
                     type: QNCM.CloudSearchQuerier.SongType

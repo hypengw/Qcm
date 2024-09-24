@@ -96,11 +96,14 @@ App* App::instance() { return app_instance(); }
 App::App(std::monostate)
     : QObject(nullptr),
       m_global(make_rc<Global>()),
+      m_playlist(new qcm::Playlist(this)),
       m_mpris(make_up<mpris::Mpris>()),
       m_media_cache(),
       m_main_win(nullptr),
       m_qml_engine(make_up<QQmlApplicationEngine>()) {
     app_instance(this);
+    register_meta_type();
+    connect_actions();
     { QGuiApplication::setDesktopFileName(APP_ID); }
     {
         auto fbs = make_rc<media_cache::Fallbacks>();
@@ -122,6 +125,7 @@ App::~App() {
     m_qml_engine = nullptr;
 
     save_session();
+    save_settings();
     m_media_cache->stop();
     m_global->session()->about_to_stop();
     m_global->join();
@@ -190,17 +194,7 @@ void App::init() {
     // session cookie
     load_session();
 
-    // session proxy
-    {
-        QSettings s;
-        auto      type    = s.value("network/proxy_type").value<ProxyType>();
-        auto      content = s.value("network/proxy_content").toString();
-        auto ignore_cert  = convert_from<std::optional<bool>>(s.value("network/ignore_certificate"))
-                               .value_or(false);
-
-        setProxy(type, content);
-        setVerifyCertificate(! ignore_cert);
-    }
+    load_settings();
 
     // qml engine
     QQuickStyle::setStyle("Material");
@@ -383,21 +377,6 @@ bool App::debug() const {
 #endif
 }
 
-model::Song  App::song(const QJSValue& js) const { return meta_model::toGadget<model::Song>(js); }
-model::Album App::album(const QJSValue& js) const { return meta_model::toGadget<model::Album>(js); }
-model::Artist App::artist(const QJSValue& js) const {
-    return meta_model::toGadget<model::Artist>(js);
-}
-model::Djradio App::djradio(const QJSValue& js) const {
-    return meta_model::toGadget<model::Djradio>(js);
-}
-model::Playlist App::playlist(const QJSValue& js) const {
-    return meta_model::toGadget<model::Playlist>(js);
-}
-model::Program App::program(const QJSValue& js) const {
-    return meta_model::toGadget<model::Program>(js);
-}
-
 QString App::itemIdPageUrl(const QJSValue& js) const {
     auto  itemId = js.toVariant().value<model::ItemId>();
     auto& type   = itemId.type();
@@ -415,6 +394,7 @@ QString App::itemIdPageUrl(const QJSValue& js) const {
 
 auto App::engine() const -> QQmlApplicationEngine* { return m_qml_engine.get(); }
 auto App::global() const -> Global* { return m_global.get(); }
+auto App::playlist() const -> Playlist* { return m_playlist; }
 
 // #include <private/qquickpixmapcache_p.h>
 void App::releaseResources(QQuickWindow* win) {
@@ -481,4 +461,26 @@ void App::set_player_sender(Sender<Player::NotifyInfo> sender) {
             sender.try_send(player::notify::cache { db, de });
         }
     };
+}
+void App::load_settings() {
+    QSettings s;
+    playlist()->setLoopMode(s.value("play/loop").value<Playlist::LoopMode>());
+    // session proxy
+    {
+        auto type        = s.value("network/proxy_type").value<ProxyType>();
+        auto content     = s.value("network/proxy_content").toString();
+        auto ignore_cert = convert_from<std::optional<bool>>(s.value("network/ignore_certificate"))
+                               .value_or(false);
+
+        setProxy(type, content);
+        setVerifyCertificate(! ignore_cert);
+    }
+}
+void App::save_settings() {
+    QSettings s;
+    s.setValue("play/loop", playlist()->loopMode());
+}
+
+
+void qcm::register_meta_type() {
 }

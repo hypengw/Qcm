@@ -9,9 +9,9 @@ import Qcm.Material as MD
 QA.GlobalWrapper {
     id: root
 
-    readonly property QA.t_song cur_song: m_playlist.cur
+    readonly property QA.t_song cur_song: QA.App.playlist.cur
 
-    readonly property string loop_icon: switch (m_playlist.loopMode) {
+    readonly property string loop_icon: switch (QA.App.playlist.loopMode) {
     case QA.Playlist.SingleLoop:
         return MD.Token.icon.repeat_one;
     case QA.Playlist.ListLoop:
@@ -22,10 +22,11 @@ QA.GlobalWrapper {
     default:
         return MD.Token.icon.trending_flat;
     }
+
     property QtObject main_win: null
     property alias category: m_category
     property alias player: m_player
-    property alias playlist: m_playlist
+    property var playlist: QA.App.playlist
     property alias querier_song: m_querier_song
 
     property alias querier_user_song: m_querier_user_songlike
@@ -44,10 +45,6 @@ QA.GlobalWrapper {
     readonly property string user_setting_category: 'user_test'//`user_${user_info.userId.sid}`
 
     readonly property alias user_song_set: m_querier_user_songlike.data
-
-    signal sig_route(QA.RouteMsg msg)
-    signal sig_route_special(string name)
-    signal sig_popup_special(string name)
 
     copy_action_comp: Component {
         QA.CopyAction {
@@ -75,13 +72,12 @@ QA.GlobalWrapper {
         }
         if (QA.App.debug)
             console.error('route to:', url);
-        sig_route_special('main');
-        const msg = m_comp_route_msg.createObject(root, {
-            "qml": url,
+        QA.Action.route_special('main');
+        const msg = QA.Util.create_route_msg({
+            "url": url,
             "props": props
         });
-        sig_route(msg);
-        msg.destroy(3000);
+        QA.Action.route(msg);
     }
     function show_page_popup(url, props, popup_props = {}) {
         return MD.Util.show_popup('qrc:/Qcm/App/qml/component/PagePopup.qml', Object.assign({}, {
@@ -90,21 +86,8 @@ QA.GlobalWrapper {
         }, popup_props), root.main_win);
     }
 
-    function appendList(songs_) {
-        const songs = songs_.filter(s => {
-            return s.canPlay;
-        });
-        const num = root.playlist.appendList(songs);
-        root.toast(num ? qsTr(`Add ${num} songs to queue`) : qsTr('Already added'));
-    }
-
     function toggleColorScheme() {
         color_scheme = color_scheme == MD.MdColorMgr.Dark ? MD.MdColorMgr.Light : MD.MdColorMgr.Dark;
-    }
-
-    Component {
-        id: m_comp_route_msg
-        QA.RouteMsg {}
     }
 
     LoggingCategory {
@@ -119,7 +102,6 @@ QA.GlobalWrapper {
     }
     Settings {
         id: settings_play
-        property alias loop: m_playlist.loopMode
         property alias volume: m_player.volume
         category: 'play'
     }
@@ -157,29 +139,10 @@ QA.GlobalWrapper {
             });
         }
     }
-    QA.Playlist {
-        id: m_playlist
-
+    Connections {
+        target: QA.App.playlist
         property var song_url_slot: null
 
-        function iterLoopMode() {
-            let mode = loopMode;
-            switch (mode) {
-            case QA.Playlist.NoneLoop:
-                mode = QA.Playlist.SingleLoop;
-                break;
-            case QA.Playlist.SingleLoop:
-                mode = QA.Playlist.ListLoop;
-                break;
-            case QA.Playlist.ListLoop:
-                mode = QA.Playlist.ShuffleLoop;
-                break;
-            case QA.Playlist.ShuffleLoop:
-                mode = QA.Playlist.NoneLoop;
-                break;
-            }
-            loopMode = mode;
-        }
         function songUrlSlot(key) {
             const status = m_querier_song.status;
             const songs = m_querier_song.data.songs;
@@ -192,16 +155,17 @@ QA.GlobalWrapper {
             }
         }
 
-        onCurChanged: function (refresh) {
+        function onCurChanged(refresh) {
+            const p = QA.App.playlist;
             const song_url_sig = m_querier_song.statusChanged;
             if (song_url_slot)
                 song_url_sig.disconnect(song_url_slot);
-            if (!cur.itemId.valid()) {
+            if (!p.cur.itemId.valid()) {
                 m_player.stop();
                 return;
             }
             const quality = parseInt(settings_play.value('play_quality', m_querier_song.level.toString()));
-            const key = Qt.md5(`${cur.itemId.sid}, quality: ${quality}`);
+            const key = Qt.md5(`${p.cur.itemId.sid}, quality: ${quality}`);
             const file = QA.App.media_file(key);
             // seems empty url is true, use string
             if (file.toString()) {
@@ -214,7 +178,7 @@ QA.GlobalWrapper {
                     songUrlSlot(key);
                 };
                 song_url_sig.connect(song_url_slot);
-                const songId = cur.itemId;
+                const songId = p.cur.itemId;
                 if (refresh)
                     m_querier_song.ids = [];
                 m_querier_song.level = quality;
@@ -264,7 +228,7 @@ QA.GlobalWrapper {
     QA.Mpris {
         id: m_mpris
         player: root.player
-        playlist: m_playlist
+        playlist: root.playlist
     }
 
     QA.QcmPlayer {
@@ -285,22 +249,12 @@ QA.GlobalWrapper {
 
             if (p.playbackState === QA.enums.StoppedState && p.source) {
                 if (p.position / p.duration > 0.98) {
-                    m_playlist.next();
+                    root.playlist.next();
                 }
             }
             if (p.playbackState !== QA.enums.StoppedState) {
-                root.playbackLog(m_player.playbackState, root.cur_song.itemId, root.cur_song.source?.itemId ?? QA.Util.create_itemid());
+                QA.Action.playbackLog(m_player.playbackState, root.cur_song.itemId, root.cur_song.source?.itemId ?? QA.Util.create_itemid());
             }
-        }
-    }
-
-    Connections {
-        target: m_playlist
-
-        property QA.t_song old
-        function onCurChanged() {
-            root.playbackLog(QA.enums.StoppedState, old.itemId, old.source?.itemId ?? QA.Util.create_itemid());
-            old = m_playlist.cur;
         }
     }
 }

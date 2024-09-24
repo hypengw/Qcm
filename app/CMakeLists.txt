@@ -23,6 +23,7 @@ set(SOURCES
     include/Qcm/clipboard.h
     include/Qcm/player.h
     include/Qcm/qml_util.h
+    src/action.cpp
     src/app.cpp
     src/playlist.cpp
     src/qr_image.cpp
@@ -36,7 +37,7 @@ set(SOURCES
 
 set(QCM_INTERFACE_HEADER
     include/qcm_interface/enum.h include/qcm_interface/global.h
-    include/qcm_interface/model.h
+    include/qcm_interface/action.h include/qcm_interface/model.h
     include/qcm_interface/model/plugin_model.h)
 
 list(

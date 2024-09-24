@@ -31,6 +31,7 @@ public:
     std::map<std::string, Client, std::less<>> clients;
 
     model::AppInfo info;
+    Action*        action;
     UserModel*     user_model;
     QQmlComponent* copy_action_comp;
 

@@ -7,6 +7,8 @@ import Qcm.Material as MD
 Action {
     icon.name: MD.Token.icon.playlist_add
     text: qsTr('add to list')
-    onTriggered: if(getSongs) QA.Global.appendList(this.getSongs())
+    onTriggered: if(getSongs) {
+        QA.Action.queue_songs(this.getSongs());
+    }
     property var getSongs: null
 }

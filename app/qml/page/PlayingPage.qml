@@ -24,7 +24,7 @@ MD.Page {
                         if (root.canBack) {
                             root.back();
                         } else {
-                            QA.Global.sig_route_special('main');
+                            QA.Action.route_special('main');
                         }
                     }
                 }
@@ -121,10 +121,10 @@ MD.Page {
                         }
                     }
                     MD.IconButton {
-                        enabled: QA.Global.playlist.canPrev
+                        enabled: QA.App.playlist.canPrev
                         icon.name: MD.Token.icon.skip_previous
 
-                        onClicked: QA.Global.playlist.prev()
+                        onClicked: QA.App.playlist.prev()
                     }
                     MD.IconButton {
                         type: MD.Enum.IBtFilled
@@ -139,16 +139,16 @@ MD.Page {
                         }
                     }
                     MD.IconButton {
-                        enabled: QA.Global.playlist.canNext
+                        enabled: QA.App.playlist.canNext
                         icon.name: MD.Token.icon.skip_next
 
-                        onClicked: QA.Global.playlist.next()
+                        onClicked: QA.App.playlist.next()
                     }
                     MD.IconButton {
                         flat: true
                         icon.name: QA.Global.loop_icon
 
-                        onClicked: QA.Global.playlist.iterLoopMode()
+                        onClicked: QA.App.playlist.iterLoopMode()
                     }
                 }
                 RowLayout {
@@ -190,7 +190,7 @@ MD.Page {
                         icon.name: MD.Token.icon.playlist_play
 
                         onClicked: {
-                            QA.Global.sig_popup_special('queue');
+                            QA.Action.popup_special('queue');
                         }
                     }
                     MD.IconButton {

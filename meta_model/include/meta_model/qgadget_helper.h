@@ -32,4 +32,5 @@ TGadget toGadget(const QJSValue& js) {
     }
     return out;
 }
+auto readOnGadget(const QVariant&, const char*) -> QVariant;
 } // namespace meta_model

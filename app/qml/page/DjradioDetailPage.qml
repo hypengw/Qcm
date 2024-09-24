@@ -180,7 +180,7 @@ MD.Page {
             model_: QA.App.program(model)
 
             onClicked: {
-                QA.Global.playlist.switchTo(model.song);
+                QA.App.playlist.switchTo(model.song);
             }
         }
         footer: MD.ListBusyFooter {
@@ -200,7 +200,7 @@ MD.Page {
                     songs.push(model.item(i).song);
                 }
                 if (songs.length)
-                    QA.Global.playlist.switchList(songs);
+                    QA.App.playlist.switchList(songs);
             }
         }
     }

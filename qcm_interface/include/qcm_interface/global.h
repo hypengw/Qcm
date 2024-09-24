@@ -17,6 +17,7 @@
 #include "qcm_interface/client.h"
 #include "qcm_interface/model/user_model.h"
 #include "qcm_interface/model/session.h"
+#include "qcm_interface/action.h"
 
 namespace request
 {
@@ -68,6 +69,7 @@ public:
     auto pool_executor() -> pool_executor_t;
     auto session() -> rc<request::Session>;
     auto qsession() const -> model::Session*;
+    auto action() const -> Action*;
 
     auto get_cache_sql() const -> rc<media_cache::DataBase>;
 
@@ -89,13 +91,9 @@ public:
 
 Q_SIGNALS:
     void errorOccurred(QString error, StopSignal stop = {});
-    void toast(QString text, qint32 duration = 4000, enums::ToastFlags = {},
-               QObject* action = nullptr, StopSignal stop = {});
     void copyActionCompChanged(StopSignal stop = {});
     void uuidChanged(StopSignal stop = {});
     void sessionChanged(StopSignal stop = {});
-    void playbackLog(enums::PlaybackState state, model::ItemId item, model::ItemId souce,
-                     QVariantMap extra = {}, StopSignal stop = {});
 
 public Q_SLOTS:
     void set_copy_action_comp(QQmlComponent*);
@@ -134,23 +132,20 @@ public:
     GlobalWrapper();
     ~GlobalWrapper();
 
-    auto                 datas() -> QQmlListProperty<QObject>;
-    auto                 info() -> const model::AppInfo&;
-    auto                 user_model() const -> UserModel*;
-    auto                 copy_action_comp() const -> QQmlComponent*;
-    auto                 uuid() const -> QString;
-    auto                 qsession() const -> model::Session*;
+    auto datas() -> QQmlListProperty<QObject>;
+    auto info() -> const model::AppInfo&;
+    auto user_model() const -> UserModel*;
+    auto copy_action_comp() const -> QQmlComponent*;
+    auto uuid() const -> QString;
+    auto qsession() const -> model::Session*;
+
     Q_INVOKABLE QVariant server_url(const model::ItemId&);
 
 Q_SIGNALS:
     void errorOccurred(QString error, StopSignal stop = {});
-    void toast(QString text, qint32 duration = 4000, enums::ToastFlags flag = {},
-               QObject* action = nullptr, StopSignal stop = {});
     void copyActionCompChanged(StopSignal stop = {});
     void uuidChanged(StopSignal stop = {});
     void sessionChanged(StopSignal stop = {});
-    void playbackLog(enums::PlaybackState state, model::ItemId item, model::ItemId souce,
-                     QVariantMap extra = {}, StopSignal stop = {});
 
 public Q_SLOTS:
     void set_copy_action_comp(QQmlComponent*);

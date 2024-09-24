@@ -72,7 +72,7 @@ MD.Page {
             dgModel: model.song
 
             onClicked: {
-                QA.Global.playlist.switchTo(dgModel);
+                QA.App.playlist.switchTo(dgModel);
             }
         }
 
@@ -118,7 +118,7 @@ MD.Page {
                     songs.push(model.item(i).song);
                 }
                 if (songs.length)
-                    QA.Global.playlist.switchList(songs);
+                    QA.App.playlist.switchList(songs);
             }
         }
     }

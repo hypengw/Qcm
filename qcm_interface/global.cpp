@@ -71,6 +71,7 @@ Global::Private::Private(Global* p)
     : qt_ex(std::make_shared<QtExecutionContext>(p, (QEvent::Type)QEvent::registerEventType())),
       pool(get_pool_size()),
       session(std::make_shared<request::Session>(pool.get_executor())),
+      action(new Action(p)),
       user_model(nullptr),
       copy_action_comp(nullptr) {}
 Global::Private::~Private() {}
@@ -90,38 +91,6 @@ Global::Global(): d_ptr(make_up<Private>(this)) {
     // init after set static
     d->user_model = new UserModel(this);
 
-    struct Timer {
-        std::chrono::time_point<std::chrono::steady_clock> point;
-        std::chrono::milliseconds                          passed;
-    };
-
-    auto t = make_rc<Timer>();
-
-    connect(this,
-            &Global::playbackLog,
-            this,
-            [this, t](enums::PlaybackState state,
-                      model::ItemId        item,
-                      model::ItemId        source,
-                      QVariantMap          extra) {
-                std::chrono::milliseconds passed;
-                if (state == enums::PlaybackState::PlayingState) {
-                    t->point = std::chrono::steady_clock::now();
-                } else if (state == enums::PlaybackState::PausedState) {
-                    t->passed += std::chrono::duration_cast<std::chrono::milliseconds>(
-                        std::chrono::steady_clock::now() - t->point);
-                    t->point = std::chrono::steady_clock::now();
-                } else {
-                    passed = t->passed + std::chrono::duration_cast<std::chrono::milliseconds>(
-                                             std::chrono::steady_clock::now() - t->point);
-                    t->passed = {};
-                }
-                auto client = get_client(item.provider().toStdString());
-                if (client) {
-                    client->api->play_state(
-                        client->instance, state, item, source, passed.count() / 1000.0, extra);
-                }
-            });
 
     connect(user_model(), &UserModel::activeUserChanged, this, [this] {
         auto auser  = user_model()->active_user();
@@ -160,6 +129,11 @@ auto Global::client(std::string_view                       name_view,
 auto Global::info() const -> const model::AppInfo& {
     C_D(const Global);
     return d->info;
+}
+
+auto Global::action() const -> Action* {
+    C_D(const Global);
+    return d->action;
 }
 
 auto Global::qexecutor() -> qt_executor_t& {
@@ -309,13 +283,10 @@ auto Global::server_url(const model::ItemId& id) -> QVariant {
 GlobalWrapper::GlobalWrapper(): m_g(Global::instance()) {
     connect_from_global(m_g, &Global::copyActionCompChanged, &GlobalWrapper::copyActionCompChanged);
     connect_from_global(m_g, &Global::errorOccurred, &GlobalWrapper::errorOccurred);
-    connect_from_global(m_g, &Global::toast, &GlobalWrapper::toast);
     connect_from_global(m_g, &Global::uuidChanged, &GlobalWrapper::uuidChanged);
     connect_from_global(m_g, &Global::sessionChanged, &GlobalWrapper::sessionChanged);
 
     connect_to_global(m_g, &Global::errorOccurred, &GlobalWrapper::errorOccurred);
-    connect_to_global(m_g, &Global::toast, &GlobalWrapper::toast);
-    connect_to_global(m_g, &Global::playbackLog, &GlobalWrapper::playbackLog);
 
     connect(this, &GlobalWrapper::errorOccurred, this, [this](const QString& error) {
         if (! error.endsWith("Operation aborted.")) {
@@ -326,7 +297,7 @@ GlobalWrapper::GlobalWrapper(): m_g(Global::instance()) {
                 map.insert("error", error);
                 act = comp->createWithInitialProperties(map);
             }
-            toast(error, 0, enums::ToastFlag::TFCloseable, act);
+            m_g->action()->toast(error, 0, enums::ToastFlag::TFCloseable, act);
         }
     });
 }
@@ -374,21 +345,13 @@ auto create_item(QQmlEngine* engine, const QJSValue& url_or_comp, const QVariant
 
     switch (comp->status()) {
     case QQmlComponent::Status::Ready: {
-        // auto obj = comp->createWithInitialProperties(props);
         QObject* obj { nullptr };
         QMetaObject::invokeMethod(comp.get(),
-                                            "createObject",
-                                            Q_RETURN_ARG(QObject*, obj),
-                                            Q_ARG(QObject*, parent),
-                                            Q_ARG(const QVariantMap&, props));
+                                  "createObject",
+                                  Q_RETURN_ARG(QObject*, obj),
+                                  Q_ARG(QObject*, parent),
+                                  Q_ARG(const QVariantMap&, props));
         if (obj != nullptr) {
-            // if (parent != nullptr) obj->setParent(parent);
-            // if (auto o = prop_parent.value<QObject*>()) {
-            //     auto name = obj->metaObject()->className();
-            //     DEBUG_LOG("{}", name);
-            // }
-            // QQmlEngine::setObjectOwnership(obj, QJSEngine::JavaScriptOwnership);
-            // QQmlEngine::set
             qml_dyn_count()++;
             auto name = obj->metaObject()->className();
             QObject::connect(obj, &QObject::destroyed, [name](QObject*) {

@@ -13,6 +13,6 @@ Action {
 
     onTriggered: {
         QA.Clipboard.text = getCopyString();
-        QA.Global.toast(qsTr("Copied to clipboard"), 2000);
+        QA.Action.toast(qsTr("Copied to clipboard"), 2000);
     }
 }

@@ -176,7 +176,7 @@ MD.Page {
             width: ListView.view.contentWidth
 
             onClicked: {
-                QA.Global.playlist.switchTo(modelData);
+                QA.App.playlist.switchTo(modelData);
             }
         }
         footer: MD.ListBusyFooter {
@@ -193,7 +193,7 @@ MD.Page {
                     return s.canPlay;
                 });
                 if (songs.length)
-                    QA.Global.playlist.switchList(songs);
+                    QA.App.playlist.switchList(songs);
             }
         }
     }

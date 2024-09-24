@@ -204,7 +204,7 @@ MD.Page {
             subtitle: QA.Global.join_name(modelData.artists, '/')
 
             onClicked: {
-                QA.Global.playlist.switchTo(modelData);
+                QA.App.playlist.switchTo(modelData);
             }
         }
 
@@ -222,7 +222,7 @@ MD.Page {
                     return s.canPlay;
                 });
                 if (songs.length)
-                    QA.Global.playlist.switchList(songs);
+                    QA.App.playlist.switchList(songs);
             }
         }
     }

@@ -14,6 +14,6 @@ Action {
 
     onTriggered: {
         console.error(root.song);
-        QA.Global.playlist.appendNext(root.song);
+        QA.App.playlist.appendNext(root.song);
     }
 }
