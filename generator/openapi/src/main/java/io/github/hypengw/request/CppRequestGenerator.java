@@ -139,9 +139,9 @@ public class CppRequestGenerator extends AbstractCppCodegen {
         "model-header.mustache",
         ".h");
 
-    modelTemplateFiles.put(
-        "model-body.mustache",
-        ".cpp");
+    //modelTemplateFiles.put(
+    //    "model-body.mustache",
+    //    ".cpp");
     /**
      * Api classes. You can write classes for each Api file with the
      * apiTemplateFiles map.
@@ -176,15 +176,14 @@ public class CppRequestGenerator extends AbstractCppCodegen {
      */
     supportingFiles.add(new SupportingFile("CMakeLists.txt.mustache", "", "CMakeLists.txt"));
     supportingFiles.add(new SupportingFile("json.cpp.mustache", getSourceFolder().toString(), "json.cpp"));
+    supportingFiles.add(new SupportingFile("model.cpp.mustache", getSourceFolder().toString(), "model.cpp"));
 
     /**
      * Language Specific Primitives. These types will not trigger imports by
      * the client generator
      */
-    languageSpecificPrimitives = new HashSet<String>(
-        Arrays.asList(
-            "Type1", // replace these with your types
-            "Type2"));
+    languageSpecificPrimitives = new HashSet<String>();
+    //    Arrays.asList("Type2");
 
     this.variableNameFirstCharacterUppercase = false;
 
