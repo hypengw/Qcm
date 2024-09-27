@@ -10,7 +10,7 @@ Action {
     icon.name: MD.Token.icon.comment
     text: qsTr('comment')
     onTriggered: {
-        QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/CommentPage.qml', {
+        QA.Action.popup_page('qrc:/Qcm/App/qml/page/CommentPage.qml', {
                 "itemId": itemId
             });
     }

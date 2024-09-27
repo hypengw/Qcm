@@ -1,8 +1,8 @@
 import QtCore
 import QtQuick
 import QtQuick.Window
-import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Controls as QC
 
 import Qcm.App as QA
 import Qcm.Service.Ncm as QNcm
@@ -14,23 +14,13 @@ MD.Page {
     padding: 0
 
     property int pageIndex: -1
+    showHeader: false
 
-    //header: MD.AppBar {
-    //    visible: m_small_layout.visible
-    //    title: root.title
-    //    leadingAction: Action {
-    //        icon.name: root.canBack ? MD.Token.icon.arrow_back : MD.Token.icon.menu
-    //        onTriggered: {
-    //            if (root.canBack)
-    //                root.back();
-    //            else
-    //                m_drawer.open();
-    //        }
-    //    }
-    //}
-    header.visible: false
     title: m_page_stack.currentItem?.title ?? ""
     canBack: m_page_stack.canBack
+
+    backgroundColor: MD.MatProp.backgroundColor
+    radius: MD.Token.shape.corner.large
 
     function back() {
         m_page_stack.back();
@@ -68,7 +58,7 @@ MD.Page {
                     ColumnLayout {
                         MD.IconButton {
                             Layout.alignment: Qt.AlignHCenter
-                            action: Action {
+                            action: QC.Action {
                                 icon.name: MD.Token.icon.arrow_back
 
                                 onTriggered: {
@@ -150,7 +140,7 @@ MD.Page {
                 }
                 MD.IconButton {
                     Layout.alignment: Qt.AlignHCenter
-                    action: Action {
+                    action: QC.Action {
                         icon.name: MD.Token.icon.search
                         onTriggered: {
                             QA.Global.route('qrc:/Qcm/App/qml/page/SearchPage.qml');
@@ -164,11 +154,11 @@ MD.Page {
                 }
                 MD.IconButton {
                     Layout.alignment: Qt.AlignHCenter
-                    action: Action {
+                    action: QC.Action {
                         icon.name: MD.Token.icon.settings
 
                         onTriggered: {
-                            QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/SettingsPage.qml', {});
+                            QA.Action.popup_special(QA.enums.SRSetting);
                         }
                     }
                 }
@@ -238,12 +228,46 @@ MD.Page {
                 id: m_page_stack
                 Layout.fillHeight: true
                 Layout.fillWidth: true
+                Layout.topMargin: 8
+                Layout.bottomMargin: 8
+                Layout.rightMargin: 16
                 clip: true
-
                 initialItem: QA.PageContainer {
                     id: page_container
                     initialItem: Item {}
                     property string title: currentItem?.title ?? ""
+                    property int barType: MD.Enum.AppBarCenterAligned
+                    property bool barVisible: Window.window?.windowClass === MD.Enum.WindowClassCompact
+                    property QC.Action barAction: root.canBack ? m_back_action : m_draw_action
+                }
+                layer.enabled: true
+                layer.effect: MD.RoundClip {
+                    radius: root.radius
+                    size: Qt.vector2d(m_page_stack.width, m_page_stack.height)
+                }
+                property QC.Action barAction: root.canBack ? m_back_action : null
+                property bool barVisible: Window.window?.windowClass === MD.Enum.WindowClassCompact
+                QC.Action {
+                    id: m_back_action
+                    icon.name: MD.Token.icon.arrow_back
+                    onTriggered: {
+                        if (root.canBack)
+                            root.back();
+                    }
+                }
+                QC.Action {
+                    id: m_draw_action
+                    icon.name: MD.Token.icon.menu
+                    onTriggered: {
+                        m_drawer.open();
+                    }
+                }
+
+                Binding {
+                    when: root.Window.window?.windowClass === MD.Enum.WindowClassCompact
+                    m_page_stack.Layout.topMargin: 0
+                    m_page_stack.Layout.bottomMargin: 0
+                    m_page_stack.Layout.rightMargin: 0
                 }
             }
             QA.PlayBar {

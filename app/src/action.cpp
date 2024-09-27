@@ -59,7 +59,7 @@ void App::on_queue_songs(const std::vector<model::Song>& songs) {
         return s.canPlay;
     });
     std::vector<model::Song> f { view.begin(), view.end() };
-    p->appendList(f);
-    Action::instance()->toast(QString::fromStdString(f.size() ? fmt::format("Add {} songs to queue", f.size()) : "Already added"s));
+    auto size = p->appendList(f);
+    Action::instance()->toast(QString::fromStdString(size ? fmt::format("Add {} songs to queue", size) : "Already added"s));
 }
 } // namespace qcm

@@ -9,7 +9,8 @@ import Qcm.Material as MD
 MD.Pane {
     id: root
 
-    backgroundColor: Window.window?.windowClass === MD.Enum.WindowClassCompact ? MD.MatProp.color.surface_container : MD.MatProp.color.surface
+    // backgroundColor: Window.window?.windowClass === MD.Enum.WindowClassCompact ? MD.MatProp.color.surface_container : MD.MatProp.color.surface
+    backgroundColor: MD.Token.color.surface_container
     elevation: Window.window?.windowClass === MD.Enum.WindowClassCompact ? MD.Token.elevation.level2 : MD.Token.elevation.level0
 
     readonly property bool isSmall: root.width > 0 && root.width < 650
@@ -126,7 +127,7 @@ MD.Pane {
                                 if (artists.length === 1)
                                     QA.Global.route(artists[0].itemId);
                                 else
-                                    QA.Global.show_page_popup('qrc:/Qcm/App/qml/component/ArtistsPopup.qml', {
+                                    QA.Action.popup_page('qrc:/Qcm/App/qml/component/ArtistsPopup.qml', {
                                         "model": artists
                                     });
                             }
@@ -191,11 +192,16 @@ MD.Pane {
                         icon.name: MD.Token.icon.more_vert
 
                         onClicked: {
-                            const popup = MD.Util.show_popup('qrc:/Qcm/App/qml/menu/SongMenu.qml', {
+                            const popup = MD.Util.show_popup(comp_song_menu, {
                                 "song": QA.Global.cur_song,
                                 "y": 0
                             }, this);
                             popup.y = -popup.height;
+                        }
+
+                        Component {
+                            id: comp_song_menu
+                            QA.SongMenu {}
                         }
                     }
                     RowLayout {

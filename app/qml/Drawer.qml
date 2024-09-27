@@ -78,16 +78,21 @@ MD.Drawer {
                     width: ListView.view.contentWidth
                     text: model.nickname
                 }
-                //footer: MD.ListItem {
-                //    width: ListView.view.contentWidth
-                //    height: implicitHeight
-                //    text: qsTr('add account')
-                //    font.capitalization: Font.Capitalize
+                footer: MD.ListItem {
+                    width: ListView.view.contentWidth
+                    height: implicitHeight
+                    text: qsTr('add account')
+                    font.capitalization: Font.Capitalize
 
-                //    leader: MD.Icon {
-                //        name: MD.Token.icon.add_circle
-                //    }
-                //}
+                    leader: MD.Icon {
+                        name: MD.Token.icon.add_circle
+                    }
+
+                    onClicked: {
+                        QA.Action.popup_page('qrc:/Qcm/App/qml/page/LoginPage.qml', {});
+                        root.close();
+                    }
+                }
             }
             Divider {
                 visible: m_expand.checked
@@ -97,15 +102,19 @@ MD.Drawer {
                 model: QA.Global.session.pages.filter(el => !el.primary)
                 MD.DrawerItem {
                     Layout.fillWidth: true
+                    visible: Window.window?.windowClass === MD.Enum.WindowClassCompact
                     action: Action {
                         icon.name: MD.Token.icon[modelData.icon]
                         text: modelData.name
                         onTriggered: {
-                            //QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/SettingsPage.qml', {});
-                            //root.close();
+                            QA.Action.popup_page(modelData.source, {});
+                            root.close();
                         }
                     }
                 }
+            }
+            Divider {
+                visible: Window.window?.windowClass === MD.Enum.WindowClassCompact
             }
 
             MD.DrawerItem {
@@ -115,7 +124,7 @@ MD.Drawer {
                     text: qsTr('settings')
 
                     onTriggered: {
-                        QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/SettingsPage.qml', {});
+                        QA.Action.popup_special(QA.enums.SRSetting);
                         root.close();
                     }
                 }
@@ -128,7 +137,7 @@ MD.Drawer {
                     text: qsTr('about')
 
                     onTriggered: {
-                        QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/AboutPage.qml', {});
+                        QA.Action.popup_special(QA.enums.SRAbout);
                         root.close();
                     }
                 }

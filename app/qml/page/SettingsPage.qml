@@ -11,6 +11,7 @@ MD.Page {
     id: root
     font.capitalization: Font.Capitalize
     title: qsTr('settings')
+    bottomPadding: radius
 
     MD.MatProp.textColor: MD.Token.color.on_surface
     elevation: MD.Token.elevation.level0

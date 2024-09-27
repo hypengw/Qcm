@@ -21,7 +21,7 @@ MD.ListItem {
     }
 
     onClicked: {
-        QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/DescriptionPage.qml', {
+        QA.Action.popup_page('qrc:/Qcm/App/qml/page/DescriptionPage.qml', {
                 "text": description
             });
     }

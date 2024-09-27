@@ -45,7 +45,7 @@ MD.Page {
             icon.name: MD.Token.icon.settings
 
             onTriggered: {
-                QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/SettingsPage.qml', {});
+                QA.Action.popup_special(QA.enums.SRSetting);
             }
         }
     }

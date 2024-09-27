@@ -22,7 +22,7 @@ MD.Menu {
         icon.name: MD.Token.icon.queue
         text: qsTr('Add to Playlist')
         onTriggered: {
-            QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/FavPage.qml', {
+            QA.Action.popup_page('qrc:/Qcm/App/qml/page/FavPage.qml', {
                 songId: root.song.itemId
             });
         }
@@ -45,7 +45,7 @@ MD.Menu {
             if (artists.length === 1)
                 QA.Global.route(artists[0].itemId);
             else
-                QA.Global.show_page_popup('qrc:/Qcm/App/qml/component/ArtistsPopup.qml', {
+                QA.Action.popup_page('qrc:/Qcm/App/qml/component/ArtistsPopup.qml', {
                     "model": artists
                 });
         }

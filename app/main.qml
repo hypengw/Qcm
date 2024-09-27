@@ -2,11 +2,9 @@ import QtCore
 import QtQuick
 import QtQml
 import QtQuick.Controls
-import QtQuick.Layouts
 import QtQuick.Window
 
 import Qcm.App as QA
-import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 ApplicationWindow {
@@ -23,7 +21,14 @@ ApplicationWindow {
         }
     }
 
-    MD.MatProp.backgroundColor: MD.MatProp.color.background
+    MD.MatProp.backgroundColor: {
+        switch (win.windowClass) {
+        case MD.Enum.WindowClassCompact:
+            return MD.Token.color.surface;
+        default:
+            return MD.Token.color.surface_container;
+        }
+    }
     MD.MatProp.textColor: MD.MatProp.color.getOn(MD.MatProp.backgroundColor)
 
     color: MD.MatProp.backgroundColor
@@ -98,8 +103,20 @@ ApplicationWindow {
         Connections {
             target: QA.Action
             function onPopup_special(str) {
-                if (str === QA.enums.SRQueue)
+                if (str === QA.enums.SRQueue) {
                     queue_popup.open();
+                } else if (str === QA.enums.SRSetting) {
+                    QA.Action.popup_page('qrc:/Qcm/App/qml/page/SettingsPage.qml', {});
+                } else if (str === QA.enums.SRAbout) {
+                    QA.Action.popup_page('qrc:/Qcm/App/qml/page/AboutPage.qml', {});
+                }
+            }
+
+            function onPopup_page(url, props, popup_props = {}) {
+                return MD.Util.show_popup('qrc:/Qcm/App/qml/component/PagePopup.qml', Object.assign({}, {
+                    "source": url,
+                    "props": props
+                }, popup_props), win);
             }
         }
     }

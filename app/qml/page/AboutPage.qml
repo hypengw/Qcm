@@ -9,6 +9,7 @@ MD.Page {
     id: root
     title: qsTr('about')
     padding: 0
+    bottomPadding: radius
 
     MD.Flickable {
         id: flick
@@ -82,22 +83,6 @@ MD.Page {
                 }
                 trailing: MD.Icon {
                     name: MD.Token.icon.launch
-                }
-            }
-        }
-    }
-
-    footer: MD.Control {
-        horizontalPadding: 24
-        contentItem: RowLayout {
-            Item {
-                Layout.fillWidth: true
-            }
-            MD.Button {
-                type: MD.Enum.BtText
-                text: qsTr('close')
-                onClicked: {
-                    MD.Util.closePopup(root);
                 }
             }
         }

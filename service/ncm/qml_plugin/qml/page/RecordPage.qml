@@ -8,6 +8,8 @@ import Qcm.Material as MD
 MD.Page {
     id: root
     padding: 0
+    title: qsTr('history')
+    bottomPadding: radius
 
     ColumnLayout {
         spacing: 0
@@ -131,6 +133,7 @@ MD.Page {
     component BaseView: MD.ListView {
         model: querier.data
         busy: querier.status === QA.enums.Querying
+        expand: true
         leftMargin: 24
         rightMargin: 24
         topMargin: 4

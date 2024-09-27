@@ -79,12 +79,7 @@ QA.GlobalWrapper {
         });
         QA.Action.route(msg);
     }
-    function show_page_popup(url, props, popup_props = {}) {
-        return MD.Util.show_popup('qrc:/Qcm/App/qml/component/PagePopup.qml', Object.assign({}, {
-            "source": url,
-            "props": props
-        }, popup_props), root.main_win);
-    }
+
 
     function toggleColorScheme() {
         color_scheme = color_scheme == MD.MdColorMgr.Dark ? MD.MdColorMgr.Light : MD.MdColorMgr.Dark;
@@ -257,4 +252,5 @@ QA.GlobalWrapper {
             }
         }
     }
+
 }

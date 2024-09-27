@@ -98,7 +98,7 @@ MD.Page {
             icon.name: MD.Token.icon.edit
 
             onTriggered: {
-                const popup = QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/PlaylistCataloguePage.qml', {}, {
+                const popup = QA.Action.popup_page('qrc:/Qcm/App/qml/page/PlaylistCataloguePage.qml', {}, {
                         "fillHeight": true
                     });
                 popup.closed.connect(() => {

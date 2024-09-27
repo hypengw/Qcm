@@ -95,7 +95,7 @@ MD.Page {
                             action: Action {
                                 icon.name: MD.Token.icon.add
                                 onTriggered: {
-                                    QA.Global.show_page_popup('qrc:/Qcm/App/qml/page/PlaylistCreatePage.qml', {});
+                                    QA.Action.popup_page('qrc:/Qcm/App/qml/page/PlaylistCreatePage.qml', {});
                                 }
                             }
                         }

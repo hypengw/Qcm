@@ -11,10 +11,12 @@ MD.Page {
     id: root
     padding: 0
     title: qsTr("cloud")
+    bottomPadding: radius
 
     MD.ListView {
         id: m_view
         anchors.fill: parent
+        expand: true
         topMargin: 8
         bottomMargin: 8
         leftMargin: 24
@@ -27,19 +29,6 @@ MD.Page {
                 anchors.fill: parent
                 anchors.bottomMargin: 8
                 spacing: 4
-
-                MD.Pane {
-                    id: title_pane
-                    ColumnLayout {
-                        anchors.fill: parent
-
-                        MD.Text {
-                            font.capitalization: Font.Capitalize
-                            text: qsTr('cloud songs')
-                            typescale: MD.Token.typescale.headline_large
-                        }
-                    }
-                }
                 RowLayout {
                     Layout.alignment: Qt.AlignHCenter
 
@@ -104,21 +93,20 @@ MD.Page {
             }
             onTriggered: dirty = true
         }
-    }
+        MD.FAB {
+            flickable: m_view
+            action: Action {
+                icon.name: MD.Token.icon.play_arrow
 
-    MD.FAB {
-        flickable: m_view
-        action: Action {
-            icon.name: MD.Token.icon.play_arrow
-
-            onTriggered: {
-                const songs = [];
-                const model = qr_cloud.data;
-                for (let i = 0; i < model.rowCount(); i++) {
-                    songs.push(model.item(i).song);
+                onTriggered: {
+                    const songs = [];
+                    const model = qr_cloud.data;
+                    for (let i = 0; i < model.rowCount(); i++) {
+                        songs.push(model.item(i).song);
+                    }
+                    if (songs.length)
+                        QA.App.playlist.switchList(songs);
                 }
-                if (songs.length)
-                    QA.App.playlist.switchList(songs);
             }
         }
     }

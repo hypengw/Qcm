@@ -98,6 +98,17 @@ concept has_equal_operator = requires(T a, U b) {
     { a == b } -> std::convertible_to<bool>;
 };
 
+template<class T, class U = T>
+constexpr bool cmp_exchange(T&  obj,
+                            U&& new_value) noexcept(std::is_nothrow_move_constructible<T>::value &&
+                                                    std::is_nothrow_assignable<T&, U>::value) {
+    if (obj != new_value) {
+        obj = std::forward<U>(new_value);
+        return true;
+    }
+    return false;
+}
+
 } // namespace ycore
 
 template<typename Tout, typename Tin>
