@@ -14,9 +14,17 @@
 
 namespace ncm::impl
 {
+using ClientBase = qcm::ClientBase;
 
-static auto server_url(std::any& client, const qcm::model::ItemId& id) -> std::string {
-    auto c = std::any_cast<ncm::Client>(&client);
+struct Client : public ClientBase {
+    Client(ncm::Client ncm): ncm(ncm) {}
+    ncm::Client ncm;
+};
+
+static auto get_client(ClientBase& c) -> ncm::Client* { return &static_cast<Client&>(c).ncm; }
+
+static auto server_url(ClientBase& cbase, const qcm::model::ItemId& id) -> std::string {
+    auto c = get_client(cbase);
     switch (UNWRAP(ncm_id_type(id))) {
     case ncm::model::IdType::Song: {
         return fmt::format("{}/#song?id={}", ncm::BASE_URL, id.id());
@@ -26,16 +34,18 @@ static auto server_url(std::any& client, const qcm::model::ItemId& id) -> std::s
     }
     }
 }
-static auto image_cache(std::any& client, const QUrl& url, QSize reqSize) -> std::filesystem::path {
-    auto c = std::any_cast<ncm::Client>(&client);
+static auto image_cache(ClientBase& cbase, const QUrl& url,
+                        QSize reqSize) -> std::filesystem::path {
+    auto c = get_client(cbase);
     return qcm::NcmImageProvider::genImageCachePath(
         qcm::NcmImageProvider::makeReq(url.toString(), reqSize, *c));
 }
 
-static void play_state(std::any& client, qcm::enums::PlaybackState state, qcm::model::ItemId itemId,
-                       qcm::model::ItemId sourceId, i64 played_second, QVariantMap) {
+static void play_state(ClientBase& cbase, qcm::enums::PlaybackState state,
+                       qcm::model::ItemId itemId, qcm::model::ItemId sourceId, i64 played_second,
+                       QVariantMap) {
     if (state == qcm::enums::PlaybackState::PausedState) return;
-    auto c         = *std::any_cast<ncm::Client>(&client);
+    auto c         = *get_client(cbase);
     auto state_old = c.prop("play_state");
     if (state == qcm::enums::PlaybackState::PlayingState) {
         if (state_old) {
@@ -70,8 +80,8 @@ static void play_state(std::any& client, qcm::enums::PlaybackState state, qcm::m
         helper::asio_detached_log);
 }
 
-static auto router(std::any& client) -> rc<qcm::Router> {
-    auto c          = *std::any_cast<ncm::Client>(&client);
+static auto router(ClientBase& cbase) -> rc<qcm::Router> {
+    auto c          = *get_client(cbase);
     auto router_any = c.prop("router"sv);
     if (! router_any) {
         c.set_prop("router"sv, make_rc<qcm::Router>());
@@ -81,8 +91,8 @@ static auto router(std::any& client) -> rc<qcm::Router> {
     return router;
 }
 
-static void user_check(std::any& client, qcm::model::UserAccount* user) {
-    auto c  = *std::any_cast<ncm::Client>(&client);
+static void user_check(ClientBase& cbase, qcm::model::UserAccount* user) {
+    auto c  = *get_client(cbase);
     auto ex = asio::make_strand(c.get_executor());
 
     ncm::api::UserAccount api;
@@ -108,8 +118,8 @@ static void user_check(std::any& client, qcm::model::UserAccount* user) {
         });
 }
 
-static auto logout(std::any& client) -> asio::awaitable<void> {
-    auto             c = *std::any_cast<ncm::Client>(&client);
+static auto logout(ClientBase& cbase) -> asio::awaitable<void> {
+    auto             c = *get_client(cbase);
     ncm::api::Logout api;
     co_await c.perform(api);
     co_return;
@@ -121,7 +131,14 @@ namespace qcm
 
 ncm::Client detail::get_client() {
     auto a = Global::instance()->client("ncm", []() -> Global::Client {
-        auto api         = make_rc<Global::Client::Api>();
+        auto c = ncm::Client(
+            Global::instance()->session(),
+            Global::instance()->pool_executor(),
+            ncm::api::device_id_from_uuid(Global::instance()->uuid().toString().toStdString()));
+
+        auto api      = make_rc<Global::Client::Api>();
+        auto instance = make_rc<ncm::impl::Client>(c);
+
         api->server_url  = ncm::impl::server_url;
         api->image_cache = ncm::impl::image_cache;
         api->play_state  = ncm::impl::play_state;
@@ -129,13 +146,8 @@ ncm::Client detail::get_client() {
         api->user_check  = ncm::impl::user_check;
         api->logout      = ncm::impl::logout;
 
-        return { .api = api,
-                 .instance =
-                     ncm::Client(Global::instance()->session(),
-                                 Global::instance()->pool_executor(),
-                                 ncm::api::device_id_from_uuid(
-                                     Global::instance()->uuid().toString().toStdString())) };
+        return { .api = api, .instance = instance };
     });
-    return std::any_cast<ncm::Client>(a.instance);
+    return *ncm::impl::get_client(*a.instance);
 }
 } // namespace qcm

@@ -291,7 +291,7 @@ auto Global::server_url(const model::ItemId& id) -> QVariant {
     const auto& p      = id.provider().toStdString();
     auto        client = get_client(p);
     if (client) {
-        return convert_from<QString>(client->api->server_url(client->instance, id));
+        return convert_from<QString>(client->api->server_url(*(client->instance), id));
     }
     return {};
 }

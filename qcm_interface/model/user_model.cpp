@@ -44,7 +44,7 @@ void UserModel::check_user(model::UserAccount* user) {
     if (user != nullptr) {
         if (auto c = Global::instance()->client(user->userId().provider().toStdString())) {
             check_result()->set_status(enums::ApiStatus::Querying);
-            c.api->user_check(c.instance, user);
+            c.api->user_check(*c.instance, user);
             return;
         }
     }

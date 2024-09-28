@@ -1,5 +1,4 @@
 #pragma once
-#include <any>
 #include <string>
 #include <filesystem>
 #include "qcm_interface/item_id.h"
@@ -14,21 +13,23 @@ namespace model
 {
 class UserAccount;
 }
+
+struct ClientBase {};
 struct Client {
     struct Api {
-        auto (*server_url)(std::any&, const model::ItemId&) -> std::string;
-        auto (*image_cache)(std::any&, const QUrl& url, QSize req) -> std::filesystem::path;
-        void (*play_state)(std::any&, enums::PlaybackState state, model::ItemId item,
+        auto (*server_url)(ClientBase&, const model::ItemId&) -> std::string;
+        auto (*image_cache)(ClientBase&, const QUrl& url, QSize req) -> std::filesystem::path;
+        void (*play_state)(ClientBase&, enums::PlaybackState state, model::ItemId item,
                            model::ItemId source, i64 played_second, QVariantMap extra);
-        auto (*router)(std::any&) -> rc<Router>;
-        void (*user_check)(std::any&, model::UserAccount*);
-        auto (*logout)(std::any&) -> asio::awaitable<void>;
+        auto (*router)(ClientBase&) -> rc<Router>;
+        void (*user_check)(ClientBase&, model::UserAccount*);
+        auto (*logout)(ClientBase&) -> asio::awaitable<void>;
     };
 
-    operator bool() const { return instance.has_value(); }
+    operator bool() const { return instance && api; }
 
-    rc<Api>  api;
-    std::any instance;
+    rc<Api>        api;
+    rc<ClientBase> instance;
 };
 
 } // namespace qcm
