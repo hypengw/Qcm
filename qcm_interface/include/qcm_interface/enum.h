@@ -58,6 +58,7 @@ enum class SpecialRoute
     SRQueue = 0,
     SRSetting,
     SRAbout,
+    SRLogin,
 };
 Q_ENUM_NS(SpecialRoute)
 } // namespace enums

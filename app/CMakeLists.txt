@@ -52,7 +52,6 @@ set(QML_FILES
     qml/page/AboutPage.qml
     qml/page/AlbumDetailPage.qml
     qml/page/ArtistDetailPage.qml
-    qml/page/CommentPage.qml
     qml/page/DescriptionPage.qml
     qml/page/DjradioDetailPage.qml
     qml/page/LoginPage.qml
@@ -97,7 +96,6 @@ set(QML_FILES
     qml/action/AppendListAction.qml
     qml/action/PlaynextAction.qml
     qml/action/CopyAction.qml
-    qml/action/CommentAction.qml
     qml/action/ColorSchemeAction.qml
     qml/action/SubAction.qml
     qml/menu/SongMenu.qml

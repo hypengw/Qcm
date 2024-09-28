@@ -50,12 +50,12 @@ MD.Menu {
                 });
         }
     }
-    QA.CommentAction {
+    QNcm.CommentAction {
         itemId: root.song.itemId
     }
 
     Action {
-        enabled: root.song.source?.userId === QA.Global.user_info.userId
+        enabled: root.song.source?.userId === QA.Global.session.user.userId
         icon.name: MD.Token.icon.delete
         text: qsTr('delete')
         onTriggered: {

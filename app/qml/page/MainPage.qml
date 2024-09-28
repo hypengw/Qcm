@@ -5,9 +5,7 @@ import QtQuick.Layouts
 import QtQuick.Controls as QC
 
 import Qcm.App as QA
-import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
-import "../js/util.mjs" as Util
 
 MD.Page {
     id: root
@@ -214,7 +212,7 @@ MD.Page {
 
     QA.Drawer {
         id: m_drawer
-        width: Math.min(400, root.Window.window.width * 0.8)
+        width: Math.min(400, (root.Window.window?.width ?? 0) * 0.8)
         height: root.height
     }
     Item {

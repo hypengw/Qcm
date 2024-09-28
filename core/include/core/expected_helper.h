@@ -98,11 +98,20 @@ auto map(T&& t, Fn&& fn) -> std::optional<decltype(fn(t.value()))> {
 }
 
 template<typename T, typename F>
-std::optional<T> to_optional(tl::expected<T, F> res) {
+auto to_optional(tl::expected<T, F> res) -> std::optional<T> {
     if (res.has_value())
         return std::move(res).value();
     else
         return std::nullopt;
+}
+
+template<typename T>
+auto to_optional(T* pointer) -> std::optional<std::reference_wrapper<T>> {
+    if (pointer) {
+        return { *pointer };
+    } else {
+        return std::nullopt;
+    }
 }
 
 template<typename T>

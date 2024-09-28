@@ -16,10 +16,10 @@ public:
 
     DECLARE_PROPERTY(UserAccount*, user, NOTIFY_NAME(infoChanged))
     DECLARE_PROPERTY(std::vector<Page>, pages, NOTIFY_NAME(infoChanged))
+    DECLARE_PROPERTY(bool, valid, NOTIFY_NAME(infoChanged))
 
 Q_SIGNALS:
     void infoChanged();
 };
-
 
 } // namespace qcm::model

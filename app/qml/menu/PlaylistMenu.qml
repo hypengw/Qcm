@@ -10,13 +10,13 @@ MD.Menu {
 
     required property QA.t_playlist playlist
     readonly property var itemId: playlist.itemId
-    readonly property bool isUserPlaylist: QA.Global.user_info.userId === root.playlist.userId
+    readonly property bool isUserPlaylist: QA.Global.session.user.userId === root.playlist.userId
 
     dim: false
     font.capitalization: Font.Capitalize
     modal: true
 
-    QA.CommentAction {
+    QNcm.CommentAction {
         itemId: root.itemId
     }
 

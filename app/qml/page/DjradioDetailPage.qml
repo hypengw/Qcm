@@ -164,7 +164,7 @@ MD.Page {
                     MD.IconButton {
                         id: btn_comment
                         visible: false
-                        action: QA.CommentAction {
+                        action: QNcm.CommentAction {
                             itemId: root.itemId
                         }
                     }

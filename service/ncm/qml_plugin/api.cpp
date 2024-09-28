@@ -10,6 +10,7 @@
 
 #include "ncm/api/feedback_weblog.h"
 #include "ncm/api/user_account.h"
+#include "ncm/api/logout.h"
 
 namespace ncm::impl
 {
@@ -88,19 +89,31 @@ static void user_check(std::any& client, qcm::model::UserAccount* user) {
     auto                  res = qcm::Global::instance()->user_model()->check_result();
 
     res->spawn(
-        ex, [c, api, res, hold = helper::create_qholder(user)]() mutable -> asio::awaitable<void> {
+        ex,
+        [c, api, res, hold = helper::create_qholder(false, user)]() mutable
+        -> asio::awaitable<void> {
             auto out = co_await c.perform(api);
             co_await asio::post(asio::bind_executor(res->get_executor(), asio::use_awaitable));
-            res->from(out.transform([user = hold->data()](const ncm::api_model::UserAccount& in) {
-                user->set_userId(convert_from<ItemId>(in.profile->userId));
-                user->set_nickname(convert_from<QString>(in.profile->nickname));
-                user->set_avatarUrl(convert_from<QString>(in.profile->avatarUrl));
-                return user;
+            res->from(out.transform([user = hold->pointer()](const ncm::api_model::UserAccount& in)
+                                        -> qcm::model::UserAccount* {
+                if (user && in.profile) {
+                    user->set_userId(convert_from<ItemId>(in.profile->userId));
+                    user->set_nickname(convert_from<QString>(in.profile->nickname));
+                    user->set_avatarUrl(convert_from<QString>(in.profile->avatarUrl));
+                    return user;
+                }
+                return nullptr;
             }));
             co_return;
         });
 }
 
+static auto logout(std::any& client) -> asio::awaitable<void> {
+    auto             c = *std::any_cast<ncm::Client>(&client);
+    ncm::api::Logout api;
+    co_await c.perform(api);
+    co_return;
+}
 } // namespace ncm::impl
 
 namespace qcm
@@ -114,6 +127,7 @@ ncm::Client detail::get_client() {
         api->play_state  = ncm::impl::play_state;
         api->router      = ncm::impl::router;
         api->user_check  = ncm::impl::user_check;
+        api->logout      = ncm::impl::logout;
 
         return { .api = api,
                  .instance =

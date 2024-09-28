@@ -102,6 +102,8 @@ void handle_assert(Expr&&, std::string_view, Msg&&,
 using LogLevel   = log::LogLevel;
 using LogManager = log::LogManager;
 
+
+
 } // namespace qcm
 
 // clang-format off

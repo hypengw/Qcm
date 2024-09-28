@@ -38,10 +38,6 @@ QA.GlobalWrapper {
     property color primary_color: MD.Token.color.accentColor
 
     property int cover_quality: -1
-
-    readonly property string title: 'Qcm'
-
-    readonly property QtObject user_info: root.userModel.activeUser
     readonly property string user_setting_category: 'user_test'//`user_${user_info.userId.sid}`
 
     readonly property alias user_song_set: m_querier_user_songlike.data
@@ -229,6 +225,15 @@ QA.GlobalWrapper {
     QA.QcmPlayer {
         id: m_player
         readonly property date durationDate: new Date(duration)
+    }
+
+    Connections {
+        target: root
+        function onSessionChanged() {
+            if(!root.session.valid()) {
+                m_player.stop();
+            }
+        }
     }
 
     Connections {

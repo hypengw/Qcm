@@ -152,7 +152,7 @@ MD.Page {
                     MD.IconButton {
                         id: btn_fav
                         action: QA.SubAction {
-                            enabled: QA.Global.user_info.userId !== itemData.userId
+                            enabled: QA.Global.session.user.userId !== itemData.userId
                             liked: qr_dynamic.data.subscribed
                             querier: qr_sub
                             itemId: root.itemId
@@ -160,7 +160,7 @@ MD.Page {
                     }
                     MD.IconButton {
                         id: btn_comment
-                        action: QA.CommentAction {
+                        action: QNcm.CommentAction {
                             itemId: root.itemId
                         }
                     }

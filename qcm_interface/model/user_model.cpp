@@ -15,13 +15,24 @@ public:
 UserModel::UserModel(QObject* parent)
     : meta_model::detail::QObjectListModel<model::UserAccount>(true, parent),
       d_ptr(make_up<Private>(this)) {
-    connect(check_result(), &QAsyncResult::dataChanged, this, [this] {
-        auto res = check_result();
-        if (auto p = qobject_cast<model::UserAccount*>(res->data())) {
-            add_user(p);
-            set_active_user(p);
-        }
-    });
+    connect(
+        check_result(),
+        &QAsyncResult::statusChanged,
+        check_result(),
+        [this]() {
+            auto res = check_result();
+            if (res->status() == QAsyncResult::Status::Finished) {
+                if (auto p = qobject_cast<model::UserAccount*>(res->data())) {
+                    add_user(p);
+                    set_active_user(p);
+                } else {
+                    if (auto u = active_user()) {
+                        delete_user(u->userId());
+                    }
+                    set_active_user(nullptr);
+                }
+            }
+        });
 }
 
 UserModel::~UserModel() {}
@@ -91,6 +102,16 @@ void UserModel::add_user(model::UserAccount* user) {
         insert(rowCount(), user);
     }
 }
-void UserModel::delete_user() {}
+void UserModel::delete_user(const model::ItemId& user_id) {
+    if (auto it = std::find_if(begin(),
+                               end(),
+                               [user_id](auto el) {
+                                   return user_id == el->userId();
+                               });
+        it != end()) {
+        (*it)->deleteLater();
+        remove(std::distance(begin(), it));
+    }
+}
 
 } // namespace qcm

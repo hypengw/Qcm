@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Qcm.App as QA
-import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 MD.Drawer {
@@ -27,7 +26,7 @@ MD.Drawer {
                     Layout.preferredWidth: size
                     Layout.preferredHeight: size
                     radius: size / 2
-                    source: `image://ncm/${QA.Global.user_info.avatarUrl}`
+                    source: `image://ncm/${QA.Global.session.user.avatarUrl}`
                 }
 
                 RowLayout {
@@ -38,7 +37,7 @@ MD.Drawer {
                             s.weight = Font.Bold;
                             return s;
                         }
-                        text: QA.Global.user_info.nickname
+                        text: QA.Global.session.user.nickname
                     }
 
                     Item {
@@ -59,7 +58,7 @@ MD.Drawer {
                             icon.name: MD.Token.icon.logout
                             onTriggered: {
                                 root.close();
-                                qr_logout.logout();
+                                QA.Action.logout();
                             }
                         }
                     }
@@ -89,7 +88,7 @@ MD.Drawer {
                     }
 
                     onClicked: {
-                        QA.Action.popup_page('qrc:/Qcm/App/qml/page/LoginPage.qml', {});
+                        QA.Action.route_special(QA.enums.SRLogin);
                         root.close();
                     }
                 }
@@ -150,19 +149,6 @@ MD.Drawer {
         Layout.leftMargin: 16
         Layout.rightMargin: 16
         Layout.bottomMargin: 8
-    }
-    QNcm.LogoutQuerier {
-        id: qr_logout
-        function logout() {
-            query();
-        }
-        onStatusChanged: {
-            if (status === QA.enums.Finished) {
-                QA.Global.querier_user.query();
-            }
-        }
-
-        autoReload: false
     }
 
     Connections {

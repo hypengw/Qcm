@@ -124,6 +124,7 @@ public Q_SLOTS:
     void load_settings();
     void save_settings();
     void on_queue_songs(const std::vector<model::Song>&);
+    void on_logout();
 
 private:
     void load_session();

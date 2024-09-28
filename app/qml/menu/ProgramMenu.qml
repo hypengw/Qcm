@@ -17,7 +17,7 @@ MD.Menu {
     QA.PlaynextAction {
         song: root.program.song
     }
-    QA.CommentAction {
+    QNcm.CommentAction {
         itemId: root.program.itemId
     }
 }

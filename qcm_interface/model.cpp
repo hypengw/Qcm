@@ -35,6 +35,7 @@ Page::~Page() {}
 Session::Session(QObject* parent) {
     this->setParent(parent);
     set_user(nullptr);
+    set_valid(false);
 }
 Session::~Session() {}
 
@@ -94,7 +95,6 @@ IMPL_JSON_SERIALIZER_TO(qcm::UserModel) {
         }
     }
 }
-
 
 IMPL_JSON_SERIALIZER_FROM(QVariantMap) {
     Q_UNUSED(j)

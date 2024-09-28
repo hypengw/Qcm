@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls as QC
 import QtQuick.Layouts
 
 import Qcm.App as QA
@@ -7,9 +7,10 @@ import Qcm.Material as MD
 
 MD.Page {
     id: root
-    // header: Item {}
+    showHeader: false
 
     Item {
+        anchors.fill: parent
         implicitWidth: m_stack.implicitWidth
         implicitHeight: m_stack.implicitHeight
 
@@ -17,59 +18,68 @@ MD.Page {
             id: m_stack
             anchors.fill: parent
 
-            initialItem: Item {
-
-                MD.Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.bottom: m_services_layout.top
-                    anchors.bottomMargin: 24
-
-                    text: qsTr('add music service')
-                    font.capitalization: Font.Capitalize
-                    typescale: MD.Token.typescale.title_large
+            property QC.Action barAction: QC.Action {
+                icon.name: MD.Token.icon.arrow_back
+                onTriggered: {
+                    m_stack.back();
                 }
+            }
 
-                ColumnLayout {
-                    id: m_services_layout
-                    anchors.centerIn: parent
+            initialItem: MD.Page {
+                pageContext: root.pageContext
+                Item {
+                    anchors.fill: parent
+                    MD.Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.bottom: m_services_layout.top
+                        anchors.bottomMargin: 24
 
-                    QA.PluginModel {
-                        id: m_plugin_model
+                        text: qsTr('add music service')
+                        font.capitalization: Font.Capitalize
+                        typescale: MD.Token.typescale.title_large
                     }
 
-                    MD.ListView {
-                        id: m_view
-                        model: m_plugin_model
-                        expand: true
+                    ColumnLayout {
+                        id: m_services_layout
+                        anchors.centerIn: parent
 
-                        contentWidth: Math.min(400, m_stack.width)
-                        leftMargin: 16
-                        rightMargin: 16
+                        QA.PluginModel {
+                            id: m_plugin_model
+                        }
 
-                        delegate: MD.ListItem {
-                            required property int index
-                            required property var model
-                            width: ListView.view.contentWidth - 32
+                        MD.ListView {
+                            id: m_view
+                            model: m_plugin_model
+                            expand: true
+                            implicitWidth: Math.min(400, m_stack.width)
+                            leftMargin: 16
+                            rightMargin: 16
 
-                            radius: indexRadius(index, count, 16)
-                            leader: MD.IconSvg {
-                                source: model.info.icon
-                                size: 24
-                            }
-                            action: Action {
-                                text: model.info.fullname
-                                onTriggered: {
-                                    const url = model.router.basic_page(QA.enums.BPageLogin);
-                                    m_stack.push_page(model.router.route_url(url));
+                            delegate: MD.ListItem {
+                                required property int index
+                                required property var model
+                                width: ListView.view.contentWidth
+
+                                radius: indexRadius(index, count, 16)
+                                leader: MD.IconSvg {
+                                    source: model.info.icon
+                                    size: 24
                                 }
-                            }
-                            mdState: MD.StateListItem {
-                                item: parent
-                                backgroundColor: ctx.color.surface_container
-                            }
-                            divider: MD.Divider {
-                                anchors.bottom: parent.bottom
-                                orientation: Qt.Horizontal
+                                action: QC.Action {
+                                    text: model.info.fullname
+                                    onTriggered: {
+                                        const url = model.router.basic_page(QA.enums.BPageLogin);
+                                        m_stack.push_page(model.router.route_url(url));
+                                    }
+                                }
+                                mdState: MD.StateListItem {
+                                    item: parent
+                                    backgroundColor: ctx.color.surface_container
+                                }
+                                divider: MD.Divider {
+                                    anchors.bottom: parent.bottom
+                                    orientation: Qt.Horizontal
+                                }
                             }
                         }
                     }

@@ -6,6 +6,8 @@
 #include "qcm_interface/enum.h"
 #include "qcm_interface/router.h"
 
+#include <asio/awaitable.hpp>
+
 namespace qcm
 {
 namespace model
@@ -20,6 +22,7 @@ struct Client {
                            model::ItemId source, i64 played_second, QVariantMap extra);
         auto (*router)(std::any&) -> rc<Router>;
         void (*user_check)(std::any&, model::UserAccount*);
+        auto (*logout)(std::any&) -> asio::awaitable<void>;
     };
 
     operator bool() const { return instance.has_value(); }

@@ -36,7 +36,7 @@ public:
     auto get_executor() -> QtExecutor&;
 
     template<typename Ex, typename Fn>
-    void spawn(Ex&& ex, Fn&& f);
+    void spawn(Ex&& ex, Fn&& f, const std::source_location loc = {});
 
     template<typename T, typename TE>
     void from(const nstd::expected<T, TE>& exp) {
@@ -66,6 +66,8 @@ Q_SIGNALS:
     void statusChanged(Status);
     void errorChanged();
     void forwardErrorChanged();
+    void finished();
+    void errorOccurred(QString);
 
 private:
     auto watch_dog() -> helper::WatchDog&;

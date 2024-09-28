@@ -27,15 +27,14 @@ public:
         convert(o.m_code, in.code);
         emit infoChanged();
 
-        if (o.m_code) {
+        if (o.m_code == 200) {
             auto user = new model::UserAccount(this);
             user->set_userId(convert_from<ItemId>(ncm::model::UserId {}));
             Global::instance()->user_model()->check_user(user);
         }
     }
 
-signals:
-    void infoChanged();
+    Q_SIGNAL void infoChanged();
 };
 static_assert(modelable<Login, ncm::api::Login>);
 

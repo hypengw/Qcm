@@ -9,13 +9,14 @@ MD.Page {
     id: root
     padding: 0
     title: `Comment(${view.model.total})`
+    bottomPadding: radius
 
     property var itemId
 
     MD.ListView {
         id: view
         anchors.fill: parent
-        implicitHeight: contentHeight
+        expand: true
         busy: model_loader.item.status === QA.enums.Querying
         model: model_loader.item.data
 

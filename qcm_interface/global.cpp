@@ -71,9 +71,13 @@ Global::Private::Private(Global* p)
     : qt_ex(std::make_shared<QtExecutionContext>(p, (QEvent::Type)QEvent::registerEventType())),
       pool(get_pool_size()),
       session(std::make_shared<request::Session>(pool.get_executor())),
+      qsession_empty(new model::Session(p)),
       action(new Action(p)),
       user_model(nullptr),
-      copy_action_comp(nullptr) {}
+      copy_action_comp(nullptr) {
+    // add empty user to empty session
+    qsession_empty->set_user(new model::UserAccount(qsession_empty));
+}
 Global::Private::~Private() {}
 
 auto Global::instance() -> Global* { return static_global(); }
@@ -91,20 +95,21 @@ Global::Global(): d_ptr(make_up<Private>(this)) {
     // init after set static
     d->user_model = new UserModel(this);
 
-
     connect(user_model(), &UserModel::activeUserChanged, this, [this] {
         auto auser  = user_model()->active_user();
         auto cur_ss = qsession();
-        if (cur_ss == nullptr || auser != cur_ss->user()) {
+        if (auser == nullptr) {
+            set_session(nullptr);
+        } else if (cur_ss == nullptr || auser != cur_ss->user()) {
             auto ss = new model::Session(this);
             ss->set_user(auser);
+            ss->set_valid(true);
             plugin(auser->userId().provider())
                 .transform([ss](std::reference_wrapper<QcmPluginInterface> ref) {
                     ss->set_pages(ref.get().main_pages());
                     return nullptr;
                 });
             set_session(ss);
-            if (cur_ss) cur_ss->deleteLater();
         }
     });
 }
@@ -151,7 +156,11 @@ auto Global::session() -> rc<request::Session> {
 
 auto Global::qsession() const -> model::Session* {
     C_D(const Global);
-    return d->qsession;
+    if (d->qsession != nullptr) {
+        return d->qsession;
+    } else {
+        return d->qsession_empty;
+    }
 }
 auto Global::uuid() const -> const QUuid& {
     C_D(const Global);
@@ -220,14 +229,21 @@ void Global::save_user() {
 
 void Global::set_uuid(const QUuid& val) {
     C_D(Global);
-    if (std::exchange(d->uuid, val) != val) {
+    if (ycore::cmp_exchange(d->uuid, val)) {
         uuidChanged();
     }
 }
 void Global::set_session(model::Session* val) {
     C_D(Global);
-    if (std::exchange(d->qsession, val) != val) {
+    auto old = d->qsession;
+    if (ycore::cmp_exchange(d->qsession, val)) {
         sessionChanged();
+        if (d->qsession != nullptr) {
+            d->qsession->setParent(this);
+        }
+        if (old != nullptr) {
+            old->deleteLater();
+        }
     }
 }
 void Global::set_cache_sql(rc<media_cache::DataBase> val) {

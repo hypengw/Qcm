@@ -38,7 +38,7 @@ MD.Page {
         QNcm.UserPlaylistQuerier {
             id: qr_playlist
             autoReload: uid.valid() && limit > 0
-            uid: QA.Global.user_info.userId
+            uid: QA.Global.session.user.userId
             limit: 30
             Component.onCompleted: {
                 data.onlyUserId = uid;

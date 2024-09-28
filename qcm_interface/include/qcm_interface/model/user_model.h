@@ -35,9 +35,9 @@ public:
     auto check_result() const -> QAsyncResult*;
 
 public Q_SLOTS:
-    void add_user(model::UserAccount*);
-    void delete_user();
-    void set_active_user(model::UserAccount*);
+    void add_user(model::UserAccount* user);
+    void delete_user(const model::ItemId& user_id);
+    void set_active_user(model::UserAccount* user);
 
 Q_SIGNALS:
     void activeUserChanged();

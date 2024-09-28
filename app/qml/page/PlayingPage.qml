@@ -81,7 +81,7 @@ MD.Page {
                     Layout.preferredHeight: displaySize.height
                     displaySize: Qt.size(size, size)
                     fixedSize: false
-                    readonly property real size: Math.max(240, root.Window.window.width / 4.0)
+                    readonly property real size: Math.max(240, (root.Window.window?.width ?? 8) / 4.0)
                 }
                 MD.Text {
                     Layout.alignment: Qt.AlignHCenter
@@ -194,7 +194,7 @@ MD.Page {
                         }
                     }
                     MD.IconButton {
-                        action: QA.CommentAction {
+                        action: QNcm.CommentAction {
                             itemId: QA.Global.cur_song.itemId
                         }
                     }

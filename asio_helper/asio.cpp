@@ -16,12 +16,12 @@ namespace helper
 
 asio_detached_log_t asio_detached_log {};
 
-void asio_detached_log_t::operator()(std::exception_ptr ptr) {
+void asio_detached_log_t::operator()(std::exception_ptr ptr, const std::source_location loc) {
     if (! ptr) return;
     try {
         std::rethrow_exception(ptr);
     } catch (const std::exception& e) {
-        ERROR_LOG("{}", e.what());
+        qcm::LogManager::instance()->log(qcm::LogLevel::ERROR, loc, "{}", e.what());
     }
 }
 } // namespace helper

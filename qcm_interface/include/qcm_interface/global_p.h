@@ -21,6 +21,7 @@ public:
 
     rc<request::Session> session;
     model::Session*      qsession;
+    model::Session*      qsession_empty;
     //    mutable ncm::Client         m_client;
 
     QUuid                     uuid;

@@ -48,14 +48,21 @@ ApplicationWindow {
         }
     }
 
-    StackView {
+    QA.PageStack {
         id: win_stack
         anchors.fill: parent
 
-        initialItem: Item {
+        initialItem: Loader {
             BusyIndicator {
                 anchors.centerIn: parent
                 running: QA.Global.userModel.checkResult.status === QA.enums.Querying
+            }
+        }
+        property bool barVisible: depth > 1
+        property Action barAction: Action {
+            icon.name: MD.Token.icon.arrow_back
+            onTriggered: {
+                win_stack.pop();
             }
         }
 
@@ -64,24 +71,32 @@ ApplicationWindow {
         }
 
         Connections {
-            function onStatusChanged() {
-                if (target.status === QA.enums.Error) {
-                    win_stack.replace(win_stack.currentItem, comp_retry, {
-                        text: target.error,
-                        retryCallback: () => {
-                            target.query();
-                        }
-                    });
-                } else if (target.status === QA.enums.Finished) {
-                    if (QA.Global.userModel.activeUser) {
-                        win_stack.replace(win_stack.currentItem, comp_main);
-                    } else {
-                        win_stack.replace(win_stack.currentItem, comp_login);
-                    }
+            function onFinished() {
+                win_stack.pop(null);
+                if (QA.Global.userModel.activeUser) {
+                    win_stack.replace(win_stack.currentItem, comp_main);
+                } else {
+                    win_stack.replace(win_stack.currentItem, comp_login);
                 }
             }
-
+            function onErrorOccurred(err) {
+                win_stack.pop(null);
+                win_stack.replace(win_stack.currentItem, comp_retry, {
+                    text: err,
+                    retryCallback: () => {
+                        QA.Global.userModel.check_user();
+                    }
+                });
+            }
             target: QA.Global.userModel.checkResult
+        }
+        Connections {
+            function onRoute_special(name) {
+                if (name === QA.enums.SRLogin)
+                    win_stack.push(comp_login);
+            }
+
+            target: QA.Action
         }
     }
 

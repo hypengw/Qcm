@@ -45,9 +45,13 @@ auto QAsyncResult::status() const -> Status {
 
 void QAsyncResult::set_status(Status v) {
     C_D(QAsyncResult);
-    if (d->m_status != v) {
-        d->m_status = v;
-        emit statusChanged(v);
+    if (ycore::cmp_exchange(d->m_status, v)) {
+        Q_EMIT statusChanged(d->m_status);
+        if (d->m_status == Status::Finished) {
+            Q_EMIT finished();
+        } else if (d->m_status == Status::Error) {
+            Q_EMIT errorOccurred(d->m_error);
+        }
         if (forwardError() && d->m_status == Status::Error) {
             emit Global::instance() -> errorOccurred(d->m_error);
         }
@@ -60,8 +64,7 @@ auto QAsyncResult::error() const -> const QString& {
 }
 void QAsyncResult::set_error(QString v) {
     C_D(QAsyncResult);
-    if (d->m_error != v) {
-        d->m_error = v;
+    if (ycore::cmp_exchange(d->m_error, v)) {
         emit errorChanged();
     }
 }
@@ -72,7 +75,7 @@ bool QAsyncResult::forwardError() const {
 }
 void QAsyncResult::set_forwardError(bool v) {
     C_D(QAsyncResult);
-    if (std::exchange(d->m_forward_error, v) != v) {
+    if (ycore::cmp_exchange(d->m_forward_error, v)) {
         emit forwardErrorChanged();
     }
 }
@@ -96,10 +99,10 @@ auto QAsyncResult::data() const -> QObject* {
 }
 void QAsyncResult::set_data(QObject* v) {
     C_D(QAsyncResult);
-    if (std::exchange(d->m_data, v) != v) {
+    if (ycore::cmp_exchange(d->m_data, v)) {
         dataChanged();
     }
-    if(d->m_data->parent() != this) {
+    if (d->m_data != nullptr && d->m_data->parent() != this) {
         d->m_data->setParent(this);
     }
 }

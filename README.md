@@ -1,15 +1,15 @@
 # Qcm
-Material3 cloud music player.
+Material3 cloud music player.  
 Currently linux only.  
+Muisc Service:  
+- Jellyfin(wip)
+- Netease Cloud Music
+
 
 <p align="center" width="100%">
 <img src="https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main.png?raw=true" width=70%>
 </p>
 
-
-### Muisc Service
-- Jellyfin(wip)
-- Netease Cloud Music
 
 ### Download:  
 <a href='https://flathub.org/apps/details/io.github.hypengw.Qcm'><img width='240' alt='Download on Flathub' src='https://dl.flathub.org/assets/badges/flathub-badge-en.png'/></a>
