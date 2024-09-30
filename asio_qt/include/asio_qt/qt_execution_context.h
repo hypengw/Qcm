@@ -35,16 +35,13 @@ public:
 
     template<class F>
     void post(F&& f) {
-        if (m_target) {
-            auto event = new QtExecFuncEvent(std::forward<F>(f), event_type());
-            QCoreApplication::postEvent(m_target, event);
-        }
+        auto event = new QtExecFuncEvent(std::forward<F>(f), event_type());
+        QCoreApplication::postEvent(m_target, event);
     }
 
     auto event_type() const -> QEvent::Type;
 
 private:
-    struct Filter;
-    QPointer<QObject> m_target;
-    Filter*           m_filter;
+    struct EventRunner;
+    QObject* m_target;
 };
