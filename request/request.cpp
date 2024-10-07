@@ -36,6 +36,7 @@ Request::Private::Private(Request* q)
                req_opt::Proxy {},
                req_opt::Tcp { .keepalive = false, .keepidle = 120, .keepintvl = 60 },
                req_opt::SSL { .verify_certificate = true },
+               {},
                {} } {}
 Request::Private::~Private() {}
 

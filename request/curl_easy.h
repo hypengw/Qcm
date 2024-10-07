@@ -21,18 +21,28 @@ constexpr CURLINFO to_curl_info(Attribute A) noexcept {
     }
 }
 
+namespace detail
+{
+template<CURLoption OPT>
+struct curl_opt_traits;
+template<>
+struct curl_opt_traits<CURLoption::CURLOPT_SHARE> {
+    using type = CURLSH*;
+};
+} // namespace detail
+
 class CurlEasy : NoCopy {
 public:
-    CurlEasy() noexcept: easy(curl_easy_init()), m_headers(NULL) {
+    CurlEasy() noexcept: easy(curl_easy_init()), m_headers(NULL), m_share(NULL) {
         // enable cookie engine
-        setopt(CURLOPT_COOKIEFILE, "");
+        setopt<CURLOPT_COOKIEFILE>("");
 
         // thread safe
-        setopt(CURLOPT_NOSIGNAL, 1L);
+        setopt<CURLOPT_NOSIGNAL>(1L);
 
-        setopt(CURLOPT_FOLLOWLOCATION, 1L);
-        setopt(CURLOPT_AUTOREFERER, 1L);
-        setopt(CURLOPT_VERBOSE, 0L);
+        setopt<CURLOPT_FOLLOWLOCATION>(1L);
+        setopt<CURLOPT_AUTOREFERER>(1L);
+        setopt<CURLOPT_VERBOSE>(0L);
     }
 
     ~CurlEasy() {
@@ -40,7 +50,7 @@ public:
         curl_easy_cleanup(easy);
     }
 
-    CURL* handle() const { return easy; }
+    CURL* handle() const noexcept { return easy; }
 
     template<typename T>
     auto curl_private() {
@@ -48,7 +58,7 @@ public:
     }
 
     template<typename T>
-    inline nstd::expected<T, CURLcode> get_info(CURLINFO info) noexcept {
+    inline auto get_info(CURLINFO info) noexcept -> nstd::expected<T, CURLcode> {
         T inst;
         if (auto res = curl_easy_getinfo(handle(), info, &inst)) {
             return nstd::unexpected(res);
@@ -56,11 +66,22 @@ public:
         return inst;
     }
 
+    template<CURLoption OPT>
+    auto getopt() noexcept -> typename detail::curl_opt_traits<OPT>::type {
+        static_assert(false);
+    }
+
+    template<CURLoption OPT, typename T>
+    constexpr auto setopt(T para) noexcept -> CURLcode {
+        return curl_easy_setopt(handle(), OPT, para);
+    }
+
     template<typename T>
-    CURLcode setopt(CURLoption opt, T para) noexcept {
+    auto setopt(CURLoption opt, T para) noexcept -> CURLcode {
         return curl_easy_setopt(handle(), opt, para);
     }
-    CURLcode perform() { return curl_easy_perform(easy); }
+
+    CURLcode perform() noexcept { return curl_easy_perform(easy); }
 
     void set_header(const Header& headers) {
         reset_header();
@@ -68,11 +89,11 @@ public:
             std::string header = fmt::format("{}: {}", k, v);
             m_headers          = curl_slist_append(m_headers, header.c_str());
         }
-        if (m_headers != NULL) setopt(CURLOPT_HTTPHEADER, m_headers);
+        if (m_headers != NULL) setopt<CURLOPT_HTTPHEADER>(m_headers);
     }
 
     void reset_header() {
-        setopt(CURLOPT_HTTPHEADER, NULL);
+        setopt<CURLOPT_HTTPHEADER>(nullptr);
         curl_slist_free_all(m_headers);
         m_headers = NULL;
     }
@@ -82,5 +103,19 @@ public:
 private:
     CURL*       easy;
     curl_slist* m_headers;
+    CURLSH*     m_share;
 };
+
+template<>
+inline auto
+CurlEasy::setopt<CURLoption::CURLOPT_SHARE, CURLSH*>(CURLSH* para) noexcept -> CURLcode {
+    auto code = curl_easy_setopt(handle(), CURLoption::CURLOPT_SHARE, para);
+    m_share   = para;
+    return code;
+}
+
+template<>
+inline auto CurlEasy::getopt<CURLoption::CURLOPT_SHARE>() noexcept -> CURLSH* {
+    return m_share;
+}
 } // namespace request

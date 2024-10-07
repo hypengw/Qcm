@@ -3,9 +3,10 @@
 #include <string>
 #include <variant>
 #include <functional>
-#include <any>
+#include <optional>
 
 #include "core/type_list.h"
+#include "request/session_share.h"
 
 namespace request
 {
@@ -54,7 +55,13 @@ struct Read {
     REQ_OPT_PROP(usize, size, { 0 })
 };
 
-using opts = ycore::type_list<Timeout, Proxy, Tcp, SSL, Read>;
+struct Share {
+    REQ_OPT_PROP(std::optional<SessionShare>, share, {})
+};
+
+#undef REQ_OPT_PROP
+
+using opts = ycore::type_list<Timeout, Proxy, Tcp, SSL, Read, Share>;
 
 } // namespace req_opt
 

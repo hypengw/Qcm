@@ -21,7 +21,7 @@ using namespace request;
 namespace
 {
 
-void apply_easy_request(CurlEasy& easy, const Request& req) {
+void apply_easy_request(Response::Private* rsp, CurlEasy& easy, const Request& req) {
     easy.setopt(CURLOPT_URL, req.url().data());
     {
         auto& timeout = req.get_opt<req_opt::Timeout>();
@@ -45,6 +45,13 @@ void apply_easy_request(CurlEasy& easy, const Request& req) {
         auto& p = req.get_opt<req_opt::SSL>();
         easy.setopt(CURLOPT_SSL_VERIFYPEER, (long)p.verify_certificate);
         easy.setopt(CURLOPT_PROXY_SSL_VERIFYPEER, (long)p.verify_certificate);
+    }
+    {
+        auto& p = req.get_opt<req_opt::Share>();
+        if (p.share) {
+            easy.setopt<CURLOPT_SHARE>(p.share->handle());
+        }
+        rsp->set_share(p.share);
     }
     easy.set_header(req.header());
 }
@@ -83,7 +90,7 @@ Response::Response(const Request& req, Operation oper, rc<Session> ses) noexcept
         break;
     default: break;
     }
-    apply_easy_request(easy, req);
+    apply_easy_request(d, easy, req);
     {
         auto& p = req.get_opt<req_opt::Read>();
         if (p.callback) {

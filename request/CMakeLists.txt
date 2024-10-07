@@ -15,6 +15,7 @@ add_library(
   request.cpp
   response.cpp
   session.cpp
+  session_share.cpp
   curl_easy.h
   curl_multi.h
   curl_error.h

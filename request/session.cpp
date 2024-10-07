@@ -198,8 +198,11 @@ void Session::Private::add_connect(const rc<Connection>& con) {
 }
 void Session::Private::remove_connect(const rc<Connection>& con) {
     DEBUG_LOG("end {}", con->url());
-    (void)m_curl_multi->remove_handle(con->easy());
+    auto ec = m_curl_multi->remove_handle(con->easy());
     m_connect_set.erase(con);
+    if (ec) {
+        ERROR_LOG("{}", ec.message());
+    }
 }
 
 auto Session::Private::run() -> asio::awaitable<void> {

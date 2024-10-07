@@ -33,7 +33,6 @@ public:
     CurlMulti() noexcept: m_multi(curl_multi_init()), m_share(curl_share_init()) {
         // curl_multi_setopt(m_multi, CURLMOPT_SOCKETFUNCTION, CurlMulti::curl_socket_func);
         // curl_multi_setopt(m_multi, CURLMOPT_SOCKETDATA, this);
-
         // curl_multi_setopt(m_multi, CURLMOPT_TIMERFUNCTION, CurlMulti::curl_timer_func);
         // curl_multi_setopt(m_multi, CURLMOPT_TIMERDATA, this);
 
@@ -49,7 +48,10 @@ public:
     }
 
     std::error_code add_handle(CurlEasy& easy) {
-        std::error_code cm = easy.setopt(CURLOPT_SHARE, m_share);
+        std::error_code cm {};
+        if (easy.getopt<CURLOPT_SHARE>() == nullptr) {
+            cm = easy.setopt<CURLOPT_SHARE>(m_share);
+        }
         if (cm) return cm;
         cm = curl_multi_add_handle(m_multi, easy.handle());
         return cm;
