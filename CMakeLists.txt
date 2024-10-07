@@ -44,6 +44,13 @@ set(QML_IMPORT_PATH
 option(QCM_USE_ASAN "use asan" OFF)
 option(QCM_QML_DEBUG "qml debug" OFF)
 
+if("${QT_INSTALL_QML}" STREQUAL "")
+set(QT_INSTALL_QML "${CMAKE_INSTALL_LIBDIR}/qt6/qml")
+endif()
+
+set(QML_INSTALL_DIR "${QT_INSTALL_QML}" CACHE STRING "")
+message("QML_INSTALL_DIR: ${QML_INSTALL_DIR}")
+
 # -Wconversion -Wsign-conversion
 set(WARN_OPTS
   -Wall
@@ -77,19 +84,18 @@ function(qt_install_qml_module target_)
   get_target_property(QML_TARGET_PATH ${target_} QT_QML_MODULE_TARGET_PATH)
   get_target_property(QML_TYEPINFO ${target_} QT_QML_MODULE_TYPEINFO)
   get_target_property(QML_PLUGIN_TARGET ${target_} QT_QML_MODULE_PLUGIN_TARGET)
-  set(QML_INSTALL_DIR
-      "${CMAKE_INSTALL_LIBDIR}/qt6/qml/${QML_TARGET_PATH}")
+  set(QML_TARGET_INSTALL_DIR "${QML_INSTALL_DIR}/${QML_TARGET_PATH}")
 
   install(TARGETS ${target_})
 
   install(
     TARGETS ${QML_PLUGIN_TARGET}
-    LIBRARY DESTINATION ${QML_INSTALL_DIR})
+    LIBRARY DESTINATION ${QML_TARGET_INSTALL_DIR})
 
   install(
     FILES "${QT_QML_OUTPUT_DIRECTORY}/${QML_TARGET_PATH}/qmldir"
           "${QT_QML_OUTPUT_DIRECTORY}/${QML_TARGET_PATH}/${QML_TYEPINFO}"
-    DESTINATION ${QML_INSTALL_DIR})
+    DESTINATION ${QML_TARGET_INSTALL_DIR})
 endfunction()
 
 add_subdirectory(core)
