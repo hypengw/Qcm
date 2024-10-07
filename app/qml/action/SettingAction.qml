@@ -8,9 +8,7 @@ Action {
     icon.name: MD.Token.icon.settings
     text: qsTr('settings')
 
-    function open() {
+    onTriggered: {
         QA.Action.popup_special(QA.enums.SRSetting);
     }
-
-    onTriggered: open
 }

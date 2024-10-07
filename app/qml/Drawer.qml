@@ -125,7 +125,6 @@ MD.Drawer {
 
                 action: QA.SettingAction {
                     onTriggered: {
-                        open();
                         root.close();
                     }
                 }
