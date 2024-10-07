@@ -152,13 +152,7 @@ MD.Page {
                 }
                 MD.IconButton {
                     Layout.alignment: Qt.AlignHCenter
-                    action: QC.Action {
-                        icon.name: MD.Token.icon.settings
-
-                        onTriggered: {
-                            QA.Action.popup_special(QA.enums.SRSetting);
-                        }
-                    }
+                    action: QA.SettingAction {}
                 }
             }
 

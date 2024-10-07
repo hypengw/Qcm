@@ -17,6 +17,7 @@
 #include <QtQml/QJSValueIterator>
 #include <QtQml/QQmlEngineExtensionPlugin>
 #include <QQuickStyle>
+#include <QQmlContext>
 
 #include <asio/deferred.hpp>
 
@@ -202,6 +203,9 @@ void App::init() {
     engine->addImageProvider(u"qr"_qs, new QrImageProvider {});
 
     load_plugins();
+
+    // avoid listitem index reference error
+    engine->rootContext()->setContextProperty("index", 0);
 
     engine->load(u"qrc:/main/main.qml"_qs);
 

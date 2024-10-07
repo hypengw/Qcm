@@ -41,12 +41,6 @@ MD.Page {
         anchors.leftMargin: 16
         anchors.bottomMargin: 16
 
-        action: Action {
-            icon.name: MD.Token.icon.settings
-
-            onTriggered: {
-                QA.Action.popup_special(QA.enums.SRSetting);
-            }
-        }
+        action: QA.SettingAction {}
     }
 }

@@ -98,6 +98,7 @@ set(QML_FILES
     qml/action/CopyAction.qml
     qml/action/ColorSchemeAction.qml
     qml/action/SubAction.qml
+    qml/action/SettingAction.qml
     qml/menu/SongMenu.qml
     qml/menu/AlbumMenu.qml
     qml/menu/ArtistMenu.qml

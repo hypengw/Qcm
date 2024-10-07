@@ -42,6 +42,7 @@ MD.Page {
                     ColumnLayout {
                         id: m_services_layout
                         anchors.centerIn: parent
+                        spacing: 12
 
                         QA.PluginModel {
                             id: m_plugin_model
@@ -51,6 +52,7 @@ MD.Page {
                             id: m_view
                             model: m_plugin_model
                             expand: true
+                            interactive: false
                             implicitWidth: Math.min(400, m_stack.width)
                             leftMargin: 16
                             rightMargin: 16
@@ -82,6 +84,49 @@ MD.Page {
                                 }
                             }
                         }
+
+                        MD.Text {
+                            Layout.leftMargin: 16
+                            Layout.topMargin: 16
+                            visible: m_user_view.visible
+                            text: qsTr('switch to')
+                            font.capitalization: Font.Capitalize
+                            typescale: MD.Token.typescale.title_small
+                        }
+
+                        MD.ListView {
+                            id: m_user_view
+                            visible: QA.Global.userModel.rowCount() && !QA.Global.session.valid
+
+                            model: QA.Global.userModel
+                            expand: true
+                            interactive: false
+                            implicitWidth: Math.min(400, m_stack.width)
+                            leftMargin: 16
+                            rightMargin: 16
+
+                            delegate: MD.ListItem {
+                                required property int index
+                                required property var model
+                                width: ListView.view.contentWidth
+
+                                radius: indexRadius(index, count, 16)
+                                action: QC.Action {
+                                    text: model.nickname
+                                    onTriggered: {
+                                        QA.Action.switch_user(model.userId);
+                                    }
+                                }
+                                mdState: MD.StateListItem {
+                                    item: parent
+                                    backgroundColor: ctx.color.surface_container
+                                }
+                                divider: MD.Divider {
+                                    anchors.bottom: parent.bottom
+                                    orientation: Qt.Horizontal
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -93,7 +138,7 @@ MD.Page {
             anchors.leftMargin: 16
             anchors.bottomMargin: 16
 
-            action: QA.ColorSchemeAction {}
+            action: QA.SettingAction {}
         }
     }
 }

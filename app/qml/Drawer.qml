@@ -122,12 +122,10 @@ MD.Drawer {
 
             MD.DrawerItem {
                 Layout.fillWidth: true
-                action: Action {
-                    icon.name: MD.Token.icon.settings
-                    text: qsTr('settings')
 
+                action: QA.SettingAction {
                     onTriggered: {
-                        QA.Action.popup_special(QA.enums.SRSetting);
+                        open();
                         root.close();
                     }
                 }
