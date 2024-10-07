@@ -10,8 +10,9 @@ MD.Page {
     id: root
 
     readonly property bool canBack: leaf.folded && leaf.rightAbove
-
     title: m_content.currentItem?.title ?? qsTr("library")
+    radius: MD.Token.shape.corner.large
+    background: Item {}
 
     function back() {
         m_content.pop(null);
@@ -32,6 +33,11 @@ MD.Page {
 
         leftPage: MD.Pane {
             padding: 0
+            layer.enabled: true
+            layer.effect: MD.RoundClip {
+                radius: root.radius
+                size: Qt.vector2d(leaf.leftPage.width, leaf.leftPage.height)
+            }
 
             ColumnLayout {
                 id: p1
@@ -227,6 +233,11 @@ MD.Page {
         }
         rightPage: MD.StackView {
             id: m_content
+            layer.enabled: true
+            layer.effect: MD.RoundClip {
+                radius: root.radius
+                size: Qt.vector2d(m_content.width, m_content.height)
+            }
 
             property var currentItemId: null
 
