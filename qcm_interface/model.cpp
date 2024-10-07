@@ -2,6 +2,7 @@
 
 #include "qcm_interface/model/user_account.h"
 #include "qcm_interface/model/app_info.h"
+#include "qcm_interface/model/busy_info.h"
 #include "qcm_interface/model/plugin_info.h"
 #include "qcm_interface/model/user_model.h"
 #include "qcm_interface/model/page.h"
@@ -22,6 +23,11 @@ AppInfo::AppInfo() {
     set_summary(APP_SUMMARY);
 }
 AppInfo::~AppInfo() {}
+BusyInfo::BusyInfo(QObject* parent) {
+    setParent(parent);
+    set_load_session(false);
+}
+BusyInfo::~BusyInfo() {}
 
 PluginInfo::PluginInfo() {}
 PluginInfo::~PluginInfo() {}
@@ -34,10 +40,13 @@ Page::~Page() {}
 
 Session::Session(QObject* parent) {
     this->setParent(parent);
-    set_user(nullptr);
+    set_user(new model::UserAccount(this));
     set_valid(false);
 }
 Session::~Session() {}
+
+auto Session::client() const -> std::optional<Client> { return m_client; }
+void Session::set_client(std::optional<Client> c) { m_client = c; }
 
 RouteMsg::RouteMsg() {}
 RouteMsg::~RouteMsg() {}
@@ -47,7 +56,7 @@ RouteMsg::~RouteMsg() {}
 IMPL_JSON_SERIALIZER_FROM(QString) {
     std::string s;
     j.get_to(s);
-    t.fromStdString(s);
+    t = QString::fromStdString(s);
 }
 IMPL_JSON_SERIALIZER_TO(QString) { j = t.toStdString(); }
 IMPL_JSON_SERIALIZER_FROM(QUrl) {

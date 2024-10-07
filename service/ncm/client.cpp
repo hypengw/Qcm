@@ -1,16 +1,12 @@
 #include "ncm/client.h"
 
-#include <regex>
 #include <ranges>
 
 #include "request/request.h"
 #include "request/response.h"
+#include "request/session_share.h"
 #include "core/log.h"
 #include "core/random.h"
-#include "core/str_helper.h"
-#include "core/vec_helper.h"
-#include "asio_helper/helper.h"
-#include "json_helper/helper.h"
 
 #include "ncm/crypto.h"
 #include "ncm/model.h"
@@ -25,6 +21,7 @@ public:
     Private(rc<Session> sess, executor_type ex, std::string device_id)
         : session(sess), device_id(device_id), csrf(), crypto(), ex(ex), req_common() {}
     rc<request::Session> session;
+    SessionShare         session_share;
     std::string          device_id;
     std::string          csrf;
     Crypto               crypto;
@@ -46,6 +43,7 @@ Client::Client(rc<Session> sess, executor_type ex, std::string device_id)
         .set_header("User-Agent",
                     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, "
                     "like Gecko) Version/13.1.2 Safari/605.1.15");
+    d->req_common.set_opt(req_opt::Share { d->session_share });
 
     auto player_id = std::ranges::transform_view(std::ranges::views::iota(0, 8), [](auto) {
         return qcm::Random::get('0', '9');
@@ -191,4 +189,12 @@ auto Client::prop(std::string_view name) const -> std::optional<std::any> {
 void Client::set_prop(std::string_view name, std::any val) {
     C_D(Client);
     d->props.insert_or_assign(std::string(name), val);
+}
+void Client::save(const std::filesystem::path& p) {
+    C_D(Client);
+    d->session_share.save(p);
+}
+void Client::load(const std::filesystem::path& p) {
+    C_D(Client);
+    d->session_share.load(p);
 }

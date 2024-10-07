@@ -17,7 +17,10 @@
 #include "qcm_interface/client.h"
 #include "qcm_interface/model/user_model.h"
 #include "qcm_interface/model/session.h"
+#include "qcm_interface/model/busy_info.h"
 #include "qcm_interface/action.h"
+
+#include "qcm_interface/state/app_state.h"
 
 namespace request
 {
@@ -46,6 +49,8 @@ class QCM_INTERFACE_API Global : public QObject {
 
     Q_PROPERTY(UserModel* userModel READ user_model CONSTANT FINAL)
     Q_PROPERTY(model::Session* session READ qsession NOTIFY sessionChanged FINAL)
+    Q_PROPERTY(model::BusyInfo* busy READ busy_info CONSTANT FINAL)
+    Q_PROPERTY(state::AppState* appState READ app_state CONSTANT FINAL)
 
     friend class GlobalWrapper;
     friend class App;
@@ -62,14 +67,13 @@ public:
     Global();
     ~Global();
 
-    auto client(std::string_view name,
-                std::optional<std::function<Client()>> = std::nullopt) -> Client;
-
     auto qexecutor() -> qt_executor_t&;
     auto pool_executor() -> pool_executor_t;
     auto session() -> rc<request::Session>;
     auto qsession() const -> model::Session*;
     auto action() const -> Action*;
+    auto busy_info() const -> model::BusyInfo*;
+    auto app_state() const -> state::AppState*;
 
     auto get_cache_sql() const -> rc<media_cache::DataBase>;
 
@@ -97,6 +101,7 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     void set_copy_action_comp(QQmlComponent*);
+    void switch_user(model::UserAccount*);
     void load_user();
     void save_user();
 
@@ -106,7 +111,6 @@ private:
     void set_session(model::Session*);
     void set_cache_sql(rc<media_cache::DataBase>);
     void set_metadata_impl(const MetadataImpl&);
-    auto get_client(std::string_view) -> Client*;
     auto load_plugin(const std::filesystem::path&) -> bool;
 
     static void setInstance(Global*);
@@ -127,6 +131,8 @@ class QCM_INTERFACE_API GlobalWrapper : public QObject {
     Q_PROPERTY(QString uuid READ uuid NOTIFY uuidChanged FINAL)
     Q_PROPERTY(UserModel* userModel READ user_model CONSTANT FINAL)
     Q_PROPERTY(model::Session* session READ qsession NOTIFY sessionChanged FINAL)
+    Q_PROPERTY(model::BusyInfo* busy READ busy_info CONSTANT FINAL)
+    Q_PROPERTY(state::AppState* appState READ app_state CONSTANT FINAL)
 
 public:
     GlobalWrapper();
@@ -138,6 +144,8 @@ public:
     auto copy_action_comp() const -> QQmlComponent*;
     auto uuid() const -> QString;
     auto qsession() const -> model::Session*;
+    auto busy_info() const -> model::BusyInfo*;
+    auto app_state() const -> state::AppState*;
 
     Q_INVOKABLE QVariant server_url(const model::ItemId&);
 

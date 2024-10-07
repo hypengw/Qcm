@@ -4,9 +4,6 @@
 #include "service_qml_ncm/api.h"
 #include "service_qml_ncm/model.h"
 #include "ncm/api/qrcode_login.h"
-#include "qcm_interface/global.h"
-
-#include "core/log.h"
 
 namespace qcm
 {
@@ -32,12 +29,6 @@ public:
         convert(o.m_nickname, in.nickname);
         convert(o.m_avatarUrl, in.avatarUrl);
         emit infoChanged();
-
-        if (o.m_code == 803) {
-            auto user = new model::UserAccount(this);
-            user->set_userId(convert_from<ItemId>(ncm::model::UserId {}));
-            Global::instance()->user_model()->check_user(user);
-        }
     }
 
 signals:

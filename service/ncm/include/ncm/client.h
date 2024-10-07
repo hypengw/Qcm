@@ -89,6 +89,9 @@ public:
     auto prop(std::string_view) const -> std::optional<std::any>;
     void set_prop(std::string_view, std::any);
 
+    void save(const std::filesystem::path&);
+    void load(const std::filesystem::path&);
+
 private:
     auto post(const request::Request&,
               std::string_view) const -> awaitable<Result<std::vector<byte>>>;

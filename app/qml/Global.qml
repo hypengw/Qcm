@@ -76,7 +76,6 @@ QA.GlobalWrapper {
         QA.Action.route(msg);
     }
 
-
     function toggleColorScheme() {
         color_scheme = color_scheme == MD.MdColorMgr.Dark ? MD.MdColorMgr.Light : MD.MdColorMgr.Dark;
     }
@@ -230,9 +229,7 @@ QA.GlobalWrapper {
     Connections {
         target: root
         function onSessionChanged() {
-            if(!root.session.valid()) {
-                m_player.stop();
-            }
+            m_player.stop();
         }
     }
 
@@ -257,5 +254,4 @@ QA.GlobalWrapper {
             }
         }
     }
-
 }

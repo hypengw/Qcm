@@ -4,7 +4,6 @@
 #include "service_qml_ncm/api.h"
 #include "service_qml_ncm/model.h"
 #include "ncm/api/login.h"
-#include "qcm_interface/global.h"
 
 #include "core/log.h"
 
@@ -26,12 +25,6 @@ public:
         auto& o = *this;
         convert(o.m_code, in.code);
         emit infoChanged();
-
-        if (o.m_code == 200) {
-            auto user = new model::UserAccount(this);
-            user->set_userId(convert_from<ItemId>(ncm::model::UserId {}));
-            Global::instance()->user_model()->check_user(user);
-        }
     }
 
     Q_SIGNAL void infoChanged();

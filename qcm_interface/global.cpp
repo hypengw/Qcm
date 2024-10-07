@@ -18,6 +18,11 @@ auto static_global(qcm::Global* set = nullptr) -> qcm::Global* {
     _assert_rel_(theGlobal);
     return theGlobal;
 }
+
+auto get_session_path(const qcm::model::ItemId& id) {
+    auto filename = fmt::format("{}-{}", id.provider(), id.id());
+    return qcm::config_path() / "session" / filename;
+}
 } // namespace
 
 namespace qcm
@@ -74,7 +79,8 @@ Global::Private::Private(Global* p)
       qsession_empty(new model::Session(p)),
       action(new Action(p)),
       user_model(nullptr),
-      copy_action_comp(nullptr) {
+      copy_action_comp(nullptr),
+      app_state(new state::AppState(p)) {
     // add empty user to empty session
     qsession_empty->set_user(new model::UserAccount(qsession_empty));
 }
@@ -94,43 +100,15 @@ Global::Global(): d_ptr(make_up<Private>(this)) {
 
     // init after set static
     d->user_model = new UserModel(this);
-
-    connect(user_model(), &UserModel::activeUserChanged, this, [this] {
-        auto auser  = user_model()->active_user();
-        auto cur_ss = qsession();
-        if (auser == nullptr) {
-            set_session(nullptr);
-        } else if (cur_ss == nullptr || auser != cur_ss->user()) {
-            auto ss = new model::Session(this);
-            ss->set_user(auser);
-            ss->set_valid(true);
-            plugin(auser->userId().provider())
-                .transform([ss](std::reference_wrapper<QcmPluginInterface> ref) {
-                    ss->set_pages(ref.get().main_pages());
-                    return nullptr;
-                });
-            set_session(ss);
+    connect(this, &Global::sessionChanged, this, [this]() {
+        if (qsession()->valid()) {
+            user_model()->add_user(qsession()->user());
+            user_model()->set_active_user(qsession()->user());
         }
     });
 }
 Global::~Global() { save_user(); }
 
-auto Global::client(std::string_view                       name_view,
-                    std::optional<std::function<Client()>> init) -> Client {
-    C_D(Global);
-    std::unique_lock l { d->mutex };
-    auto             name = std::string(name_view);
-    if (! d->clients.contains(name_view)) {
-        if (init) {
-            d->clients.insert({ name, init.value()() });
-            return d->clients.at(name);
-        } else {
-            return {};
-        }
-    } else {
-        return d->clients.at(name);
-    }
-}
 auto Global::info() const -> const model::AppInfo& {
     C_D(const Global);
     return d->info;
@@ -139,6 +117,16 @@ auto Global::info() const -> const model::AppInfo& {
 auto Global::action() const -> Action* {
     C_D(const Global);
     return d->action;
+}
+
+auto Global::busy_info() const -> model::BusyInfo* {
+    C_D(const Global);
+    return d->busy_info;
+}
+
+auto Global::app_state() const -> state::AppState* {
+    C_D(const Global);
+    return d->app_state;
 }
 
 auto Global::qexecutor() -> qt_executor_t& {
@@ -207,6 +195,21 @@ void Global::set_copy_action_comp(QQmlComponent* val) {
     }
 }
 
+void Global::switch_user(model::UserAccount* user) {
+    plugin(user->userId().provider())
+        .transform([user, this](std::reference_wrapper<QcmPluginInterface> ref) {
+            auto session = ref.get().create_session();
+            session->set_user(user);
+            session->setParent(this);
+            {
+                auto session_path = get_session_path(session->user()->userId());
+                auto c            = session->client();
+                c->api->load(*(c->instance), session_path);
+            }
+            Action::instance()->load_session(session.release());
+            return false;
+        });
+}
 void Global::load_user() {
     C_D(Global);
     auto user_path = config_path() / "user.json";
@@ -222,9 +225,16 @@ void Global::save_user() {
     json::assign(*j, *(d->user_model));
     auto j_str = convert_from<std::string>(*j);
 
-    auto file = std::fopen(user_path.c_str(), "w+");
-    std::fwrite(j_str.data(), j_str.size(), 1, file);
-    std::fclose(file);
+    {
+        auto file = std::fopen(user_path.c_str(), "w+");
+        std::fwrite(j_str.data(), j_str.size(), 1, file);
+        std::fclose(file);
+    }
+    if (qsession()->valid()) {
+        auto session_path = get_session_path(qsession()->user()->userId());
+        auto c            = qsession()->client();
+        c->api->save(*(c->instance), session_path);
+    }
 }
 
 void Global::set_uuid(const QUuid& val) {
@@ -256,15 +266,6 @@ void Global::set_metadata_impl(const MetadataImpl& impl) {
     d->metadata_impl = impl;
 }
 
-auto Global::get_client(std::string_view name) -> Client* {
-    C_D(Global);
-    auto it = d->clients.find(name);
-    if (it != d->clients.end()) {
-        return &(it->second);
-    }
-    return nullptr;
-}
-
 auto Global::load_plugin(const std::filesystem::path& path) -> bool {
     C_D(Global);
     auto loader = new QPluginLoader(path.c_str(), this);
@@ -289,8 +290,8 @@ void Global::join() {
 auto Global::server_url(const model::ItemId& id) -> QVariant {
     C_D(Global);
     const auto& p      = id.provider().toStdString();
-    auto        client = get_client(p);
-    if (client) {
+    auto        client = qsession()->client();
+    if (client && client->api->provider == p) {
         return convert_from<QString>(client->api->server_url(*(client->instance), id));
     }
     return {};
@@ -325,6 +326,8 @@ auto GlobalWrapper::user_model() const -> UserModel* { return m_g->user_model();
 auto GlobalWrapper::copy_action_comp() const -> QQmlComponent* { return m_g->copy_action_comp(); }
 auto GlobalWrapper::uuid() const -> QString { return m_g->uuid().toString(QUuid::WithoutBraces); }
 auto GlobalWrapper::qsession() const -> model::Session* { return m_g->qsession(); }
+auto GlobalWrapper::app_state() const -> state::AppState* { return m_g->app_state(); }
+auto GlobalWrapper::busy_info() const -> model::BusyInfo* { return m_g->busy_info(); }
 void GlobalWrapper::set_copy_action_comp(QQmlComponent* val) { m_g->set_copy_action_comp(val); }
 
 } // namespace qcm

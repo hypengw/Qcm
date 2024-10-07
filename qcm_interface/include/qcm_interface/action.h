@@ -1,9 +1,11 @@
 #pragma once
 
+#include <QPointer>
 #include <QQmlEngine>
 #include "qcm_interface/export.h"
 #include "qcm_interface/enum.h"
 #include "qcm_interface/model/router_msg.h"
+#include "qcm_interface/model/session.h"
 
 namespace qcm
 {
@@ -21,12 +23,15 @@ public:
     Action() = delete;
 
 Q_SIGNALS:
+    void switch_user(model::ItemId userId);
+    void load_session(model::Session* session);
     void open_drawer();
     void logout();
     void route(model::RouteMsg msg);
     void route_special(QVariant name_id);
     void popup_special(QVariant name_id);
-    void popup_page(const QJSValue& url_or_comp, QVariantMap props, QVariantMap popup_props = {});
+    void popup_page(const QJSValue& url_or_comp, QVariantMap props, QVariantMap popup_props = {},
+                    const QJSValue& callback = {});
     void toast(QString text, qint32 duration = 4000, enums::ToastFlags flags = {},
                QObject* action = nullptr);
 

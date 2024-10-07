@@ -22,7 +22,7 @@ public:
     rc<request::Session> session;
     model::Session*      qsession;
     model::Session*      qsession_empty;
-    //    mutable ncm::Client         m_client;
+    model::Session*      loading_session;
 
     QUuid                     uuid;
     rc<media_cache::DataBase> cache_sql;
@@ -31,10 +31,12 @@ public:
 
     std::map<std::string, Client, std::less<>> clients;
 
-    model::AppInfo info;
-    Action*        action;
-    UserModel*     user_model;
-    QQmlComponent* copy_action_comp;
+    model::AppInfo   info;
+    Action*          action;
+    model::BusyInfo* busy_info;
+    UserModel*       user_model;
+    QQmlComponent*   copy_action_comp;
+    state::AppState* app_state;
 
     std::map<QString, QcmPluginInterface*, std::less<>> plugins;
 

@@ -2,13 +2,13 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Qcm.App as QA
-import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 MD.Page {
     id: root
     padding: 0
     title: 'Playlist'
+    bottomPadding: radius
 
     MD.ListView {
         id: view_playlist

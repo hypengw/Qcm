@@ -6,16 +6,12 @@ namespace qcm
 
 class QAsyncResult::Private {
 public:
-    Private()
-        : m_main_ex(Global::instance()->qexecutor()),
-          m_status(Status::Uninitialized),
-          m_forward_error(true),
-          m_data(nullptr) {}
+    Private(): m_status(Status::Uninitialized), m_forward_error(true), m_data(nullptr) {}
 
-    QtExecutor m_main_ex;
-    Status     m_status;
-    bool       m_forward_error;
-    QObject*   m_data;
+    Status                m_status;
+    bool                  m_forward_error;
+    QObject*              m_data;
+    std::function<void()> m_cb;
 
     helper::WatchDog                         m_wdog;
     QString                                  m_error;
@@ -57,6 +53,16 @@ void QAsyncResult::set_status(Status v) {
         }
     }
 }
+void QAsyncResult::reload() {
+    C_D(const QAsyncResult);
+    if (d->m_cb) {
+        d->m_cb();
+    }
+}
+void QAsyncResult::set_reload_callback(const std::function<void()>& f) {
+    C_D(QAsyncResult);
+    d->m_cb = f;
+}
 
 auto QAsyncResult::error() const -> const QString& {
     C_D(const QAsyncResult);
@@ -85,7 +91,7 @@ void QAsyncResult::cancel() {
 }
 auto QAsyncResult::get_executor() -> QtExecutor& {
     C_D(QAsyncResult);
-    return d->m_main_ex;
+    return Global::instance()->qexecutor();
 }
 
 auto QAsyncResult::watch_dog() -> helper::WatchDog& {
@@ -109,13 +115,15 @@ void QAsyncResult::set_data(QObject* v) {
 
 class ApiQuerierBase::Private {
 public:
-    Private(): m_auto_reload(true), m_dirty(true) {}
+    Private(): m_auto_reload(true), m_dirty(true), m_session(nullptr) {}
 
     ~Private() {}
 
     bool m_auto_reload;
     bool m_qml_parsing;
     bool m_dirty;
+
+    model::Session* m_session;
 };
 
 ApiQuerierBase::ApiQuerierBase(QObject* parent): QAsyncResult(parent), d_ptr(make_up<Private>()) {
@@ -132,10 +140,25 @@ bool ApiQuerierBase::autoReload() const {
     C_D(const ApiQuerierBase);
     return d->m_auto_reload;
 }
+
 void ApiQuerierBase::set_autoReload(bool v) {
     C_D(ApiQuerierBase);
     if (std::exchange(d->m_auto_reload, v) != v) {
         emit autoReloadChanged();
+    }
+}
+
+auto ApiQuerierBase::session() const -> model::Session* {
+    C_D(const ApiQuerierBase);
+    if (d->m_session == nullptr) {
+        return Global::instance()->qsession();
+    }
+    return d->m_session;
+}
+void ApiQuerierBase::set_session(model::Session* val) {
+    C_D(ApiQuerierBase);
+    if (ycore::cmp_exchange(d->m_session, val)) {
+        sessionChanged();
     }
 }
 

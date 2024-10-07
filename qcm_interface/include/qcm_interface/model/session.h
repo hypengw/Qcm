@@ -3,6 +3,12 @@
 #include "qcm_interface/model.h"
 #include "qcm_interface/model/user_model.h"
 #include "qcm_interface/model/page.h"
+#include "qcm_interface/client.h"
+
+namespace request
+{
+class Request;
+};
 
 namespace qcm::model
 {
@@ -17,9 +23,15 @@ public:
     DECLARE_PROPERTY(UserAccount*, user, NOTIFY_NAME(infoChanged))
     DECLARE_PROPERTY(std::vector<Page>, pages, NOTIFY_NAME(infoChanged))
     DECLARE_PROPERTY(bool, valid, NOTIFY_NAME(infoChanged))
+    DECLARE_PROPERTY(QString, provider, NOTIFY_NAME(infoChanged))
 
-Q_SIGNALS:
-    void infoChanged();
+    Q_SIGNAL void infoChanged();
+
+    auto client() const -> std::optional<Client>;
+    void set_client(std::optional<Client>);
+
+private:
+    std::optional<Client> m_client;
 };
 
 } // namespace qcm::model

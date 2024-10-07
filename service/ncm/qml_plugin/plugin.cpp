@@ -6,6 +6,8 @@
 #include "qcm_interface/plugin.h"
 #include "qcm_interface/enum.h"
 #include "qcm_interface/model/page.h"
+#include "service_qml_ncm/client.h"
+#include "service_qml_ncm/session.h"
 #include "core/log.h"
 
 #define QRC_URL  u"qrc:/Qcm/Service/Ncm/"
@@ -39,22 +41,8 @@ public:
     auto router() -> qcm::Router* override { return m_router; }
     auto info() -> const qcm::model::PluginInfo& override { return m_info; }
 
-    auto main_pages() -> std::vector<qcm::model::Page> override {
-        return {
-            qcm::model::Page {
-                "library", "library_music", QStringLiteral(PAGE_URL "MinePage.qml"), true, true },
-            qcm::model::Page {
-                "today", "today", QStringLiteral(PAGE_URL "TodayPage.qml"), true, true },
-            qcm::model::Page { "playlist",
-                               "queue_music",
-                               QStringLiteral(PAGE_URL "PlaylistListPage.qml"),
-                               false,
-                               true },
-            qcm::model::Page {
-                "cloud", "cloud", QStringLiteral(PAGE_URL "CloudPage.qml"), true, false },
-            qcm::model::Page {
-                "history", "history", QStringLiteral(PAGE_URL "RecordPage.qml"), false, false },
-        };
+    virtual auto create_session() -> up<qcm::model::Session> override {
+        return make_up<ncm::qml::Session>();
     }
 
 private:

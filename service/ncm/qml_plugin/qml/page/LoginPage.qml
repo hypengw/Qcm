@@ -3,7 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import Qcm.App as QA
-import Qcm.Service.Ncm as QNcm
+import Qcm.Service.Ncm as QNCM
 import Qcm.Material as MD
 
 MD.Page {
@@ -12,14 +12,26 @@ MD.Page {
     ColumnLayout {
         anchors.fill: parent
 
-        readonly property bool loginCodeOk: qr_login.data.code === 200 || qr_qrlogin.data.code === 803
+        readonly property bool loginOk: qr_login.data.code === 200 || qr_qrlogin.data.code === 803
 
-        QNcm.QrcodeLoginQuerier {
+        QNCM.Session {
+            id: m_session
+        }
+
+        QNCM.QrcodeLoginQuerier {
             id: qr_qrlogin
             key: qr_unikey.data.key
+            session: m_session
+
+            onFinished: {
+                if (data.code === 803) {
+                    QA.Action.load_session(m_session);
+                }
+            }
         }
-        QNcm.QrcodeUnikeyQuerier {
+        QNCM.QrcodeUnikeyQuerier {
             id: qr_unikey
+            session: m_session
 
             readonly property int loginCode: qr_qrlogin.data.code
 
@@ -28,15 +40,22 @@ MD.Page {
                     query();
             }
         }
-        QNcm.LoginQuerier {
+        QNCM.LoginQuerier {
             id: qr_login
+            session: m_session
+            autoReload: false
+
+            onFinished: {
+                if (data.code === 200) {
+                    QA.Action.load_session(m_session);
+                }
+            }
+
             function login() {
                 username = tf_username.text;
                 password = QA.App.md5(tf_password.text);
                 query();
             }
-
-            autoReload: false
         }
 
         ColumnLayout {
@@ -57,7 +76,6 @@ MD.Page {
                 font.capitalization: Font.Capitalize
                 typescale: MD.Token.typescale.title_large
             }
-
 
             MD.TabBar {
                 id: bar

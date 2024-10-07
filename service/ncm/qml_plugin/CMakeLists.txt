@@ -45,11 +45,16 @@ set(SOURCES
     include/service_qml_ncm/ncm_image.h
     include/service_qml_ncm/ncm_image_p.h
     include/service_qml_ncm/enum.h
+    include/service_qml_ncm/client.h
+    include/service_qml_ncm/session.h
+    session.cpp
     model.cpp
     model/radar_playlist_id.cpp
     model/cloud_upload.cpp
+    client.cpp
     ncm_image.cpp
-    api.cpp)
+    api.cpp
+    )
 
 set(QML_FILES
     qml/action/CommentAction.qml

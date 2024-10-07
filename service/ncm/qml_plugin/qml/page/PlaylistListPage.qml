@@ -2,8 +2,8 @@ import QtQuick
 import QtCore
 import QtQuick.Controls
 import QtQuick.Layouts
+
 import Qcm.App as QA
-import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 MD.Page {
@@ -17,8 +17,8 @@ MD.Page {
 
     function switchCat(cat) {
         view_container.switchTo('qrc:/Qcm/App/qml/component/PlaylistListView.qml', {
-                "cat": cat
-            }, true);
+            "cat": cat
+        }, true);
     }
 
     padding: 0
@@ -75,7 +75,6 @@ MD.Page {
                     }
                 }
             }
-
         }
         MD.Pane {
             Layout.fillHeight: true
@@ -87,8 +86,7 @@ MD.Page {
                 id: view_container
                 anchors.fill: parent
 
-                initialItem: Item {
-                }
+                initialItem: Item {}
             }
         }
     }
@@ -98,12 +96,13 @@ MD.Page {
             icon.name: MD.Token.icon.edit
 
             onTriggered: {
-                const popup = QA.Action.popup_page('qrc:/Qcm/App/qml/page/PlaylistCataloguePage.qml', {}, {
-                        "fillHeight": true
-                    });
-                popup.closed.connect(() => {
+                QA.Action.popup_page('qrc:/Qcm/App/qml/page/PlaylistCataloguePage.qml', {}, {
+                    "fillHeight": true
+                }, popup => {
+                    popup.closed.connect(() => {
                         settings.read();
                     });
+                });
             }
         }
     }

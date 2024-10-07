@@ -5,6 +5,7 @@
 
 #include "qcm_interface/api.h"
 #include "asio_qt/qt_executor.h"
+#include "service_qml_ncm/client.h"
 
 namespace qcm
 {
@@ -24,7 +25,7 @@ public:
     using model_type = TModel;
 
     ApiQuerier(QObject* parent)
-        : ApiQuerierBase(parent), m_model(new model_type(this)), m_client(detail::get_client()) {
+        : ApiQuerierBase(parent), m_model(new model_type(this)) {
         if constexpr (std::derived_from<TModel, QAbstractItemModel>) {
             connect(m_model,
                     &TModel::fetchMoreReq,
@@ -38,9 +39,17 @@ public:
 
     void reload() override {
         // co_spawn need strand for cancel
-        auto ex = asio::make_strand(m_client.get_executor());
+        auto cnt = gen_context();
+        if (! cnt) {
+            cancel();
+            set_error("session not valid");
+            set_status(Status::Error);
+            return;
+        }
+
+        auto ex = asio::make_strand(cnt->client.get_executor());
         this->set_status(Status::Querying);
-        this->spawn(ex, [cnt = gen_context()]() mutable -> asio::awaitable<void> {
+        this->spawn(ex, [cnt = cnt.value()]() mutable -> asio::awaitable<void> {
             auto& self = cnt.self;
             auto& cli  = cnt.client;
 
@@ -82,17 +91,21 @@ private:
         QPointer<ApiQuerier<TApi, TModel>> self;
     };
 
-    Context gen_context() {
-        return Context {
-            .main_ex = get_executor(),
-            .client  = m_client,
-            .api     = this->api(),
-            .self    = this,
-        };
+    auto gen_context() -> std::optional<Context> {
+        return session()->client().and_then([this](auto c) -> std::optional<Context> {
+            if (c.api->provider != ncm::qml::provider) {
+                return std::nullopt;
+            }
+            return Context {
+                .main_ex = get_executor(),
+                .client  = ncm::qml::get_ncm_client(c),
+                .api     = this->api(),
+                .self    = this,
+            };
+        });
     }
 
     api_type    m_api;
     model_type* m_model;
-    ncm::Client m_client;
 };
 } // namespace qcm

@@ -34,7 +34,7 @@ public:
     operator bool() const { return m_ptr && m_ptr->pointer; }
     auto get() const { return m_ptr->pointer.load(); }
 
-    void take_owner() {
+    void take_owner() const {
         if (*this) {
             this->get()->setParent(this->m_ptr.get());
         }

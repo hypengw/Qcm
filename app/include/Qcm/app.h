@@ -117,18 +117,18 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     void releaseResources(QQuickWindow*);
-    void loginPost(model::UserAccount*);
     void triggerCacheLimit();
     void setProxy(ProxyType, QString);
     void setVerifyCertificate(bool);
     void load_settings();
     void save_settings();
+
     void on_queue_songs(const std::vector<model::Song>&);
     void on_logout();
+    void on_load_session(model::Session*);
+    void on_switch_user(model::ItemId);
 
 private:
-    void load_session();
-    void save_session();
     void load_plugins();
     void connect_actions();
 

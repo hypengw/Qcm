@@ -35,13 +35,17 @@ public:
     bool forwardError() const;
     auto get_executor() -> QtExecutor&;
 
+    Q_INVOKABLE virtual void reload();
+    void set_reload_callback(const std::function<void()>&);
+
     template<typename Ex, typename Fn>
     void spawn(Ex&& ex, Fn&& f, const std::source_location loc = {});
 
     template<typename T, typename TE>
     void from(const nstd::expected<T, TE>& exp) {
         if (exp) {
-            if constexpr (std::is_base_of_v<QObject, std::decay_t<std::remove_pointer_t<T>>> && std::is_pointer_v<T>) {
+            if constexpr (std::is_base_of_v<QObject, std::decay_t<std::remove_pointer_t<T>>> &&
+                          std::is_pointer_v<T>) {
                 set_data(exp.value());
             } else {
                 set_data(nullptr);

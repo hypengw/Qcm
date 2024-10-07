@@ -16,10 +16,12 @@ find_package(
 set(MODEL_SOURCES
     include/qcm_interface/model/user_account.h
     include/qcm_interface/model/app_info.h
+    include/qcm_interface/model/busy_info.h
     include/qcm_interface/model/plugin_info.h
     include/qcm_interface/model/page.h
     include/qcm_interface/model/session.h
-    include/qcm_interface/model/router_msg.h)
+    include/qcm_interface/model/router_msg.h
+    )
 
 add_library(
   qcm_interface SHARED
@@ -38,6 +40,7 @@ add_library(
   include/qcm_interface/plugin.h
   include/qcm_interface/model/plugin_model.h
   include/qcm_interface/model/user_model.h
+  include/qcm_interface/state/app_state.h
   action.cpp
   api.cpp
   model.cpp
@@ -45,6 +48,7 @@ add_library(
   enum.cpp
   path.cpp
   router.cpp
+  state.cpp
   global.cpp
   model/plugin.cpp
   model/user_model.cpp
@@ -90,6 +94,7 @@ set_target_properties(
 target_link_libraries(
   qcm_interface
   PUBLIC core
+         error
          asio_helper
          asio_qt
          request

@@ -124,7 +124,6 @@ App::App(std::monostate)
 App::~App() {
     m_qml_engine = nullptr;
 
-    save_session();
     save_settings();
     m_media_cache->stop();
     m_global->session()->about_to_stop();
@@ -191,9 +190,6 @@ void App::init() {
     }
     triggerCacheLimit();
 
-    // session cookie
-    load_session();
-
     load_settings();
 
     // qml engine
@@ -207,8 +203,6 @@ void App::init() {
 
     load_plugins();
 
-    global()->load_user();
-
     engine->load(u"qrc:/main/main.qml"_qs);
 
     for (auto el : engine->rootObjects()) {
@@ -219,12 +213,21 @@ void App::init() {
 
     _assert_msg_rel_(m_main_win, "main window must exist");
     _assert_msg_rel_(m_player_sender, "player must init");
+
+    global()->load_user();
+
+    if (global()->user_model()->active_user() != nullptr) {
+        auto user = global()->user_model()->active_user();
+        global()->switch_user(user);
+    } else {
+        global()->app_state()->set_state(state::AppState::Start {});
+    }
 }
 
 QUrl App::getImageCache(QString provider, QUrl url, QSize reqSize) const {
-    auto client = Global::instance()->client(provider.toStdString());
-    if (client) {
-        auto path = client.api->image_cache(client.instance, url, reqSize);
+    auto client = Global::instance()->qsession()->client();
+    if (client && client->api->provider == provider.toStdString()) {
+        auto path = client->api->image_cache(*(client->instance), url, reqSize);
         return QUrl::fromLocalFile(path.c_str());
     }
     return {};
@@ -254,17 +257,6 @@ QString App::md5(QString txt) const {
     return std::move(opt).value();
 }
 
-void App::loginPost(model::UserAccount* user) {
-    auto& id = user->userId();
-    if (id.valid()) {
-        QSettings s;
-        s.setValue("session/user_id",
-                   convert_from<QString>(fmt::format("{}-{}", id.provider(), id.id())));
-
-        save_session();
-    }
-}
-
 void App::triggerCacheLimit() {
     QSettings                  s;
     constexpr double           def_total_cache_limit { 3.0 * 1024 * 1024 * 1024 };
@@ -283,22 +275,6 @@ void App::triggerCacheLimit() {
 
     auto limit = s.value(total_cache_key).toDouble() / 1024 - media_cache_limit;
     m_cache_sql->set_limit(limit);
-}
-
-void App::load_session() {
-    QSettings s;
-    auto      user_id = convert_from<std::string>(s.value("session/user_id").toString());
-    if (! user_id.empty()) {
-        m_global->session()->load_cookie(config_path() / "session" / user_id);
-    }
-}
-
-void App::save_session() {
-    QSettings s;
-    auto      user_id = convert_from<std::string>(s.value("session/user_id").toString());
-    if (! user_id.empty()) {
-        m_global->session()->save_cookie(config_path() / "session" / user_id);
-    }
 }
 
 void App::load_plugins() {
@@ -481,6 +457,4 @@ void App::save_settings() {
     s.setValue("play/loop", playlist()->loopMode());
 }
 
-
-void qcm::register_meta_type() {
-}
+void qcm::register_meta_type() {}

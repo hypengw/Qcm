@@ -3,6 +3,7 @@
 #include <QCommandLineParser>
 #include <QSurfaceFormat>
 #include <QLoggingCategory>
+#include <QThread>
 
 #include "Qcm/app.h"
 #include "request/request.h"
@@ -25,8 +26,8 @@ int main(int argc, char* argv[]) {
     QCoreApplication::setApplicationName(APP_NAME);
     QCoreApplication::setApplicationVersion(APP_VERSION);
 
-    QCommandLineParser parser;
     {
+        QCommandLineParser parser;
         parser.addHelpOption();
         parser.addVersionOption();
         QCommandLineOption verboseOption("verbose");
@@ -44,9 +45,6 @@ int main(int argc, char* argv[]) {
         single.sendMessageWithTimeout("hello", 5);
         exit(0);
     }
-    // QSurfaceFormat format;
-    // format.setSamples(4);
-    // QSurfaceFormat::setDefaultFormat(format);
 
     int re { 0 };
     {

@@ -8,6 +8,7 @@
 #include "qcm_interface/macro.h"
 #include "qcm_interface/enum.h"
 #include "qcm_interface/export.h"
+#include "qcm_interface/model/session.h"
 
 namespace qcm
 {
@@ -31,6 +32,7 @@ class QCM_INTERFACE_API ApiQuerierBase : public QAsyncResult, public QQmlParserS
 
     Q_PROPERTY(bool autoReload READ autoReload WRITE set_autoReload NOTIFY autoReloadChanged FINAL)
     Q_PROPERTY(QObject* parent READ parent CONSTANT FINAL)
+    Q_PROPERTY(qcm::model::Session* session READ session WRITE set_session NOTIFY sessionChanged FINAL)
 
 public:
     ApiQuerierBase(QObject* parent = nullptr);
@@ -40,23 +42,22 @@ public:
     Q_INVOKABLE void query();
 
     bool autoReload() const;
+    auto session() const -> model::Session*;
 
     bool dirty() const;
     bool is_qml_parsing() const;
     void classBegin() override;
     void componentComplete() override;
 
-    virtual void reload() = 0;
     // virtual bool can_relaod() const = 0;
+    Q_SIGNAL void autoReloadChanged();
+    Q_SIGNAL void sessionChanged();
 
-public Q_SLOTS:
-    void         set_autoReload(bool);
-    void         reload_if_needed();
-    void         mark_dirty(bool = true);
-    virtual void fetch_more(qint32);
-
-Q_SIGNALS:
-    void autoReloadChanged();
+    Q_SLOT void         set_autoReload(bool);
+    Q_SLOT void         reload_if_needed();
+    Q_SLOT void         mark_dirty(bool = true);
+    Q_SLOT virtual void fetch_more(qint32);
+    Q_SLOT void         set_session(model::Session*);
 
 protected:
     template<typename TProp, typename TIn>

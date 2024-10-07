@@ -76,6 +76,10 @@ MD.Drawer {
                     required property int index
                     width: ListView.view.contentWidth
                     text: model.nickname
+                    onClicked: {
+                        QA.Action.switch_user(model.userId);
+                        root.close();
+                    }
                 }
                 footer: MD.ListItem {
                     width: ListView.view.contentWidth

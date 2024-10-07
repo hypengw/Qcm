@@ -23,16 +23,12 @@ class QCM_INTERFACE_API UserModel
 
     Q_PROPERTY(model::UserAccount* activeUser READ active_user WRITE set_active_user NOTIFY
                    activeUserChanged)
-    Q_PROPERTY(QAsyncResult* checkResult READ check_result NOTIFY checkResultChanged)
 public:
     UserModel(QObject* parent = nullptr);
     ~UserModel();
 
-    Q_INVOKABLE void check_user(model::UserAccount* = nullptr);
-
     auto find_by_url(const QUrl&) const -> model::UserAccount*;
     auto active_user() const -> model::UserAccount*;
-    auto check_result() const -> QAsyncResult*;
 
 public Q_SLOTS:
     void add_user(model::UserAccount* user);

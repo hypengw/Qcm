@@ -52,12 +52,7 @@ ApplicationWindow {
         id: win_stack
         anchors.fill: parent
 
-        initialItem: Loader {
-            BusyIndicator {
-                anchors.centerIn: parent
-                running: QA.Global.userModel.checkResult.status === QA.enums.Querying
-            }
-        }
+        initialItem: comp_loading
         property bool barVisible: depth > 1
         property Action barAction: Action {
             icon.name: MD.Token.icon.arrow_back
@@ -66,34 +61,31 @@ ApplicationWindow {
             }
         }
 
-        Component.onCompleted: {
-            QA.Global.userModel.check_user();
-        }
-
         Connections {
-            function onFinished() {
+            function onStart() {
                 win_stack.pop(null);
-                if (QA.Global.userModel.activeUser) {
-                    win_stack.replace(win_stack.currentItem, comp_main);
-                } else {
-                    win_stack.replace(win_stack.currentItem, comp_login);
-                }
+                win_stack.replace(win_stack.currentItem, comp_login);
             }
-            function onErrorOccurred(err) {
+            function onSession() {
+                win_stack.pop(null);
+                win_stack.replace(win_stack.currentItem, comp_main);
+            }
+            function onError(err) {
                 win_stack.pop(null);
                 win_stack.replace(win_stack.currentItem, comp_retry, {
                     text: err,
                     retryCallback: () => {
-                        QA.Global.userModel.check_user();
+                        QA.Global.appState.rescue.reload();
                     }
                 });
             }
-            target: QA.Global.userModel.checkResult
+            target: QA.Global.appState
         }
         Connections {
             function onRoute_special(name) {
-                if (name === QA.enums.SRLogin)
+                if (name === QA.enums.SRLogin) {
                     win_stack.push(comp_login);
+                }
             }
 
             target: QA.Action
@@ -127,11 +119,14 @@ ApplicationWindow {
                 }
             }
 
-            function onPopup_page(url, props, popup_props = {}) {
-                return MD.Util.show_popup('qrc:/Qcm/App/qml/component/PagePopup.qml', Object.assign({}, {
+            function onPopup_page(url, props, popup_props, callback) {
+                const popup = MD.Util.show_popup('qrc:/Qcm/App/qml/component/PagePopup.qml', Object.assign({}, {
                     "source": url,
                     "props": props
                 }, popup_props), win);
+                if(callback) {
+                    callback(popup);
+                }
             }
         }
     }
@@ -236,5 +231,14 @@ ApplicationWindow {
     Component {
         id: comp_retry
         QA.RetryPage {}
+    }
+    Component {
+        id: comp_loading
+Item {
+            MD.CircularIndicator {
+                anchors.centerIn: parent
+                running: visible
+            }
+        }
     }
 }
