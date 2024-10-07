@@ -1,7 +1,8 @@
 # Qcm
 Material3 cloud music player.  
 Currently linux only.  
-Muisc Service:  
+
+Music Service:  
 - Jellyfin(wip)
 - Netease Cloud Music
 
