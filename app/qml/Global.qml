@@ -230,6 +230,7 @@ QA.GlobalWrapper {
         target: root
         function onSessionChanged() {
             m_player.stop();
+            root.playlist.clear();
         }
     }
 
