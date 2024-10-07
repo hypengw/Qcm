@@ -11,7 +11,10 @@
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
   <description>
     <p>
-        Qt client for netease cloud music
+        Material3 cloud music player
+        Music Service:
+          Jellyfin(wip)
+          Netease Cloud Music(网易云音乐)
     </p>
   </description>
   <url type="homepage">https://github.com/hypengw/Qcm</url>
@@ -23,6 +26,7 @@
       </screenshot>
   </screenshots>
   <releases>
+    <release version="1.1.0" date="2024-10-06"/>
     <release version="1.0.5" date="2024-08-24"/>
     <release version="1.0.4" date="2024-08-10"/>
     <release version="1.0.3" date="2024-05-29"/>

@@ -5,7 +5,7 @@ project(
   VERSION 1.1.0
   LANGUAGES CXX
   HOMEPAGE_URL "https://github.com/hypengw/Qcm"
-  DESCRIPTION "Qt client for netease cloud music"
+  DESCRIPTION "Material3 cloud music player"
 )
 
 set(CMAKE_CXX_STANDARD 23)
