@@ -25,6 +25,12 @@ MD.ListItem {
         backgroundColor: ctx.color.surface_container
     }
 
+    divider: MD.Divider {
+        anchors.bottom: parent.bottom
+        leftMargin: 16
+        rightMargin: 16
+    }
+
     contentItem: RowLayout {
         spacing: 16
 
