@@ -9,9 +9,10 @@ MD.Page {
     padding: 0
     title: 'Playlist'
     bottomPadding: radius
+    scrolling: !m_view.atYBeginning
 
     MD.ListView {
-        id: view_playlist
+        id: m_view
         anchors.fill: parent
         expand: true
         bottomMargin: 8
@@ -25,7 +26,7 @@ MD.Page {
         MD.FontMetrics {
             id: item_font_metrics
             typescale: MD.Token.typescale.body_medium
-            readonly property real minimumWidth: item_font_metrics.advanceWidth(view_playlist.count.toString())
+            readonly property real minimumWidth: item_font_metrics.advanceWidth(m_view.count.toString())
         }
 
         footer: Item {}
