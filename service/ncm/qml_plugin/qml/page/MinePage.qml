@@ -11,10 +11,9 @@ MD.Page {
 
     readonly property bool canBack: leaf.folded && leaf.rightAbove
     title: m_content.currentItem?.title ?? qsTr("library")
-    radius: MD.Token.shape.corner.large
     background: Item {}
-    
-    property int vpadding: showHeader ? 0 :MD.MatProp.size.verticalPadding
+
+    property int vpadding: showHeader ? 0 : MD.MatProp.size.verticalPadding
 
     function back() {
         m_content.pop(null);
@@ -234,8 +233,13 @@ MD.Page {
             id: m_content
 
             property var currentItemId: null
-            property bool barVisible: false
-            property int radius: root.radius
+
+            MD.MatProp.page: m_page_context
+            MD.PageContext {
+                id: m_page_context
+                showHeader: false
+                radius: root.radius
+            }
 
             function push_page(item, params, oper) {
                 if (m_content.depth === 1)

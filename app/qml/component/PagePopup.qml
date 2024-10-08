@@ -34,6 +34,7 @@ MD.Popup {
 
     // use attch from parent, tested
     readonly property bool isCompact: root.parent.Window.window?.windowClass === MD.Enum.WindowClassCompact
+    radius: root.isCompact ? 0 : MD.Token.shape.corner.large
 
     Binding {
         when: root.isCompact
@@ -43,13 +44,16 @@ MD.Popup {
         root.verticalPadding: 0
     }
 
-    QtObject {
+    MD.PageContext {
         id: m_page_context
-        property int radius: root.isCompact ? 0 : MD.Token.shape.corner.large
-        property QC.Action barAction: QC.Action {
+        showHeader: true
+        headerBackgroundOpacity: 0
+        radius: root.radius
+        leadingAction: QC.Action {
             icon.name: MD.Token.icon.arrow_back
             onTriggered: {
-                if(loader.item?.canBack) loader.item.back();
+                if (loader.item?.canBack)
+                    loader.item.back();
                 else {
                     root.close();
                 }
@@ -57,8 +61,9 @@ MD.Popup {
         }
     }
 
+    MD.MatProp.page: m_page_context
+
     onSourceChanged: {
-        props.pageContext = m_page_context;
         loader.setSource(source, props);
     }
 

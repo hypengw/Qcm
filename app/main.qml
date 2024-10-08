@@ -13,7 +13,8 @@ ApplicationWindow {
     // load QA
     readonly property alias snake: m_snake
     property int windowClass: MD.Enum.WindowClassMedium
-    property Action barAction: Action {
+
+    MD.MatProp.page.leadingAction: Action {
         icon.name: MD.Token.icon.menu
         text: qsTr('menu')
         onTriggered: {
@@ -54,11 +55,17 @@ ApplicationWindow {
         anchors.fill: parent
 
         initialItem: comp_loading
-        property bool barVisible: depth > 1
-        property Action barAction: Action {
-            icon.name: MD.Token.icon.arrow_back
-            onTriggered: {
-                win_stack.pop();
+
+        MD.MatProp.page: m_stack_page_ctx
+        MD.PageContext {
+            id: m_stack_page_ctx
+            radius: win.MD.MatProp.size.isCompact ? 0 : MD.Token.shape.corner.large
+            showHeader: win_stack.depth > 1
+            leadingAction: Action {
+                icon.name: MD.Token.icon.arrow_back
+                onTriggered: {
+                    win_stack.pop();
+                }
             }
         }
 
@@ -125,7 +132,7 @@ ApplicationWindow {
                     "source": url,
                     "props": props
                 }, popup_props), win);
-                if(callback) {
+                if (callback) {
                     callback(popup);
                 }
             }
@@ -235,7 +242,7 @@ ApplicationWindow {
     }
     Component {
         id: comp_loading
-Item {
+        Item {
             MD.CircularIndicator {
                 anchors.centerIn: parent
                 running: visible

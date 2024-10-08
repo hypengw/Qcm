@@ -8,6 +8,8 @@ import Qcm.Material as MD
 MD.Page {
     id: root
     showHeader: false
+    showBackground: true
+    MD.MatProp.backgroundColor: MD.MatProp.color.surface
 
     Item {
         anchors.fill: parent
@@ -18,15 +20,20 @@ MD.Page {
             id: m_stack
             anchors.fill: parent
 
-            property QC.Action barAction: QC.Action {
-                icon.name: MD.Token.icon.arrow_back
-                onTriggered: {
-                    m_stack.back();
+            MD.MatProp.page: m_page_ctx
+            MD.PageContext {
+                id: m_page_ctx
+                inherit: root.MD.MatProp.page
+                leadingAction: QC.Action {
+                    icon.name: MD.Token.icon.arrow_back
+                    onTriggered: {
+                        m_stack.back();
+                    }
                 }
             }
 
             initialItem: MD.Page {
-                pageContext: root.pageContext
+                MD.MatProp.page: root.MD.MatProp.page
                 Item {
                     anchors.fill: parent
                     MD.Text {

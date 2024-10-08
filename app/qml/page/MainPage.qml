@@ -18,7 +18,6 @@ MD.Page {
     canBack: m_page_stack.canBack
 
     backgroundColor: MD.MatProp.backgroundColor
-    radius: MD.Token.shape.corner.large
 
     function back() {
         m_page_stack.back();
@@ -225,23 +224,29 @@ MD.Page {
                 Layout.rightMargin: 16
                 clip: true
 
-                MD.MatProp.backgroundColor: MD.MatProp.color.surface
                 initialItem: QA.PageContainer {
                     id: page_container
                     initialItem: Item {}
                     property string title: currentItem?.title ?? ""
-                    property int barType: MD.Enum.AppBarCenterAligned
-                    property bool barVisible: Window.window?.windowClass === MD.Enum.WindowClassCompact
-                    property QC.Action barAction: root.canBack ? m_back_action : m_draw_action
-                    property int radius: root.radius
+
+                    MD.MatProp.page: m_page_context
+                    MD.PageContext {
+                        id: m_page_context
+                        headerType: MD.Enum.AppBarCenterAligned
+                        showHeader: root.MD.MatProp.size.isCompact
+                        leadingAction: root.canBack ? m_back_action : m_draw_action
+                        radius: root.radius
+                    }
                 }
-                layer.enabled: false
-                layer.effect: MD.RoundClip {
+
+                MD.MatProp.backgroundColor: MD.MatProp.color.surface
+                MD.MatProp.page: m_page_stack_context
+                MD.PageContext {
+                    id: m_page_stack_context
+                    leadingAction: root.canBack ? m_back_action : null
+                    showHeader: root.MD.MatProp.size.isCompact
                     radius: root.radius
-                    size: Qt.vector2d(m_page_stack.width, m_page_stack.height)
                 }
-                property QC.Action barAction: root.canBack ? m_back_action : null
-                property bool barVisible: Window.window?.windowClass === MD.Enum.WindowClassCompact
 
                 QC.Action {
                     id: m_back_action
@@ -260,7 +265,7 @@ MD.Page {
                 }
 
                 Binding {
-                    when: root.Window.window?.windowClass === MD.Enum.WindowClassCompact
+                    when: root.MD.MatProp.size.isCompact
                     m_page_stack.Layout.topMargin: 0
                     m_page_stack.Layout.bottomMargin: 0
                     m_page_stack.Layout.rightMargin: 0

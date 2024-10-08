@@ -9,6 +9,10 @@ import "../js/util.mjs" as Util
 
 MD.Page {
     id: root
+
+    showBackground: true
+    backgroundColor: MD.MatProp.color.surface
+
     header: MD.Pane {
         clip: false
         implicitHeight: 0
