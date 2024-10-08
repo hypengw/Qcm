@@ -10,9 +10,10 @@ MD.Page {
     title: qsTr('about')
     padding: 0
     bottomPadding: radius
+    scrolling: !m_flick.atYBeginning
 
     MD.Flickable {
-        id: flick
+        id: m_flick
         anchors.fill: parent
         topMargin: 4
         leftMargin: 24

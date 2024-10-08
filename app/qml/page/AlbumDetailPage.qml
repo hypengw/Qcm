@@ -14,6 +14,7 @@ MD.Page {
     title: qsTr("album")
 
     padding: 0
+    scrolling: !m_view.atYBeginning
 
     MD.FlickablePane {
         id: m_view_pane

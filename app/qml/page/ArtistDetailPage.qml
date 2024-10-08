@@ -14,6 +14,7 @@ MD.Page {
 
     title: qsTr("artist")
     padding: 0
+    scrolling: !m_flick.atYBeginning
 
     MD.Flickable {
         id: m_flick

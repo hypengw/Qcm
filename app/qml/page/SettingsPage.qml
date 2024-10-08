@@ -12,12 +12,10 @@ MD.Page {
     font.capitalization: Font.Capitalize
     title: qsTr('settings')
     bottomPadding: radius
-
-    MD.MatProp.textColor: MD.Token.color.on_surface
-    elevation: MD.Token.elevation.level0
+    scrolling: !m_flick.atYBeginning
 
     MD.Flickable {
-        id: flick
+        id: m_flick
         anchors.fill: parent
         leftMargin: 0
         rightMargin: 0

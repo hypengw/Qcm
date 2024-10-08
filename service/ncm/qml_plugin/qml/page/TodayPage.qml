@@ -11,6 +11,7 @@ MD.Page {
     id: root
     padding: 0
     title: qsTr("today")
+    scrolling: !m_fk.atYBeginning
 
     MD.Flickable {
         id: m_fk
@@ -21,12 +22,12 @@ MD.Page {
         ColumnLayout {
             height: implicitHeight
             width: parent.width
-            spacing: 16
+            spacing: 24
 
             MD.Pane {
                 Layout.fillWidth: true
                 radius: root.radius
-                verticalPadding: 8
+                verticalPadding: radius
 
                 ColumnLayout {
                     width: parent.width
@@ -102,7 +103,7 @@ MD.Page {
             MD.Pane {
                 Layout.fillWidth: true
                 radius: root.radius
-                verticalPadding: 8
+                verticalPadding: radius
 
                 ColumnLayout {
                     width: parent.width
@@ -156,7 +157,7 @@ MD.Page {
             MD.Pane {
                 Layout.fillWidth: true
                 radius: root.radius
-                verticalPadding: 8
+                verticalPadding: radius
 
                 ColumnLayout {
                     width: parent.width

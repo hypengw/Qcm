@@ -11,9 +11,8 @@ MD.Page {
 
     readonly property bool canBack: leaf.folded && leaf.rightAbove
     title: m_content.currentItem?.title ?? qsTr("library")
-    background: Item {}
-
     property int vpadding: showHeader ? 0 : MD.MatProp.size.verticalPadding
+    scrolling: m_content.currentItem?.scrolling ?? false
 
     function back() {
         m_content.pop(null);

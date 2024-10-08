@@ -47,7 +47,8 @@ MD.Popup {
     MD.PageContext {
         id: m_page_context
         showHeader: true
-        headerBackgroundOpacity: 0
+        // headerBackgroundOpacity: 0
+        backgroundRadius: root.radius
         radius: root.radius
         leadingAction: QC.Action {
             icon.name: MD.Token.icon.arrow_back
