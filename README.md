@@ -45,6 +45,8 @@ cmake --install build
 - [ ] jellyfin
 - [ ] subsonic
 - [ ] sql api cache
+- [ ] android
+- [ ] mac/win
 - [x] user session switch
 - [x] feedback
 - [x] upload
