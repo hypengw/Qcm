@@ -10,6 +10,9 @@ Music Service:
 <p align="center" width="100%">
 <img src="https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main.png?raw=true" width=70%>
 </p>
+<p align="center" width="100%">
+<img src="https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main_dark.png?raw=true" width=70%>
+</p>
 
 
 ### Download:  
