@@ -15,16 +15,22 @@ MD.Page {
     title: qsTr("djradio")
     padding: 0
 
+    MD.FlickablePane {
+        id: m_view_pane
+        view: m_view
+        excludeBegin: m_view.headerItem.height - m_control_pane.height
+        radius: root.radius
+        topMargin: 0
+    }
+
     MD.ListView {
         id: m_view
         anchors.fill: parent
         reuseItems: true
         contentY: 0
 
-        topMargin: 8
-        bottomMargin: 8
-        leftMargin: 24
-        rightMargin: 24
+        topMargin: MD.MatProp.size.verticalPadding
+        bottomMargin: MD.MatProp.size.verticalPadding + m_view_pane.bottomMargin
 
         model: qr_program.data
 
@@ -68,6 +74,37 @@ MD.Page {
                 id: m_desc
                 description: root.itemData.description.trim()
             }
+            RowLayout {
+                id: m_control_pane
+                Layout.alignment: Qt.AlignHCenter
+                MD.IconButton {
+                    action: QA.AppendListAction {
+                        getSongs: function () {
+                            const songs = [];
+                            const model = qr_program.data;
+                            for (let i = 0; i < model.rowCount(); i++) {
+                                songs.push(model.item(i).song);
+                            }
+                            return songs;
+                        }
+                    }
+                }
+                MD.IconButton {
+                    id: btn_fav
+                    action: QA.SubAction {
+                        liked: root.itemData.subed
+                        querier: qr_sub
+                        itemId: root.itemId
+                    }
+                }
+                MD.IconButton {
+                    id: btn_comment
+                    visible: false
+                    action: QNcm.CommentAction {
+                        itemId: root.itemId
+                    }
+                }
+            }
         }
 
         header: Item {
@@ -75,102 +112,82 @@ MD.Page {
             implicitHeight: children[0].implicitHeight
             ColumnLayout {
                 anchors.fill: parent
-                spacing: 0
-                RowLayout {
-                    spacing: 16
-                    visible: !m_view.single
+                spacing: 16
 
-                    LayoutItemProxy {
-                        target: m_cover
-                    }
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        Layout.alignment: Qt.AlignTop
-                        spacing: 12
-                        LayoutItemProxy {
-                            Layout.fillWidth: true
-                            target: m_title
-                        }
-                        LayoutItemProxy {
-                            target: m_info
-                        }
-                        LayoutItemProxy {
-                            Layout.fillWidth: true
-                            visible: !!m_desc.description
-                            target: m_desc
-                        }
-                    }
-                }
-                ColumnLayout {
-                    spacing: 0
+                MD.Pane {
                     Layout.fillWidth: true
-                    visible: m_view.single
-
-                    LayoutItemProxy {
-                        Layout.alignment: Qt.AlignHCenter
-                        target: m_cover
-                    }
-                    MD.Space {
-                        spacing: 16
-                    }
+                    radius: root.radius
+                    padding: 16
                     ColumnLayout {
-                        Layout.alignment: Qt.AlignHCenter
-                        spacing: 12
+                        width: parent.width
 
-                        LayoutItemProxy {
-                            Layout.alignment: Qt.AlignHCenter
-                            Layout.maximumWidth: implicitWidth
-                            Layout.fillWidth: true
-                            target: m_title
-                        }
-                        LayoutItemProxy {
-                            Layout.alignment: Qt.AlignHCenter
-                            target: m_info
-                        }
-                        LayoutItemProxy {
-                            Layout.alignment: Qt.AlignHCenter
-                            Layout.fillWidth: true
-                            visible: !!m_desc.description
-                            target: m_desc
-                        }
-                    }
-                    MD.Space {
-                        spacing: 8
-                    }
-                }
+                        RowLayout {
+                            spacing: 16
+                            visible: !m_view.single
 
-                RowLayout {
-                    Layout.alignment: Qt.AlignHCenter
-                    MD.IconButton {
-                        action: QA.AppendListAction {
-                            getSongs: function () {
-                                const songs = [];
-                                const model = qr_program.data;
-                                for (let i = 0; i < model.rowCount(); i++) {
-                                    songs.push(model.item(i).song);
+                            LayoutItemProxy {
+                                target: m_cover
+                            }
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                Layout.alignment: Qt.AlignTop
+                                spacing: 12
+                                LayoutItemProxy {
+                                    Layout.fillWidth: true
+                                    target: m_title
                                 }
-                                return songs;
+                                LayoutItemProxy {
+                                    target: m_info
+                                }
+                                LayoutItemProxy {
+                                    Layout.fillWidth: true
+                                    visible: !!m_desc.description
+                                    target: m_desc
+                                }
+                            }
+                        }
+                        ColumnLayout {
+                            spacing: 0
+                            Layout.fillWidth: true
+                            visible: m_view.single
+
+                            LayoutItemProxy {
+                                Layout.alignment: Qt.AlignHCenter
+                                target: m_cover
+                            }
+                            MD.Space {
+                                spacing: 16
+                            }
+                            ColumnLayout {
+                                Layout.alignment: Qt.AlignHCenter
+                                spacing: 12
+
+                                LayoutItemProxy {
+                                    Layout.alignment: Qt.AlignHCenter
+                                    Layout.maximumWidth: implicitWidth
+                                    Layout.fillWidth: true
+                                    target: m_title
+                                }
+                                LayoutItemProxy {
+                                    Layout.alignment: Qt.AlignHCenter
+                                    target: m_info
+                                }
+                                LayoutItemProxy {
+                                    Layout.alignment: Qt.AlignHCenter
+                                    Layout.fillWidth: true
+                                    visible: !!m_desc.description
+                                    target: m_desc
+                                }
+                            }
+                            MD.Space {
+                                spacing: 8
                             }
                         }
                     }
-                    MD.IconButton {
-                        id: btn_fav
-                        action: QA.SubAction {
-                            liked: root.itemData.subed
-                            querier: qr_sub
-                            itemId: root.itemId
-                        }
-                    }
-                    MD.IconButton {
-                        id: btn_comment
-                        visible: false
-                        action: QNcm.CommentAction {
-                            itemId: root.itemId
-                        }
-                    }
                 }
-                MD.Space {
-                    spacing: 8
+
+                LayoutItemProxy {
+                    target: m_control_pane
                 }
             }
         }
@@ -178,6 +195,9 @@ MD.Page {
             required property int index
             required property var model
             width: ListView.view.contentWidth
+
+            leftMargin: 16
+            rightMargin: 16
 
             dgModel: QA.Util.create_program(model)
 

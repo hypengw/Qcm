@@ -16,8 +16,9 @@ MD.Popup {
     height: Math.min(implicitHeight, parent.height * 0.8)
     modal: true
 
-    mdState.textColor: MD.Token.color.on_surface
-    mdState.backgroundColor: MD.Token.color.surface
+    mdState.textColor: MD.MatProp.color.on_surface
+    mdState.backgroundColor: MD.MatProp.color.surface
+    MD.MatProp.backgroundColor: MD.MatProp.color.surface
 
     x: Math.round((parent.width - width) / 2)
     y: Math.round((parent.height - height) / 2)
@@ -65,8 +66,5 @@ MD.Popup {
         id: loader
         asynchronous: false
     }
-
-    background: Item {}
-
     closePolicy: QC.Popup.CloseOnEscape | QC.Popup.CloseOnPressOutside
 }

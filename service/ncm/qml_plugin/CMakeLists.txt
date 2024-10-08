@@ -58,6 +58,7 @@ set(SOURCES
 
 set(QML_FILES
     qml/action/CommentAction.qml
+
     qml/page/CloudUploadPage.qml
     qml/page/CommentPage.qml
     qml/page/LoginPage.qml
@@ -66,6 +67,8 @@ set(QML_FILES
     qml/page/TodayPage.qml
     qml/page/CloudPage.qml
     qml/page/PlaylistListPage.qml
+
+    qml/component/PlaylistListView.qml
     )
 
 set(RESOURCES

@@ -220,10 +220,12 @@ MD.Page {
                 id: m_page_stack
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                Layout.topMargin: 8
-                Layout.bottomMargin: 8
+                Layout.topMargin: 0
+                Layout.bottomMargin: 0
                 Layout.rightMargin: 16
                 clip: true
+
+                MD.MatProp.backgroundColor: MD.MatProp.color.surface
                 initialItem: QA.PageContainer {
                     id: page_container
                     initialItem: Item {}
@@ -231,14 +233,16 @@ MD.Page {
                     property int barType: MD.Enum.AppBarCenterAligned
                     property bool barVisible: Window.window?.windowClass === MD.Enum.WindowClassCompact
                     property QC.Action barAction: root.canBack ? m_back_action : m_draw_action
+                    property int radius: root.radius
                 }
-                layer.enabled: true
+                layer.enabled: false
                 layer.effect: MD.RoundClip {
                     radius: root.radius
                     size: Qt.vector2d(m_page_stack.width, m_page_stack.height)
                 }
                 property QC.Action barAction: root.canBack ? m_back_action : null
                 property bool barVisible: Window.window?.windowClass === MD.Enum.WindowClassCompact
+
                 QC.Action {
                     id: m_back_action
                     icon.name: MD.Token.icon.arrow_back

@@ -7,17 +7,18 @@ import Qcm.Material as MD
 
 MD.Page {
     id: root
-    padding: 0
     title: qsTr('history')
-    bottomPadding: radius
+    padding: 0
+    topPadding: MD.MatProp.size.verticalPadding
 
     ColumnLayout {
         spacing: 0
         anchors.fill: parent
 
         MD.TabBar {
-            id: bar
+            id: m_bar
             Layout.fillWidth: true
+            radius: [root.header.visible ? 0 : root.radius, 0]
 
             Component.onCompleted: {
                 currentIndexChanged();
@@ -39,16 +40,22 @@ MD.Page {
             onCurrentIndexChanged: {}
         }
 
-        MD.Pane {
+        Item {
             Layout.fillHeight: true
             Layout.fillWidth: true
-            padding: 0
-            backgroundColor: MD.Token.color.surface
+            clip: true
+
+            MD.FlickablePane {
+                id: m_view_pane
+                view: item_stack.children[item_stack.currentIndex]
+                radius: [0, root.radius]
+                color: root.MD.MatProp.backgroundColor
+            }
 
             StackLayout {
                 id: item_stack
                 anchors.fill: parent
-                currentIndex: bar.currentIndex
+                currentIndex: m_bar.currentIndex
 
                 BaseView {
                     type: QNCM.enums.IdTypeSong
@@ -136,8 +143,9 @@ MD.Page {
         expand: true
         leftMargin: 24
         rightMargin: 24
-        topMargin: 4
-        bottomMargin: 4
+
+        topMargin: 8
+        bottomMargin: MD.MatProp.size.verticalPadding + m_view_pane.bottomMargin
 
         property alias type: querier.type
 

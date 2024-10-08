@@ -74,7 +74,6 @@ set(QML_FILES
     qml/component/InfoRow.qml
     qml/component/SnakeView.qml
     qml/component/Mpris.qml
-    qml/component/PlaylistListView.qml
     qml/component/SongTag.qml
     qml/component/RouteMsg.qml
     qml/component/PlaySlider.qml

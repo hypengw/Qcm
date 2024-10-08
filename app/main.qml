@@ -21,6 +21,7 @@ ApplicationWindow {
         }
     }
 
+    MD.MatProp.size.windowClass: windowClass
     MD.MatProp.backgroundColor: {
         switch (win.windowClass) {
         case MD.Enum.WindowClassCompact:

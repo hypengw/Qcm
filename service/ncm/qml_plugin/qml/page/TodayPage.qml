@@ -15,43 +15,42 @@ MD.Page {
     MD.Flickable {
         id: m_fk
         anchors.fill: parent
-        topMargin: 8
-        bottomMargin: 8
+        topMargin: root.MD.MatProp.size.verticalPadding
+        bottomMargin: root.MD.MatProp.size.verticalPadding
 
         ColumnLayout {
-            anchors.horizontalCenter: parent.horizontalCenter
             height: implicitHeight
-            spacing: 12
             width: parent.width
+            spacing: 16
 
-            ColumnLayout {
-                spacing: 4
+            MD.Pane {
+                Layout.fillWidth: true
+                radius: root.radius
+                verticalPadding: 8
 
-                MD.Pane {
-                    ColumnLayout {
-                        anchors.fill: parent
+                ColumnLayout {
+                    width: parent.width
+                    spacing: 4
 
-                        MD.Text {
-                            font.capitalization: Font.Capitalize
-                            typescale: MD.Token.typescale.headline_large
-                            text: qsTr('recommended playlists')
-                        }
+                    MD.Text {
+                        Layout.fillWidth: true
+                        Layout.leftMargin: 16
+                        Layout.rightMargin: 16
+
+                        font.capitalization: Font.Capitalize
+                        typescale: MD.Token.typescale.title_large
+                        text: qsTr('recommended playlists')
                     }
-                }
-                MD.Pane {
-                    Layout.fillWidth: true
-                    padding: 0
 
                     SwipeView {
                         id: swipe_playlist
+                        Layout.fillWidth: true
 
                         readonly property int fixedCellWidth: Math.max(160, QA.Global.main_win.width / 6.0)
                         readonly property int column: 2
                         readonly property int space: 8
                         readonly property int row: Math.max(2, Math.floor((width - space) / (fixedCellWidth + space / 2)))
                         readonly property int itemCount: column * row
-
-                        anchors.fill: parent
                         currentIndex: swipe_indicator.currentIndex
 
                         Repeater {
@@ -91,36 +90,34 @@ MD.Page {
                             }
                         }
                     }
-                }
-                MD.PageIndicator {
-                    id: swipe_indicator
-                    Layout.alignment: Qt.AlignHCenter
-                    count: swipe_playlist.count
-                    currentIndex: swipe_playlist.currentIndex
-                    interactive: true
-                }
-            }
-            ColumnLayout {
-                spacing: 4
-                MD.Pane {
-                    ColumnLayout {
-                        anchors.fill: parent
-
-                        MD.Text {
-                            font.capitalization: Font.Capitalize
-                            typescale: MD.Token.typescale.headline_large
-                            text: qsTr('radar playlists')
-                        }
+                    MD.PageIndicator {
+                        id: swipe_indicator
+                        Layout.alignment: Qt.AlignHCenter
+                        count: swipe_playlist.count
+                        currentIndex: swipe_playlist.currentIndex
+                        interactive: true
                     }
                 }
+            }
+            MD.Pane {
+                Layout.fillWidth: true
+                radius: root.radius
+                verticalPadding: 8
 
-                MD.Pane {
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                    padding: 0
+                ColumnLayout {
+                    width: parent.width
+                    spacing: 4
+                    MD.Text {
+                        Layout.leftMargin: 16
+                        Layout.rightMargin: 16
+
+                        font.capitalization: Font.Capitalize
+                        typescale: MD.Token.typescale.title_large
+                        text: qsTr('radar playlists')
+                    }
 
                     QA.MGridView {
-                        anchors.fill: parent
+                        Layout.fillWidth: true
 
                         fixedCellWidth: Math.max(160, QA.Global.main_win.width / 6.0)
                         implicitHeight: contentHeight
@@ -155,94 +152,100 @@ MD.Page {
                         }
                     }
                 }
+            }
+            MD.Pane {
+                Layout.fillWidth: true
+                radius: root.radius
+                verticalPadding: 8
 
-                MD.Pane {
-                    id: title_pane
-                    ColumnLayout {
-                        anchors.fill: parent
+                ColumnLayout {
+                    width: parent.width
+                    spacing: 4
 
-                        MD.Text {
-                            font.capitalization: Font.Capitalize
-                            typescale: MD.Token.typescale.headline_large
-                            text: qsTr('recommended songs')
-                        }
+                    MD.Text {
+                        Layout.leftMargin: 16
+                        Layout.rightMargin: 16
+
+                        font.capitalization: Font.Capitalize
+                        typescale: MD.Token.typescale.title_large
+                        text: qsTr('recommended songs')
                     }
-                }
-                RowLayout {
-                    Layout.alignment: Qt.AlignHCenter
-                    MD.IconButton {
-                        action: QA.AppendListAction {
-                            getSongs: function () {
-                                return qr_rmd_songs.data.dailySongs;
+                    RowLayout {
+                        Layout.alignment: Qt.AlignHCenter
+                        MD.IconButton {
+                            action: QA.AppendListAction {
+                                getSongs: function () {
+                                    return qr_rmd_songs.data.dailySongs;
+                                }
                             }
                         }
                     }
-                }
 
-                MD.ListView {
-                    id: view
-                    Layout.fillWidth: true
-                    interactive: false
-                    expand: true
-                    leftMargin: 24
-                    rightMargin: 24
+                    MD.ListView {
+                        id: view
+                        Layout.fillWidth: true
+                        interactive: false
+                        expand: true
+                        leftMargin: 16
+                        rightMargin: 16
 
-                    model: qr_rmd_songs.data.dailySongs
+                        model: qr_rmd_songs.data.dailySongs
 
-                    delegate: QA.SongDelegate {
-                        required property int index
-                        required property var modelData
-                        width: ListView.view.contentWidth
-                        showCover: true
-                        onClicked: {
-                            QA.App.playlist.switchTo(modelData);
+                        delegate: QA.SongDelegate {
+                            required property int index
+                            required property var modelData
+                            width: ListView.view.contentWidth
+                            showCover: true
+                            onClicked: {
+                                QA.App.playlist.switchTo(modelData);
+                            }
+                        }
+                        footer: MD.ListBusyFooter {
+                            running: qr_rmd_songs.status === QA.enums.Querying
+                            width: ListView.view.contentWidth
                         }
                     }
-                    footer: MD.ListBusyFooter {
-                        running: qr_rmd_songs.status === QA.enums.Querying
-                        width: ListView.view.contentWidth
+                }
+            }
+            QNcm.RecommendSongsQuerier {
+                id: qr_rmd_songs
+            }
+            QNcm.RecommendResourceQuerier {
+                id: qr_rmd_res
+            }
+            // avoid loading with switch page
+            Timer {
+                id: timer_refresh_delay
+
+                property bool dirty: false
+                interval: 3 * 1000
+                repeat: false
+                running: false
+                onTriggered: {
+                    if (root.visible && dirty) {
+                        qr_rmd_res.query();
+                        qr_rmd_songs.query();
+                        dirty = false;
                     }
                 }
             }
-        }
-        QNcm.RecommendSongsQuerier {
-            id: qr_rmd_songs
-        }
-        QNcm.RecommendResourceQuerier {
-            id: qr_rmd_res
-        }
-        // avoid loading with switch page
-        Timer {
-            id: timer_refresh_delay
-
-            property bool dirty: false
-            interval: 3 * 1000
-            repeat: false
-            running: false
-            onTriggered: {
-                if (root.visible && dirty) {
-                    qr_rmd_res.query();
-                    qr_rmd_songs.query();
-                    dirty = false;
+            Connections {
+                target: root
+                function onVisibleChanged() {
+                    timer_refresh_delay.start();
                 }
             }
-        }
-        Connections {
-            target: root
-            function onVisibleChanged() {
-                timer_refresh_delay.start();
-            }
-        }
-        Timer {
-            id: timer_refresh
+            Timer {
+                id: timer_refresh
 
-            interval: 15 * 60 * 1000
-            repeat: true
-            running: true
+                interval: 15 * 60 * 1000
+                repeat: true
+                running: true
 
-            onTriggered: {
-                timer_refresh_delay.dirty = true;
-                timer_refresh_delay.start();
+                onTriggered: {
+                    timer_refresh_delay.dirty = true;
+                    timer_refresh_delay.start();
+                }
             }
         }
     }

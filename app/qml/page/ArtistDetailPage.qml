@@ -16,63 +16,56 @@ MD.Page {
     padding: 0
 
     MD.Flickable {
-        id: flick
+        id: m_flick
         anchors.fill: parent
         contentHeight: content.implicitHeight
         ScrollBar.vertical.visible: false
 
-        ColumnLayout {
-            id: content
-            anchors.left: parent.left
-            anchors.right: parent.right
-            spacing: 8
+        readonly property bool single: width < m_cover.displaySize.width * (1.0 + 1.5) + 8
 
-            RowLayout {
-                id: ly_header
-                spacing: 16
-                Layout.leftMargin: 8
-                Layout.rightMargin: 8
-                Layout.topMargin: 8
+        topMargin: MD.MatProp.size.verticalPadding
+        bottomMargin: MD.MatProp.size.verticalPadding
 
-                QA.Image {
-                    z: 1
-                    elevation: MD.Token.elevation.level2
-                    source: `image://ncm/${root.itemData.info.picUrl}`
-                    radius: width / 2
+        Item {
+            visible: false
 
-                    Layout.preferredWidth: displaySize.width
-                    Layout.preferredHeight: displaySize.height
-                    displaySize: Qt.size(240, 240)
-                }
+            QA.Image {
+                id: m_cover
+                z: 1
+                elevation: MD.Token.elevation.level2
+                source: `image://ncm/${root.itemData.info.picUrl}`
+                radius: width / 2
 
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    spacing: 12
-
-                    MD.Text {
-                        Layout.fillWidth: true
-                        maximumLineCount: 2
-                        text: root.itemData.info.name
-                        typescale: MD.Token.typescale.headline_large
-                    }
-                    RowLayout {
-                        spacing: 12
-                        MD.Text {
-                            typescale: MD.Token.typescale.body_medium
-                            text: `${root.itemData.info.albumSize} albums`
-                        }
-                        MD.Text {
-                            typescale: MD.Token.typescale.body_medium
-                            text: `${root.itemData.info.musicSize} songs`
-                        }
-                    }
-                    QA.ListDescription {
-                        description: root.itemData.info.briefDesc.trim()
-                        Layout.fillWidth: true
-                    }
-                }
+                Layout.preferredWidth: displaySize.width
+                Layout.preferredHeight: displaySize.height
+                displaySize: Qt.size(240, 240)
+            }
+            MD.Text {
+                id: m_title
+                Layout.fillWidth: true
+                maximumLineCount: 2
+                text: root.itemData.info.name
+                typescale: MD.Token.typescale.headline_large
             }
             RowLayout {
+                id: m_info
+                spacing: 12
+                MD.Text {
+                    typescale: MD.Token.typescale.body_medium
+                    text: `${root.itemData.info.albumSize} albums`
+                }
+                MD.Text {
+                    typescale: MD.Token.typescale.body_medium
+                    text: `${root.itemData.info.musicSize} songs`
+                }
+            }
+            QA.ListDescription {
+                id: m_desc
+                description: root.itemData.info.briefDesc.trim()
+                Layout.fillWidth: true
+            }
+            RowLayout {
+                id: m_control_pane
                 Layout.alignment: Qt.AlignHCenter
                 MD.IconButton {
                     id: btn_fav
@@ -83,94 +76,195 @@ MD.Page {
                     }
                 }
             }
+        }
 
-            ColumnLayout {
-                id: pane_view_column
-                spacing: 0
+        ColumnLayout {
+            id: content
+            anchors.left: parent.left
+            anchors.right: parent.right
+            spacing: 16
 
-                MD.TabBar {
-                    id: bar
-                    Layout.fillWidth: true
+            MD.Pane {
+                id: m_header
+                Layout.fillWidth: true
+                radius: root.radius
+                padding: 16
 
-                    Component.onCompleted: {
-                        currentIndexChanged();
-                    }
+                ColumnLayout {
+                    width: parent.width
 
-                    MD.TabButton {
-                        text: qsTr("Hot Song")
-                    }
-                    MD.TabButton {
-                        text: qsTr("Album")
-                    }
-                }
-                MD.Pane {
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                    implicitHeight: Math.min(Math.max(root.height - ly_header.implicitHeight * 0.4 - bar.implicitHeight, 0), item_stack.implicitHeight)
-                    padding: 0
+                    RowLayout {
+                        spacing: 16
+                        visible: !m_flick.single
 
-                    MD.MatProp.backgroundColor: MD.Token.color.surface
-
-                    StackLayout {
-                        id: item_stack
-                        anchors.fill: parent
-                        currentIndex: bar.currentIndex
-
-                        MD.ListView {
-                            implicitHeight: contentHeight
-                            interactive: flick.atYEnd
-                            model: itemData.hotSongs
-                            topMargin: 8
-                            bottomMargin: 8
-                            leftMargin: 24
-                            rightMargin: 24
-
-                            onAtYBeginningChanged: {
-                                if (interactive) {
-                                    flick.contentY -= 1;
-                                }
+                        LayoutItemProxy {
+                            target: m_cover
+                        }
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignTop
+                            spacing: 12
+                            LayoutItemProxy {
+                                Layout.fillWidth: true
+                                target: m_title
                             }
-
-                            delegate: QA.SongDelegate {
-                                subtitle: `${modelData.album.name}`
-                                width: ListView.view.contentWidth
-
-                                onClicked: {
-                                    QA.App.playlist.switchTo(modelData);
-                                }
+                            LayoutItemProxy {
+                                target: m_info
                             }
-                            footer: MD.ListBusyFooter {
-                                running: qr_artist.status === QA.enums.Querying
-                                width: ListView.view.width
+                            LayoutItemProxy {
+                                Layout.fillWidth: true
+                                visible: !!m_desc.description
+                                target: m_desc
                             }
                         }
-                        QA.MGridView {
-                            fixedCellWidth: Math.max(160, QA.Global.main_win.width / 6.0)
-                            interactive: flick.atYEnd
-                            model: qr_artist_albums.data
-                            onAtYBeginningChanged: {
-                                if (interactive) {
-                                    flick.contentY -= 1;
-                                }
+                    }
+                    ColumnLayout {
+                        spacing: 0
+                        Layout.fillWidth: true
+                        visible: m_flick.single
+
+                        LayoutItemProxy {
+                            Layout.alignment: Qt.AlignHCenter
+                            target: m_cover
+                        }
+                        MD.Space {
+                            spacing: 16
+                        }
+                        ColumnLayout {
+                            Layout.alignment: Qt.AlignHCenter
+                            spacing: 12
+
+                            LayoutItemProxy {
+                                Layout.alignment: Qt.AlignHCenter
+                                Layout.maximumWidth: implicitWidth
+                                Layout.fillWidth: true
+                                target: m_title
                             }
+                            LayoutItemProxy {
+                                Layout.alignment: Qt.AlignHCenter
+                                target: m_info
+                            }
+                            LayoutItemProxy {
+                                Layout.alignment: Qt.AlignHCenter
+                                Layout.fillWidth: true
+                                visible: !!m_desc.description
+                                target: m_desc
+                            }
+                        }
+                        MD.Space {
+                            spacing: 8
+                        }
+                    }
+                }
+            }
 
-                            delegate: Item {
-                                width: GridView.view.cellWidth
-                                height: GridView.view.cellHeight
-                                QA.PicGridDelegate {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    anchors.top: parent.top
-                                    anchors.topMargin: 8
+            //RowLayout {
+            //    id: ly_header
+            //    spacing: 16
+            //    Layout.leftMargin: 8
+            //    Layout.rightMargin: 8
+            //    Layout.topMargin: 8
 
-                                    picWidth: parent.GridView.view.fixedCellWidth
-                                    width: picWidth
-                                    height: Math.min(implicitHeight, parent.height)
-                                    image.source: `image://ncm/${model.picUrl}`
-                                    text: model.name
-                                    subText: Qt.formatDateTime(model.publishTime, 'yyyy')
+            //    ColumnLayout {
+            //        Layout.alignment: Qt.AlignTop
+            //        spacing: 12
+            //    }
+            //}
+
+            MD.Pane {
+                Layout.fillWidth: true
+                radius: root.radius
+
+                ColumnLayout {
+                    id: pane_view_column
+                    width: parent.width
+                    spacing: 0
+
+                    LayoutItemProxy {
+                        target: m_control_pane
+                    }
+
+                    MD.TabBar {
+                        id: bar
+                        Layout.fillWidth: true
+
+                        Component.onCompleted: {
+                            currentIndexChanged();
+                        }
+
+                        MD.TabButton {
+                            text: qsTr("Hot Song")
+                        }
+                        MD.TabButton {
+                            text: qsTr("Album")
+                        }
+                    }
+                    Item {
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
+                        implicitHeight: Math.min(Math.max(root.height - m_header.implicitHeight * 0.4 - bar.implicitHeight, 0), item_stack.implicitHeight)
+
+                        StackLayout {
+                            id: item_stack
+                            anchors.fill: parent
+                            currentIndex: bar.currentIndex
+
+                            MD.ListView {
+                                implicitHeight: contentHeight
+                                interactive: m_flick.atYEnd
+                                model: itemData.hotSongs
+                                topMargin: 8
+                                bottomMargin: 8
+                                leftMargin: 24
+                                rightMargin: 24
+
+                                onAtYBeginningChanged: {
+                                    if (interactive) {
+                                        m_flick.contentY -= 1;
+                                    }
+                                }
+
+                                delegate: QA.SongDelegate {
+                                    subtitle: `${modelData.album.name}`
+                                    width: ListView.view.contentWidth
 
                                     onClicked: {
-                                        QA.Global.route(model.itemId);
+                                        QA.App.playlist.switchTo(modelData);
+                                    }
+                                }
+                                footer: MD.ListBusyFooter {
+                                    running: qr_artist.status === QA.enums.Querying
+                                    width: ListView.view.width
+                                }
+                            }
+                            QA.MGridView {
+                                fixedCellWidth: Math.max(160, (Window.window?.width ?? 0) / 6.0)
+                                interactive: m_flick.atYEnd
+                                model: qr_artist_albums.data
+                                onAtYBeginningChanged: {
+                                    if (interactive) {
+                                        m_flick.contentY -= 1;
+                                    }
+                                }
+
+                                delegate: Item {
+                                    width: GridView.view.cellWidth
+                                    height: GridView.view.cellHeight
+                                    QA.PicGridDelegate {
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        anchors.top: parent.top
+                                        anchors.topMargin: 8
+
+                                        picWidth: parent.GridView.view.fixedCellWidth
+                                        width: picWidth
+                                        height: Math.min(implicitHeight, parent.height)
+                                        image.source: `image://ncm/${model.picUrl}`
+                                        text: model.name
+                                        subText: Qt.formatDateTime(model.publishTime, 'yyyy')
+
+                                        onClicked: {
+                                            QA.Global.route(model.itemId);
+                                        }
                                     }
                                 }
                             }

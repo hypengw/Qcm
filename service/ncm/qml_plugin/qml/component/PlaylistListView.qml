@@ -2,16 +2,26 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Qcm.App as QA
-import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
+import Qcm.Service.Ncm as QNcm
 
-MD.Pane {
-    property alias cat: qr_pl.cat
-
+MD.Control {
+    id: root
     padding: 0
+    property alias cat: qr_pl.cat
+    property var radius: 0
 
-    QA.MGridView {
-        anchors.fill: parent
+    background: Item {
+        MD.FlickablePane {
+            view: m_view
+            radius: [0, root.radius]
+            color: root.MD.MatProp.backgroundColor
+            topMargin: 0
+        }
+    }
+
+    contentItem: QA.MGridView {
+        id: m_view
         model: qr_pl.data
         fixedCellWidth: Math.max(160, QA.Global.main_win.width / 6.0)
 
@@ -39,11 +49,11 @@ MD.Pane {
             width: GridView.view.width
             running: qr_pl.status === QA.enums.Querying
         }
-    }
 
-    QNcm.PlaylistListQuerier {
-        id: qr_pl
+        QNcm.PlaylistListQuerier {
+            id: qr_pl
 
-        autoReload: cat.length > 0
+            autoReload: cat.length > 0
+        }
     }
 }

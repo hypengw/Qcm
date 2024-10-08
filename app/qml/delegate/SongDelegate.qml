@@ -20,7 +20,7 @@ MD.ListItem {
     highlighted: isPlaying
     heightMode: MD.Enum.ListItemTwoLine
 
-    rightPadding: 0
+    rightPadding: rightMargin
 
     radius: indexRadius(dgIndex, count, 16)
 

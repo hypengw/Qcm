@@ -5,6 +5,7 @@ import QtQuick.Layouts
 
 import Qcm.App as QA
 import Qcm.Material as MD
+import Qcm.Service.Ncm as NCM
 
 MD.Page {
     id: root
@@ -15,13 +16,21 @@ MD.Page {
     property string cur: '全部歌单'
     property var custom_cat_list: ['华语', '流行', '电子', 'ACG', '欧美', '运动']
 
+    padding: 0
+    topPadding: MD.MatProp.size.verticalPadding
+
     function switchCat(cat) {
-        view_container.switchTo('qrc:/Qcm/App/qml/component/PlaylistListView.qml', {
+        view_container.switchTo(m_list_view, {
             "cat": cat
         }, true);
     }
 
-    padding: 0
+    Component {
+        id: m_list_view
+        NCM.PlaylistListView {
+            radius: [0, root.radius]
+        }
+    }
 
     Component.onCompleted: {
         curChanged();
@@ -46,12 +55,12 @@ MD.Page {
         spacing: 0
 
         RowLayout {
-
             MD.TabBar {
                 id: item_bar
                 Layout.fillWidth: true
                 spacing: 0
                 clip: true
+                radius: [root.radius, 0]
 
                 readonly property int tab_width: parent.width / root.cat_list.length
 
@@ -76,11 +85,11 @@ MD.Page {
                 }
             }
         }
-        MD.Pane {
+        Item {
             Layout.fillHeight: true
             Layout.fillWidth: true
-            MD.MatProp.backgroundColor: MD.Token.color.surface
-            padding: 0
+            clip: true
+            z: -1
 
             QA.PageContainer {
                 id: view_container

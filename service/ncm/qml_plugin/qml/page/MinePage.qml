@@ -13,6 +13,8 @@ MD.Page {
     title: m_content.currentItem?.title ?? qsTr("library")
     radius: MD.Token.shape.corner.large
     background: Item {}
+    
+    property int vpadding: showHeader ? 0 :MD.MatProp.size.verticalPadding
 
     function back() {
         m_content.pop(null);
@@ -32,12 +34,8 @@ MD.Page {
         rightMin: 400
 
         leftPage: MD.Pane {
-            padding: 0
-            layer.enabled: true
-            layer.effect: MD.RoundClip {
-                radius: root.radius
-                size: Qt.vector2d(leaf.leftPage.width, leaf.leftPage.height)
-            }
+            topPadding: root.vpadding
+            showBackground: false
 
             ColumnLayout {
                 id: p1
@@ -47,6 +45,7 @@ MD.Page {
                 MD.TabBar {
                     id: bar
                     Layout.fillWidth: true
+                    radius: [root.radius, 0]
 
                     Component.onCompleted: {
                         currentIndexChanged();
@@ -233,18 +232,12 @@ MD.Page {
         }
         rightPage: MD.StackView {
             id: m_content
-            layer.enabled: true
-            layer.effect: MD.RoundClip {
-                radius: root.radius
-                size: Qt.vector2d(m_content.width, m_content.height)
-            }
 
             property var currentItemId: null
+            property bool barVisible: false
+            property int radius: root.radius
 
             function push_page(item, params, oper) {
-                params = Object.assign({
-                    'header.visible': false
-                }, params);
                 if (m_content.depth === 1)
                     m_content.push(item, params, oper);
                 else
@@ -266,6 +259,8 @@ MD.Page {
     }
 
     component BaseView: MD.ListView {
+        bottomMargin: root.vpadding
+
         property bool dirty: false
         property var refresh: function () {}
 
@@ -307,6 +302,9 @@ MD.Page {
 
         width: ListView.view.width
         maximumLineCount: 2
+
+        radius: [0, dgIndex + 1 == count ? root.radius : 0]
+
         leader: QA.Image {
             radius: 8
             source: image
@@ -326,11 +324,7 @@ MD.Page {
         }
         divider: MD.Divider {
             anchors.bottom: parent.bottom
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.leftMargin: 48 + 16 * 2
-            full: false
-            height: 1
+            leftMargin: 48 + 16 * 2
         }
         onClicked: {
             m_content.route(itemId);
