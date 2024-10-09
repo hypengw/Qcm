@@ -208,9 +208,6 @@ ApplicationWindow {
                     this.pop(null);
                 }
             }
-            Component.onCompleted: {
-                console.error("win:", Window.window);
-            }
 
             Component.onDestruction: {
                 playing_page.destroy();

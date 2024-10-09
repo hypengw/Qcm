@@ -12,7 +12,6 @@ Action {
     text: qsTr('play next')
 
     onTriggered: {
-        console.error(root.song);
         QA.App.playlist.appendNext(root.song);
     }
 }
