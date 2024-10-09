@@ -12,6 +12,9 @@ MD.Flickable {
 
     signal close
 
+    topMargin: 16
+    bottomMargin: 16
+
     ColumnLayout {
         height: implicitHeight
         anchors.left: parent.left

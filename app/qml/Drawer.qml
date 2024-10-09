@@ -5,6 +5,7 @@ import Qcm.Material as MD
 MD.Drawer {
     id: root
     font.capitalization: Font.Capitalize
+    padding: 0
 
     MD.MatProp.backgroundColor: MD.MatProp.color.surface
 

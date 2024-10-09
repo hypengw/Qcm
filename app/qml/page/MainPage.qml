@@ -66,8 +66,6 @@ MD.Page {
 
             Loader {
                 Layout.fillHeight: true
-                Layout.topMargin: 12
-                Layout.bottomMargin: 12
 
                 readonly property bool useLarge: MD.MatProp.size.windowClass >= MD.Enum.WindowClassLarge
                 sourceComponent: useLarge ? m_large_navi : m_small_navi
@@ -86,97 +84,106 @@ MD.Page {
 
                 Component {
                     id: m_small_navi
-                    ColumnLayout {
-                        StackLayout {
-                            Layout.fillHeight: false
-                            currentIndex: 1
+                    Item {
+                        implicitWidth: children[0].implicitWidth
+                        implicitHeight: children[0].implicitHeight
 
-                            Binding on currentIndex {
-                                value: 0
-                                when: m_page_stack.depth > 1 || !!page_container.canBack
-                            }
+                        ColumnLayout {
+                            anchors.fill: parent
+                            anchors.topMargin: 12
+                            anchors.bottomMargin: 12
 
-                            ColumnLayout {
-                                MD.IconButton {
-                                    Layout.alignment: Qt.AlignHCenter
-                                    action: QC.Action {
-                                        icon.name: MD.Token.icon.arrow_back
+                            StackLayout {
+                                Layout.fillHeight: false
+                                currentIndex: 1
 
-                                        onTriggered: {
-                                            if (m_page_stack.depth > 1)
-                                                m_page_stack.pop_page();
-                                            else if (page_container.canBack)
-                                                page_container.back();
-                                        }
-                                    }
+                                Binding on currentIndex {
+                                    value: 0
+                                    when: m_page_stack.depth > 1 || !!page_container.canBack
                                 }
-                                Item {
-                                    implicitWidth: 56 + 24
-                                }
-                            }
-                            MD.ListView {
-                                Layout.fillWidth: true
-                                implicitHeight: contentHeight
-                                interactive: false
-                                spacing: 12
-                                reuseItems: false
-                                currentIndex: root.pageIndex
 
-                                header: ColumnLayout {
-                                    width: ListView.view.width
-                                    spacing: 0
-                                    MD.RailItem {
-                                        icon.name: MD.Token.icon.menu
-                                        text: qsTr('menu')
-                                        onClicked: {
-                                            m_drawer.open();
+                                ColumnLayout {
+                                    MD.IconButton {
+                                        Layout.alignment: Qt.AlignHCenter
+                                        action: QC.Action {
+                                            icon.name: MD.Token.icon.arrow_back
+
+                                            onTriggered: {
+                                                if (m_page_stack.depth > 1)
+                                                    m_page_stack.pop_page();
+                                                else if (page_container.canBack)
+                                                    page_container.back();
+                                            }
                                         }
                                     }
                                     Item {
-                                        implicitHeight: 12
+                                        implicitWidth: 56 + 24
                                     }
                                 }
+                                MD.ListView {
+                                    Layout.fillWidth: true
+                                    implicitHeight: contentHeight
+                                    interactive: false
+                                    spacing: 12
+                                    reuseItems: false
+                                    currentIndex: root.pageIndex
 
-                                delegate: MD.RailItem {
-                                    required property var model
-                                    required property int index
-
-                                    width: ListView.view.width
-                                    icon.name: MD.Token.icon[model.icon]
-                                    text: model.name
-                                    checked: root.pageIndex == index
-                                    onClicked: {
-                                        if (model.action) {
-                                            model.action.do();
-                                        } else {
-                                            QA.Action.switch_main_page(index);
+                                    header: ColumnLayout {
+                                        width: ListView.view.width
+                                        spacing: 0
+                                        MD.RailItem {
+                                            icon.name: MD.Token.icon.menu
+                                            text: qsTr('menu')
+                                            onClicked: {
+                                                m_drawer.open();
+                                            }
+                                        }
+                                        Item {
+                                            implicitHeight: 12
                                         }
                                     }
-                                }
 
-                                model: root.model
-                            }
-                        }
-                        Item {
-                            Layout.fillHeight: true
-                        }
-                        MD.IconButton {
-                            Layout.alignment: Qt.AlignHCenter
-                            action: QC.Action {
-                                icon.name: MD.Token.icon.search
-                                onTriggered: {
-                                    QA.Global.route('qrc:/Qcm/App/qml/page/SearchPage.qml');
+                                    delegate: MD.RailItem {
+                                        required property var model
+                                        required property int index
+
+                                        width: ListView.view.width
+                                        icon.name: MD.Token.icon[model.icon]
+                                        text: model.name
+                                        checked: root.pageIndex == index
+                                        onClicked: {
+                                            if (model.action) {
+                                                model.action.do();
+                                            } else {
+                                                QA.Action.switch_main_page(index);
+                                            }
+                                        }
+                                    }
+
+                                    model: root.model
                                 }
                             }
-                        }
-                        MD.IconButton {
-                            Layout.alignment: Qt.AlignHCenter
-                            visible: !QA.Global.use_system_color_scheme
-                            action: QA.ColorSchemeAction {}
-                        }
-                        MD.IconButton {
-                            Layout.alignment: Qt.AlignHCenter
-                            action: QA.SettingAction {}
+                            Item {
+                                Layout.fillHeight: true
+                            }
+                            MD.IconButton {
+                                Layout.alignment: Qt.AlignHCenter
+                                action: QC.Action {
+                                    icon.name: MD.Token.icon.search
+                                    onTriggered: {
+                                        QA.Global.route('qrc:/Qcm/App/qml/page/SearchPage.qml');
+                                    }
+                                }
+                            }
+                            MD.IconButton {
+                                Layout.alignment: Qt.AlignHCenter
+                                visible: !QA.Global.use_system_color_scheme
+                                action: QA.ColorSchemeAction {}
+                            }
+                            MD.IconButton {
+                                Layout.alignment: Qt.AlignHCenter
+                                action: QA.SettingAction {}
+                            }
                         }
                     }
                 }
