@@ -21,6 +21,9 @@ MD.Page {
             MD.IconButton {
                 id: m_back
                 Layout.alignment: Qt.AlignLeft
+                Layout.leftMargin: 12
+                Layout.topMargin: 12
+
                 action: Action {
                     icon.name: MD.Token.icon.arrow_back
 

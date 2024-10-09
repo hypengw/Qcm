@@ -19,8 +19,31 @@ MD.Page {
 
     backgroundColor: MD.MatProp.backgroundColor
 
+    property var model: {
+        const p = [...QA.Global.session.pages];
+        if (QA.App.debug) {
+            const page = QA.Util.create_page();
+            page.name = qsTr('test');
+            page.icon = 'queue_music';
+            page.source = 'qrc:/Qcm/App/qml/page/MaterialTest.qml';
+            p.push(page);
+        }
+        return p;
+    }
+
     function back() {
         m_page_stack.back();
+    }
+
+    onPageIndexChanged: {
+        const m = model[pageIndex];
+        if (m?.source) {
+            page_container.switchTo(m.source, m.props ?? {}, m.cache);
+        }
+    }
+
+    Component.onCompleted: {
+        root.pageIndex = 0;
     }
 
     Connections {
@@ -28,130 +51,134 @@ MD.Page {
             m_page_stack.push_page(msg.url, msg.props);
         }
 
+        function onSwitch_main_page(idx) {
+            root.pageIndex = idx;
+        }
+
         target: QA.Action
     }
+
     contentItem: Item {
         RowLayout {
             id: m_large_layout
             anchors.fill: parent
             visible: false
 
-            ColumnLayout {
+            Loader {
+                Layout.fillHeight: true
                 Layout.topMargin: 12
                 Layout.bottomMargin: 12
-                Layout.preferredWidth: 56 + 24
-                Layout.fillWidth: false
-                Layout.fillHeight: true
 
-                StackLayout {
-                    Layout.fillHeight: false
-                    currentIndex: 1
+                readonly property bool useLarge: MD.MatProp.size.windowClass >= MD.Enum.WindowClassLarge
+                sourceComponent: useLarge ? m_large_navi : m_small_navi
 
-                    Binding on currentIndex {
-                        value: 0
-                        when: m_page_stack.depth > 1 || !!page_container.canBack
+                Component {
+                    id: m_large_navi
+
+                    MD.StandardDrawer {
+                        contentItem: QA.DrawerContent {
+                            standard: true
+                            pageIndex: root.pageIndex
+                            rightTopAction: m_page_stack_context.leadingAction
+                        }
                     }
+                }
 
+                Component {
+                    id: m_small_navi
                     ColumnLayout {
-                        MD.IconButton {
-                            Layout.alignment: Qt.AlignHCenter
-                            action: QC.Action {
-                                icon.name: MD.Token.icon.arrow_back
+                        StackLayout {
+                            Layout.fillHeight: false
+                            currentIndex: 1
 
-                                onTriggered: {
-                                    if (m_page_stack.depth > 1)
-                                        m_page_stack.pop_page();
-                                    else if (page_container.canBack)
-                                        page_container.back();
+                            Binding on currentIndex {
+                                value: 0
+                                when: m_page_stack.depth > 1 || !!page_container.canBack
+                            }
+
+                            ColumnLayout {
+                                MD.IconButton {
+                                    Layout.alignment: Qt.AlignHCenter
+                                    action: QC.Action {
+                                        icon.name: MD.Token.icon.arrow_back
+
+                                        onTriggered: {
+                                            if (m_page_stack.depth > 1)
+                                                m_page_stack.pop_page();
+                                            else if (page_container.canBack)
+                                                page_container.back();
+                                        }
+                                    }
                                 }
+                                Item {
+                                    implicitWidth: 56 + 24
+                                }
+                            }
+                            MD.ListView {
+                                Layout.fillWidth: true
+                                implicitHeight: contentHeight
+                                interactive: false
+                                spacing: 12
+                                reuseItems: false
+                                currentIndex: root.pageIndex
+
+                                header: ColumnLayout {
+                                    width: ListView.view.width
+                                    spacing: 0
+                                    MD.RailItem {
+                                        icon.name: MD.Token.icon.menu
+                                        text: qsTr('menu')
+                                        onClicked: {
+                                            m_drawer.open();
+                                        }
+                                    }
+                                    Item {
+                                        implicitHeight: 12
+                                    }
+                                }
+
+                                delegate: MD.RailItem {
+                                    required property var model
+                                    required property int index
+
+                                    width: ListView.view.width
+                                    icon.name: MD.Token.icon[model.icon]
+                                    text: model.name
+                                    checked: root.pageIndex == index
+                                    onClicked: {
+                                        if (model.action) {
+                                            model.action.do();
+                                        } else {
+                                            QA.Action.switch_main_page(index);
+                                        }
+                                    }
+                                }
+
+                                model: root.model
                             }
                         }
                         Item {
-                            implicitWidth: 56 + 24
+                            Layout.fillHeight: true
                         }
-                    }
-                    MD.ListView {
-                        Layout.fillWidth: true
-                        implicitHeight: contentHeight
-                        interactive: false
-                        spacing: 12
-                        reuseItems: false
-                        currentIndex: root.pageIndex
-
-                        header: ColumnLayout {
-                            width: ListView.view.width
-                            spacing: 0
-                            MD.RailItem {
-                                icon.name: MD.Token.icon.menu
-                                text: qsTr('menu')
-                                onClicked: {
-                                    m_drawer.open();
+                        MD.IconButton {
+                            Layout.alignment: Qt.AlignHCenter
+                            action: QC.Action {
+                                icon.name: MD.Token.icon.search
+                                onTriggered: {
+                                    QA.Global.route('qrc:/Qcm/App/qml/page/SearchPage.qml');
                                 }
                             }
-                            Item {
-                                implicitHeight: 12
-                            }
                         }
-
-                        delegate: MD.RailItem {
-                            required property var model
-                            required property int index
-
-                            width: ListView.view.width
-                            icon.name: MD.Token.icon[model.icon]
-                            text: model.name
-                            checked: root.pageIndex == index
-                            onClicked: {
-                                if (model.action)
-                                    model.action.do();
-                                else
-                                    root.pageIndex = index;
-                            }
+                        MD.IconButton {
+                            Layout.alignment: Qt.AlignHCenter
+                            visible: !QA.Global.use_system_color_scheme
+                            action: QA.ColorSchemeAction {}
                         }
-
-                        model: {
-                            const p = [...QA.Global.session.pages];
-                            if (QA.App.debug) {
-                                const page = QA.Util.create_page();
-                                page.name = qsTr('test');
-                                page.icon = 'queue_music';
-                                page.source = 'qrc:/Qcm/App/qml/page/MaterialTest.qml';
-                                p.push(page);
-                            }
-                            return p;
-                        }
-
-                        Component.onCompleted: {
-                            root.pageIndex = 0;
-                        }
-                        onCurrentIndexChanged: {
-                            const m = model[currentIndex];
-                            if (m.source) {
-                                page_container.switchTo(m.source, m.props ?? {}, m.cache);
-                            }
+                        MD.IconButton {
+                            Layout.alignment: Qt.AlignHCenter
+                            action: QA.SettingAction {}
                         }
                     }
-                }
-                Item {
-                    Layout.fillHeight: true
-                }
-                MD.IconButton {
-                    Layout.alignment: Qt.AlignHCenter
-                    action: QC.Action {
-                        icon.name: MD.Token.icon.search
-                        onTriggered: {
-                            QA.Global.route('qrc:/Qcm/App/qml/page/SearchPage.qml');
-                        }
-                    }
-                }
-                MD.IconButton {
-                    Layout.alignment: Qt.AlignHCenter
-                    visible: !QA.Global.use_system_color_scheme
-                    action: QA.ColorSchemeAction {}
-                }
-                MD.IconButton {
-                    Layout.alignment: Qt.AlignHCenter
-                    action: QA.SettingAction {}
                 }
             }
 
@@ -190,10 +217,11 @@ MD.Page {
                                 text: modelData.name
                                 checked: root.pageIndex == index
                                 onClicked: {
-                                    if (modelData.action)
+                                    if (modelData.action) {
                                         modelData.action.do();
-                                    else
-                                        root.pageIndex = index;
+                                    } else {
+                                        QA.Action.switch_main_page(index);
+                                    }
                                 }
                             }
                         }

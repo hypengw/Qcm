@@ -48,7 +48,9 @@ set(QML_FILES
     qml/js/util.mjs
     qml/PlayBar.qml
     qml/Drawer.qml
+    qml/DrawerContent.qml
     qml/Global.qml
+
     qml/page/AboutPage.qml
     qml/page/AlbumDetailPage.qml
     qml/page/ArtistDetailPage.qml
@@ -66,10 +68,12 @@ set(QML_FILES
     qml/page/MainPage.qml
     qml/page/FavPage.qml
     qml/page/MaterialTest.qml
+
     qml/delegate/CommentDelegate.qml
     qml/delegate/SongDelegate.qml
     qml/delegate/PicGridDelegate.qml
     qml/delegate/ProgramDelegate.qml
+
     qml/component/ArtistsPopup.qml
     qml/component/InfoRow.qml
     qml/component/SnakeView.qml
@@ -92,12 +96,14 @@ set(QML_FILES
     qml/component/PagePopup.qml
     qml/component/PageStack.qml
     qml/component/VolumeButton.qml
+
     qml/action/AppendListAction.qml
     qml/action/PlaynextAction.qml
     qml/action/CopyAction.qml
     qml/action/ColorSchemeAction.qml
     qml/action/SubAction.qml
     qml/action/SettingAction.qml
+
     qml/menu/SongMenu.qml
     qml/menu/AlbumMenu.qml
     qml/menu/ArtistMenu.qml
