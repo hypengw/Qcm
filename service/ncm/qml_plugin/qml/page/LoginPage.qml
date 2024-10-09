@@ -151,6 +151,7 @@ MD.Page {
                 }
                 MD.Pane {
                     id: qr_pane
+                    padding: 8
 
                     StackView {
                         id: qr_stack
