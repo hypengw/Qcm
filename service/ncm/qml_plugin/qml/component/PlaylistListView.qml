@@ -12,9 +12,13 @@ MD.Control {
     property var radius: 0
 
     background: Item {
+        implicitWidth: 0
+        implicitHeight: 0
         MD.FlickablePane {
             view: m_view
-            radius: [0, root.radius]
+            contentWidth: view.contentItem.width + view.ScrollBar.vertical.width
+            contentHeight: view.contentItem.height
+            radius: root.radius
             color: root.MD.MatProp.backgroundColor
             topMargin: 0
         }
