@@ -25,8 +25,7 @@ DEFINE_CONVERT(std::vector<byte>, asio::streambuf) {
 
 template<>
 struct fmt::formatter<asio::streambuf> : fmt::formatter<std::string> {
-    template<typename FormatContext>
-    auto format(const asio::streambuf& buf, FormatContext& ctx) const {
+    auto format(const asio::streambuf& buf, format_context& ctx) const -> format_context::iterator {
         std::string out { asio::buffers_begin(buf.data()), asio::buffers_end(buf.data()) };
         return fmt::formatter<std::string>::format(out, ctx);
     }

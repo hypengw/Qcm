@@ -1,15 +1,8 @@
 #pragma once
 
-#include <fmt/core.h>
+#include <fmt/base.h>
 #include <fmt/format.h>
-
-namespace fmt
-{
-
-template<typename T>
-concept formattable = fmt::is_formattable<T>::value;
-
-}
+#include <fmt/ranges.h>
 
 namespace helper
 {

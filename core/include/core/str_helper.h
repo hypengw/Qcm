@@ -19,13 +19,16 @@ template<typename T>
 concept ByteRangeCP =
     std::ranges::range<T> && std::same_as<std::decay_t<std::ranges::range_value_t<T>>, byte>;
 } // namespace helper
+template<typename T>
+concept convert_formatable = (! requires() {
+    { Convert<std::string, T>::AsFormat } -> std::convertible_to<bool>;
+} || Convert<std::string, T>::AsFormat == true);
 
 template<typename T>
     requires convertable<std::string, T> && ycore::extra_cvt<std::string, T> &&
-             (! requires() { Convert<std::string, T>::AsFormat == false; })
+             convert_formatable<T>
 struct fmt::formatter<T> : fmt::formatter<std::string> {
-    template<typename FormatContext>
-    auto format(const T& t, FormatContext& ctx) const {
+    auto format(const T& t, format_context& ctx) const -> format_context::iterator {
         return fmt::formatter<std::string>::format(convert_from<std::string>(t), ctx);
     }
 };
@@ -47,10 +50,38 @@ struct Convert<std::string, T> {
 
 template<helper::ByteRangeCP Bytes>
 struct Convert<std::string, Bytes> {
-    static void from(std::string& out, const Bytes& in) {
+    // already defined by fmt
+    constexpr static bool AsFormat { false };
+    static void           from(std::string& out, const Bytes& in) {
         out.resize(in.size());
         auto view = std::ranges::transform_view(in, std::to_integer<char>);
         std::copy(view.begin(), view.end(), out.begin());
+    }
+};
+
+template<>
+struct fmt::range_formatter<byte, char> : fmt::range_formatter<char, char> {
+    using Char   = char;
+    using base_t = fmt::range_formatter<char, char>;
+
+    template<typename ParseContext>
+    constexpr auto parse(ParseContext& ctx) -> decltype(ctx.begin()) {
+        auto it  = ctx.begin();
+        char cur = it != ctx.end() ? detail::to_ascii(*it) : '\0';
+        auto out = base_t::parse(ctx);
+        // clear string bracket
+        if (cur == 's') {
+            set_brackets({}, {});
+        }
+        return out;
+    }
+
+    template<typename R, typename FormatContext>
+    auto format(R&& range, FormatContext& ctx) const -> decltype(ctx.out()) {
+        auto view = std::ranges::transform_view(range, [](const byte b) -> char {
+            return (char)(b);
+        });
+        return base_t::format(view, ctx);
     }
 };
 

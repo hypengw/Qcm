@@ -61,19 +61,19 @@ std::optional<std::string> ncm::Crypto::weapi(bytes_view in) {
 }
 
 std::optional<std::string> ncm::Crypto::eapi(std::string_view url, bytes_view in) {
-    auto message = fmt::format("nobody{}use{}md5forencrypt", url, in);
+    auto message = fmt::format("nobody{}use{:s}md5forencrypt", url, in);
     auto params  = crypto::digest(crypto::md5(), convert_from<std::vector<byte>>(message))
                       .map(crypto::hex::encode_low)
                       .map([&url, &in](auto msg) {
                           return convert_from<std::vector<byte>>(
-                              fmt::format("{}-36cd479b6b5-{}-36cd479b6b5-{}", url, in, msg));
+                              fmt::format("{}-36cd479b6b5-{:s}-36cd479b6b5-{:s}", url, in, msg));
                       })
                       .and_then([](auto in) {
                           return crypto::encrypt(crypto::aes_128_ecb(), EAPI_KEY, AES_IV, in);
                       })
                       .map(crypto::hex::encode_up)
                       .map([](auto in) {
-                          return fmt::format("params={}", in);
+                          return fmt::format("params={:s}", in);
                       });
     if (params.has_value()) {
         return params.value();
