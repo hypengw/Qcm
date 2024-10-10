@@ -67,6 +67,13 @@ constexpr bool starts_with_i(std::string_view str, std::string_view start) noexc
            case_insensitive_compare({ str.begin(), str.begin() + start.size() }, start) == 0;
 }
 
+inline auto get_env_var(std::string_view var_name) -> std::optional<std::string_view> {
+    if (const char* value = std::getenv(var_name.data())) {
+        return std::string_view(value);
+    }
+    return std::nullopt;
+}
+
 } // namespace helper
 
 template<typename T>
