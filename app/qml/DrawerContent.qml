@@ -85,6 +85,7 @@ MD.Flickable {
         MD.ListView {
             Layout.fillWidth: true
             Layout.preferredHeight: contentHeight
+            interactive: false
             model: QA.Global.userModel
             visible: m_expand.checked
             delegate: MD.ListItem {
