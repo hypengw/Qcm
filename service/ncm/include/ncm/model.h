@@ -138,30 +138,30 @@ struct Song {
     };
 
     struct Privilege {
-        i64         id { 0 };
-        SongFee     fee;
-        i64         payed;
-        i64         st;
-        i64         pl;    // 999000,
-        i64         dl;    // 999000,
-        i64         sp;    // 7,
-        i64         cp;    // 1,
-        i64         subp;  // 1,
-        bool        cs;    // false,
-        i64         maxbr; // 999000,
-        i64         fl;    // 320000,
-        bool        toast;
-        i64         flag; // 128,
-        bool        preSell;
-        i64         playMaxbr;          // 999000,
-        i64         downloadMaxbr;      // 999000,
-        std::string maxBrLevel;         // "lossless",
-        std::string playMaxBrLevel;     // "lossless",
-        std::string downloadMaxBrLevel; // "lossless",
-        std::string plLevel;            // "lossless",
-        std::string dlLevel;            // "lossless",
-        std::string flLevel;            // "exhigh",
-                                        // rscl null,
+        i64                        id { 0 };
+        SongFee                    fee;
+        i64                        payed;
+        i64                        st;
+        i64                        pl;    // 999000,
+        i64                        dl;    // 999000,
+        i64                        sp;    // 7,
+        i64                        cp;    // 1,
+        i64                        subp;  // 1,
+        bool                       cs;    // false,
+        i64                        maxbr; // 999000,
+        i64                        fl;    // 320000,
+        bool                       toast;
+        i64                        flag; // 128,
+        bool                       preSell;
+        i64                        playMaxbr;          // 999000,
+        i64                        downloadMaxbr;      // 999000,
+        std::optional<std::string> maxBrLevel;         // "lossless",
+        std::optional<std::string> playMaxBrLevel;     // "lossless",
+        std::optional<std::string> downloadMaxBrLevel; // "lossless",
+        std::optional<std::string> plLevel;            // "lossless",
+        std::optional<std::string> dlLevel;            // "lossless",
+        std::optional<std::string> flLevel;            // "exhigh",
+                                                       // rscl null,
 
         /*
         songMaxBr plLevel       dlLevel
