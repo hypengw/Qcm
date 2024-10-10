@@ -26,12 +26,23 @@ constexpr const char* past_last_slash(const char* const path, const int pos = 0,
         return past_last_slash(path, pos + 1, last_slash);
 }
 
-constexpr std::string_view extract_basename(std::string_view path) {
+constexpr auto extract_last(std::string_view path, std::size_t count) -> std::string_view {
     auto size = path.size();
-    while (size != 0 && path[size - 1] != '/' && path[size - 1] != '\\') {
-        --size;
+    while (size != 0) {
+        if (path[size - 1] == '/' || path[size - 1] == '\\') {
+            --count;
+        }
+        if (count != 0) {
+            --size;
+        } else {
+            break;
+        }
     }
     return std::string_view { path.begin() + size, path.end() };
+}
+
+constexpr auto extract_basename(std::string_view path) -> std::string_view {
+    return extract_last(path, 1);
 }
 
 class LogManager {
@@ -102,8 +113,6 @@ void handle_assert(Expr&&, std::string_view, Msg&&,
 using LogLevel   = log::LogLevel;
 using LogManager = log::LogManager;
 
-
-
 } // namespace qcm
 
 // clang-format off
@@ -125,18 +134,20 @@ using LogManager = log::LogManager;
         LOC)
 
 #define _tpl_assert_msg_(ENABLED, EXPR, LOC, ...) \
-    qcm::log::handle_assert<ENABLED>(            \
-        [&]() -> bool {                          \
-            return (bool)(EXPR);                 \
-        },                                       \
-        #EXPR,                                   \
-        [&]() -> std::string {                   \
-            return fmt::format(__VA_ARGS__);     \
-        },                                       \
+    qcm::log::handle_assert<ENABLED>(             \
+        [&]() -> bool {                           \
+            return (bool)(EXPR);                  \
+        },                                        \
+        #EXPR,                                    \
+        [&]() -> std::string {                    \
+            return fmt::format(__VA_ARGS__);      \
+        },                                        \
         LOC)
 
-#define _assert_(EXPR)     _tpl_assert_(qcm::log::enable_debug, EXPR, std::source_location::current())
-#define _assert_msg_(EXPR, ...) _tpl_assert_msg_(qcm::log::enable_debug, EXPR, std::source_location::current(), __VA_ARGS__)
+#define _assert_(EXPR) _tpl_assert_(qcm::log::enable_debug, EXPR, std::source_location::current())
+#define _assert_msg_(EXPR, ...) \
+    _tpl_assert_msg_(qcm::log::enable_debug, EXPR, std::source_location::current(), __VA_ARGS__)
 
-#define _assert_rel_(EXPR)     _tpl_assert_(true, EXPR, std::source_location::current())
-#define _assert_msg_rel_(EXPR, ...) _tpl_assert_msg_(true, EXPR,std::source_location::current() , __VA_ARGS__)
+#define _assert_rel_(EXPR) _tpl_assert_(true, EXPR, std::source_location::current())
+#define _assert_msg_rel_(EXPR, ...) \
+    _tpl_assert_msg_(true, EXPR, std::source_location::current(), __VA_ARGS__)

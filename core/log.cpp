@@ -1,6 +1,7 @@
 #include "core/core.h"
 #include "core/log.h"
 #include "core/strv_helper.h"
+#include <fmt/chrono.h>
 
 #include <cassert>
 #include <cstdio>
@@ -31,7 +32,7 @@ auto get_log_color(LogLevel level) -> std::string_view {
 
 std::string_view to_sv(qcm::LogLevel lv) {
 #define X(E) \
-    case E: return #E
+    case E: return "["#E"]"
 
     switch (lv) {
         using enum qcm::LogLevel;
@@ -128,11 +129,13 @@ void LogManager::log_raw(LogLevel level, std::string_view content) {
 };
 void LogManager::log_loc_raw(LogLevel level, const std::source_location loc,
                              std::string_view content) {
+    std::time_t t = std::time(nullptr);
     log_raw(level,
-            fmt::format("{} {} at {}({}:{})\n",
+            fmt::format("{:<7} [{:%H:%M:%S}] {} [{}:{},{}] \n",
                         to_sv(level),
+                        fmt::localtime(t),
                         content,
-                        loc.file_name(),
+                        extract_last(loc.file_name(), 2),
                         loc.line(),
                         loc.column()));
 }
@@ -140,7 +143,7 @@ void LogManager::log_loc_raw(LogLevel level, const std::source_location loc,
 std::string log::format_assert(std::string_view expr_str, const std::source_location& loc,
                                std::string_view msg) {
     return fmt::format("{}:{}: {}: Assertion `{}` failed.{}{}\n",
-                       extract_basename(loc.file_name()),
+                       extract_last(loc.file_name(), 2),
                        loc.line(),
                        loc.function_name(),
                        expr_str,
