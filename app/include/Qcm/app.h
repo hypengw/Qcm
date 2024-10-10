@@ -97,6 +97,8 @@ public:
     auto        util() const -> qml::Util*;
     auto        playlist() const -> Playlist*;
     void        set_player_sender(Sender<Player::NotifyInfo>);
+    auto        media_cache_sql() const -> rc<CacheSql>;
+    auto        cache_sql() const -> rc<CacheSql>;
 
     mpris::MediaPlayer2* mpris() const { return m_mpris->mediaplayer2(); }
 

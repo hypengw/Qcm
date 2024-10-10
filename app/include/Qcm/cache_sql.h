@@ -27,6 +27,7 @@ public:
     asio::awaitable<void>                insert(Item) override;
 
     asio::awaitable<void>                remove(std::string key);
+    asio::awaitable<void>                remove(std::span<std::string> key);
     asio::awaitable<usize>               total_size();
     asio::awaitable<std::optional<Item>> lru();
     asio::awaitable<std::vector<Item>>   get_all();

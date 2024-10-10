@@ -24,6 +24,7 @@ set(SOURCES
     include/Qcm/clipboard.h
     include/Qcm/player.h
     include/Qcm/qml_util.h
+    include/Qcm/storage_info.h
     src/action.cpp
     src/app.cpp
     src/image_provider.cpp
@@ -35,6 +36,7 @@ set(SOURCES
     src/player.cpp
     src/fake_moc.cpp
     src/qml_util.cpp
+    src/storage_info.cpp
     )
 
 set(QCM_INTERFACE_HEADER

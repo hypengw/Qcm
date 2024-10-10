@@ -358,11 +358,32 @@ MD.Page {
             SettingSection {
                 id: sec_cache
                 Layout.fillWidth: true
-                title: qsTr('cache')
+                title: qsTr('storage')
 
                 SettingRow {
                     Layout.fillWidth: true
-                    text: `${qsTr('total cache limit')}: ${Util.pretty_bytes(slider_total_cache.byteValue)}`
+                    text: qsTr('Summary')
+                    canInput: false
+                    supportText: m_qr_storage.status === QA.enums.Quering ? qsTr('querying') : Util.pretty_bytes(m_qr_storage.data.total * 1024)
+
+                    QA.StorageInfoQuerier {
+                        id: m_qr_storage
+
+                        Component.onCompleted: reload();
+                    }
+
+                    actionItem: MD.Button {
+                        type: MD.Enum.BtText
+                        text: qsTr('clear all')
+                        onClicked: {
+                            QA.Action.toast('work in progress');
+                        }
+                    }
+                }
+
+                SettingRow {
+                    Layout.fillWidth: true
+                    text: `${qsTr('total size limit')}: ${Util.pretty_bytes(slider_total_cache.byteValue)}`
                     canInput: false
 
                     belowItem: ByteSlider {
@@ -381,7 +402,7 @@ MD.Page {
 
                 SettingRow {
                     Layout.fillWidth: true
-                    text: `${qsTr('media cache limit')}: ${Util.pretty_bytes(slider_media_cache.byteValue)}`
+                    text: `${qsTr('music cache limit')}: ${Util.pretty_bytes(slider_media_cache.byteValue)}`
                     canInput: false
 
                     belowItem: ByteSlider {
@@ -467,6 +488,7 @@ MD.Page {
         property alias actionItem: sr_action.contentItem
         property alias belowItem: sr_below.contentItem
         property alias text: sr_label.text
+        property alias supportText: sr_label_support.text
         property alias font: sr_label.font
         property bool canInput: true
 
@@ -482,11 +504,21 @@ MD.Page {
 
             contentItem: ColumnLayout {
                 RowLayout {
-                    MD.Text {
-                        id: sr_label
-                        Layout.fillWidth: true
-                        typescale: MD.Token.typescale.title_small
-                        font.capitalization: Font.Capitalize
+                    ColumnLayout {
+                        MD.Text {
+                            id: sr_label
+                            Layout.fillWidth: true
+                            typescale: MD.Token.typescale.title_small
+                            font.capitalization: Font.Capitalize
+                        }
+                        MD.Text {
+                            id: sr_label_support
+                            visible: text
+                            Layout.fillWidth: true
+                            typescale: MD.Token.typescale.title_small
+                            font.capitalization: Font.Capitalize
+                            color: MD.MatProp.color.on_surface_variant
+                        }
                     }
                     MD.Control {
                         id: sr_action

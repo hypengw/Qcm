@@ -80,22 +80,41 @@ asio::awaitable<void> scan_media_cache(rc<CacheSql> cache_sql, std::filesystem::
         }
     }
 
-    for (auto& k : keys) {
-        if (! files.contains(k)) {
-            co_await cache_sql->remove(k);
+    usize entry_removed { 0 }, file_removed { 0 };
+
+    {
+        std::vector<std::string> delete_keys;
+        for (auto& k : keys) {
+            if (! files.contains(k)) {
+                delete_keys.push_back(k);
+            }
         }
+        co_await cache_sql->remove(delete_keys);
+        entry_removed = delete_keys.size();
     }
 
     for (auto& f : files) {
         if (! keys.contains(f.first)) {
             std::filesystem::remove(cache_dir / f.second / f.first, ec);
+            file_removed++;
         }
     }
     for (auto& f : useless_files) {
         std::filesystem::remove(f, ec);
     }
+    file_removed += useless_files.size();
 
     co_await cache_sql->try_clean();
+
+    DEBUG_LOG(R"(
+cache cleaned:
+    path: {}
+    entry removed: {}
+    file  removed: {}
+    )",
+              cache_dir.string(),
+              entry_removed,
+              file_removed);
     co_return;
 }
 
@@ -449,6 +468,10 @@ void App::set_player_sender(Sender<Player::NotifyInfo> sender) {
         }
     };
 }
+
+auto App::media_cache_sql() const -> rc<CacheSql> { return m_media_cache_sql; }
+auto App::cache_sql() const -> rc<CacheSql> { return m_cache_sql; }
+
 void App::load_settings() {
     QSettings s;
     playlist()->setLoopMode(s.value("play/loop").value<Playlist::LoopMode>());
