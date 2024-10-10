@@ -142,8 +142,8 @@ MD.Page {
         MD.IconButton {
             anchors.left: parent.left
             anchors.bottom: parent.bottom
-            anchors.leftMargin: 16
-            anchors.bottomMargin: 16
+            anchors.leftMargin: 4
+            anchors.bottomMargin: 4
 
             action: QA.SettingAction {}
         }

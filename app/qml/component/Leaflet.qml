@@ -28,6 +28,7 @@ Item {
     // save size when fold
     property int _bottomHeight: 0
     property int _bottomWidth: 0
+    property int _handleSize: 24
 
     property var foldState: null
 
@@ -146,7 +147,7 @@ Item {
 
         const lw = leftPage.implicitWidth;
         const rw = rightPage.implicitWidth;
-        let newState = width < Math.max(leftMin, lw) + Math.max(rightMin + rw) ? "fold" : "unfold";
+        let newState = width < Math.max(leftMin, lw) + Math.max(rightMin + rw) + root._handleSize ? "fold" : "unfold";
         if (newState === state)
             return;
         if (newState == "fold") {

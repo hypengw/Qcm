@@ -27,8 +27,8 @@ MD.Page {
     QA.Leaflet {
         id: leaf
         anchors.fill: parent
-        leftMin: 280
         rightAbove: m_content.depth === 2
+        leftMin: 280
         rightMin: 400
 
         leftPage: MD.Pane {
