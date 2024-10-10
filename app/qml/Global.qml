@@ -231,6 +231,10 @@ QA.GlobalWrapper {
         function onSessionChanged() {
             m_player.stop();
             root.playlist.clear();
+
+            if(root.session.valid) {
+                m_querier_user_songlike.query();
+            }
         }
     }
 
