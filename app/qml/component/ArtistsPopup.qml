@@ -27,7 +27,7 @@ MD.Page {
             width: ListView.view.width
 
             leader: MD.Image {
-                source: `image://ncm/${modelData.picUrl}`
+                source: QA.Util.image_url(modelData.picUrl)
                 sourceSize.height: 48
                 sourceSize.width: 48
                 radius: 8

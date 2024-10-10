@@ -53,14 +53,16 @@ MD.Pane {
 
             MD.Image {
                 readonly property string picUrl: QA.Global.cur_song.album.picUrl
-                source: `image://ncm/${picUrl}`
+                source: QA.Util.image_url(picUrl)
                 sourceSize.height: 48
                 sourceSize.width: 48
                 radius: 8
 
                 onStatusChanged: {
-                    if (status == Image.Ready)
-                        QA.Global.song_cover = QA.App.getImageCache("ncm", picUrl, sourceSize);
+                    if (status == Image.Ready) {
+                        const p = QA.Global.cur_song.itemId.provider;
+                        QA.Global.song_cover = QA.Util.image_cache_of(p, picUrl, sourceSize);
+                    }
                 }
 
                 MouseArea {

@@ -127,7 +127,7 @@ MD.Page {
                             supportText: `${QA.Global.join_name(model.artists, '/')} - ${Qt.formatDateTime(model.publishTime, 'yyyy.M.d')} - ${model.trackCount} tracks`
                             leader: MD.Image {
                                 radius: 8
-                                source: `image://ncm/${model.picUrl}`
+                                source: QA.Util.image_url(model.picUrl)
                                 sourceSize.height: 48
                                 sourceSize.width: 48
                             }
@@ -149,7 +149,7 @@ MD.Page {
                             supportText: `${model.trackCount} songs`
                             leader: MD.Image {
                                 radius: 8
-                                source: `image://ncm/${model.picUrl}`
+                                source: QA.Util.image_url(model.picUrl)
                                 sourceSize.height: 48
                                 sourceSize.width: 48
                             }
@@ -168,7 +168,7 @@ MD.Page {
                             supportText: `${model.programCount} programs`
                             leader: MD.Image {
                                 radius: 8
-                                source: `image://ncm/${model.picUrl}`
+                                source: QA.Util.image_url(model.picUrl)
                                 sourceSize.height: 48
                                 sourceSize.width: 48
                             }

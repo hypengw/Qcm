@@ -74,6 +74,22 @@ inline auto get_env_var(std::string_view var_name) -> std::optional<std::string_
     return std::nullopt;
 }
 
+inline auto to_upper(std::string_view in) -> std::string {
+    std::string out(in);
+    std::transform(out.begin(), out.end(), out.begin(), [](unsigned char c) {
+        return std::toupper(c);
+    });
+    return out;
+}
+
+inline auto to_lower(std::string_view in) -> std::string {
+    std::string out(in);
+    std::transform(out.begin(), out.end(), out.begin(), [](unsigned char c) {
+        return std::tolower(c);
+    });
+    return out;
+}
+
 } // namespace helper
 
 template<typename T>

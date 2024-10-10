@@ -42,7 +42,7 @@ MD.Page {
             QA.Image {
                 id: m_cover
                 elevation: MD.Token.elevation.level2
-                source: `image://ncm/${root.itemData.picUrl}`
+                source: QA.Util.image_url(root.itemData.picUrl)
                 radius: 16
 
                 Layout.preferredWidth: displaySize.width

@@ -30,15 +30,22 @@ public:
     QWatcher(QWatcher&&)                 = default;
     QWatcher& operator=(QWatcher&&)      = default;
 
-    T* operator->() const { return m_ptr->pointer.load(); }
+    T* operator->() const { return get(); }
     operator bool() const { return m_ptr && m_ptr->pointer; }
-    auto get() const { return m_ptr->pointer.load(); }
+    auto get() const -> T* {
+        if (m_ptr) {
+            return m_ptr->pointer.load();
+        }
+        return nullptr;
+    }
 
     void take_owner() const {
         if (*this) {
             this->get()->setParent(this->m_ptr.get());
         }
     }
+
+    operator T*() const { return get(); }
 
 private:
     struct helper : QObject {

@@ -2,13 +2,13 @@
 
 #include <QUuid>
 #include <asio/bind_executor.hpp>
+#include "core/qstr_helper.h"
 
 #include "qcm_interface/async.inl"
 #include "qcm_interface/global.h"
 #include "qcm_interface/model/session.h"
 
 #include "service_qml_ncm/model.h"
-#include "service_qml_ncm/ncm_image_p.h"
 #include "asio_helper/detached_log.h"
 #include "asio_qt/qt_holder.h"
 
@@ -16,6 +16,22 @@
 #include "ncm/api/user_account.h"
 #include "ncm/api/logout.h"
 #include "ncm/client.h"
+
+namespace
+{
+
+constexpr int        MIN_IMG_SIZE { 300 };
+constexpr std::array IMG_DL_SIZES { 240, 480, 960, 1920 };
+
+inline QSize get_down_size(const QSize& req) {
+    usize req_size = std::sqrt(req.width() * req.height());
+    auto  it       = std::lower_bound(IMG_DL_SIZES.begin(), IMG_DL_SIZES.end(), req_size);
+    usize size     = it != IMG_DL_SIZES.end() ? *it : IMG_DL_SIZES.back();
+
+    return req.scaled(size, size, Qt::AspectRatioMode::KeepAspectRatioByExpanding);
+}
+
+} // namespace
 
 namespace ncm::impl
 {
@@ -38,12 +54,6 @@ static auto server_url(ClientBase& cbase, const qcm::model::ItemId& id) -> std::
         return {};
     }
     }
-}
-static auto image_cache(ClientBase& cbase, const QUrl& url,
-                        QSize reqSize) -> std::filesystem::path {
-    auto c = get_client(cbase);
-    return qcm::NcmImageProvider::genImageCachePath(
-        qcm::NcmImageProvider::makeReq(url.toString(), reqSize, *c));
 }
 
 static void play_state(ClientBase& cbase, qcm::enums::PlaybackState state,
@@ -111,8 +121,9 @@ static auto session_check(ClientBase& cbase, helper::QWatcher<qcm::model::Sessio
         asio::bind_executor(qcm::Global::instance()->qexecutor(), asio::use_awaitable));
 
     auto user = session->user();
-    co_return out.transform([user](const auto& out) -> bool {
+    co_return out.transform([user, &session](const auto& out) -> bool {
         if (out.profile) {
+            session->set_provider(convert_from<QString>(ncm::provider));
             user->set_userId(convert_from<ItemId>(out.profile->userId));
             user->set_nickname(convert_from<QString>(out.profile->nickname));
             user->set_avatarUrl(convert_from<QString>(out.profile->avatarUrl));
@@ -131,6 +142,23 @@ void load(ClientBase& cbase, const std::filesystem::path& path) {
     c.load(path);
 }
 
+bool make_request(ClientBase& cbase, request::Request& req, const QUrl& url,
+                  const qcm::Client::ReqInfo& info) {
+    auto c = *get_client(cbase);
+    std::visit(overloaded { [c, &url, &req](const qcm::Client::ReqInfoImg& info) {
+                   request::UrlParams query;
+                   if (info.size.isValid()) {
+                       auto down_size = get_down_size(info.size);
+                       query.set_param("param",
+                                       fmt::format("{}y{}", down_size.width(), down_size.height()));
+                   }
+                   req = c.make_req<ncm::api::CryptoType::NONE>(
+                       convert_from<std::string>(url.toString()), query);
+               } },
+               info);
+    return true;
+}
+
 } // namespace ncm::impl
 
 namespace ncm::qml
@@ -147,7 +175,7 @@ auto create_client() -> qcm::Client {
 
     api->provider      = ncm::qml::provider;
     api->server_url    = ncm::impl::server_url;
-    api->image_cache   = ncm::impl::image_cache;
+    api->make_request  = ncm::impl::make_request;
     api->play_state    = ncm::impl::play_state;
     api->router        = ncm::impl::router;
     api->logout        = ncm::impl::logout;
@@ -160,6 +188,15 @@ auto create_client() -> qcm::Client {
 
 auto get_ncm_client(qcm::Client& c) -> ncm::Client& {
     return static_cast<ncm::impl::Client&>(*c.instance).ncm;
+}
+
+auto uniq(const QUrl& url, const QVariant& info) -> QString {
+    auto    size = info.value<QSize>();
+    QString size_query;
+    if (size.isValid()) {
+        size = get_down_size(size);
+    }
+    return QString("%1&param=%2y%3").arg(url.toString()).arg(size.width()).arg(size.height());
 }
 
 } // namespace ncm::qml

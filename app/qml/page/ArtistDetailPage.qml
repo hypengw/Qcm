@@ -34,7 +34,7 @@ MD.Page {
                 id: m_cover
                 z: 1
                 elevation: MD.Token.elevation.level2
-                source: `image://ncm/${root.itemData.info.picUrl}`
+                source: QA.Util.image_url(root.itemData.info.picUrl)
                 radius: width / 2
 
                 Layout.preferredWidth: displaySize.width
@@ -259,7 +259,7 @@ MD.Page {
                                         picWidth: parent.GridView.view.fixedCellWidth
                                         width: picWidth
                                         height: Math.min(implicitHeight, parent.height)
-                                        image.source: `image://ncm/${model.picUrl}`
+                                        image.source: QA.Util.image_url(model.picUrl)
                                         text: model.name
                                         subText: Qt.formatDateTime(model.publishTime, 'yyyy')
 

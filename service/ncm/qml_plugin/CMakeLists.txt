@@ -42,8 +42,6 @@ set(SOURCES
     include/service_qml_ncm/model/radar_playlist_id.h
     include/service_qml_ncm/model/cloud_upload.h
     include/service_qml_ncm/model/play_record.h
-    include/service_qml_ncm/ncm_image.h
-    include/service_qml_ncm/ncm_image_p.h
     include/service_qml_ncm/enum.h
     include/service_qml_ncm/client.h
     include/service_qml_ncm/session.h
@@ -52,7 +50,6 @@ set(SOURCES
     model/radar_playlist_id.cpp
     model/cloud_upload.cpp
     client.cpp
-    ncm_image.cpp
     api.cpp
     )
 

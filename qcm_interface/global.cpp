@@ -5,6 +5,7 @@
 #include <QPluginLoader>
 #include <QCoreApplication>
 #include <QtQuick/QQuickItem>
+#include <ctre.hpp>
 
 #include "core/log.h"
 #include "request/session.h"
@@ -334,6 +335,22 @@ void GlobalWrapper::set_copy_action_comp(QQmlComponent* val) { m_g->set_copy_act
 
 namespace qcm
 {
+auto image_provider_url(const QUrl& url, const QString& provider) -> QUrl {
+    return QString("image://qcm/%1/%2").arg(provider).arg(url.toString().toUtf8().toBase64());
+}
+
+auto parse_image_provider_url(const QUrl& url) -> std::tuple<QUrl, QString> {
+    constexpr auto ImageProviderRe = ctll::fixed_string { "image://qcm/([^/]+?)/(.*)" };
+
+    auto input = url.toString(QUrl::FullyEncoded).toStdString();
+    if (auto match = ctre::match<ImageProviderRe>(input)) {
+        return { QString::fromUtf8(
+                     QByteArray::fromBase64(QByteArray::fromStdString(match.get<2>().to_string()))),
+                 QString::fromStdString(match.get<1>().to_string()) };
+    } else {
+        return {};
+    }
+}
 
 auto qml_dyn_count() -> std::atomic<i32>& {
     static std::atomic<i32> n { 0 };

@@ -42,7 +42,7 @@ MD.Control {
                 height: Math.min(implicitHeight, parent.height)
                 text: model.name
                 // subText:
-                image.source: `image://ncm/${model.picUrl}`
+                image.source: QA.Util.image_url(model.picUrl)
                 onClicked: {
                     QA.Global.route(model.itemId);
                 }

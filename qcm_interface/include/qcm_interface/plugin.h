@@ -11,9 +11,10 @@ namespace qcm
 {
 class QCM_INTERFACE_API QcmPluginInterface {
 public:
-    virtual auto router() -> Router*                = 0;
-    virtual auto info() -> const model::PluginInfo& = 0;
-    virtual auto create_session() -> up<model::Session>    = 0;
+    virtual auto router() -> Router*                                    = 0;
+    virtual auto info() -> const model::PluginInfo&                     = 0;
+    virtual auto create_session() -> up<model::Session>                 = 0;
+    virtual auto uniq(const QUrl& url, const QVariant& info) -> QString = 0;
 };
 
 } // namespace qcm

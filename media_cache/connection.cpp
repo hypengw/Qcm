@@ -3,6 +3,8 @@
 #include <asio/write.hpp>
 #include <array>
 #include <fstream>
+#include <algorithm>
+#include <cctype>
 
 #include <ctre.hpp>
 
@@ -55,15 +57,15 @@ Connection::~Connection() {}
 
 auto Connection::get_req() -> const std::optional<GetRequest>& { return m_req; }
 
-auto Connection::check_cache(std::string key, std::filesystem::path file_path)
-    -> asio::awaitable<bool> {
+auto Connection::check_cache(std::string           key,
+                             std::filesystem::path file_path) -> asio::awaitable<bool> {
     auto has_entry = (bool)(co_await m_db->get(key));
 
     co_return has_entry&& std::filesystem::exists(file_path);
 }
 
-auto Connection::send_file_header(std::optional<DataBase::Item> db_item, i64 offset, usize size)
-    -> asio::awaitable<void> {
+auto Connection::send_file_header(std::optional<DataBase::Item> db_item, i64 offset,
+                                  usize size) -> asio::awaitable<void> {
     std::string rsp_header;
 
     rsp_header.append(m_req->partial() ? "HTTP/1.1 206 PARTIAL CONTENT\n" : "HTTP/1.1 200 OK\n");
@@ -275,6 +277,11 @@ auto Connection::http_source(std::filesystem::path file_path, rc<request::Sessio
     }
 }
 
+auto get_proxyid_dir(std::string_view proxy_id) -> std::string {
+    auto out = proxy_id.size() >= 2 ? proxy_id.substr(0, 2) : "no"sv;
+    return helper::to_upper(out);
+}
+
 auto Connection::run(rc<request::Session> ses, rc<Writer> writer, rc<Fallbacks> fbs,
                      std::filesystem::path cache_dir) -> asio::awaitable<void> {
     auto req = co_await GetRequest::read(m_s);
@@ -284,6 +291,7 @@ auto Connection::run(rc<request::Session> ses, rc<Writer> writer, rc<Fallbacks> 
 
     if (req.proxy_id) {
         auto proxy_id = req.proxy_id.value();
+        cache_dir     = cache_dir / get_proxyid_dir(proxy_id);
         std::filesystem::create_directories(cache_dir);
         auto file = cache_dir / proxy_id;
         if (co_await check_cache(proxy_id, file)) {

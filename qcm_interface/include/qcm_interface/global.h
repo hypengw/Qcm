@@ -40,6 +40,9 @@ QCM_INTERFACE_API auto qml_dyn_count() -> std::atomic<i32>&;
 QCM_INTERFACE_API auto create_item(QQmlEngine* engine, const QJSValue& url_or_comp,
                                    const QVariantMap& props, QObject* parent) -> QObject*;
 
+QCM_INTERFACE_API auto image_provider_url(const QUrl& url, const QString& provider) -> QUrl;
+QCM_INTERFACE_API auto parse_image_provider_url(const QUrl& url) -> std::tuple<QUrl, QString>;
+
 class GlobalWrapper;
 class QCM_INTERFACE_API Global : public QObject {
     Q_OBJECT

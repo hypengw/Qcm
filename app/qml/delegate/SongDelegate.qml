@@ -68,7 +68,7 @@ MD.ListItem {
                     id: m_comp_song_image
                     QA.Image {
                         radius: 8
-                        source: `image://ncm/${root.dgModel.album.picUrl}`
+                        source: QA.Util.image_url(root.dgModel.album.picUrl)
                         displaySize: Qt.size(48, 48)
                     }
                 }

@@ -197,7 +197,7 @@ MD.Page {
                             MD.Image {
                                 Layout.alignment: Qt.AlignHCenter
 
-                                source: `image://ncm/${qr_qrlogin.data.avatarUrl}`
+                                source: QA.Util.image_url(qr_qrlogin.data.avatarUrl)
                                 sourceSize.height: 96
                                 sourceSize.width: 96
                                 radius: height / 2

@@ -2,6 +2,7 @@
 #include <string>
 #include <filesystem>
 #include <asio/awaitable.hpp>
+#include <QSize>
 
 #include "qcm_interface/item_id.h"
 #include "qcm_interface/enum.h"
@@ -10,6 +11,10 @@
 
 #include "error/error.h"
 
+namespace request
+{
+class Request;
+}
 namespace qcm
 {
 namespace model
@@ -22,9 +27,16 @@ struct ClientBase {};
 struct Client {
     template<typename T>
     using Result = nstd::expected<T, error::Error>;
+
+    struct ReqInfoImg {
+        QSize size;
+    };
+
+    using ReqInfo = std::variant<ReqInfoImg>;
+
     struct Api {
         auto (*server_url)(ClientBase&, const model::ItemId&) -> std::string;
-        auto (*image_cache)(ClientBase&, const QUrl& url, QSize req) -> std::filesystem::path;
+        bool (*make_request)(ClientBase&, request::Request&, const QUrl& url, const ReqInfo& info);
         void (*play_state)(ClientBase&, enums::PlaybackState state, model::ItemId item,
                            model::ItemId source, i64 played_second, QVariantMap extra);
         auto (*router)(ClientBase&) -> rc<Router>;

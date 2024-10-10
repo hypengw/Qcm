@@ -34,7 +34,7 @@ MD.Flickable {
                     Layout.preferredWidth: size
                     Layout.preferredHeight: size
                     radius: size / 2
-                    source: `image://ncm/${QA.Global.session.user.avatarUrl}`
+                    source: QA.Util.image_url(QA.Global.session.user.avatarUrl)
                 }
                 Item {
                     Layout.fillWidth: true

@@ -16,6 +16,7 @@ find_package(
 set(SOURCES
     include/Qcm/app.h
     include/Qcm/info.h
+    include/Qcm/image_provider.h
     include/Qcm/playlist.h
     include/Qcm/qr_image.h
     include/Qcm/cache_sql.h
@@ -25,6 +26,7 @@ set(SOURCES
     include/Qcm/qml_util.h
     src/action.cpp
     src/app.cpp
+    src/image_provider.cpp
     src/playlist.cpp
     src/qr_image.cpp
     src/cache_sql.cpp

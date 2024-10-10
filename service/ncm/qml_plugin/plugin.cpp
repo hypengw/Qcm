@@ -2,7 +2,6 @@
 #include <QtQml/qqmlextensionplugin.h>
 #include <QtQml/qqmlengine.h>
 
-#include "service_qml_ncm/ncm_image.h"
 #include "qcm_interface/plugin.h"
 #include "qcm_interface/enum.h"
 #include "qcm_interface/model/page.h"
@@ -33,9 +32,10 @@ public:
     }
 
     void initializeEngine(QQmlEngine* engine, const char* uri) override {
+        Q_UNUSED(engine);
         Q_UNUSED(uri);
-        auto p = qcm::qml_ncm::create_ncm_imageprovider();
-        engine->addImageProvider(u"ncm"_qs, p);
+        // auto p = qcm::qml_ncm::create_ncm_imageprovider();
+        // engine->addImageProvider(u"ncm"_qs, p);
     }
 
     auto router() -> qcm::Router* override { return m_router; }
@@ -43,6 +43,10 @@ public:
 
     virtual auto create_session() -> up<qcm::model::Session> override {
         return make_up<ncm::qml::Session>();
+    }
+
+    virtual auto uniq(const QUrl& url, const QVariant& info) -> QString override {
+        return ncm::qml::uniq(url, info);
     }
 
 private:

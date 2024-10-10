@@ -23,10 +23,13 @@
 
 #include "core/qvariant_helper.h"
 
+#include "qcm_interface/plugin.h"
 #include "qcm_interface/type.h"
+#include "Qcm/image_provider.h"
 
 #include "qcm_interface/path.h"
 #include "Qcm/qr_image.h"
+#include "Qcm/qml_util.h"
 #include "ncm/api/user_account.h"
 #include "crypto/crypto.h"
 #include "Qcm/info.h"
@@ -49,12 +52,33 @@ DEFINE_CONVERT(request::req_opt::Proxy::Type, App::ProxyType) {
 namespace
 {
 
+void cache_clean_cb(const std::filesystem::path& cache_dir, std::string_view key) {
+    std::error_code ec;
+    auto            file = cache_dir / (key.size() >= 2 ? key.substr(0, 2) : "no"sv) / key;
+    std::filesystem::remove(file, ec);
+    DEBUG_LOG("cache remove {}", file.native());
+}
+
 asio::awaitable<void> scan_media_cache(rc<CacheSql> cache_sql, std::filesystem::path cache_dir) {
     auto                  cache_entries = co_await cache_sql->get_all();
-    std::set<std::string> keys, files;
+    std::set<std::string> keys;
+    // name,dirname
+    std::map<std::string, std::string> files;
+    std::vector<std::filesystem::path> useless_files;
+    std::error_code                    ec;
     for (auto& el : cache_entries) keys.insert(el.key);
-    for (auto& el : std::filesystem::directory_iterator(cache_dir))
-        files.insert(el.path().filename());
+    for (auto& el : std::filesystem::directory_iterator(cache_dir)) {
+        if (el.is_regular_file()) {
+            useless_files.push_back(el);
+        } else if (el.is_directory()) {
+            auto dir = el.path();
+            for (auto& el : std::filesystem::directory_iterator(el)) {
+                if (el.is_regular_file()) {
+                    files.insert({ el.path().filename(), dir.filename() });
+                }
+            }
+        }
+    }
 
     for (auto& k : keys) {
         if (! files.contains(k)) {
@@ -63,9 +87,12 @@ asio::awaitable<void> scan_media_cache(rc<CacheSql> cache_sql, std::filesystem::
     }
 
     for (auto& f : files) {
-        if (! keys.contains(f)) {
-            std::filesystem::remove(cache_dir / f);
+        if (! keys.contains(f.first)) {
+            std::filesystem::remove(cache_dir / f.second / f.first, ec);
         }
+    }
+    for (auto& f : useless_files) {
+        std::filesystem::remove(f, ec);
     }
 
     co_await cache_sql->try_clean();
@@ -97,6 +124,7 @@ App* App::instance() { return app_instance(); }
 App::App(std::monostate)
     : QObject(nullptr),
       m_global(make_rc<Global>()),
+      m_util(make_rc<qml::Util>(std::monostate {})),
       m_playlist(new qcm::Playlist(this)),
       m_mpris(make_up<mpris::Mpris>()),
       m_media_cache(),
@@ -167,9 +195,7 @@ void App::init() {
     {
         auto cache_dir = cache_path() / "cache";
         m_cache_sql->set_clean_cb([cache_dir](std::string_view key) {
-            auto file = cache_dir / key;
-            std::filesystem::remove(file);
-            DEBUG_LOG("cache remove {}", file.native());
+            cache_clean_cb(cache_dir, key);
         });
         asio::co_spawn(
             m_cache_sql->get_executor(), scan_media_cache(m_cache_sql, cache_dir), asio::detached);
@@ -179,9 +205,7 @@ void App::init() {
     {
         auto media_cache_dir = cache_path() / "media";
         m_media_cache_sql->set_clean_cb([media_cache_dir](std::string_view key) {
-            auto file = media_cache_dir / key;
-            std::filesystem::remove(file);
-            DEBUG_LOG("cache remove {}", file.native());
+            cache_clean_cb(media_cache_dir, key);
         });
 
         m_media_cache->start(media_cache_dir, m_media_cache_sql);
@@ -206,6 +230,7 @@ void App::init() {
 
     // avoid listitem index reference error
     engine->rootContext()->setContextProperty("index", 0);
+    engine->addImageProvider("qcm", new QcmImageProvider);
 
     engine->load(u"qrc:/main/main.qml"_qs);
 
@@ -226,25 +251,6 @@ void App::init() {
     } else {
         global()->app_state()->set_state(state::AppState::Start {});
     }
-}
-
-QUrl App::getImageCache(QString provider, QUrl url, QSize reqSize) const {
-    auto client = Global::instance()->qsession()->client();
-    if (client && client->api->provider == provider.toStdString()) {
-        auto path = client->api->image_cache(*(client->instance), url, reqSize);
-        return QUrl::fromLocalFile(path.c_str());
-    }
-    return {};
-}
-
-QUrl App::media_file(const QString& id_) const {
-    auto id              = convert_from<std::string>(id_);
-    auto media_cache_dir = cache_path() / "media";
-    asio::co_spawn(m_media_cache_sql->get_executor(), m_media_cache_sql->get(id), asio::detached);
-    auto file = media_cache_dir / id;
-    if (std::filesystem::exists(file))
-        return QUrl::fromLocalFile(convert_from<QString>(file.native()));
-    return {};
 }
 
 QString App::media_url(const QString& ori, const QString& id) const {
@@ -374,6 +380,7 @@ QString App::itemIdPageUrl(const QJSValue& js) const {
 
 auto App::engine() const -> QQmlApplicationEngine* { return m_qml_engine.get(); }
 auto App::global() const -> Global* { return m_global.get(); }
+auto App::util() const -> qml::Util* { return m_util.get(); }
 auto App::playlist() const -> Playlist* { return m_playlist; }
 
 // #include <private/qquickpixmapcache_p.h>

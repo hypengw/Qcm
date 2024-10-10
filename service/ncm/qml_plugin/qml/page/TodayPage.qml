@@ -76,7 +76,7 @@ MD.Page {
                                         picWidth: parent.GridView.view.fixedCellWidth
                                         width: picWidth
                                         height: Math.min(implicitHeight, parent.height)
-                                        image.source: `image://ncm/${parent.modelData.picUrl}`
+                                        image.source: QA.Util.image_url(parent.modelData.picUrl)
                                         text: parent.modelData.name
 
                                         onClicked: {
@@ -138,7 +138,7 @@ MD.Page {
                                 picWidth: parent.GridView.view.fixedCellWidth
                                 width: picWidth
                                 height: Math.min(implicitHeight, parent.height)
-                                image.source: `image://ncm/${pl_querier.data.picUrl}`
+                                image.source: QA.Util.image_url(pl_querier.data.picUrl)
                                 text: pl_querier.data.name
 
                                 onClicked: {

@@ -18,14 +18,14 @@ class Client;
 namespace qcm
 {
 
-class NcmAsyncImageResponse : public QQuickImageResponse {
+class QcmAsyncImageResponse : public QQuickImageResponse {
     Q_OBJECT
 public:
-    NcmAsyncImageResponse();
-    virtual ~NcmAsyncImageResponse();
+    QcmAsyncImageResponse();
+    virtual ~QcmAsyncImageResponse();
 
     QQuickTextureFactory* textureFactory() const override;
-    QString errorString() const override { return m_error; }
+    QString               errorString() const override { return m_error; }
 
     helper::WatchDog& wdog() { return m_wdog; }
 
@@ -50,20 +50,19 @@ private:
     helper::WatchDog m_wdog;
 };
 
-class NcmImageProviderInner;
-class  NcmImageProvider : public QQuickAsyncImageProvider {
+class QcmImageProviderInner;
+class QcmImageProvider : public QQuickAsyncImageProvider {
 public:
-    NcmImageProvider();
-    ~NcmImageProvider();
+    QcmImageProvider();
+    ~QcmImageProvider();
 
     QQuickImageResponse* requestImageResponse(const QString& id,
                                               const QSize&   requestedSize) override;
 
     static request::Request makeReq(const QString& id, const QSize& requestedSize, ncm::Client&);
-    static std::filesystem::path genImageCachePath(const request::Request&);
 
 private:
-    rc<NcmImageProviderInner> m_inner;
+    rc<QcmImageProviderInner> m_inner;
 };
 
 } // namespace qcm

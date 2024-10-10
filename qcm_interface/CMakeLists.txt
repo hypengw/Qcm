@@ -100,6 +100,9 @@ target_link_libraries(
          request
          json_helper
          meta_model
-         Qt::Qml)
+         Qt::Qml
+  PRIVATE
+         ctre
+        )
 
 install(TARGETS qcm_interface)

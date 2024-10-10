@@ -31,8 +31,19 @@
 
 namespace qcm
 {
+namespace qml
+{
+class Util;
+}
 class CacheSql;
 void register_meta_type();
+auto gen_image_cache_entry(const QString& provider, const QUrl& url,
+                           QSize reqSize) -> std::optional<std::filesystem::path>;
+
+auto cache_path_of(std::string_view id) -> std::filesystem::path;
+auto media_cache_path_of(std::string_view id) -> std::filesystem::path;
+auto image_id(const QString& provider, const QUrl& url,
+              QSize reqSize) -> std::optional<std::string>;
 
 class App : public QObject {
     Q_OBJECT
@@ -43,6 +54,8 @@ class App : public QObject {
     Q_PROPERTY(bool debug READ debug CONSTANT FINAL)
     Q_PROPERTY(Global* global READ global CONSTANT FINAL)
     Q_PROPERTY(Playlist* playlist READ playlist CONSTANT FINAL)
+
+    friend class qml::Util;
 
 public:
     using pool_executor_t = asio::thread_pool::executor_type;
@@ -81,6 +94,7 @@ public:
     static auto instance() -> App*;
     auto        engine() const -> QQmlApplicationEngine*;
     auto        global() const -> Global*;
+    auto        util() const -> qml::Util*;
     auto        playlist() const -> Playlist*;
     void        set_player_sender(Sender<Player::NotifyInfo>);
 
@@ -88,14 +102,11 @@ public:
 
     bool debug() const;
 
-    Q_INVOKABLE QUrl    media_file(const QString& id) const;
     Q_INVOKABLE QString media_url(const QString& ori, const QString& id) const;
     Q_INVOKABLE QString md5(QString) const;
 
-    Q_INVOKABLE QUrl    getImageCache(QString provider, QUrl url, QSize reqSize) const;
     Q_INVOKABLE bool    isItemId(const QJSValue&) const;
     Q_INVOKABLE QString itemIdPageUrl(const QJSValue&) const;
-
 
     Q_INVOKABLE qreal  devicePixelRatio() const;
     Q_INVOKABLE QSizeF image_size(QSizeF display, int quality, QQuickItem* = nullptr) const;
@@ -133,6 +144,7 @@ private:
     void connect_actions();
 
     rc<Global>                  m_global;
+    rc<qml::Util>               m_util;
     Playlist*                   m_playlist;
     up<mpris::Mpris>            m_mpris;
     rc<media_cache::MediaCache> m_media_cache;

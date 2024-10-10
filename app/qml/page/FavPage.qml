@@ -26,7 +26,7 @@ MD.Page {
             maximumLineCount: 2
             leader: MD.Image {
                 radius: 8
-                source: `image://ncm/${model.picUrl}`
+                source: QA.Util.image_url(model.picUrl)
                 sourceSize.height: 48
                 sourceSize.width: 48
             }

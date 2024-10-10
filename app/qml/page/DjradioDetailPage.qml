@@ -47,7 +47,7 @@ MD.Page {
 
                 displaySize: Qt.size(240, 240)
                 elevation: MD.Token.elevation.level2
-                source: `image://ncm/${root.itemData.picUrl}`
+                source: QA.Util.image_url(root.itemData.picUrl)
                 radius: 16
             }
 

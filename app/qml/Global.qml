@@ -156,7 +156,7 @@ QA.GlobalWrapper {
             }
             const quality = parseInt(settings_play.value('play_quality', m_querier_song.level.toString()));
             const key = Qt.md5(`${p.cur.itemId.sid}, quality: ${quality}`);
-            const file = QA.App.media_file(key);
+            const file = QA.Util.media_cache_of(key);
             // seems empty url is true, use string
             if (file.toString()) {
                 if (refresh && root.player.source === file)

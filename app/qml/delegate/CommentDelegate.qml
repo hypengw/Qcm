@@ -10,7 +10,7 @@ MD.ListItem {
     supportText: Qt.formatDateTime(model.time, 'yyyy.M.d')
     leader: MD.Image {
         radius: 8
-        source: `image://ncm/${model.user.picUrl}`
+        source: QA.Util.image_url(model.user.picUrl)
         sourceSize.height: 48
         sourceSize.width: 48
     }

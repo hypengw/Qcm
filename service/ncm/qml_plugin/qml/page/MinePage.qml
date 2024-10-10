@@ -173,7 +173,7 @@ MD.Page {
                 Component {
                     id: dg_albumlist
                     BaseItem {
-                        image: `image://ncm/${model.picUrl}`
+                        image: QA.Util.image_url(model.picUrl)
                         text: model.name
                         supportText: `${QA.Global.join_name(model.artists, '/')} - ${model.trackCount} tracks`
                         function showMenu(parent) {
@@ -187,7 +187,7 @@ MD.Page {
                 Component {
                     id: dg_artistlist
                     BaseItem {
-                        image: `image://ncm/${model.picUrl}`
+                        image: QA.Util.image_url(model.picUrl)
                         text: model.name
                         supportText: `${model.albumSize} albums`
                         function showMenu(parent) {
@@ -201,7 +201,7 @@ MD.Page {
                 Component {
                     id: dg_playlist
                     BaseItem {
-                        image: `image://ncm/${model.picUrl}`
+                        image: QA.Util.image_url(model.picUrl)
                         text: model.name
                         supportText: `${model.trackCount} songs`
                         function showMenu(parent) {
@@ -215,7 +215,7 @@ MD.Page {
                 Component {
                     id: dg_djradiolist
                     BaseItem {
-                        image: `image://ncm/${model.picUrl}`
+                        image: QA.Util.image_url(model.picUrl)
                         text: model.name
                         supportText: `${model.programCount} programs`
                         function showMenu(parent) {
