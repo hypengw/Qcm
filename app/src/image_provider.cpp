@@ -34,7 +34,7 @@ void header_record_db(const request::HttpHeader& h, media_cache::DataBase::Item&
         if (helper::case_insensitive_compare(f.name, "content-type") == 0)
             db_it.content_type = f.value;
         else if (helper::case_insensitive_compare(f.name, "content-length") == 0) {
-            if (auto whole = ctre::starts_with<DigitPattern>(f.name); whole) {
+            if (auto whole = ctre::starts_with<DigitPattern>(f.value); whole) {
                 db_it.content_length = whole.to_number();
             }
         }
