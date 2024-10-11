@@ -75,6 +75,10 @@ MD.Page {
                         }
 
                         Connections {
+                            function onCollected() {
+                                view_playlist.dirty = true;
+                            }
+
                             function onPlaylistChanged() {
                                 view_playlist.dirty = true;
                             }
@@ -85,9 +89,6 @@ MD.Page {
                                 view_playlist.dirty = true;
                             }
                             function onPlaylistLiked() {
-                                view_playlist.dirty = true;
-                            }
-                            function onSongLiked() {
                                 view_playlist.dirty = true;
                             }
 

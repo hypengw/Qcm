@@ -129,6 +129,7 @@ Q_SIGNALS:
     void playlistCreated();
     void playlistDeleted();
     void playlistChanged();
+    void collected(model::ItemId, bool);
 
 public Q_SLOTS:
     void releaseResources(QQuickWindow*);
@@ -142,6 +143,7 @@ public Q_SLOTS:
     void on_logout();
     void on_load_session(model::Session*);
     void on_switch_user(model::ItemId);
+    void on_collect(model::ItemId, bool);
 
 private:
     void load_plugins();

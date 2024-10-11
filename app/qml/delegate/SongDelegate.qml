@@ -112,11 +112,11 @@ MD.ListItem {
 
             MD.IconButton {
                 visible: !(Window.window?.windowClass === MD.Enum.WindowClassCompact)
-                checked: QA.Global.user_song_set.contains(root.dgModel.itemId)
+                checked: QA.Global.session.user.collection.contains(root.dgModel.itemId)
                 icon.name: checked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
 
                 onClicked: {
-                    QA.Global.querier_user_song.like_song(root.dgModel.itemId, !checked);
+                    QA.Action.collect(root.dgModel.itemId, !checked);
                 }
             }
             MD.IconButton {

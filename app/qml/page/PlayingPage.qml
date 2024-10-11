@@ -119,12 +119,12 @@ MD.Page {
                     Layout.alignment: Qt.AlignHCenter
 
                     MD.IconButton {
-                        checked: QA.Global.user_song_set.contains(QA.Global.cur_song.itemId)
+                        checked: QA.Global.session.user.collection.contains(QA.Global.cur_song.itemId)
                         enabled: QA.Global.cur_song.itemId.valid()
                         icon.name: checked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
 
                         onClicked: {
-                            QA.Global.querier_user_song.like_song(QA.Global.cur_song.itemId, !checked);
+                            QA.Action.collect(QA.Global.cur_song.itemId, !checked);
                         }
                     }
                     MD.IconButton {

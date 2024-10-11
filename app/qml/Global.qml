@@ -29,7 +29,6 @@ QA.GlobalWrapper {
     property var playlist: QA.App.playlist
     property alias querier_song: m_querier_song
 
-    property alias querier_user_song: m_querier_user_songlike
     property string song_cover: ''
 
     property int color_scheme: MD.MdColorMgr.Light
@@ -39,8 +38,6 @@ QA.GlobalWrapper {
 
     property int cover_quality: -1
     readonly property string user_setting_category: 'user_test'//`user_${user_info.userId.sid}`
-
-    readonly property alias user_song_set: m_querier_user_songlike.data
 
     copy_action_comp: Component {
         QA.CopyAction {
@@ -177,39 +174,7 @@ QA.GlobalWrapper {
             }
         }
     }
-    QNcm.SongLikeQuerier {
-        id: m_querier_user_songlike
-        function like_song(song_id, is_like) {
-            const qu = m_querier_radio_like;
-            qu.trackId = song_id;
-            qu.like = is_like;
-            qu.query();
-        }
 
-        autoReload: false
-    }
-    Connections {
-        function onSongLiked(trackId, liked) {
-            const qr = m_querier_user_songlike;
-            if (liked)
-                qr.data.insert(trackId);
-            else
-                qr.data.remove(trackId);
-            qr.dataChanged();
-        }
-        target: QA.App
-    }
-
-    QNcm.RadioLikeQuerier {
-        id: m_querier_radio_like
-        autoReload: false
-
-        onStatusChanged: {
-            if (status === QA.enums.Finished) {
-                QA.App.songLiked(trackId, like);
-            }
-        }
-    }
     QNcm.SongUrlQuerier {
         id: m_querier_song
         autoReload: ids.length > 0
@@ -231,10 +196,6 @@ QA.GlobalWrapper {
         function onSessionChanged() {
             m_player.stop();
             root.playlist.clear();
-
-            if(root.session.valid) {
-                m_querier_user_songlike.query();
-            }
         }
     }
 

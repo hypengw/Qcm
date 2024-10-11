@@ -35,6 +35,7 @@ Q_SIGNALS:
     void switch_main_page(qint32 idx);
     void toast(QString text, qint32 duration = 4000, enums::ToastFlags flags = {},
                QObject* action = nullptr);
+    void collect(model::ItemId itemId, bool act = true);
 
     void queue_songs(const std::vector<model::Song>&);
     void playbackLog(enums::PlaybackState state, model::ItemId item, model::ItemId souce,

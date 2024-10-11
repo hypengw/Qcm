@@ -14,6 +14,7 @@ void App::connect_actions() {
     connect(Action::instance(), &Action::switch_user, this, &App::on_switch_user);
     connect(Action::instance(), &Action::queue_songs, this, &App::on_queue_songs);
     connect(Action::instance(), &Action::logout, this, &App::on_logout);
+    connect(Action::instance(), &Action::collect, this, &App::on_collect);
 
     connect(Global::instance(), &Global::sessionChanged, Global::instance(), &Global::save_user);
 
@@ -166,4 +167,35 @@ void App::on_switch_user(model::ItemId id) {
         ERROR_LOG("user not found");
     }
 }
+
+void App::on_collect(model::ItemId id, bool act) {
+    auto ex = asio::make_strand(m_global->pool_executor());
+    asio::co_spawn(
+        ex,
+        [id, act] -> asio::awaitable<void> {
+            auto user = Global::instance()->qsession()->user();
+            if (auto c = Global::instance()->qsession()->client()) {
+                auto sql = Global::instance()->get_collection_sql();
+                auto ok  = co_await c->api->collect(*(c->instance), id, act);
+                if (ok.value_or(false)) {
+                    co_await asio::post(
+                        asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
+
+                    auto item = db::ColletionSqlBase::Item::from(user->userId(), id);
+                    if (act) {
+                        user->insert(id);
+                        App::instance()->collected(id, true);
+                        co_await sql->insert(std::array { item });
+                    } else {
+                        user->remove(id);
+                        App::instance()->collected(id, false);
+                        co_await sql->remove(user->userId(), id);
+                    }
+                }
+            }
+            co_return;
+        },
+        helper::asio_detached_log);
+}
+
 } // namespace qcm

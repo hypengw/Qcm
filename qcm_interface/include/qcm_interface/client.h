@@ -43,6 +43,7 @@ struct Client {
         auto (*logout)(ClientBase&) -> asio::awaitable<void>;
         auto (*session_check)(ClientBase&,
                               helper::QWatcher<model::Session>) -> asio::awaitable<Result<bool>>;
+        auto (*collect)(ClientBase&, model::ItemId, bool) -> asio::awaitable<Result<bool>>;
         void (*save)(ClientBase&, const std::filesystem::path&);
         void (*load)(ClientBase&, const std::filesystem::path&);
 

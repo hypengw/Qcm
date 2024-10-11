@@ -15,6 +15,8 @@
 #include "ncm/api/feedback_weblog.h"
 #include "ncm/api/user_account.h"
 #include "ncm/api/logout.h"
+#include "ncm/api/song_like.h"
+#include "ncm/api/radio_like.h"
 #include "ncm/client.h"
 
 namespace
@@ -29,6 +31,26 @@ inline QSize get_down_size(const QSize& req) {
     usize size     = it != IMG_DL_SIZES.end() ? *it : IMG_DL_SIZES.back();
 
     return req.scaled(size, size, Qt::AspectRatioMode::KeepAspectRatioByExpanding);
+}
+
+auto prepare_session(ncm::Client c, qcm::model::ItemId userId) -> asio::awaitable<void> {
+    auto sql = qcm::Global::instance()->get_collection_sql();
+
+    ncm::api::SongLike api;
+    api.input.uid                       = convert_from<ncm::model::UserId>(userId);
+    auto                            res = co_await c.perform(api);
+    std::vector<qcm::model::ItemId> ids;
+    if (res) {
+        for (auto& id : res.value().ids) {
+            auto item_id = ncm::to_ncm_id(ncm::model::IdType::Song, id);
+            ids.push_back(item_id);
+        }
+
+        co_await sql->refresh(userId, "song", ids);
+
+        qcm::Global::instance()->qsession()->user()->query();
+    }
+    co_return;
 }
 
 } // namespace
@@ -120,14 +142,17 @@ static auto session_check(ClientBase& cbase, helper::QWatcher<qcm::model::Sessio
     co_await asio::post(
         asio::bind_executor(qcm::Global::instance()->qexecutor(), asio::use_awaitable));
 
+    auto ex = co_await asio::this_coro::executor;
+
     auto user = session->user();
-    co_return out.transform([user, &session](const auto& out) -> bool {
+    co_return out.transform([user, ex, &session, c](const auto& out) -> bool {
         if (out.profile) {
             session->set_provider(convert_from<QString>(ncm::provider));
             user->set_userId(convert_from<ItemId>(out.profile->userId));
             user->set_nickname(convert_from<QString>(out.profile->nickname));
             user->set_avatarUrl(convert_from<QString>(out.profile->avatarUrl));
-
+            user->query();
+            asio::co_spawn(ex, prepare_session(c, user->userId()), helper::asio_detached_log);
             return true;
         }
         return false;
@@ -159,6 +184,17 @@ bool make_request(ClientBase& cbase, request::Request& req, const QUrl& url,
     return true;
 }
 
+auto collect(ClientBase& cbase, qcm::model::ItemId id, bool act) -> asio::awaitable<Result<bool>> {
+    auto                c = *get_client(cbase);
+    ncm::api::RadioLike api;
+    api.input.like    = act;
+    api.input.trackId = convert_from<model::SongId>(id);
+    auto ok           = co_await c.perform(api);
+    co_return ok.transform([](const ncm::api_model::RadioLike& out) {
+        return out.code == 200;
+    });
+}
+
 } // namespace ncm::impl
 
 namespace ncm::qml
@@ -180,6 +216,7 @@ auto create_client() -> qcm::Client {
     api->router        = ncm::impl::router;
     api->logout        = ncm::impl::logout;
     api->session_check = ncm::impl::session_check;
+    api->collect       = ncm::impl::collect;
     api->save          = ncm::impl::save;
     api->load          = ncm::impl::load;
 

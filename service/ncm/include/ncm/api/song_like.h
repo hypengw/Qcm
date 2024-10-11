@@ -9,7 +9,7 @@ namespace ncm
 namespace params
 {
 struct SongLike {
-    model::SongId uid;
+    model::UserId uid;
 };
 } // namespace params
 } // namespace ncm

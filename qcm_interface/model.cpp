@@ -17,12 +17,15 @@ namespace qcm::model
 {
 class UserAccount::Private {
 public:
+    Private(UserAccount* p): collection(p) {}
     // id, type
     std::unordered_map<std::size_t, std::size_t> items;
     std::unordered_map<std::size_t, QString>     type_map;
+
+    UserAccountCollection collection;
 };
 
-UserAccount::UserAccount(QObject* parent) {
+UserAccount::UserAccount(QObject* parent): d_ptr(make_up<Private>(this)) {
     this->setParent(parent);
     connect(this, &UserAccount::query, this, [this] {
         asio::co_spawn(
@@ -47,14 +50,32 @@ void UserAccount::insert(const ItemId& item) {
     C_D(UserAccount);
     auto hash      = std::hash<ItemId> {}(item);
     auto type_hash = std::hash<QString> {}(item.type());
-    d->items.insert_or_assign(hash, type_hash);
     d->type_map.insert_or_assign(type_hash, item.type());
+    auto [_, ok] = d->items.insert_or_assign(hash, type_hash);
+    if (ok) {
+        collectionChanged();
+    }
+}
+void UserAccount::remove(const ItemId& item) {
+    C_D(UserAccount);
+    auto hash = std::hash<ItemId> {}(item);
+    if (d->items.erase(hash)) {
+        collectionChanged();
+    }
 }
 auto UserAccount::contains(const ItemId& id) const -> bool {
     C_D(const UserAccount);
     auto hash = std::hash<ItemId> {}(id);
     return d->items.contains(hash);
 }
+
+auto UserAccount::collection() const -> const UserAccountCollection& {
+    C_D(const UserAccount);
+    return d->collection;
+}
+UserAccountCollection::UserAccountCollection(UserAccount* p): m_parent(p) {}
+UserAccountCollection::~UserAccountCollection() {}
+bool UserAccountCollection::contains(const ItemId& id) const { return m_parent->contains(id); }
 
 AppInfo::AppInfo() {
     set_id(APP_ID);
