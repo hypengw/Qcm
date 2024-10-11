@@ -1,4 +1,7 @@
 #include "qcm_interface/action.h"
+
+#include <QSettings>
+
 #include "Qcm/app.h"
 #include "core/strv_helper.h"
 
@@ -74,10 +77,12 @@ void App::connect_actions() {
         auto dog = make_rc<helper::WatchDog>();
         connect(playlist(), &Playlist::curChanged, this, [dog, this](bool refresh) {
             dog->cancel();
-            auto curId = playlist()->cur().id;
-            auto qu    = enums::AudioQuality::AQExhigh;
-            auto hash  = song_uniq_hash(curId, qu);
-            auto path  = media_cache_path_of(hash);
+            auto      curId = playlist()->cur().id;
+            QSettings s;
+            auto      qu = s.value("play/play_quality").value<enums::AudioQuality>();
+
+            auto hash = song_uniq_hash(curId, qu);
+            auto path = media_cache_path_of(hash);
             if (std::filesystem::exists(path)) {
                 auto url = QUrl::fromLocalFile(convert_from<QString>(path.native()));
                 Global::instance()->action()->play(url, refresh);

@@ -3,7 +3,6 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Qcm.App as QA
-import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 import "../js/util.mjs" as Util
 
@@ -182,19 +181,19 @@ MD.Page {
                             [
                                 {
                                     "text": qsTr('Standard'),
-                                    "value": QNcm.SongUrlQuerier.LevelStandard
+                                    "value": QA.enums.AQStandard
                                 },
                                 {
                                     "text": qsTr('Higher'),
-                                    "value": QNcm.SongUrlQuerier.LevelHigher
+                                    "value": QA.enums.AQHigher
                                 },
                                 {
                                     "text": qsTr('Exhigh'),
-                                    "value": QNcm.SongUrlQuerier.LevelExhigh
+                                    "value": QA.enums.AQExhigh
                                 },
                                 {
                                     "text": qsTr('Lossless'),
-                                    "value": QNcm.SongUrlQuerier.LevelLossless
+                                    "value": QA.enums.AQLossless
                                 }
                             ].map(el => model.append(el));
                             currentIndex = indexOfValue(settings_play.play_quality);
