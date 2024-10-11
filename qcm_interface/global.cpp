@@ -77,6 +77,7 @@ Global::Private::Private(Global* p)
     : qt_ex(std::make_shared<QtExecutionContext>(p, (QEvent::Type)QEvent::registerEventType())),
       pool(get_pool_size()),
       session(std::make_shared<request::Session>(pool.get_executor())),
+      qsession(nullptr),
       qsession_empty(new model::Session(p)),
       action(new Action(p)),
       user_model(nullptr),
