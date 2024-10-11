@@ -101,6 +101,10 @@ MD.Page {
     }
 
     MD.FAB {
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.rightMargin: 16
+        anchors.bottomMargin: 16
         action: Action {
             icon.name: MD.Token.icon.edit
 

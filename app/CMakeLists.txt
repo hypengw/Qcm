@@ -73,7 +73,6 @@ set(QML_FILES
     qml/page/PlayQueuePage.qml
     qml/page/MainPage.qml
     qml/page/FavPage.qml
-    qml/page/MaterialTest.qml
 
     qml/delegate/CommentDelegate.qml
     qml/delegate/SongDelegate.qml

@@ -25,7 +25,7 @@ MD.Page {
             const page = QA.Util.create_page();
             page.name = qsTr('test');
             page.icon = 'queue_music';
-            page.source = 'qrc:/Qcm/App/qml/page/MaterialTest.qml';
+            page.source = 'qrc:/Qcm/Material/Example/Example.qml';
             p.push(page);
         }
         return p;

@@ -252,6 +252,10 @@ MD.Page {
     }
 
     MD.FAB {
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.rightMargin: 16
+        anchors.bottomMargin: 16
         flickable: m_fk
         action: Action {
             icon.name: MD.Token.icon.play_arrow

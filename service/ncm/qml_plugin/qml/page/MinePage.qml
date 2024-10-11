@@ -95,6 +95,10 @@ MD.Page {
                             target: QA.App
                         }
                         MD.FAB {
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.rightMargin: 16
+        anchors.bottomMargin: 16
                             flickable: view_playlist
                             action: Action {
                                 icon.name: MD.Token.icon.add

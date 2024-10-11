@@ -108,6 +108,10 @@ MD.Page {
                 onTriggered: dirty = true
             }
             MD.FAB {
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.rightMargin: 16
+                anchors.bottomMargin: 16
                 flickable: m_view
                 action: Action {
                     icon.name: MD.Token.icon.play_arrow
