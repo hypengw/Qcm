@@ -31,8 +31,9 @@ public:
     }
 
     template<typename Ex, typename F, typename Allocator = std::allocator<void>>
-    auto watch(Ex&& ex, F&& f, Allocator&& alloc, const duration& t = asio::chrono::minutes(5))
-        -> asio::awaitable<void> {
+        requires(! std::same_as<duration, std::remove_cvref_t<Allocator>>)
+    auto watch(Ex&& ex, F&& f, const duration& t = asio::chrono::minutes(5),
+               Allocator&& alloc = {}) -> asio::awaitable<void> {
         cancel();
         m_timer = std::make_shared<asio::steady_timer>(ex);
         m_timer->expires_after(t);
@@ -46,10 +47,16 @@ public:
         }
     }
 
+    template<typename Ex, typename F, typename CT, typename Allocator = std::allocator<void>>
+    auto spawn(Ex&& ex, F&& f, CT&& ct, const duration& t = asio::chrono::minutes(5),
+               Allocator&& alloc = {}) {
+        asio::co_spawn(ex, watch(ex, std::forward<F>(f), t, alloc), std::forward<CT>(ct));
+    }
+
 private:
     template<typename F, typename Allocator>
-    static auto watch_impl(rc<asio::steady_timer> timer, F f, Allocator alloc)
-        -> asio::awaitable<void> {
+    static auto watch_impl(rc<asio::steady_timer> timer, F f,
+                           Allocator alloc) -> asio::awaitable<void> {
         auto ex = co_await asio::this_coro::executor;
         auto [order, exp, ec] =
             co_await asio::experimental::make_parallel_group(

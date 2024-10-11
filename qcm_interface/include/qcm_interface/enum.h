@@ -53,6 +53,16 @@ enum class PlaybackState
 };
 Q_ENUM_NS(PlaybackState)
 
+enum class AudioQuality
+{
+    AQStandard = 0,
+    AQHigher,
+    AQExhigh,
+    AQLossless,
+    AQHires
+};
+Q_ENUM_NS(AudioQuality)
+
 enum class SpecialRoute
 {
     SRQueue = 0,

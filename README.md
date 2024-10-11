@@ -62,3 +62,13 @@ cmake --install build
 - [x] api
 - [x] json
 - [x] http lib(libcurl)
+
+### Credits:
+#### Libraries Used
+- [Qt](https://www.qt.io/)
+- [asio](https://github.com/chriskohlhoff/asio)
+- [cubeb](https://github.com/mozilla/cubeb)
+- [ffmpeg](https://www.ffmpeg.org/)
+- [curl](https://curl.se/)
+- [PEGTL](https://github.com/taocpp/PEGTL)
+- [nlohmann/json](https://github.com/nlohmann/json)

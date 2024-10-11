@@ -38,6 +38,7 @@ Q_SIGNALS:
     void collect(model::ItemId itemId, bool act = true);
 
     void queue_songs(const std::vector<model::Song>&);
+    void play(const QUrl& url, bool refresh = false);
     void playbackLog(enums::PlaybackState state, model::ItemId item, model::ItemId souce,
                      QVariantMap extra = {});
 };

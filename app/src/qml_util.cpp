@@ -69,7 +69,7 @@ auto Util::image_url(const QUrl& in) const -> QUrl {
     return image_provider_url(in, provider);
 }
 QUrl Util::image_cache_of(const QString& provider, const QUrl& url, QSize reqSize) const {
-    auto out = qcm::image_id(provider, url, reqSize).transform([](std::string_view id) {
+    auto out = qcm::image_uniq_hash(provider, url, reqSize).transform([](std::string_view id) {
         auto            p = qcm::cache_path_of(id);
         std::error_code ec;
         if (std::filesystem::exists(p, ec)) {
@@ -111,9 +111,12 @@ inline std::string gen_file_name(std::string_view uniq) {
                       .map(convert_from<std::string, crypto::bytes_view>));
 }
 
-auto gen_image_cache_entry(const QString& provider, const QUrl& url,
-                           QSize reqSize) -> std::optional<std::filesystem::path> {
-    return qcm::image_id(provider, url, reqSize)
+} // namespace qcm
+
+
+auto qcm::gen_image_cache_entry(const QString& provider, const QUrl& url,
+                                QSize reqSize) -> std::optional<std::filesystem::path> {
+    return qcm::image_uniq_hash(provider, url, reqSize)
         .transform([](std::string_view id) -> std::filesystem::path {
             std::error_code ec;
             auto            path = cache_path_of(id);
@@ -124,9 +127,8 @@ auto gen_image_cache_entry(const QString& provider, const QUrl& url,
             return path;
         });
 }
-
-auto image_id(const QString& provider, const QUrl& url,
-              QSize reqSize) -> std::optional<std::string> {
+auto qcm::image_uniq_hash(const QString& provider, const QUrl& url,
+                          QSize reqSize) -> std::optional<std::string> {
     return Global::instance()->plugin(provider).transform(
         [&url, reqSize](std::reference_wrapper<QcmPluginInterface> p) -> std::string {
             QcmPluginInterface* m;
@@ -134,15 +136,19 @@ auto image_id(const QString& provider, const QUrl& url,
             return gen_file_name(uniq.toStdString());
         });
 }
+auto qcm::song_uniq_hash(const model::ItemId& id, enums::AudioQuality quality) -> std::string {
+    auto key = fmt::format("{}, quality: {}", id.toUrl().toString(), (i32)quality);
+    return gen_file_name(key);
+}
 
-auto cache_path_of(std::string_view id) -> std::filesystem::path {
+auto qcm::cache_path_of(std::string_view id) -> std::filesystem::path {
     auto cache_dir = cache_path() / "cache";
     auto file      = cache_dir / gen_prefix(id) / id;
     return file;
 }
-auto media_cache_path_of(std::string_view id) -> std::filesystem::path {
+auto qcm::media_cache_path_of(std::string_view id) -> std::filesystem::path {
     auto media_cache_dir = cache_path() / "media";
     auto file            = media_cache_dir / gen_prefix(id) / id;
     return file;
 }
-} // namespace qcm
+

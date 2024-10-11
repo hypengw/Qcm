@@ -40,10 +40,13 @@ struct Client {
         void (*play_state)(ClientBase&, enums::PlaybackState state, model::ItemId item,
                            model::ItemId source, i64 played_second, QVariantMap extra);
         auto (*router)(ClientBase&) -> rc<Router>;
+
         auto (*logout)(ClientBase&) -> asio::awaitable<void>;
         auto (*session_check)(ClientBase&,
                               helper::QWatcher<model::Session>) -> asio::awaitable<Result<bool>>;
         auto (*collect)(ClientBase&, model::ItemId, bool) -> asio::awaitable<Result<bool>>;
+        auto (*media_url)(ClientBase&, model::ItemId, enums::AudioQuality) -> asio::awaitable<Result<QUrl>>;
+
         void (*save)(ClientBase&, const std::filesystem::path&);
         void (*load)(ClientBase&, const std::filesystem::path&);
 

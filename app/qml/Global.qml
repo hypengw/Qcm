@@ -26,8 +26,7 @@ QA.GlobalWrapper {
     property QtObject main_win: null
     property alias category: m_category
     property alias player: m_player
-    property var playlist: QA.App.playlist
-    property alias querier_song: m_querier_song
+    property QtObject playlist: QA.App.playlist
 
     property string song_cover: ''
 
@@ -126,59 +125,59 @@ QA.GlobalWrapper {
             });
         }
     }
-    Connections {
-        target: QA.App.playlist
-        property var song_url_slot: null
+    //Connections {
+    //    target: QA.App.playlist
+    //    property var song_url_slot: null
 
-        function songUrlSlot(key) {
-            const status = m_querier_song.status;
-            const songs = m_querier_song.data.songs;
-            if (status === QA.enums.Finished) {
-                const song = songs.length ? songs[0] : null;
-                const media_url = song ? QA.App.media_url(song.url, key) : '';
-                m_player.source = media_url;
-            } else if (status === QA.enums.Error) {
-                m_player.stop();
-            }
-        }
+    //    function songUrlSlot(key) {
+    //        const status = m_querier_song.status;
+    //        const songs = m_querier_song.data.songs;
+    //        if (status === QA.enums.Finished) {
+    //            const song = songs.length ? songs[0] : null;
+    //            const media_url = song ? QA.App.media_url(song.url, key) : '';
+    //            m_player.source = media_url;
+    //        } else if (status === QA.enums.Error) {
+    //            m_player.stop();
+    //        }
+    //    }
 
-        function onCurChanged(refresh) {
-            const p = QA.App.playlist;
-            const song_url_sig = m_querier_song.statusChanged;
-            if (song_url_slot)
-                song_url_sig.disconnect(song_url_slot);
-            if (!p.cur.itemId.valid()) {
-                m_player.stop();
-                return;
-            }
-            const quality = parseInt(settings_play.value('play_quality', m_querier_song.level.toString()));
-            const key = Qt.md5(`${p.cur.itemId.sid}, quality: ${quality}`);
-            const file = QA.Util.media_cache_of(key);
-            // seems empty url is true, use string
-            if (file.toString()) {
-                if (refresh && root.player.source === file)
-                    root.player.source = '';
-                root.player.source = file;
-                m_querier_song.ids = [];
-            } else {
-                song_url_slot = () => {
-                    songUrlSlot(key);
-                };
-                song_url_sig.connect(song_url_slot);
-                const songId = p.cur.itemId;
-                if (refresh)
-                    m_querier_song.ids = [];
-                m_querier_song.level = quality;
-                if (songId.valid())
-                    m_querier_song.ids = [songId];
-            }
-        }
-    }
+    //    function onCurChanged(refresh) {
+    //        const p = QA.App.playlist;
+    //        const song_url_sig = m_querier_song.statusChanged;
+    //        if (song_url_slot)
+    //            song_url_sig.disconnect(song_url_slot);
+    //        if (!p.cur.itemId.valid()) {
+    //            m_player.stop();
+    //            return;
+    //        }
+    //        const quality = parseInt(settings_play.value('play_quality', m_querier_song.level.toString()));
+    //        const key = Qt.md5(`${p.cur.itemId.sid}, quality: ${quality}`);
+    //        const file = QA.Util.media_cache_of(key);
+    //        // seems empty url is true, use string
+    //        if (file.toString()) {
+    //            if (refresh && root.player.source === file)
+    //                root.player.source = '';
+    //            root.player.source = file;
+    //            m_querier_song.ids = [];
+    //        } else {
+    //            song_url_slot = () => {
+    //                songUrlSlot(key);
+    //            };
+    //            song_url_sig.connect(song_url_slot);
+    //            const songId = p.cur.itemId;
+    //            if (refresh)
+    //                m_querier_song.ids = [];
+    //            m_querier_song.level = quality;
+    //            if (songId.valid())
+    //                m_querier_song.ids = [songId];
+    //        }
+    //    }
+    //}
 
-    QNcm.SongUrlQuerier {
-        id: m_querier_song
-        autoReload: ids.length > 0
-    }
+    //QNcm.SongUrlQuerier {
+    //    id: m_querier_song
+    //    autoReload: ids.length > 0
+    //}
 
     QA.Mpris {
         id: m_mpris
@@ -192,6 +191,15 @@ QA.GlobalWrapper {
     }
 
     Connections {
+        target: QA.Action
+        function onPlay(url, reload) {
+            if(reload) m_player.source = '';
+            m_player.source = url;
+            if(url) m_player.play();
+        }
+    }
+
+    Connections {
         target: root
         function onSessionChanged() {
             m_player.stop();
@@ -201,11 +209,6 @@ QA.GlobalWrapper {
 
     Connections {
         target: m_player
-        function onSourceChanged() {
-            if (m_player.source) {
-                m_player.play();
-            }
-        }
         function onPlaybackStateChanged(old, new_) {
             const p = m_player;
             // console.debug(root.category, `state: ${p.playbackState}, ${p.position}, ${p.duration}, ${p.source}`);

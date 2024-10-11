@@ -270,9 +270,9 @@ void App::init() {
     }
 }
 
-QString App::media_url(const QString& ori, const QString& id) const {
-    return convert_from<QString>(
-        m_media_cache->get_url(convert_from<std::string>(ori), convert_from<std::string>(id)));
+QString App::media_url(const QUrl& ori, const QString& id) const {
+    return convert_from<QString>(m_media_cache->get_url(convert_from<std::string>(ori.toString()),
+                                                        convert_from<std::string>(id)));
 }
 
 QString App::md5(QString txt) const {

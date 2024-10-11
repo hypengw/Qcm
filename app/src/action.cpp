@@ -5,6 +5,7 @@
 #include "asio_helper/detached_log.h"
 #include "asio_qt/qt_watcher.h"
 #include "qcm_interface/plugin.h"
+#include "asio_helper/watch_dog.h"
 
 namespace qcm
 {
@@ -68,6 +69,38 @@ void App::connect_actions() {
                     }
                 });
     }
+
+    {
+        auto dog = make_rc<helper::WatchDog>();
+        connect(playlist(), &Playlist::curChanged, this, [dog, this](bool refresh) {
+            dog->cancel();
+            auto curId = playlist()->cur().id;
+            auto qu    = enums::AudioQuality::AQExhigh;
+            auto hash  = song_uniq_hash(curId, qu);
+            auto path  = media_cache_path_of(hash);
+            if (std::filesystem::exists(path)) {
+                auto url = QUrl::fromLocalFile(convert_from<QString>(path.native()));
+                Global::instance()->action()->play(url, refresh);
+                return;
+            }
+
+            auto ex = asio::make_strand(Global::instance()->pool_executor());
+            if (auto c = Global::instance()->qsession()->client()) {
+                dog->spawn(
+                    ex,
+                    [c, curId, qu, hash, refresh] -> asio::awaitable<void> {
+                        auto res = co_await c->api->media_url(*c->instance, curId, qu);
+                        res.transform([&hash, refresh](QUrl url) -> bool {
+                            url = App::instance()->media_url(url, convert_from<QString>(hash));
+                            Global::instance()->action()->play(url, refresh);
+                            return true;
+                        });
+                        co_return;
+                    },
+                    helper::asio_detached_log_t {});
+            }
+        });
+    }
 }
 
 void App::on_load_session(model::Session* session) {
@@ -126,7 +159,7 @@ void App::on_load_session(model::Session* session) {
                 });
             co_return;
         },
-        helper::asio_detached_log);
+        helper::asio_detached_log_t {});
 }
 
 void App::on_queue_songs(const std::vector<model::Song>& songs) {
@@ -156,7 +189,7 @@ void App::on_logout() {
             }
             co_return;
         },
-        helper::asio_detached_log);
+        helper::asio_detached_log_t {});
 }
 
 void App::on_switch_user(model::ItemId id) {
@@ -195,7 +228,7 @@ void App::on_collect(model::ItemId id, bool act) {
             }
             co_return;
         },
-        helper::asio_detached_log);
+        helper::asio_detached_log_t {});
 }
 
 } // namespace qcm

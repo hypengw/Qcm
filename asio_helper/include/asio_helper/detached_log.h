@@ -7,8 +7,10 @@ namespace helper
 {
 class QCM_ASIO_API asio_detached_log_t {
 public:
-    void operator()(std::exception_ptr, const std::source_location loc = {});
+    asio_detached_log_t(const std::source_location = std::source_location::current());
+    void operator()(std::exception_ptr);
+
+    std::source_location loc;
 };
 
-QCM_ASIO_API extern asio_detached_log_t asio_detached_log;
 } // namespace helper

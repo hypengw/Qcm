@@ -13,7 +13,7 @@ void QAsyncResult::spawn(Ex&& ex, Fn&& f, const std::source_location loc) {
     auto                   main_ex { get_executor() };
     auto                   alloc = asio::recycling_allocator<void>();
     asio::co_spawn(ex,
-                   watch_dog().watch(ex, std::forward<Fn>(f), alloc),
+                   watch_dog().watch(ex, std::forward<Fn>(f), asio::chrono::minutes(3), alloc),
                    asio::bind_allocator(alloc, [self, main_ex, loc](std::exception_ptr p) {
                        if (! p) return;
                        try {

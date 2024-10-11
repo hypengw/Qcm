@@ -171,37 +171,37 @@ QQuickImageResponse* QcmImageProvider::requestImageResponse(const QString& id,
 
         auto alloc = asio::recycling_allocator<void>();
         auto ex    = asio::make_strand(m_inner->get_executor());
-        asio::co_spawn(
+        rsp->wdog().spawn(
             ex,
-            rsp->wdog().watch(
-                ex,
-                [rsp_guard, requestedSize, req, file_path, inner = m_inner]()
-                    -> asio::awaitable<void> {
-                    co_await inner->handle_request(rsp_guard, req, file_path, requestedSize);
-                    co_return;
-                },
-                alloc),
-            asio::bind_allocator(alloc, [rsp_guard, file_path, id, url](std::exception_ptr p) {
-                if (p) {
-                    try {
-                        if (std::filesystem::exists(file_path)) {
-                            std::filesystem::remove(file_path);
-                        }
-                        std::rethrow_exception(p);
-                    } catch (const std::exception& e) {
-                        QcmImageProviderInner::handle_res(
-                            rsp_guard,
-                            nstd::unexpected(convert_from<QString>(fmt::format(R"(
+            [rsp_guard, requestedSize, req, file_path, inner = m_inner]() -> asio::awaitable<void> {
+                co_await inner->handle_request(rsp_guard, req, file_path, requestedSize);
+                co_return;
+            },
+            asio::bind_allocator(
+                alloc,
+                [rsp_guard, file_path, id, url](std::exception_ptr p) {
+                    if (p) {
+                        try {
+                            if (std::filesystem::exists(file_path)) {
+                                std::filesystem::remove(file_path);
+                            }
+                            std::rethrow_exception(p);
+                        } catch (const std::exception& e) {
+                            QcmImageProviderInner::handle_res(
+                                rsp_guard,
+                                nstd::unexpected(convert_from<QString>(fmt::format(R"(
 QcmImageProvider
     id: {}
     url: {}
     error: {})",
-                                                                               id,
-                                                                               url.toString(),
-                                                                               e.what()))));
+                                                                                   id,
+                                                                                   url.toString(),
+                                                                                   e.what()))));
+                        }
                     }
-                }
-            }));
+                }),
+            asio::chrono::minutes(3),
+            alloc);
         return rsp;
     } while (false);
     rsp->finished();

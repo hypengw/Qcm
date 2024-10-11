@@ -17,6 +17,7 @@
 #include "ncm/api/logout.h"
 #include "ncm/api/song_like.h"
 #include "ncm/api/radio_like.h"
+#include "ncm/api/song_url.h"
 #include "ncm/client.h"
 
 namespace
@@ -114,7 +115,7 @@ static void play_state(ClientBase& cbase, qcm::enums::PlaybackState state,
             co_await c.perform(api);
             co_return;
         },
-        helper::asio_detached_log);
+        helper::asio_detached_log_t {});
 }
 
 static auto router(ClientBase& cbase) -> rc<qcm::Router> {
@@ -152,7 +153,7 @@ static auto session_check(ClientBase& cbase, helper::QWatcher<qcm::model::Sessio
             user->set_nickname(convert_from<QString>(out.profile->nickname));
             user->set_avatarUrl(convert_from<QString>(out.profile->avatarUrl));
             user->query();
-            asio::co_spawn(ex, prepare_session(c, user->userId()), helper::asio_detached_log);
+            asio::co_spawn(ex, prepare_session(c, user->userId()), helper::asio_detached_log_t {});
             return true;
         }
         return false;
@@ -195,6 +196,22 @@ auto collect(ClientBase& cbase, qcm::model::ItemId id, bool act) -> asio::awaita
     });
 }
 
+auto media_url(ClientBase& cbase, qcm::model::ItemId id,
+               qcm::enums::AudioQuality quality) -> asio::awaitable<Result<QUrl>> {
+    auto c = *get_client(cbase);
+
+    ncm::api::SongUrl api;
+    api.input.ids.push_back(convert_from<model::SongId>(id));
+    api.input.level = (ncm::params::SongUrl::Level)quality;
+    auto res        = co_await c.perform(api);
+    co_return res.transform([](const auto& su) -> QUrl {
+        if (su.data.size()) {
+            return QString::fromStdString(su.data.at(0).url);
+        }
+        return {};
+    });
+}
+
 } // namespace ncm::impl
 
 namespace ncm::qml
@@ -217,6 +234,7 @@ auto create_client() -> qcm::Client {
     api->logout        = ncm::impl::logout;
     api->session_check = ncm::impl::session_check;
     api->collect       = ncm::impl::collect;
+    api->media_url     = ncm::impl::media_url;
     api->save          = ncm::impl::save;
     api->load          = ncm::impl::load;
 

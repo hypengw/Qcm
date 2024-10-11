@@ -44,8 +44,9 @@ auto gen_image_cache_entry(const QString& provider, const QUrl& url,
 
 auto cache_path_of(std::string_view id) -> std::filesystem::path;
 auto media_cache_path_of(std::string_view id) -> std::filesystem::path;
-auto image_id(const QString& provider, const QUrl& url,
-              QSize reqSize) -> std::optional<std::string>;
+auto image_uniq_hash(const QString& provider, const QUrl& url,
+                     QSize reqSize) -> std::optional<std::string>;
+auto song_uniq_hash(const model::ItemId& id, enums::AudioQuality quality) -> std::string;
 
 class App : public QObject {
     Q_OBJECT
@@ -106,7 +107,7 @@ public:
 
     bool debug() const;
 
-    Q_INVOKABLE QString media_url(const QString& ori, const QString& id) const;
+    Q_INVOKABLE QString media_url(const QUrl& ori, const QString& id) const;
     Q_INVOKABLE QString md5(QString) const;
 
     Q_INVOKABLE bool    isItemId(const QJSValue&) const;

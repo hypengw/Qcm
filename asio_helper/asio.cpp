@@ -14,14 +14,19 @@
 namespace helper
 {
 
-asio_detached_log_t asio_detached_log {};
+asio_detached_log_t::asio_detached_log_t(const std::source_location loc): loc(loc) {}
 
-void asio_detached_log_t::operator()(std::exception_ptr ptr, const std::source_location loc) {
+void asio_detached_log_t::operator()(std::exception_ptr ptr) {
     if (! ptr) return;
     try {
         std::rethrow_exception(ptr);
     } catch (const std::exception& e) {
-        qcm::LogManager::instance()->log(qcm::LogLevel::ERROR, loc, "{}", e.what());
+        auto level = qcm::LogLevel::ERROR;
+        auto what  = std::string_view { e.what() };
+        if (what.ends_with("Operation aborted.")) {
+            level = qcm::LogLevel::WARN;
+        }
+        qcm::LogManager::instance()->log(level, loc, "{}", e.what());
     }
 }
 } // namespace helper

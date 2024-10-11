@@ -41,6 +41,7 @@ public:
     Q_SIGNAL void infoChanged();
 
     void insert(const ItemId&);
+    void insert(std::span<const ItemId>);
     void remove(const ItemId&);
     bool contains(const ItemId&) const;
 

@@ -36,12 +36,10 @@ UserAccount::UserAccount(QObject* parent): d_ptr(make_up<Private>(this)) {
                 auto res = co_await sql->select_id(userId());
 
                 d->items.clear();
-                for (auto& el : res) {
-                    insert(el);
-                }
+                insert(res);
                 co_return;
             },
-            helper::asio_detached_log);
+            helper::asio_detached_log_t {});
     });
 }
 UserAccount::~UserAccount() {}
@@ -55,6 +53,17 @@ void UserAccount::insert(const ItemId& item) {
     if (ok) {
         collectionChanged();
     }
+}
+
+void UserAccount::insert(std::span<const ItemId> items) {
+    C_D(UserAccount);
+    for (auto& item : items) {
+        auto hash      = std::hash<ItemId> {}(item);
+        auto type_hash = std::hash<QString> {}(item.type());
+        d->type_map.insert_or_assign(type_hash, item.type());
+        d->items.insert_or_assign(hash, type_hash);
+    }
+    collectionChanged();
 }
 void UserAccount::remove(const ItemId& item) {
     C_D(UserAccount);
