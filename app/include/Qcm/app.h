@@ -36,6 +36,8 @@ namespace qml
 class Util;
 }
 class CacheSql;
+class CollectionSql;
+
 void register_meta_type();
 auto gen_image_cache_entry(const QString& provider, const QUrl& url,
                            QSize reqSize) -> std::optional<std::filesystem::path>;
@@ -151,8 +153,9 @@ private:
     up<mpris::Mpris>            m_mpris;
     rc<media_cache::MediaCache> m_media_cache;
 
-    rc<CacheSql> m_media_cache_sql;
-    rc<CacheSql> m_cache_sql;
+    rc<CacheSql>      m_media_cache_sql;
+    rc<CacheSql>      m_cache_sql;
+    rc<CollectionSql> m_collect_sql;
 
     std::optional<Sender<Player::NotifyInfo>> m_player_sender;
     QPointer<QQuickWindow>                    m_main_win;

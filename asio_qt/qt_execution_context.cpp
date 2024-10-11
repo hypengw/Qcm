@@ -16,13 +16,16 @@ struct QtExecutionContext::EventRunner : QObject {
     }
 };
 
-QtExecutionContext::QtExecutionContext(QObject* target, QEvent::Type t)
+QtExecutionContext::QtExecutionContext(QThread* thread, QEvent::Type t)
     : m_target(new EventRunner(t)) {
     // move to target thread
-    if (target->thread() != m_target->thread()) {
-        m_target->moveToThread(target->thread());
+    if (thread != m_target->thread()) {
+        m_target->moveToThread(thread);
     }
 }
+QtExecutionContext::QtExecutionContext(QObject* target, QEvent::Type t)
+    : QtExecutionContext(target->thread(), t) {}
+
 QtExecutionContext::~QtExecutionContext() { m_target->deleteLater(); }
 
 auto QtExecutionContext::event_type() const -> QEvent::Type {

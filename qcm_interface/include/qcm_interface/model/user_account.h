@@ -24,9 +24,16 @@ public:
     DECLARE_PROPERTY(QUrl, server, NOTIFY_NAME(infoChanged))
     DECLARE_PROPERTY(QUrl, session_file, NOTIFY_NAME(infoChanged))
     DECLARE_PROPERTY(Extra, extra, NOTIFY_NAME(infoChanged))
+    Q_SIGNAL void infoChanged();
 
-Q_SIGNALS:
-    void infoChanged();
+    void             insert(const ItemId&);
+    Q_INVOKABLE bool contains(const ItemId&) const;
+
+    Q_SIGNAL void query();
+
+private:
+    class Private;
+    C_DECLARE_PRIVATE(UserAccount, d_ptr);
 };
 
 } // namespace model

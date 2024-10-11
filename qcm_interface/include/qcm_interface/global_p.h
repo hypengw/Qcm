@@ -26,6 +26,7 @@ public:
 
     QUuid                     uuid;
     rc<media_cache::DataBase> cache_sql;
+    rc<db::ColletionSqlBase>  collection_sql;
 
     MetadataImpl metadata_impl;
 

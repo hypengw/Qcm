@@ -167,6 +167,10 @@ auto Global::get_cache_sql() const -> rc<media_cache::DataBase> {
     C_D(const Global);
     return d->cache_sql;
 }
+auto Global::get_collection_sql() const -> rc<db::ColletionSqlBase> {
+    C_D(const Global);
+    return d->collection_sql;
+}
 
 auto Global::get_metadata(const std::filesystem::path& path) const -> Metadata {
     C_D(const Global);
@@ -260,6 +264,11 @@ void Global::set_session(model::Session* val) {
 void Global::set_cache_sql(rc<media_cache::DataBase> val) {
     C_D(Global);
     d->cache_sql = val;
+}
+
+void Global::set_collection_sql(rc<db::ColletionSqlBase> val) {
+    C_D(Global);
+    d->collection_sql = val;
 }
 
 void Global::set_metadata_impl(const MetadataImpl& impl) {

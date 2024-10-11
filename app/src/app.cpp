@@ -22,26 +22,22 @@
 #include <asio/deferred.hpp>
 
 #include "core/qvariant_helper.h"
+#include "crypto/crypto.h"
+#include "request/response.h"
+#include "asio_helper/sync_file.h"
+#include "meta_model/qgadget_helper.h"
+#include "platform/platform.h"
 
 #include "qcm_interface/plugin.h"
 #include "qcm_interface/type.h"
-#include "Qcm/image_provider.h"
-
 #include "qcm_interface/path.h"
+
 #include "Qcm/qr_image.h"
+#include "Qcm/image_provider.h"
 #include "Qcm/qml_util.h"
-#include "ncm/api/user_account.h"
-#include "crypto/crypto.h"
-#include "Qcm/info.h"
+#include "Qcm/collection_sql.h"
 #include "Qcm/cache_sql.h"
-
-#include "request/response.h"
-#include "asio_helper/sync_file.h"
-#include "platform/platform.h"
-
-#include "meta_model/qgadget_helper.h"
-
-#include "core/type.h"
+#include "Qcm/info.h"
 
 using namespace qcm;
 
@@ -164,10 +160,12 @@ App::App(std::monostate)
     m_qml_engine->addImportPath(u"qrc:/"_qs);
     // QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
 
-    m_media_cache_sql = std::make_shared<CacheSql>("media_cache", 0);
-    m_cache_sql       = std::make_shared<CacheSql>("cache", 0);
+    m_media_cache_sql = make_rc<CacheSql>("media_cache", 0);
+    m_cache_sql       = make_rc<CacheSql>("cache", 0);
+    m_collect_sql     = make_rc<CollectionSql>("collection");
     m_global->set_cache_sql(m_cache_sql);
     m_global->set_metadata_impl(player::get_metadata);
+    m_global->set_collection_sql(m_collect_sql);
 }
 App::~App() {
     m_qml_engine = nullptr;

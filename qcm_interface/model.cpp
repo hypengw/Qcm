@@ -8,13 +8,54 @@
 #include "qcm_interface/model/page.h"
 #include "qcm_interface/model/session.h"
 #include "qcm_interface/model/router_msg.h"
+#include "qcm_interface/global.h"
+#include "asio_helper/basic.h"
 
 #include "json_helper/helper.inl"
 
 namespace qcm::model
 {
-UserAccount::UserAccount(QObject* parent) { this->setParent(parent); }
+class UserAccount::Private {
+public:
+    // id, type
+    std::unordered_map<std::size_t, std::size_t> items;
+    std::unordered_map<std::size_t, QString>     type_map;
+};
+
+UserAccount::UserAccount(QObject* parent) {
+    this->setParent(parent);
+    connect(this, &UserAccount::query, this, [this] {
+        asio::co_spawn(
+            Global::instance()->qexecutor(),
+            [this] -> asio::awaitable<void> {
+                C_D(UserAccount);
+                auto sql = Global::instance()->get_collection_sql();
+                auto res = co_await sql->select_id(userId());
+
+                d->items.clear();
+                for (auto& el : res) {
+                    insert(el);
+                }
+                co_return;
+            },
+            helper::asio_detached_log);
+    });
+}
 UserAccount::~UserAccount() {}
+
+void UserAccount::insert(const ItemId& item) {
+    C_D(UserAccount);
+    auto hash      = std::hash<ItemId> {}(item);
+    auto type_hash = std::hash<QString> {}(item.type());
+    d->items.insert_or_assign(hash, type_hash);
+    d->type_map.insert_or_assign(type_hash, item.type());
+}
+auto UserAccount::contains(const ItemId& id) const -> bool {
+    C_D(const UserAccount);
+    auto hash = std::hash<ItemId> {}(id);
+    return d->items.contains(hash);
+}
+
 AppInfo::AppInfo() {
     set_id(APP_ID);
     set_name(APP_NAME);

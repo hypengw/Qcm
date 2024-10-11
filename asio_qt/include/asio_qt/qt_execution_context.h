@@ -31,6 +31,7 @@ private:
 class QtExecutionContext : public asio::execution_context, NoCopy {
 public:
     QtExecutionContext(QObject*, QEvent::Type);
+    QtExecutionContext(QThread*, QEvent::Type);
     virtual ~QtExecutionContext();
 
     template<class F>
