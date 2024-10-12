@@ -7,13 +7,16 @@ Music Service:
 - Netease Cloud Music
 
 
-<p align="center" width="100%">
-<img src="https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main.png?raw=true" width=70%>
-</p>
-<p align="center" width="100%">
-<img src="https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main_dark.png?raw=true" width=70%>
-</p>
-
+<table>
+  <tr>
+  <td><img src="https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main.png?raw=true"></td>
+  <td><img src="https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main_compact.png?raw=true"></td>
+  </tr>
+  <tr>
+  <td><img src="https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main_dark.png?raw=true"></td>
+  <td><img src="https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main_compact_dark.png?raw=true"></td>
+  </tr>
+</table>
 
 ### Download:  
 <a href='https://flathub.org/apps/details/io.github.hypengw.Qcm'><img width='240' alt='Download on Flathub' src='https://dl.flathub.org/assets/badges/flathub-badge-en.png'/></a>
