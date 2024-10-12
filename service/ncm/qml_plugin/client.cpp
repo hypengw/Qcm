@@ -241,8 +241,11 @@ auto create_client() -> qcm::Client {
     return { .api = api, .instance = instance };
 }
 
-auto get_ncm_client(qcm::Client& c) -> ncm::Client& {
-    return static_cast<ncm::impl::Client&>(*c.instance).ncm;
+auto get_ncm_client(const qcm::Client& c) -> std::optional<ncm::Client> {
+    if (c.api->provider == ncm::provider) {
+        return *impl::get_client(*c.instance);
+    } else
+        return std::nullopt;
 }
 
 auto uniq(const QUrl& url, const QVariant& info) -> QString {

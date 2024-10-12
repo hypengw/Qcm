@@ -5,6 +5,7 @@
 #include <fstream>
 
 #include "service_qml_ncm/api.h"
+#include "service_qml_ncm/client.h"
 #include "service_qml_ncm/model.h"
 #include "qcm_interface/global.h"
 
@@ -48,7 +49,9 @@ void CloudUploadApi::reload() {}
 
 auto CloudUploadApi::upload_impl(std::filesystem::path path)
     -> asio::awaitable<nstd::expected<std::monostate, error::Error>> {
-    auto                       client = detail::get_client();
+    auto client = Global::instance()->qsession()->client().and_then(ncm::qml::get_ncm_client);
+    if (! client) co_return nstd::unexpected(error::Error::push("wrong session client"));
+
     ncm::api::CloudUploadCheck api;
     std::string                md5;
     usize                      size;
@@ -70,7 +73,7 @@ auto CloudUploadApi::upload_impl(std::filesystem::path path)
     api.input.md5    = md5;
     api.input.length = size;
     ncm::api_model::CloudUploadCheck check_res;
-    EC_RET_CO(check_res, co_await client.perform(api));
+    EC_RET_CO(check_res, co_await client->perform(api));
 
     if (true || check_res.needUpload) {
         ncm::api::NosTokenAlloc alloc_api;
@@ -83,7 +86,7 @@ auto CloudUploadApi::upload_impl(std::filesystem::path path)
             in.md5      = md5;
         }
         ncm::api_model::NosTokenAlloc alloc_res;
-        EC_RET_CO(alloc_res, co_await client.perform(alloc_api));
+        EC_RET_CO(alloc_res, co_await client->perform(alloc_api));
 
         ncm::api::UploadAddr addr_api;
         {
@@ -91,7 +94,7 @@ auto CloudUploadApi::upload_impl(std::filesystem::path path)
             in.bucket = alloc_api.input.bucket;
         }
         ncm::api_model::UploadAddr addr_res;
-        EC_RET_CO(addr_res, co_await client.perform(addr_api));
+        EC_RET_CO(addr_res, co_await client->perform(addr_api));
 
         if (! addr_res.upload.empty()) {
             auto meta = Global::instance()->get_metadata(path);
@@ -118,7 +121,7 @@ auto CloudUploadApi::upload_impl(std::filesystem::path path)
                 });
             }
             ncm::api_model::Upload upload_res;
-            EC_RET_CO(upload_res, co_await client.perform(upload_api, 180));
+            EC_RET_CO(upload_res, co_await client->perform(upload_api, 180));
 
             ncm::api::UploadCloudInfo upload_info_api;
             {
@@ -142,12 +145,12 @@ auto CloudUploadApi::upload_impl(std::filesystem::path path)
                 in.md5 = md5;
             }
             ncm::api_model::UploadCloudInfo upload_info_res;
-            EC_RET_CO(upload_info_res, co_await client.perform(upload_info_api));
+            EC_RET_CO(upload_info_res, co_await client->perform(upload_info_api));
 
             ncm::api::CloudPub pub_api;
             { pub_api.input.songId = upload_info_res.songId; }
             ncm::api_model::CloudPub pub_res;
-            EC_RET_CO(pub_res, co_await client.perform(pub_api));
+            EC_RET_CO(pub_res, co_await client->perform(pub_api));
         }
     }
     co_return std::monostate {};

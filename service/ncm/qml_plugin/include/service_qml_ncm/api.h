@@ -10,11 +10,6 @@
 namespace qcm
 {
 
-namespace detail
-{
-ncm::Client get_client();
-}
-
 template<typename TApi, typename TModel>
     requires ncm::api::ApiCP<TApi> //&& modelable<TModel, TApi>
 class ApiQuerier : public ApiQuerierBase {
@@ -24,8 +19,7 @@ public:
     using in_type    = typename TApi::in_type;
     using model_type = TModel;
 
-    ApiQuerier(QObject* parent)
-        : ApiQuerierBase(parent), m_model(new model_type(this)) {
+    ApiQuerier(QObject* parent): ApiQuerierBase(parent), m_model(new model_type(this)) {
         if constexpr (std::derived_from<TModel, QAbstractItemModel>) {
             connect(m_model,
                     &TModel::fetchMoreReq,
@@ -82,6 +76,7 @@ protected:
     api_type&       api() { return m_api; }
     const api_type& api() const { return m_api; }
     model_type*     model() { return m_model; }
+    auto            client() { return session()->client().and_then(ncm::qml::get_ncm_client); }
 
 private:
     struct Context {
@@ -92,13 +87,10 @@ private:
     };
 
     auto gen_context() -> std::optional<Context> {
-        return session()->client().and_then([this](auto c) -> std::optional<Context> {
-            if (c.api->provider != ncm::qml::provider) {
-                return std::nullopt;
-            }
+        return client().transform([this](auto c) {
             return Context {
                 .main_ex = get_executor(),
-                .client  = ncm::qml::get_ncm_client(c),
+                .client  = c,
                 .api     = this->api(),
                 .self    = this,
             };

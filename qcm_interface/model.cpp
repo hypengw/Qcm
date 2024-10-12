@@ -17,12 +17,12 @@ namespace qcm::model
 {
 class UserAccount::Private {
 public:
-    Private(UserAccount* p): collection(p) {}
+    Private(UserAccount* p): collection(new UserAccountCollection(p)) {}
     // id, type
     std::unordered_map<std::size_t, std::size_t> items;
     std::unordered_map<std::size_t, QString>     type_map;
 
-    UserAccountCollection collection;
+    UserAccountCollection* collection;
 };
 
 UserAccount::UserAccount(QObject* parent): d_ptr(make_up<Private>(this)) {
@@ -78,13 +78,15 @@ auto UserAccount::contains(const ItemId& id) const -> bool {
     return d->items.contains(hash);
 }
 
-auto UserAccount::collection() const -> const UserAccountCollection& {
+auto UserAccount::collection() const -> UserAccountCollection* {
     C_D(const UserAccount);
     return d->collection;
 }
-UserAccountCollection::UserAccountCollection(UserAccount* p): m_parent(p) {}
+UserAccountCollection::UserAccountCollection(UserAccount* p): QObject(p), m_parent(p) {}
 UserAccountCollection::~UserAccountCollection() {}
-bool UserAccountCollection::contains(const ItemId& id) const { return m_parent->contains(id); }
+bool UserAccountCollection::contains(const ItemId& id) const {
+    return m_parent && m_parent->contains(id);
+}
 
 AppInfo::AppInfo() {
     set_id(APP_ID);
