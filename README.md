@@ -44,6 +44,30 @@ export QML_IMPORT_PATH=$PWD/build/qml_modules
 cmake --install build
 ```
 
+### Faq:
+- Desktop lyrics
+  > use [waylyrics](https://github.com/waylyrics/waylyrics)
+
+- How to debug in flatpak
+  ```bash
+  flatpak install io.github.hypengw.Qcm.Debug
+  flatpak run --devel --command=bash io.github.hypengw.Qcm
+  # 1. run directly
+  [📦 io.github.hypengw.Qcm ~]$ gdb Qcm
+  (gdb) run
+  Enable debuginfod for this session? (y or [n]) n
+  ...
+  # get the stacktrace
+  (gdb) bt
+
+  # 2. or use coredump file
+  coredumpctl dump <id> -o core.save
+  flatpak run --devel --filesystem=host --command=bash io.github.hypengw.Qcm
+  [📦 io.github.hypengw.Qcm ~]$ gdb Qcm core.save
+  ...
+  ```
+  
+
 ### Todo:
 - [ ] jellyfin
 - [ ] sql api model
@@ -51,6 +75,8 @@ cmake --install build
 - [ ] android
 - [ ] mac/win
 - [ ] offline mode
+- [ ] playing page colorpick
+- [ ] playing page blur
 - [x] user session switch
 - [x] feedback
 - [x] upload
