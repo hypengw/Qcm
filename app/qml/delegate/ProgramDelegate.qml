@@ -18,7 +18,7 @@ MD.ListItem {
 
     rightPadding: 16
 
-    radius: indexRadius(dgIndex, count, 16)
+    corners: indexCorners(dgIndex, count, 16)
 
     mdState: MD.StateListItem {
         item: root

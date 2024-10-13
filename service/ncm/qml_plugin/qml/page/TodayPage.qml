@@ -27,7 +27,9 @@ MD.Page {
             MD.Pane {
                 Layout.fillWidth: true
                 radius: root.radius
-                verticalPadding: radius
+                verticalPadding: {
+                    return radius;
+                }
 
                 ColumnLayout {
                     width: parent.width

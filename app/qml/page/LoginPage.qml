@@ -69,7 +69,7 @@ MD.Page {
                                 required property var model
                                 width: ListView.view.contentWidth
 
-                                radius: indexRadius(index, count, 16)
+                                corners: indexCorners(index, count, 16)
                                 leader: MD.IconSvg {
                                     source: model.info.icon
                                     size: 24
@@ -117,7 +117,7 @@ MD.Page {
                                 required property var model
                                 width: ListView.view.contentWidth
 
-                                radius: indexRadius(index, count, 16)
+                                corners: indexCorners(index, count, 16)
                                 action: QC.Action {
                                     text: model.nickname
                                     onTriggered: {

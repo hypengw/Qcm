@@ -18,7 +18,7 @@ MD.Page {
         MD.TabBar {
             id: m_bar
             Layout.fillWidth: true
-            radius: [root.header.visible ? 0 : root.radius, 0]
+            corners: MD.Util.corner(root.header.visible ? 0 : root.radius, 0)
 
             Component.onCompleted: {
                 currentIndexChanged();
@@ -48,7 +48,7 @@ MD.Page {
             MD.FlickablePane {
                 id: m_view_pane
                 view: item_stack.children[item_stack.currentIndex]
-                radius: [0, root.radius]
+                corners: MD.Util.corner(0, root.radius)
                 color: root.MD.MatProp.backgroundColor
             }
 

@@ -43,7 +43,7 @@ MD.Page {
                 MD.TabBar {
                     id: bar
                     Layout.fillWidth: true
-                    radius: [root.radius, 0]
+                    corners: MD.Util.corner(root.radius, 0)
 
                     Component.onCompleted: {
                         currentIndexChanged();
@@ -311,7 +311,7 @@ MD.Page {
         width: ListView.view.width
         maximumLineCount: 2
 
-        radius: [0, dgIndex + 1 == count ? root.radius : 0]
+        corners: MD.Util.corner(0, dgIndex + 1 == count ? root.radius : 0)
 
         leader: QA.Image {
             radius: 8

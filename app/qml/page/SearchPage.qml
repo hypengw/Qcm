@@ -53,7 +53,7 @@ MD.Page {
             MD.TabBar {
                 id: bar
                 Layout.fillWidth: true
-                radius: [root.radius, 0]
+                corners: MD.Util.corner(root.radius, 0)
 
                 function get_querier() {
                     return m_stack.children[currentIndex]?.querier;
@@ -99,7 +99,7 @@ MD.Page {
                 MD.FlickablePane {
                     id: m_view_pane
                     view: m_stack.children[m_stack.currentIndex]
-                    radius: [0, root.radius]
+                    corners: MD.Util.corner(0, root.radius)
                     color: root.MD.MatProp.backgroundColor
                 }
 

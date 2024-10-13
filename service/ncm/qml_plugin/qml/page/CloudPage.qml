@@ -24,7 +24,7 @@ MD.Page {
             view: m_view
             visible: !root.background.visible
             color: root.backgroundColor
-            radius: [root.header.visible ? 0 : root.radius, root.radius]
+            corners: MD.Util.corner(root.header.visible ? 0 : root.radius, root.radius)
         }
 
         MD.ListView {

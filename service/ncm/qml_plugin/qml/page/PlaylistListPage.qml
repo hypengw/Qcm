@@ -28,7 +28,7 @@ MD.Page {
     Component {
         id: m_list_view
         NCM.PlaylistListView {
-            radius: [0, root.radius]
+            corners: MD.Util.corner(0, root.radius)
         }
     }
 
@@ -60,7 +60,7 @@ MD.Page {
                 Layout.fillWidth: true
                 spacing: 0
                 clip: true
-                radius: [root.radius, 0]
+                corners: MD.Util.corner(root.radius, 0)
 
                 readonly property int tab_width: parent.width / root.cat_list.length
 

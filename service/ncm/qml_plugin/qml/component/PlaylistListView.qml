@@ -9,7 +9,7 @@ MD.Control {
     id: root
     padding: 0
     property alias cat: qr_pl.cat
-    property var radius: 0
+    property MD.t_corner corners
 
     background: Item {
         implicitWidth: 0

@@ -288,7 +288,7 @@ auto Global::load_plugin(const std::filesystem::path& path) -> bool {
             return false;
         }
     } else {
-        DEBUG_LOG("{}", loader->errorString());
+        ERROR_LOG("{}", loader->errorString());
     }
     return loader->isLoaded();
 }
