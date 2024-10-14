@@ -187,7 +187,7 @@ ApplicationWindow {
 
     Component {
         id: comp_main
-        StackView {
+        MD.StackView {
             id: sv_main
 
             property var playing_page: {

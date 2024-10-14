@@ -93,10 +93,7 @@ set(QML_FILES
     qml/component/IconRowLayout.qml
     qml/component/RoundImage.qml
     qml/component/Leaflet.qml
-    qml/component/MButton.qml
-    qml/component/MRoundButton.qml
     qml/component/MGridView.qml
-    qml/component/MItemDelegate.qml
     qml/component/PageContainer.qml
     qml/component/PagePopup.qml
     qml/component/PageStack.qml

@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
 import QtQuick.Layouts
 import "../component"
 
@@ -23,7 +22,6 @@ Pane {
             id: label
 
             Layout.fillWidth: true
-            Layout.preferredHeight: Material.buttonHeight
             verticalAlignment: Text.AlignVCenter
             elide: Text.ElideRight
         }

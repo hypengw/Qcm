@@ -3,7 +3,7 @@ import QtQuick.Controls
 
 import Qcm.Material as MD
 
-StackView {
+MD.StackView {
     id: root
 
     readonly property alias current_page: root.m_current_page

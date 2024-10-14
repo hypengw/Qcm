@@ -88,7 +88,7 @@ MD.Page {
 
                                     Rectangle {
                                         anchors.centerIn: parent
-                                        border.color: Material.background
+                                        border.color: MD.MatProp.backgroundColor
                                         border.width: 3
                                         color: parent.color
                                         height: width

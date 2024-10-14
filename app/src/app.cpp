@@ -235,7 +235,8 @@ void App::init() {
     load_settings();
 
     // qml engine
-    QQuickStyle::setStyle("Material");
+    QQuickStyle::setFallbackStyle("Basic");
+    QQuickStyle::setStyle("Basic");
 
     auto gui_app = QGuiApplication::instance();
 

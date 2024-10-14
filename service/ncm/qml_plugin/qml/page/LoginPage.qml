@@ -153,7 +153,7 @@ MD.Page {
                     id: qr_pane
                     padding: 8
 
-                    StackView {
+                    MD.StackView {
                         id: qr_stack
 
                         property QtObject cur: switch (qr_qrlogin.data.code) {

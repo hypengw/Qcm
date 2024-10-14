@@ -18,7 +18,7 @@ MD.Control {
             view: m_view
             contentWidth: view.contentItem.width + view.ScrollBar.vertical.width
             contentHeight: view.contentItem.height
-            radius: root.radius
+            radius: root.MD.MatProp.page.radius
             color: root.MD.MatProp.backgroundColor
             topMargin: 0
         }

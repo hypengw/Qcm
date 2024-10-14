@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
 import QtQuick.Layouts
 import Qcm.App as QA
 import Qcm.Material as MD
@@ -256,7 +255,7 @@ MD.Pane {
                     }
                 }
             }
-            StackView {
+            MD.StackView {
                 id: ctl_stack
                 function switch_to() {
                     replace(currentItem, root.isSmall ? comp_ctl_small : comp_ctl);
