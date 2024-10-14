@@ -96,10 +96,15 @@ void App::connect_actions() {
                     [c, curId, qu, hash, refresh] -> asio::awaitable<void> {
                         auto res = co_await c->api->media_url(*c->instance, curId, qu);
                         res.transform([&hash, refresh](QUrl url) -> bool {
-                            url = App::instance()->media_url(url, convert_from<QString>(hash));
-                            Global::instance()->action()->play(url, refresh);
-                            return true;
-                        });
+                               url = App::instance()->media_url(url, convert_from<QString>(hash));
+                               Global::instance()->action()->play(url, refresh);
+                               return true;
+                           })
+                            .transform_error([](auto err) -> std::nullptr_t {
+                                Global::instance()->errorOccurred(
+                                    convert_from<QString>(err.what()));
+                                return {};
+                            });
                         co_return;
                     },
                     helper::asio_detached_log_t {});
