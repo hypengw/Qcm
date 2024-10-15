@@ -44,8 +44,3 @@ struct fmt::formatter<QStringView> : fmt::formatter<std::string> {
         return fmt::formatter<std::string>::format(qs.toString().toStdString(), ctx);
     }
 };
-
-inline std::strong_ordering operator<=>(const QString& a, const QString& b) {
-    return a < b ? std::strong_ordering::less
-                 : (a == b ? std::strong_ordering::equal : std::strong_ordering::greater);
-}
