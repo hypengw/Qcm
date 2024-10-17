@@ -241,9 +241,9 @@ MD.Pane {
 
                         onClicked: root.swich_play()
 
-                        MD.CircleProgress {
+                        MD.CircleProgressBar {
                             anchors.centerIn: parent
-                            progress: (QA.Global.player.position / QA.Global.player.duration)
+                            value: (QA.Global.player.position / QA.Global.player.duration)
                         }
                     }
                     MD.IconButton {
