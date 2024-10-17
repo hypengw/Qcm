@@ -24,6 +24,7 @@ MD.Page {
             MD.PageContext {
                 id: m_page_ctx
                 inherit: root.MD.MatProp.page
+                showHeader: m_stack.depth > 1
                 leadingAction: QC.Action {
                     icon.name: MD.Token.icon.arrow_back
                     onTriggered: {

@@ -77,7 +77,8 @@ void App::connect_actions() {
         auto dog = make_rc<helper::WatchDog>();
         connect(playlist(), &Playlist::curChanged, this, [dog, this](bool refresh) {
             dog->cancel();
-            auto      curId = playlist()->cur().id;
+            auto curId = playlist()->cur().id;
+            if (! curId.valid()) return;
             QSettings s;
             auto      qu = s.value("play/play_quality").value<enums::AudioQuality>();
 
