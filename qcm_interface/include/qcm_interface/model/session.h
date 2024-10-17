@@ -20,12 +20,13 @@ public:
     Session(QObject* parent = nullptr);
     ~Session();
 
-    DECLARE_PROPERTY(UserAccount*, user, NOTIFY_NAME(infoChanged))
+    DECLARE_PROPERTY(UserAccount*, user, NOTIFY_NAME(userChanged))
     DECLARE_PROPERTY(std::vector<Page>, pages, NOTIFY_NAME(infoChanged))
     DECLARE_PROPERTY(bool, valid, NOTIFY_NAME(infoChanged))
     DECLARE_PROPERTY(QString, provider, NOTIFY_NAME(infoChanged))
 
     Q_SIGNAL void infoChanged();
+    Q_SIGNAL void userChanged();
 
     auto client() const -> std::optional<Client>;
     void set_client(std::optional<Client>);

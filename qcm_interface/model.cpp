@@ -151,16 +151,26 @@ IMPL_JSON_SERIALIZER_TO(qcm::model::ItemId) {
 
 IMPL_JSON_SERIALIZER_FROM(qcm::UserModel) {
     if (j.contains("users")) {
+        std::optional<qcm::model::UserAccount*> active_user;
+        std::optional<i64>                      active_user_id;
+        if (j.contains("active_user")) {
+            active_user_id = j.at("active_user").get<i64>();
+        }
+
+        i64 i = 0;
         for (auto& el : j.at("users")) {
             auto u = make_up<qcm::model::UserAccount>();
             el.get_to(*u);
-            t.add_user(u.release());
+            if (u->userId().valid()) {
+                if (active_user_id == std::optional { i }) {
+                    active_user = u.get();
+                }
+                t.add_user(u.release());
+            }
+            i++;
         }
-    }
-    if (j.contains("active_user")) {
-        auto user_idx = j.at("active_user").get<i64>();
-        if (user_idx < (i64)t.size()) {
-            t.set_active_user(t.at(user_idx));
+        if (active_user) {
+            t.set_active_user(active_user.value());
         }
     }
 }

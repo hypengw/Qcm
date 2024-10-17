@@ -139,11 +139,10 @@ static auto session_check(ClientBase& cbase, helper::QWatcher<qcm::model::Sessio
     -> asio::awaitable<Result<bool>> {
     auto                  c = *get_client(cbase);
     ncm::api::UserAccount api;
+    auto                  ex  = co_await asio::this_coro::executor;
     auto                  out = co_await c.perform(api);
     co_await asio::post(
         asio::bind_executor(qcm::Global::instance()->qexecutor(), asio::use_awaitable));
-
-    auto ex = co_await asio::this_coro::executor;
 
     auto user = session->user();
     co_return out.transform([user, ex, &session, c](const auto& out) -> bool {

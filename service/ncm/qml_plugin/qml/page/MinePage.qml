@@ -95,10 +95,10 @@ MD.Page {
                             target: QA.App
                         }
                         MD.FAB {
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        anchors.rightMargin: 16
-        anchors.bottomMargin: 16
+                            anchors.right: parent.right
+                            anchors.bottom: parent.bottom
+                            anchors.rightMargin: 16
+                            anchors.bottomMargin: 16
                             flickable: view_playlist
                             action: Action {
                                 icon.name: MD.Token.icon.add
@@ -168,8 +168,10 @@ MD.Page {
                 QNcm.UserPlaylistQuerier {
                     id: qr_playlist
                     autoReload: uid.valid() && limit > 0
-                    uid: QA.Global.session.user.userId
                     limit: 30
+                    Component.onCompleted: {
+                        uid = QA.Global.session.user.userId;
+                    }
                 }
                 QNcm.DjradioSublistQuerier {
                     id: qr_djradiolist

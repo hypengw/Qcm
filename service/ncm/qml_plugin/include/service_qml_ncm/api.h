@@ -36,6 +36,7 @@ public:
         auto cnt = gen_context();
         if (! cnt) {
             cancel();
+            ERROR_LOG("session not valid");
             set_error("session not valid");
             set_status(Status::Error);
             return;
