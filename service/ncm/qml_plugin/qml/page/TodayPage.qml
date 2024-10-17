@@ -49,7 +49,7 @@ MD.Page {
                         id: swipe_playlist
                         Layout.fillWidth: true
 
-                        readonly property int fixedCellWidth: Math.max(160, QA.Global.main_win.width / 6.0)
+                        readonly property int fixedCellWidth: Math.max(160, swipe_playlist.width / 6.0)
                         readonly property int column: 2
                         readonly property int space: 8
                         readonly property int row: Math.max(2, Math.floor((width - space) / (fixedCellWidth + space / 2)))
@@ -58,7 +58,6 @@ MD.Page {
 
                         Repeater {
                             model: Util.array_split(qr_rmd_res.data.dailyPlaylists, swipe_playlist.itemCount)
-
                             QA.MGridView {
                                 fixedCellWidth: swipe_playlist.fixedCellWidth
                                 implicitHeight: contentHeight
@@ -70,14 +69,13 @@ MD.Page {
                                     required property var modelData
                                     width: GridView.view.cellWidth
                                     height: GridView.view.cellHeight
+
                                     QA.PicGridDelegate {
                                         anchors.horizontalCenter: parent.horizontalCenter
-                                        anchors.top: parent.top
                                         anchors.topMargin: 12
-
-                                        picWidth: parent.GridView.view.fixedCellWidth
-                                        width: picWidth
+                                        width: swipe_playlist.fixedCellWidth
                                         height: Math.min(implicitHeight, parent.height)
+                                        picWidth: swipe_playlist.fixedCellWidth
                                         image.source: QA.Util.image_url(parent.modelData.picUrl)
                                         text: parent.modelData.name
 
@@ -122,7 +120,7 @@ MD.Page {
                     QA.MGridView {
                         Layout.fillWidth: true
 
-                        fixedCellWidth: Math.max(160, QA.Global.main_win.width / 6.0)
+                        fixedCellWidth: Math.max(160, width / 6.0)
                         implicitHeight: contentHeight
                         interactive: false
                         model: QNcm.RadarPlaylistIdModel {}
