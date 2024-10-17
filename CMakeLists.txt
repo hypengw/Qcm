@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 
 project(
   Qcm
-  VERSION 1.1.1
+  VERSION 1.1.2
   LANGUAGES CXX
   HOMEPAGE_URL "https://github.com/hypengw/Qcm"
   DESCRIPTION "Material3 cloud music player"
