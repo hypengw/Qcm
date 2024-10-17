@@ -363,7 +363,7 @@ MD.Page {
                     Layout.fillWidth: true
                     text: qsTr('Summary')
                     canInput: false
-                    supportText: m_qr_storage.status === QA.enums.Quering ? qsTr('querying') : Util.pretty_bytes(m_qr_storage.data.total * 1024)
+                    supportText: m_qr_storage.status === QA.enums.Quering ? qsTr('querying') : Util.pretty_bytes(m_qr_storage.data.total * 1024, 1)
 
                     QA.StorageInfoQuerier {
                         id: m_qr_storage
