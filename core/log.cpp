@@ -32,7 +32,7 @@ auto get_log_color(LogLevel level) -> std::string_view {
 
 std::string_view to_sv(qcm::LogLevel lv) {
 #define X(E) \
-    case E: return "["#E"]"
+    case E: return "[" #E "]"
 
     switch (lv) {
         using enum qcm::LogLevel;
@@ -120,6 +120,7 @@ void LogManager::log_raw(LogLevel level, std::string_view content) {
     case WARN:
     case ERROR: out = stderr; break;
     }
+    if (out == nullptr) return;
     if (supports_color()) {
         fmt::print(out, "{}{}{}", get_log_color(level), content, COLOR_RESET);
     } else {

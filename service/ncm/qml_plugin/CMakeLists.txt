@@ -102,7 +102,7 @@ target_include_directories(
 target_link_libraries(
   service_qml_ncm
   PUBLIC Qt::Quick core qcm_interface
-  PRIVATE ctre platform sv_ncm meta_model)
+  PRIVATE ctre platform meta_model sv_ncm)
 
 target_compile_definitions(
   service_qml_ncm

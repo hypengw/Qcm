@@ -9,12 +9,30 @@
 
 namespace qcm
 {
+
 class QCM_INTERFACE_API QcmPluginInterface {
 public:
+    QcmPluginInterface(std::string_view);
     virtual auto router() -> Router*                                    = 0;
     virtual auto info() -> const model::PluginInfo&                     = 0;
     virtual auto create_session() -> up<model::Session>                 = 0;
     virtual auto uniq(const QUrl& url, const QVariant& info) -> QString = 0;
+};
+class PluginModel;
+class QCM_INTERFACE_API PluginManager {
+    friend class PluginModel;
+
+public:
+    PluginManager();
+    ~PluginManager();
+    static auto instance() -> PluginManager*;
+    void        register_plugin(std::string_view, qcm::QcmPluginInterface*);
+    auto
+        plugin(std::string_view) const -> std::optional<std::reference_wrapper<QcmPluginInterface>>;
+
+private:
+    class Private;
+    C_DECLARE_PRIVATE(PluginManager, d_ptr);
 };
 
 } // namespace qcm

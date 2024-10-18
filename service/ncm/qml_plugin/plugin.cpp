@@ -20,15 +20,15 @@ class Qcm_Service_NcmPlugin : public QQmlEngineExtensionPlugin, public qcm::QcmP
 
 public:
     Qcm_Service_NcmPlugin(QObject* parent = nullptr)
-        : QQmlEngineExtensionPlugin(parent), m_router(new qcm::Router(this)) {
+        : QQmlEngineExtensionPlugin(parent),
+          qcm::QcmPluginInterface(ncm::qml::provider),
+          m_router(new qcm::Router(this)) {
         QT_KEEP_SYMBOL(qml_register_types_Qcm_Service_Ncm);
         m_router->register_path(qcm::enums::PluginBasicPage::BPageLogin, PAGE_URL u"LoginPage.qml");
 
         m_info.set_name("ncm");
         m_info.set_fullname("Netease Cloud Music");
         m_info.set_icon(QUrl(QStringLiteral(QRC_URL u"assets/netease.svg")));
-
-        DEBUG_LOG("init ncm plugin");
     }
 
     void initializeEngine(QQmlEngine* engine, const char* uri) override {

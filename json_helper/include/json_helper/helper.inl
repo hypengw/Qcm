@@ -36,6 +36,13 @@ std::string variant_from_json(const nlohmann::json& j, std::variant<Ts...>& data
     template auto qcm::json::detail::get_to<Type>(const qcm::json::njson& j, Type& v) -> Type&; \
     template auto qcm::json::detail::assign<Type>(qcm::json::njson & j, const Type& v) -> void;
 
+#define JSON_GET_IMPL2(Type)                    \
+    {                                           \
+        Type* t { nullptr };                    \
+        qcm::json::detail::get_to<Type>(j, *t); \
+        qcm::json::detail::assign<Type>(j, *t); \
+    }
+
 #define JSON_DEFINE_IMPL(Type, ...)                                                \
     void to_json(nlohmann::json& nlohmann_json_j, const Type& nlohmann_json_t) {   \
         NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_TO, __VA_ARGS__))   \
@@ -54,21 +61,17 @@ std::string variant_from_json(const nlohmann::json& j, std::variant<Ts...>& data
 
 namespace qcm
 {
-namespace json::detail
-{
 
 template<typename ValueType>
-auto get_to(const njson& j, ValueType& v) -> ValueType& {
+auto json::detail::get_to(const njson& j, ValueType& v) -> ValueType& {
     j.get_to(v);
     return v;
 }
 
 template<typename ValueType>
-void assign(njson& j, const ValueType& v) {
+void json::detail::assign(njson& j, const ValueType& v) {
     j = v;
 }
-
-} // namespace json::detail
 
 } // namespace qcm
 

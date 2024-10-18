@@ -66,6 +66,6 @@ private:
 } // namespace qcm
 
 template<>
-struct std::hash<qcm::model::ItemId> {
+struct QCM_INTERFACE_API std::hash<qcm::model::ItemId> {
     std::size_t operator()(const qcm::model::ItemId& k) const;
 };

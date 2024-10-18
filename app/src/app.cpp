@@ -141,7 +141,9 @@ App::App(std::monostate)
       m_global(make_rc<Global>()),
       m_util(make_rc<qml::Util>(std::monostate {})),
       m_playlist(new qcm::Playlist(this)),
+#ifndef NODEBUS
       m_mpris(make_up<mpris::Mpris>()),
+#endif
       m_media_cache(),
       m_main_win(nullptr),
       m_qml_engine(make_up<QQmlApplicationEngine>()) {
@@ -198,15 +200,17 @@ void App::init() {
     }
 
     // mpris
+#ifndef NODEBUS
     {
         m_mpris->registerService("Qcm");
-        auto m = mpris();
+        auto m = m_mpris->mediaplayer2();
         m->setIdentity("Qcm");
         m->setDesktopEntry(APP_ID); // no ".desktop"
         m->setCanQuit(true);
         qmlRegisterUncreatableType<mpris::MediaPlayer2>(
             "Qcm.App", 1, 0, "MprisMediaPlayer", "uncreatable");
     }
+#endif
 
     // cache
     {
@@ -306,6 +310,8 @@ void App::triggerCacheLimit() {
 }
 
 void App::load_plugins() {
+#ifdef __ANDROID__
+#else
     std::optional<QDir> plugin_path;
     for (auto& el : this->engine()->importPathList()) {
         auto dir = QDir(el + QDir::separator() + "Qcm" + QDir::separator() + "Service");
@@ -334,6 +340,7 @@ void App::load_plugins() {
             }
         }
     }
+#endif
 }
 
 void App::setProxy(ProxyType t, QString content) {
@@ -371,6 +378,14 @@ void App::test() {
         },
         asio::detached);
     */
+}
+
+auto App::mpris() const -> QObject* {
+#ifndef NODEBUS
+    return m_mpris->mediaplayer2();
+#else
+    return nullptr;
+#endif
 }
 
 bool App::debug() const {

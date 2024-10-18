@@ -9,6 +9,8 @@ Item {
 
     function bindMpris() {
         const mpris = QA.App.mpris;
+        if(!mpris) return;
+
         mpris.canPlay = true;
         mpris.canPause = true;
         mpris.canControl = true;

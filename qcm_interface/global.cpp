@@ -10,6 +10,7 @@
 #include "core/log.h"
 #include "request/session.h"
 #include "qcm_interface/path.h"
+#include "qcm_interface/plugin.h"
 
 namespace
 {
@@ -158,11 +159,7 @@ auto Global::uuid() const -> const QUuid& {
 }
 auto Global::plugin(QStringView name) const
     -> std::optional<std::reference_wrapper<QcmPluginInterface>> {
-    C_D(const Global);
-    if (auto it = d->plugins.find(name); it != d->plugins.end()) {
-        return *(it->second);
-    }
-    return std::nullopt;
+    return PluginManager::instance()->plugin(name.toString().toStdString());
 }
 auto Global::get_cache_sql() const -> rc<media_cache::DataBase> {
     C_D(const Global);
@@ -283,7 +280,6 @@ auto Global::load_plugin(const std::filesystem::path& path) -> bool {
     if (loader->load()) {
         auto p = qobject_cast<QcmPluginInterface*>(loader->instance());
         if (p) {
-            d->plugins.insert_or_assign(p->info().name(), p);
         } else {
             return false;
         }
@@ -422,4 +418,5 @@ auto create_item(QQmlEngine* engine, const QJSValue& url_or_comp, const QVariant
     }
     return nullptr;
 }
+
 } // namespace qcm

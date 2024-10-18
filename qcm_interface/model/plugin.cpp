@@ -1,6 +1,6 @@
 #include "qcm_interface/model/plugin_model.h"
 #include "qcm_interface/global.h"
-#include "qcm_interface/global_p.h"
+#include "qcm_interface/plugin_p.h"
 #include <QHash>
 
 namespace qcm
@@ -8,9 +8,9 @@ namespace qcm
 
 class PluginModel::Private {
 public:
-    Private(): plugins(Global::instance()->d_func()->plugins) {}
+    Private(): plugins(PluginManager::instance()->d_func()->plugins) {}
     ~Private() {}
-    decltype(Global::Private::plugins)& plugins;
+    decltype(PluginManager::Private::plugins)& plugins;
 };
 
 PluginModel::PluginModel(QObject* parent): QAbstractListModel(parent), d_ptr(make_up<Private>()) {}

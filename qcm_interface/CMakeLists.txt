@@ -26,6 +26,7 @@ set(MODEL_SOURCES
 add_library(
   qcm_interface SHARED
   include/qcm_interface/async.h
+  include/qcm_interface/action.h
   include/qcm_interface/client.h
   include/qcm_interface/global.h
   include/qcm_interface/global_p.h
@@ -50,6 +51,7 @@ add_library(
   router.cpp
   state.cpp
   global.cpp
+  plugin.cpp
   model/plugin.cpp
   model/user_model.cpp
   ${MODEL_SOURCES})
@@ -64,11 +66,17 @@ foreach(
       "${CMAKE_CURRENT_BINARY_DIR}/gen")
   set(gen
       "${gen_dir}/${src_name}.cpp")
+
+  set(model_generator "$<TARGET_FILE:qcm_model_generator>")
+  set(model_generator_native "${model_generator}")
+  if(ANDROID)
+    set(model_generator "${QCM_MODEL_GENERATOR}")
+  endif()
   add_custom_command(
     OUTPUT ${gen}
     COMMAND "${CMAKE_COMMAND}" -E make_directory "${gen_dir}"
-    COMMAND "$<TARGET_FILE:qcm_model_generator>" "${src}" "${gen}"
-    DEPENDS $<TARGET_FILE:qcm_model_generator> ${src})
+    COMMAND "${model_generator}" "${src}" "${gen}"
+    DEPENDS "${model_generator}" "${model_generator_native}" ${src})
   target_sources(
     qcm_interface
     PRIVATE ${gen})

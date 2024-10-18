@@ -1,3 +1,4 @@
+if(NOT ANDROID)
 find_package(Qt6 REQUIRED COMPONENTS DBus)
 
 add_library(
@@ -8,3 +9,4 @@ add_library(
 
 target_include_directories(mpris PUBLIC include)
 target_link_libraries(mpris PUBLIC core Qt6::Core Qt6::DBus)
+endif()

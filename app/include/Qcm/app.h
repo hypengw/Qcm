@@ -20,8 +20,12 @@
 #include "ncm/client.h"
 
 // #include "service_qml_ncm/model/user_account.h"
+
+#ifndef NODEBUS
 #include "mpris/mpris.h"
 #include "mpris/mediaplayer2.h"
+#endif
+
 #include "media_cache/media_cache.h"
 #include "qcm_interface/model/user_account.h"
 #include "Qcm/player.h"
@@ -53,7 +57,7 @@ class App : public QObject {
     QML_ELEMENT
     QML_SINGLETON
 
-    Q_PROPERTY(mpris::MediaPlayer2* mpris READ mpris CONSTANT FINAL)
+    Q_PROPERTY(QObject* mpris READ mpris CONSTANT FINAL)
     Q_PROPERTY(bool debug READ debug CONSTANT FINAL)
     Q_PROPERTY(Global* global READ global CONSTANT FINAL)
     Q_PROPERTY(Playlist* playlist READ playlist CONSTANT FINAL)
@@ -103,7 +107,7 @@ public:
     auto        media_cache_sql() const -> rc<CacheSql>;
     auto        cache_sql() const -> rc<CacheSql>;
 
-    mpris::MediaPlayer2* mpris() const { return m_mpris->mediaplayer2(); }
+    QObject* mpris() const;
 
     bool debug() const;
 
@@ -153,7 +157,10 @@ private:
     rc<Global>                  m_global;
     rc<qml::Util>               m_util;
     Playlist*                   m_playlist;
+#ifndef NODEBUS
     up<mpris::Mpris>            m_mpris;
+#endif
+
     rc<media_cache::MediaCache> m_media_cache;
 
     rc<CacheSql>      m_media_cache_sql;

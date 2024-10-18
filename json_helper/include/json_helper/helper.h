@@ -102,18 +102,6 @@ auto get_to(const njson&, ValueType&) -> ValueType&;
 template<typename ValueType>
 void assign(njson&, const ValueType&);
 
-template<typename ValueType>
-    requires(! detail::is_basic_json<ValueType>::value) && detail::has_from_json<njson, ValueType>
-auto get_to(const njson& j, ValueType& v) -> ValueType& {
-    adl_serializer<ValueType>::from_json(j, v);
-    return v;
-}
-template<typename ValueType>
-    requires(! detail::is_basic_json<ValueType>::value) && detail::has_to_json<njson, ValueType>
-void assign(njson& j, const ValueType& v) {
-    adl_serializer<ValueType>::to_json(j, v);
-}
-
 } // namespace detail
 
 using up_njson = up<njson, decltype(&detail::deleter)>;
@@ -131,7 +119,11 @@ auto catch_error(const std::function<void()>&) -> std::optional<Error>;
 template<typename T>
 auto get_to(const njson& j, T& out) -> std::optional<Error> {
     return catch_error([&j, &out] {
-        detail::get_to(j, out);
+        if constexpr (detail::has_from_json<njson, T>) {
+            adl_serializer<T>::from_json(j, out);
+        } else {
+            detail::get_to(j, out);
+        }
     });
 }
 
@@ -139,7 +131,11 @@ template<typename T>
 auto get_to(const njson& j_in, std::span<const Key> keys, T& out) -> std::optional<Error> {
     return catch_error([&j_in, &keys, &out] {
         const njson& j = at_keys(j_in, keys);
-        detail::get_to(j, out);
+        if constexpr (detail::has_from_json<njson, T>) {
+            adl_serializer<T>::from_json(j, out);
+        } else {
+            detail::get_to(j, out);
+        }
     });
 }
 
@@ -165,7 +161,11 @@ auto get(const njson& j_in, std::span<const Key> keys) -> Result<T> {
 
 template<typename T>
 void assign(njson& j, const T& v) {
-    detail::assign(j, v);
+    if constexpr (detail::has_to_json<njson, T>) {
+        adl_serializer<T>::to_json(j, v);
+    } else {
+        detail::assign(j, v);
+    }
 }
 
 template<typename T>

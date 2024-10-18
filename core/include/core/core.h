@@ -53,8 +53,13 @@ decltype(auto) as_ref(T&& value) {
 
 namespace std
 {
+#ifdef __ANDROID__
+inline namespace _LIBCPP_ABI_NAMESPACE { struct monostate; }
+using monostate = _LIBCPP_ABI_NAMESPACE::monostate;
+#else
 struct monostate;
-}
+#endif
+} // namespace std
 
 struct NoCopy {
 protected:

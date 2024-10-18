@@ -278,59 +278,56 @@ JSON_DEFINE_IMPL(PlayRecord::Data, list, total);
 
 } // namespace ncm
 
-using namespace ncm;
+JSON_GET_IMPL(ncm::api_model::ApiError);
+JSON_GET_IMPL(ncm::api_model::AlbumDetail);
+JSON_GET_IMPL(ncm::api_model::AlbumDetailDynamic);
+JSON_GET_IMPL(ncm::api_model::AlbumSub);
+JSON_GET_IMPL(ncm::api_model::AlbumSublist);
+JSON_GET_IMPL(ncm::api_model::Artist);
+JSON_GET_IMPL(ncm::api_model::ArtistAlbums);
+JSON_GET_IMPL(ncm::api_model::ArtistSub);
+JSON_GET_IMPL(ncm::api_model::ArtistSublist);
+JSON_GET_IMPL(ncm::api_model::CloudSearch);
+JSON_GET_IMPL(ncm::api_model::Comments);
+JSON_GET_IMPL(ncm::api_model::Login);
+JSON_GET_IMPL(ncm::api_model::Logout);
+JSON_GET_IMPL(ncm::api_model::PlaylistCatalogue);
+JSON_GET_IMPL(ncm::api_model::PlaylistDetail);
+JSON_GET_IMPL(ncm::api_model::PlaylistDetailDynamic);
+JSON_GET_IMPL(ncm::api_model::PlaylistList);
+JSON_GET_IMPL(ncm::api_model::PlaylistSubscribe);
+JSON_GET_IMPL(ncm::api_model::PlaylistCreate);
+JSON_GET_IMPL(ncm::api_model::PlaylistDelete);
+JSON_GET_IMPL(ncm::api_model::PlaylistTracks);
+JSON_GET_IMPL(ncm::api_model::RecommendSongs);
+JSON_GET_IMPL(ncm::api_model::RecommendResource);
+JSON_GET_IMPL(ncm::api_model::SongUrl);
+JSON_GET_IMPL(ncm::api_model::SongLyric);
+JSON_GET_IMPL(ncm::api_model::UserAccount);
+JSON_GET_IMPL(ncm::api_model::UserPlaylist);
+JSON_GET_IMPL(ncm::api_model::QrcodeUnikey);
+JSON_GET_IMPL(ncm::api_model::QrcodeLogin);
+JSON_GET_IMPL(ncm::api_model::RadioLike);
+JSON_GET_IMPL(ncm::api_model::SongLike);
+JSON_GET_IMPL(ncm::api_model::DjradioSublist);
+JSON_GET_IMPL(ncm::api_model::DjradioDetail);
+JSON_GET_IMPL(ncm::api_model::DjradioProgram);
+JSON_GET_IMPL(ncm::api_model::DjradioSub);
+JSON_GET_IMPL(ncm::api_model::UserCloud);
+JSON_GET_IMPL(ncm::api_model::UploadCloudInfo);
+JSON_GET_IMPL(ncm::api_model::CloudUploadCheck);
+JSON_GET_IMPL(ncm::api_model::CloudPub);
+JSON_GET_IMPL(ncm::api_model::NosTokenAlloc);
+JSON_GET_IMPL(ncm::api_model::UploadAddr);
+JSON_GET_IMPL(ncm::api_model::Upload);
+JSON_GET_IMPL(ncm::api_model::FeedbackWeblog);
 
-JSON_GET_IMPL(api_model::ApiError);
+JSON_GET_IMPL(ncm::api_model::PlayRecord);
 
-JSON_GET_IMPL(api_model::AlbumDetail);
-JSON_GET_IMPL(api_model::AlbumDetailDynamic);
-JSON_GET_IMPL(api_model::AlbumSub);
-JSON_GET_IMPL(api_model::AlbumSublist);
-JSON_GET_IMPL(api_model::Artist);
-JSON_GET_IMPL(api_model::ArtistAlbums);
-JSON_GET_IMPL(api_model::ArtistSub);
-JSON_GET_IMPL(api_model::ArtistSublist);
-JSON_GET_IMPL(api_model::CloudSearch);
-JSON_GET_IMPL(api_model::Comments);
-JSON_GET_IMPL(api_model::Login);
-JSON_GET_IMPL(api_model::Logout);
-JSON_GET_IMPL(api_model::PlaylistCatalogue);
-JSON_GET_IMPL(api_model::PlaylistDetail);
-JSON_GET_IMPL(api_model::PlaylistDetailDynamic);
-JSON_GET_IMPL(api_model::PlaylistList);
-JSON_GET_IMPL(api_model::PlaylistSubscribe);
-JSON_GET_IMPL(api_model::PlaylistCreate);
-JSON_GET_IMPL(api_model::PlaylistDelete);
-JSON_GET_IMPL(api_model::PlaylistTracks);
-JSON_GET_IMPL(api_model::RecommendSongs);
-JSON_GET_IMPL(api_model::RecommendResource);
-JSON_GET_IMPL(api_model::SongUrl);
-JSON_GET_IMPL(api_model::SongLyric);
-JSON_GET_IMPL(api_model::UserAccount);
-JSON_GET_IMPL(api_model::UserPlaylist);
-JSON_GET_IMPL(api_model::QrcodeUnikey);
-JSON_GET_IMPL(api_model::QrcodeLogin);
-JSON_GET_IMPL(api_model::RadioLike);
-JSON_GET_IMPL(api_model::SongLike);
-JSON_GET_IMPL(api_model::DjradioSublist);
-JSON_GET_IMPL(api_model::DjradioDetail);
-JSON_GET_IMPL(api_model::DjradioProgram);
-JSON_GET_IMPL(api_model::DjradioSub);
-JSON_GET_IMPL(api_model::UserCloud);
-JSON_GET_IMPL(api_model::UploadCloudInfo);
-JSON_GET_IMPL(api_model::CloudUploadCheck);
-JSON_GET_IMPL(api_model::CloudPub);
-JSON_GET_IMPL(api_model::NosTokenAlloc);
-JSON_GET_IMPL(api_model::UploadAddr);
-JSON_GET_IMPL(api_model::Upload);
-JSON_GET_IMPL(api_model::FeedbackWeblog);
+JSON_GET_IMPL(ncm::model::Album);
+JSON_GET_IMPL(ncm::model::Song);
 
-JSON_GET_IMPL(api_model::PlayRecord);
-
-JSON_GET_IMPL(model::Album);
-JSON_GET_IMPL(model::Song);
-
-Params api::FeedbackWeblog::body() const {
+auto ncm::api::FeedbackWeblog::body() const -> Params {
     Params           p;
     qcm::json::njson j;
     j["action"] = convert_from<std::string>(input.act);
@@ -399,15 +396,15 @@ Params api::FeedbackWeblog::body() const {
 // used by record api
 IMPL_CONVERT(std::string, ncm::model::IdType) {
     switch (in) {
-    case model::IdType::Album: out = "album"sv; break;
-    case model::IdType::User: out = "user"sv; break;
-    case model::IdType::Artist: out = "artist"sv; break;
-    case model::IdType::Comment: out = "comment"sv; break;
-    case model::IdType::Djradio: out = "djradio"sv; break;
-    case model::IdType::Song: out = "song"sv; break;
-    case model::IdType::Program: out = "program"sv; break;
-    case model::IdType::Playlist: out = "playlist"sv; break;
-    case model::IdType::Special: out = "special"sv; break;
+    case ncm::model::IdType::Album: out = "album"sv; break;
+    case ncm::model::IdType::User: out = "user"sv; break;
+    case ncm::model::IdType::Artist: out = "artist"sv; break;
+    case ncm::model::IdType::Comment: out = "comment"sv; break;
+    case ncm::model::IdType::Djradio: out = "djradio"sv; break;
+    case ncm::model::IdType::Song: out = "song"sv; break;
+    case ncm::model::IdType::Program: out = "program"sv; break;
+    case ncm::model::IdType::Playlist: out = "playlist"sv; break;
+    case ncm::model::IdType::Special: out = "special"sv; break;
     default: {
         out = {};
     }

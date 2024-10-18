@@ -1,6 +1,7 @@
 #pragma once
 #include <string_view>
 #include <source_location>
+#include <cstdlib>
 
 #include "core/fmt.h"
 

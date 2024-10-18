@@ -1,5 +1,6 @@
 #include "request/session_share.h"
 #include "curl_easy.h"
+#include <mutex>
 
 namespace request
 {

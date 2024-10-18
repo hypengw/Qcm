@@ -39,8 +39,6 @@ public:
     QQmlComponent*   copy_action_comp;
     state::AppState* app_state;
 
-    std::map<QString, QcmPluginInterface*, std::less<>> plugins;
-
     std::mutex mutex;
 };
 } // namespace qcm

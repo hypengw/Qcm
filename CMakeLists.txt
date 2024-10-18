@@ -33,6 +33,10 @@ include(GNUInstallDirs)
 find_package(PkgConfig REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Core Quick ShaderTools)
 qt_standard_project_setup()
+
+if(QT_KNOWN_POLICY_QTP0002)
+    qt_policy(SET QTP0002 NEW)
+endif()
 if(QT_KNOWN_POLICY_QTP0004)
     qt_policy(SET QTP0004 NEW)
 endif()
@@ -46,6 +50,9 @@ set(QML_IMPORT_PATH
 
 option(QCM_USE_ASAN "use asan" OFF)
 option(QCM_QML_DEBUG "qml debug" OFF)
+if(ANDROID)
+ set(QCM_MODEL_GENERATOR "" CACHE STRING "")   
+endif()
 
 if("${QT_INSTALL_QML}" STREQUAL "")
 set(QT_INSTALL_QML "${CMAKE_INSTALL_LIBDIR}/qt6/qml")
@@ -61,8 +68,8 @@ set(WARN_OPTS
   -Wpedantic
   -Wno-unused-variable
   -Wno-unused-function
-  -Wno-dangling-reference
-  -fconcepts-diagnostics-depth=2
+  "$<$<COMPILE_LANG_AND_ID:CXX,GNU>:-fconcepts-diagnostics-depth=2>"
+  "$<$<COMPILE_LANG_AND_ID:CXX,GNU>:-Wno-dangling-reference>"
 )
 
 
@@ -124,5 +131,8 @@ add_subdirectory(media_cache)
 add_subdirectory(player)
 
 set(QM_BUILD_STATIC ON)
+if(ANDROID)
+set(QM_BUILD_EXAMPLE OFF)
+endif()
 add_subdirectory(qml_material)
 add_subdirectory(app)

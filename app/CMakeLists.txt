@@ -146,7 +146,9 @@ target_sources(
 
 target_compile_definitions(
   app
-  PUBLIC $<$<OR:$<BOOL:${QCM_QML_DEBUG}>,$<CONFIG:Debug>>:QT_QML_DEBUG>)
+  PUBLIC "$<$<OR:$<BOOL:${QCM_QML_DEBUG}>,$<CONFIG:Debug>>:QT_QML_DEBUG>"
+         "$<$<NOT:$<TARGET_EXISTS:mpris>>:NODEBUS>"
+  )
 
 target_include_directories(
   app
@@ -168,7 +170,7 @@ target_link_libraries(
          fmt::fmt
          qr_code
          meta_model
-         mpris
+         "$<$<TARGET_EXISTS:mpris>:mpris>"
          media_cache
          ctre
          player
@@ -203,15 +205,30 @@ configure_file(${APP_METAINFO}.in ${APP_METAINFO} @ONLY)
 install(
   TARGETS ${PROJECT_NAME}
   BUNDLE DESTINATION .
-  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
 
 # qt_generate_deploy_qml_app_script( TARGET ${PROJECT_NAME} FILENAME_VARIABLE
 # deploy_script NO_UNSUPPORTED_PLATFORM_ERROR
 # DEPLOY_USER_QML_MODULES_ON_UNSUPPORTED_PLATFORM) install(SCRIPT
 # ${deploy_script})
 
-if(LINUX
-   AND NOT ANDROID)
+if(ANDROID)
+  set(dep_dir "${CMAKE_BINARY_DIR}/deps")
+  set(dep_libs
+        "${dep_dir}/libssl.so"
+        "${dep_dir}/libcrypto.so"
+        "${dep_dir}/libcurl.so"
+        "${dep_dir}/libavcodec.so"
+        "${dep_dir}/libavformat.so"
+        "${dep_dir}/libavutil.so"
+        "${dep_dir}/libswresample.so"
+  )
+  set_target_properties(${PROJECT_NAME} PROPERTIES
+      QT_ANDROID_EXTRA_LIBS "${dep_libs}"
+  )
+elseif(LINUX)
   install(
     FILES "${CMAKE_CURRENT_BINARY_DIR}/${APP_DESKTOP}"
     RENAME ${APP_ID}.desktop

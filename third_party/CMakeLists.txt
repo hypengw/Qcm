@@ -22,7 +22,7 @@ target_include_directories(ctre INTERFACE ctre/include)
 
 option(BUILD_TESTS "" OFF)
 option(BUILD_TOOLS "" OFF)
-option(BUNDLE_SPEEX "" OFF)
+option(BUNDLE_SPEEX "" ${ANDROID})
 option(USE_SANITIZERS "" OFF)
 set(USE_WINMM
     OFF
