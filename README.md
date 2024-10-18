@@ -72,11 +72,11 @@ cmake --install build
 - [ ] jellyfin
 - [ ] sql api model
 - [ ] subsonic
-- [ ] android
 - [ ] mac/win
 - [ ] offline mode
 - [ ] playing page colorpick
 - [ ] playing page blur
+- [ ] android
 - [x] user session switch
 - [x] feedback
 - [x] upload

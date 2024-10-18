@@ -96,15 +96,18 @@ auto supports_color() -> bool {
 #endif
 
 } // namespace
-
-static up<LogManager> log_manager;
-
-LogManager* LogManager::init() {
-    log_manager = std::make_unique<LogManager>();
-    return LogManager::instance();
+namespace qcm {
+auto the_log_manager() -> LogManager* {
+    static LogManager manager;
+    return &manager;
+}
 }
 
-LogManager* LogManager::instance() { return log_manager.get(); }
+LogManager* LogManager::init() {
+    return qcm::the_log_manager();
+}
+
+LogManager* LogManager::instance() { return qcm::the_log_manager(); }
 
 LogManager::LogManager(): m_level(LogLevel::WARN) {}
 LogManager::~LogManager() {}

@@ -2,7 +2,7 @@ import QtCore
 import QtQuick
 import QtQuick.Window
 import QtQuick.Layouts
-import QtQuick.Controls as QC
+import QtQuick.Controls.Basic as QC
 
 import Qcm.App as QA
 import Qcm.Material as MD
@@ -125,7 +125,7 @@ MD.Page {
                                     implicitHeight: contentHeight
                                     interactive: false
                                     spacing: 12
-                                    reuseItems: false
+                                    // reuseItems: false
                                     currentIndex: root.pageIndex
 
                                     header: ColumnLayout {

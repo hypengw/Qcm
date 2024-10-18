@@ -1,6 +1,6 @@
 import QtQuick
 import QtCore
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 import QtQuick.Layouts
 
 import Qcm.App as QA

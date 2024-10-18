@@ -5,7 +5,7 @@
 #include "Qcm/app.h"
 #include "core/strv_helper.h"
 
-#include "asio_helper/detached_log.h"
+#include "asio_helper/basic.h"
 #include "asio_qt/qt_watcher.h"
 #include "qcm_interface/plugin.h"
 #include "asio_helper/watch_dog.h"

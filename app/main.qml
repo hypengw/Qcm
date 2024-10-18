@@ -1,7 +1,7 @@
 import QtCore
 import QtQuick
 import QtQml
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 import QtQuick.Window
 
 import Qcm.App as QA
@@ -124,6 +124,8 @@ ApplicationWindow {
                     QA.Action.popup_page('qrc:/Qcm/App/qml/page/SettingsPage.qml', {});
                 } else if (str === QA.enums.SRAbout) {
                     QA.Action.popup_page('qrc:/Qcm/App/qml/page/AboutPage.qml', {});
+                } else if (str === QA.enums.SRStatus) {
+                    QA.Action.popup_page('qrc:/Qcm/App/qml/page/StatusPage.qml', {});
                 }
             }
 

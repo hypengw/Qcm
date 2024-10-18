@@ -1,15 +1,11 @@
 #include "Qcm/player.h"
 #include "Qcm/app.h"
 
-#include <asio/awaitable.hpp>
-#include <asio/co_spawn.hpp>
 #include <asio/use_future.hpp>
 
-#include <asio/error_code.hpp>
-#include <asio/strand.hpp>
 #include <asio/thread_pool.hpp>
-#include <asio/use_awaitable.hpp>
 #include <asio/as_tuple.hpp>
+#include "asio_helper/basic.h"
 
 #include "asio_qt/qt_executor.h"
 #include "core/math.h"
@@ -85,7 +81,7 @@ Player::Player(QObject* parent)
             }
             co_return;
         },
-        asio::detached);
+        helper::asio_detached_log_t {});
 }
 Player::~Player() {
     m_end = true;

@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls as QC
+import QtQuick.Controls.Basic as QC
 import QtQuick.Layouts
 
 import Qcm.App as QA

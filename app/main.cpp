@@ -1,4 +1,4 @@
-#include <QApplication>
+#include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QCommandLineParser>
 #include <QSurfaceFormat>
@@ -17,11 +17,9 @@ Q_IMPORT_QML_PLUGIN(Qcm_AppPlugin)
 
 int main(int argc, char* argv[]) {
     plt::malloc_init();
-
-    auto logger = qcm::LogManager::init();
+    auto         logger = qcm::LogManager::instance();
     request::global_init();
-
-    QApplication gui_app(argc, argv);
+    QGuiApplication gui_app(argc, argv);
 
     QCoreApplication::setApplicationName(APP_NAME);
     QCoreApplication::setApplicationVersion(APP_VERSION);

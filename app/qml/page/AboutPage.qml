@@ -1,8 +1,7 @@
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Qcm.App as QA
-import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 MD.Page {
@@ -86,6 +85,15 @@ MD.Page {
                     name: MD.Token.icon.launch
                 }
             }
+            //MD.DrawerItem {
+            //    Layout.fillWidth: true
+            //    icon.name: MD.Token.icon.info
+            //    font.capitalization: Font.Capitalize
+            //    text: qsTr('status')
+            //    onClicked: {
+            //        QA.Action.popup_special(QA.enums.SRStatus);
+            //    }
+            //}
         }
     }
 }

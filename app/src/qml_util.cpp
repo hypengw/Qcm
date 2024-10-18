@@ -5,6 +5,7 @@
 #include "Qcm/app.h"
 #include "qcm_interface/path.h"
 #include "crypto/crypto.h"
+#include "asio_helper/basic.h"
 #include "Qcm/cache_sql.h"
 
 namespace qcm::qml

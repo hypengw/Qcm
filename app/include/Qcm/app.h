@@ -17,8 +17,6 @@
 #include "core/log.h"
 #include "asio_qt/qt_executor.h"
 
-#include "ncm/client.h"
-
 // #include "service_qml_ncm/model/user_account.h"
 
 #ifndef NODEBUS
@@ -121,6 +119,7 @@ public:
     Q_INVOKABLE QSizeF image_size(QSizeF display, int quality, QQuickItem* = nullptr) const;
     Q_INVOKABLE QSizeF bound_image_size(QSizeF displaySize) const;
 
+    Q_INVOKABLE QVariant import_path_list();
     Q_INVOKABLE void test();
 
 Q_SIGNALS:

@@ -1,6 +1,6 @@
 import QtCore
 import QtQuick
-import QtQuick.Controls as QC
+import QtQuick.Controls.Basic as QC
 
 import Qcm.Material as MD
 

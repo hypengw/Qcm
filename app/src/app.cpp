@@ -19,7 +19,7 @@
 #include <QQuickStyle>
 #include <QQmlContext>
 
-#include <asio/deferred.hpp>
+#include "asio_helper/basic.h"
 
 #include "core/qvariant_helper.h"
 #include "crypto/crypto.h"
@@ -238,10 +238,6 @@ void App::init() {
 
     load_settings();
 
-    // qml engine
-    QQuickStyle::setFallbackStyle("Basic");
-    QQuickStyle::setStyle("Basic");
-
     auto gui_app = QGuiApplication::instance();
 
     connect(engine, &QQmlApplicationEngine::quit, gui_app, &QGuiApplication::quit);
@@ -310,8 +306,10 @@ void App::triggerCacheLimit() {
 }
 
 void App::load_plugins() {
-#ifdef __ANDROID__
-#else
+    // init all static plugins
+    QPluginLoader::staticInstances();
+
+    // try load shared plugins
     std::optional<QDir> plugin_path;
     for (auto& el : this->engine()->importPathList()) {
         auto dir = QDir(el + QDir::separator() + "Qcm" + QDir::separator() + "Service");
@@ -323,6 +321,10 @@ void App::load_plugins() {
 
     if (plugin_path) {
         for (auto& dir_name : plugin_path->entryList(QDir::AllDirs | QDir::NoDotAndDotDot)) {
+            auto p = PluginManager::instance();
+            if(PluginManager::instance()->plugin(dir_name.toLower().toStdString())) {
+                continue;
+            }
             auto dir   = QDir(plugin_path->filePath(dir_name));
             auto files = dir.entryList(QDir::Filter::Files);
             if (auto it = std::find_if(files.begin(),
@@ -340,7 +342,6 @@ void App::load_plugins() {
             }
         }
     }
-#endif
 }
 
 void App::setProxy(ProxyType t, QString content) {
@@ -358,6 +359,8 @@ bool App::isItemId(const QJSValue& v) const {
     }
     return false;
 }
+
+QVariant App::import_path_list() { return m_qml_engine->importPathList(); }
 
 void App::test() {
     /*

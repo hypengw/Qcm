@@ -1,0 +1,2 @@
+#include <QtQml/QQmlExtensionPlugin>
+@IMPORT_PLUGINS@

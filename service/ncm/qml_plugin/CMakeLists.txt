@@ -71,11 +71,18 @@ set(QML_FILES
 set(RESOURCES
     assets/netease-line.svg assets/netease.svg)
 
+set(BUILD_TYPE SHARED)
+if(QCM_SERVICE_STATIC_BUILD)
+  set(BUILD_TYPE STATIC)
+  add_compile_definitions(QCM_STATIC_BUILD)
+  register_qcm_service(Qcm.Service.Ncm service_qml_ncmplugin)
+endif()
+
 qt_add_qml_module(
   service_qml_ncm
   URI
   Qcm.Service.Ncm
-  SHARED
+  ${BUILD_TYPE}
   RESOURCE_PREFIX
   /
   VERSION

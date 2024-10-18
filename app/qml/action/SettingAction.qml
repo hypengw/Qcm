@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 import Qcm.App as QA
 import Qcm.Material as MD
 

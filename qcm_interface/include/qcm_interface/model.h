@@ -52,7 +52,7 @@ public:
     GADGET_PROPERTY_DEF(bool, subscribed, subscribed)
     GATGET_LIST_PROPERTY(Artist, artists, artists)
 
-    std::strong_ordering operator<=>(const Album&) const = default;
+    std::weak_ordering operator<=>(const Album&) const = default;
 };
 
 class QCM_INTERFACE_API Playlist {

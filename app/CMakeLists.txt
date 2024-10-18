@@ -38,8 +38,7 @@ set(SOURCES
     src/fake_moc.cpp
     src/qml_util.cpp
     src/storage_info.cpp
-    src/collection_sql.cpp
-    )
+    src/collection_sql.cpp)
 
 set(QCM_INTERFACE_HEADER
     include/qcm_interface/enum.h include/qcm_interface/global.h
@@ -56,7 +55,6 @@ set(QML_FILES
     qml/Drawer.qml
     qml/DrawerContent.qml
     qml/Global.qml
-
     qml/page/AboutPage.qml
     qml/page/AlbumDetailPage.qml
     qml/page/ArtistDetailPage.qml
@@ -73,12 +71,11 @@ set(QML_FILES
     qml/page/PlayQueuePage.qml
     qml/page/MainPage.qml
     qml/page/FavPage.qml
-
+    qml/page/StatusPage.qml
     qml/delegate/CommentDelegate.qml
     qml/delegate/SongDelegate.qml
     qml/delegate/PicGridDelegate.qml
     qml/delegate/ProgramDelegate.qml
-
     qml/component/ArtistsPopup.qml
     qml/component/InfoRow.qml
     qml/component/SnakeView.qml
@@ -98,14 +95,12 @@ set(QML_FILES
     qml/component/PagePopup.qml
     qml/component/PageStack.qml
     qml/component/VolumeButton.qml
-
     qml/action/AppendListAction.qml
     qml/action/PlaynextAction.qml
     qml/action/CopyAction.qml
     qml/action/ColorSchemeAction.qml
     qml/action/SubAction.qml
     qml/action/SettingAction.qml
-
     qml/menu/SongMenu.qml
     qml/menu/AlbumMenu.qml
     qml/menu/ArtistMenu.qml
@@ -147,8 +142,7 @@ target_sources(
 target_compile_definitions(
   app
   PUBLIC "$<$<OR:$<BOOL:${QCM_QML_DEBUG}>,$<CONFIG:Debug>>:QT_QML_DEBUG>"
-         "$<$<NOT:$<TARGET_EXISTS:mpris>>:NODEBUS>"
-  )
+         "$<$<NOT:$<TARGET_EXISTS:mpris>>:NODEBUS>")
 
 target_include_directories(
   app
@@ -163,19 +157,18 @@ target_link_libraries(
          Qt6::QuickControls2
          Qt6::Sql
          Qt6::QuickPrivate
-         Qt6::Widgets
          asio_qt
-         sv_ncm
          request
          fmt::fmt
+         crypto
          qr_code
          meta_model
-         "$<$<TARGET_EXISTS:mpris>:mpris>"
          media_cache
          ctre
          player
          platform
-         qcm_interface)
+         qcm_interface
+         "$<$<TARGET_EXISTS:mpris>:mpris>")
 
 qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cpp)
 
@@ -206,28 +199,50 @@ install(
   TARGETS ${PROJECT_NAME}
   BUNDLE DESTINATION .
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  )
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-# qt_generate_deploy_qml_app_script( TARGET ${PROJECT_NAME} FILENAME_VARIABLE
-# deploy_script NO_UNSUPPORTED_PLATFORM_ERROR
-# DEPLOY_USER_QML_MODULES_ON_UNSUPPORTED_PLATFORM) install(SCRIPT
-# ${deploy_script})
+set(IMPORT_PLUGINS
+    "")
+if(QCM_SERVICE_STATIC_BUILD)
+  get_property(
+    QCM_SERVICES GLOBAL
+    PROPERTY QCM_SERVICES)
+  get_property(
+    QCM_SERVICES_URL GLOBAL
+    PROPERTY QCM_SERVICES_URL)
+  target_link_libraries(
+    ${PROJECT_NAME}
+    PUBLIC ${QCM_SERVICES})
+  foreach(
+    url
+    ${QCM_SERVICES_URL})
+    string(APPEND IMPORT_PLUGINS "Q_IMPORT_QML_PLUGIN(${url}Plugin)\n")
+  endforeach()
+  string(REPLACE "." "_" IMPORT_PLUGINS "${IMPORT_PLUGINS}")
+  configure_file(static.cpp.in static.cpp @ONLY)
+  target_sources(
+    ${PROJECT_NAME}
+    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/static.cpp")
+endif()
 
 if(ANDROID)
-  set(dep_dir "${CMAKE_BINARY_DIR}/deps")
+  set(dep_dir
+      "${CMAKE_BINARY_DIR}/deps")
   set(dep_libs
-        "${dep_dir}/libssl.so"
-        "${dep_dir}/libcrypto.so"
-        "${dep_dir}/libcurl.so"
-        "${dep_dir}/libavcodec.so"
-        "${dep_dir}/libavformat.so"
-        "${dep_dir}/libavutil.so"
-        "${dep_dir}/libswresample.so"
-  )
-  set_target_properties(${PROJECT_NAME} PROPERTIES
-      QT_ANDROID_EXTRA_LIBS "${dep_libs}"
-  )
+      "${dep_dir}/libssl.so"
+      "${dep_dir}/libcrypto.so"
+      "${dep_dir}/libcurl.so"
+      "${dep_dir}/libavcodec.so"
+      "${dep_dir}/libavformat.so"
+      "${dep_dir}/libavutil.so"
+      "${dep_dir}/libswresample.so")
+  set_target_properties(
+    ${PROJECT_NAME}
+    PROPERTIES QT_ANDROID_EXTRA_LIBS "${dep_libs}"
+               QT_ANDROID_PACKAGE_SOURCE_DIR
+               "${CMAKE_CURRENT_SOURCE_DIR}/android"
+               QT_ANDROID_PACKAGE_NAME "${APP_ID}")
+
 elseif(LINUX)
   install(
     FILES "${CMAKE_CURRENT_BINARY_DIR}/${APP_DESKTOP}"

@@ -13,7 +13,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+if(NOT ANDROID)
 set(CMAKE_LINKER_TYPE "$<IF:$<CONFIG:Debug>,MOLD,DEFAULT>")
+endif()
 set(QT_QML_GENERATE_QMLLS_INI ON)
 
 # check lto
@@ -108,6 +110,11 @@ function(qt_install_qml_module target_)
     DESTINATION ${QML_TARGET_INSTALL_DIR})
 endfunction()
 
+function(register_qcm_service url_ target_)
+  set_property(GLOBAL APPEND PROPERTY QCM_SERVICES_URL ${url_})
+  set_property(GLOBAL APPEND PROPERTY QCM_SERVICES ${target_})
+endfunction()
+
 add_subdirectory(core)
 add_subdirectory(binder)
 add_subdirectory(platform)
@@ -121,6 +128,9 @@ add_subdirectory(crypto)
 add_subdirectory(generator/model)
 add_subdirectory(qcm_interface)
 
+if(ANDROID)
+set(QCM_SERVICE_STATIC_BUILD ON)
+endif()
 add_subdirectory(service/jellyfin)
 add_subdirectory(service/jellyfin/qml_plugin)
 add_subdirectory(service/ncm)

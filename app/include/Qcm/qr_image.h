@@ -5,7 +5,6 @@
 
 #include "asio_helper/helper.h"
 #include "asio_helper/watch_dog.h"
-#include "ncm/client.h"
 
 namespace qcm
 {

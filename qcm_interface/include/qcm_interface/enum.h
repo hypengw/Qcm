@@ -70,6 +70,7 @@ enum class SpecialRoute
     SRAbout,
     SRLogin,
     SRLoading,
+    SRStatus,
 };
 Q_ENUM_NS(SpecialRoute)
 } // namespace enums
