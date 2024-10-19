@@ -85,3 +85,4 @@ compile_commands.json
 /.vscode
 /CMakeUserPresets.json
 /env.sh
+.gradle
