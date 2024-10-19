@@ -1,6 +1,5 @@
 # Qcm
 Material3 cloud music player.  
-Currently linux only.  
 
 Music Service:  
 - Jellyfin(wip)

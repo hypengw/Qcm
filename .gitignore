@@ -84,3 +84,4 @@ compile_commands.json
 /.qmllint.ini
 /.vscode
 /CMakeUserPresets.json
+/env.sh

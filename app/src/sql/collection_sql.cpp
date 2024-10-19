@@ -1,4 +1,4 @@
-#include "Qcm/collection_sql.h"
+#include "Qcm/sql/collection_sql.h"
 
 #include <QSqlError>
 #include <QSqlQuery>

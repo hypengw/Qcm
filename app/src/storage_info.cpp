@@ -2,7 +2,7 @@
 #include "qcm_interface/async.inl"
 #include "qcm_interface/global.h"
 #include "Qcm/app.h"
-#include "Qcm/cache_sql.h"
+#include "Qcm/sql/cache_sql.h"
 
 #include "asio_helper/basic.h"
 

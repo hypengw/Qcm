@@ -19,26 +19,26 @@ set(SOURCES
     include/Qcm/image_provider.h
     include/Qcm/playlist.h
     include/Qcm/qr_image.h
-    include/Qcm/cache_sql.h
     include/Qcm/lyric.h
     include/Qcm/clipboard.h
     include/Qcm/player.h
     include/Qcm/qml_util.h
     include/Qcm/storage_info.h
-    include/Qcm/collection_sql.h
+    include/Qcm/sql/cache_sql.h
+    include/Qcm/sql/collection_sql.h
     src/action.cpp
     src/app.cpp
     src/image_provider.cpp
     src/playlist.cpp
     src/qr_image.cpp
-    src/cache_sql.cpp
     src/lyric.cpp
     src/clipboard.cpp
     src/player.cpp
     src/fake_moc.cpp
     src/qml_util.cpp
     src/storage_info.cpp
-    src/collection_sql.cpp)
+    src/sql/cache_sql.cpp
+    src/sql/collection_sql.cpp)
 
 set(QCM_INTERFACE_HEADER
     include/qcm_interface/enum.h include/qcm_interface/global.h

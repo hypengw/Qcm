@@ -35,8 +35,8 @@
 #include "Qcm/qr_image.h"
 #include "Qcm/image_provider.h"
 #include "Qcm/qml_util.h"
-#include "Qcm/collection_sql.h"
-#include "Qcm/cache_sql.h"
+#include "Qcm/sql/collection_sql.h"
+#include "Qcm/sql/cache_sql.h"
 #include "Qcm/info.h"
 
 using namespace qcm;

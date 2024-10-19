@@ -1,0 +1,19 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "android",
+            "binaryDir": "build/android-release",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "build/android-release/install",
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_GENERATOR": "Ninja",
+                "ANDROID_SDK_ROOT": "$env{SDK_ROOT}",
+                "ANDROID_NDK_ROOT": "$env{NDK_ROOT}",
+                "QCM_MODEL_GENERATOR": "${sourceDir}/build/Release/generator/model/qcm_model_generator",
+                "QT_ANDROID_SIGN_APK": "ON"
+            },
+            "toolchainFile": "build/android-release/generators/conan_toolchain.cmake"
+        }
+    ]
+}
