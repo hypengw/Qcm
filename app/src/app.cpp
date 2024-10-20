@@ -27,6 +27,7 @@
 #include "asio_helper/sync_file.h"
 #include "meta_model/qgadget_helper.h"
 #include "platform/platform.h"
+#include "asio_qt/qt_sql.h"
 
 #include "qcm_interface/plugin.h"
 #include "qcm_interface/type.h"
@@ -159,15 +160,20 @@ App::App(std::monostate)
 
     DEBUG_LOG("thread pool size: {}", get_pool_size());
 
-    m_qml_engine->addImportPath(u"qrc:/"_qs);
+    m_qml_engine->addImportPath(u"qrc:/"_s);
     // QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
 
-    m_media_cache_sql = make_rc<CacheSql>("media_cache", 0);
-    m_cache_sql       = make_rc<CacheSql>("cache", 0);
-    m_collect_sql     = make_rc<CollectionSql>("collection");
-    m_global->set_cache_sql(m_cache_sql);
-    m_global->set_metadata_impl(player::get_metadata);
-    m_global->set_collection_sql(m_collect_sql);
+    // sql init
+    {
+        auto cache_db     = make_rc<helper::SqlConnect>(data_path() / "cache.db", u"cache");
+        auto data_db      = make_rc<helper::SqlConnect>(data_path() / "data.db", u"data");
+        m_media_cache_sql = make_rc<CacheSql>("media_cache", 0, cache_db);
+        m_cache_sql       = make_rc<CacheSql>("cache", 0, cache_db);
+        m_collect_sql     = make_rc<CollectionSql>("collection", data_db);
+        m_global->set_cache_sql(m_cache_sql);
+        m_global->set_metadata_impl(player::get_metadata);
+        m_global->set_collection_sql(m_collect_sql);
+    }
 }
 App::~App() {
     m_qml_engine = nullptr;
@@ -242,7 +248,7 @@ void App::init() {
 
     connect(engine, &QQmlApplicationEngine::quit, gui_app, &QGuiApplication::quit);
 
-    engine->addImageProvider(u"qr"_qs, new QrImageProvider {});
+    engine->addImageProvider(u"qr"_s, new QrImageProvider {});
 
     load_plugins();
 
@@ -250,7 +256,7 @@ void App::init() {
     engine->rootContext()->setContextProperty("index", 0);
     engine->addImageProvider("qcm", new QcmImageProvider);
 
-    engine->load(u"qrc:/main/main.qml"_qs);
+    engine->load(u"qrc:/main/main.qml"_s);
 
     for (auto el : engine->rootObjects()) {
         if (auto win = qobject_cast<QQuickWindow*>(el)) {
@@ -322,7 +328,7 @@ void App::load_plugins() {
     if (plugin_path) {
         for (auto& dir_name : plugin_path->entryList(QDir::AllDirs | QDir::NoDotAndDotDot)) {
             auto p = PluginManager::instance();
-            if(PluginManager::instance()->plugin(dir_name.toLower().toStdString())) {
+            if (PluginManager::instance()->plugin(dir_name.toLower().toStdString())) {
                 continue;
             }
             auto dir   = QDir(plugin_path->filePath(dir_name));

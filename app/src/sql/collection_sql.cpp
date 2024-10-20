@@ -9,35 +9,25 @@
 #include "qcm_interface/path.h"
 #include "core/qstr_helper.h"
 #include "core/log.h"
+#include "asio_qt/qt_sql.h"
 
 namespace qcm
 {
 
-CollectionSql::CollectionSql(std::string_view table)
-    : m_thread(),
-      m_ctx(make_rc<QtExecutionContext>(&m_thread, (QEvent::Type)QEvent::registerEventType())),
-      m_ex(m_ctx),
-      m_table(convert_from<QString>(table)) {
-    m_thread.start();
-    asio::dispatch(m_ex, [this]() {
+CollectionSql::CollectionSql(std::string_view table, rc<helper::SqlConnect> con)
+    : m_table(convert_from<QString>(table)), m_con(con) {
+    asio::dispatch(con->get_executor(), [this]() {
         connect_db();
     });
 }
-CollectionSql::~CollectionSql() {
-    m_thread.quit();
-    m_thread.wait();
-}
+CollectionSql::~CollectionSql() {}
 
-auto CollectionSql::get_executor() -> QtExecutor& { return m_ex; }
+auto CollectionSql::get_executor() -> QtExecutor& { return m_con->get_executor(); }
 
 void CollectionSql::connect_db() {
-    m_db   = QSqlDatabase::addDatabase("QSQLITE", m_table);
-    auto p = (data_path() / "data.db");
-    m_db.setDatabaseName(p.native().c_str());
-
-    if (m_db.open()) {
-        QSqlQuery q(m_db);
-        QString   createTable = QStringLiteral(R"(
+    if (m_con->is_open()) {
+        auto    q           = m_con->query();
+        QString createTable = QStringLiteral(R"(
     CREATE TABLE IF NOT EXISTS %1 (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id TEXT NOT NULL,
@@ -51,24 +41,22 @@ void CollectionSql::connect_db() {
         if (! q.exec(createTable)) {
             ERROR_LOG("creating table '{}' failed: {}", m_table, q.lastError().text());
         }
-    } else {
-        ERROR_LOG("{}", m_db.lastError().text());
     }
 }
 
 auto CollectionSql::insert(std::span<const Item> items) -> asio::awaitable<bool> {
-    co_await asio::post(asio::bind_executor(m_ex, asio::use_awaitable));
+    co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
     co_return insert_sync(items);
 }
 auto CollectionSql::remove(model::ItemId user_id, model::ItemId item_id) -> asio::awaitable<bool> {
-    co_await asio::post(asio::bind_executor(m_ex, asio::use_awaitable));
+    co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
     co_return remove_sync(user_id, item_id);
 }
 auto CollectionSql::select_id(model::ItemId user_id,
                               QString) -> asio::awaitable<std::vector<model::ItemId>> {
-    co_await asio::post(asio::bind_executor(m_ex, asio::use_awaitable));
+    co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
 
-    QSqlQuery query(m_db);
+    auto query = m_con->query();
     query.prepare(QStringLiteral("SELECT item_id FROM %1 WHERE user_id = :userId").arg(m_table));
     query.bindValue(":userId", user_id.toUrl());
 
@@ -85,19 +73,19 @@ auto CollectionSql::select_id(model::ItemId user_id,
 
 auto CollectionSql::refresh(model::ItemId user_id, QString type,
                             std::span<const model::ItemId> item_ids) -> asio::awaitable<bool> {
-    co_await asio::post(asio::bind_executor(m_ex, asio::use_awaitable));
-    if (! m_db.transaction()) {
-        ERROR_LOG("{}", m_db.lastError().text());
+    co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
+    if (! m_con->db().transaction()) {
+        ERROR_LOG("{}", m_con->error_str());
         co_return false;
     }
 
     if (! un_valid(user_id, type) || ! insert_sync(user_id, item_ids) || ! clean_not_valid()) {
-        m_db.rollback();
+        m_con->db().rollback();
         co_return false;
     }
 
-    if (! m_db.commit()) {
-        ERROR_LOG("{}", m_db.lastError().text());
+    if (! m_con->db().commit()) {
+        ERROR_LOG("{}", m_con->error_str());
         co_return false;
     }
 
@@ -105,7 +93,7 @@ auto CollectionSql::refresh(model::ItemId user_id, QString type,
 }
 
 bool CollectionSql::insert_sync(std::span<const Item> items) {
-    QSqlQuery query(m_db);
+    auto query = m_con->query();
     query.prepare(QStringLiteral(R"(
     INSERT INTO %1 (user_id, type, item_id, created_at)
     VALUES (:user_id, :type, :item_id, :created_at)
@@ -127,7 +115,7 @@ bool CollectionSql::insert_sync(std::span<const Item> items) {
 }
 
 bool CollectionSql::insert_sync(model::ItemId userId, std::span<const model::ItemId> ids) {
-    QSqlQuery query(m_db);
+    auto query = m_con->query();
     query.prepare(QStringLiteral(R"(
 INSERT INTO %1 (user_id, item_id, type)
 VALUES (:user_id, :item_id, :type)
@@ -150,7 +138,7 @@ type = :type;
 }
 
 bool CollectionSql::remove_sync(model::ItemId user_id, model::ItemId item_id) {
-    QSqlQuery query(m_db);
+    auto query = m_con->query();
     query.prepare(
         QStringLiteral(R"(DELETE FROM %1 WHERE user_id = :user_id AND item_id = :item_id)")
             .arg(m_table));
@@ -166,7 +154,7 @@ bool CollectionSql::remove_sync(model::ItemId user_id, model::ItemId item_id) {
 }
 
 bool CollectionSql::delete_with(model::ItemId user_id, QString type) {
-    QSqlQuery query(m_db);
+    auto query = m_con->query();
 
     QStringList cond;
     cond << "user_id = :user_id";
@@ -183,7 +171,7 @@ bool CollectionSql::delete_with(model::ItemId user_id, QString type) {
 }
 
 bool CollectionSql::un_valid(model::ItemId user_id, QString type) {
-    QSqlQuery query(m_db);
+    auto query = m_con->query();
 
     QStringList cond;
     cond << "user_id = :user_id";
@@ -208,7 +196,7 @@ WHERE %2
 }
 
 bool CollectionSql::clean_not_valid() {
-    QSqlQuery query(m_db);
+    auto query = m_con->query();
     query.prepare(QStringLiteral(R"(DELETE FROM %1 WHERE type = 'invalid')").arg(m_table));
     if (! query.exec()) {
         ERROR_LOG("{}", query.lastError().text());

@@ -30,8 +30,8 @@ auto Util::mpris_trackid(model::ItemId id) const -> QString {
     auto              sid       = id.id();
     return QString("/%1/TrackId/%2/%3")
         .arg(dbus_path)
-        .arg(provider.isEmpty() ? u"unknown"_qs : provider)
-        .arg(sid.isEmpty() ? u"0"_qs : sid);
+        .arg(provider.isEmpty() ? u"unknown"_s : provider)
+        .arg(sid.isEmpty() ? u"0"_s : sid);
 }
 
 auto Util::create_route_msg(QVariantMap props) const -> model::RouteMsg {

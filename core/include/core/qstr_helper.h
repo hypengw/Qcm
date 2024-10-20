@@ -6,6 +6,8 @@
 #include "core/core.h"
 #include "core/fmt.h"
 
+using namespace Qt::StringLiterals;
+
 template<typename T>
     requires std::convertible_to<T, std::string_view> || convertable<std::string, T>
 struct Convert<QString, T> {
