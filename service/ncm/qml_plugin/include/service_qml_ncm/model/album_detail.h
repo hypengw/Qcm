@@ -51,9 +51,9 @@ public:
         }
         if (! in.album.picUrl.empty()) {
             for (auto& s : o.m_songs) {
-                if (s.album.picUrl.isEmpty()) {
-                    convert(s.album.picUrl, in.album.picUrl);
-                }
+                //if (s.album.picUrl.isEmpty()) {
+                //    convert(s.album.picUrl, in.album.picUrl);
+                //}
             }
         }
         emit infoChanged();

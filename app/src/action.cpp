@@ -19,6 +19,7 @@ void App::connect_actions() {
     connect(Action::instance(), &Action::queue_songs, this, &App::on_queue_songs);
     connect(Action::instance(), &Action::logout, this, &App::on_logout);
     connect(Action::instance(), &Action::collect, this, &App::on_collect);
+    connect(Action::instance(), &Action::sync_collection, this, &App::on_sync_collecttion);
 
     connect(Global::instance(), &Global::sessionChanged, Global::instance(), &Global::save_user);
 
@@ -236,6 +237,20 @@ void App::on_collect(model::ItemId id, bool act) {
                         co_await sql->remove(user->userId(), id);
                     }
                 }
+            }
+            co_return;
+        },
+        helper::asio_detached_log_t {});
+}
+
+void App::on_sync_collecttion(enums::CollectionType ct) {
+    auto ex = asio::make_strand(m_global->pool_executor());
+    asio::co_spawn(
+        ex,
+        [ct] -> asio::awaitable<void> {
+            auto user = Global::instance()->qsession()->user();
+            if (auto c = Global::instance()->qsession()->client()) {
+                co_await c->api->sync_collection(*c->instance, ct);
             }
             co_return;
         },

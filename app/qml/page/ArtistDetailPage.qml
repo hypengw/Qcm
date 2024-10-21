@@ -52,7 +52,7 @@ MD.Page {
                 spacing: 12
                 MD.Text {
                     typescale: MD.Token.typescale.body_medium
-                    text: `${root.itemData.info.albumSize} albums`
+                    text: `${root.itemData.info.albumCount} albums`
                 }
                 MD.Text {
                     typescale: MD.Token.typescale.body_medium

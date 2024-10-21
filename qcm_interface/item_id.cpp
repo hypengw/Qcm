@@ -47,6 +47,11 @@ ItemId& ItemId::operator=(ItemId&& o) {
     return *this;
 }
 
+ItemId& ItemId::operator=(const QUrl& url) {
+    set_url(url);
+    return *this;
+}
+
 auto ItemId::type() const -> const QString& {
     C_D(const ItemId);
     return d->type;

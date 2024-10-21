@@ -12,7 +12,9 @@
 #include "qcm_interface/export.h"
 #include "qcm_interface/model/app_info.h"
 #include "qcm_interface/enum.h"
+
 #include "qcm_interface/cache_sql.h"
+
 #include "qcm_interface/metadata.h"
 #include "qcm_interface/client.h"
 #include "qcm_interface/model/user_model.h"
@@ -32,6 +34,11 @@ namespace qcm
 class App;
 class PluginModel;
 class QcmPluginInterface;
+
+namespace db
+{
+class ItemSqlBase;
+}
 
 struct StopSignal {
     bool val { false };
@@ -81,6 +88,7 @@ public:
 
     auto get_cache_sql() const -> rc<media_cache::DataBase>;
     auto get_collection_sql() const -> rc<db::ColletionSqlBase>;
+    auto get_album_sql() const -> rc<db::ItemSqlBase>;
 
     auto user_model() const -> UserModel*;
 
@@ -114,8 +122,11 @@ private:
     using MetadataImpl = std::function<Metadata(const std::filesystem::path&)>;
     void set_uuid(const QUuid&);
     void set_session(model::Session*);
+
     void set_cache_sql(rc<media_cache::DataBase>);
     void set_collection_sql(rc<db::ColletionSqlBase>);
+    void set_album_sql(rc<db::ItemSqlBase>);
+
     void set_metadata_impl(const MetadataImpl&);
     auto load_plugin(const std::filesystem::path&) -> bool;
 

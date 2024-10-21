@@ -34,6 +34,8 @@ public:
     ItemId(ItemId&&);
     ItemId& operator=(ItemId&&);
 
+    ItemId& operator=(const QUrl&);
+
     auto type() const -> const QString&;
     auto id() const -> const QString&;
     auto provider() const -> const QString&;

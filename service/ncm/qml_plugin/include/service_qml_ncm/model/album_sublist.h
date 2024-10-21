@@ -27,13 +27,13 @@ public:
 } // namespace qcm
 
 DEFINE_CONVERT(qcm::model::AlbumSublistItem, ncm::model::AlbumSublistItem) {
-    convert(out.id, in.id);
-    convert(out.name, in.name);
-    convert(out.artists, in.artists);
-    convert(out.picUrl, in.picUrl);
-    convert(out.subTime, in.subTime);
-    convert(out.trackCount, in.size);
-    out.subscribed = true;
+    //convert(out.id, in.id);
+    //convert(out.name, in.name);
+    //convert(out.artists, in.artists);
+    //convert(out.picUrl, in.picUrl);
+    //convert(out.subTime, in.subTime);
+    //convert(out.trackCount, in.size);
+    //out.subscribed = true;
 }
 namespace qcm
 {
@@ -50,9 +50,9 @@ public:
     void handle_output(const out_type& re, const auto& input) {
         if (input.offset == 0) {
             auto in_ = convert_from<std::vector<AlbumSublistItem>>(re.data);
-            convertModel(in_, [](const AlbumSublistItem& it) -> std::string {
-                return convert_from<std::string>(it.id);
-            });
+            //convertModel(in_, [](const AlbumSublistItem& it) -> std::string {
+            //    return convert_from<std::string>(it.id);
+            //});
         } else if (input.offset == (int)rowCount()) {
             insert(rowCount(), convert_from<std::vector<AlbumSublistItem>>(re.data));
         }

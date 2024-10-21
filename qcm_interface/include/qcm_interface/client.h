@@ -45,7 +45,9 @@ struct Client {
         auto (*session_check)(ClientBase&,
                               helper::QWatcher<model::Session>) -> asio::awaitable<Result<bool>>;
         auto (*collect)(ClientBase&, model::ItemId, bool) -> asio::awaitable<Result<bool>>;
-        auto (*media_url)(ClientBase&, model::ItemId, enums::AudioQuality) -> asio::awaitable<Result<QUrl>>;
+        auto (*media_url)(ClientBase&, model::ItemId,
+                          enums::AudioQuality) -> asio::awaitable<Result<QUrl>>;
+        auto (*sync_collection)(ClientBase&, enums::CollectionType) -> asio::awaitable<void>;
 
         void (*save)(ClientBase&, const std::filesystem::path&);
         void (*load)(ClientBase&, const std::filesystem::path&);

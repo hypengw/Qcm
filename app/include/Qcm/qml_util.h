@@ -4,6 +4,7 @@
 
 #include "qcm_interface/model/page.h"
 #include "qcm_interface/model/router_msg.h"
+#include "qcm_interface/model/album.h"
 
 namespace qcm
 {

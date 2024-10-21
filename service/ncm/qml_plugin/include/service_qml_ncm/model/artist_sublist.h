@@ -26,8 +26,8 @@ DEFINE_CONVERT(qcm::model::ArtistSublistItem, ncm::model::ArtistSublistItem) {
     convert(out.id, in.id);
     convert(out.name, in.name);
     convert(out.picUrl, in.picUrl);
-    convert(out.albumSize, in.albumSize);
-    out.followed = true;
+    convert(out.albumCount, in.albumSize);
+    // out.followed = true;
 };
 
 namespace qcm

@@ -73,6 +73,14 @@ enum class SpecialRoute
     SRStatus,
 };
 Q_ENUM_NS(SpecialRoute)
+
+enum class CollectionType
+{
+    CTAlbum = 0,
+};
+Q_ENUM_NS(CollectionType)
 } // namespace enums
 
 } // namespace qcm
+
+DECLARE_CONVERT(std::string_view, qcm::enums::CollectionType, QCM_INTERFACE_API);

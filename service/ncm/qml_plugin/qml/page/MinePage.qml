@@ -157,9 +157,11 @@ MD.Page {
                         }
                     }
                 }
-                QNcm.AlbumSublistQuerier {
+                QA.AlbumCollectionQuery {
                     id: qr_albumlist
-                    autoReload: limit > 0
+                    // autoReload: limit > 0
+
+                    Component.onCompleted: reload();
                 }
                 QNcm.ArtistSublistQuerier {
                     id: qr_artistlist

@@ -1,11 +1,11 @@
 #pragma once
 #include "core/macro.h"
 
-#define GADGET_PROPERTY(_type_, _prop_, _var_, _val_) \
-    Q_PROPERTY(_type_ _prop_ MEMBER _var_ FINAL)      \
-    _type_ _var_ { _val_ };
+#define GADGET_PROPERTY(type, prop, var, val) \
+    Q_PROPERTY(type prop MEMBER var FINAL)    \
+    type var { val };
 
-#define GADGET_PROPERTY_DEF(_type_, _prop_, _var_) GADGET_PROPERTY(_type_, _prop_, _var_, )
+#define GADGET_PROPERTY_DEF(type, prop, var) GADGET_PROPERTY(type, prop, var, )
 
 #define GATGET_LIST_PROPERTY(_type_, _prop_, _var_)                                   \
     Q_PROPERTY(QVariantList _prop_ READ get_##_prop_ WRITE set_##_prop_ FINAL)        \
@@ -82,6 +82,3 @@ public:                                                                         
     _PARSE_DECLARE_FUNC(_prop_, _type_, __VA_ARGS__)
 
 #define DECLARE_MODEL(Class, ...) public:
-
-
-

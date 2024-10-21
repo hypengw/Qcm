@@ -170,6 +170,11 @@ auto Global::get_collection_sql() const -> rc<db::ColletionSqlBase> {
     return d->collection_sql;
 }
 
+auto Global::get_album_sql() const -> rc<db::ItemSqlBase> {
+    C_D(const Global);
+    return d->album_sql;
+}
+
 auto Global::get_metadata(const std::filesystem::path& path) const -> Metadata {
     C_D(const Global);
     if (d->metadata_impl) {
@@ -267,6 +272,11 @@ void Global::set_cache_sql(rc<media_cache::DataBase> val) {
 void Global::set_collection_sql(rc<db::ColletionSqlBase> val) {
     C_D(Global);
     d->collection_sql = val;
+}
+
+void Global::set_album_sql(rc<db::ItemSqlBase> val) {
+    C_D(Global);
+    d->album_sql = val;
 }
 
 void Global::set_metadata_impl(const MetadataImpl& impl) {

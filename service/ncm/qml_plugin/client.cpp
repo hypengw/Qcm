@@ -1,12 +1,17 @@
 #include "service_qml_ncm/client.h"
 
+#include <mutex>
 #include <QUuid>
 #include <asio/bind_executor.hpp>
+#include "core/str_helper.h"
+#include "core/strv_helper.h"
 #include "core/qstr_helper.h"
 
 #include "qcm_interface/async.inl"
 #include "qcm_interface/global.h"
 #include "qcm_interface/model/session.h"
+#include "qcm_interface/oper/album_oper.h"
+#include "qcm_interface/sql/item_sql.h"
 
 #include "service_qml_ncm/model.h"
 #include "asio_helper/detached_log.h"
@@ -18,6 +23,7 @@
 #include "ncm/api/song_like.h"
 #include "ncm/api/radio_like.h"
 #include "ncm/api/song_url.h"
+#include "ncm/api/album_sublist.h"
 #include "ncm/client.h"
 
 namespace
@@ -63,9 +69,22 @@ using ClientBase = qcm::ClientBase;
 struct Client : public ClientBase {
     Client(ncm::Client ncm): ncm(ncm) {}
     ncm::Client ncm;
+    ItemId      user_id;
+
+    std::mutex mutex;
 };
 
 static auto get_client(ClientBase& c) -> ncm::Client* { return &static_cast<Client&>(c).ncm; }
+static auto get_user_id(ClientBase& cb) -> ItemId {
+    auto&            c = static_cast<Client&>(cb);
+    std::unique_lock lock { c.mutex };
+    return c.user_id;
+}
+static void set_user_id(ClientBase& cb, const ItemId& id) {
+    auto&            c = static_cast<Client&>(cb);
+    std::unique_lock lock { c.mutex };
+    c.user_id = id;
+}
 
 static auto server_url(ClientBase& cbase, const qcm::model::ItemId& id) -> std::string {
     auto c = get_client(cbase);
@@ -145,10 +164,11 @@ static auto session_check(ClientBase& cbase, helper::QWatcher<qcm::model::Sessio
         asio::bind_executor(qcm::Global::instance()->qexecutor(), asio::use_awaitable));
 
     auto user = session->user();
-    co_return out.transform([user, ex, &session, c](const auto& out) -> bool {
+    co_return out.transform([user, ex, &session, c, &cbase](const auto& out) -> bool {
         if (out.profile) {
             session->set_provider(convert_from<QString>(ncm::provider));
             user->set_userId(convert_from<ItemId>(out.profile->userId));
+            set_user_id(cbase, user->userId());
             user->set_nickname(convert_from<QString>(out.profile->nickname));
             user->set_avatarUrl(convert_from<QString>(out.profile->avatarUrl));
             user->query();
@@ -211,6 +231,47 @@ auto media_url(ClientBase& cbase, qcm::model::ItemId id,
     });
 }
 
+auto sync_collection(ClientBase&                cbase,
+                     qcm::enums::CollectionType collection_type) -> asio::awaitable<void> {
+    auto c       = *get_client(cbase);
+    auto user_id = get_user_id(cbase);
+
+    auto collect_sql = qcm::Global::instance()->get_collection_sql();
+
+    switch (collection_type) {
+    case qcm::enums::CollectionType::CTAlbum: {
+        auto item_sql = qcm::Global::instance()->get_album_sql();
+
+        ncm::api::AlbumSublist api;
+        api.input.limit                 = 1000;
+        bool                   has_more = false;
+        std::vector<ItemId>    collects;
+        std::vector<QDateTime> collect_times;
+        auto                   type = convert_from<QString>(collection_type);
+        do {
+            auto out = co_await c.perform(api);
+
+            api.input.offset += api.input.limit;
+            if (out) {
+                has_more  = out->hasMore;
+                auto list = qcm::oper::AlbumOper::create_list(out->data.size());
+                for (usize i = 0; i < out->data.size(); i++) {
+                    auto& el = out->data[i];
+                    collects.push_back(convert_from<ItemId>(el.id));
+                    collect_times.push_back(convert_from<QDateTime>(el.subTime));
+                    auto oper = qcm::oper::AlbumOper(list[i]);
+                    convert(oper, el);
+                }
+                co_await item_sql->insert(std::span { list.data(), list.size() },
+                                          { "name", "picUrl", "trackCount" });
+            }
+        } while (has_more || api.input.offset >= std::numeric_limits<i32>::max());
+        co_await collect_sql->refresh(user_id, type, collects, collect_times);
+    }
+    }
+    co_return;
+}
+
 } // namespace ncm::impl
 
 namespace ncm::qml
@@ -225,17 +286,18 @@ auto create_client() -> qcm::Client {
     auto api      = make_rc<qcm::Global::Client::Api>();
     auto instance = make_rc<ncm::impl::Client>(c);
 
-    api->provider      = ncm::qml::provider;
-    api->server_url    = ncm::impl::server_url;
-    api->make_request  = ncm::impl::make_request;
-    api->play_state    = ncm::impl::play_state;
-    api->router        = ncm::impl::router;
-    api->logout        = ncm::impl::logout;
-    api->session_check = ncm::impl::session_check;
-    api->collect       = ncm::impl::collect;
-    api->media_url     = ncm::impl::media_url;
-    api->save          = ncm::impl::save;
-    api->load          = ncm::impl::load;
+    api->provider        = ncm::qml::provider;
+    api->server_url      = ncm::impl::server_url;
+    api->make_request    = ncm::impl::make_request;
+    api->play_state      = ncm::impl::play_state;
+    api->router          = ncm::impl::router;
+    api->logout          = ncm::impl::logout;
+    api->session_check   = ncm::impl::session_check;
+    api->collect         = ncm::impl::collect;
+    api->media_url       = ncm::impl::media_url;
+    api->sync_collection = ncm::impl::sync_collection;
+    api->save            = ncm::impl::save;
+    api->load            = ncm::impl::load;
 
     return { .api = api, .instance = instance };
 }

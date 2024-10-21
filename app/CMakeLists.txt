@@ -24,8 +24,13 @@ set(SOURCES
     include/Qcm/player.h
     include/Qcm/qml_util.h
     include/Qcm/storage_info.h
+
+    include/Qcm/sql/item_sql.h
     include/Qcm/sql/cache_sql.h
     include/Qcm/sql/collection_sql.h
+
+    include/Qcm/query/album_collection.h
+
     src/action.cpp
     src/app.cpp
     src/image_provider.cpp
@@ -37,8 +42,14 @@ set(SOURCES
     src/fake_moc.cpp
     src/qml_util.cpp
     src/storage_info.cpp
+
+    src/sql/item_sql.cpp
     src/sql/cache_sql.cpp
-    src/sql/collection_sql.cpp)
+    src/sql/collection_sql.cpp
+    
+    src/query.cpp
+    
+    )
 
 set(QCM_INTERFACE_HEADER
     include/qcm_interface/enum.h include/qcm_interface/global.h
@@ -147,7 +158,7 @@ target_compile_definitions(
 target_include_directories(
   app
   PUBLIC include
-  PRIVATE src/ include/Qcm include/Qcm/util
+  PRIVATE src/ include/Qcm include/Qcm/util include/Qcm/query
           ${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface
           ${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface/model)
 target_link_libraries(

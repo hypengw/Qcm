@@ -24,11 +24,11 @@ public:
     auto select_id(model::ItemId user_id,
                    QString       type = {}) -> asio::awaitable<std::vector<model::ItemId>> override;
 
-    auto refresh(model::ItemId user_id, QString type,
-                 std::span<const model::ItemId>) -> asio::awaitable<bool> override;
+    auto refresh(model::ItemId user_id, QString type, std::span<const model::ItemId>,
+                 std::span<const QDateTime> = {}) -> asio::awaitable<bool> override;
 
     bool insert_sync(std::span<const Item>);
-    bool insert_sync(model::ItemId userId, std::span<const model::ItemId>);
+    bool insert_sync(model::ItemId user_id, std::span<const model::ItemId>, std::span<const QDateTime> = {});
     bool remove_sync(model::ItemId user_id, model::ItemId item_id);
     bool delete_with(model::ItemId user_id, QString type = {});
     bool un_valid(model::ItemId user_id, QString type = {});

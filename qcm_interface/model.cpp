@@ -1,5 +1,6 @@
 #include "qcm_interface/model.h"
 
+#include "qcm_interface/model/album.h"
 #include "qcm_interface/model/user_account.h"
 #include "qcm_interface/model/app_info.h"
 #include "qcm_interface/model/busy_info.h"
@@ -196,5 +197,11 @@ IMPL_JSON_SERIALIZER_TO(QVariantMap) {
     Q_UNUSED(j)
     Q_UNUSED(t)
 }
+IMPL_JSON_SERIALIZER_FROM(QDateTime) {
+    std::string text;
+    j.get_to(text);
+    t.fromString(QString::fromStdString(text), Qt::DateFormat::TextDate);
+}
+IMPL_JSON_SERIALIZER_TO(QDateTime) { j = t.toString(Qt::DateFormat::TextDate); }
 
 IMPL_CONVERT(std::string, qcm::model::ItemId) { out = in.toUrl().toString().toStdString(); }

@@ -38,6 +38,7 @@
 #include "Qcm/qml_util.h"
 #include "Qcm/sql/collection_sql.h"
 #include "Qcm/sql/cache_sql.h"
+#include "Qcm/sql/item_sql.h"
 #include "Qcm/info.h"
 
 using namespace qcm;
@@ -169,10 +170,12 @@ App::App(std::monostate)
         auto data_db      = make_rc<helper::SqlConnect>(data_path() / "data.db", u"data");
         m_media_cache_sql = make_rc<CacheSql>("media_cache", 0, cache_db);
         m_cache_sql       = make_rc<CacheSql>("cache", 0, cache_db);
+        m_item_sql        = make_rc<ItemSql>(data_db);
         m_collect_sql     = make_rc<CollectionSql>("collection", data_db);
         m_global->set_cache_sql(m_cache_sql);
         m_global->set_metadata_impl(player::get_metadata);
         m_global->set_collection_sql(m_collect_sql);
+        m_global->set_album_sql(m_item_sql);
     }
 }
 App::~App() {
@@ -494,6 +497,7 @@ void App::set_player_sender(Sender<Player::NotifyInfo> sender) {
 
 auto App::media_cache_sql() const -> rc<CacheSql> { return m_media_cache_sql; }
 auto App::cache_sql() const -> rc<CacheSql> { return m_cache_sql; }
+auto App::album_sql() const -> rc<ItemSql> { return m_item_sql; }
 
 void App::load_settings() {
     QSettings s;

@@ -15,6 +15,7 @@
 #include "qcm_interface/macro.h"
 #include "qcm_interface/export.h"
 #include "qcm_interface/item_id.h"
+#include "qcm_interface/model/artist.h"
 
 namespace qcm::model
 {
@@ -23,37 +24,6 @@ using Extra = std::map<QString, QString, std::less<>>;
 template<typename T>
 using to_param =
     std::conditional_t<std::is_pointer_v<T>, T, std::add_lvalue_reference_t<std::add_const_t<T>>>;
-
-class QCM_INTERFACE_API Artist {
-    Q_GADGET
-    QML_VALUE_TYPE(t_artist)
-public:
-    GADGET_PROPERTY_DEF(ItemId, itemId, id)
-    GADGET_PROPERTY_DEF(QString, name, name)
-    GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
-    GADGET_PROPERTY_DEF(QString, briefDesc, briefDesc)
-    GADGET_PROPERTY_DEF(qint32, albumSize, albumSize)
-    GADGET_PROPERTY_DEF(qint32, musicSize, musicSize)
-    GADGET_PROPERTY_DEF(std::vector<QString>, alias, alias)
-    GADGET_PROPERTY_DEF(bool, followed, followed)
-
-    std::strong_ordering operator<=>(const Artist&) const = default;
-};
-
-class QCM_INTERFACE_API Album {
-    Q_GADGET
-    QML_VALUE_TYPE(t_album)
-public:
-    GADGET_PROPERTY_DEF(ItemId, itemId, id)
-    GADGET_PROPERTY_DEF(QString, name, name)
-    GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
-    GADGET_PROPERTY_DEF(QDateTime, publishTime, publishTime)
-    GADGET_PROPERTY_DEF(int, trackCount, trackCount)
-    GADGET_PROPERTY_DEF(bool, subscribed, subscribed)
-    GATGET_LIST_PROPERTY(Artist, artists, artists)
-
-    std::weak_ordering operator<=>(const Album&) const = default;
-};
 
 class QCM_INTERFACE_API Playlist {
     Q_GADGET
@@ -78,7 +48,7 @@ class QCM_INTERFACE_API Song {
 public:
     GADGET_PROPERTY_DEF(ItemId, itemId, id)
     GADGET_PROPERTY_DEF(QString, name, name)
-    GADGET_PROPERTY_DEF(Album, album, album)
+    // GADGET_PROPERTY_DEF(Album, album, album)
     GADGET_PROPERTY_DEF(QDateTime, duration, duration)
     GADGET_PROPERTY_DEF(bool, canPlay, canPlay)
     GADGET_PROPERTY_DEF(QString, coverUrl, coverUrl)
@@ -151,6 +121,7 @@ DECLARE_CONVERT(std::string, qcm::model::ItemId, QCM_INTERFACE_API);
 DECLARE_JSON_SERIALIZER(QString, QCM_INTERFACE_API);
 DECLARE_JSON_SERIALIZER(QUrl, QCM_INTERFACE_API);
 DECLARE_JSON_SERIALIZER(QVariantMap, QCM_INTERFACE_API);
+DECLARE_JSON_SERIALIZER(QDateTime, QCM_INTERFACE_API);
 DECLARE_JSON_SERIALIZER(qcm::model::ItemId, QCM_INTERFACE_API);
 
 JSON_SERIALIZER_NAMESPACE_BEGIN

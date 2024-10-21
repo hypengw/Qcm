@@ -21,6 +21,7 @@ set(MODEL_SOURCES
     include/qcm_interface/model/page.h
     include/qcm_interface/model/session.h
     include/qcm_interface/model/router_msg.h
+    include/qcm_interface/model/album.h
     )
 
 add_library(
@@ -39,8 +40,11 @@ add_library(
   include/qcm_interface/path.h
   include/qcm_interface/router.h
   include/qcm_interface/plugin.h
+
   include/qcm_interface/model/plugin_model.h
   include/qcm_interface/model/user_model.h
+  include/qcm_interface/model/artist.h
+
   include/qcm_interface/state/app_state.h
   action.cpp
   api.cpp
@@ -52,6 +56,7 @@ add_library(
   state.cpp
   global.cpp
   plugin.cpp
+  oper.cpp
   model/plugin.cpp
   model/user_model.cpp
   ${MODEL_SOURCES})
