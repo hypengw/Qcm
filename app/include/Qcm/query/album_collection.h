@@ -78,10 +78,22 @@ public:
             co_await asio::post(asio::bind_executor(sql->get_executor(), asio::use_awaitable));
             auto query = sql->con()->query();
             query.prepare(uR"(
-SELECT album.itemId, album.name, album.picUrl, collection.collectTime
+SELECT 
+    album.itemId, 
+    album.name, 
+    album.picUrl, 
+    album.trackCount, 
+    collection.collectTime, 
+    GROUP_CONCAT(artist.itemId) AS artistIds, 
+    GROUP_CONCAT(artist.name) AS artistNames,
+    GROUP_CONCAT(artist.picUrl) AS artistPicUrls
 FROM album
 JOIN collection ON album.itemId = collection.itemId
-WHERE collection.userId = :userId;
+JOIN album_artist ON album.itemId = album_artist.albumId
+JOIN artist ON album_artist.artistId = artist.itemId
+WHERE collection.userId = :userId
+GROUP BY album.itemId
+ORDER BY collection.collectTime DESC;
 )"_s);
             query.bindValue(":userId", userId.toUrl());
 
@@ -89,10 +101,24 @@ WHERE collection.userId = :userId;
                 ERROR_LOG("{}", query.lastError().text());
             }
             while (query.next()) {
-                auto& item  = items.emplace_back();
-                item.id     = query.value(0).toUrl();
-                item.name   = query.value(1).toString();
-                item.picUrl = query.value(2).toString();
+                auto& item      = items.emplace_back();
+                item.id         = query.value(0).toUrl();
+                item.name       = query.value(1).toString();
+                item.picUrl     = query.value(2).toString();
+                item.trackCount = query.value(3).toInt();
+                item.subTime    = query.value(4).toDateTime();
+
+                {
+                    auto artist_ids     = query.value(5).toStringList();
+                    auto artist_names   = query.value(6).toStringList();
+                    auto artist_picUrls = query.value(7).toStringList();
+                    for (qsizetype i = 0; i < artist_ids.size(); i++) {
+                        auto& ar  = item.artists.emplace_back();
+                        ar.id     = artist_ids[i];
+                        ar.name   = artist_names[i];
+                        ar.picUrl = artist_picUrls[i];
+                    }
+                }
             }
 
             co_await asio::post(

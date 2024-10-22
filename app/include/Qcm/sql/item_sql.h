@@ -26,7 +26,7 @@ public:
     auto insert(std::span<const model::Artist> items,
                 const std::set<std::string>&   on_update) -> asio::awaitable<bool> override;
 
-    auto insert_album_artist(std::span<std::tuple<const model::ItemId, const model::ItemId>>);
+    auto insert_album_artist(std::span<const std::tuple<model::ItemId, model::ItemId>>) -> asio::awaitable<bool> override;
 
 private:
     void create_album_table();

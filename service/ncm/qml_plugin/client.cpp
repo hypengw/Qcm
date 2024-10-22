@@ -11,6 +11,7 @@
 #include "qcm_interface/global.h"
 #include "qcm_interface/model/session.h"
 #include "qcm_interface/oper/album_oper.h"
+#include "qcm_interface/oper/artist_oper.h"
 #include "qcm_interface/sql/item_sql.h"
 
 #include "service_qml_ncm/model.h"
@@ -253,17 +254,40 @@ auto sync_collection(ClientBase&                cbase,
 
             api.input.offset += api.input.limit;
             if (out) {
-                has_more  = out->hasMore;
-                auto list = qcm::oper::AlbumOper::create_list(out->data.size());
-                for (usize i = 0; i < out->data.size(); i++) {
-                    auto& el = out->data[i];
-                    collects.push_back(convert_from<ItemId>(el.id));
-                    collect_times.push_back(convert_from<QDateTime>(el.subTime));
-                    auto oper = qcm::oper::AlbumOper(list[i]);
-                    convert(oper, el);
+                has_more = out->hasMore;
+                usize artist_count { 0 };
+                {
+                    auto list = qcm::oper::AlbumOper::create_list(out->data.size());
+                    for (usize i = 0; i < out->data.size(); i++) {
+                        auto& el = out->data[i];
+                        collects.push_back(convert_from<ItemId>(el.id));
+                        collect_times.push_back(convert_from<QDateTime>(el.subTime));
+                        auto oper = qcm::oper::AlbumOper(list[i]);
+                        convert(oper, el);
+                        artist_count += el.artists.size();
+                    }
+                    co_await item_sql->insert(std::span { list.data(), list.size() },
+                                              { "name", "picUrl", "trackCount" });
                 }
-                co_await item_sql->insert(std::span { list.data(), list.size() },
-                                          { "name", "picUrl", "trackCount" });
+                {
+                    auto list = qcm::oper::ArtistOper::create_list(artist_count);
+                    std::vector<std::tuple<ItemId, ItemId>> album_artist_ids;
+                    for (usize i = 0; i < out->data.size(); i++) {
+                        auto& el = out->data[i];
+                        for (auto& ar : el.artists) {
+                            album_artist_ids.push_back(
+                                { convert_from<ItemId>(el.id), convert_from<ItemId>(ar.id) });
+                            auto oper = qcm::oper::ArtistOper(list[i]);
+                            convert(oper, ar);
+                        }
+                    }
+                    co_await item_sql->insert(std::span { list.data(), list.size() },
+                                              {
+                                                  "name",
+                                                  "picUrl",
+                                              });
+                    co_await item_sql->insert_album_artist(album_artist_ids);
+                }
             }
         } while (has_more || api.input.offset >= std::numeric_limits<i32>::max());
         co_await collect_sql->refresh(user_id, type, collects, collect_times);

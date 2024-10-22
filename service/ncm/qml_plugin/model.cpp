@@ -135,6 +135,18 @@ IMPL_CONVERT(qcm::model::Artist, ncm::model::Artist) {
     // convert(out.followed, in.followed);
 }
 
+#define X(prop, in) out.set_##prop(convert_from<std::remove_cvref_t<decltype(out.prop())>>(in))
+
+IMPL_CONVERT(qcm::oper::ArtistOper, ncm::model::Artist) {
+    X(id, in.id);
+    X(name, in.name);
+    X(picUrl, in.picUrl);
+    X(briefDesc, in.briefDesc.value_or(""));
+    X(musicCount, in.musicSize);
+    X(albumCount, in.albumSize);
+    // convert(out.followed, in.followed);
+}
+
 IMPL_CONVERT(qcm::model::Artist, ncm::model::Song::Ar) {
     convert(out.id, in.id);
     convert(out.name, in.name.value_or(""));
@@ -149,8 +161,6 @@ IMPL_CONVERT(qcm::model::Album, ncm::model::Album) {
     // convert(out.publishTime, in.publishTime);
     // convert(out.trackCount, std::max(in.size, (i64)in.songs.size()));
 }
-
-#define X(prop, in) out.set_##prop(convert_from<std::remove_cvref_t<decltype(out.prop())>>(in))
 
 IMPL_CONVERT(qcm::oper::AlbumOper, ncm::model::Album) {
     X(id, in.id);

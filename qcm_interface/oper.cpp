@@ -1,5 +1,7 @@
 #include "qcm_interface/oper/album_oper.h"
 #include "qcm_interface/model/album.h"
+#include "qcm_interface/oper/artist_oper.h"
+#include "qcm_interface/model/artist.h"
 
 namespace qcm::oper
 {
@@ -19,14 +21,26 @@ auto create_list(usize num) -> OperList<T> {
 }
 } // namespace detail
 
-template<>
-QCM_INTERFACE_API auto Oper<model::Album>::create_list(usize num) -> OperList<model::Album> {
-    return detail::create_list<model::Album>(num);
-}
+#define X(T)                                                                \
+    template<>                                                              \
+    QCM_INTERFACE_API auto Oper<T>::create_list(usize num) -> OperList<T> { \
+        return detail::create_list<T>(num);                                 \
+    }
+
+X(model::Album)
+X(model::Artist)
 
 IMPL_OPER_PROPERTY(AlbumOper, ItemId, itemId, id)
 IMPL_OPER_PROPERTY(AlbumOper, QString, name, name)
 IMPL_OPER_PROPERTY(AlbumOper, QString, picUrl, picUrl)
 IMPL_OPER_PROPERTY(AlbumOper, QDateTime, publishTime, publishTime)
 IMPL_OPER_PROPERTY(AlbumOper, int, trackCount, trackCount)
+
+IMPL_OPER_PROPERTY(ArtistOper, ItemId, itemId, id)
+IMPL_OPER_PROPERTY(ArtistOper, QString, name, name)
+IMPL_OPER_PROPERTY(ArtistOper, QString, picUrl, picUrl)
+IMPL_OPER_PROPERTY(ArtistOper, QString, briefDesc, briefDesc)
+IMPL_OPER_PROPERTY(ArtistOper, qint32, albumCount, albumCount)
+IMPL_OPER_PROPERTY(ArtistOper, qint32, musicCount, musicCount)
+IMPL_OPER_PROPERTY(ArtistOper, std::vector<QString>, alias, alias)
 } // namespace qcm::oper

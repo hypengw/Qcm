@@ -149,4 +149,28 @@ auto ItemSql::insert(std::span<const model::Artist> items,
     co_return true;
 }
 
+auto ItemSql::insert_album_artist(std::span<const std::tuple<model::ItemId, model::ItemId>> ids)
+    -> asio::awaitable<bool> {
+    QVariantList albumIds, artistIds;
+    for (auto& el : ids) {
+        albumIds << std::get<0>(el).toUrl();
+        artistIds << std::get<1>(el).toUrl();
+    }
+
+    co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
+    auto query = m_con->query();
+
+    query.prepare(uR"(
+INSERT OR IGNORE INTO %1 (albumId, artistId) VALUES (:albumId, :artistId);
+)"_s.arg(m_album_artist_table));
+    query.bindValue(":albumId", albumIds);
+    query.bindValue(":artistId", artistIds);
+    if (! query.execBatch()) {
+        ERROR_LOG("{}", query.lastError().text());
+        co_return false;
+    }
+
+    co_return true;
+}
+
 } // namespace qcm

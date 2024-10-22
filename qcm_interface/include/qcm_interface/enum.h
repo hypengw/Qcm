@@ -77,6 +77,7 @@ Q_ENUM_NS(SpecialRoute)
 enum class CollectionType
 {
     CTAlbum = 0,
+    CTArtist,
 };
 Q_ENUM_NS(CollectionType)
 } // namespace enums

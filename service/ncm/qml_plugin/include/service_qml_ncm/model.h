@@ -3,12 +3,13 @@
 #include "qcm_interface/model.h"
 #include "qcm_interface/model/album.h"
 #include "qcm_interface/oper/album_oper.h"
+#include "qcm_interface/oper/artist_oper.h"
 #include "ncm/model.h"
 #include "service_qml_ncm/enum.h"
 
-
 DECLARE_CONVERT(QDateTime, ncm::model::Time)
 DECLARE_CONVERT(qcm::model::Artist, ncm::model::Artist)
+DECLARE_CONVERT(qcm::oper::ArtistOper, ncm::model::Artist)
 DECLARE_CONVERT(qcm::model::Artist, ncm::model::Song::Ar)
 DECLARE_CONVERT(qcm::model::Album, ncm::model::Album)
 DECLARE_CONVERT(qcm::oper::AlbumOper, ncm::model::Album)
@@ -20,7 +21,6 @@ DECLARE_CONVERT(qcm::model::Djradio, ncm::model::Djradio)
 DECLARE_CONVERT(qcm::model::Djradio, ncm::model::DjradioB)
 DECLARE_CONVERT(qcm::model::Song, ncm::model::SongB)
 DECLARE_CONVERT(qcm::model::Program, ncm::model::Program)
-
 
 namespace ncm::model
 {
