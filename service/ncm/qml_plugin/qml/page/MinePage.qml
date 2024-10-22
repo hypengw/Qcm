@@ -163,9 +163,10 @@ MD.Page {
 
                     Component.onCompleted: reload();
                 }
-                QNcm.ArtistSublistQuerier {
+                QA.ArtistCollectionQuery {
                     id: qr_artistlist
-                    autoReload: limit > 0
+                    // autoReload: limit > 0
+                    Component.onCompleted: reload();
                 }
                 QNcm.UserPlaylistQuerier {
                     id: qr_playlist
@@ -198,7 +199,7 @@ MD.Page {
                     BaseItem {
                         image: QA.Util.image_url(model.picUrl)
                         text: model.name
-                        supportText: `${model.albumSize} albums`
+                        supportText: `${model.albumCount} albums`
                         function showMenu(parent) {
                             MD.Util.show_popup('qrc:/Qcm/App/qml/menu/ArtistMenu.qml', {
                                 "artist": QA.Util.create_artist(model),

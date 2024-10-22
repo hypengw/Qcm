@@ -25,6 +25,7 @@
 #include "ncm/api/radio_like.h"
 #include "ncm/api/song_url.h"
 #include "ncm/api/album_sublist.h"
+#include "ncm/api/artist_sublist.h"
 #include "ncm/client.h"
 
 namespace
@@ -284,13 +285,47 @@ auto sync_collection(ClientBase&                cbase,
                     co_await item_sql->insert(std::span { list.data(), list.size() },
                                               {
                                                   "name",
-                                                  "picUrl",
                                               });
                     co_await item_sql->insert_album_artist(album_artist_ids);
                 }
             }
         } while (has_more || api.input.offset >= std::numeric_limits<i32>::max());
         co_await collect_sql->refresh(user_id, type, collects, collect_times);
+        break;
+    }
+    case qcm::enums::CollectionType::CTArtist: {
+        auto item_sql = qcm::Global::instance()->get_album_sql();
+
+        ncm::api::ArtistSublist api;
+        api.input.limit                 = 1000;
+        bool                   has_more = false;
+        std::vector<ItemId>    collects;
+        std::vector<QDateTime> collect_times;
+        auto                   type = convert_from<QString>(collection_type);
+        auto                   cur  = QDateTime::currentDateTime();
+        do {
+            auto out = co_await c.perform(api);
+            api.input.offset += api.input.limit;
+            if (out) {
+                has_more = out->hasMore;
+                {
+                    auto list = qcm::oper::ArtistOper::create_list(out->data.size());
+                    for (usize i = 0; i < out->data.size(); i++) {
+                        auto& el = out->data[i];
+                        collects.push_back(convert_from<ItemId>(el.id));
+                        collect_times.push_back(cur);
+                        auto oper = qcm::oper::ArtistOper(list[i]);
+                        convert(oper, el);
+
+                        cur = cur.addSecs(-5);
+                    }
+                    co_await item_sql->insert(std::span { list.data(), list.size() },
+                                              { "name", "picUrl", "albumCount" });
+                }
+            }
+        } while (has_more || api.input.offset >= std::numeric_limits<i32>::max());
+        co_await collect_sql->refresh(user_id, type, collects, collect_times);
+        break;
     }
     }
     co_return;

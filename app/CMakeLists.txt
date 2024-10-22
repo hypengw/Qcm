@@ -30,6 +30,7 @@ set(SOURCES
     include/Qcm/sql/collection_sql.h
 
     include/Qcm/query/album_collection.h
+    include/Qcm/query/artist_collection.h
 
     src/action.cpp
     src/app.cpp

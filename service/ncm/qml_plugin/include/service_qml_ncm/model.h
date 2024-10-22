@@ -25,9 +25,11 @@ DECLARE_CONVERT(qcm::model::Program, ncm::model::Program)
 namespace ncm::model
 {
 struct AlbumSublistItem;
+struct ArtistSublistItem;
 }
 
 DECLARE_CONVERT(qcm::oper::AlbumOper, ncm::model::AlbumSublistItem)
+DECLARE_CONVERT(qcm::oper::ArtistOper, ncm::model::ArtistSublistItem)
 namespace ncm
 {
 using ItemId = qcm::model::ItemId;

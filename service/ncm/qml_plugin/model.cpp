@@ -147,6 +147,13 @@ IMPL_CONVERT(qcm::oper::ArtistOper, ncm::model::Artist) {
     // convert(out.followed, in.followed);
 }
 
+IMPL_CONVERT(qcm::oper::ArtistOper, ncm::model::ArtistSublistItem) {
+    X(id, in.id);
+    X(name, in.name);
+    X(picUrl, in.picUrl);
+    X(albumCount, in.albumSize);
+}
+
 IMPL_CONVERT(qcm::model::Artist, ncm::model::Song::Ar) {
     convert(out.id, in.id);
     convert(out.name, in.name.value_or(""));
