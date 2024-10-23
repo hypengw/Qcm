@@ -145,7 +145,7 @@ QQuickImageResponse* QcmImageProvider::requestImageResponse(const QString& id,
     do {
         if (id.isEmpty()) break;
 
-        auto [url, provider] = parse_image_provider_url(QString("image://qcm/%1").arg(id));
+        auto [url, provider] = parse_image_provider_url(QStringLiteral("image://qcm/%1").arg(id));
         if (url.isEmpty()) break;
 
         auto             rsp_guard = helper::QWatcher(rsp);

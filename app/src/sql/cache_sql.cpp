@@ -136,14 +136,14 @@ asio::awaitable<void> CacheSql::remove(std::span<std::string> keys) {
         QSqlQuery   q = m_con->query();
         QStringList placeholders;
         for (usize i = 0; i < keys.size(); ++i) {
-            placeholders << QString(":key%1").arg(i); // :key0, :key1, :key2
+            placeholders << QStringLiteral(":key%1").arg(i); // :key0, :key1, :key2
         }
 
         q.prepare(QStringLiteral("DELETE FROM %1 WHERE key IN (%2)")
                       .arg(m_table)
                       .arg(placeholders.join(", ")));
         for (usize i = 0; i < keys.size(); ++i) {
-            q.bindValue(QString(":key%1").arg(i), convert_from<QString>(keys[i]));
+            q.bindValue(QStringLiteral(":key%1").arg(i), convert_from<QString>(keys[i]));
         }
         q.exec();
     }

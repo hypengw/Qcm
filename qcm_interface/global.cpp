@@ -342,7 +342,7 @@ void GlobalWrapper::set_copy_action_comp(QQmlComponent* val) { m_g->set_copy_act
 namespace qcm
 {
 auto image_provider_url(const QUrl& url, const QString& provider) -> QUrl {
-    return QString("image://qcm/%1/%2").arg(provider).arg(url.toString().toUtf8().toBase64());
+    return QStringLiteral("image://qcm/%1/%2").arg(provider).arg(url.toString().toUtf8().toBase64());
 }
 
 auto parse_image_provider_url(const QUrl& url) -> std::tuple<QUrl, QString> {

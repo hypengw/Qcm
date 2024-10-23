@@ -253,7 +253,7 @@ auto uniq(const QUrl& url, const QVariant& info) -> QString {
     if (size.isValid()) {
         size = get_down_size(size);
     }
-    return QString("%1&param=%2y%3").arg(url.toString()).arg(size.width()).arg(size.height());
+    return QStringLiteral("%1&param=%2y%3").arg(url.toString()).arg(size.width()).arg(size.height());
 }
 
 } // namespace ncm::qml
