@@ -5,6 +5,15 @@
 namespace helper
 {
 
+inline bool is_floating_point_metatype_id(int id) {
+    switch (id) {
+    case QMetaType::Float16:
+    case QMetaType::Float:
+    case QMetaType::Double: return true;
+    default: return false;
+    }
+}
+
 inline bool is_integer_metatype_id(int id) {
     switch (id) {
     case QMetaType::Int:

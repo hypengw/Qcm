@@ -230,6 +230,7 @@ IMPL_CONVERT(qcm::oper::SongOper, ncm::model::Song) {
     X(canPlay, (! in.privilege || in.privilege.value().st >= 0));
     X(trackNumber, in.no);
     X(albumId, in.al.id);
+    out.set_popularity(in.pop);
 
     if (in.privilege) {
         QString tag;
@@ -267,6 +268,7 @@ IMPL_CONVERT(qcm::oper::SongOper, ncm::model::SongB) {
     X(duration, in.duration);
     X(trackNumber, in.no);
     X(albumId, in.album.id);
+    out.set_popularity(in.popularity);
     out.set_canPlay(true);
 }
 

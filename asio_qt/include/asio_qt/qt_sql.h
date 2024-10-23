@@ -107,6 +107,8 @@ public:
                 type = "TEXT"sv;
             } else if (helper::is_integer_metatype_id(p.typeId())) {
                 type = "INTEGER"sv;
+            } else if (helper::is_floating_point_metatype_id(p.typeId())) {
+                type = "REAL"sv;
             } else if (p.typeId() == qMetaTypeId<QDateTime>()) {
                 type = "DATETIME"sv;
             } else {

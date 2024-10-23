@@ -197,7 +197,7 @@ struct Song {
     std::vector<std::string> alia;
 
     //  小数，常取[0.0, 100.0]中离散的几个数值, 表示歌曲热度
-    i64 pop;
+    double pop;
 
     std::optional<std::string> rt;
     i64                        mst;
@@ -265,7 +265,7 @@ struct SongB {
     std::vector<Song::Ar> artists;
     Song::Al              album;
     bool                  starred { false };
-    i64                   popularity { 0 };
+    double                popularity { 0 };
     i64                   score { 5 };
     i64                   starredNum { 0 };
     Time                  duration;

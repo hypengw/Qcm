@@ -163,6 +163,7 @@ auto ItemSql::con() const -> rc<helper::SqlConnect> { return m_con; }
 
 auto ItemSql::insert(std::span<const model::Album> items,
                      const std::set<std::string>&  on_update) -> asio::awaitable<bool> {
+    DEBUG_LOG("start insert album, {}", items.size());
     auto insert_helper = m_con->generate_insert_helper(m_album_table,
                                                        u"itemId"_s,
                                                        model::Album::staticMetaObject,
@@ -175,16 +176,20 @@ auto ItemSql::insert(std::span<const model::Album> items,
     auto query = m_con->query();
     insert_helper.bind(query);
 
+    m_con->db().transaction();
     if (! query.execBatch()) {
         ERROR_LOG("{}", query.lastError().text());
+        m_con->db().rollback();
         co_return false;
     }
-
+    m_con->db().commit();
+    DEBUG_LOG("end insert");
     co_return true;
 }
 
 auto ItemSql::insert(std::span<const model::Artist> items,
                      const std::set<std::string>&   on_update) -> asio::awaitable<bool> {
+    DEBUG_LOG("start insert artist, {}", items.size());
     auto insert_helper = m_con->generate_insert_helper(m_artist_table,
                                                        u"itemId"_s,
                                                        model::Artist::staticMetaObject,
@@ -197,15 +202,19 @@ auto ItemSql::insert(std::span<const model::Artist> items,
     auto query = m_con->query();
     insert_helper.bind(query);
 
+    m_con->db().transaction();
     if (! query.execBatch()) {
         ERROR_LOG("{}", query.lastError().text());
+        m_con->db().rollback();
         co_return false;
     }
-
+    m_con->db().commit();
+    DEBUG_LOG("end insert");
     co_return true;
 }
 auto ItemSql::insert(std::span<const model::Song> items,
                      const std::set<std::string>& on_update) -> asio::awaitable<bool> {
+    DEBUG_LOG("start insert song, {}", items.size());
     auto insert_helper = m_con->generate_insert_helper(
         m_song_table,
         u"itemId"_s,
@@ -220,11 +229,14 @@ auto ItemSql::insert(std::span<const model::Song> items,
     auto query = m_con->query();
     insert_helper.bind(query);
 
+    m_con->db().transaction();
     if (! query.execBatch()) {
         ERROR_LOG("{}", query.lastError().text());
+        m_con->db().rollback();
         co_return false;
     }
-
+    m_con->db().commit();
+    DEBUG_LOG("end insert");
     co_return true;
 }
 
@@ -243,11 +255,13 @@ INSERT OR IGNORE INTO %1 (albumId, artistId) VALUES (:albumId, :artistId);
 )"_s.arg(m_album_artist_table));
     query.bindValue(":albumId", albumIds);
     query.bindValue(":artistId", artistIds);
+    m_con->db().transaction();
     if (! query.execBatch()) {
         ERROR_LOG("{}", query.lastError().text());
+        m_con->db().rollback();
         co_return false;
     }
-
+    m_con->db().commit();
     co_return true;
 }
 
@@ -266,11 +280,13 @@ INSERT OR IGNORE INTO %1 (songId, artistId) VALUES (:songId, :artistId);
 )"_s.arg(m_song_artist_table));
     query.bindValue(":songId", songIds);
     query.bindValue(":artistId", artistIds);
+    m_con->db().transaction();
     if (! query.execBatch()) {
         ERROR_LOG("{}", query.lastError().text());
+        m_con->db().rollback();
         co_return false;
     }
-
+    m_con->db().commit();
     co_return true;
 }
 

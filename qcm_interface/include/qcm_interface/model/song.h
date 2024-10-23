@@ -19,6 +19,8 @@ public:
     GADGET_PROPERTY_DEF(bool, canPlay, canPlay)
     GADGET_PROPERTY_DEF(QString, coverUrl, coverUrl)
     GADGET_PROPERTY_DEF(QStringList, tags, tags)
+    GADGET_PROPERTY_DEF(qreal, popularity, popularity)
+
     GADGET_PROPERTY_DEF(QVariant, source, source)
     GADGET_PROPERTY_DEF(ItemId, sourceId, sourceId)
 

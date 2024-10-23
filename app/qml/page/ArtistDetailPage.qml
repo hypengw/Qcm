@@ -202,14 +202,14 @@ MD.Page {
                         Layout.fillWidth: true
                         implicitHeight: Math.min(Math.max(root.height - m_header.implicitHeight * 0.4 - bar.implicitHeight, 0), item_stack.implicitHeight)
 
-                        StackLayout {
+                        SwipeView {
                             id: item_stack
                             anchors.fill: parent
                             currentIndex: bar.currentIndex
 
                             MD.ListView {
-                                implicitHeight: contentHeight
                                 interactive: m_flick.atYEnd
+                                expand: true
                                 model: artistInfo.hotSongs
                                 topMargin: 8
                                 bottomMargin: 8
@@ -238,6 +238,7 @@ MD.Page {
                             QA.MGridView {
                                 fixedCellWidth: Math.max(160, (Window.window?.width ?? 0) / 6.0)
                                 interactive: m_flick.atYEnd
+                                implicitHeight: contentHeight
                                 model: qr_artist.data
                                 onAtYBeginningChanged: {
                                     if (interactive) {

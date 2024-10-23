@@ -409,7 +409,7 @@ auto sync_item(ClientBase& cbase, qcm::model::ItemId itemId) -> qcm::task<void> 
                              },
                              sql,
                              {},
-                             { "name", "picUrl" });
+                             { "name" });
         break;
     }
     case ncm::model::IdType::Artist: {
@@ -422,6 +422,13 @@ auto sync_item(ClientBase& cbase, qcm::model::ItemId itemId) -> qcm::task<void> 
                 qcm::oper::ArtistOper oper(list.at(0));
                 convert(oper, out->artist);
                 co_await sql->insert(list, {});
+                co_await insert_song(out->hotSongs,
+                                     [](const auto& el) -> const decltype(out->hotSongs[0].ar)& {
+                                         return el.ar;
+                                     },
+                                     sql,
+                                     {},
+                                     { "name" });
             }
         }
         {
