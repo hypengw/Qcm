@@ -88,7 +88,7 @@ public:
 
     auto get_cache_sql() const -> rc<media_cache::DataBase>;
     auto get_collection_sql() const -> rc<db::ColletionSqlBase>;
-    auto get_album_sql() const -> rc<db::ItemSqlBase>;
+    auto get_item_sql() const -> rc<db::ItemSqlBase>;
 
     auto user_model() const -> UserModel*;
 

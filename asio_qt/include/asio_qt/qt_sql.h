@@ -38,6 +38,10 @@ public:
         m_thread.wait();
     }
 
+    using Converter = std::function<QVariant(const QVariant&)>;
+    static auto get_from_converter(int id) -> std::optional<Converter>;
+    static auto get_to_converter(int id) -> std::optional<Converter>;
+
     auto get_executor() -> QtExecutor& { return m_ex; }
 
     auto is_open() const -> bool { return m_db.isOpen(); }
@@ -85,14 +89,19 @@ public:
 
     auto generate_column_migration(QStringView table_name, QStringView primary,
                                    const QMetaObject&                meta,
-                                   std::span<const std::string_view> extras) {
+                                   std::span<const std::string_view> extras,
+                                   std::set<std::string_view>        exclude = {}) {
         std::vector<std::string> column_names;
         std::vector<std::string> columns;
         bool                     primary_ok { false };
         std::string_view         primary_str { " PRIMARY KEY" };
         for (int i = 0; i < meta.propertyCount(); i++) {
-            const auto&      p    = meta.property(i);
-            auto             name = p.name();
+            const auto& p    = meta.property(i);
+            auto        name = p.name();
+            if (exclude.contains(name)) {
+                continue;
+            }
+
             std::string_view type;
             if (p.typeId() == qMetaTypeId<QString>()) {
                 type = "TEXT"sv;
@@ -142,24 +151,25 @@ CREATE TABLE IF NOT EXISTS {} (
     auto generate_insert_helper(
         QStringView table_name, QStringView conflict, const QMetaObject& meta,
         std::span<const T> items, const std::set<std::string>& on_update,
-        std::map<QString, std::function<QVariant(const QVariant&)>> converters = {})
-        -> InsertHelper {
+        std::map<QString, std::function<QVariant(const QVariant&)>> converters = {},
+        std::set<std::string_view>                                  ignores = {}) -> InsertHelper {
         InsertHelper             out;
         std::vector<std::string> column_names;
         for (int i = 0; i < meta.propertyCount(); i++) {
             auto name = meta.property(i).name();
+            if (ignores.contains(name)) continue;
             column_names.push_back(name);
             out.binds.insert({ name, {} });
         }
         auto view_values =
-            std::ranges::transform_view(column_names, [](const std::string& s) -> std::string {
+            std::views::transform(column_names, [](const std::string& s) -> std::string {
                 return ":" + s;
             });
-        auto view_set = std::ranges::transform_view(
-            std::ranges::filter_view(column_names,
-                                     [&on_update](const std::string& s) {
-                                         return on_update.empty() || on_update.contains(s);
-                                     }),
+        auto view_set = std::views::transform(
+            std::views::filter(column_names,
+                               [&on_update](const std::string& s) {
+                                   return on_update.empty() || on_update.contains(s);
+                               }),
             [](const std::string& s) -> std::string {
                 return fmt::format("{0} = :{0}", s);
             });
@@ -171,7 +181,8 @@ CREATE TABLE IF NOT EXISTS {} (
                         conflict,
                         fmt::join(view_set, ", ")));
         for (int i = 0; i < meta.propertyCount(); i++) {
-            auto  name = meta.property(i).name();
+            auto name = meta.property(i).name();
+            if (ignores.contains(name)) continue;
             auto& list = out.binds.at(name);
 
             std::optional<std::function<QVariant(const QVariant&)>> converter;
@@ -183,6 +194,8 @@ CREATE TABLE IF NOT EXISTS {} (
             for (auto& el : items) {
                 auto value = meta.property(i).readOnGadget(&el);
                 if (converter) {
+                    list << converter->operator()(value);
+                } else if (auto converter = get_to_converter(value.metaType().id())) {
                     list << converter->operator()(value);
                 } else {
                     list << value;

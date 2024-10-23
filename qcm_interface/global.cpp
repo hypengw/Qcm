@@ -170,7 +170,7 @@ auto Global::get_collection_sql() const -> rc<db::ColletionSqlBase> {
     return d->collection_sql;
 }
 
-auto Global::get_album_sql() const -> rc<db::ItemSqlBase> {
+auto Global::get_item_sql() const -> rc<db::ItemSqlBase> {
     C_D(const Global);
     return d->album_sql;
 }

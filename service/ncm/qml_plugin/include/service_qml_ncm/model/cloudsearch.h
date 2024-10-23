@@ -118,7 +118,7 @@ public:
             &CloudSearchQuerier::changed_keywords,
             this,
             [this]() {
-                data()->resetModel();
+                tdata()->resetModel();
             },
             Qt::DirectConnection);
         connect(
@@ -126,7 +126,7 @@ public:
             &CloudSearchQuerier::changed_type,
             this,
             [this]() {
-                data()->updateType(api().input.type);
+                tdata()->updateType(api().input.type);
             },
             Qt::DirectConnection);
         emit changed_type();

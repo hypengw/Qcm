@@ -105,9 +105,9 @@ auto QAsyncResult::watch_dog() -> helper::WatchDog& {
     return d->m_wdog;
 }
 
-auto QAsyncResult::data() const -> QObject* {
+auto QAsyncResult::data() const -> QVariant {
     C_D(const QAsyncResult);
-    return d->m_data;
+    return QVariant::fromValue(d->m_data);
 }
 void QAsyncResult::set_data(QObject* v) {
     C_D(QAsyncResult);

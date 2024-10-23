@@ -192,27 +192,36 @@ struct Song {
     Al              al;
     i64             st;
     // std::optional<std::string> noCopyrightRcmd; // null, str, object
-    i64                        rtype;
-    i64                        pst;
-    std::vector<std::string>   alia;
-    i64                        pop;
+    i64                      rtype;
+    i64                      pst;
+    std::vector<std::string> alia;
+
+    //  小数，常取[0.0, 100.0]中离散的几个数值, 表示歌曲热度
+    i64 pop;
+
     std::optional<std::string> rt;
     i64                        mst;
     i64                        cp;
     std::optional<std::string> cf;
     Time                       dt;
     i64                        ftype;
-    i64                        no;
-    i64                        fee;
-    i64                        mv;
-    i64                        t;
-    i64                        v;
-    std::optional<Quality>     h;
-    std::optional<Quality>     m;
-    std::optional<Quality>     l;
-    std::optional<Quality>     sq;
-    std::optional<Quality>     hr;
+
+    i64                    fee;
+    i64                    mv;
+    i64                    t;
+    i64                    v;
+    std::optional<Quality> h;
+    std::optional<Quality> m;
+    std::optional<Quality> l;
+    std::optional<Quality> sq;
+    std::optional<Quality> hr;
+
+    // cd: Option<String>, None或如"04", "1/2", "3",
+    // "null"的字符串，表示歌曲属于专辑中第几张CD，对应音频文件的Tag
     std::optional<std::string> cd;
+    // no: u32, 表示歌曲属于CD中第几曲，0表示没有这个字段，对应音频文件的Tag
+    i64 no;
+
     std::optional<std::string> name;
     SongId                     id {};
 
@@ -228,6 +237,19 @@ struct Song {
     // crbt	null
     // rtUrl	null
     // djId	0
+
+    /*
+    t: enum
+      0: 一般类型
+      1: 通过云盘上传的音乐，网易云不存在公开对应
+        如果没有权限将不可用，除了歌曲长度以外大部分信息都为null。
+        可以通过 `/api/v1/playlist/manipulate/tracks` 接口添加到播放列表。
+        如果添加到“我喜欢的音乐”，则仅自己可见，除了长度意外各种信息均为未知，且无法播放。
+        如果添加到一般播放列表，虽然返回code 200，但是并没有效果。
+        网页端打开会看到404画面。
+        属于这种歌曲的例子: https://music.163.com/song/1345937107
+      2: 通过云盘上传的音乐，网易云存在公开
+    */
 };
 
 struct SongB {
@@ -235,11 +257,11 @@ struct SongB {
     SongId      id {};
     // position	0
     // alias	[]
-    i64         status { 0 };
-    i64         fee { 0 };
-    i64         copyrightId { 0 };
-    std::string disc;
-    // no	0
+    i64                   status { 0 };
+    i64                   fee { 0 };
+    i64                   copyrightId { 0 };
+    std::string           disc;
+    i64                   no;
     std::vector<Song::Ar> artists;
     Song::Al              album;
     bool                  starred { false };

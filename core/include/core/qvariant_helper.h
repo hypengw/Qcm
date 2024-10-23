@@ -16,10 +16,10 @@ struct Convert<std::optional<T>, QVariant> {
 
 template<typename T>
 struct Convert<QVariant, std::optional<T>> {
-    using out_type  = QVariant;
-    using in_type = std::optional<T>;
+    using out_type = QVariant;
+    using in_type  = std::optional<T>;
     static void from(out_type& o, const in_type& in) {
-        if(in) {
+        if (in) {
             o = out_type::fromValue(in.value());
         }
     }

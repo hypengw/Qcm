@@ -77,6 +77,18 @@ public:
 
     template<typename T>
         requires std::ranges::sized_range<T>
+    void resetModel(const std::optional<T>& items) {
+        beginResetModel();
+        if (items) {
+            crtp_impl().reset_impl(items.value());
+        } else {
+            crtp_impl().reset_impl();
+        }
+        endResetModel();
+    }
+
+    template<typename T>
+        requires std::ranges::sized_range<T>
     // std::same_as<std::decay_t<typename T::value_type>, TItem>
     void resetModel(const T& items) {
         beginResetModel();

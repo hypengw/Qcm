@@ -22,7 +22,7 @@ class QCM_INTERFACE_API QAsyncResult : public QObject {
 
     Q_PROPERTY(QString error READ error NOTIFY errorChanged FINAL)
     Q_PROPERTY(Status status READ status WRITE set_status NOTIFY statusChanged FINAL)
-    Q_PROPERTY(QObject* data READ data NOTIFY dataChanged FINAL)
+    Q_PROPERTY(QVariant data READ data NOTIFY dataChanged)
     Q_PROPERTY(
         bool forwardError READ forwardError WRITE set_forwardError NOTIFY forwardErrorChanged FINAL)
 public:
@@ -30,7 +30,7 @@ public:
     virtual ~QAsyncResult();
 
     using Status = enums::ApiStatus;
-    virtual auto data() const -> QObject*;
+    virtual auto data() const -> QVariant;
 
     auto qexecutor() const -> QtExecutor&;
     auto pool_executor() const -> asio::thread_pool::executor_type;

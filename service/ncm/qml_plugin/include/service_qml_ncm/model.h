@@ -4,6 +4,7 @@
 #include "qcm_interface/model/album.h"
 #include "qcm_interface/oper/album_oper.h"
 #include "qcm_interface/oper/artist_oper.h"
+#include "qcm_interface/oper/song_oper.h"
 #include "ncm/model.h"
 #include "service_qml_ncm/enum.h"
 
@@ -11,22 +12,25 @@ DECLARE_CONVERT(QDateTime, ncm::model::Time)
 DECLARE_CONVERT(qcm::model::Artist, ncm::model::Artist)
 DECLARE_CONVERT(qcm::oper::ArtistOper, ncm::model::Artist)
 DECLARE_CONVERT(qcm::model::Artist, ncm::model::Song::Ar)
+DECLARE_CONVERT(qcm::oper::ArtistOper, ncm::model::Song::Ar)
 DECLARE_CONVERT(qcm::model::Album, ncm::model::Album)
 DECLARE_CONVERT(qcm::oper::AlbumOper, ncm::model::Album)
 DECLARE_CONVERT(qcm::model::Playlist, ncm::model::Playlist)
 DECLARE_CONVERT(qcm::model::Song, ncm::model::Song)
+DECLARE_CONVERT(qcm::oper::SongOper, ncm::model::Song)
 DECLARE_CONVERT(qcm::model::User, ncm::model::User)
 DECLARE_CONVERT(qcm::model::Comment, ncm::model::Comment)
 DECLARE_CONVERT(qcm::model::Djradio, ncm::model::Djradio)
 DECLARE_CONVERT(qcm::model::Djradio, ncm::model::DjradioB)
 DECLARE_CONVERT(qcm::model::Song, ncm::model::SongB)
+DECLARE_CONVERT(qcm::oper::SongOper, ncm::model::SongB)
 DECLARE_CONVERT(qcm::model::Program, ncm::model::Program)
 
 namespace ncm::model
 {
 struct AlbumSublistItem;
 struct ArtistSublistItem;
-}
+} // namespace ncm::model
 
 DECLARE_CONVERT(qcm::oper::AlbumOper, ncm::model::AlbumSublistItem)
 DECLARE_CONVERT(qcm::oper::ArtistOper, ncm::model::ArtistSublistItem)

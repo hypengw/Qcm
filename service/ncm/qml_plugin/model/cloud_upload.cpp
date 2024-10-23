@@ -44,7 +44,7 @@ CloudUploadApi::CloudUploadApi(QObject* parent)
     : ApiQuerierBase(parent), m_data(new CloudUploadModel(this)) {}
 CloudUploadApi::~CloudUploadApi() {}
 
-auto CloudUploadApi::data() const -> QObject* { return m_data; }
+auto CloudUploadApi::data() const -> QVariant { return QVariant::fromValue(m_data); }
 void CloudUploadApi::reload() {}
 
 auto CloudUploadApi::upload_impl(std::filesystem::path path)

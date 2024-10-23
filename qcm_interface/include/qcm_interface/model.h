@@ -16,6 +16,7 @@
 #include "qcm_interface/export.h"
 #include "qcm_interface/item_id.h"
 #include "qcm_interface/model/artist.h"
+#include "qcm_interface/model/song.h"
 
 namespace qcm::model
 {
@@ -42,25 +43,6 @@ public:
     std::strong_ordering operator<=>(const Playlist&) const = default;
 };
 
-class QCM_INTERFACE_API Song {
-    Q_GADGET
-    QML_VALUE_TYPE(t_song)
-public:
-    GADGET_PROPERTY_DEF(ItemId, itemId, id)
-    GADGET_PROPERTY_DEF(QString, name, name)
-    // GADGET_PROPERTY_DEF(Album, album, album)
-    GADGET_PROPERTY_DEF(QDateTime, duration, duration)
-    GADGET_PROPERTY_DEF(bool, canPlay, canPlay)
-    GADGET_PROPERTY_DEF(QString, coverUrl, coverUrl)
-    GADGET_PROPERTY_DEF(QList<QString>, tags, tags)
-
-    GADGET_PROPERTY_DEF(QVariant, source, source)
-    GADGET_PROPERTY_DEF(ItemId, sourceId, sourceId)
-
-    GATGET_LIST_PROPERTY(Artist, artists, artists)
-
-    std::strong_ordering operator<=>(const Song&) const = default;
-};
 
 class QCM_INTERFACE_API User {
     Q_GADGET

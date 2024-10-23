@@ -9,7 +9,7 @@ import Qcm.Material as MD
 MD.Page {
     id: root
 
-    property alias itemData: qr_al.data
+    property var albumInfo: qr_al.data.info
     property alias itemId: qr_al.itemId
     title: qsTr("album")
 
@@ -33,7 +33,7 @@ MD.Page {
         topMargin: MD.MatProp.size.verticalPadding
         bottomMargin: MD.MatProp.size.verticalPadding + m_view_pane.bottomMargin
 
-        model: root.itemData.songs
+        model: qr_al.data
 
         readonly property bool single: width < m_cover.displaySize.width * (1.0 + 1.5) + 8
 
@@ -47,13 +47,13 @@ MD.Page {
 
                 displaySize: Qt.size(240, 240)
                 elevation: MD.Token.elevation.level2
-                source: QA.Util.image_url(root.itemData.picUrl)
+                source: QA.Util.image_url(root.albumInfo.picUrl)
                 radius: 16
             }
             MD.Text {
                 id: m_title
                 maximumLineCount: 2
-                text: root.itemData.name
+                text: root.albumInfo.name
                 typescale: m_view.single ? MD.Token.typescale.headline_medium : MD.Token.typescale.headline_large
             }
             RowLayout {
@@ -61,20 +61,20 @@ MD.Page {
                 spacing: 12
                 MD.Text {
                     typescale: MD.Token.typescale.body_medium
-                    text: `${root.itemData.size} tracks`
+                    text: `${root.albumInfo.trackCount} tracks`
                 }
                 MD.Text {
                     typescale: MD.Token.typescale.body_medium
-                    text: Qt.formatDateTime(root.itemData.publishTime, 'yyyy.MM')
+                    text: Qt.formatDateTime(root.albumInfo.publishTime, 'yyyy.MM')
                 }
             }
             MD.Text {
                 id: m_artist
                 typescale: MD.Token.typescale.body_medium
-                text: QA.Global.join_name(root.itemData.artists, '/')
+                text: QA.Global.join_name(root.albumInfo.artists, '/')
                 /*
                         onClicked: {
-                            const artists = root.itemData.artists;
+                            const artists = root.albumInfo.artists;
                             if (artists.length === 1)
                                 QA.Global.route(artists[0].itemId);
                             else
@@ -87,7 +87,7 @@ MD.Page {
 
             QA.ListDescription {
                 id: m_desc
-                description: root.itemData.description.trim()
+                description: root.albumInfo.description.trim()
             }
             RowLayout {
                 id: m_control_pane
@@ -96,14 +96,14 @@ MD.Page {
                 MD.IconButton {
                     action: QA.AppendListAction {
                         getSongs: function () {
-                            return root.itemData.songs;
+                            return root.albumInfo.songs;
                         }
                     }
                 }
                 MD.IconButton {
                     id: btn_fav
                     action: QA.SubAction {
-                        liked: qr_dynamic.data.isSub
+                        liked: false//qr_dynamic.data.isSub
                         querier: qr_sub
                         itemId: root.itemId
                     }
@@ -239,7 +239,7 @@ MD.Page {
         action: Action {
             icon.name: MD.Token.icon.play_arrow
             onTriggered: {
-                const songs = itemData.songs.filter(s => {
+                const songs = albumInfo.songs.filter(s => {
                     return s.canPlay;
                 });
                 if (songs.length)
@@ -248,15 +248,16 @@ MD.Page {
         }
     }
 
-    QNcm.AlbumDetailQuerier {
+    QA.AlbumDetailQuery {
         id: qr_al
-        autoReload: root.itemId.valid()
+        // autoReload: root.itemId.valid()
+        Component.onCompleted: reload()
     }
-    QNcm.AlbumDetailDynamicQuerier {
-        id: qr_dynamic
-        autoReload: itemId.valid()
-        itemId: qr_al.itemId
-    }
+    //QNcm.AlbumDetailDynamicQuerier {
+    //    id: qr_dynamic
+    //    autoReload: itemId.valid()
+    //    itemId: qr_al.itemId
+    //}
     QNcm.AlbumSubQuerier {
         id: qr_sub
         autoReload: false

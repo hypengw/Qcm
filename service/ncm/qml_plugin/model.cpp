@@ -160,6 +160,12 @@ IMPL_CONVERT(qcm::model::Artist, ncm::model::Song::Ar) {
     convert(out.alias, helper::value_or_default(in.alia));
 }
 
+IMPL_CONVERT(qcm::oper::ArtistOper, ncm::model::Song::Ar) {
+    X(id, in.id);
+    X(name, in.name.value_or(""));
+    X(alias, helper::value_or_default(in.alia));
+}
+
 IMPL_CONVERT(qcm::model::Album, ncm::model::Album) {
     // convert(out.id, in.id);
     // convert(out.name, in.name);
@@ -194,7 +200,7 @@ IMPL_CONVERT(qcm::model::Song, ncm::model::Song) {
     // convert(out.album.name, in.al.name.value_or(""));
     // convert(out.album.picUrl, in.al.picUrl.value_or(""));
     convert(out.duration, in.dt);
-    convert(out.artists, in.ar);
+    // convert(out.artists, in.ar);
     convert(out.canPlay, (! in.privilege || in.privilege.value().st >= 0));
 
     if (in.privilege) {
@@ -214,6 +220,33 @@ IMPL_CONVERT(qcm::model::Song, ncm::model::Song) {
     }
 }
 
+IMPL_CONVERT(qcm::oper::SongOper, ncm::model::Song) {
+    X(id, in.id);
+    X(name, in.name.value_or(""));
+    X(duration, in.dt);
+    X(canPlay, (! in.privilege || in.privilege.value().st >= 0));
+    X(trackNumber, in.no);
+    X(albumId, in.al.id);
+
+    if (in.privilege) {
+        QString tag;
+        auto    fee = in.privilege.value().fee;
+        switch (fee) {
+            using enum ncm::model::SongFee;
+        case Vip: tag = "vip"; break;
+        case OnlyOnlineWithPaid:
+        case OnlyDownloadWithPaid: tag = "pay"; break;
+        case DigitalAlbum: tag = "dg"; break;
+        case Free:
+        case Free128k: break;
+        default: WARN_LOG("unknown fee: {}, {}", (i64)fee, in.name.value_or(""));
+        }
+        if (! tag.isEmpty()) {
+            out.set_tags({ tag });
+        }
+    }
+}
+
 IMPL_CONVERT(qcm::model::Song, ncm::model::SongB) {
     convert(out.id, in.id);
     convert(out.name, in.name);
@@ -221,8 +254,17 @@ IMPL_CONVERT(qcm::model::Song, ncm::model::SongB) {
     // convert(out.album.name, in.album.name.value_or(""));
     // convert(out.album.picUrl, in.album.picUrl.value_or(""));
     convert(out.duration, in.duration);
-    convert(out.artists, in.artists);
+    // convert(out.artists, in.artists);
     out.canPlay = true;
+}
+
+IMPL_CONVERT(qcm::oper::SongOper, ncm::model::SongB) {
+    X(id, in.id);
+    X(name, in.name);
+    X(duration, in.duration);
+    X(trackNumber, in.no);
+    X(albumId, in.album.id);
+    out.set_canPlay(true);
 }
 
 IMPL_CONVERT(qcm::model::User, ncm::model::User) {

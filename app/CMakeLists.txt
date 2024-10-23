@@ -29,8 +29,10 @@ set(SOURCES
     include/Qcm/sql/cache_sql.h
     include/Qcm/sql/collection_sql.h
 
+    include/Qcm/query/query_model.h
     include/Qcm/query/album_collection.h
     include/Qcm/query/artist_collection.h
+    include/Qcm/query/album_detail.h
 
     src/action.cpp
     src/app.cpp
@@ -47,6 +49,7 @@ set(SOURCES
     src/sql/item_sql.cpp
     src/sql/cache_sql.cpp
     src/sql/collection_sql.cpp
+    src/sql/sql.cpp
     
     src/query.cpp
     
@@ -55,7 +58,9 @@ set(SOURCES
 set(QCM_INTERFACE_HEADER
     include/qcm_interface/enum.h include/qcm_interface/global.h
     include/qcm_interface/action.h include/qcm_interface/model.h
-    include/qcm_interface/model/plugin_model.h)
+    include/qcm_interface/model/plugin_model.h
+    include/qcm_interface/model/song.h
+    )
 
 list(
   TRANSFORM QCM_INTERFACE_HEADER

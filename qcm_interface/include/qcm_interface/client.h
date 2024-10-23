@@ -1,9 +1,9 @@
 #pragma once
 #include <string>
 #include <filesystem>
-#include <asio/awaitable.hpp>
 #include <QSize>
 
+#include "asio_helper/task.h"
 #include "qcm_interface/item_id.h"
 #include "qcm_interface/enum.h"
 #include "qcm_interface/router.h"
@@ -41,13 +41,12 @@ struct Client {
                            model::ItemId source, i64 played_second, QVariantMap extra);
         auto (*router)(ClientBase&) -> rc<Router>;
 
-        auto (*logout)(ClientBase&) -> asio::awaitable<void>;
-        auto (*session_check)(ClientBase&,
-                              helper::QWatcher<model::Session>) -> asio::awaitable<Result<bool>>;
-        auto (*collect)(ClientBase&, model::ItemId, bool) -> asio::awaitable<Result<bool>>;
-        auto (*media_url)(ClientBase&, model::ItemId,
-                          enums::AudioQuality) -> asio::awaitable<Result<QUrl>>;
-        auto (*sync_collection)(ClientBase&, enums::CollectionType) -> asio::awaitable<void>;
+        auto (*logout)(ClientBase&) -> task<void>;
+        auto (*session_check)(ClientBase&, helper::QWatcher<model::Session>) -> task<Result<bool>>;
+        auto (*collect)(ClientBase&, model::ItemId, bool) -> task<Result<bool>>;
+        auto (*media_url)(ClientBase&, model::ItemId, enums::AudioQuality) -> task<Result<QUrl>>;
+        auto (*sync_collection)(ClientBase&, enums::CollectionType) -> task<void>;
+        auto (*sync_item)(ClientBase&, model::ItemId) -> task<void>;
 
         void (*save)(ClientBase&, const std::filesystem::path&);
         void (*load)(ClientBase&, const std::filesystem::path&);

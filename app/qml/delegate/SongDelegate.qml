@@ -9,7 +9,7 @@ MD.ListItem {
     id: root
 
     readonly property bool isPlaying: QA.App.playlist.cur.itemId === dgModel.itemId
-    property QA.t_song dgModel: modelData
+    property var dgModel: modelData
     property string subtitle: ''
     property bool showCover: false
     readonly property int coverSize: 48
@@ -66,7 +66,7 @@ MD.ListItem {
                     id: m_comp_song_image
                     QA.Image {
                         radius: 8
-                        source: QA.Util.image_url(root.dgModel.album.picUrl)
+                        source: QA.Util.image_url(root.dgModel?.album.picUrl ?? root.dgModel.coverUrl)
                         displaySize: Qt.size(48, 48)
                     }
                 }
@@ -97,7 +97,7 @@ MD.ListItem {
                     verticalAlignment: Qt.AlignVCenter
                     typescale: MD.Token.typescale.body_medium
                     color: root.mdState.supportTextColor
-                    text: root.subtitle ? root.subtitle : `${QA.Global.join_name(root.dgModel.artists, '/')} - ${root.dgModel.album.name}`
+                    text: root.subtitle ? root.subtitle : `${QA.Global.join_name(root.dgModel.artists, '/')} - ${root.dgModel.albumName}`
                 }
             }
         }

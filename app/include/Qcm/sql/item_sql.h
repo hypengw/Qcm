@@ -26,16 +26,24 @@ public:
     auto insert(std::span<const model::Artist> items,
                 const std::set<std::string>&   on_update) -> asio::awaitable<bool> override;
 
-    auto insert_album_artist(std::span<const std::tuple<model::ItemId, model::ItemId>>) -> asio::awaitable<bool> override;
+    auto insert(std::span<const model::Song> items,
+                const std::set<std::string>& on_update) -> asio::awaitable<bool> override;
+
+    auto insert_album_artist(std::span<const IdPair>) -> asio::awaitable<bool> override;
+    auto insert_song_artist(std::span<const IdPair>) -> asio::awaitable<bool> override;
 
 private:
     void create_album_table();
     void create_artist_table();
     void create_album_artist_table();
+    void create_song_table();
+    void create_song_artist_table();
 
     QString                m_album_table;
     QString                m_artist_table;
+    QString                m_song_table;
     QString                m_album_artist_table;
+    QString                m_song_artist_table;
     rc<helper::SqlConnect> m_con;
 };
 

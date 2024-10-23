@@ -3,6 +3,7 @@
 #include <QQmlEngine>
 
 #include "Qcm/query/query.h"
+#include "Qcm/query/query_model.h"
 #include "Qcm/sql/item_sql.h"
 #include "Qcm/app.h"
 #include "asio_qt/qt_sql.h"
@@ -15,11 +16,10 @@
 
 namespace qcm::query
 {
-struct AlbumCollectionItem : public model::Album {
+struct AlbumCollectionItem : public Album {
     Q_GADGET
 public:
     GADGET_PROPERTY_DEF(QDateTime, subTime, subTime)
-    GADGET_PROPERTY_DEF(std::vector<model::ArtistRefer>, artists, artists)
 };
 
 class AlbumCollection : public meta_model::QGadgetListModel<AlbumCollectionItem> {

@@ -83,7 +83,7 @@ JSON_DEFINE_IMPL(Song::Privilege, downloadMaxBrLevel, playMaxBrLevel, downloadMa
                  playMaxbr, preSell, plLevel, flLevel, dlLevel, toast, payed, maxbr, subp, flag, sp,
                  pl, fl, dl, cs, fee, st, id, cp);
 
-JSON_DEFINE_IMPL(SongB, name, ftype, album, artists, commentThreadId, copyright, copyrightId, disc,
+JSON_DEFINE_IMPL(SongB, name, no, ftype, album, artists, commentThreadId, copyright, copyrightId, disc,
                  duration, fee, hearTime, id, status, starred, score, popularity, playedNum)
 
 struct Song_ : Song {};

@@ -3,6 +3,7 @@
 #include <QSettings>
 
 #include "Qcm/app.h"
+#include "Qcm/query/query.h"
 #include "core/strv_helper.h"
 
 #include "asio_helper/basic.h"
@@ -95,7 +96,7 @@ void App::connect_actions() {
             if (auto c = Global::instance()->qsession()->client()) {
                 dog->spawn(
                     ex,
-                    [c, curId, qu, hash, refresh] -> asio::awaitable<void> {
+                    [c, curId, qu, hash, refresh] -> task<void> {
                         auto res = co_await c->api->media_url(*c->instance, curId, qu);
                         res.transform([&hash, refresh](QUrl url) -> bool {
                                url = App::instance()->media_url(url, convert_from<QString>(hash));
@@ -131,7 +132,7 @@ void App::on_load_session(model::Session* session) {
     auto ex = asio::make_strand(m_global->pool_executor());
     asio::co_spawn(
         ex,
-        [client, weak] -> asio::awaitable<void> {
+        [client, weak] -> task<void> {
             auto res = co_await client->api->session_check(*(client->instance), weak);
             auto g   = Global::instance();
             co_await asio::post(asio::bind_executor(g->qexecutor(), asio::use_awaitable));
@@ -188,7 +189,7 @@ void App::on_logout() {
     auto ex = asio::make_strand(m_global->pool_executor());
     asio::co_spawn(
         ex,
-        [] -> asio::awaitable<void> {
+        [] -> task<void> {
             if (auto user = Global::instance()->qsession()->user()) {
                 if (auto c = Global::instance()->qsession()->client()) {
                     co_await c->api->logout(*(c->instance));
@@ -217,7 +218,7 @@ void App::on_collect(model::ItemId id, bool act) {
     auto ex = asio::make_strand(m_global->pool_executor());
     asio::co_spawn(
         ex,
-        [id, act] -> asio::awaitable<void> {
+        [id, act] -> task<void> {
             auto user = Global::instance()->qsession()->user();
             if (auto c = Global::instance()->qsession()->client()) {
                 auto sql = Global::instance()->get_collection_sql();
@@ -245,16 +246,7 @@ void App::on_collect(model::ItemId id, bool act) {
 
 void App::on_sync_collecttion(enums::CollectionType ct) {
     auto ex = asio::make_strand(m_global->pool_executor());
-    asio::co_spawn(
-        ex,
-        [ct] -> asio::awaitable<void> {
-            auto user = Global::instance()->qsession()->user();
-            if (auto c = Global::instance()->qsession()->client()) {
-                co_await c->api->sync_collection(*c->instance, ct);
-            }
-            co_return;
-        },
-        helper::asio_detached_log_t {});
+    asio::co_spawn(ex, query::SyncAPi::sync_collection(ct), helper::asio_detached_log_t {});
 }
 
 } // namespace qcm
