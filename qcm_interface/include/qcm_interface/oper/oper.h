@@ -32,7 +32,11 @@ public:
 
     auto operator[](usize i) const noexcept -> const T* { return m_adv(data(), i); }
     auto operator[](usize i) noexcept -> T* { return m_adv(data(), i); }
-    auto at(usize i) const -> T* {
+    auto at(usize i) -> T* {
+        if (i >= size()) throw std::out_of_range("OperList");
+        return m_adv(data(), i);
+    }
+    auto at(usize i) const -> const T* {
         if (i >= size()) throw std::out_of_range("OperList");
         return m_adv(data(), i);
     }

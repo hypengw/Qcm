@@ -250,8 +250,6 @@ MD.Page {
 
     QA.AlbumDetailQuery {
         id: qr_al
-        // autoReload: root.itemId.valid()
-        Component.onCompleted: reload()
     }
     //QNcm.AlbumDetailDynamicQuerier {
     //    id: qr_dynamic

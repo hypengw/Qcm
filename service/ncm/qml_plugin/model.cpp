@@ -129,7 +129,7 @@ IMPL_CONVERT(qcm::model::Artist, ncm::model::Artist) {
     convert(out.id, in.id);
     convert(out.name, in.name);
     convert(out.picUrl, in.picUrl);
-    convert(out.briefDesc, in.briefDesc.value_or(""));
+    convert(out.description, in.briefDesc.value_or(""));
     convert(out.musicCount, in.musicSize);
     convert(out.albumCount, in.albumSize);
     // convert(out.followed, in.followed);
@@ -141,7 +141,7 @@ IMPL_CONVERT(qcm::oper::ArtistOper, ncm::model::Artist) {
     X(id, in.id);
     X(name, in.name);
     X(picUrl, in.picUrl);
-    X(briefDesc, in.briefDesc.value_or(""));
+    X(description, in.briefDesc.value_or(""));
     X(musicCount, in.musicSize);
     X(albumCount, in.albumSize);
     // convert(out.followed, in.followed);
@@ -179,9 +179,12 @@ IMPL_CONVERT(qcm::oper::AlbumOper, ncm::model::Album) {
     X(id, in.id);
     X(name, in.name);
     X(picUrl, in.picUrl);
-    // X(artists, in.artists);
     X(publishTime, in.publishTime);
     X(trackCount, std::max(in.size, (i64)in.songs.size()));
+    X(company, in.company.value_or(""));
+    X(description, in.briefDesc.value_or(""));
+    // use subtype
+    X(type, in.subType);
 }
 
 IMPL_CONVERT(qcm::oper::AlbumOper, ncm::model::AlbumSublistItem) {

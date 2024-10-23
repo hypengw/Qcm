@@ -22,6 +22,13 @@ public:
     // READ_PROPERTY(QString, subType, m_subType, infoChanged)
     // READ_PROPERTY(bool, paid, m_paid, infoChanged)
     // READ_PROPERTY(std::vector<QString>, alias, m_alias, infoChanged)
+    static constexpr QStringView Select { uR"(
+    album.itemId, 
+    album.name, 
+    album.picUrl, 
+    album.trackCount,
+    album.publishTime,
+)" };
 
     std::strong_ordering operator<=>(const Album&) const = default;
 };

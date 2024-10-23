@@ -29,6 +29,8 @@
 #include "ncm/api/album_sublist.h"
 #include "ncm/api/artist_sublist.h"
 #include "ncm/api/album_detail.h"
+#include "ncm/api/artist.h"
+#include "ncm/api/artist_albums.h"
 #include "ncm/client.h"
 
 namespace
@@ -400,17 +402,53 @@ auto sync_item(ClientBase& cbase, qcm::model::ItemId itemId) -> qcm::task<void> 
                               },
                               sql,
                               {},
-                              { "name" });
+                              { "name", "picUrl" });
         co_await insert_song(songs,
                              [](const auto& el) -> const decltype(songs[0].ar)& {
                                  return el.ar;
                              },
                              sql,
                              {},
-                             { "name" });
+                             { "name", "picUrl" });
+        break;
+    }
+    case ncm::model::IdType::Artist: {
+        {
+            ncm::api::Artist api;
+            convert(api.input.id, itemId);
+            auto out = co_await c.perform(api);
+            if (out) {
+                auto                  list = qcm::oper::ArtistOper::create_list(1);
+                qcm::oper::ArtistOper oper(list.at(0));
+                convert(oper, out->artist);
+                co_await sql->insert(list, {});
+            }
+        }
+        {
+            ncm::api::ArtistAlbums api;
+            convert(api.input.id, itemId);
+            api.input.limit = 1000;
+            bool has_more   = false;
+            do {
+                auto out = co_await c.perform(api);
+                api.input.offset += api.input.limit;
+                if (out) {
+                    has_more = out->more;
+                    co_await insert_album(
+                        out->hotAlbums,
+                        [](const auto& el) -> const decltype(out->hotAlbums[0].artists)& {
+                            return el.artists;
+                        },
+                        sql,
+                        {},
+                        { "name" });
+                }
+            } while (has_more);
+        }
         break;
     }
     case ncm::model::IdType::Song: {
+        break;
     }
     default: {
     }

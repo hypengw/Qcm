@@ -22,6 +22,13 @@ public:
     GADGET_PROPERTY_DEF(QVariant, source, source)
     GADGET_PROPERTY_DEF(ItemId, sourceId, sourceId)
 
+    static constexpr QStringView Select { uR"(
+    song.itemId, 
+    song.name, 
+    COALESCE(song.coverUrl, album.picUrl) AS picUrl,
+    song.canPlay,
+)" };
+
     // GATGET_LIST_PROPERTY(Artist, artists, artists)
 
     bool operator==(const Song&) const = default;

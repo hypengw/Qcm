@@ -33,6 +33,7 @@ set(SOURCES
     include/Qcm/query/album_collection.h
     include/Qcm/query/artist_collection.h
     include/Qcm/query/album_detail.h
+    include/Qcm/query/artist_detail.h
 
     src/action.cpp
     src/app.cpp
@@ -114,6 +115,7 @@ set(QML_FILES
     qml/component/VolumeButton.qml
     qml/action/AppendListAction.qml
     qml/action/PlaynextAction.qml
+    qml/action/CollectAction.qml
     qml/action/CopyAction.qml
     qml/action/ColorSchemeAction.qml
     qml/action/SubAction.qml

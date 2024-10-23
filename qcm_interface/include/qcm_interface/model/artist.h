@@ -19,7 +19,7 @@ public:
 struct Artist : ArtistRefer {
     Q_GADGET_EXPORT(QCM_INTERFACE_API)
 public:
-    GADGET_PROPERTY_DEF(QString, briefDesc, briefDesc)
+    GADGET_PROPERTY_DEF(QString, description, description)
     GADGET_PROPERTY_DEF(qint32, albumCount, albumCount)
     GADGET_PROPERTY_DEF(qint32, musicCount, musicCount)
     GADGET_PROPERTY_DEF(std::vector<QString>, alias, alias)

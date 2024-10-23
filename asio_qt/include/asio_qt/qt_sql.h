@@ -155,6 +155,15 @@ CREATE TABLE IF NOT EXISTS {} (
         std::set<std::string_view>                                  ignores = {}) -> InsertHelper {
         InsertHelper             out;
         std::vector<std::string> column_names;
+        std::set<std::string>    on_update_include, on_update_exclude;
+        for (auto& el : on_update) {
+            if (el.starts_with('^')) {
+                on_update_exclude.insert(el.substr(1));
+            } else {
+                on_update_include.insert(el);
+            }
+        }
+
         for (int i = 0; i < meta.propertyCount(); i++) {
             auto name = meta.property(i).name();
             if (ignores.contains(name)) continue;
@@ -167,8 +176,10 @@ CREATE TABLE IF NOT EXISTS {} (
             });
         auto view_set = std::views::transform(
             std::views::filter(column_names,
-                               [&on_update](const std::string& s) {
-                                   return on_update.empty() || on_update.contains(s);
+                               [&on_update_include, &on_update_exclude](const std::string& s) {
+                                   return (on_update_include.empty() ||
+                                           on_update_include.contains(s)) &&
+                                          ! on_update_exclude.contains(s);
                                }),
             [](const std::string& s) -> std::string {
                 return fmt::format("{0} = :{0}", s);

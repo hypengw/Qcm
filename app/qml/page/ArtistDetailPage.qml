@@ -8,7 +8,7 @@ import Qcm.Material as MD
 MD.Page {
     id: root
 
-    property alias itemData: qr_artist.data
+    property var artistInfo: qr_artist.data.info
     property alias itemId: qr_artist.itemId
 
     title: qsTr("artist")
@@ -33,7 +33,7 @@ MD.Page {
                 id: m_cover
                 z: 1
                 elevation: MD.Token.elevation.level2
-                source: QA.Util.image_url(root.itemData.info.picUrl)
+                source: QA.Util.image_url(root.artistInfo.picUrl)
                 radius: width / 2
 
                 Layout.preferredWidth: displaySize.width
@@ -44,7 +44,7 @@ MD.Page {
                 id: m_title
                 Layout.fillWidth: true
                 maximumLineCount: 2
-                text: root.itemData.info.name
+                text: root.artistInfo.name
                 typescale: MD.Token.typescale.headline_large
             }
             RowLayout {
@@ -52,16 +52,16 @@ MD.Page {
                 spacing: 12
                 MD.Text {
                     typescale: MD.Token.typescale.body_medium
-                    text: `${root.itemData.info.albumCount} albums`
+                    text: `${root.artistInfo.albumCount} albums`
                 }
                 MD.Text {
                     typescale: MD.Token.typescale.body_medium
-                    text: `${root.itemData.info.musicSize} songs`
+                    text: `${root.artistInfo.musicCount} songs`
                 }
             }
             QA.ListDescription {
                 id: m_desc
-                description: root.itemData.info.briefDesc.trim()
+                description: root.artistInfo.description.trim()
                 Layout.fillWidth: true
             }
             RowLayout {
@@ -69,9 +69,7 @@ MD.Page {
                 Layout.alignment: Qt.AlignHCenter
                 MD.IconButton {
                     id: btn_fav
-                    action: QA.SubAction {
-                        liked: root.itemData.info.followed
-                        querier: qr_sub
+                    action: QA.CollectAction {
                         itemId: root.itemId
                     }
                 }
@@ -212,7 +210,7 @@ MD.Page {
                             MD.ListView {
                                 implicitHeight: contentHeight
                                 interactive: m_flick.atYEnd
-                                model: itemData.hotSongs
+                                model: artistInfo.hotSongs
                                 topMargin: 8
                                 bottomMargin: 8
                                 leftMargin: 24
@@ -240,7 +238,7 @@ MD.Page {
                             QA.MGridView {
                                 fixedCellWidth: Math.max(160, (Window.window?.width ?? 0) / 6.0)
                                 interactive: m_flick.atYEnd
-                                model: qr_artist_albums.data
+                                model: qr_artist.data
                                 onAtYBeginningChanged: {
                                     if (interactive) {
                                         m_flick.contentY -= 1;
@@ -274,9 +272,8 @@ MD.Page {
             }
         }
     }
-    QNcm.ArtistQuerier {
+    QA.ArtistDetailQuery {
         id: qr_artist
-        autoReload: itemId.valid()
     }
     QNcm.ArtistSubQuerier {
         id: qr_sub
@@ -286,10 +283,5 @@ MD.Page {
                 QA.App.artistLiked(itemId, sub);
             }
         }
-    }
-    QNcm.ArtistAlbumsQuerier {
-        id: qr_artist_albums
-        artistId: qr_artist.itemId
-        autoReload: artistId.valid()
     }
 }

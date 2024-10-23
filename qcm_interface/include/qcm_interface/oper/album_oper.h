@@ -20,6 +20,9 @@ struct QCM_INTERFACE_API AlbumOper : Oper<model::Album> {
     OPER_PROPERTY(QString, picUrl, picUrl)
     OPER_PROPERTY(QDateTime, publishTime, publishTime)
     OPER_PROPERTY(int, trackCount, trackCount)
+    OPER_PROPERTY(QString, description, description)
+    OPER_PROPERTY(QString, company, company)
+    OPER_PROPERTY(QString, type, type)
 };
 
 } // namespace qcm::oper
