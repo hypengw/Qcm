@@ -69,13 +69,13 @@ cmake --install build
 
 ### Todo:
 - [ ] jellyfin
-- [ ] sql api model
 - [ ] subsonic
 - [ ] mac/win
 - [ ] offline mode
 - [ ] playing page colorpick
 - [ ] playing page blur
 - [ ] android
+- [x] sql api model
 - [x] user session switch
 - [x] feedback
 - [x] upload
