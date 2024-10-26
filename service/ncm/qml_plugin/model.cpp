@@ -119,8 +119,23 @@ IMPL_CONVERT(qcm::model::Playlist, ncm::model::Playlist) {
     }
     convert(out.playCount, in.playCount);
     convert(out.trackCount, in.trackCount);
-    convert(out.subscribed, in.subscribed.value_or(false));
+    // convert(out.subscribed, in.subscribed.value_or(false));
     convert(out.userId, in.userId);
+};
+
+#define X(prop, in) out.set_##prop(convert_from<std::remove_cvref_t<decltype(out.prop())>>(in))
+
+IMPL_CONVERT(qcm::oper::PlaylistOper, ncm::model::Playlist) {
+    X(id, in.id);
+    X(name, in.name);
+    X(picUrl, in.coverImgUrl);
+    X(description, in.description.value_or(""));
+    if (in.updateTime) {
+        X(updateTime, in.updateTime.value());
+    }
+    X(playCount, in.playCount);
+    X(trackCount, in.trackCount);
+    X(userId, in.userId);
 };
 
 IMPL_CONVERT(QDateTime, ncm::model::Time) { out = QDateTime::fromMSecsSinceEpoch(in.milliseconds); }
@@ -134,8 +149,6 @@ IMPL_CONVERT(qcm::model::Artist, ncm::model::Artist) {
     convert(out.albumCount, in.albumSize);
     // convert(out.followed, in.followed);
 }
-
-#define X(prop, in) out.set_##prop(convert_from<std::remove_cvref_t<decltype(out.prop())>>(in))
 
 IMPL_CONVERT(qcm::oper::ArtistOper, ncm::model::Artist) {
     X(id, in.id);
@@ -173,6 +186,12 @@ IMPL_CONVERT(qcm::model::Album, ncm::model::Album) {
     // convert(out.artists, in.artists);
     // convert(out.publishTime, in.publishTime);
     // convert(out.trackCount, std::max(in.size, (i64)in.songs.size()));
+}
+
+IMPL_CONVERT(qcm::oper::AlbumOper, ncm::model::Song::Al) {
+    X(id, in.id);
+    X(name, in.name.value_or(""));
+    X(picUrl, in.picUrl.value_or(""));
 }
 
 IMPL_CONVERT(qcm::oper::AlbumOper, ncm::model::Album) {

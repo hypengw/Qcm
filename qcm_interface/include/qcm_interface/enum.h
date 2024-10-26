@@ -80,6 +80,13 @@ enum class CollectionType
     CTArtist,
 };
 Q_ENUM_NS(CollectionType)
+
+enum class SyncListType
+{
+    CTArtistSong = 0,
+    CTArtistAlbum,
+};
+Q_ENUM_NS(SyncListType)
 } // namespace enums
 
 } // namespace qcm

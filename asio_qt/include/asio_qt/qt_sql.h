@@ -42,6 +42,11 @@ public:
     static auto get_from_converter(int id) -> std::optional<Converter>;
     static auto get_to_converter(int id) -> std::optional<Converter>;
 
+    static constexpr auto EditTimeColumn { "_editTime DATETIME DEFAULT CURRENT_TIMESTAMP"sv };
+    static constexpr QStringView EditTimeColumnQSV {
+        u"_editTime DATETIME DEFAULT CURRENT_TIMESTAMP"
+    };
+
     auto get_executor() -> QtExecutor& { return m_ex; }
 
     auto is_open() const -> bool { return m_db.isOpen(); }
@@ -127,6 +132,10 @@ public:
             columns.push_back(s);
             column_names.push_back(s.substr(0, s.find_first_of(' ')));
         }
+
+        columns.emplace_back(EditTimeColumn);
+        column_names.emplace_back(EditTimeColumn.substr(0, EditTimeColumn.find_first_of(' ')));
+
         return generate_column_migration(
             table_name,
             QString::fromStdString(fmt::format(R"(

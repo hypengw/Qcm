@@ -45,8 +45,10 @@ struct Client {
         auto (*session_check)(ClientBase&, helper::QWatcher<model::Session>) -> task<Result<bool>>;
         auto (*collect)(ClientBase&, model::ItemId, bool) -> task<Result<bool>>;
         auto (*media_url)(ClientBase&, model::ItemId, enums::AudioQuality) -> task<Result<QUrl>>;
-        auto (*sync_collection)(ClientBase&, enums::CollectionType) -> task<void>;
-        auto (*sync_item)(ClientBase&, model::ItemId) -> task<void>;
+        auto (*sync_collection)(ClientBase&, enums::CollectionType) -> task<Result<bool>>;
+        auto (*sync_item)(ClientBase&, model::ItemId) -> task<Result<bool>>;
+        auto (*sync_list)(ClientBase&, enums::SyncListType type, model::ItemId itemId, i32 offset,
+                          i32 limit) -> task<Result<i32>>;
 
         void (*save)(ClientBase&, const std::filesystem::path&);
         void (*load)(ClientBase&, const std::filesystem::path&);

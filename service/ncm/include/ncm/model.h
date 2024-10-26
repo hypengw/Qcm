@@ -377,6 +377,9 @@ struct Album {
 };
 
 struct Playlist {
+    struct TrackId {
+        PlaylistId id {};
+    };
     PlaylistId  id {};
     std::string name;
     // coverImgId	109951167805071570
@@ -418,7 +421,7 @@ struct Playlist {
     std::optional<std::vector<Song>> tracks;
     // videoIds	null
     // videos	null
-    // trackIds	[…]
+    std::optional<std::vector<TrackId>> trackIds;
     // bannedTrackIds	null
     std::optional<i64> shareCount;
     std::optional<i64> commentCount;

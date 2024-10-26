@@ -28,7 +28,7 @@ public:
     song.itemId, 
     song.name, 
     COALESCE(song.coverUrl, album.picUrl) AS picUrl,
-    song.canPlay,
+    song.canPlay
 )" };
 
     // GATGET_LIST_PROPERTY(Artist, artists, artists)

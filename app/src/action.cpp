@@ -246,7 +246,12 @@ void App::on_collect(model::ItemId id, bool act) {
 
 void App::on_sync_collecttion(enums::CollectionType ct) {
     auto ex = asio::make_strand(m_global->pool_executor());
-    asio::co_spawn(ex, query::SyncAPi::sync_collection(ct), helper::asio_detached_log_t {});
+    asio::co_spawn(
+        ex,
+        [ct] -> task<void> {
+            co_await query::SyncAPi::sync_collection(ct);
+        },
+        helper::asio_detached_log_t {});
 }
 
 } // namespace qcm

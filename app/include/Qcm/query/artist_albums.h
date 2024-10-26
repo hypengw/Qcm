@@ -19,34 +19,37 @@
 namespace qcm::query
 {
 
-class ArtistDetail : public QObject {
+class ArtistAlbums : public meta_model::QGadgetListModel<model::Album> {
     Q_OBJECT
 
-    Q_PROPERTY(Artist info READ info NOTIFY infoChanged)
 public:
-    ArtistDetail(QObject* parent = nullptr): QObject(parent) {}
+    ArtistAlbums(QObject* parent = nullptr)
+        : meta_model::QGadgetListModel<model::Album>(parent), m_has_more(true) {}
 
-    auto info() const -> const Artist& { return m_info; }
-    void setInfo(const std::optional<Artist>& v) {
-        m_info = v.value_or(Artist {});
-        infoChanged();
+    bool canFetchMore(const QModelIndex&) const override { return m_has_more; }
+    void fetchMore(const QModelIndex&) override {
+        m_has_more = false;
+        emit fetchMoreReq(rowCount());
     }
 
-    Q_SIGNAL void infoChanged();
+    void setHasMore(bool v) { m_has_more = v; }
+
+    Q_SIGNAL void fetchMoreReq(qint32);
 
 private:
-    Artist m_info;
+    bool m_has_more;
 };
 
-class ArtistDetailQuery : public Query<ArtistDetail> {
+class ArtistAlbumsQuery : public QueryList<ArtistAlbums> {
     Q_OBJECT
     QML_ELEMENT
 
     Q_PROPERTY(model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
-    Q_PROPERTY(ArtistDetail* data READ tdata NOTIFY itemIdChanged FINAL)
+    Q_PROPERTY(ArtistAlbums* data READ tdata NOTIFY itemIdChanged FINAL)
 public:
-    ArtistDetailQuery(QObject* parent = nullptr): Query<ArtistDetail>(parent) {
-        connect(this, &ArtistDetailQuery::itemIdChanged, this, &ArtistDetailQuery::reload);
+    ArtistAlbumsQuery(QObject* parent = nullptr): QueryList<ArtistAlbums>(parent) {
+        connect_requet_reload(&ArtistAlbumsQuery::itemIdChanged);
+        connect(tdata(), &ArtistAlbums::fetchMoreReq, this, &ArtistAlbumsQuery::setOffset);
     }
 
     auto itemId() const -> const model::ItemId& { return m_album_id; }
@@ -59,39 +62,23 @@ public:
     Q_SIGNAL void itemIdChanged();
 
 public:
-    auto query_artist(model::ItemId itemId) -> task<std::optional<Artist>> {
+    auto query_artist_album_count(model::ItemId itemId) -> task<std::optional<i32>> {
         auto sql = App::instance()->album_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
 
         auto query = sql->con()->query();
-        query.prepare(uR"(
-SELECT 
-    itemId, 
-    name, 
-    picUrl, 
-    albumCount,
-    musicCount
-FROM artist 
-WHERE itemId = :itemId;
-)"_s);
+        query.prepare(u"SELECT albumCount FROM artist WHERE itemId = :itemId;"_s);
         query.bindValue(":itemId", itemId.toUrl());
 
         if (! query.exec()) {
             ERROR_LOG("{}", query.lastError().text());
         } else if (query.next()) {
-            Artist artist;
-            int    i          = 0;
-            artist.id         = query.value(i++).toUrl();
-            artist.name       = query.value(i++).toString();
-            artist.picUrl     = query.value(i++).toString();
-            artist.albumCount = query.value(i++).toInt();
-            artist.musicCount = query.value(i++).toInt();
-            co_return artist;
+            co_return query.value(0).toInt();
         }
         co_return std::nullopt;
     }
-
-    auto query_albums(model::ItemId itemId) -> task<std::optional<std::vector<model::Album>>> {
+    auto query_albums(model::ItemId itemId, qint32 offset,
+                      qint32 limit) -> task<std::optional<std::vector<model::Album>>> {
         auto sql = App::instance()->album_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
         auto query = sql->con()->query();
@@ -103,10 +90,13 @@ JOIN album_artist ON album.itemId = album_artist.albumId
 JOIN artist ON album_artist.artistId = artist.itemId
 WHERE album_artist.artistId = :itemId
 GROUP BY album.itemId
-ORDER BY album.publishTime DESC;
+ORDER BY album.publishTime DESC
+LIMIT :limit OFFSET :offset;
 )"_s.arg(Album::Select));
 
         query.bindValue(":itemId", itemId.toUrl());
+        query.bindValue(":offset", offset);
+        query.bindValue(":limit", limit);
 
         if (! query.exec()) {
             ERROR_LOG("{}", query.lastError().text());
@@ -127,19 +117,23 @@ ORDER BY album.publishTime DESC;
         auto ex     = asio::make_strand(pool_executor());
         auto self   = helper::QWatcher { this };
         auto itemId = m_album_id;
-        spawn(ex, [self, itemId] -> task<void> {
+        auto offset = self->offset();
+        auto limit  = self->limit();
+        spawn(ex, [self, itemId, offset, limit] -> task<void> {
             auto                     sql = App::instance()->album_sql();
             std::vector<model::Song> items;
             bool                     needReload = false;
 
             bool                                     synced { 0 };
-            std::optional<Artist>                    artist;
             std::optional<std::vector<model::Album>> albums;
             for (;;) {
-                artist = co_await self->query_artist(itemId);
-                // albums = co_await self->query_albums(itemId);
-                if (! synced && ! artist) {
-                    co_await SyncAPi::sync_item(itemId);
+                auto count = co_await self->query_artist_album_count(itemId);
+                albums     = co_await self->query_albums(itemId, offset, limit);
+                if (! synced &&
+                    (! count || ! albums ||
+                     (offset + (int)albums->size() != count && (int)albums->size() < limit))) {
+                    co_await SyncAPi::sync_list(
+                        enums::SyncListType::CTArtistAlbum, itemId, offset, limit);
                     synced = true;
                     continue;
                 }
@@ -149,7 +143,11 @@ ORDER BY album.publishTime DESC;
             co_await asio::post(
                 asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
             if (self) {
-                self->tdata()->setInfo(artist);
+                if (albums) {
+                    self->tdata()->setHasMore(albums->size());
+                    self->tdata()->insert(self->tdata()->rowCount(),
+                                          albums.value());
+                }
                 self->set_status(Status::Finished);
             }
             co_return;

@@ -27,7 +27,7 @@ public:
     album.name, 
     album.picUrl, 
     album.trackCount,
-    album.publishTime,
+    album.publishTime
 )" };
 
     std::strong_ordering operator<=>(const Album&) const = default;

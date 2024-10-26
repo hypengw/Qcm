@@ -17,6 +17,7 @@
 #include "qcm_interface/item_id.h"
 #include "qcm_interface/model/artist.h"
 #include "qcm_interface/model/song.h"
+#include "qcm_interface/model/playlist.h"
 
 namespace qcm::model
 {
@@ -25,24 +26,6 @@ using Extra = std::map<QString, QString, std::less<>>;
 template<typename T>
 using to_param =
     std::conditional_t<std::is_pointer_v<T>, T, std::add_lvalue_reference_t<std::add_const_t<T>>>;
-
-class QCM_INTERFACE_API Playlist {
-    Q_GADGET
-    QML_VALUE_TYPE(t_playlist)
-public:
-    GADGET_PROPERTY_DEF(ItemId, itemId, id)
-    GADGET_PROPERTY_DEF(QString, name, name)
-    GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
-    GADGET_PROPERTY_DEF(QString, description, description)
-    GADGET_PROPERTY_DEF(QDateTime, updateTime, updateTime)
-    GADGET_PROPERTY_DEF(qint32, playCount, playCount)
-    GADGET_PROPERTY_DEF(qint32, trackCount, trackCount)
-    GADGET_PROPERTY_DEF(bool, subscribed, subscribed)
-    GADGET_PROPERTY_DEF(ItemId, userId, userId)
-
-    std::strong_ordering operator<=>(const Playlist&) const = default;
-};
-
 
 class QCM_INTERFACE_API User {
     Q_GADGET

@@ -4,6 +4,8 @@
 #include "qcm_interface/model/artist.h"
 #include "qcm_interface/oper/song_oper.h"
 #include "qcm_interface/model/song.h"
+#include "qcm_interface/oper/playlist_oper.h"
+#include "qcm_interface/model/playlist.h"
 
 namespace qcm::oper
 {
@@ -42,6 +44,7 @@ auto create_list(usize num) -> OperList<T> {
 X(model::Album)
 X(model::Artist)
 X(model::Song)
+X(model::Playlist)
 
 IMPL_OPER_PROPERTY(AlbumOper, ItemId, itemId, id)
 IMPL_OPER_PROPERTY(AlbumOper, QString, name, name)
@@ -71,4 +74,13 @@ IMPL_OPER_PROPERTY(SongOper, QStringList, tags, tags)
 IMPL_OPER_PROPERTY(SongOper, qreal, popularity, popularity)
 IMPL_OPER_PROPERTY(SongOper, QVariant, source, source)
 IMPL_OPER_PROPERTY(SongOper, ItemId, sourceId, sourceId)
+
+IMPL_OPER_PROPERTY(PlaylistOper, ItemId, itemId, id)
+IMPL_OPER_PROPERTY(PlaylistOper, QString, name, name)
+IMPL_OPER_PROPERTY(PlaylistOper, QString, picUrl, picUrl)
+IMPL_OPER_PROPERTY(PlaylistOper, QString, description, description)
+IMPL_OPER_PROPERTY(PlaylistOper, QDateTime, updateTime, updateTime)
+IMPL_OPER_PROPERTY(PlaylistOper, qint32, playCount, playCount)
+IMPL_OPER_PROPERTY(PlaylistOper, qint32, trackCount, trackCount)
+IMPL_OPER_PROPERTY(PlaylistOper, ItemId, userId, userId)
 } // namespace qcm::oper

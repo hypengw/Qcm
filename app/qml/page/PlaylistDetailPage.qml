@@ -33,7 +33,7 @@ MD.Page {
         topMargin: MD.MatProp.size.verticalPadding
         bottomMargin: MD.MatProp.size.verticalPadding + m_view_pane.bottomMargin
 
-        model: root.itemData.songs
+        model: root.itemData
         readonly property bool single: width < m_cover.displaySize.width * (1.0 + 1.5) + 8
 
         Item {
@@ -42,7 +42,7 @@ MD.Page {
             QA.Image {
                 id: m_cover
                 elevation: MD.Token.elevation.level2
-                source: QA.Util.image_url(root.itemData.picUrl)
+                source: QA.Util.image_url(root.itemData.info.picUrl)
                 radius: 16
 
                 Layout.preferredWidth: displaySize.width
@@ -53,7 +53,7 @@ MD.Page {
                 id: m_title
                 Layout.fillWidth: true
                 maximumLineCount: 2
-                text: root.itemData.name
+                text: root.itemData.info.name
                 typescale: m_view.single ? MD.Token.typescale.headline_medium : MD.Token.typescale.headline_large
             }
 
@@ -62,34 +62,32 @@ MD.Page {
                 spacing: 12
                 MD.Text {
                     typescale: MD.Token.typescale.body_medium
-                    text: `${root.itemData.songs.length} tracks`
+                    text: `${root.itemData.info.trackCount} tracks`
                 }
                 MD.Text {
                     typescale: MD.Token.typescale.body_medium
-                    text: Qt.formatDateTime(root.itemData.updateTime, 'yyyy.MM.dd')
+                    text: Qt.formatDateTime(root.itemData.info.updateTime, 'yyyy.MM.dd')
                 }
             }
             QA.ListDescription {
                 id: m_desc
-                description: root.itemData.description.trim()
+                description: root.itemData.info.description.trim()
             }
 
             RowLayout {
                 id: m_control_pane
                 Layout.alignment: Qt.AlignHCenter
                 MD.IconButton {
-                    action: QA.AppendListAction {
-                        getSongs: function () {
-                            return itemData.songs;
-                        }
-                    }
+                    //action: QA.AppendListAction {
+                    //    getSongs: function () {
+                    //        return itemData.songs;
+                    //    }
+                    //}
                 }
+
                 MD.IconButton {
                     id: btn_fav
-                    action: QA.SubAction {
-                        enabled: QA.Global.session.user.userId !== itemData.userId
-                        liked: qr_dynamic.data.subscribed
-                        querier: qr_sub
+                    action: QA.CollectAction {
                         itemId: root.itemId
                     }
                 }
@@ -209,31 +207,21 @@ MD.Page {
         action: Action {
             icon.name: MD.Token.icon.play_arrow
             onTriggered: {
-                const songs = itemData.songs.filter(s => {
-                    return s.canPlay;
-                });
-                if (songs.length)
-                    QA.App.playlist.switchList(songs);
+                //const songs = itemData.songs.filter(s => {
+                //    return s.canPlay;
+                //});
+                //if (songs.length)
+                //    QA.App.playlist.switchList(songs);
             }
         }
     }
 
-    QNcm.PlaylistDetailQuerier {
+    QA.PlaylistDetailQuery {
         id: qr_pl
-        autoReload: root.itemId.valid()
     }
-    QNcm.PlaylistDetailDynamicQuerier {
-        id: qr_dynamic
-        autoReload: itemId.valid()
-        itemId: qr_pl.itemId
-    }
-    QNcm.PlaylistSubscribeQuerier {
-        id: qr_sub
-        autoReload: false
-
-        onStatusChanged: {
-            if (status === QA.enums.Finished)
-                QA.App.playlistLiked(itemId, sub);
-        }
-    }
+    //QNcm.PlaylistDetailDynamicQuerier {
+    //    id: qr_dynamic
+    //    autoReload: itemId.valid()
+    //    itemId: qr_pl.itemId
+    //}
 }

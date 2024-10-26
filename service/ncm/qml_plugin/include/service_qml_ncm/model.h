@@ -5,6 +5,7 @@
 #include "qcm_interface/oper/album_oper.h"
 #include "qcm_interface/oper/artist_oper.h"
 #include "qcm_interface/oper/song_oper.h"
+#include "qcm_interface/oper/playlist_oper.h"
 #include "ncm/model.h"
 #include "service_qml_ncm/enum.h"
 
@@ -15,7 +16,9 @@ DECLARE_CONVERT(qcm::model::Artist, ncm::model::Song::Ar)
 DECLARE_CONVERT(qcm::oper::ArtistOper, ncm::model::Song::Ar)
 DECLARE_CONVERT(qcm::model::Album, ncm::model::Album)
 DECLARE_CONVERT(qcm::oper::AlbumOper, ncm::model::Album)
+DECLARE_CONVERT(qcm::oper::AlbumOper, ncm::model::Song::Al)
 DECLARE_CONVERT(qcm::model::Playlist, ncm::model::Playlist)
+DECLARE_CONVERT(qcm::oper::PlaylistOper, ncm::model::Playlist)
 DECLARE_CONVERT(qcm::model::Song, ncm::model::Song)
 DECLARE_CONVERT(qcm::oper::SongOper, ncm::model::Song)
 DECLARE_CONVERT(qcm::model::User, ncm::model::User)

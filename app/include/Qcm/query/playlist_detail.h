@@ -19,34 +19,43 @@
 namespace qcm::query
 {
 
-class ArtistDetail : public QObject {
+class PlaylistDetail : public meta_model::QGadgetListModel<Song> {
     Q_OBJECT
 
-    Q_PROPERTY(Artist info READ info NOTIFY infoChanged)
+    Q_PROPERTY(qcm::model::Playlist info READ info NOTIFY infoChanged)
 public:
-    ArtistDetail(QObject* parent = nullptr): QObject(parent) {}
+    PlaylistDetail(QObject* parent = nullptr)
+        : meta_model::QGadgetListModel<Song>(parent), m_has_more(true) {}
 
-    auto info() const -> const Artist& { return m_info; }
-    void setInfo(const std::optional<Artist>& v) {
-        m_info = v.value_or(Artist {});
+    auto info() const -> const model::Playlist& { return m_info; }
+    void setInfo(const std::optional<model::Playlist>& v) {
+        m_info = v.value_or(model::Playlist {});
         infoChanged();
     }
 
+    bool canFetchMore(const QModelIndex&) const override { return m_has_more; }
+    void fetchMore(const QModelIndex&) override {
+        m_has_more = false;
+        emit fetchMoreReq(rowCount());
+    }
+
+    Q_SIGNAL void fetchMoreReq(qint32);
     Q_SIGNAL void infoChanged();
 
 private:
-    Artist m_info;
+    bool            m_has_more;
+    model::Playlist m_info;
 };
 
-class ArtistDetailQuery : public Query<ArtistDetail> {
+class PlaylistDetailQuery : public Query<PlaylistDetail> {
     Q_OBJECT
     QML_ELEMENT
 
     Q_PROPERTY(model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
-    Q_PROPERTY(ArtistDetail* data READ tdata NOTIFY itemIdChanged FINAL)
+    Q_PROPERTY(PlaylistDetail* data READ tdata NOTIFY itemIdChanged FINAL)
 public:
-    ArtistDetailQuery(QObject* parent = nullptr): Query<ArtistDetail>(parent) {
-        connect(this, &ArtistDetailQuery::itemIdChanged, this, &ArtistDetailQuery::reload);
+    PlaylistDetailQuery(QObject* parent = nullptr): Query<PlaylistDetail>(parent) {
+        connect(this, &PlaylistDetailQuery::itemIdChanged, this, &PlaylistDetailQuery::reload);
     }
 
     auto itemId() const -> const model::ItemId& { return m_album_id; }
@@ -59,65 +68,59 @@ public:
     Q_SIGNAL void itemIdChanged();
 
 public:
-    auto query_artist(model::ItemId itemId) -> task<std::optional<Artist>> {
+    auto query_playlist(model::ItemId itemId) -> task<std::optional<model::Playlist>> {
         auto sql = App::instance()->album_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
 
         auto query = sql->con()->query();
         query.prepare(uR"(
 SELECT 
-    itemId, 
-    name, 
-    picUrl, 
-    albumCount,
-    musicCount
-FROM artist 
-WHERE itemId = :itemId;
-)"_s);
+    %1
+FROM playlist
+WHERE playlist.itemId = :itemId;
+)"_s.arg(model::Playlist::Select));
         query.bindValue(":itemId", itemId.toUrl());
 
         if (! query.exec()) {
             ERROR_LOG("{}", query.lastError().text());
         } else if (query.next()) {
-            Artist artist;
-            int    i          = 0;
-            artist.id         = query.value(i++).toUrl();
-            artist.name       = query.value(i++).toString();
-            artist.picUrl     = query.value(i++).toString();
-            artist.albumCount = query.value(i++).toInt();
-            artist.musicCount = query.value(i++).toInt();
-            co_return artist;
+            model::Playlist pl;
+            int             i = 0;
+            query::load_query(pl, query, i);
+            co_return pl;
         }
         co_return std::nullopt;
     }
 
-    auto query_albums(model::ItemId itemId) -> task<std::optional<std::vector<model::Album>>> {
+    auto query_songs(model::ItemId itemId) -> task<std::optional<std::vector<Song>>> {
         auto sql = App::instance()->album_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
         auto query = sql->con()->query();
         query.prepare(uR"(
 SELECT 
     %1
-FROM album
-JOIN album_artist ON album.itemId = album_artist.albumId
-JOIN artist ON album_artist.artistId = artist.itemId
-WHERE album_artist.artistId = :itemId
-GROUP BY album.itemId
-ORDER BY album.publishTime DESC;
-)"_s.arg(Album::Select));
+FROM song
+JOIN album ON song.albumId = album.itemId
+JOIN song_artist ON song.itemId = song_artist.songId
+JOIN artist ON song_artist.artistId = artist.itemId
+JOIN playlist_song ON playlist_song.songId = song.itemId
+WHERE playlist_song.playlistId = :itemId
+GROUP BY song.itemId
+ORDER BY playlist_song.orderIdx;
+)"_s.arg(Song::Select));
 
         query.bindValue(":itemId", itemId.toUrl());
 
         if (! query.exec()) {
             ERROR_LOG("{}", query.lastError().text());
         } else {
-            std::vector<model::Album> albums;
+            std::vector<Song> songs;
             while (query.next()) {
-                auto& al = albums.emplace_back();
-                int   i  = 0;
-                load_query(al, query, i);
+                auto& s = songs.emplace_back();
+                int   i = 0;
+                s.load_query(query, i);
             }
-            co_return albums;
+            co_return songs;
         }
         co_return std::nullopt;
     }
@@ -132,13 +135,14 @@ ORDER BY album.publishTime DESC;
             std::vector<model::Song> items;
             bool                     needReload = false;
 
-            bool                                     synced { 0 };
-            std::optional<Artist>                    artist;
-            std::optional<std::vector<model::Album>> albums;
+            bool                             synced { 0 };
+            std::optional<model::Playlist>   playlist;
+            std::optional<std::vector<Song>> songs;
             for (;;) {
-                artist = co_await self->query_artist(itemId);
-                // albums = co_await self->query_albums(itemId);
-                if (! synced && ! artist) {
+                playlist = co_await self->query_playlist(itemId);
+                songs    = co_await self->query_songs(itemId);
+                if (! synced &&
+                    (! playlist || ! songs || playlist->trackCount != (int)songs->size())) {
                     co_await SyncAPi::sync_item(itemId);
                     synced = true;
                     continue;
@@ -149,7 +153,8 @@ ORDER BY album.publishTime DESC;
             co_await asio::post(
                 asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
             if (self) {
-                self->tdata()->setInfo(artist);
+                self->tdata()->setInfo(playlist);
+                self->tdata()->resetModel(songs);
                 self->set_status(Status::Finished);
             }
             co_return;

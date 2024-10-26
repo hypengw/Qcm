@@ -4,6 +4,7 @@
 #include "qcm_interface/model/album.h"
 #include "qcm_interface/model/artist.h"
 #include "qcm_interface/model/song.h"
+#include "qcm_interface/model/playlist.h"
 #include "core/qstr_helper.h"
 
 namespace qcm::query
@@ -23,6 +24,18 @@ inline void load_query(model::Song& song, QSqlQuery& query, int& i) {
     song.coverUrl = query.value(i++).toString();
     song.canPlay  = query.value(i++).toInt();
 }
+
+inline void load_query(model::Playlist& pl, QSqlQuery& query, int& i) {
+    pl.id          = query.value(i++).toUrl();
+    pl.name        = query.value(i++).toString();
+    pl.picUrl      = query.value(i++).toString();
+    pl.description = query.value(i++).toString();
+    pl.trackCount  = query.value(i++).toInt();
+    pl.playCount   = query.value(i++).toInt();
+    pl.updateTime  = query.value(i++).toDateTime();
+    pl.userId      = query.value(i++).toUrl();
+}
+
 struct Artist : model::Artist {
     Q_GADGET
 public:
@@ -32,7 +45,7 @@ struct Album : model::Album {
 public:
     GADGET_PROPERTY_DEF(std::vector<model::ArtistRefer>, artists, artists)
     inline static const QString Select { uR"(
-    %1
+    %1,
     GROUP_CONCAT(artist.itemId) AS artistIds, 
     GROUP_CONCAT(artist.name) AS artistNames,
     GROUP_CONCAT(artist.picUrl) AS artistPicUrls
@@ -60,7 +73,7 @@ public:
     GADGET_PROPERTY_DEF(std::vector<model::ArtistRefer>, artists, artists)
 
     inline static QString Select { uR"(
-    %1
+    %1,
     album.itemId,
     album.name,
     GROUP_CONCAT(artist.itemId) AS artistIds, 

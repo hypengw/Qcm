@@ -210,7 +210,7 @@ MD.Page {
                             MD.ListView {
                                 interactive: m_flick.atYEnd
                                 expand: true
-                                model: artistInfo.hotSongs
+                                model: qr_artist_songs.data
                                 topMargin: 8
                                 bottomMargin: 8
                                 leftMargin: 24
@@ -223,11 +223,14 @@ MD.Page {
                                 }
 
                                 delegate: QA.SongDelegate {
-                                    subtitle: `${modelData.album.name}`
+                                    required property var model
+                                    required property int index
+                                    dgModel: model
+                                    subtitle: `${dgModel.albumName}`
                                     width: ListView.view.contentWidth
 
                                     onClicked: {
-                                        QA.App.playlist.switchTo(modelData);
+                                        QA.App.playlist.switchTo(dgModel);
                                     }
                                 }
                                 footer: MD.ListBusyFooter {
@@ -239,7 +242,7 @@ MD.Page {
                                 fixedCellWidth: Math.max(160, (Window.window?.width ?? 0) / 6.0)
                                 interactive: m_flick.atYEnd
                                 implicitHeight: contentHeight
-                                model: qr_artist.data
+                                model: qr_artist_albums.data
                                 onAtYBeginningChanged: {
                                     if (interactive) {
                                         m_flick.contentY -= 1;
@@ -276,13 +279,12 @@ MD.Page {
     QA.ArtistDetailQuery {
         id: qr_artist
     }
-    QNcm.ArtistSubQuerier {
-        id: qr_sub
-        autoReload: false
-        onStatusChanged: {
-            if (status === QA.enums.Finished) {
-                QA.App.artistLiked(itemId, sub);
-            }
-        }
+    QA.ArtistSongsQuery {
+        id: qr_artist_songs
+        itemId: qr_artist.itemId
+    }
+    QA.ArtistAlbumsQuery {
+        id: qr_artist_albums
+        itemId: qr_artist.itemId
     }
 }

@@ -29,11 +29,15 @@ set(SOURCES
     include/Qcm/sql/cache_sql.h
     include/Qcm/sql/collection_sql.h
 
+    include/Qcm/query/query.h
     include/Qcm/query/query_model.h
     include/Qcm/query/album_collection.h
     include/Qcm/query/artist_collection.h
     include/Qcm/query/album_detail.h
+    include/Qcm/query/playlist_detail.h
     include/Qcm/query/artist_detail.h
+    include/Qcm/query/artist_albums.h
+    include/Qcm/query/artist_songs.h
 
     src/action.cpp
     src/app.cpp

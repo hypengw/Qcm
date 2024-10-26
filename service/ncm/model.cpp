@@ -9,6 +9,7 @@
 #include "ncm/api/artist_albums.h"
 #include "ncm/api/artist_sublist.h"
 #include "ncm/api/artist_sub.h"
+#include "ncm/api/artist_songs.h"
 #include "ncm/api/cloudsearch.h"
 #include "ncm/api/comments.h"
 #include "ncm/api/djradio_detail.h"
@@ -83,8 +84,8 @@ JSON_DEFINE_IMPL(Song::Privilege, downloadMaxBrLevel, playMaxBrLevel, downloadMa
                  playMaxbr, preSell, plLevel, flLevel, dlLevel, toast, payed, maxbr, subp, flag, sp,
                  pl, fl, dl, cs, fee, st, id, cp);
 
-JSON_DEFINE_IMPL(SongB, name, no, ftype, album, artists, commentThreadId, copyright, copyrightId, disc,
-                 duration, fee, hearTime, id, status, starred, score, popularity, playedNum)
+JSON_DEFINE_IMPL(SongB, name, no, ftype, album, artists, commentThreadId, copyright, copyrightId,
+                 disc, duration, fee, hearTime, id, status, starred, score, popularity, playedNum)
 
 struct Song_ : Song {};
 JSON_DEFINE_IMPL(Song_, ar, al, st, rtype, pst, alia, pop, rt, mst, cp, cf, dt, ftype, no, fee, mv,
@@ -136,9 +137,11 @@ JSON_DEFINE_IMPL(ArtistSublistItem, mvSize, info, albumSize, trans, img1v1Url, p
 
 JSON_DEFINE_IMPL(PlaylistCatalogue, resourceCount, resourceType, category, activity, imgId, hot,
                  type, name);
-JSON_DEFINE_IMPL(Playlist, id, commentCount, specialType, shareCount, tracks, status, tags,
-                 commentThreadId, updateTime, subscribed, name, coverImgUrl, playCount, description,
-                 createTime, userId, trackCount);
+
+JSON_DEFINE_IMPL(Playlist::TrackId, id)
+JSON_DEFINE_IMPL(Playlist, id, commentCount, specialType, shareCount, tracks, trackIds, status,
+                 tags, commentThreadId, updateTime, subscribed, name, coverImgUrl, playCount,
+                 description, createTime, userId, trackCount);
 
 JSON_DEFINE_IMPL(RecommendResourceItem, copywriter, playcount, picUrl, type, name, id, trackCount,
                  createTime);
@@ -215,6 +218,7 @@ JSON_DEFINE_IMPL(AlbumSub, code);
 JSON_DEFINE_IMPL(AlbumSublist, code, data, count, hasMore);
 JSON_DEFINE_IMPL(Artist, code, hotSongs, artist, more);
 JSON_DEFINE_IMPL(ArtistAlbums, code, hotAlbums, more);
+JSON_DEFINE_IMPL(ArtistSongs, code, songs, more, total);
 JSON_DEFINE_IMPL(ArtistSub, code);
 JSON_DEFINE_IMPL(ArtistSublist, code, data, count, hasMore);
 JSON_DEFINE_IMPL(Login, code);
@@ -285,6 +289,7 @@ JSON_GET_IMPL(ncm::api_model::AlbumSub);
 JSON_GET_IMPL(ncm::api_model::AlbumSublist);
 JSON_GET_IMPL(ncm::api_model::Artist);
 JSON_GET_IMPL(ncm::api_model::ArtistAlbums);
+JSON_GET_IMPL(ncm::api_model::ArtistSongs);
 JSON_GET_IMPL(ncm::api_model::ArtistSub);
 JSON_GET_IMPL(ncm::api_model::ArtistSublist);
 JSON_GET_IMPL(ncm::api_model::CloudSearch);
