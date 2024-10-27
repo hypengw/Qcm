@@ -75,6 +75,7 @@ cmake --install build
 - [ ] playing page colorpick
 - [ ] playing page blur
 - [ ] android
+- [ ] private radio
 - [x] sql api model
 - [x] user session switch
 - [x] feedback

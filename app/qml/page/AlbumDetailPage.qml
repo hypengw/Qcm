@@ -3,7 +3,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Qcm.App as QA
-import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 MD.Page {
@@ -102,17 +101,15 @@ MD.Page {
                 }
                 MD.IconButton {
                     id: btn_fav
-                    action: QA.SubAction {
-                        liked: false//qr_dynamic.data.isSub
-                        querier: qr_sub
+                    action: QA.CollectAction {
                         itemId: root.itemId
                     }
                 }
                 MD.IconButton {
                     id: btn_comment
-                    action: QNcm.CommentAction {
-                        itemId: root.itemId
-                    }
+                    //action: QNcm.CommentAction {
+                    //    itemId: root.itemId
+                    //}
                 }
             }
         }
@@ -250,20 +247,5 @@ MD.Page {
 
     QA.AlbumDetailQuery {
         id: qr_al
-    }
-    //QNcm.AlbumDetailDynamicQuerier {
-    //    id: qr_dynamic
-    //    autoReload: itemId.valid()
-    //    itemId: qr_al.itemId
-    //}
-    QNcm.AlbumSubQuerier {
-        id: qr_sub
-        autoReload: false
-
-        onStatusChanged: {
-            if (status === QA.enums.Finished) {
-                QA.App.albumLiked(itemId, sub);
-            }
-        }
     }
 }
