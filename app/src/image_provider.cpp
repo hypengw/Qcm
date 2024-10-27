@@ -12,7 +12,7 @@
 #include <QtCore/QPointer>
 
 #include "qcm_interface/path.h"
-#include "qcm_interface/cache_sql.h"
+#include "qcm_interface/sql/cache_sql.h"
 #include "qcm_interface/global.h"
 
 #include "core/expected_helper.h"

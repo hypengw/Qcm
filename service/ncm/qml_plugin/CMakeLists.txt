@@ -5,12 +5,9 @@ find_package(
 set(SOURCES
     include/service_qml_ncm/api/user_account.h
     include/service_qml_ncm/model.h
-    include/service_qml_ncm/model/album_detail.h
     include/service_qml_ncm/model/album_detail_dynamic.h
     include/service_qml_ncm/model/album_sub.h
     include/service_qml_ncm/model/album_sublist.h
-    include/service_qml_ncm/model/artist.h
-    include/service_qml_ncm/model/artist_albums.h
     include/service_qml_ncm/model/artist_sub.h
     include/service_qml_ncm/model/artist_sublist.h
     include/service_qml_ncm/model/comments.h
@@ -22,7 +19,6 @@ set(SOURCES
     include/service_qml_ncm/model/login.h
     include/service_qml_ncm/model/logout.h
     include/service_qml_ncm/model/playlist_catalogue.h
-    include/service_qml_ncm/model/playlist_detail.h
     include/service_qml_ncm/model/playlist_detail_dynamic.h
     include/service_qml_ncm/model/playlist_list.h
     include/service_qml_ncm/model/playlist_subscribe.h

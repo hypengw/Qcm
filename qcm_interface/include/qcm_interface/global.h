@@ -13,7 +13,7 @@
 #include "qcm_interface/model/app_info.h"
 #include "qcm_interface/enum.h"
 
-#include "qcm_interface/cache_sql.h"
+#include "qcm_interface/sql/cache_sql.h"
 
 #include "qcm_interface/metadata.h"
 #include "qcm_interface/client.h"
