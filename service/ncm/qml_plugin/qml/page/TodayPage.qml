@@ -138,17 +138,17 @@ MD.Page {
                                 picWidth: parent.GridView.view.fixedCellWidth
                                 width: picWidth
                                 height: Math.min(implicitHeight, parent.height)
-                                image.source: QA.Util.image_url(pl_querier.data.picUrl)
-                                text: pl_querier.data.name
+                                image.source: QA.Util.image_url(pl_querier.data.info.picUrl)
+                                text: pl_querier.data.info.name
 
                                 onClicked: {
                                     QA.Global.route(parent.model.id);
                                 }
                             }
 
-                            QNcm.PlaylistDetailQuerier {
+                            QA.PlaylistDetailQuery {
                                 id: pl_querier
-                                itemId: parent.model.id
+                                itemId: model.id
                             }
                         }
                     }

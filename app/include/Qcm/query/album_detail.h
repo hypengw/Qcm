@@ -89,7 +89,7 @@ GROUP BY album.itemId;
         } else if (query.next()) {
             Album album;
             int   i = 0;
-            album.load_query(query, i);
+            load_query(album, query, i);
             co_return album;
         }
         co_return std::nullopt;
@@ -120,7 +120,7 @@ ORDER BY song.trackNumber ASC;
             while (query.next()) {
                 auto& s = songs.emplace_back();
                 int   i = 0;
-                s.load_query(query, i);
+                load_query(s, query, i);
             }
             co_return songs;
         }

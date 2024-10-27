@@ -27,7 +27,7 @@
 #include "media_cache/media_cache.h"
 #include "qcm_interface/model/user_account.h"
 #include "Qcm/player.h"
-#include "Qcm/playlist.h"
+#include "Qcm/play_queue.h"
 
 #include "qcm_interface/global.h"
 
@@ -58,8 +58,8 @@ class App : public QObject {
 
     Q_PROPERTY(QObject* mpris READ mpris CONSTANT FINAL)
     Q_PROPERTY(bool debug READ debug CONSTANT FINAL)
-    Q_PROPERTY(Global* global READ global CONSTANT FINAL)
-    Q_PROPERTY(Playlist* playlist READ playlist CONSTANT FINAL)
+    Q_PROPERTY(qcm::Global* global READ global CONSTANT FINAL)
+    Q_PROPERTY(qcm::PlayQueue* playlist READ playlist CONSTANT FINAL)
 
     friend class qml::Util;
 
@@ -101,7 +101,7 @@ public:
     auto        engine() const -> QQmlApplicationEngine*;
     auto        global() const -> Global*;
     auto        util() const -> qml::Util*;
-    auto        playlist() const -> Playlist*;
+    auto        playlist() const -> PlayQueue*;
     void        set_player_sender(Sender<Player::NotifyInfo>);
     auto        media_cache_sql() const -> rc<CacheSql>;
     auto        cache_sql() const -> rc<CacheSql>;
@@ -156,7 +156,7 @@ private:
 
     rc<Global>    m_global;
     rc<qml::Util> m_util;
-    Playlist*     m_playlist;
+    PlayQueue*     m_playlist;
 #ifndef NODEBUS
     up<mpris::Mpris> m_mpris;
 #endif

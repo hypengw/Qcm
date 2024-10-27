@@ -1,4 +1,4 @@
-#include "Qcm/playlist.h"
+#include "Qcm/play_queue.h"
 
 #include <ranges>
 
@@ -22,7 +22,7 @@ inline QString get_song_id_str(const model::Song& s) { return get_song_id_str(s.
 
 namespace qcm::detail
 {
-class PlayList {
+class PlayQueue {
 public:
     using list_type      = std::vector<QString>;
     using iterator       = list_type::iterator;
@@ -140,7 +140,7 @@ public:
         return false;
     }
 
-    void sync_cur(const PlayList& o) {
+    void sync_cur(const PlayQueue& o) {
         if (auto cur = o.cur())
             set_cur(cur.value());
         else
@@ -166,8 +166,8 @@ private:
 
 } // namespace qcm::detail
 
-struct qcm::Playlist::CurGuard {
-    CurGuard(Playlist& p, bool refresh = false): p(p), refresh(refresh) {
+struct qcm::PlayQueue::CurGuard {
+    CurGuard(PlayQueue& p, bool refresh = false): p(p), refresh(refresh) {
         auto& list = p.m_list;
         cur        = list->cur();
         cur_pos    = list->cur_pos();
@@ -180,44 +180,44 @@ struct qcm::Playlist::CurGuard {
             p.check_cur(refresh);
     }
 
-    Playlist&              p;
+    PlayQueue&              p;
     bool                   refresh;
     std::optional<QString> cur;
     std::optional<usize>   cur_pos;
 };
 
-void detail::PlayList::shuffle(iterator from, iterator end) {
+void detail::PlayQueue::shuffle(iterator from, iterator end) {
     auto cur_ = cur();
     Random::shuffle(from, end);
 
     if (cur_) set_cur(cur_.value());
 }
 
-auto detail::PlayList::random_insert_after(iterator it, const QString& s) {
+auto detail::PlayQueue::random_insert_after(iterator it, const QString& s) {
     auto end_      = end();
     auto random_it = Random::get(it == end_ ? end_ : it + 1, end_);
     return insert(random_it, s);
 }
 
-Playlist::Playlist(QObject* parent)
+PlayQueue::PlayQueue(QObject* parent)
     : QAbstractListModel(parent),
-      m_list(make_up<detail::PlayList>()),
-      m_shuffle_list(make_up<detail::PlayList>()),
+      m_list(make_up<detail::PlayQueue>()),
+      m_shuffle_list(make_up<detail::PlayQueue>()),
       m_loop_mode(LoopMode::NoneLoop),
       m_can_next(false),
       m_can_prev(false) {
-    connect(this, &Playlist::curIndexChanged, this, &Playlist::check_cur, Qt::DirectConnection);
-    connect(this, &Playlist::loopModeChanged, this, &Playlist::RefreshCanMove);
-    connect(this, &Playlist::curIndexChanged, this, &Playlist::RefreshCanMove);
-    connect(this, &QAbstractItemModel::rowsInserted, this, &Playlist::RefreshCanMove);
+    connect(this, &PlayQueue::curIndexChanged, this, &PlayQueue::check_cur, Qt::DirectConnection);
+    connect(this, &PlayQueue::loopModeChanged, this, &PlayQueue::RefreshCanMove);
+    connect(this, &PlayQueue::curIndexChanged, this, &PlayQueue::RefreshCanMove);
+    connect(this, &QAbstractItemModel::rowsInserted, this, &PlayQueue::RefreshCanMove);
 }
 
-Playlist::~Playlist() {}
+PlayQueue::~PlayQueue() {}
 
 template<typename T>
     requires std::ranges::sized_range<T> &&
              std::convertible_to<std::ranges::range_value_t<T>, model::Song>
-usize Playlist::insert(int index, const T& range) {
+usize PlayQueue::insert(int index, const T& range) {
     auto filter = [this](const model::Song& s) -> bool {
         return ! m_songs.contains(s.id);
     };
@@ -254,9 +254,9 @@ usize Playlist::insert(int index, const T& range) {
     return size;
 }
 
-int Playlist::rowCount(const QModelIndex&) const { return m_list->size(); }
+int PlayQueue::rowCount(const QModelIndex&) const { return m_list->size(); }
 
-QVariant Playlist::data(const QModelIndex& index, int role) const {
+QVariant PlayQueue::data(const QModelIndex& index, int role) const {
     auto row = index.row();
     if (row >= rowCount()) return {};
     switch (role) {
@@ -267,18 +267,18 @@ QVariant Playlist::data(const QModelIndex& index, int role) const {
     return {};
 };
 
-QHash<int, QByteArray> Playlist::roleNames() const { return { { SongRole, "song" } }; }
+QHash<int, QByteArray> PlayQueue::roleNames() const { return { { SongRole, "song" } }; }
 
-std::optional<QString> Playlist::cur_id() const { return oper_list().cur(); }
+std::optional<QString> PlayQueue::cur_id() const { return oper_list().cur(); }
 
-const model::Song& Playlist::cur() const { return m_cur; }
-qint32             Playlist::curIndex() const {
+const model::Song& PlayQueue::cur() const { return m_cur; }
+qint32             PlayQueue::curIndex() const {
     auto cur = m_list->cur_pos();
     return cur ? (int)cur.value() : -1;
 }
 
-Playlist::LoopMode Playlist::loopMode() const { return m_loop_mode; }
-void               Playlist::setLoopMode(LoopMode v) {
+PlayQueue::LoopMode PlayQueue::loopMode() const { return m_loop_mode; }
+void               PlayQueue::setLoopMode(LoopMode v) {
     auto old = m_loop_mode;
     if (std::exchange(m_loop_mode, v) != v) {
         if (v == ShuffleLoop) {
@@ -293,20 +293,20 @@ void               Playlist::setLoopMode(LoopMode v) {
     }
 }
 
-bool Playlist::canNext() const { return m_can_next; }
-bool Playlist::canPrev() const { return m_can_prev; }
-void Playlist::setCanNext(bool v) {
+bool PlayQueue::canNext() const { return m_can_next; }
+bool PlayQueue::canPrev() const { return m_can_prev; }
+void PlayQueue::setCanNext(bool v) {
     if (std::exchange(m_can_next, v) != v) {
         emit canMoveChanged();
     }
 }
-void Playlist::setCanPrev(bool v) {
+void PlayQueue::setCanPrev(bool v) {
     if (std::exchange(m_can_prev, v) != v) {
         emit canMoveChanged();
     }
 }
 
-void Playlist::switchList(const std::vector<model::Song>& songs) {
+void PlayQueue::switchList(const std::vector<model::Song>& songs) {
     auto old_id = m_cur.id;
     clear();
 
@@ -314,7 +314,7 @@ void Playlist::switchList(const std::vector<model::Song>& songs) {
     emit curIndexChanged(true);
 }
 
-void Playlist::switchTo(const model::Song& song) {
+void PlayQueue::switchTo(const model::Song& song) {
     auto song_id = get_song_id_str(song);
     if (! m_songs.contains(song.id)) {
         appendNext(song);
@@ -325,7 +325,7 @@ void Playlist::switchTo(const model::Song& song) {
     emit curIndexChanged(true);
 }
 
-void Playlist::appendNext(const model::Song& song) {
+void PlayQueue::appendNext(const model::Song& song) {
     remove(song.id);
 
     auto pos = std::distance(m_list->begin(), m_list->cur_it());
@@ -333,9 +333,9 @@ void Playlist::appendNext(const model::Song& song) {
     insert(pos, std::array { song });
 }
 
-void Playlist::append(const model::Song& song) { insert(rowCount(), std::array { song }); }
+void PlayQueue::append(const model::Song& song) { insert(rowCount(), std::array { song }); }
 
-void Playlist::remove(model::ItemId id) {
+void PlayQueue::remove(model::ItemId id) {
     auto song_id = get_song_id_str(id);
     if (! m_songs.contains(id)) return;
     CurGuard gd { *this };
@@ -350,14 +350,14 @@ void Playlist::remove(model::ItemId id) {
     endRemoveRows();
 }
 
-u32 Playlist::appendList(const std::vector<model::Song>& songs) {
+u32 PlayQueue::appendList(const std::vector<model::Song>& songs) {
     auto old = rowCount();
     insert(rowCount(), songs);
     emit curIndexChanged(false);
     return std::max(rowCount() - old, 0);
 }
 
-void Playlist::clear() {
+void PlayQueue::clear() {
     CurGuard gd { *this };
     beginResetModel();
     m_list->clear();
@@ -366,7 +366,7 @@ void Playlist::clear() {
     endResetModel();
 }
 
-void Playlist::next() {
+void PlayQueue::next() {
     CurGuard gd { *this, true };
 
     auto& list = oper_list();
@@ -384,7 +384,7 @@ void Playlist::next() {
     }
     sync_list().sync_cur(list);
 }
-void Playlist::prev() {
+void PlayQueue::prev() {
     CurGuard gd { *this, true };
 
     auto& list = oper_list();
@@ -403,7 +403,7 @@ void Playlist::prev() {
     sync_list().sync_cur(list);
 }
 
-void Playlist::check_cur(bool refresh) {
+void PlayQueue::check_cur(bool refresh) {
     auto old_id = std::make_optional(get_song_id_str(m_cur));
     if (auto cur = cur_id(); cur != old_id) {
         if (cur)
@@ -414,7 +414,7 @@ void Playlist::check_cur(bool refresh) {
         emit curChanged(refresh);
     }
 }
-void Playlist::RefreshCanMove() {
+void PlayQueue::RefreshCanMove() {
     auto& list = oper_list();
     if (list.size() == 0) {
         setCanNext(false);
@@ -429,7 +429,7 @@ void Playlist::RefreshCanMove() {
     }
 }
 
-void Playlist::iterLoopMode() {
+void PlayQueue::iterLoopMode() {
     using M   = LoopMode;
     auto mode = loopMode();
     switch (mode) {
@@ -441,15 +441,15 @@ void Playlist::iterLoopMode() {
     setLoopMode(mode);
 }
 
-detail::PlayList& Playlist::oper_list() {
+detail::PlayQueue& PlayQueue::oper_list() {
     return m_loop_mode == ShuffleLoop ? *m_shuffle_list : *m_list;
 }
-detail::PlayList& Playlist::sync_list() {
+detail::PlayQueue& PlayQueue::sync_list() {
     return m_loop_mode != ShuffleLoop ? *m_shuffle_list : *m_list;
 }
-const detail::PlayList& Playlist::oper_list() const {
+const detail::PlayQueue& PlayQueue::oper_list() const {
     return m_loop_mode == ShuffleLoop ? *m_shuffle_list : *m_list;
 }
-const detail::PlayList& Playlist::sync_list() const {
+const detail::PlayQueue& PlayQueue::sync_list() const {
     return m_loop_mode != ShuffleLoop ? *m_shuffle_list : *m_list;
 }

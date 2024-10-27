@@ -44,6 +44,7 @@ add_library(
   include/qcm_interface/model/song.h
   include/qcm_interface/model/album.h
   include/qcm_interface/model/playlist.h
+  include/qcm_interface/model/query_model.h
   include/qcm_interface/state/app_state.h
   action.cpp
   api.cpp
@@ -56,6 +57,7 @@ add_library(
   global.cpp
   plugin.cpp
   oper.cpp
+  sync_api.cpp
   model/plugin.cpp
   model/user_model.cpp
   ${MODEL_SOURCES})

@@ -37,6 +37,8 @@ Q_SIGNALS:
                QObject* action = nullptr);
     void collect(model::ItemId itemId, bool act = true);
 
+    void play_by_id(model::ItemId songId);
+    void queue_ids(const std::vector<model::ItemId>& songIds);
     void queue_songs(const std::vector<model::Song>&);
     void play(const QUrl& url, bool refresh = false);
     void sync_collection(enums::CollectionType);

@@ -21,7 +21,7 @@ class QCM_INTERFACE_API UserModel
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(model::UserAccount* activeUser READ active_user WRITE set_active_user NOTIFY
+    Q_PROPERTY(qcm::model::UserAccount* activeUser READ active_user WRITE set_active_user NOTIFY
                    activeUserChanged)
 public:
     UserModel(QObject* parent = nullptr);

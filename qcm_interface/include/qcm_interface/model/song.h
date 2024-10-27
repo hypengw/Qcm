@@ -31,8 +31,6 @@ public:
     song.canPlay
 )" };
 
-    // GATGET_LIST_PROPERTY(Artist, artists, artists)
-
     bool operator==(const Song&) const = default;
 };
 

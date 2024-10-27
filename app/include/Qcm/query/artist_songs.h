@@ -105,7 +105,7 @@ LIMIT :limit OFFSET :offset;
             while (query.next()) {
                 auto& s = songs.emplace_back();
                 int   i = 0;
-                s.load_query(query, i);
+                load_query(s, query, i);
             }
             co_return songs;
         }

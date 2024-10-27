@@ -24,7 +24,7 @@ void App::connect_actions() {
 
     connect(Global::instance(), &Global::sessionChanged, Global::instance(), &Global::save_user);
 
-    connect(this->playlist(), &Playlist::curChanged, this, [this, old = model::Song()]() mutable {
+    connect(this->playlist(), &PlayQueue::curChanged, this, [this, old = model::Song()]() mutable {
         std::optional<model::ItemId> old_id;
         if (auto itemId = meta_model::readOnGadget(old.source, "itemId"); itemId.isValid()) {
             old_id = itemId.value<model::ItemId>();
@@ -77,7 +77,7 @@ void App::connect_actions() {
 
     {
         auto dog = make_rc<helper::WatchDog>();
-        connect(playlist(), &Playlist::curChanged, this, [dog, this](bool refresh) {
+        connect(playlist(), &PlayQueue::curChanged, this, [dog, this](bool refresh) {
             dog->cancel();
             auto curId = playlist()->cur().id;
             if (! curId.valid()) return;

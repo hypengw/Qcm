@@ -17,7 +17,7 @@ set(SOURCES
     include/Qcm/app.h
     include/Qcm/info.h
     include/Qcm/image_provider.h
-    include/Qcm/playlist.h
+    include/Qcm/play_queue.h
     include/Qcm/qr_image.h
     include/Qcm/lyric.h
     include/Qcm/clipboard.h
@@ -42,7 +42,7 @@ set(SOURCES
     src/action.cpp
     src/app.cpp
     src/image_provider.cpp
-    src/playlist.cpp
+    src/play_queue.cpp
     src/qr_image.cpp
     src/lyric.cpp
     src/clipboard.cpp

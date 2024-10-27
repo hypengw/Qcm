@@ -20,7 +20,7 @@ public:
     Session(QObject* parent = nullptr);
     ~Session();
 
-    DECLARE_PROPERTY(UserAccount*, user, NOTIFY_NAME(userChanged))
+    DECLARE_PROPERTY(qcm::model::UserAccount*, user, NOTIFY_NAME(userChanged))
     DECLARE_PROPERTY(std::vector<Page>, pages, NOTIFY_NAME(infoChanged))
     DECLARE_PROPERTY(bool, valid, NOTIFY_NAME(infoChanged))
     DECLARE_PROPERTY(QString, provider, NOTIFY_NAME(infoChanged))

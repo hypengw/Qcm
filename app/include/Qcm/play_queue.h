@@ -10,10 +10,10 @@ namespace qcm
 
 namespace detail
 {
-class PlayList;
+class PlayQueue;
 } // namespace detail
 
-class Playlist : public QAbstractListModel {
+class PlayQueue : public QAbstractListModel {
     Q_OBJECT
     QML_ELEMENT
 
@@ -40,8 +40,8 @@ public:
 
     struct CurGuard;
 
-    Playlist(QObject* parent = nullptr);
-    ~Playlist();
+    PlayQueue(QObject* parent = nullptr);
+    ~PlayQueue();
     std::optional<QString> cur_id() const;
 
     // prop
@@ -90,15 +90,15 @@ private:
                  std::convertible_to<std::ranges::range_value_t<T>, model::Song>
     usize insert(int index, const T& range);
 
-    const detail::PlayList& oper_list() const;
-    const detail::PlayList& sync_list() const;
-    detail::PlayList&       oper_list();
-    detail::PlayList&       sync_list();
+    const detail::PlayQueue& oper_list() const;
+    const detail::PlayQueue& sync_list() const;
+    detail::PlayQueue&       oper_list();
+    detail::PlayQueue&       sync_list();
 
     model::Song                                    m_cur;
     std::unordered_map<model::ItemId, model::Song> m_songs;
-    up<detail::PlayList>                           m_list;
-    up<detail::PlayList>                           m_shuffle_list;
+    up<detail::PlayQueue>                           m_list;
+    up<detail::PlayQueue>                           m_shuffle_list;
     LoopMode                                       m_loop_mode;
     bool                                           m_can_next;
     bool                                           m_can_prev;

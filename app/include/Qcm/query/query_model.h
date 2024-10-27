@@ -1,15 +1,8 @@
 #pragma once
-
 #include <QSqlQuery>
-#include "qcm_interface/model/album.h"
-#include "qcm_interface/model/artist.h"
-#include "qcm_interface/model/song.h"
-#include "qcm_interface/model/playlist.h"
-#include "core/qstr_helper.h"
-
+#include "qcm_interface/model/query_model.h"
 namespace qcm::query
 {
-
 inline void load_query(model::Album& al, QSqlQuery& query, int& i) {
     al.id          = query.value(i++).toUrl();
     al.name        = query.value(i++).toString();
@@ -35,67 +28,34 @@ inline void load_query(model::Playlist& pl, QSqlQuery& query, int& i) {
     pl.updateTime  = query.value(i++).toDateTime();
     pl.userId      = query.value(i++).toUrl();
 }
-
-struct Artist : model::Artist {
-    Q_GADGET
-public:
-};
-struct Album : model::Album {
-    Q_GADGET
-public:
-    GADGET_PROPERTY_DEF(std::vector<model::ArtistRefer>, artists, artists)
-    inline static const QString Select { uR"(
-    %1,
-    GROUP_CONCAT(artist.itemId) AS artistIds, 
-    GROUP_CONCAT(artist.name) AS artistNames,
-    GROUP_CONCAT(artist.picUrl) AS artistPicUrls
-)"_s.arg(model::Album::Select) };
-    void                        load_query(QSqlQuery& query, int& i) {
-        query::load_query(*this, query, i);
-        {
-            auto artist_ids     = query.value(i++).toStringList();
-            auto artist_names   = query.value(i++).toStringList();
-            auto artist_picUrls = query.value(i++).toStringList();
-            for (qsizetype i = 0; i < artist_ids.size(); i++) {
-                auto& ar  = this->artists.emplace_back();
-                ar.id     = artist_ids[i];
-                ar.name   = artist_names[i];
-                ar.picUrl = artist_picUrls[i];
-            }
+inline void load_query(query::Song& self, QSqlQuery& query, int& i) {
+    query::load_query((model::Song&)self, query, i);
+    self.albumId   = query.value(i++).toUrl();
+    self.albumName = query.value(i++).toString();
+    {
+        auto artist_ids     = query.value(i++).toStringList();
+        auto artist_names   = query.value(i++).toStringList();
+        auto artist_picUrls = query.value(i++).toStringList();
+        for (qsizetype i = 0; i < artist_ids.size(); i++) {
+            auto& ar  = self.artists.emplace_back();
+            ar.id     = artist_ids[i];
+            ar.name   = artist_names[i];
+            ar.picUrl = artist_picUrls[i];
         }
     }
-};
-
-struct Song : model::Song {
-    Q_GADGET
-public:
-    GADGET_PROPERTY_DEF(QString, albumName, albumName)
-    GADGET_PROPERTY_DEF(std::vector<model::ArtistRefer>, artists, artists)
-
-    inline static QString Select { uR"(
-    %1,
-    album.itemId,
-    album.name,
-    GROUP_CONCAT(artist.itemId) AS artistIds, 
-    GROUP_CONCAT(artist.name) AS artistNames,
-    GROUP_CONCAT(artist.picUrl) AS artistPicUrls
-)"_s.arg(model::Song::Select) };
-
-    void load_query(QSqlQuery& query, int& i) {
-        query::load_query(*this, query, i);
-        albumId   = query.value(i++).toUrl();
-        albumName = query.value(i++).toString();
-        {
-            auto artist_ids     = query.value(i++).toStringList();
-            auto artist_names   = query.value(i++).toStringList();
-            auto artist_picUrls = query.value(i++).toStringList();
-            for (qsizetype i = 0; i < artist_ids.size(); i++) {
-                auto& ar  = this->artists.emplace_back();
-                ar.id     = artist_ids[i];
-                ar.name   = artist_names[i];
-                ar.picUrl = artist_picUrls[i];
-            }
+}
+inline void load_query(query::Album& self, QSqlQuery& query, int& i) {
+    query::load_query((model::Album&)self, query, i);
+    {
+        auto artist_ids     = query.value(i++).toStringList();
+        auto artist_names   = query.value(i++).toStringList();
+        auto artist_picUrls = query.value(i++).toStringList();
+        for (qsizetype i = 0; i < artist_ids.size(); i++) {
+            auto& ar  = self.artists.emplace_back();
+            ar.id     = artist_ids[i];
+            ar.name   = artist_names[i];
+            ar.picUrl = artist_picUrls[i];
         }
     }
-};
+}
 } // namespace qcm::query

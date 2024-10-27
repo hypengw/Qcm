@@ -142,7 +142,7 @@ App::App(std::monostate)
     : QObject(nullptr),
       m_global(make_rc<Global>()),
       m_util(make_rc<qml::Util>(std::monostate {})),
-      m_playlist(new qcm::Playlist(this)),
+      m_playlist(new qcm::PlayQueue(this)),
 #ifndef NODEBUS
       m_mpris(make_up<mpris::Mpris>()),
 #endif
@@ -426,7 +426,7 @@ QString App::itemIdPageUrl(const QJSValue& js) const {
 auto App::engine() const -> QQmlApplicationEngine* { return m_qml_engine.get(); }
 auto App::global() const -> Global* { return m_global.get(); }
 auto App::util() const -> qml::Util* { return m_util.get(); }
-auto App::playlist() const -> Playlist* { return m_playlist; }
+auto App::playlist() const -> PlayQueue* { return m_playlist; }
 
 // #include <private/qquickpixmapcache_p.h>
 void App::releaseResources(QQuickWindow* win) {
@@ -501,7 +501,7 @@ auto App::album_sql() const -> rc<ItemSql> { return m_item_sql; }
 
 void App::load_settings() {
     QSettings s;
-    playlist()->setLoopMode(s.value("play/loop").value<Playlist::LoopMode>());
+    playlist()->setLoopMode(s.value("play/loop").value<PlayQueue::LoopMode>());
     // session proxy
     {
         auto type        = s.value("network/proxy_type").value<ProxyType>();

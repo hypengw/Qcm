@@ -1,23 +1,10 @@
 #pragma once
 #include <QTimer>
-#include "asio_helper/task.h"
-#include "error/error.h"
+#include "qcm_interface/sync_api.h"
 #include "qcm_interface/async.h"
-#include "qcm_interface/item_id.h"
 
 namespace qcm::query
 {
-
-template<typename T>
-using Result = nstd::expected<T, error::Error>;
-
-class SyncAPi {
-public:
-    static auto sync_item(model::ItemId itemId) -> task<Result<bool>>;
-    static auto sync_list(enums::SyncListType type, model::ItemId itemId, i32 offset,
-                          i32 limit) -> task<Result<i32>>;
-    static auto sync_collection(enums::CollectionType type) -> task<Result<bool>>;
-};
 
 namespace detail
 {
