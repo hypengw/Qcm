@@ -27,17 +27,17 @@ Item {
             });
         mpris.loopStatus = Qt.binding(() => {
                 switch (playlist.loopMode) {
-                case QA.Playlist.NoneLoop:
+                case QA.enums.NoneLoop:
                     return QA.MprisMediaPlayer.None;
-                case QA.Playlist.SingleLoop:
+                case QA.enums.SingleLoop:
                     return QA.MprisMediaPlayer.Track;
-                case QA.Playlist.ListLoop:
-                case QA.Playlist.ShuffleLoop:
+                case QA.enums.ListLoop:
+                case QA.enums.ShuffleLoop:
                     return QA.MprisMediaPlayer.Playlist;
                 }
             });
         mpris.shuffle = Qt.binding(() => {
-                return playlist.loopMode === QA.Playlist.ShuffleLoop;
+                return playlist.loopMode === QA.enums.ShuffleLoop;
             });
         mpris.volume = Qt.binding(() => {
                 return 1.0;
@@ -88,21 +88,21 @@ Item {
         mpris.loopStatusRequested.connect(s => {
                 switch (s) {
                 case QA.MprisMediaPlayer.None:
-                    playlist.loopMode = QA.Playlist.NoneLoop;
+                    playlist.loopMode = QA.enums.NoneLoop;
                     break;
                 case QA.MprisMediaPlayer.Track:
-                    playlist.loopMode = QA.Playlist.SingleLoop;
+                    playlist.loopMode = QA.enums.SingleLoop;
                     break;
                 case QA.MprisMediaPlayer.Playlist:
-                    playlist.loopMode = QA.Playlist.ListLoop;
+                    playlist.loopMode = QA.enums.ListLoop;
                     break;
                 }
             });
         mpris.shuffleRequested.connect(shuffle => {
                 if (shuffle)
-                    playlist.loopMode = QA.Playlist.ShuffleLoop;
+                    playlist.loopMode = QA.enums.ShuffleLoop;
                 else
-                    playlist.loopMode = QA.Playlist.ListLoop;
+                    playlist.loopMode = QA.enums.ListLoop;
             });
         mpris.setPositionRequested.connect((_, pos) => {
                 player.position = pos / 1000;

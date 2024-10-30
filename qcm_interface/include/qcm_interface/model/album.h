@@ -6,13 +6,19 @@
 
 namespace qcm::model
 {
-
-struct Album {
+struct AlbumRefer {
     Q_GADGET_EXPORT(QCM_INTERFACE_API)
 public:
     GADGET_PROPERTY_DEF(ItemId, itemId, id)
     GADGET_PROPERTY_DEF(QString, name, name)
     GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
+
+    std::strong_ordering operator<=>(const AlbumRefer&) const = default;
+};
+
+struct Album : AlbumRefer {
+    Q_GADGET_EXPORT(QCM_INTERFACE_API)
+public:
     GADGET_PROPERTY_DEF(QDateTime, publishTime, publishTime)
     GADGET_PROPERTY_DEF(int, trackCount, trackCount)
     GADGET_PROPERTY_DEF(QString, description, description)
@@ -29,8 +35,6 @@ public:
     album.trackCount,
     album.publishTime
 )" };
-
-    std::strong_ordering operator<=>(const Album&) const = default;
 };
 
 } // namespace qcm::model

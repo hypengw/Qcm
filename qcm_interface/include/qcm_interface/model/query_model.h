@@ -27,8 +27,9 @@ public:
 
 struct Song : model::Song {
     Q_GADGET_EXPORT(QCM_INTERFACE_API)
+    QML_VALUE_TYPE(t_song)
 public:
-    GADGET_PROPERTY_DEF(QString, albumName, albumName)
+    GADGET_PROPERTY_DEF(model::AlbumRefer, album, album)
     GADGET_PROPERTY_DEF(std::vector<model::ArtistRefer>, artists, artists)
 
     inline static QString Select { uR"(

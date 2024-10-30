@@ -6,15 +6,26 @@ namespace qcm
 {
 namespace enums
 {
-QCM_INTERFACE_API Q_NAMESPACE QML_ELEMENT
+Q_NAMESPACE_EXPORT(QCM_INTERFACE_API)
+QML_ELEMENT
 
-    enum class QCM_INTERFACE_API ApiStatus {
-        Uninitialized = 0,
-        Querying,
-        Finished,
-        Error
-    };
+enum class QCM_INTERFACE_API ApiStatus
+{
+    Uninitialized = 0,
+    Querying,
+    Finished,
+    Error
+};
 Q_ENUM_NS(ApiStatus);
+
+enum class QCM_INTERFACE_API LoopMode
+{
+    NoneLoop,
+    SingleLoop,
+    ListLoop,
+    ShuffleLoop
+};
+Q_ENUM_NS(LoopMode)
 
 enum class QCM_INTERFACE_API PluginBasicPage
 {

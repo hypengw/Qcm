@@ -236,11 +236,7 @@ MD.Page {
         action: Action {
             icon.name: MD.Token.icon.play_arrow
             onTriggered: {
-                const songs = albumInfo.songs.filter(s => {
-                    return s.canPlay;
-                });
-                if (songs.length)
-                    QA.App.playlist.switchList(songs);
+                QA.Action.queue_ids(QA.Util.collect_ids(qr_al.data));
             }
         }
     }

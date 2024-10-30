@@ -1,106 +1,112 @@
 #pragma once
 
-#include <QQmlEngine>
-#include <QAbstractListModel>
+#include <QtQml/QQmlEngine>
+#include <QtCore/QAbstractListModel>
+#include <QtCore/QIdentityProxyModel>
+#include <QtCore/QSortFilterProxyModel>
 
-#include "qcm_interface/model.h"
+#include "core/core.h"
+#include "meta_model/qmetaobjectmodel.h"
+#include "qcm_interface/model/query_model.h"
+#include "qcm_interface/model/id_queue.h"
+#include "qcm_interface/enum.h"
+#include "asio_helper/task.h"
 
 namespace qcm
 {
 
-namespace detail
-{
-class PlayQueue;
-} // namespace detail
-
-class PlayQueue : public QAbstractListModel {
+class PlayIdQueue : public model::IdQueue {
     Q_OBJECT
-    QML_ELEMENT
 
-    Q_PROPERTY(model::Song cur READ cur NOTIFY curChanged FINAL)
-    Q_PROPERTY(qint32 curIndex READ curIndex NOTIFY curIndexChanged FINAL)
-    Q_PROPERTY(LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged FINAL)
-    Q_PROPERTY(bool canNext READ canNext NOTIFY canMoveChanged FINAL)
-    Q_PROPERTY(bool canPrev READ canPrev NOTIFY canMoveChanged FINAL)
 public:
-    enum LoopMode
-    {
-        NoneLoop,
-        SingleLoop,
-        ListLoop,
-        ShuffleLoop
-    };
-    Q_ENUM(LoopMode)
+    PlayIdQueue(QObject* parent = nullptr);
+    ~PlayIdQueue();
+};
 
-    enum Role
-    {
-        SongRole,
-    };
-    Q_ENUM(Role)
+class PlayIdProxyQueue : public QSortFilterProxyModel {
+    Q_OBJECT
+    Q_PROPERTY(qint32 currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY
+                   currentIndexChanged BINDABLE bindableCurrentIndex FINAL)
+public:
+    PlayIdProxyQueue(PlayIdQueue* source, QObject* parent = nullptr);
+    ~PlayIdProxyQueue();
 
-    struct CurGuard;
+    void setSourceModel(QAbstractItemModel* sourceModel) override;
+    auto mapToSource(const QModelIndex& proxy_index) const -> QModelIndex override;
+    auto mapFromSource(const QModelIndex& source_index) const -> QModelIndex override;
+    auto currentIndex() const -> qint32;
+    void setCurrentIndex(qint32 idx);
+    auto bindableCurrentIndex() -> const QBindable<qint32>;
 
-    PlayQueue(QObject* parent = nullptr);
-    ~PlayQueue();
-    std::optional<QString> cur_id() const;
-
-    // prop
-    const model::Song& cur() const;
-    qint32             curIndex() const;
-    LoopMode           loopMode() const;
-    void               setLoopMode(LoopMode);
-    bool               canNext() const;
-    bool               canPrev() const;
-
-    // override
-    int      rowCount(const QModelIndex& = QModelIndex()) const override;
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
-    QHash<int, QByteArray> roleNames() const override;
-
-    Q_INVOKABLE u32 appendList(const std::vector<model::Song>&);
-
-Q_SIGNALS:
-    void curChanged(bool refresh = false);
-    void curIndexChanged(bool refresh = false);
-    void loopModeChanged();
-    void canMoveChanged();
-    void end();
-
-public Q_SLOTS:
-    void switchList(const std::vector<model::Song>&);
-    void switchTo(const model::Song&);
-    void next();
-    void prev();
-
-    void clear();
-    void remove(model::ItemId);
-    void append(const model::Song&);
-    void appendNext(const model::Song&);
-    void iterLoopMode();
-
-private Q_SLOTS:
-    void setCanNext(bool);
-    void setCanPrev(bool);
-    void check_cur(bool refresh = false);
-    void RefreshCanMove();
+    Q_SIGNAL void currentIndexChanged(qint32);
 
 private:
-    template<typename T>
-        requires std::ranges::sized_range<T> &&
-                 std::convertible_to<std::ranges::range_value_t<T>, model::Song>
-    usize insert(int index, const T& range);
+    Q_SLOT void onSourceRowsInserted(const QModelIndex& parent, int first, int last);
+    Q_SLOT void onSourceRowsRemoved(const QModelIndex& parent, int first, int last);
 
-    const detail::PlayQueue& oper_list() const;
-    const detail::PlayQueue& sync_list() const;
-    detail::PlayQueue&       oper_list();
-    detail::PlayQueue&       sync_list();
+    auto mapToSource(int row) const -> int;
+    auto mapFromSource(int row) const -> int;
+    void refreshMap();
 
-    model::Song                                    m_cur;
-    std::unordered_map<model::ItemId, model::Song> m_songs;
-    up<detail::PlayQueue>                           m_list;
-    up<detail::PlayQueue>                           m_shuffle_list;
-    LoopMode                                       m_loop_mode;
-    bool                                           m_can_next;
-    bool                                           m_can_prev;
+    PlayIdQueue*        m_source;
+    bool                m_is_shuffle;
+    std::vector<qint32> m_shuffle;
+
+    std::unordered_map<qint32, qint32> m_source_to_proxy;
+    Q_OBJECT_BINDABLE_PROPERTY(PlayIdProxyQueue, int, m_current_index,
+                               &PlayIdProxyQueue::currentIndexChanged)
 };
+
+class PlayQueue : public meta_model::QMetaModelBase<QIdentityProxyModel> {
+    Q_OBJECT
+    QML_UNCREATABLE("")
+    Q_PROPERTY(qint32 currentIndex READ currentIndex NOTIFY currentIndexChanged BINDABLE
+                   bindableCurrentIndex FINAL)
+    Q_PROPERTY(qcm::query::Song currentSong READ currentSong NOTIFY currentSongChanged FINAL)
+    Q_PROPERTY(
+        qcm::enums::LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged FINAL)
+    Q_PROPERTY(bool canNext READ canNext NOTIFY canMoveChanged FINAL)
+    Q_PROPERTY(bool canPrev READ canPrev NOTIFY canMoveChanged FINAL)
+
+    using base_type = meta_model::QMetaModelBase<QIdentityProxyModel>;
+
+public:
+    PlayQueue(QObject* parent = nullptr);
+    ~PlayQueue();
+    auto data(const QModelIndex& index, int role) const -> QVariant override;
+
+    void setSourceModel(QAbstractItemModel* sourceModel) override;
+
+    auto          currentId() const -> std::optional<model::ItemId>;
+    auto          getId(qint32 idx) const -> std::optional<model::ItemId>;
+    auto          currentIndex() const -> qint32;
+    auto          bindableCurrentIndex() -> const QBindable<qint32>;
+    Q_SIGNAL void currentIndexChanged(qint32);
+
+    auto          currentSong() const -> const query::Song&;
+    Q_SIGNAL void currentSongChanged();
+
+    auto          loopMode() const -> enums::LoopMode;
+    void          setLoopMode(enums::LoopMode mode);
+    Q_SIGNAL void loopModeChanged();
+
+    auto          canNext() const -> bool;
+    auto          canPrev() const -> bool;
+    Q_SIGNAL void canMoveChanged();
+
+    Q_INVOKABLE void clear();
+
+    auto querySongs(std::span<const model::ItemId>) -> task<void>;
+
+private:
+    Q_SLOT void onSourceRowsInserted(const QModelIndex& parent, int first, int last);
+    Q_SLOT void onSourceRowsRemoved(const QModelIndex& parent, int first, int last);
+
+private:
+    query::Song                                    m_empty;
+    mutable std::unordered_map<usize, query::Song> m_songs;
+    enums::LoopMode                                m_loop_mode;
+    Q_OBJECT_BINDABLE_PROPERTY(PlayQueue, int, m_current_index, &PlayQueue::currentIndexChanged)
+};
+
 } // namespace qcm

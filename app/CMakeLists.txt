@@ -24,11 +24,9 @@ set(SOURCES
     include/Qcm/player.h
     include/Qcm/qml_util.h
     include/Qcm/storage_info.h
-
     include/Qcm/sql/item_sql.h
     include/Qcm/sql/cache_sql.h
     include/Qcm/sql/collection_sql.h
-
     include/Qcm/query/query.h
     include/Qcm/query/query_model.h
     include/Qcm/query/album_collection.h
@@ -38,7 +36,6 @@ set(SOURCES
     include/Qcm/query/artist_detail.h
     include/Qcm/query/artist_albums.h
     include/Qcm/query/artist_songs.h
-
     src/action.cpp
     src/app.cpp
     src/image_provider.cpp
@@ -50,20 +47,19 @@ set(SOURCES
     src/fake_moc.cpp
     src/qml_util.cpp
     src/storage_info.cpp
-
     src/sql/item_sql.cpp
     src/sql/cache_sql.cpp
     src/sql/collection_sql.cpp
     src/sql/sql.cpp
-    
-    src/query.cpp
-    
-    )
+    src/query.cpp)
 
 set(QCM_INTERFACE_HEADER
-    include/qcm_interface/enum.h include/qcm_interface/global.h
-    include/qcm_interface/action.h include/qcm_interface/model.h
+    include/qcm_interface/enum.h
+    include/qcm_interface/global.h
+    include/qcm_interface/action.h
+    include/qcm_interface/model.h
     include/qcm_interface/model/plugin_model.h
+    include/qcm_interface/model/query_model.h
     include/qcm_interface/model/song.h
     )
 

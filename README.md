@@ -1,5 +1,5 @@
 # Qcm
-Material3 cloud music player.  
+Material You cloud music player.  
 
 Music Service:  
 - Jellyfin(wip)

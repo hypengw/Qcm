@@ -45,6 +45,7 @@
 #include "ncm/api/nos_token_alloc.h"
 #include "ncm/api/upload_addr.h"
 #include "ncm/api/upload.h"
+#include "ncm/api/song_detail.h"
 
 #include "ncm/api/play_record.h"
 
@@ -238,6 +239,7 @@ JSON_DEFINE_IMPL(RecommendResource, code, recommend);
 
 JSON_DEFINE_IMPL(SongUrl, code, data);
 JSON_DEFINE_IMPL(SongLyric, code, lrc, romalrc, tlyric, klyric);
+JSON_DEFINE_IMPL(SongDetail, code);
 JSON_DEFINE_WITH_DEFAULT_IMPL(UserAccount, code, profile);
 JSON_DEFINE_IMPL(UserPlaylist, playlist, more);
 
@@ -308,6 +310,7 @@ JSON_GET_IMPL(ncm::api_model::RecommendSongs);
 JSON_GET_IMPL(ncm::api_model::RecommendResource);
 JSON_GET_IMPL(ncm::api_model::SongUrl);
 JSON_GET_IMPL(ncm::api_model::SongLyric);
+JSON_GET_IMPL(ncm::api_model::SongDetail);
 JSON_GET_IMPL(ncm::api_model::UserAccount);
 JSON_GET_IMPL(ncm::api_model::UserPlaylist);
 JSON_GET_IMPL(ncm::api_model::QrcodeUnikey);

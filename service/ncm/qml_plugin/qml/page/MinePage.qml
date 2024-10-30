@@ -159,14 +159,15 @@ MD.Page {
                 }
                 QA.AlbumCollectionQuery {
                     id: qr_albumlist
+
                     // autoReload: limit > 0
 
-                    Component.onCompleted: reload();
+                    Component.onCompleted: reload()
                 }
                 QA.ArtistCollectionQuery {
                     id: qr_artistlist
                     // autoReload: limit > 0
-                    Component.onCompleted: reload();
+                    Component.onCompleted: reload()
                 }
                 QNcm.UserPlaylistQuerier {
                     id: qr_playlist

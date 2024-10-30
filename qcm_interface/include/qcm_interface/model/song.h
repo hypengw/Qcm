@@ -9,7 +9,6 @@ namespace qcm::model
 
 struct Song {
     Q_GADGET_EXPORT(QCM_INTERFACE_API)
-    QML_VALUE_TYPE(t_song)
 public:
     GADGET_PROPERTY_DEF(ItemId, itemId, id)
     GADGET_PROPERTY_DEF(QString, name, name)

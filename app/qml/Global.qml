@@ -8,16 +8,16 @@ import Qcm.Material as MD
 QA.GlobalWrapper {
     id: root
 
-    readonly property QA.t_song cur_song: QA.App.playlist.cur
+    readonly property QA.t_song cur_song: QA.App.playlist.currentSong
 
     readonly property string loop_icon: switch (QA.App.playlist.loopMode) {
-    case QA.Playlist.SingleLoop:
+    case QA.enums.SingleLoop:
         return MD.Token.icon.repeat_one;
-    case QA.Playlist.ListLoop:
+    case QA.enums.ListLoop:
         return MD.Token.icon.loop;
-    case QA.Playlist.ShuffleLoop:
+    case QA.enums.ShuffleLoop:
         return MD.Token.icon.shuffle;
-    case QA.Playlist.NoneLoop:
+    case QA.enums.NoneLoop:
     default:
         return MD.Token.icon.trending_flat;
     }

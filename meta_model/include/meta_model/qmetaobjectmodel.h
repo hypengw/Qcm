@@ -10,29 +10,55 @@
 #include <set>
 
 #include <QtCore/QAbstractListModel>
+#include <QtCore/QMetaProperty>
 
 #include "core/core.h"
 
 namespace meta_model
 {
-class QMetaListModelBase : public QAbstractListModel {
+
+struct Empty {
+    Q_GADGET
+};
+
+void update_role_names(QHash<int, QByteArray>& role_names, const QMetaObject& meta);
+
+template<typename TBase>
+class QMetaModelBase : public TBase {
+public:
+    QMetaModelBase(QObject* parent = nullptr): TBase(parent), m_meta(Empty::staticMetaObject) {}
+    ~QMetaModelBase() {}
+    QHash<int, QByteArray> roleNames() const override { return m_role_names; }
+    const QMetaObject&     meta() const { return m_meta; }
+
+protected:
+    void updateRoleNames(const QMetaObject& meta) {
+        this->layoutAboutToBeChanged();
+        m_meta = meta;
+        meta_model::update_role_names(m_role_names, m_meta);
+        this->layoutChanged();
+    }
+    const QHash<int, QByteArray>& roleNamesRef() const { return m_role_names; }
+    auto                          propertyOfRole(int role) const -> std::optional<QMetaProperty> {
+        if (auto prop_idx = meta().indexOfProperty(roleNamesRef().value(role).constData());
+            prop_idx != -1) {
+            return meta().property(prop_idx);
+        }
+        return std::nullopt;
+    }
+
+private:
+    QHash<int, QByteArray> m_role_names;
+    QMetaObject            m_meta;
+};
+
+class QMetaListModelBase : public QMetaModelBase<QAbstractListModel> {
     Q_OBJECT
 public:
     QMetaListModelBase(QObject* parent = nullptr);
     virtual ~QMetaListModelBase();
 
-    virtual QHash<int, QByteArray> roleNames() const override;
-
     Q_INVOKABLE virtual QVariant item(int index) const = 0;
-
-protected:
-    std::optional<QMetaProperty> propertyOfRole(int role) const;
-    void                         updateRoleNames(const QMetaObject&);
-    const QMetaObject&           meta() const;
-
-private:
-    QHash<int, QByteArray> m_role_names;
-    QMetaObject            m_meta;
 };
 
 template<typename TItem, typename IMPL>

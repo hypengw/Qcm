@@ -102,6 +102,7 @@ public:
     auto        global() const -> Global*;
     auto        util() const -> qml::Util*;
     auto        playlist() const -> PlayQueue*;
+    auto        play_id_queue() const -> PlayIdQueue*;
     void        set_player_sender(Sender<Player::NotifyInfo>);
     auto        media_cache_sql() const -> rc<CacheSql>;
     auto        cache_sql() const -> rc<CacheSql>;
@@ -143,6 +144,8 @@ public:
     Q_SLOT void load_settings();
     Q_SLOT void save_settings();
 
+    Q_SLOT void on_play_by_id(model::ItemId songId);
+    Q_SLOT void on_queue_ids(const std::vector<model::ItemId>& songIds);
     Q_SLOT void on_queue_songs(const std::vector<model::Song>&);
     Q_SLOT void on_logout();
     Q_SLOT void on_load_session(model::Session*);
@@ -156,7 +159,10 @@ private:
 
     rc<Global>    m_global;
     rc<qml::Util> m_util;
-    PlayQueue*     m_playlist;
+
+    PlayIdQueue*      m_play_id_queue;
+    PlayIdProxyQueue* m_play_id_proxy_queue;
+    PlayQueue*        m_playlist;
 #ifndef NODEBUS
     up<mpris::Mpris> m_mpris;
 #endif

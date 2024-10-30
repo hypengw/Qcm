@@ -6,6 +6,7 @@
 #include "core/core.h"
 #include "core/log.h"
 #include "core/fmt.h"
+#include "core/optional_helper.h"
 
 #define UNWRAP(EXP) helper::unwrap(EXP, #EXP)
 
@@ -88,8 +89,6 @@ namespace helper
 
 template<typename T>
 concept is_expected = ycore::is_specialization_of_v<std::decay_t<T>, tl::expected>;
-template<typename T>
-concept is_optional = ycore::is_specialization_of_v<std::decay_t<T>, std::optional>;
 
 template<typename T, typename Fn>
 auto map(T&& t, Fn&& fn) -> std::optional<decltype(fn(t.value()))> {
@@ -103,15 +102,6 @@ auto to_optional(tl::expected<T, F> res) -> std::optional<T> {
         return std::move(res).value();
     else
         return std::nullopt;
-}
-
-template<typename T>
-auto to_optional(T* pointer) -> std::optional<std::reference_wrapper<T>> {
-    if (pointer) {
-        return { *pointer };
-    } else {
-        return std::nullopt;
-    }
 }
 
 template<typename T>
@@ -170,6 +160,7 @@ template<typename T>
 auto unexpected(T&&) {
     return std::nullopt;
 }
+
 template<typename T>
     requires is_expected<T>
 auto unexpected(T&& t) {

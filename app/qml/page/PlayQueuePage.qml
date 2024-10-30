@@ -16,7 +16,7 @@ MD.Page {
         anchors.fill: parent
         expand: true
         bottomMargin: 8
-        currentIndex: model.curIndex
+        currentIndex: model.currentIndex
         highlightMoveDuration: 1000
         highlightMoveVelocity: -1
         model: QA.App.playlist
@@ -33,7 +33,7 @@ MD.Page {
 
         delegate: MD.ListItem {
             width: ListView.view.width
-            readonly property bool is_playing: model.song.itemId === QA.App.playlist.cur.itemId
+            readonly property bool is_playing: ListView.isCurrentItem
             onClicked: {
                 QA.App.playlist.switchTo(model.song);
             }
@@ -53,14 +53,14 @@ MD.Page {
                     Layout.fillWidth: true
                     typescale: MD.Token.typescale.body_medium
                     verticalAlignment: Qt.AlignVCenter
-                    text: model.song.name
+                    text: model.name
                 }
 
                 MD.IconButton {
                     icon.name: MD.Token.icon.remove
 
                     onClicked: {
-                        QA.App.playlist.remove(model.song.itemId);
+                        QA.App.playlist.remove(model.itemId);
                     }
                 }
             }
