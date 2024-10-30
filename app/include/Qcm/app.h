@@ -146,6 +146,7 @@ public:
 
     Q_SLOT void on_play_by_id(model::ItemId songId);
     Q_SLOT void on_queue_ids(const std::vector<model::ItemId>& songIds);
+    Q_SLOT void on_switch_ids(const std::vector<model::ItemId>& songIds);
     Q_SLOT void on_queue_songs(const std::vector<model::Song>&);
     Q_SLOT void on_logout();
     Q_SLOT void on_load_session(model::Session*);
@@ -161,7 +162,6 @@ private:
     rc<qml::Util> m_util;
 
     PlayIdQueue*      m_play_id_queue;
-    PlayIdProxyQueue* m_play_id_proxy_queue;
     PlayQueue*        m_playlist;
 #ifndef NODEBUS
     up<mpris::Mpris> m_mpris;

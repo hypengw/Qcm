@@ -22,6 +22,8 @@ void App::connect_actions() {
     connect(Action::instance(), &Action::collect, this, &App::on_collect);
     connect(Action::instance(), &Action::sync_collection, this, &App::on_sync_collecttion);
     connect(Action::instance(), &Action::queue_ids, this, &App::on_queue_ids);
+    connect(Action::instance(), &Action::switch_ids, this, &App::on_switch_ids);
+    connect(Action::instance(), &Action::play_by_id, this, &App::on_play_by_id);
 
     connect(Global::instance(), &Global::sessionChanged, Global::instance(), &Global::save_user);
 
@@ -83,42 +85,43 @@ void App::connect_actions() {
 
     {
         auto dog = make_rc<helper::WatchDog>();
-        // connect(playlist(), &PlayQueue::curChanged, this, [dog, this](bool refresh) {
-        //     dog->cancel();
-        //     auto curId = playlist()->cur().id;
-        //     if (! curId.valid()) return;
-        //     QSettings s;
-        //     auto      qu = s.value("play/play_quality").value<enums::AudioQuality>();
+        connect(playlist(), &PlayQueue::currentIndexChanged, this, [dog, this]() {
+            dog->cancel();
+            auto curId = playlist()->currentId();
+            if (! curId || ! curId->valid()) return;
+            QSettings s;
+            auto      qu = s.value("play/play_quality").value<enums::AudioQuality>();
 
-        //    auto hash = song_uniq_hash(curId, qu);
-        //    auto path = media_cache_path_of(hash);
-        //    if (std::filesystem::exists(path)) {
-        //        auto url = QUrl::fromLocalFile(convert_from<QString>(path.native()));
-        //        Global::instance()->action()->play(url, refresh);
-        //        return;
-        //    }
+            auto hash = song_uniq_hash(curId.value(), qu);
+            auto path = media_cache_path_of(hash);
+            bool refresh = true;
+            if (std::filesystem::exists(path)) {
+                auto url = QUrl::fromLocalFile(convert_from<QString>(path.native()));
+                Global::instance()->action()->play(url, refresh);
+                return;
+            }
 
-        //    auto ex = asio::make_strand(Global::instance()->pool_executor());
-        //    if (auto c = Global::instance()->qsession()->client()) {
-        //        dog->spawn(
-        //            ex,
-        //            [c, curId, qu, hash, refresh] -> task<void> {
-        //                auto res = co_await c->api->media_url(*c->instance, curId, qu);
-        //                res.transform([&hash, refresh](QUrl url) -> bool {
-        //                       url = App::instance()->media_url(url, convert_from<QString>(hash));
-        //                       Global::instance()->action()->play(url, refresh);
-        //                       return true;
-        //                   })
-        //                    .transform_error([](auto err) -> std::nullptr_t {
-        //                        Global::instance()->errorOccurred(
-        //                            convert_from<QString>(err.what()));
-        //                        return {};
-        //                    });
-        //                co_return;
-        //            },
-        //            helper::asio_detached_log_t {});
-        //    }
-        //});
+            auto ex = asio::make_strand(Global::instance()->pool_executor());
+            if (auto c = Global::instance()->qsession()->client()) {
+                dog->spawn(
+                    ex,
+                    [c, curId, qu, hash, refresh] -> task<void> {
+                        auto res = co_await c->api->media_url(*c->instance, curId.value(), qu);
+                        res.transform([&hash, refresh](QUrl url) -> bool {
+                               url = App::instance()->media_url(url, convert_from<QString>(hash));
+                               Global::instance()->action()->play(url, refresh);
+                               return true;
+                           })
+                            .transform_error([](auto err) -> std::nullptr_t {
+                                Global::instance()->errorOccurred(
+                                    convert_from<QString>(err.what()));
+                                return {};
+                            });
+                        co_return;
+                    },
+                    helper::asio_detached_log_t {});
+            }
+        });
     }
 }
 
@@ -180,9 +183,20 @@ void App::on_load_session(model::Session* session) {
         },
         helper::asio_detached_log_t {});
 }
-void App::on_play_by_id(model::ItemId songId) {}
+void App::on_play_by_id(model::ItemId songId) {
+    auto q   = App::instance()->play_id_queue();
+    auto row = q->rowCount();
+    q->insert(row, std::array { songId });
+    q->setCurrentIndex(songId);
+}
+
 void App::on_queue_ids(const std::vector<model::ItemId>& songIds) {
     auto q = App::instance()->play_id_queue();
+    q->insert(q->rowCount(), songIds);
+}
+void App::on_switch_ids(const std::vector<model::ItemId>& songIds) {
+    auto q = App::instance()->play_id_queue();
+    q->removeRows(0, q->rowCount());
     q->insert(q->rowCount(), songIds);
 }
 

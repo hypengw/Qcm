@@ -16,7 +16,7 @@ public:
     ~ItemSql();
 
     auto get_executor() -> QtExecutor& override;
-    auto con() const -> rc<helper::SqlConnect>;
+    auto con() const -> rc<helper::SqlConnect> override;
 
     auto insert(std::span<const model::Album> items,
                 const std::set<std::string>&  on_update) -> task<bool> override;
@@ -35,6 +35,7 @@ public:
                               std::span<const model::ItemId> song_ids) -> task<bool> override;
     auto table_name(Table) const -> QStringView override;
     auto clean(const QDateTime& before, Table table) -> task<void>;
+    auto missing(Table table, std::span<const model::ItemId>) -> task<std::vector<model::ItemId>>;
 
 private:
     void create_album_table();

@@ -13,6 +13,10 @@
 #include "asio_qt/qt_executor.h"
 #include "asio_helper/task.h"
 
+namespace helper
+{
+class SqlConnect;
+}
 namespace qcm::db
 {
 
@@ -20,6 +24,7 @@ class ItemSqlBase : public NoCopy {
 public:
     using IdPair = std::tuple<model::ItemId, model::ItemId>;
 
+    virtual auto con() const -> rc<helper::SqlConnect>                        = 0;
     virtual auto get_executor() -> QtExecutor&                                = 0;
     virtual auto insert(std::span<const model::Album> items,
                         const std::set<std::string>&  on_update) -> task<bool> = 0;

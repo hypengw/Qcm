@@ -30,9 +30,10 @@ inline void load_query(model::Playlist& pl, QSqlQuery& query, int& i) {
 }
 inline void load_query(query::Song& self, QSqlQuery& query, int& i) {
     query::load_query((model::Song&)self, query, i);
-    self.albumId    = query.value(i++).toUrl();
-    self.album.id   = self.albumId;
-    self.album.name = query.value(i++).toString();
+    self.albumId      = query.value(i++).toUrl();
+    self.album.id     = self.albumId;
+    self.album.name   = query.value(i++).toString();
+    self.album.picUrl = query.value(i++).toString();
     {
         auto artist_ids     = query.value(i++).toStringList();
         auto artist_names   = query.value(i++).toStringList();

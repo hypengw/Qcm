@@ -23,17 +23,23 @@ public:
     ~PlayIdQueue();
 };
 
-class PlayIdProxyQueue : public QSortFilterProxyModel {
+class PlayIdProxyQueue : public QIdentityProxyModel {
     Q_OBJECT
     Q_PROPERTY(qint32 currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY
                    currentIndexChanged BINDABLE bindableCurrentIndex FINAL)
+    Q_PROPERTY(bool shuffle READ shuffle WRITE setShuffle NOTIFY shuffleChanged FINAL)
 public:
-    PlayIdProxyQueue(PlayIdQueue* source, QObject* parent = nullptr);
+    PlayIdProxyQueue(QObject* parent = nullptr);
     ~PlayIdProxyQueue();
 
     void setSourceModel(QAbstractItemModel* sourceModel) override;
     auto mapToSource(const QModelIndex& proxy_index) const -> QModelIndex override;
     auto mapFromSource(const QModelIndex& source_index) const -> QModelIndex override;
+
+    auto          shuffle() const -> bool;
+    void          setShuffle(bool);
+    Q_SIGNAL void shuffleChanged();
+
     auto currentIndex() const -> qint32;
     void setCurrentIndex(qint32 idx);
     auto bindableCurrentIndex() -> const QBindable<qint32>;
@@ -41,16 +47,22 @@ public:
     Q_SIGNAL void currentIndexChanged(qint32);
 
 private:
+    auto        useShuffle() const -> bool;
     Q_SLOT void onSourceRowsInserted(const QModelIndex& parent, int first, int last);
     Q_SLOT void onSourceRowsRemoved(const QModelIndex& parent, int first, int last);
 
     auto mapToSource(int row) const -> int;
     auto mapFromSource(int row) const -> int;
-    void refreshMap();
+
+    void shuffleSync();
+    void shuffle(int begin, int end);
+
+    void refreshFromSource();
 
     PlayIdQueue*        m_source;
-    bool                m_is_shuffle;
-    std::vector<qint32> m_shuffle;
+    bool                m_support_shuffle;
+    bool                m_shuffle;
+    std::vector<qint32> m_shuffle_list;
 
     std::unordered_map<qint32, qint32> m_source_to_proxy;
     Q_OBJECT_BINDABLE_PROPERTY(PlayIdProxyQueue, int, m_current_index,
@@ -83,7 +95,9 @@ public:
     auto          bindableCurrentIndex() -> const QBindable<qint32>;
     Q_SIGNAL void currentIndexChanged(qint32);
 
-    auto          currentSong() const -> const query::Song&;
+    auto          currentSong() const -> query::Song;
+    void          setCurrentSong(const std::optional<query::Song>&);
+    Q_SLOT void   setCurrentSong(qint32 idx);
     Q_SIGNAL void currentSongChanged();
 
     auto          loopMode() const -> enums::LoopMode;
@@ -96,6 +110,7 @@ public:
 
     Q_INVOKABLE void clear();
 
+    auto querySongsSql(std::span<const model::ItemId>) -> task<std::vector<query::Song>>;
     auto querySongs(std::span<const model::ItemId>) -> task<void>;
 
 private:
@@ -103,7 +118,9 @@ private:
     Q_SLOT void onSourceRowsRemoved(const QModelIndex& parent, int first, int last);
 
 private:
-    query::Song                                    m_empty;
+    PlayIdProxyQueue*                              m_proxy;
+    std::optional<query::Song>                     m_current_song;
+    query::Song                                    m_placeholder;
     mutable std::unordered_map<usize, query::Song> m_songs;
     enums::LoopMode                                m_loop_mode;
     Q_OBJECT_BINDABLE_PROPERTY(PlayQueue, int, m_current_index, &PlayQueue::currentIndexChanged)

@@ -97,7 +97,7 @@ MD.ListItem {
                     verticalAlignment: Qt.AlignVCenter
                     typescale: MD.Token.typescale.body_medium
                     color: root.mdState.supportTextColor
-                    text: root.subtitle ? root.subtitle : `${QA.Global.join_name(root.dgModel.artists, '/')} - ${root.dgModel.albumName}`
+                    text: root.subtitle ? root.subtitle : `${QA.Global.join_name(root.dgModel.artists, '/')} - ${root.dgModel.album.name}`
                 }
             }
         }

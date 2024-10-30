@@ -215,10 +215,10 @@ MD.Page {
             leftMargin: 16
             rightMargin: 16
 
-            subtitle: QA.Global.join_name(modelData.artists, '/')
+            subtitle: QA.Global.join_name(dgModel.artists, '/')
 
             onClicked: {
-                QA.App.playlist.switchTo(modelData);
+                QA.Action.play_by_id(dgModel.itemId);
             }
         }
 
@@ -236,7 +236,7 @@ MD.Page {
         action: Action {
             icon.name: MD.Token.icon.play_arrow
             onTriggered: {
-                QA.Action.queue_ids(QA.Util.collect_ids(qr_al.data));
+                QA.Action.switch_ids(QA.Util.collect_ids(qr_al.data));
             }
         }
     }

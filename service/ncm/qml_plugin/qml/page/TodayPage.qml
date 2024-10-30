@@ -198,7 +198,7 @@ MD.Page {
                             width: ListView.view.contentWidth
                             showCover: true
                             onClicked: {
-                                QA.App.playlist.switchTo(modelData);
+                                QA.Action.play_by_id(dgModel.itemId);
                             }
                         }
                         footer: MD.ListBusyFooter {

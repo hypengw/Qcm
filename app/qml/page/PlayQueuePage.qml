@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Qcm.App as QA
 import Qcm.Material as MD
@@ -35,7 +34,7 @@ MD.Page {
             width: ListView.view.width
             readonly property bool is_playing: ListView.isCurrentItem
             onClicked: {
-                QA.App.playlist.switchTo(model.song);
+                QA.Action.play_by_id(model.itemId);
             }
 
             contentItem: RowLayout {
@@ -60,7 +59,7 @@ MD.Page {
                     icon.name: MD.Token.icon.remove
 
                     onClicked: {
-                        QA.App.playlist.remove(model.itemId);
+                        m_view.model.removeRow(model.index);
                     }
                 }
             }

@@ -75,7 +75,7 @@ MD.Page {
                 dgModel: model.song
 
                 onClicked: {
-                    QA.App.playlist.switchTo(dgModel);
+                    QA.Action.play_by_id(dgModel.itemId);
                 }
             }
 

@@ -203,7 +203,7 @@ MD.Page {
             dgModel: QA.Util.create_program(model)
 
             onClicked: {
-                QA.App.playlist.switchTo(model.song);
+                QA.Action.play_by_id(model.song.itemId);
             }
         }
         footer: MD.ListBusyFooter {

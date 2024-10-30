@@ -143,7 +143,6 @@ App::App(std::monostate)
       m_global(make_rc<Global>()),
       m_util(make_rc<qml::Util>(std::monostate {})),
       m_play_id_queue(new PlayIdQueue(this)),
-      m_play_id_proxy_queue(new PlayIdProxyQueue(m_play_id_queue, this)),
       m_playlist(new qcm::PlayQueue(this)),
 #ifndef NODEBUS
       m_mpris(make_up<mpris::Mpris>()),

@@ -1,5 +1,6 @@
 #include "Qcm/sql/item_sql.h"
 
+#include <unordered_set>
 #include <asio/bind_executor.hpp>
 #include <asio/use_awaitable.hpp>
 #include "asio_qt/qt_sql.h"
@@ -495,6 +496,43 @@ WHERE _editTime < :before OR _editTime > :after;
     if (! query.exec()) {
         ERROR_LOG("{}", query.lastError().text());
     }
+}
+
+auto ItemSql::missing(Table                          table,
+                      std::span<const model::ItemId> ids) -> task<std::vector<model::ItemId>> {
+    std::unordered_set<model::ItemId> include;
+    std::vector<model::ItemId>        out;
+    QStringList                       placeholders;
+    for (usize i = 0; i < ids.size(); ++i) {
+        placeholders << u":id%1"_s.arg(i);
+    }
+
+    co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
+
+    auto query = m_con->query();
+    query.prepare(uR"(
+SELECT 
+    itemId
+FROM %1 
+WHERE itemId IN (%2);
+)"_s.arg(table_name(table))
+                      .arg(placeholders.join(", ")));
+    for (usize i = 0; i < ids.size(); ++i) {
+        query.bindValue(placeholders[i], ids[i].toUrl());
+    }
+    if (query.exec()) {
+        while (query.next()) {
+            include.insert(model::ItemId { query.value(0).toUrl() });
+        }
+    } else {
+        ERROR_LOG("{}", query.lastError().text());
+    }
+    for (auto& el : ids) {
+        if (! include.contains(el)) {
+            out.emplace_back(el);
+        }
+    }
+    co_return out;
 }
 
 } // namespace qcm

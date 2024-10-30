@@ -76,13 +76,12 @@ MD.Page {
             RowLayout {
                 id: m_control_pane
                 Layout.alignment: Qt.AlignHCenter
-                MD.IconButton {
-                    //action: QA.AppendListAction {
-                    //    getSongs: function () {
-                    //        return itemData.songs;
-                    //    }
-                    //}
-                }
+                //action: QA.AppendListAction {
+                //    getSongs: function () {
+                //        return itemData.songs;
+                //    }
+                //}
+                MD.IconButton {}
 
                 MD.IconButton {
                     id: btn_fav
@@ -189,7 +188,7 @@ MD.Page {
             rightMargin: 16
 
             onClicked: {
-                QA.App.playlist.switchTo(modelData);
+                QA.Action.play_by_id(dgModel.itemId);
             }
         }
         footer: MD.ListBusyFooter {
@@ -206,11 +205,8 @@ MD.Page {
         action: Action {
             icon.name: MD.Token.icon.play_arrow
             onTriggered: {
-                //const songs = itemData.songs.filter(s => {
-                //    return s.canPlay;
-                //});
-                //if (songs.length)
-                //    QA.App.playlist.switchList(songs);
+                const songs = QA.Util.collect_ids(qr_pl.data);
+                QA.Action.switch_ids(songs);
             }
         }
     }
@@ -218,9 +214,4 @@ MD.Page {
     QA.PlaylistDetailQuery {
         id: qr_pl
     }
-    //QNcm.PlaylistDetailDynamicQuerier {
-    //    id: qr_dynamic
-    //    autoReload: itemId.valid()
-    //    itemId: qr_pl.itemId
-    //}
 }

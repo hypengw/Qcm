@@ -63,7 +63,7 @@ MD.Page {
                         width: ListView.view.contentWidth
                         dgModel: model.data
                         onClicked: {
-                            QA.App.playlist.switchTo(dgModel);
+                            QA.Action.play_by_id(dgModel.itemId);
                         }
                     }
                 }

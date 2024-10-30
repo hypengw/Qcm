@@ -225,11 +225,11 @@ MD.Page {
                                     required property var model
                                     required property int index
                                     dgModel: model
-                                    subtitle: `${dgModel.albumName}`
+                                    subtitle: `${dgModel.album.name}`
                                     width: ListView.view.contentWidth
 
                                     onClicked: {
-                                        QA.App.playlist.switchTo(dgModel);
+                                        QA.Action.play_by_id(dgModel.itemId);
                                     }
                                 }
                                 footer: MD.ListBusyFooter {

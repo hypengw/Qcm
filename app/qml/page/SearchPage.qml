@@ -113,7 +113,7 @@ MD.Page {
                             width: ListView.view.contentWidth
                             dgModel: QA.Util.create_song(model)
                             onClicked: {
-                                QA.App.playlist.switchTo(dgModel);
+                                QA.Action.play_by_id(dgModel.itemId);
                             }
                         }
                         type: QNCM.CloudSearchQuerier.SongType

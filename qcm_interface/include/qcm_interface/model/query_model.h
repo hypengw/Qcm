@@ -36,6 +36,7 @@ public:
     %1,
     album.itemId,
     album.name,
+    album.picUrl,
     GROUP_CONCAT(artist.itemId) AS artistIds, 
     GROUP_CONCAT(artist.name) AS artistNames,
     GROUP_CONCAT(artist.picUrl) AS artistPicUrls

@@ -7,6 +7,8 @@ import Qcm.Material as MD
 MD.Pane {
     id: root
 
+    readonly property var currentSong: QA.App.playlist.currentSong
+
     // backgroundColor: Window.window?.windowClass === MD.Enum.WindowClassCompact ? MD.MatProp.color.surface_container : MD.MatProp.color.surface
     backgroundColor: MD.Token.color.surface_container
     elevation: Window.window?.windowClass === MD.Enum.WindowClassCompact ? MD.Token.elevation.level2 : MD.Token.elevation.level0
@@ -50,7 +52,10 @@ MD.Pane {
             Layout.topMargin: 8
 
             MD.Image {
-                readonly property string picUrl: QA.Global.cur_song.album.picUrl
+                readonly property string picUrl: {
+                    const cover = root.currentSong.coverUrl;
+                    return cover ? cover : root.currentSong.album.picUrl;
+                }
                 source: QA.Util.image_url(picUrl)
                 sourceSize.height: 48
                 sourceSize.width: 48
@@ -58,7 +63,7 @@ MD.Pane {
 
                 onStatusChanged: {
                     if (status == Image.Ready) {
-                        const p = QA.Global.cur_song.itemId.provider;
+                        const p = root.currentSong.itemId.provider;
                         QA.Global.song_cover = QA.Util.image_cache_of(p, picUrl, sourceSize);
                     }
                 }
@@ -84,7 +89,7 @@ MD.Pane {
                     verticalAlignment: Qt.AlignVCenter
                     typescale: MD.Token.typescale.body_medium
 
-                    text: QA.Global.cur_song.name
+                    text: root.currentSong.name
                     MouseArea {
                         id: ma_name
                         anchors.fill: parent
@@ -92,13 +97,13 @@ MD.Pane {
                         hoverEnabled: true
 
                         onClicked: {
-                            QA.Global.route(QA.Global.cur_song.album.itemId);
+                            QA.Global.route(root.currentSong.album.itemId);
                         }
                     }
                 }
                 RowLayout {
                     Repeater {
-                        model: QA.Global.cur_song.tags
+                        model: root.currentSong.tags
 
                         delegate: ColumnLayout {
                             QA.SongTag {
@@ -113,7 +118,7 @@ MD.Pane {
                         MD.MatProp.textColor: ma_subtitle.containsMouse ? MD.Token.color.primary : MD.Token.color.on_background
                         typescale: MD.Token.typescale.body_medium
                         opacity: 0.6
-                        text: QA.Global.join_name(QA.Global.cur_song.artists, '/')
+                        text: QA.Global.join_name(root.currentSong.artists, '/')
                         verticalAlignment: Qt.AlignVCenter
 
                         MouseArea {
@@ -123,7 +128,7 @@ MD.Pane {
                             hoverEnabled: true
 
                             onClicked: {
-                                const artists = QA.Global.cur_song.artists;
+                                const artists = root.currentSong.artists;
                                 if (artists.length === 1)
                                     QA.Global.route(artists[0].itemId);
                                 else
@@ -142,12 +147,12 @@ MD.Pane {
                 id: comp_ctl
                 RowLayout {
                     MD.IconButton {
-                        checked: QA.Global.session.user.collection.contains(QA.Global.cur_song.itemId)
-                        enabled: QA.Global.cur_song.itemId.valid()
+                        checked: QA.Global.session.user.collection.contains(root.currentSong.itemId)
+                        enabled: root.currentSong.itemId.valid()
                         icon.name: checked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
 
                         onClicked: {
-                            QA.Action.collect(QA.Global.cur_song.itemId, !checked);
+                            QA.Action.collect(root.currentSong.itemId, !checked);
                         }
                     }
                     MD.IconButton {
@@ -193,7 +198,7 @@ MD.Pane {
 
                         onClicked: {
                             const popup = MD.Util.show_popup(comp_song_menu, {
-                                "song": QA.Global.cur_song,
+                                "song": root.currentSong,
                                 "y": 0
                             }, this);
                             popup.y = -popup.height;
@@ -284,7 +289,6 @@ MD.Pane {
                     root.isSmallChanged.connect(switch_to);
                     root.isSmallChanged();
                 }
-
             }
         }
     }
