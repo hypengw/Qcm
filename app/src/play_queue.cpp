@@ -360,7 +360,9 @@ void PlayQueue::prev() {
 void PlayQueue::next(LoopMode mode) {
     bool support_loop = m_options.testFlag(Option::SupportLoop);
     auto count        = m_proxy->rowCount();
-    auto cur          = m_proxy->currentIndex();
+    if (count == 0) return;
+    auto cur = m_proxy->currentIndex();
+
     switch (mode) {
     case LoopMode::NoneLoop: {
         if (cur + 1 < count) {
@@ -391,7 +393,9 @@ void PlayQueue::next(LoopMode mode) {
 void PlayQueue::prev(LoopMode mode) {
     bool support_loop = m_options.testFlag(Option::SupportLoop);
     auto count        = m_proxy->rowCount();
-    auto cur          = m_proxy->currentIndex();
+    if (count == 0) return;
+    auto cur = m_proxy->currentIndex();
+
     switch (mode) {
     case LoopMode::NoneLoop: {
         if (cur >= 1) {
@@ -540,11 +544,12 @@ void PlayQueue::onSourceRowsAboutToBeRemoved(const QModelIndex&, int first, int 
 }
 void PlayQueue::onSourceRowsRemoved(const QModelIndex&, int, int) { checkCanMove(); }
 void PlayQueue::checkCanMove() {
+    auto count              = rowCount();
     bool support_prev       = m_options.testFlag(Option::SupportPrev);
     bool support_loop       = m_options.testFlag(Option::SupportLoop);
-    auto check_on_none_loop = [this, support_prev] {
-        setCanPrev(m_proxy->currentIndex() > 0 && support_prev);
-        setCanNext(m_proxy->rowCount() > m_proxy->currentIndex() + 1);
+    auto check_on_none_loop = [this, support_prev, count] {
+        setCanPrev(m_proxy->currentIndex() > 0 && support_prev && count);
+        setCanNext(count > m_proxy->currentIndex() + 1 && count);
     };
     switch (m_loop_mode) {
     case LoopMode::NoneLoop: {
@@ -554,16 +559,16 @@ void PlayQueue::checkCanMove() {
     case LoopMode::ShuffleLoop:
     case LoopMode::ListLoop: {
         if (support_loop) {
-            setCanPrev(support_prev);
-            setCanNext(true);
+            setCanPrev(support_prev && count);
+            setCanNext(count);
         } else {
             check_on_none_loop();
         }
         break;
     }
     default: {
-        setCanPrev(support_prev);
-        setCanNext(true);
+        setCanPrev(support_prev && count);
+        setCanNext(count);
     }
     }
 }
