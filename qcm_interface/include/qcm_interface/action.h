@@ -37,6 +37,8 @@ Q_SIGNALS:
                QObject* action = nullptr);
     void collect(model::ItemId itemId, bool act = true);
 
+    void next();
+    void prev();
     void play_by_id(model::ItemId songId);
     void queue_ids(const std::vector<model::ItemId>& songIds);
     void switch_ids(const std::vector<model::ItemId>& songIds);

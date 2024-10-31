@@ -23,7 +23,7 @@ namespace
 auto get_hash(const model::ItemId& id) -> usize { return std::hash<model::ItemId> {}(id); }
 } // namespace
 
-PlayIdQueue::PlayIdQueue(QObject* parent): model::IdQueue(parent) {}
+PlayIdQueue::PlayIdQueue(QObject* parent): model::IdQueue(parent) { setOptions(Options(~0)); }
 PlayIdQueue::~PlayIdQueue() {}
 
 PlayIdProxyQueue::PlayIdProxyQueue(QObject* parent)
@@ -47,11 +47,19 @@ void PlayIdProxyQueue::setSourceModel(QAbstractItemModel* source_model) {
             old, &QAbstractItemModel::rowsInserted, this, &PlayIdProxyQueue::onSourceRowsInserted);
         disconnect(
             old, &QAbstractItemModel::rowsRemoved, this, &PlayIdProxyQueue::onSourceRowsRemoved);
+        disconnect(old,
+                   &QAbstractItemModel::rowsAboutToBeInserted,
+                   this,
+                   &PlayIdProxyQueue::onSourceRowsAboutToBeInserted);
     }
     connect(source_model,
             &QAbstractItemModel::rowsInserted,
             this,
             &PlayIdProxyQueue::onSourceRowsInserted);
+    connect(source_model,
+            &QAbstractItemModel::rowsAboutToBeInserted,
+            this,
+            &PlayIdProxyQueue::onSourceRowsAboutToBeInserted);
     connect(source_model,
             &QAbstractItemModel::rowsRemoved,
             this,
@@ -85,7 +93,7 @@ auto PlayIdProxyQueue::mapFromSource(const QModelIndex& sourc_index) const -> QM
 }
 
 auto PlayIdProxyQueue::mapToSource(int row) const -> int {
-    if (row >= (int)m_shuffle_list.size()) return -1;
+    if (row < 0 || row >= (int)m_shuffle_list.size()) return -1;
     return useShuffle() ? m_shuffle_list[row] : row;
 }
 
@@ -102,18 +110,33 @@ auto PlayIdProxyQueue::mapFromSource(int row) const -> int {
 void PlayIdProxyQueue::shuffleSync() {
     auto count = sourceModel()->rowCount();
     auto old   = (int)m_shuffle_list.size();
-    auto cur   = std::max<int>(m_current_index, 0);
     if (old < count) {
         while ((int)m_shuffle_list.size() < count) m_shuffle_list.push_back(m_shuffle_list.size());
-        shuffle(cur, m_shuffle_list.size());
+
+        auto cur = m_current_index.value();
+        Random::shuffle(m_shuffle_list.begin() + cur + 1, m_shuffle_list.end());
+        refreshFromSource();
+
+        // keep cur at queue first
+        if (old == 0) {
+            auto first = mapFromSource(0);
+            std::swap(m_shuffle_list[first], m_shuffle_list[0]);
+            m_current_index.value();
+        }
     } else if (old > count) {
+        for (int i = 0, k = 0; i < count; i++) {
+            if (m_shuffle_list[i] >= count) {
+                std::swap(m_shuffle_list[i], m_shuffle_list[old - k]);
+                k++;
+            }
+        }
+        m_shuffle_list.resize(count);
+        refreshFromSource();
+
+        // do not need check cur here
+        // let upstream check later
+        // if upstream no change, cur is ok
     }
-}
-void PlayIdProxyQueue::shuffle(int begin, int end) {
-    int  rowCount = sourceModel()->rowCount();
-    auto it       = m_shuffle_list.begin();
-    Random::shuffle(it + begin, it + end);
-    refreshFromSource();
 }
 
 void PlayIdProxyQueue::refreshFromSource() {
@@ -126,15 +149,25 @@ void PlayIdProxyQueue::refreshFromSource() {
 }
 
 void PlayIdProxyQueue::onSourceRowsInserted(const QModelIndex&, int, int) { shuffleSync(); }
-void PlayIdProxyQueue::onSourceRowsRemoved(const QModelIndex&, int, int) {}
+void PlayIdProxyQueue::onSourceRowsRemoved(const QModelIndex&, int, int) { shuffleSync(); }
+
+void PlayIdProxyQueue::onSourceRowsAboutToBeInserted(const QModelIndex&, int, int) {}
 
 PlayQueue::PlayQueue(QObject* parent)
     : meta_model::QMetaModelBase<QIdentityProxyModel>(parent),
-      m_proxy(new PlayIdProxyQueue(parent)) {
+      m_proxy(new PlayIdProxyQueue(parent)),
+      m_loop_mode(LoopMode::NoneLoop),
+      m_can_next(false),
+      m_can_prev(false) {
     updateRoleNames(query::Song::staticMetaObject);
     connect(this, &PlayQueue::currentIndexChanged, this, [this](qint32 idx) {
         setCurrentSong(idx);
     });
+    connect(m_proxy, &PlayIdProxyQueue::currentIndexChanged, this, &PlayQueue::checkCanMove);
+    connect(this, &PlayQueue::loopModeChanged, m_proxy, [this] {
+        m_proxy->setShuffle(loopMode() == LoopMode::ShuffleLoop);
+    });
+    loopModeChanged();
 }
 PlayQueue::~PlayQueue() {}
 
@@ -168,15 +201,28 @@ void PlayQueue::setSourceModel(QAbstractItemModel* source_model) {
     m_current_index.setBinding([source_idx] {
         return source_idx.value();
     });
+
     if (old) {
         disconnect(old, &QAbstractItemModel::rowsInserted, this, &PlayQueue::onSourceRowsInserted);
         disconnect(old, &QAbstractItemModel::rowsRemoved, this, &PlayQueue::onSourceRowsRemoved);
+        disconnect(old,
+                   &QAbstractItemModel::rowsAboutToBeRemoved,
+                   this,
+                   &PlayQueue::onSourceRowsAboutToBeRemoved);
+        disconnect(this, SIGNAL(requestNext), old, SIGNAL(requestNext));
     }
+    connect(this, SIGNAL(requestNext), source_model, SIGNAL(requestNext));
     connect(
         source_model, &QAbstractItemModel::rowsInserted, this, &PlayQueue::onSourceRowsInserted);
     connect(source_model, &QAbstractItemModel::rowsRemoved, this, &PlayQueue::onSourceRowsRemoved);
+    connect(source_model,
+            &QAbstractItemModel::rowsAboutToBeRemoved,
+            this,
+            &PlayQueue::onSourceRowsAboutToBeRemoved);
 
+    m_options = source_model->property("options").value<model::IdQueue::Options>();
     m_proxy->setSourceModel(source_model);
+    checkCanMove();
 }
 
 auto PlayQueue::currentSong() const -> query::Song {
@@ -228,8 +274,76 @@ void PlayQueue::setLoopMode(enums::LoopMode mode) {
         loopModeChanged();
     }
 }
-auto PlayQueue::canNext() const -> bool { return true; }
-auto PlayQueue::canPrev() const -> bool { return true; }
+void PlayQueue::iterLoopMode() {
+    using M   = LoopMode;
+    auto mode = loopMode();
+    switch (mode) {
+    case M::NoneLoop: mode = M::SingleLoop; break;
+    case M::SingleLoop: mode = M::ListLoop; break;
+    case M::ListLoop: mode = M::ShuffleLoop; break;
+    case M::ShuffleLoop: mode = M::NoneLoop; break;
+    }
+    setLoopMode(mode);
+}
+
+auto PlayQueue::canNext() const -> bool { return m_can_next; }
+
+auto PlayQueue::canPrev() const -> bool { return m_can_prev; }
+void PlayQueue::setCanNext(bool v) {
+    if (ycore::cmp_exchange(m_can_next, v)) {
+        canNextChanged();
+    }
+}
+void PlayQueue::setCanPrev(bool v) {
+    if (ycore::cmp_exchange(m_can_prev, v)) {
+        canPrevChanged();
+    }
+}
+
+void PlayQueue::next() { next(loopMode()); }
+void PlayQueue::prev() { prev(loopMode()); }
+void PlayQueue::next(LoopMode mode) {
+    bool support_loop = m_options.testFlag(Option::SupportLoop);
+    auto count        = m_proxy->rowCount();
+    auto cur          = m_proxy->currentIndex();
+    switch (mode) {
+    case LoopMode::NoneLoop: {
+        if (cur + 1 < count) {
+            m_proxy->setCurrentIndex(cur + 1);
+        }
+        break;
+    }
+    case LoopMode::ListLoop:
+    case LoopMode::ShuffleLoop: {
+        m_proxy->setCurrentIndex((cur + 1) % count);
+        break;
+    }
+    case LoopMode::SingleLoop: {
+    }
+    }
+    requestNext();
+}
+void PlayQueue::prev(LoopMode mode) {
+    bool support_loop = m_options.testFlag(Option::SupportLoop);
+    auto count        = m_proxy->rowCount();
+    auto cur          = m_proxy->currentIndex();
+    switch (mode) {
+    case LoopMode::NoneLoop: {
+        if (cur >= 1) {
+            m_proxy->setCurrentIndex(cur - 1);
+        }
+        break;
+    }
+    case LoopMode::ListLoop:
+    case LoopMode::ShuffleLoop: {
+        m_proxy->setCurrentIndex(cur == 0 ? std::max(count, 1) - 1 : cur);
+        break;
+    }
+    case LoopMode::SingleLoop: {
+    }
+    }
+    requestNext();
+}
 
 void PlayQueue::clear() {}
 
@@ -315,13 +429,44 @@ void PlayQueue::onSourceRowsInserted(const QModelIndex&, int first, int last) {
             co_return;
         },
         helper::asio_detached_log_t {});
+
+    checkCanMove();
 }
-void PlayQueue::onSourceRowsRemoved(const QModelIndex&, int first, int last) {
+
+void PlayQueue::onSourceRowsAboutToBeRemoved(const QModelIndex&, int first, int last) {
     for (int i = first; i <= last; i++) {
         auto id = getId(i);
         if (id) {
             m_songs.erase(get_hash(*id));
         }
+    }
+}
+void PlayQueue::onSourceRowsRemoved(const QModelIndex&, int, int) { checkCanMove(); }
+void PlayQueue::checkCanMove() {
+    bool support_prev       = m_options.testFlag(Option::SupportPrev);
+    bool support_loop       = m_options.testFlag(Option::SupportLoop);
+    auto check_on_none_loop = [this, support_prev] {
+        setCanPrev(m_proxy->currentIndex() > 0 && support_prev);
+        setCanNext(m_proxy->rowCount() > m_proxy->currentIndex() + 1);
+    };
+    switch (m_loop_mode) {
+    case LoopMode::NoneLoop: {
+        check_on_none_loop();
+        break;
+    }
+    case LoopMode::ShuffleLoop:
+    case LoopMode::ListLoop: {
+        if (support_loop) {
+            setCanPrev(support_prev);
+            setCanNext(true);
+        } else {
+            check_on_none_loop();
+        }
+    }
+    default: {
+        setCanPrev(support_prev);
+        setCanNext(true);
+    }
     }
 }
 

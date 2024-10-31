@@ -27,6 +27,9 @@ void App::connect_actions() {
 
     connect(Global::instance(), &Global::sessionChanged, Global::instance(), &Global::save_user);
 
+    connect(Action::instance(), &Action::next, this->playlist(), QOverload<>::of(&PlayQueue::next));
+    connect(Action::instance(), &Action::prev, this->playlist(), QOverload<>::of(&PlayQueue::prev));
+
     connect(this->playlist(),
             &PlayQueue::currentIndexChanged,
             this,
@@ -92,8 +95,8 @@ void App::connect_actions() {
             QSettings s;
             auto      qu = s.value("play/play_quality").value<enums::AudioQuality>();
 
-            auto hash = song_uniq_hash(curId.value(), qu);
-            auto path = media_cache_path_of(hash);
+            auto hash    = song_uniq_hash(curId.value(), qu);
+            auto path    = media_cache_path_of(hash);
             bool refresh = true;
             if (std::filesystem::exists(path)) {
                 auto url = QUrl::fromLocalFile(convert_from<QString>(path.native()));

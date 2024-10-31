@@ -48,15 +48,15 @@ public:
 
 private:
     auto        useShuffle() const -> bool;
+    Q_SLOT void onSourceRowsAboutToBeInserted(const QModelIndex& parent, int first, int last);
     Q_SLOT void onSourceRowsInserted(const QModelIndex& parent, int first, int last);
     Q_SLOT void onSourceRowsRemoved(const QModelIndex& parent, int first, int last);
 
     auto mapToSource(int row) const -> int;
     auto mapFromSource(int row) const -> int;
 
+    void reShuffle();
     void shuffleSync();
-    void shuffle(int begin, int end);
-
     void refreshFromSource();
 
     PlayIdQueue*        m_source;
@@ -77,12 +77,15 @@ class PlayQueue : public meta_model::QMetaModelBase<QIdentityProxyModel> {
     Q_PROPERTY(qcm::query::Song currentSong READ currentSong NOTIFY currentSongChanged FINAL)
     Q_PROPERTY(
         qcm::enums::LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged FINAL)
-    Q_PROPERTY(bool canNext READ canNext NOTIFY canMoveChanged FINAL)
-    Q_PROPERTY(bool canPrev READ canPrev NOTIFY canMoveChanged FINAL)
+    Q_PROPERTY(bool canNext READ canNext NOTIFY canNextChanged FINAL)
+    Q_PROPERTY(bool canPrev READ canPrev NOTIFY canPrevChanged FINAL)
 
     using base_type = meta_model::QMetaModelBase<QIdentityProxyModel>;
 
 public:
+    using LoopMode = enums::LoopMode;
+    using Option   = model::IdQueue::Option;
+
     PlayQueue(QObject* parent = nullptr);
     ~PlayQueue();
     auto data(const QModelIndex& index, int role) const -> QVariant override;
@@ -102,11 +105,20 @@ public:
 
     auto          loopMode() const -> enums::LoopMode;
     void          setLoopMode(enums::LoopMode mode);
+    Q_SLOT void   iterLoopMode();
     Q_SIGNAL void loopModeChanged();
 
     auto          canNext() const -> bool;
     auto          canPrev() const -> bool;
-    Q_SIGNAL void canMoveChanged();
+    void          setCanNext(bool);
+    void          setCanPrev(bool);
+    Q_SIGNAL void canNextChanged();
+    Q_SIGNAL void canPrevChanged();
+
+    Q_SLOT void next();
+    Q_SLOT void prev();
+    Q_SLOT void next(LoopMode mode);
+    Q_SLOT void prev(LoopMode mode);
 
     Q_INVOKABLE void clear();
 
@@ -114,8 +126,11 @@ public:
     auto querySongs(std::span<const model::ItemId>) -> task<void>;
 
 private:
-    Q_SLOT void onSourceRowsInserted(const QModelIndex& parent, int first, int last);
-    Q_SLOT void onSourceRowsRemoved(const QModelIndex& parent, int first, int last);
+    Q_SIGNAL void requestNext();
+    Q_SLOT void   onSourceRowsInserted(const QModelIndex& parent, int first, int last);
+    Q_SLOT void   onSourceRowsAboutToBeRemoved(const QModelIndex& parent, int first, int last);
+    Q_SLOT void   onSourceRowsRemoved(const QModelIndex& parent, int first, int last);
+    Q_SLOT void   checkCanMove();
 
 private:
     PlayIdProxyQueue*                              m_proxy;
@@ -123,6 +138,11 @@ private:
     query::Song                                    m_placeholder;
     mutable std::unordered_map<usize, query::Song> m_songs;
     enums::LoopMode                                m_loop_mode;
+    model::IdQueue::Options                        m_options;
+
+    bool m_can_next;
+    bool m_can_prev;
+
     Q_OBJECT_BINDABLE_PROPERTY(PlayQueue, int, m_current_index, &PlayQueue::currentIndexChanged)
 };
 

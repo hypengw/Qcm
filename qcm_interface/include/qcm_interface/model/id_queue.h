@@ -21,7 +21,8 @@ public:
     {
         NoOptions      = 0,
         SupportShuffle = 1,
-        SupportPrev    = 1 << 1,
+        SupportLoop    = 1 << 1,
+        SupportPrev    = 1 << 2,
     };
     Q_DECLARE_FLAGS(Options, Option)
 

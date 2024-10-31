@@ -34,20 +34,27 @@ auto IdQueue::contains(const model::ItemId& id) const -> bool {
 
 void IdQueue::insert(qint32 pos, std::span<const model::ItemId> ids) {
     if (pos > (int)m_queue.size()) return;
-    std::vector<usize> hashes;
+    std::vector<usize>         hashes;
+    std::vector<model::ItemId> insert_ids;
     for (auto& el : ids) {
         auto hash = std::hash<model::ItemId>()(el);
-        if (! m_set.contains(hash)) hashes.push_back(hash);
+        if (! m_set.contains(hash)) {
+            hashes.push_back(hash);
+            insert_ids.emplace_back(el);
+        }
     }
 
     if (hashes.empty()) return;
     beginInsertRows({}, pos, pos + hashes.size() - 1);
-    auto filter = std::views::filter(ids, [this](const auto& el) -> bool {
-        return ! contains(el);
-    });
-    m_queue.insert(m_queue.begin() + pos, filter.begin(), filter.end());
+
+    m_queue.insert(m_queue.begin() + pos, insert_ids.begin(), insert_ids.end());
     m_set.insert(hashes.begin(), hashes.end());
+
     endInsertRows();
+
+    if (m_current_index == -1) {
+        setCurrentIndex(0);
+    }
 }
 void IdQueue::remove(const model::ItemId& id) {
     if (auto it = std::find_if(m_queue.begin(),
@@ -57,14 +64,15 @@ void IdQueue::remove(const model::ItemId& id) {
                                });
         it != m_queue.end()) {
         removeRow(std::distance(m_queue.begin(), it));
-        m_set.erase(std::hash<model::ItemId> {}(*it));
     }
 }
-bool IdQueue::removeRows(int row, int count, const QModelIndex& parent) {
-    if (count == 0 || row + count >= (int)m_queue.size()) return false;
-    count = std::max(count, 1) - 1;
-    beginRemoveRows(parent, row, row + count);
-    auto begin = m_queue.begin() + row;
+bool IdQueue::removeRows(int first, int count, const QModelIndex& parent) {
+    if (count <= 0) return false;
+    count     = std::max(count, 1) - 1;
+    auto last = std::min(first + count, std::max<int>(m_queue.size(), 1) - 1);
+
+    beginRemoveRows(parent, first, last);
+    auto begin = m_queue.begin() + first;
     auto end   = begin + count + 1;
     {
         auto it = begin;
@@ -73,9 +81,9 @@ bool IdQueue::removeRows(int row, int count, const QModelIndex& parent) {
     m_queue.erase(begin, end);
     endRemoveRows();
 
-    if (m_current_index > row + count) {
+    if (m_current_index > last) {
         setCurrentIndex(m_current_index - (count + 1));
-    } else if (m_current_index <= row + count && m_current_index >= row) {
+    } else if (m_current_index <= last && m_current_index >= first) {
         setCurrentIndex(-1);
     } else {
     }
