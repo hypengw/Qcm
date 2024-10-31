@@ -319,11 +319,15 @@ void PlayQueue::setCanPrev(bool v) {
     }
 }
 
-void PlayQueue::next() { 
-    next(loopMode()); 
+void PlayQueue::next() {
+    auto mode = loopMode();
+    if (mode == LoopMode::SingleLoop) mode = LoopMode::ShuffleLoop;
+    next(mode);
 }
-void PlayQueue::prev() { 
-    prev(loopMode()); 
+void PlayQueue::prev() {
+    auto mode = loopMode();
+    if (mode == LoopMode::SingleLoop) mode = LoopMode::ShuffleLoop;
+    prev(mode);
 }
 void PlayQueue::next(LoopMode mode) {
     bool support_loop = m_options.testFlag(Option::SupportLoop);
