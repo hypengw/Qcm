@@ -143,7 +143,7 @@ App::App(std::monostate)
       m_global(make_rc<Global>()),
       m_util(make_rc<qml::Util>(std::monostate {})),
       m_play_id_queue(new PlayIdQueue(this)),
-      m_playlist(new qcm::PlayQueue(this)),
+      m_playqueu(new qcm::PlayQueue(this)),
 #ifndef NODEBUS
       m_mpris(make_up<mpris::Mpris>()),
 #endif
@@ -154,7 +154,7 @@ App::App(std::monostate)
     register_meta_type();
     connect_actions();
     { QGuiApplication::setDesktopFileName(APP_ID); }
-    m_playlist->setSourceModel(m_play_id_queue);
+    m_playqueu->setSourceModel(m_play_id_queue);
     {
         auto fbs = make_rc<media_cache::Fallbacks>();
         m_media_cache =
@@ -428,7 +428,7 @@ QString App::itemIdPageUrl(const QJSValue& js) const {
 auto App::engine() const -> QQmlApplicationEngine* { return m_qml_engine.get(); }
 auto App::global() const -> Global* { return m_global.get(); }
 auto App::util() const -> qml::Util* { return m_util.get(); }
-auto App::playlist() const -> PlayQueue* { return m_playlist; }
+auto App::playqueue() const -> PlayQueue* { return m_playqueu; }
 auto App::play_id_queue() const -> PlayIdQueue* { return m_play_id_queue; }
 
 // #include <private/qquickpixmapcache_p.h>
@@ -504,7 +504,7 @@ auto App::album_sql() const -> rc<ItemSql> { return m_item_sql; }
 
 void App::load_settings() {
     QSettings s;
-    playlist()->setLoopMode(s.value("play/loop").value<enums::LoopMode>());
+    playqueue()->setLoopMode(s.value("play/loop").value<enums::LoopMode>());
     // session proxy
     {
         auto type        = s.value("network/proxy_type").value<ProxyType>();
@@ -518,7 +518,7 @@ void App::load_settings() {
 }
 void App::save_settings() {
     QSettings s;
-    s.setValue("play/loop", (int)playlist()->loopMode());
+    s.setValue("play/loop", (int)playqueue()->loopMode());
 }
 
 void qcm::register_meta_type() {}

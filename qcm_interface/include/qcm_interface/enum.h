@@ -98,6 +98,14 @@ enum class SyncListType
     CTArtistAlbum,
 };
 Q_ENUM_NS(SyncListType)
+
+enum class RecordAction
+{
+    RecordSwitch = 0,
+    RecordNext,
+    RecordPrev,
+};
+Q_ENUM_NS(RecordAction)
 } // namespace enums
 
 } // namespace qcm

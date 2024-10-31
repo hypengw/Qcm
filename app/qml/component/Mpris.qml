@@ -58,7 +58,7 @@ Item {
         const key = QA.App.mpris.metakey;
         mpris.metadata = Qt.binding(() => {
                 const meta = {};
-                const song = playlist.cur;
+                const song = playlist.currentSong;
 
                 meta[key(QA.MprisMediaPlayer.MetaTrackId)] = QA.Util.mpris_trackid(song.itemId);
                 if (root.song_cover)

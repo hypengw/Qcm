@@ -20,7 +20,6 @@ public:
     GADGET_PROPERTY_DEF(QStringList, tags, tags)
     GADGET_PROPERTY_DEF(qreal, popularity, popularity)
 
-    GADGET_PROPERTY_DEF(QVariant, source, source)
     GADGET_PROPERTY_DEF(ItemId, sourceId, sourceId)
 
     static constexpr QStringView Select { uR"(

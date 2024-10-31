@@ -7,7 +7,7 @@ import Qcm.Material as MD
 MD.Pane {
     id: root
 
-    readonly property var currentSong: QA.App.playlist.currentSong
+    readonly property var currentSong: QA.App.playqueue.currentSong
 
     // backgroundColor: Window.window?.windowClass === MD.Enum.WindowClassCompact ? MD.MatProp.color.surface_container : MD.MatProp.color.surface
     backgroundColor: MD.Token.color.surface_container
@@ -156,10 +156,10 @@ MD.Pane {
                         }
                     }
                     MD.IconButton {
-                        enabled: QA.App.playlist.canPrev
+                        enabled: QA.App.playqueue.canPrev
                         icon.name: MD.Token.icon.skip_previous
 
-                        onClicked: QA.App.playlist.prev()
+                        onClicked: QA.App.playqueue.prev()
                     }
                     MD.IconButton {
                         type: MD.Enum.IBtFilled
@@ -168,16 +168,16 @@ MD.Pane {
                         onClicked: root.swich_play()
                     }
                     MD.IconButton {
-                        enabled: QA.App.playlist.canNext
+                        enabled: QA.App.playqueue.canNext
                         icon.name: MD.Token.icon.skip_next
 
-                        onClicked: QA.App.playlist.next()
+                        onClicked: QA.App.playqueue.next()
                     }
                     MD.IconButton {
                         icon.name: QA.Global.loop_icon
 
                         onClicked: {
-                            QA.App.playlist.iterLoopMode();
+                            QA.App.playqueue.iterLoopMode();
                         }
                     }
                     MD.IconButton {

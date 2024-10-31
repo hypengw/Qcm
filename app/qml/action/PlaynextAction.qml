@@ -12,6 +12,6 @@ Action {
     text: qsTr('play next')
 
     onTriggered: {
-        QA.App.playlist.appendNext(root.song);
+        QA.App.playqueue.appendNext(root.song);
     }
 }

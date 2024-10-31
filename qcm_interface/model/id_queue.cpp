@@ -32,8 +32,8 @@ auto IdQueue::contains(const model::ItemId& id) const -> bool {
     return m_set.contains(hash);
 }
 
-void IdQueue::insert(qint32 pos, std::span<const model::ItemId> ids) {
-    if (pos > (int)m_queue.size()) return;
+auto IdQueue::insert(qint32 pos, std::span<const model::ItemId> ids) -> int {
+    if (pos > (int)m_queue.size()) return 0;
     std::vector<usize>         hashes;
     std::vector<model::ItemId> insert_ids;
     for (auto& el : ids) {
@@ -44,17 +44,14 @@ void IdQueue::insert(qint32 pos, std::span<const model::ItemId> ids) {
         }
     }
 
-    if (hashes.empty()) return;
+    if (hashes.empty()) return 0;
     beginInsertRows({}, pos, pos + hashes.size() - 1);
 
     m_queue.insert(m_queue.begin() + pos, insert_ids.begin(), insert_ids.end());
     m_set.insert(hashes.begin(), hashes.end());
 
     endInsertRows();
-
-    if (m_current_index == -1) {
-        setCurrentIndex(0);
-    }
+    return hashes.size();
 }
 void IdQueue::remove(const model::ItemId& id) {
     if (auto it = std::find_if(m_queue.begin(),

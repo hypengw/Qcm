@@ -90,8 +90,8 @@ public:
 
     PlayQueue(QObject* parent = nullptr);
     ~PlayQueue();
-    auto data(const QModelIndex& index, int role) const -> QVariant override;
 
+    auto data(const QModelIndex& index, int role) const -> QVariant override;
     void setSourceModel(QAbstractItemModel* sourceModel) override;
 
     auto          currentId() const -> std::optional<model::ItemId>;
@@ -99,6 +99,7 @@ public:
     auto          currentIndex() const -> qint32;
     auto          bindableCurrentIndex() -> const QBindable<qint32>;
     Q_SIGNAL void currentIndexChanged(qint32);
+    auto          currentData(int role) const -> QVariant;
 
     auto          currentSong() const -> query::Song;
     void          setCurrentSong(const std::optional<query::Song>&);
@@ -121,26 +122,29 @@ public:
     Q_SLOT void prev();
     Q_SLOT void next(LoopMode mode);
     Q_SLOT void prev(LoopMode mode);
+    Q_SLOT void startIfNoCurrent();
 
-    Q_INVOKABLE void clear();
+    Q_SLOT void   clear();
+    Q_SIGNAL void requestNext();
 
     auto querySongsSql(std::span<const model::ItemId>) -> task<std::vector<query::Song>>;
     auto querySongs(std::span<const model::ItemId>) -> task<void>;
+    void updateSourceId(std::span<const model::ItemId> songIds, const model::ItemId& sourceId);
 
 private:
-    Q_SIGNAL void requestNext();
-    Q_SLOT void   onSourceRowsInserted(const QModelIndex& parent, int first, int last);
-    Q_SLOT void   onSourceRowsAboutToBeRemoved(const QModelIndex& parent, int first, int last);
-    Q_SLOT void   onSourceRowsRemoved(const QModelIndex& parent, int first, int last);
-    Q_SLOT void   checkCanMove();
+    Q_SLOT void onSourceRowsInserted(const QModelIndex& parent, int first, int last);
+    Q_SLOT void onSourceRowsAboutToBeRemoved(const QModelIndex& parent, int first, int last);
+    Q_SLOT void onSourceRowsRemoved(const QModelIndex& parent, int first, int last);
+    Q_SLOT void checkCanMove();
 
 private:
-    PlayIdProxyQueue*                              m_proxy;
-    std::optional<query::Song>                     m_current_song;
-    query::Song                                    m_placeholder;
-    mutable std::unordered_map<usize, query::Song> m_songs;
-    enums::LoopMode                                m_loop_mode;
-    model::IdQueue::Options                        m_options;
+    PlayIdProxyQueue*                                m_proxy;
+    std::optional<query::Song>                       m_current_song;
+    query::Song                                      m_placeholder;
+    enums::LoopMode                                  m_loop_mode;
+    model::IdQueue::Options                          m_options;
+    mutable std::unordered_map<usize, query::Song>   m_songs;
+    mutable std::unordered_map<usize, model::ItemId> m_source_ids;
 
     bool m_can_next;
     bool m_can_prev;

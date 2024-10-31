@@ -26,7 +26,7 @@ MD.Menu {
         autoReload: false
         onStatusChanged: {
             if (status === QA.enums.Finished)
-                QA.App.playlistLiked(itemId, sub);
+                QA.App.playqueueLiked(itemId, sub);
         }
     }
 }

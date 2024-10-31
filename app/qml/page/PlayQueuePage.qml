@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls.Basic as QC
 import Qcm.App as QA
 import Qcm.Material as MD
 
@@ -10,6 +11,15 @@ MD.Page {
     bottomPadding: radius
     scrolling: !m_view.atYBeginning
 
+    actions: [
+        QC.Action {
+            icon.name: MD.Token.icon.delete
+            onTriggered: {
+                QA.App.playqueue.clear();
+            }
+        }
+    ]
+
     MD.ListView {
         id: m_view
         anchors.fill: parent
@@ -18,7 +28,7 @@ MD.Page {
         currentIndex: model.currentIndex
         highlightMoveDuration: 1000
         highlightMoveVelocity: -1
-        model: QA.App.playlist
+        model: QA.App.playqueue
         reuseItems: true
         topMargin: 8
 

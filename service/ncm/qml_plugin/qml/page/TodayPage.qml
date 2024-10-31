@@ -265,7 +265,7 @@ MD.Page {
                     return s.canPlay;
                 });
                 if (songs.length)
-                    QA.App.playlist.switchList(songs);
+                    QA.App.playqueue.switchList(songs);
             }
         }
     }

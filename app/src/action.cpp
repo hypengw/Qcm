@@ -1,6 +1,7 @@
 #include "qcm_interface/action.h"
 
 #include <QSettings>
+#include <QVariant>
 
 #include "Qcm/app.h"
 #include "Qcm/query/query.h"
@@ -17,32 +18,48 @@ namespace qcm
 void App::connect_actions() {
     connect(Action::instance(), &Action::load_session, this, &App::on_load_session);
     connect(Action::instance(), &Action::switch_user, this, &App::on_switch_user);
-    connect(Action::instance(), &Action::queue_songs, this, &App::on_queue_songs);
     connect(Action::instance(), &Action::logout, this, &App::on_logout);
     connect(Action::instance(), &Action::collect, this, &App::on_collect);
     connect(Action::instance(), &Action::sync_collection, this, &App::on_sync_collecttion);
     connect(Action::instance(), &Action::queue_ids, this, &App::on_queue_ids);
     connect(Action::instance(), &Action::switch_ids, this, &App::on_switch_ids);
     connect(Action::instance(), &Action::play_by_id, this, &App::on_play_by_id);
+    connect(Action::instance(), &Action::record, this, &App::on_record);
 
     connect(Global::instance(), &Global::sessionChanged, Global::instance(), &Global::save_user);
 
-    connect(Action::instance(), &Action::next, this->playlist(), QOverload<>::of(&PlayQueue::next));
-    connect(Action::instance(), &Action::prev, this->playlist(), QOverload<>::of(&PlayQueue::prev));
+    connect(
+        Action::instance(), &Action::next, this->playqueue(), QOverload<>::of(&PlayQueue::next));
+    connect(
+        Action::instance(), &Action::prev, this->playqueue(), QOverload<>::of(&PlayQueue::prev));
 
-    connect(this->playlist(),
-            &PlayQueue::currentIndexChanged,
+    connect(Action::instance(),
+            &Action::record,
             this,
-            [this, old = model::Song()]() mutable {
-                // std::optional<model::ItemId> old_id;
-                // if (auto itemId = meta_model::readOnGadget(old.source, "itemId");
-                // itemId.isValid()) {
-                //     old_id = itemId.value<model::ItemId>();
-                // }
-                // Action::instance()->playbackLog(
-                //     enums::PlaybackState::StoppedState, old.id, old_id.value_or(model::ItemId
-                //     {}));
-                // old = playlist()->cur();
+            [this,
+             old_id        = std::optional<model::ItemId> {},
+             old_source_id = std::optional<model::ItemId>()](enums::RecordAction act) mutable {
+                switch (act) {
+                case enums::RecordAction::RecordSwitch:
+                case enums::RecordAction::RecordNext:
+                case enums::RecordAction::RecordPrev: {
+                    if (old_id) {
+                        Action::instance()->playbackLog(enums::PlaybackState::StoppedState,
+                                                        *old_id,
+                                                        old_source_id.value_or(model::ItemId {}));
+                    }
+                    old_id             = m_playqueu->currentId();
+                    auto source_id_var = m_playqueu->currentData(m_playqueu->roleOf("sourceId"));
+                    if (auto source_id_p = get_if<model::ItemId>(&source_id_var)) {
+                        old_source_id = *source_id_p;
+                    } else {
+                        old_source_id.reset();
+                    }
+                    break;
+                }
+                default: {
+                }
+                }
             });
 
     {
@@ -88,9 +105,20 @@ void App::connect_actions() {
 
     {
         auto dog = make_rc<helper::WatchDog>();
-        connect(playlist(), &PlayQueue::currentIndexChanged, this, [dog, this]() {
+        connect(Action::instance(), &Action::record, this, [dog, this](enums::RecordAction act) {
+            switch (act) {
+            case enums::RecordAction::RecordSwitch:
+            case enums::RecordAction::RecordNext:
+            case enums::RecordAction::RecordPrev: {
+                break;
+            }
+            default: {
+                return;
+            }
+            }
+
             dog->cancel();
-            auto curId = playlist()->currentId();
+            auto curId = playqueue()->currentId();
             if (! curId || ! curId->valid()) return;
             QSettings s;
             auto      qu = s.value("play/play_quality").value<enums::AudioQuality>();
@@ -186,33 +214,37 @@ void App::on_load_session(model::Session* session) {
         },
         helper::asio_detached_log_t {});
 }
-void App::on_play_by_id(model::ItemId songId) {
+void App::on_play_by_id(model::ItemId songId, model::ItemId sourceId) {
     auto q   = App::instance()->play_id_queue();
     auto row = q->rowCount();
     q->insert(row, std::array { songId });
+    App::instance()->playqueue()->updateSourceId(std::array { songId }, sourceId);
     q->setCurrentIndex(songId);
+    Action::instance()->record(enums::RecordAction::RecordSwitch);
 }
 
-void App::on_queue_ids(const std::vector<model::ItemId>& songIds) {
-    auto q = App::instance()->play_id_queue();
-    q->insert(q->rowCount(), songIds);
+void App::on_queue_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId) {
+    auto q        = App::instance()->play_id_queue();
+    auto inserted = q->insert(q->rowCount(), songIds);
+    {
+        auto q = App::instance()->playqueue();
+        q->updateSourceId(songIds, sourceId);
+        q->startIfNoCurrent();
+    }
+    Action::instance()->toast(QString::fromStdString(
+        inserted > 0 ? fmt::format("Add {} songs to queue", inserted) : "Already added"s));
 }
-void App::on_switch_ids(const std::vector<model::ItemId>& songIds) {
+void App::on_switch_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId) {
     auto q = App::instance()->play_id_queue();
     q->removeRows(0, q->rowCount());
     q->insert(q->rowCount(), songIds);
+    {
+        auto q = App::instance()->playqueue();
+        q->updateSourceId(songIds, sourceId);
+        q->startIfNoCurrent();
+    }
 }
 
-void App::on_queue_songs(const std::vector<model::Song>& songs) {
-    auto                     p    = App::instance()->playlist();
-    auto                     view = std::ranges::filter_view(songs, [](const model::Song& s) {
-        return s.canPlay;
-    });
-    std::vector<model::Song> f { view.begin(), view.end() };
-    // auto                     size = p->appendList(f);
-    // Action::instance()->toast(QString::fromStdString(
-    //    size ? fmt::format("Add {} songs to queue", size) : "Already added"s));
-}
 void App::on_logout() {
     auto ex = asio::make_strand(m_global->pool_executor());
     asio::co_spawn(
@@ -280,6 +312,17 @@ void App::on_sync_collecttion(enums::CollectionType ct) {
             co_await query::SyncAPi::sync_collection(ct);
         },
         helper::asio_detached_log_t {});
+}
+
+void App::on_record(enums::RecordAction record) {
+    switch (record) {
+    case enums::RecordAction::RecordSwitch: {
+    }
+    case enums::RecordAction::RecordNext: {
+    }
+    case enums::RecordAction::RecordPrev: {
+    }
+    }
 }
 
 } // namespace qcm

@@ -127,10 +127,10 @@ MD.Page {
                         }
                     }
                     MD.IconButton {
-                        enabled: QA.App.playlist.canPrev
+                        enabled: QA.App.playqueue.canPrev
                         icon.name: MD.Token.icon.skip_previous
 
-                        onClicked: QA.App.playlist.prev()
+                        onClicked: QA.App.playqueue.prev()
                     }
                     MD.IconButton {
                         type: MD.Enum.IBtFilled
@@ -145,16 +145,16 @@ MD.Page {
                         }
                     }
                     MD.IconButton {
-                        enabled: QA.App.playlist.canNext
+                        enabled: QA.App.playqueue.canNext
                         icon.name: MD.Token.icon.skip_next
 
-                        onClicked: QA.App.playlist.next()
+                        onClicked: QA.App.playqueue.next()
                     }
                     MD.IconButton {
                         flat: true
                         icon.name: QA.Global.loop_icon
 
-                        onClicked: QA.App.playlist.iterLoopMode()
+                        onClicked: QA.App.playqueue.iterLoopMode()
                     }
                 }
                 RowLayout {

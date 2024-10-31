@@ -39,12 +39,12 @@ Q_SIGNALS:
 
     void next();
     void prev();
-    void play_by_id(model::ItemId songId);
-    void queue_ids(const std::vector<model::ItemId>& songIds);
-    void switch_ids(const std::vector<model::ItemId>& songIds);
-    void queue_songs(const std::vector<model::Song>&);
+    void play_by_id(model::ItemId songId, model::ItemId sourceId = {});
+    void queue_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
+    void switch_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
     void play(const QUrl& url, bool refresh = false);
     void sync_collection(enums::CollectionType);
+    void record(enums::RecordAction);
     void playbackLog(enums::PlaybackState state, model::ItemId item, model::ItemId souce,
                      QVariantMap extra = {});
 };

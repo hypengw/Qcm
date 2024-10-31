@@ -123,7 +123,7 @@ MD.Page {
                             songs.push(model.item(i).song);
                         }
                         if (songs.length)
-                            QA.App.playlist.switchList(songs);
+                            QA.App.playqueue.switchList(songs);
                     }
                 }
             }

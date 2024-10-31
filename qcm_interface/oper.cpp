@@ -72,7 +72,6 @@ IMPL_OPER_PROPERTY(SongOper, bool, canPlay, canPlay)
 IMPL_OPER_PROPERTY(SongOper, QString, coverUrl, coverUrl)
 IMPL_OPER_PROPERTY(SongOper, QStringList, tags, tags)
 IMPL_OPER_PROPERTY(SongOper, qreal, popularity, popularity)
-IMPL_OPER_PROPERTY(SongOper, QVariant, source, source)
 IMPL_OPER_PROPERTY(SongOper, ItemId, sourceId, sourceId)
 
 IMPL_OPER_PROPERTY(PlaylistOper, ItemId, itemId, id)

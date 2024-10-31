@@ -30,6 +30,17 @@ public:
     ~QMetaModelBase() {}
     QHash<int, QByteArray> roleNames() const override { return m_role_names; }
     const QMetaObject&     meta() const { return m_meta; }
+    auto                   roleOf(QByteArrayView name) const -> int {
+        if (auto it = std::find_if(roleNamesRef().keyValueBegin(),
+                                   roleNamesRef().keyValueEnd(),
+                                   [name](const auto& el) -> bool {
+                                       return el.second == name;
+                                   });
+            it != roleNamesRef().keyValueEnd()) {
+            return it->first;
+        }
+        return -1;
+    }
 
 protected:
     void updateRoleNames(const QMetaObject& meta) {

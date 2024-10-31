@@ -38,7 +38,7 @@ public:
     Q_SIGNAL void requestNext();
 
     auto contains(const model::ItemId&) const -> bool;
-    void insert(qint32 pos, std::span<const model::ItemId>);
+    auto insert(qint32 pos, std::span<const model::ItemId>) -> int;
     void remove(const model::ItemId&);
     bool removeRows(int row, int count, const QModelIndex& parent = QModelIndex()) override;
     bool moveRows(const QModelIndex& sourceParent, int sourceRow, int count,

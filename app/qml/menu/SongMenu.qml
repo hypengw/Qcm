@@ -95,7 +95,7 @@ MD.Menu {
         autoReload: playlistId.valid()
         onStatusChanged: {
             if (status === QA.enums.Finished) {
-                QA.App.playlistChanged();
+                QA.App.playqueueChanged();
             }
         }
     }

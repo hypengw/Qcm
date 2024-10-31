@@ -134,12 +134,6 @@ void PlayIdProxyQueue::shuffleSync() {
         Random::shuffle(m_shuffle_list.begin() + cur + 1, m_shuffle_list.end());
         refreshFromSource();
 
-        // keep cur at queue first
-        if (old == 0) {
-            auto first = mapFromSource(0);
-            std::swap(m_shuffle_list[first], m_shuffle_list[0]);
-            refreshFromSource();
-        }
     } else if (old > count) {
         for (int i = 0, k = 0; i < count; i++) {
             if (m_shuffle_list[i] >= count) {
@@ -205,6 +199,12 @@ auto PlayQueue::data(const QModelIndex& index, int role) const -> QVariant {
                 return prop.value().readOnGadget(&song);
             } else if (prop->name() == "itemId"sv) {
                 return QVariant::fromValue(*id);
+            } else if (prop->name() == "sourceId"sv) {
+                if (auto it = m_source_ids.find(hash); it != m_source_ids.end()) {
+                    return QVariant::fromValue(it->second);
+                } else {
+                    return prop.value().readOnGadget(&m_placeholder);
+                }
             } else {
                 return prop.value().readOnGadget(&m_placeholder);
             }
@@ -249,6 +249,11 @@ auto PlayQueue::currentSong() const -> query::Song {
     query::Song s {};
     if (auto id = currentId()) {
         s.id = *id;
+
+        if (auto it = m_source_ids.find(std::hash<model::ItemId>()(*id));
+            it != m_source_ids.end()) {
+            s.sourceId = it->second;
+        }
     }
     return s;
 }
@@ -286,6 +291,10 @@ auto PlayQueue::getId(qint32 idx) const -> std::optional<model::ItemId> {
 
 auto PlayQueue::currentIndex() const -> qint32 { return m_current_index.value(); }
 auto PlayQueue::bindableCurrentIndex() -> const QBindable<qint32> { return &m_current_index; }
+
+auto PlayQueue::currentData(int role) const -> QVariant {
+    return data(index(currentIndex(), 0), role);
+}
 
 auto PlayQueue::loopMode() const -> enums::LoopMode { return m_loop_mode; }
 void PlayQueue::setLoopMode(enums::LoopMode mode) {
@@ -337,6 +346,8 @@ void PlayQueue::next(LoopMode mode) {
     case LoopMode::NoneLoop: {
         if (cur + 1 < count) {
             m_proxy->setCurrentIndex(cur + 1);
+        } else {
+            return;
         }
         break;
     }
@@ -349,6 +360,7 @@ void PlayQueue::next(LoopMode mode) {
     }
     }
     requestNext();
+    Action::instance()->record(enums::RecordAction::RecordNext);
 }
 void PlayQueue::prev(LoopMode mode) {
     bool support_loop = m_options.testFlag(Option::SupportLoop);
@@ -358,6 +370,8 @@ void PlayQueue::prev(LoopMode mode) {
     case LoopMode::NoneLoop: {
         if (cur >= 1) {
             m_proxy->setCurrentIndex(cur - 1);
+        } else {
+            return;
         }
         break;
     }
@@ -369,10 +383,17 @@ void PlayQueue::prev(LoopMode mode) {
     case LoopMode::SingleLoop: {
     }
     }
-    requestNext();
+    Action::instance()->record(enums::RecordAction::RecordPrev);
 }
 
-void PlayQueue::clear() {}
+void PlayQueue::startIfNoCurrent() {
+    if (rowCount() > 0 && currentIndex() < 0) {
+        m_proxy->setCurrentIndex(0);
+        Action::instance()->record(enums::RecordAction::RecordSwitch);
+    }
+}
+
+void PlayQueue::clear() { removeRows(0, rowCount()); }
 
 auto PlayQueue::querySongsSql(std::span<const model::ItemId> ids)
     -> task<std::vector<query::Song>> {
@@ -421,7 +442,16 @@ auto PlayQueue::querySongs(std::span<const model::ItemId> ids) -> task<void> {
     co_await asio::post(asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
     std::unordered_set<usize> hashes;
     for (auto& s : songs) {
-        auto hash = get_hash(s.id);
+        auto  hash      = get_hash(s.id);
+        auto& source_id = s.sourceId;
+
+        if (auto it = m_source_ids.find(hash); it != m_source_ids.end()) {
+            source_id = it->second;
+            m_source_ids.erase(it);
+        } else if (auto it = m_songs.find(hash); it != m_songs.end()) {
+            source_id = it->second.sourceId;
+        }
+
         hashes.insert(hash);
         m_songs.insert_or_assign(hash, s);
     }
@@ -438,6 +468,18 @@ auto PlayQueue::querySongs(std::span<const model::ItemId> ids) -> task<void> {
         setCurrentSong(currentIndex());
     }
     co_return;
+}
+
+void PlayQueue::updateSourceId(std::span<const model::ItemId> songIds,
+                               const model::ItemId&           sourceId) {
+    for (auto& el : songIds) {
+        auto hash = std::hash<model::ItemId> {}(el);
+        if (auto it = m_songs.find(hash); it != m_songs.end()) {
+            it->second.sourceId = sourceId;
+        } else {
+            m_source_ids.insert_or_assign(hash, sourceId);
+        }
+    }
 }
 
 void PlayQueue::onSourceRowsInserted(const QModelIndex&, int first, int last) {
@@ -464,7 +506,9 @@ void PlayQueue::onSourceRowsAboutToBeRemoved(const QModelIndex&, int first, int 
     for (int i = first; i <= last; i++) {
         auto id = getId(i);
         if (id) {
-            m_songs.erase(get_hash(*id));
+            auto hash = get_hash(*id);
+            m_songs.erase(hash);
+            m_source_ids.erase(hash);
         }
     }
 }
