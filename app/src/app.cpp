@@ -505,6 +505,15 @@ auto App::album_sql() const -> rc<ItemSql> { return m_item_sql; }
 void App::load_settings() {
     QSettings s;
     playqueue()->setLoopMode(s.value("play/loop").value<enums::LoopMode>());
+    connect(playqueue(), &PlayQueue::loopModeChanged, this, [](enums::LoopMode v) {
+        QSettings s;
+        s.setValue("play/loop", (int)v);
+    });
+    playqueue()->setRandomMode(s.value("play/random").value<bool>());
+    connect(playqueue(), &PlayQueue::randomModeChanged, this, [](bool v) {
+        QSettings s;
+        s.setValue("play/random", v);
+    });
     // session proxy
     {
         auto type        = s.value("network/proxy_type").value<ProxyType>();

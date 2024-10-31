@@ -84,6 +84,18 @@ void PlayIdProxyQueue::setCurrentIndex(qint32 idx) {
 auto PlayIdProxyQueue::bindableCurrentIndex() -> const QBindable<qint32> {
     return &m_current_index;
 }
+auto PlayIdProxyQueue::randomIndex() -> int {
+    auto cur   = currentIndex();
+    auto count = rowCount();
+    if (count <= 1) return cur;
+
+    int out = cur;
+    while (out == cur) {
+        out = Random::get(0, count - 1);
+    }
+    setCurrentIndex(out);
+    return out;
+}
 
 auto PlayIdProxyQueue::mapToSource(const QModelIndex& proxy_index) const -> QModelIndex {
     if (! proxy_index.isValid()) return QModelIndex();
@@ -170,7 +182,8 @@ PlayQueue::PlayQueue(QObject* parent)
       m_proxy(new PlayIdProxyQueue(parent)),
       m_loop_mode(LoopMode::NoneLoop),
       m_can_next(false),
-      m_can_prev(false) {
+      m_can_prev(false),
+      m_random_mode(false) {
     updateRoleNames(query::Song::staticMetaObject);
     connect(this, &PlayQueue::currentIndexChanged, this, [this](qint32 idx) {
         setCurrentSong(idx);
@@ -180,7 +193,7 @@ PlayQueue::PlayQueue(QObject* parent)
         m_proxy->setShuffle(loopMode() == LoopMode::ShuffleLoop);
         checkCanMove();
     });
-    loopModeChanged();
+    loopModeChanged(m_loop_mode);
 }
 PlayQueue::~PlayQueue() {}
 
@@ -299,7 +312,7 @@ auto PlayQueue::currentData(int role) const -> QVariant {
 auto PlayQueue::loopMode() const -> enums::LoopMode { return m_loop_mode; }
 void PlayQueue::setLoopMode(enums::LoopMode mode) {
     if (ycore::cmp_exchange(m_loop_mode, mode)) {
-        loopModeChanged();
+        loopModeChanged(m_loop_mode);
     }
 }
 void PlayQueue::iterLoopMode() {
@@ -312,6 +325,12 @@ void PlayQueue::iterLoopMode() {
     case M::ShuffleLoop: mode = M::NoneLoop; break;
     }
     setLoopMode(mode);
+}
+auto PlayQueue::randomMode() const -> bool { return m_random_mode; }
+void PlayQueue::setRandomMode(bool v) {
+    if (ycore::cmp_exchange(m_random_mode, v)) {
+        randomModeChanged(m_random_mode);
+    }
 }
 
 auto PlayQueue::canNext() const -> bool { return m_can_next; }
@@ -330,12 +349,12 @@ void PlayQueue::setCanPrev(bool v) {
 
 void PlayQueue::next() {
     auto mode = loopMode();
-    if (mode == LoopMode::SingleLoop) mode = LoopMode::ShuffleLoop;
+    if (mode == LoopMode::SingleLoop) mode = LoopMode::ListLoop;
     next(mode);
 }
 void PlayQueue::prev() {
     auto mode = loopMode();
-    if (mode == LoopMode::SingleLoop) mode = LoopMode::ShuffleLoop;
+    if (mode == LoopMode::SingleLoop) mode = LoopMode::ListLoop;
     prev(mode);
 }
 void PlayQueue::next(LoopMode mode) {
@@ -351,9 +370,16 @@ void PlayQueue::next(LoopMode mode) {
         }
         break;
     }
-    case LoopMode::ListLoop:
-    case LoopMode::ShuffleLoop: {
+    case LoopMode::ListLoop: {
         m_proxy->setCurrentIndex((cur + 1) % count);
+        break;
+    }
+    case LoopMode::ShuffleLoop: {
+        if (m_random_mode) {
+            m_proxy->randomIndex();
+        } else {
+            m_proxy->setCurrentIndex((cur + 1) % count);
+        }
         break;
     }
     case LoopMode::SingleLoop: {

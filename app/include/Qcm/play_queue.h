@@ -45,6 +45,7 @@ public:
     auto currentIndex() const -> qint32;
     void setCurrentIndex(qint32 idx);
     auto bindableCurrentIndex() -> const QBindable<qint32>;
+    auto randomIndex() -> int;
 
     Q_SIGNAL void currentIndexChanged(qint32);
 
@@ -79,6 +80,7 @@ class PlayQueue : public meta_model::QMetaModelBase<QIdentityProxyModel> {
     Q_PROPERTY(qcm::query::Song currentSong READ currentSong NOTIFY currentSongChanged FINAL)
     Q_PROPERTY(
         qcm::enums::LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged FINAL)
+    Q_PROPERTY(bool randomMode READ randomMode WRITE setRandomMode NOTIFY randomModeChanged FINAL)
     Q_PROPERTY(bool canNext READ canNext NOTIFY canNextChanged FINAL)
     Q_PROPERTY(bool canPrev READ canPrev NOTIFY canPrevChanged FINAL)
 
@@ -109,7 +111,11 @@ public:
     auto          loopMode() const -> enums::LoopMode;
     void          setLoopMode(enums::LoopMode mode);
     Q_SLOT void   iterLoopMode();
-    Q_SIGNAL void loopModeChanged();
+    Q_SIGNAL void loopModeChanged(enums::LoopMode);
+
+    auto          randomMode() const -> bool;
+    void          setRandomMode(bool);
+    Q_SIGNAL void randomModeChanged(bool);
 
     auto          canNext() const -> bool;
     auto          canPrev() const -> bool;
@@ -148,6 +154,7 @@ private:
 
     bool m_can_next;
     bool m_can_prev;
+    bool m_random_mode;
 
     Q_OBJECT_BINDABLE_PROPERTY(PlayQueue, int, m_current_index, &PlayQueue::currentIndexChanged)
 };

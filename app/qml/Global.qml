@@ -139,12 +139,13 @@ QA.GlobalWrapper {
     Connections {
         target: QA.Action
         function onPlay(url, reload) {
-            if (reload && m_player.source == url) {
+            if (reload && m_player.source == Qt.url(url)) {
                 m_player.source = '';
             }
             m_player.source = url;
-            if (url)
+            if (url) {
                 m_player.play();
+            }
         }
     }
 
