@@ -76,12 +76,14 @@ MD.Page {
             RowLayout {
                 id: m_control_pane
                 Layout.alignment: Qt.AlignHCenter
-                //action: QA.AppendListAction {
-                //    getSongs: function () {
-                //        return itemData.songs;
-                //    }
-                //}
-                MD.IconButton {}
+
+                MD.IconButton {
+                    action: QA.AppendListAction {
+                        getSongIds: function () {
+                            return QA.Util.collect_ids(root.itemData);
+                        }
+                    }
+                }
 
                 MD.IconButton {
                     id: btn_fav

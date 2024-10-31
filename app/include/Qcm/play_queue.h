@@ -27,7 +27,8 @@ class PlayIdProxyQueue : public QIdentityProxyModel {
     Q_OBJECT
     Q_PROPERTY(qint32 currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY
                    currentIndexChanged BINDABLE bindableCurrentIndex FINAL)
-    Q_PROPERTY(bool shuffle READ shuffle WRITE setShuffle NOTIFY shuffleChanged FINAL)
+    Q_PROPERTY(bool shuffle READ shuffle WRITE setShuffle NOTIFY shuffleChanged BINDABLE
+                   bindableShuffle FINAL)
 public:
     PlayIdProxyQueue(QObject* parent = nullptr);
     ~PlayIdProxyQueue();
@@ -38,6 +39,7 @@ public:
 
     auto          shuffle() const -> bool;
     void          setShuffle(bool);
+    auto          bindableShuffle() -> QBindable<bool>;
     Q_SIGNAL void shuffleChanged();
 
     auto currentIndex() const -> qint32;
@@ -55,18 +57,18 @@ private:
     auto mapToSource(int row) const -> int;
     auto mapFromSource(int row) const -> int;
 
-    void reShuffle();
-    void shuffleSync();
-    void refreshFromSource();
+    Q_SLOT void reShuffle();
+    void        shuffleSync();
+    void        refreshFromSource();
 
     PlayIdQueue*        m_source;
-    bool                m_support_shuffle;
-    bool                m_shuffle;
+    QProperty<bool>     m_support_shuffle;
     std::vector<qint32> m_shuffle_list;
 
     std::unordered_map<qint32, qint32> m_source_to_proxy;
     Q_OBJECT_BINDABLE_PROPERTY(PlayIdProxyQueue, int, m_current_index,
                                &PlayIdProxyQueue::currentIndexChanged)
+    Q_OBJECT_BINDABLE_PROPERTY(PlayIdProxyQueue, bool, m_shuffle, &PlayIdProxyQueue::shuffleChanged)
 };
 
 class PlayQueue : public meta_model::QMetaModelBase<QIdentityProxyModel> {

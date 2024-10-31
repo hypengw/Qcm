@@ -94,8 +94,8 @@ MD.Page {
 
                 MD.IconButton {
                     action: QA.AppendListAction {
-                        getSongs: function () {
-                            return root.albumInfo.songs;
+                        getSongIds: function () {
+                            return QA.Util.collect_ids(qr_al.data);
                         }
                     }
                 }

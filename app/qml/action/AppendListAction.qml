@@ -5,10 +5,13 @@ import Qcm.App as QA
 import Qcm.Material as MD
 
 Action {
+    id: root
     icon.name: MD.Token.icon.playlist_add
     text: qsTr('add to list')
-    onTriggered: if(getSongs) {
-        QA.Action.queue_songs(this.getSongs());
+    onTriggered: {
+        if (getSongIds) {
+            QA.Action.queue_ids(root.getSongIds());
+        }
     }
-    property var getSongs: null
+    property var getSongIds: null
 }

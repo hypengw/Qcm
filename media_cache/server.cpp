@@ -60,7 +60,7 @@ asio::awaitable<void> Server::listener(rc<DataBase> db) {
                     try {
                         std::rethrow_exception(p);
                     } catch (const std::exception& e) {
-                        DEBUG_LOG("{}", e.what());
+                        ERROR_LOG("{}", e.what());
                     }
                 }
                 if (auto& req = c->get_req(); req) {

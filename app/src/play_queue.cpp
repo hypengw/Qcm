@@ -27,7 +27,12 @@ PlayIdQueue::PlayIdQueue(QObject* parent): model::IdQueue(parent) { setOptions(O
 PlayIdQueue::~PlayIdQueue() {}
 
 PlayIdProxyQueue::PlayIdProxyQueue(QObject* parent)
-    : QIdentityProxyModel(parent), m_support_shuffle(true), m_shuffle(true), m_current_index(-1) {}
+    : QIdentityProxyModel(parent), m_support_shuffle(true), m_current_index(-1), m_shuffle(true) {
+    connect(this, &PlayIdProxyQueue::shuffleChanged, this, &PlayIdProxyQueue::reShuffle);
+    connect(this, &PlayIdProxyQueue::layoutChanged, this, [this] {
+        if (m_shuffle.hasBinding()) m_shuffle.notify();
+    });
+}
 
 PlayIdProxyQueue::~PlayIdProxyQueue() {}
 void PlayIdProxyQueue::setSourceModel(QAbstractItemModel* source_model) {
@@ -35,7 +40,8 @@ void PlayIdProxyQueue::setSourceModel(QAbstractItemModel* source_model) {
     QIdentityProxyModel::setSourceModel(source_model);
     QBindable<qint32> source_idx(source_model, "currentIndex");
     m_current_index.setBinding([source_idx, this] {
-        return mapFromSource(source_idx.value());
+        auto source = source_idx.value();
+        return m_shuffle.value() && m_support_shuffle.value() ? mapFromSource(source) : source;
     });
 
     shuffleSync();
@@ -66,12 +72,9 @@ void PlayIdProxyQueue::setSourceModel(QAbstractItemModel* source_model) {
             &PlayIdProxyQueue::onSourceRowsRemoved);
 }
 
-auto PlayIdProxyQueue::shuffle() const -> bool { return m_shuffle; }
-void PlayIdProxyQueue::setShuffle(bool v) {
-    if (ycore::cmp_exchange(m_shuffle, v)) {
-        shuffleChanged();
-    };
-}
+auto PlayIdProxyQueue::shuffle() const -> bool { return m_shuffle.value(); }
+void PlayIdProxyQueue::setShuffle(bool v) { m_shuffle = v; }
+auto PlayIdProxyQueue::bindableShuffle() -> QBindable<bool> { return &m_shuffle; }
 auto PlayIdProxyQueue::useShuffle() const -> bool { return m_support_shuffle && shuffle(); }
 
 auto PlayIdProxyQueue::currentIndex() const -> qint32 { return m_current_index.value(); }
@@ -107,7 +110,21 @@ auto PlayIdProxyQueue::mapFromSource(int row) const -> int {
     return proxy_row;
 }
 
+void PlayIdProxyQueue::reShuffle() {
+    layoutAboutToBeChanged();
+    if (useShuffle()) {
+        Random::shuffle(m_shuffle_list.begin(), m_shuffle_list.end());
+        if (auto it = std::find(m_shuffle_list.begin(), m_shuffle_list.end(), 0);
+            it != m_shuffle_list.end()) {
+            std::swap(*it, m_shuffle_list.front());
+        }
+        refreshFromSource();
+    }
+    layoutChanged();
+}
+
 void PlayIdProxyQueue::shuffleSync() {
+    layoutAboutToBeChanged();
     auto count = sourceModel()->rowCount();
     auto old   = (int)m_shuffle_list.size();
     if (old < count) {
@@ -121,7 +138,7 @@ void PlayIdProxyQueue::shuffleSync() {
         if (old == 0) {
             auto first = mapFromSource(0);
             std::swap(m_shuffle_list[first], m_shuffle_list[0]);
-            m_current_index.value();
+            refreshFromSource();
         }
     } else if (old > count) {
         for (int i = 0, k = 0; i < count; i++) {
@@ -137,6 +154,7 @@ void PlayIdProxyQueue::shuffleSync() {
         // let upstream check later
         // if upstream no change, cur is ok
     }
+    layoutChanged();
 }
 
 void PlayIdProxyQueue::refreshFromSource() {
@@ -166,6 +184,7 @@ PlayQueue::PlayQueue(QObject* parent)
     connect(m_proxy, &PlayIdProxyQueue::currentIndexChanged, this, &PlayQueue::checkCanMove);
     connect(this, &PlayQueue::loopModeChanged, m_proxy, [this] {
         m_proxy->setShuffle(loopMode() == LoopMode::ShuffleLoop);
+        checkCanMove();
     });
     loopModeChanged();
 }
@@ -300,8 +319,12 @@ void PlayQueue::setCanPrev(bool v) {
     }
 }
 
-void PlayQueue::next() { next(loopMode()); }
-void PlayQueue::prev() { prev(loopMode()); }
+void PlayQueue::next() { 
+    next(loopMode()); 
+}
+void PlayQueue::prev() { 
+    prev(loopMode()); 
+}
 void PlayQueue::next(LoopMode mode) {
     bool support_loop = m_options.testFlag(Option::SupportLoop);
     auto count        = m_proxy->rowCount();
@@ -336,7 +359,7 @@ void PlayQueue::prev(LoopMode mode) {
     }
     case LoopMode::ListLoop:
     case LoopMode::ShuffleLoop: {
-        m_proxy->setCurrentIndex(cur == 0 ? std::max(count, 1) - 1 : cur);
+        m_proxy->setCurrentIndex(cur <= 0 ? std::max(count, 1) - 1 : cur - 1);
         break;
     }
     case LoopMode::SingleLoop: {
@@ -462,6 +485,7 @@ void PlayQueue::checkCanMove() {
         } else {
             check_on_none_loop();
         }
+        break;
     }
     default: {
         setCanPrev(support_prev);
