@@ -159,27 +159,24 @@ MD.Page {
                 }
                 QA.AlbumCollectionQuery {
                     id: qr_albumlist
-
-                    // autoReload: limit > 0
-
                     Component.onCompleted: reload()
                 }
                 QA.ArtistCollectionQuery {
                     id: qr_artistlist
-                    // autoReload: limit > 0
                     Component.onCompleted: reload()
                 }
-                QNcm.UserPlaylistQuerier {
+                QA.PlaylistCollectionQuery {
                     id: qr_playlist
-                    autoReload: uid.valid() && limit > 0
-                    limit: 30
-                    Component.onCompleted: {
-                        uid = QA.Global.session.user.userId;
-                    }
+                    //autoReload: uid.valid() && limit > 0
+                    //limit: 30
+                    //Component.onCompleted: {
+                    //    uid = QA.Global.session.user.userId;
+                    //}
+                    Component.onCompleted: reload()
                 }
-                QNcm.DjradioSublistQuerier {
+                QA.DjradioCollectionQuery {
                     id: qr_djradiolist
-                    autoReload: limit > 0
+                    Component.onCompleted: reload()
                 }
                 Component {
                     id: dg_albumlist

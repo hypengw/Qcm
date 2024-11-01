@@ -6,6 +6,10 @@
 #include "qcm_interface/model/song.h"
 #include "qcm_interface/oper/playlist_oper.h"
 #include "qcm_interface/model/playlist.h"
+#include "qcm_interface/oper/djradio_oper.h"
+#include "qcm_interface/model/djradio.h"
+#include "qcm_interface/oper/program_oper.h"
+#include "qcm_interface/model/program.h"
 
 namespace qcm::oper
 {
@@ -45,6 +49,8 @@ X(model::Album)
 X(model::Artist)
 X(model::Song)
 X(model::Playlist)
+X(model::Djradio)
+X(model::Program)
 
 IMPL_OPER_PROPERTY(AlbumOper, ItemId, itemId, id)
 IMPL_OPER_PROPERTY(AlbumOper, QString, name, name)
@@ -78,8 +84,26 @@ IMPL_OPER_PROPERTY(PlaylistOper, ItemId, itemId, id)
 IMPL_OPER_PROPERTY(PlaylistOper, QString, name, name)
 IMPL_OPER_PROPERTY(PlaylistOper, QString, picUrl, picUrl)
 IMPL_OPER_PROPERTY(PlaylistOper, QString, description, description)
+IMPL_OPER_PROPERTY(PlaylistOper, QDateTime, createTime, createTime)
 IMPL_OPER_PROPERTY(PlaylistOper, QDateTime, updateTime, updateTime)
 IMPL_OPER_PROPERTY(PlaylistOper, qint32, playCount, playCount)
 IMPL_OPER_PROPERTY(PlaylistOper, qint32, trackCount, trackCount)
 IMPL_OPER_PROPERTY(PlaylistOper, ItemId, userId, userId)
+IMPL_OPER_PROPERTY(PlaylistOper, std::vector<QString>, tags, tags)
+
+IMPL_OPER_PROPERTY(DjradioOper, ItemId, itemId, id)
+IMPL_OPER_PROPERTY(DjradioOper, QString, name, name)
+IMPL_OPER_PROPERTY(DjradioOper, QString, picUrl, picUrl)
+IMPL_OPER_PROPERTY(DjradioOper, QString, description, description)
+IMPL_OPER_PROPERTY(DjradioOper, qint32, programCount, programCount)
+
+IMPL_OPER_PROPERTY(ProgramOper, ItemId, itemId, id)
+IMPL_OPER_PROPERTY(ProgramOper, QString, name, name)
+IMPL_OPER_PROPERTY(ProgramOper, QString, description, description)
+IMPL_OPER_PROPERTY(ProgramOper, QDateTime, duration, duration)
+IMPL_OPER_PROPERTY(ProgramOper, QString, coverUrl, coverUrl)
+IMPL_OPER_PROPERTY(ProgramOper, ItemId, songId, songId)
+IMPL_OPER_PROPERTY(ProgramOper, QDateTime, createTime, createTime)
+IMPL_OPER_PROPERTY(ProgramOper, qint32, serialNum, serialNum)
+IMPL_OPER_PROPERTY(ProgramOper, ItemId, sourceId, sourceId)
 } // namespace qcm::oper

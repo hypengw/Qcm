@@ -34,7 +34,7 @@ struct UserPlaylistItem {
     // recommendInfo	null
     i64 subscribedCount;
     // cloudTrackCount	1
-    i64 userId;
+    model::UserId userId;
     // totalDuration	0
     // coverImgId	109951167805071570
     // privacy	0
@@ -43,7 +43,7 @@ struct UserPlaylistItem {
     Time        updateTime;
     std::string commentThreadId;
     std::string coverImgUrl;
-    // specialType	5
+    i64         specialType;
     // anonimous	false
     Time createTime;
     // highQuality	false
@@ -55,13 +55,17 @@ struct UserPlaylistItem {
     std::vector<std::string>   tags;
     // ordered	true
     // status	0
-    std::string name;
-    i64         id;
+    std::string       name;
+    model::PlaylistId id;
     // coverImgId_str	"109951167805071571"
     // sharedUsers	null
     // shareStatus	null
     // copied	false
 };
+// special type
+// 5 -> like playlist
+// 100 -> offical playlist
+// 300 -> ?
 } // namespace model
 
 namespace api_model
@@ -72,8 +76,8 @@ struct UserPlaylist {
         return api_model::parse<UserPlaylist>(bs);
     }
 
-    bool                         more;
-    std::vector<model::Playlist> playlist;
+    bool                                 more;
+    std::vector<model::UserPlaylistItem> playlist;
 };
 JSON_DEFINE(UserPlaylist);
 

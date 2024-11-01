@@ -16,6 +16,14 @@ IMPL_CONVERT(std::string_view, qcm::enums::CollectionType) {
         out = "artist"sv;
         break;
     }
+    case in_type::CTPlaylist: {
+        out = "playlist"sv;
+        break;
+    }
+    case in_type::CTDjradio: {
+        out = "djradio"sv;
+        break;
+    }
     default: {
         _assert_rel_(false);
     }

@@ -156,7 +156,7 @@ JSON_DEFINE_WITH_DEFAULT_IMPL(UserAccountProfile, defaultAvatar, accountStatus, 
 
 JSON_DEFINE_IMPL(UserPlaylistItem, tags, description, commentThreadId, id, subscribedCount,
                  coverImgUrl, updateTime, trackCount, subscribed, createTime, playCount, userId,
-                 name);
+                 name, specialType);
 
 JSON_DEFINE_IMPL(DjradioDetail, name, category, categoryId, secondCategory, secondCategoryId,
                  commentCount, likedCount, playCount, programCount, shareCount,

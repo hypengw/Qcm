@@ -4,6 +4,7 @@
 #include "qcm_interface/model/artist.h"
 #include "qcm_interface/model/song.h"
 #include "qcm_interface/model/playlist.h"
+#include "qcm_interface/model/djradio.h"
 #include "core/qstr_helper.h"
 
 namespace qcm::query

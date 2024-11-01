@@ -35,24 +35,24 @@ public:
     }
 
     void handle_output(const out_type& re, const auto& input) {
-        auto in_ = convert_from<std::vector<Playlist>>(re.playlist);
+        //auto in_ = convert_from<std::vector<Playlist>>(re.playlist);
 
-        m_has_more = re.more;
-        if (m_user_id.valid()) {
-            if (std::erase_if(in_, [this](const Playlist& pl) -> bool {
-                    return pl.userId != m_user_id;
-                })) {
-                m_has_more = false;
-            }
-        }
+        //m_has_more = re.more;
+        //if (m_user_id.valid()) {
+        //    if (std::erase_if(in_, [this](const Playlist& pl) -> bool {
+        //            return pl.userId != m_user_id;
+        //        })) {
+        //        m_has_more = false;
+        //    }
+        //}
 
-        if (input.offset == 0) {
-            convertModel(in_, [](const Playlist& it) {
-                return convert_from<std::string>(it.id);
-            });
-        } else if (input.offset == (int)rowCount()) {
-            insert(rowCount(), in_);
-        }
+        //if (input.offset == 0) {
+        //    convertModel(in_, [](const Playlist& it) {
+        //        return convert_from<std::string>(it.id);
+        //    });
+        //} else if (input.offset == (int)rowCount()) {
+        //    insert(rowCount(), in_);
+        //}
     }
 
     bool canFetchMore(const QModelIndex&) const override { return m_has_more; }

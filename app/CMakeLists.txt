@@ -31,6 +31,8 @@ set(SOURCES
     include/Qcm/query/query_model.h
     include/Qcm/query/album_collection.h
     include/Qcm/query/artist_collection.h
+    include/Qcm/query/djradio_collection.h
+    include/Qcm/query/playlist_collection.h
     include/Qcm/query/album_detail.h
     include/Qcm/query/playlist_detail.h
     include/Qcm/query/artist_detail.h

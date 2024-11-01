@@ -18,6 +18,8 @@
 #include "qcm_interface/model/artist.h"
 #include "qcm_interface/model/song.h"
 #include "qcm_interface/model/playlist.h"
+#include "qcm_interface/model/djradio.h"
+#include "qcm_interface/model/program.h"
 
 namespace qcm::model
 {
@@ -49,35 +51,6 @@ public:
     std::strong_ordering operator<=>(const Comment&) const = default;
 };
 
-class QCM_INTERFACE_API Djradio {
-    Q_GADGET
-    QML_VALUE_TYPE(t_djradio)
-public:
-    GADGET_PROPERTY_DEF(ItemId, itemId, id)
-    GADGET_PROPERTY_DEF(QString, name, name)
-    GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
-    GADGET_PROPERTY_DEF(std::vector<Artist>, artists, artists)
-    GADGET_PROPERTY_DEF(qint32, programCount, programCount)
-    GADGET_PROPERTY_DEF(bool, subscribed, subscribed)
-
-    std::strong_ordering operator<=>(const Djradio&) const = default;
-};
-
-class QCM_INTERFACE_API Program {
-    Q_GADGET
-    QML_VALUE_TYPE(t_program)
-public:
-    GADGET_PROPERTY_DEF(ItemId, itemId, id)
-    GADGET_PROPERTY_DEF(QString, name, name)
-    GADGET_PROPERTY_DEF(QDateTime, duration, duration)
-    GADGET_PROPERTY_DEF(QString, coverUrl, coverUrl)
-    GADGET_PROPERTY_DEF(Song, song, song)
-    GADGET_PROPERTY_DEF(QDateTime, createTime, createTime)
-    GADGET_PROPERTY_DEF(qint32, serialNum, serialNum)
-    GADGET_PROPERTY_DEF(ItemId, sourceId, sourceId)
-
-    std::strong_ordering operator<=>(const Program&) const = default;
-};
 
 } // namespace qcm::model
 

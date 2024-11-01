@@ -15,6 +15,7 @@
 #include "qcm_interface/oper/artist_oper.h"
 #include "qcm_interface/oper/song_oper.h"
 #include "qcm_interface/oper/playlist_oper.h"
+#include "qcm_interface/oper/djradio_oper.h"
 #include "qcm_interface/sql/item_sql.h"
 
 #include "service_qml_ncm/model.h"
@@ -29,12 +30,15 @@
 #include "ncm/api/song_url.h"
 #include "ncm/api/album_sublist.h"
 #include "ncm/api/artist_sublist.h"
+#include "ncm/api/user_playlist.h"
+#include "ncm/api/djradio_sublist.h"
 #include "ncm/api/album_detail.h"
 #include "ncm/api/playlist_detail.h"
 #include "ncm/api/artist.h"
 #include "ncm/api/artist_albums.h"
 #include "ncm/api/artist_songs.h"
 #include "ncm/api/song_detail.h"
+
 #include "ncm/client.h"
 
 namespace
@@ -338,11 +342,10 @@ auto sync_collection(ClientBase&                cbase,
     auto user_id = get_user_id(cbase);
 
     auto collect_sql = qcm::Global::instance()->get_collection_sql();
+    auto item_sql    = qcm::Global::instance()->get_item_sql();
 
     switch (collection_type) {
     case qcm::enums::CollectionType::CTAlbum: {
-        auto item_sql = qcm::Global::instance()->get_item_sql();
-
         ncm::api::AlbumSublist api;
         api.input.limit                 = 1000;
         bool                   has_more = false;
@@ -379,8 +382,6 @@ auto sync_collection(ClientBase&                cbase,
         break;
     }
     case qcm::enums::CollectionType::CTArtist: {
-        auto item_sql = qcm::Global::instance()->get_item_sql();
-
         ncm::api::ArtistSublist api;
         api.input.limit                 = 1000;
         bool                   has_more = false;
@@ -412,6 +413,69 @@ auto sync_collection(ClientBase&                cbase,
         } while (has_more || api.input.offset >= std::numeric_limits<i32>::max());
         co_await collect_sql->refresh(user_id, type, collects, collect_times);
         break;
+    }
+    case qcm::enums::CollectionType::CTPlaylist: {
+        ncm::api::UserPlaylist api;
+        convert(api.input.uid, user_id);
+        api.input.limit                 = 1000;
+        bool                   has_more = false;
+        std::vector<ItemId>    collects;
+        std::vector<QDateTime> collect_times;
+        auto                   type = convert_from<QString>(collection_type);
+        auto                   cur  = QDateTime::currentDateTime();
+        do {
+            auto out = co_await c.perform(api);
+            api.input.offset += api.input.limit;
+            if (out) {
+                has_more = out->more;
+                {
+                    auto list = qcm::oper::PlaylistOper::create_list(out->playlist.size());
+                    for (usize i = 0; i < out->playlist.size(); i++) {
+                        auto& el = out->playlist[i];
+                        collects.push_back(convert_from<ItemId>(el.id));
+                        collect_times.push_back(cur);
+                        auto oper = qcm::oper::PlaylistOper(list[i]);
+                        convert(oper, el);
+                        cur = cur.addSecs(-5);
+                    }
+                    co_await item_sql->insert(list, {});
+                }
+            } else {
+                co_return nstd::unexpected(out.error());
+            }
+        } while (has_more || api.input.offset >= std::numeric_limits<i32>::max());
+        co_await collect_sql->refresh(user_id, type, collects, collect_times);
+        break;
+    }
+    case qcm::enums::CollectionType::CTDjradio: {
+        ncm::api::DjradioSublist api;
+        api.input.limit                 = 1000;
+        bool                   has_more = false;
+        std::vector<ItemId>    collects;
+        std::vector<QDateTime> collect_times;
+        auto                   type = convert_from<QString>(collection_type);
+        auto                   cur  = QDateTime::currentDateTime();
+        do {
+            auto out = co_await c.perform(api);
+            api.input.offset += api.input.limit;
+            if (out) {
+                has_more = out->hasMore;
+                {
+                    auto list = qcm::oper::DjradioOper::create_list(out->djRadios.size());
+                    for (usize i = 0; i < out->djRadios.size(); i++) {
+                        auto& el = out->djRadios[i];
+                        collects.push_back(convert_from<ItemId>(el.id));
+                        collect_times.push_back(convert_from<QDateTime>(el.createTime));
+                        auto oper = qcm::oper::DjradioOper(list[i]);
+                        convert(oper, el);
+                    }
+                    co_await item_sql->insert(list, {});
+                }
+            } else {
+                co_return nstd::unexpected(out.error());
+            }
+        } while (has_more || api.input.offset >= std::numeric_limits<i32>::max());
+        co_await collect_sql->refresh(user_id, type, collects, collect_times);
     }
     }
     co_return true;

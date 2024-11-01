@@ -27,6 +27,7 @@ ItemSql::ItemSql(rc<helper::SqlConnect> con)
       m_song_artist_table("song_artist"),
       m_playlist_table("playlist"),
       m_playlist_song_table("playlist_song"),
+      m_djradio_table("djradio"),
       m_con(con) {
     asio::dispatch(m_con->get_executor(), [this] {
         create_album_table();
@@ -36,6 +37,7 @@ ItemSql::ItemSql(rc<helper::SqlConnect> con)
         create_song_artist_table();
         create_playlist_table();
         create_playlist_song_table();
+        create_djradio_table();
     });
 }
 ItemSql::~ItemSql() {}
@@ -113,6 +115,28 @@ void ItemSql::create_playlist_table() {
     auto migs = m_con->generate_column_migration(m_playlist_table,
                                                  u"itemId",
                                                  model::Playlist::staticMetaObject,
+                                                 std::array { "full INTEGER DEFAULT 0"sv });
+
+    QSqlQuery q = m_con->query();
+
+    for (auto el : migs) {
+        if (! q.exec(el)) {
+            ERROR_LOG("{}", q.lastError().text());
+            m_con->db().rollback();
+            return;
+        }
+    }
+    if (! m_con->db().commit()) {
+        ERROR_LOG("{}", m_con->error_str());
+    }
+}
+
+void ItemSql::create_djradio_table() {
+    m_con->db().transaction();
+
+    auto migs = m_con->generate_column_migration(m_djradio_table,
+                                                 u"itemId",
+                                                 model::Djradio::staticMetaObject,
                                                  std::array { "full INTEGER DEFAULT 0"sv });
 
     QSqlQuery q = m_con->query();
@@ -327,6 +351,31 @@ auto ItemSql::insert(std::span<const model::Playlist> items,
     DEBUG_LOG("end insert");
     co_return true;
 }
+auto ItemSql::insert(std::span<const model::Djradio> items,
+                     const std::set<std::string>&    on_update) -> task<bool> {
+    DEBUG_LOG("start insert djradio, {}", items.size());
+    auto insert_helper = m_con->generate_insert_helper(m_djradio_table,
+                                                       u"itemId"_s,
+                                                       model::Djradio::staticMetaObject,
+                                                       items,
+                                                       on_update,
+                                                       { { u"itemId"_s, item_id_converter } });
+
+    co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
+
+    auto query = m_con->query();
+    insert_helper.bind(query);
+
+    m_con->db().transaction();
+    if (! query.execBatch()) {
+        ERROR_LOG("{}", query.lastError().text());
+        m_con->db().rollback();
+        co_return false;
+    }
+    m_con->db().commit();
+    DEBUG_LOG("end insert");
+    co_return true;
+}
 
 auto ItemSql::insert_album_artist(std::span<const IdPair> ids) -> task<bool> {
     QVariantList albumIds, artistIds;
@@ -477,6 +526,7 @@ auto ItemSql::table_name(Table t) const -> QStringView {
     case Table::PLAYLIST: return m_playlist_table;
     case Table::ARTIST: return m_artist_table;
     case Table::SONG_ARTIST: return m_song_artist_table;
+    case Table::DJRADIO: return m_djradio_table;
     }
     _assert_rel_(false);
     return {};

@@ -26,7 +26,11 @@ public:
 
     auto insert(std::span<const model::Song> items,
                 const std::set<std::string>& on_update) -> task<bool> override;
+
     auto insert(std::span<const model::Playlist> items,
+                const std::set<std::string>&     on_update) -> task<bool> override;
+
+    auto insert(std::span<const model::Djradio> items,
                 const std::set<std::string>&     on_update) -> task<bool> override;
 
     auto insert_album_artist(std::span<const IdPair>) -> task<bool> override;
@@ -45,6 +49,7 @@ private:
     void create_song_artist_table();
     void create_playlist_table();
     void create_playlist_song_table();
+    void create_djradio_table();
 
     QString                m_album_table;
     QString                m_artist_table;
@@ -53,6 +58,7 @@ private:
     QString                m_song_artist_table;
     QString                m_playlist_table;
     QString                m_playlist_song_table;
+    QString                m_djradio_table;
     rc<helper::SqlConnect> m_con;
 };
 

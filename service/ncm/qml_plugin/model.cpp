@@ -134,6 +134,19 @@ IMPL_CONVERT(qcm::oper::PlaylistOper, ncm::model::Playlist) {
     X(userId, in.userId);
 };
 
+IMPL_CONVERT(qcm::oper::PlaylistOper, ncm::model::UserPlaylistItem) {
+    X(id, in.id);
+    X(name, in.name);
+    X(picUrl, in.coverImgUrl);
+    X(description, in.description.value_or(""));
+    X(createTime, in.createTime);
+    X(updateTime, in.updateTime);
+    X(playCount, in.playCount);
+    X(trackCount, in.trackCount);
+    X(userId, in.userId);
+    X(tags, in.tags);
+}
+
 IMPL_CONVERT(QDateTime, ncm::model::Time) { out = QDateTime::fromMSecsSinceEpoch(in.milliseconds); }
 
 IMPL_CONVERT(qcm::model::Artist, ncm::model::Artist) {
@@ -304,6 +317,7 @@ IMPL_CONVERT(qcm::model::Comment, ncm::model::Comment) {
 IMPL_CONVERT(qcm::model::Djradio, ncm::model::Djradio) {
     convert(out.id, in.id);
     convert(out.name, in.name);
+    convert(out.description, in.desc);
     convert(out.picUrl, in.picUrl);
     convert(out.programCount, in.programCount);
 }
@@ -314,12 +328,21 @@ IMPL_CONVERT(qcm::model::Djradio, ncm::model::DjradioB) {
     convert(out.programCount, in.programCount);
 }
 
+IMPL_CONVERT(qcm::oper::DjradioOper, ncm::model::Djradio) {
+    X(id, in.id);
+    X(name, in.name);
+    X(description, in.desc);
+    X(picUrl, in.picUrl);
+    X(programCount, in.programCount);
+}
+
 IMPL_CONVERT(qcm::model::Program, ncm::model::Program) {
     convert(out.coverUrl, in.coverUrl);
     convert(out.duration, in.duration);
+    convert(out.description, in.description);
     convert(out.id, in.id);
     convert(out.name, in.name);
-    convert(out.song, in.mainSong);
+    convert(out.songId, in.mainSong.id);
     convert(out.createTime, in.createTime);
     convert(out.serialNum, in.serialNum);
     if (in.mainSong.album.picId.value_or(1) == 0) {
