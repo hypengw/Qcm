@@ -25,6 +25,12 @@ void App::connect_actions() {
     connect(Action::instance(), &Action::switch_ids, this, &App::on_switch_ids);
     connect(Action::instance(), &Action::play_by_id, this, &App::on_play_by_id);
     connect(Action::instance(), &Action::record, this, &App::on_record);
+    connect(Action::instance(),
+            QOverload<const query::Song&>::of(&Action::play),
+            this,
+            &App::on_play_song);
+    connect(Action::instance(), &Action::queue, this, &App::on_queue);
+    connect(Action::instance(), &Action::switch_to, this, &App::on_switch_to);
 
     connect(Global::instance(), &Global::sessionChanged, Global::instance(), &Global::save_user);
 
@@ -218,7 +224,8 @@ void App::on_play_by_id(model::ItemId songId, model::ItemId sourceId) {
     auto q   = App::instance()->play_id_queue();
     auto row = q->rowCount();
     q->insert(row, std::array { songId });
-    App::instance()->playqueue()->updateSourceId(std::array { songId }, sourceId);
+    if (sourceId.valid())
+        App::instance()->playqueue()->updateSourceId(std::array { songId }, sourceId);
     q->setCurrentIndex(songId);
     Action::instance()->record(enums::RecordAction::RecordSwitch);
 }
@@ -228,7 +235,7 @@ void App::on_queue_ids(const std::vector<model::ItemId>& songIds, model::ItemId 
     auto inserted = q->insert(q->rowCount(), songIds);
     {
         auto q = App::instance()->playqueue();
-        q->updateSourceId(songIds, sourceId);
+        if (sourceId.valid()) q->updateSourceId(songIds, sourceId);
         q->startIfNoCurrent();
     }
     Action::instance()->toast(QString::fromStdString(
@@ -240,7 +247,7 @@ void App::on_switch_ids(const std::vector<model::ItemId>& songIds, model::ItemId
     q->insert(q->rowCount(), songIds);
     {
         auto q = App::instance()->playqueue();
-        q->updateSourceId(songIds, sourceId);
+        if (sourceId.valid()) q->updateSourceId(songIds, sourceId);
         q->startIfNoCurrent();
     }
 }
@@ -323,6 +330,26 @@ void App::on_record(enums::RecordAction record) {
     case enums::RecordAction::RecordPrev: {
     }
     }
+}
+void App::on_play_song(const query::Song& s) {
+    App::instance()->playqueue()->update(std::array { s });
+    on_play_by_id(s.id, {});
+}
+void App::on_queue(const std::vector<query::Song>& s) {
+    std::vector<model::ItemId> ids;
+    for (auto& el : s) {
+        ids.emplace_back(el.id);
+    }
+    App::instance()->playqueue()->update(s);
+    on_queue_ids(ids, {});
+}
+void App::on_switch_to(const std::vector<query::Song>& s) {
+    std::vector<model::ItemId> ids;
+    for (auto& el : s) {
+        ids.emplace_back(el.id);
+    }
+    App::instance()->playqueue()->update(s);
+    on_switch_ids(ids, {});
 }
 
 } // namespace qcm

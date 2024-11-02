@@ -133,6 +133,8 @@ public:
     Q_SLOT void   clear();
     Q_SIGNAL void requestNext();
 
+    auto update(std::span<const query::Song>) -> void;
+
     auto querySongsSql(std::span<const model::ItemId>) -> task<std::vector<query::Song>>;
     auto querySongs(std::span<const model::ItemId>) -> task<void>;
     void updateSourceId(std::span<const model::ItemId> songIds, const model::ItemId& sourceId);

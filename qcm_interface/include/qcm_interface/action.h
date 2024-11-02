@@ -6,6 +6,7 @@
 #include "qcm_interface/enum.h"
 #include "qcm_interface/model/router_msg.h"
 #include "qcm_interface/model/session.h"
+#include "qcm_interface/model/query_model.h"
 
 namespace qcm
 {
@@ -39,6 +40,9 @@ Q_SIGNALS:
 
     void next();
     void prev();
+    void play(const query::Song&);
+    void queue(const std::vector<query::Song>&);
+    void switch_to(const std::vector<query::Song>&);
     void play_by_id(model::ItemId songId, model::ItemId sourceId = {});
     void queue_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
     void switch_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});

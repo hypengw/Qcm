@@ -21,13 +21,15 @@ struct Djradio : DjradioRefer {
 public:
     GADGET_PROPERTY_DEF(QString, description, description)
     GADGET_PROPERTY_DEF(qint32, programCount, programCount)
+    GADGET_PROPERTY_DEF(QDateTime, createTime, createTime)
 
     static constexpr QStringView Select { uR"(
     djradio.itemId, 
     djradio.name, 
     djradio.picUrl, 
     djradio.description,
-    djradio.programCount
+    djradio.programCount,
+    djradio.createTime
 )" };
 };
 

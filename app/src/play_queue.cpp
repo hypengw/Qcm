@@ -425,6 +425,13 @@ void PlayQueue::startIfNoCurrent() {
 
 void PlayQueue::clear() { removeRows(0, rowCount()); }
 
+auto PlayQueue::update(std::span<const query::Song> in) -> void {
+    for (auto& el : in) {
+        auto hash = std::hash<model::ItemId>()(el.id);
+        m_songs.insert_or_assign(hash, el);
+    }
+}
+
 auto PlayQueue::querySongsSql(std::span<const model::ItemId> ids)
     -> task<std::vector<query::Song>> {
     std::vector<query::Song> out;
@@ -440,8 +447,8 @@ SELECT
     %1
 FROM song
 JOIN album ON song.albumId = album.itemId
-JOIN song_artist ON song.itemId = song_artist.songId
-JOIN artist ON song_artist.artistId = artist.itemId
+LEFT JOIN song_artist ON song.itemId = song_artist.songId
+LEFT JOIN artist ON song_artist.artistId = artist.itemId
 WHERE song.itemId IN (%2)
 GROUP BY song.itemId
 ORDER BY song.trackNumber ASC;
@@ -516,7 +523,8 @@ void PlayQueue::onSourceRowsInserted(const QModelIndex&, int first, int last) {
     std::vector<model::ItemId> ids;
     for (int i = first; i <= last; i++) {
         if (auto id = getId(i)) {
-            ids.emplace_back(id.value());
+            auto hash = std::hash<model::ItemId>()(*id);
+            if (! m_songs.contains(hash)) ids.emplace_back(id.value());
         }
     }
 

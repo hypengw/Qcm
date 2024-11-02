@@ -28,6 +28,8 @@ ItemSql::ItemSql(rc<helper::SqlConnect> con)
       m_playlist_table("playlist"),
       m_playlist_song_table("playlist_song"),
       m_djradio_table("djradio"),
+      m_program_table("program"),
+      m_djradio_program_table("djradio_program"),
       m_con(con) {
     asio::dispatch(m_con->get_executor(), [this] {
         create_album_table();
@@ -38,6 +40,8 @@ ItemSql::ItemSql(rc<helper::SqlConnect> con)
         create_playlist_table();
         create_playlist_song_table();
         create_djradio_table();
+        create_program_table();
+        create_djradio_program_table();
     });
 }
 ItemSql::~ItemSql() {}
@@ -153,6 +157,28 @@ void ItemSql::create_djradio_table() {
     }
 }
 
+void ItemSql::create_program_table() {
+    m_con->db().transaction();
+
+    auto migs = m_con->generate_column_migration(m_program_table,
+                                                 u"itemId",
+                                                 model::Program::staticMetaObject,
+                                                 std::array { "full INTEGER DEFAULT 0"sv });
+
+    QSqlQuery q = m_con->query();
+
+    for (auto el : migs) {
+        if (! q.exec(el)) {
+            ERROR_LOG("{}", q.lastError().text());
+            m_con->db().rollback();
+            return;
+        }
+    }
+    if (! m_con->db().commit()) {
+        ERROR_LOG("{}", m_con->error_str());
+    }
+}
+
 void ItemSql::create_album_artist_table() {
     m_con->db().transaction();
 
@@ -229,6 +255,35 @@ CREATE TABLE IF NOT EXISTS %1 (
 )"_s.arg(m_playlist_song_table)
                                                      .arg(m_con->EditTimeColumnQSV),
                                                  std::array { "id"s, "songId"s, "playlistId"s });
+
+    QSqlQuery q = m_con->query();
+
+    for (auto el : migs) {
+        if (! q.exec(el)) {
+            ERROR_LOG("{}", q.lastError().text());
+            m_con->db().rollback();
+            return;
+        }
+    }
+    if (! m_con->db().commit()) {
+        ERROR_LOG("{}", m_con->error_str());
+    }
+}
+void ItemSql::create_djradio_program_table() {
+    m_con->db().transaction();
+
+    auto migs = m_con->generate_column_migration(m_djradio_program_table,
+                                                 uR"(
+CREATE TABLE IF NOT EXISTS %1 (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    djradioId TEXT NOT NULL,
+    programId TEXT NOT NULL,
+    %2,
+    UNIQUE(djradioId, programId)
+);
+)"_s.arg(m_djradio_program_table)
+                                                     .arg(m_con->EditTimeColumnQSV),
+                                                 std::array { "id"s, "djradioId"s, "programId"s });
 
     QSqlQuery q = m_con->query();
 
@@ -376,6 +431,32 @@ auto ItemSql::insert(std::span<const model::Djradio> items,
     DEBUG_LOG("end insert");
     co_return true;
 }
+auto ItemSql::insert(std::span<const model::Program> items,
+                     const std::set<std::string>&    on_update) -> task<bool> {
+    DEBUG_LOG("start insert program, {}", items.size());
+    auto insert_helper = m_con->generate_insert_helper(
+        m_program_table,
+        u"itemId"_s,
+        model::Program::staticMetaObject,
+        items,
+        on_update,
+        { { u"itemId"_s, item_id_converter }, { u"songId"_s, item_id_converter }, { u"radioId"_s, item_id_converter } });
+
+    co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
+
+    auto query = m_con->query();
+    insert_helper.bind(query);
+
+    m_con->db().transaction();
+    if (! query.execBatch()) {
+        ERROR_LOG("{}", query.lastError().text());
+        m_con->db().rollback();
+        co_return false;
+    }
+    m_con->db().commit();
+    DEBUG_LOG("end insert");
+    co_return true;
+}
 
 auto ItemSql::insert_album_artist(std::span<const IdPair> ids) -> task<bool> {
     QVariantList albumIds, artistIds;
@@ -417,6 +498,31 @@ INSERT OR IGNORE INTO %1 (songId, artistId) VALUES (:songId, :artistId);
 )"_s.arg(m_song_artist_table));
     query.bindValue(":songId", songIds);
     query.bindValue(":artistId", artistIds);
+    m_con->db().transaction();
+    if (! query.execBatch()) {
+        ERROR_LOG("{}", query.lastError().text());
+        m_con->db().rollback();
+        co_return false;
+    }
+    m_con->db().commit();
+    co_return true;
+}
+
+auto ItemSql::insert_djradio_program(std::span<const IdPair> ids) -> task<bool> {
+    QVariantList djradioIds, programIds;
+    for (auto& el : ids) {
+        djradioIds << std::get<0>(el).toUrl();
+        programIds << std::get<1>(el).toUrl();
+    }
+
+    co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
+    auto query = m_con->query();
+
+    query.prepare(uR"(
+INSERT OR IGNORE INTO %1 (djradioId, programId) VALUES (:djradioId, :programId);
+)"_s.arg(m_song_artist_table));
+    query.bindValue(":djradioId", djradioIds);
+    query.bindValue(":programId", programIds);
     m_con->db().transaction();
     if (! query.execBatch()) {
         ERROR_LOG("{}", query.lastError().text());

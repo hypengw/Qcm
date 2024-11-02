@@ -11,6 +11,7 @@
 #include "qcm_interface/model/song.h"
 #include "qcm_interface/model/playlist.h"
 #include "qcm_interface/model/djradio.h"
+#include "qcm_interface/model/program.h"
 #include "asio_qt/qt_executor.h"
 #include "asio_helper/task.h"
 
@@ -37,9 +38,12 @@ public:
                         const std::set<std::string>&     on_update) -> task<bool> = 0;
     virtual auto insert(std::span<const model::Djradio> items,
                         const std::set<std::string>&    on_update) -> task<bool> = 0;
+    virtual auto insert(std::span<const model::Program> items,
+                        const std::set<std::string>&    on_update) -> task<bool> = 0;
 
     virtual auto insert_album_artist(std::span<const IdPair>) -> task<bool>                  = 0;
     virtual auto insert_song_artist(std::span<const IdPair>) -> task<bool>                   = 0;
+    virtual auto insert_djradio_program(std::span<const IdPair>) -> task<bool>               = 0;
     virtual auto insert_playlist_song(i32 pos, model::ItemId palylist_id,
                                       std::span<const model::ItemId> song_ids) -> task<bool> = 0;
 

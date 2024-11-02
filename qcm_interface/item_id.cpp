@@ -92,10 +92,10 @@ void ItemId::set_provider(QStringView v) {
 
 void ItemId::set_url(const QUrl& u) {
     C_D(ItemId);
-    _assert_(u.scheme() == "itemid");
+    _assert_(u.scheme() == "itemid" || u.scheme().isEmpty());
     auto p = u.path();
     // remove '/'
-    _assert_(p.startsWith('/'));
+    _assert_(p.startsWith('/') || p.isEmpty());
     d->id       = p.isEmpty() ? p : p.sliced(1);
     d->provider = u.host();
     d->type     = u.userName();

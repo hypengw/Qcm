@@ -29,7 +29,7 @@ public:
             if (! re.programs.empty()) {
                 auto view = std::ranges::transform_view(
                     convert_from<std::vector<Program>>(re.programs), [&](auto p) -> Program {
-                        convert(p.sourceId, input.radioId);
+                        convert(p.radioId, input.radioId);
                         return p;
                     });
                 insert(rowCount(), view);

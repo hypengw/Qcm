@@ -167,7 +167,7 @@ JSON_DEFINE_IMPL(Program, programFeeType, privacy, auditDisPlayStatus, auditStat
                  blurCoverUrl, coverId, coverUrl, buyed, canReward, categoryId, secondCategoryId,
                  secondCategoryName, createTime, scheduledPublishTime, commentCount,
                  commentThreadId, auditDisPlayStatus, id, mainSong, existLyric, duration, serialNum,
-                 subscribed, score, name)
+                 subscribed, score, name, radio, channels)
 
 // clang-format off
 JSON_DEFINE_IMPL(Creator, 
@@ -239,7 +239,7 @@ JSON_DEFINE_IMPL(RecommendResource, code, recommend);
 
 JSON_DEFINE_IMPL(SongUrl, code, data);
 JSON_DEFINE_IMPL(SongLyric, code, lrc, romalrc, tlyric, klyric);
-JSON_DEFINE_IMPL(SongDetail, code);
+JSON_DEFINE_IMPL(SongDetail, code, songs, privileges);
 JSON_DEFINE_WITH_DEFAULT_IMPL(UserAccount, code, profile);
 JSON_DEFINE_IMPL(UserPlaylist, playlist, more);
 

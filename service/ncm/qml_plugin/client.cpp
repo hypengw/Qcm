@@ -16,6 +16,7 @@
 #include "qcm_interface/oper/song_oper.h"
 #include "qcm_interface/oper/playlist_oper.h"
 #include "qcm_interface/oper/djradio_oper.h"
+#include "qcm_interface/oper/program_oper.h"
 #include "qcm_interface/sql/item_sql.h"
 
 #include "service_qml_ncm/model.h"
@@ -38,6 +39,8 @@
 #include "ncm/api/artist_albums.h"
 #include "ncm/api/artist_songs.h"
 #include "ncm/api/song_detail.h"
+#include "ncm/api/djradio_detail.h"
+#include "ncm/api/djradio_program.h"
 
 #include "ncm/client.h"
 
@@ -110,13 +113,25 @@ auto insert_album(const T& in_list, Func&& get_artists, rc<qcm::db::ItemSqlBase>
     co_await sql->insert_album_artist(album_artist_ids);
 }
 
+template<typename T>
+auto insert_song(const T& in_list, rc<qcm::db::ItemSqlBase> sql,
+                 const std::set<std::string>& on_update) -> qcm::task<void> {
+    auto                                      list = qcm::oper::SongOper::create_list(0);
+    std::vector<qcm::db::ItemSqlBase::IdPair> song_artist_ids;
+    for (const auto& el : in_list) {
+        auto oper = qcm::oper::SongOper(list.emplace_back());
+        convert(oper, el);
+    }
+    co_await sql->insert(list, on_update);
+}
+
 template<typename T, typename Func>
 auto insert_song(const T& in_list, Func&& get_artists, rc<qcm::db::ItemSqlBase> sql,
                  const std::set<std::string>& on_update,
                  const std::set<std::string>& on_artist_update) -> qcm::task<void> {
     auto                                      list = qcm::oper::SongOper::create_list(0);
     std::vector<qcm::db::ItemSqlBase::IdPair> song_artist_ids;
-    for (auto& el : in_list) {
+    for (const auto& el : in_list) {
         auto oper = qcm::oper::SongOper(list.emplace_back());
         convert(oper, el);
         for (auto& ar : get_artists(el)) {
@@ -142,10 +157,10 @@ auto insert_song_album(const T& in_list, FuncAlbum&& get_album, FuncArtist&& get
     auto                                      list       = qcm::oper::SongOper::create_list(0);
     auto                                      album_list = qcm::oper::AlbumOper::create_list(0);
     std::vector<qcm::db::ItemSqlBase::IdPair> song_artist_ids;
-    for (auto& el : in_list) {
+    for (const auto& el : in_list) {
         auto oper = qcm::oper::SongOper(list.emplace_back());
         convert(oper, el);
-        for (auto& ar : get_artists(el)) {
+        for (const auto& ar : get_artists(el)) {
             song_artist_ids.push_back(
                 { convert_from<ncm::ItemId>(el.id), convert_from<ncm::ItemId>(ar.id) });
         }
@@ -165,6 +180,27 @@ auto insert_song_album(const T& in_list, FuncAlbum&& get_album, FuncArtist&& get
     co_await sql->insert_song_artist(song_artist_ids);
 }
 
+template<typename T>
+auto insert_djraio(const T& in_list, rc<qcm::db::ItemSqlBase> sql,
+                   const std::set<std::string>& on_update) -> qcm::task<void> {
+    auto list = qcm::oper::DjradioOper::create_list(0);
+    for (const auto& el : in_list) {
+        auto oper = qcm::oper::DjradioOper(list.emplace_back());
+        convert(oper, el);
+    }
+    co_await sql->insert(list, on_update);
+}
+
+template<typename T>
+auto insert_program(const T& in_list, rc<qcm::db::ItemSqlBase> sql,
+                    const std::set<std::string>& on_update) -> qcm::task<void> {
+    auto list = qcm::oper::ProgramOper::create_list(0);
+    for (const auto& el : in_list) {
+        auto oper = qcm::oper::ProgramOper(list.emplace_back());
+        convert(oper, el);
+    }
+    co_await sql->insert(list, on_update);
+}
 } // namespace
 
 namespace ncm::impl
@@ -584,6 +620,47 @@ auto sync_items(ClientBase&                         cbase,
         }
         break;
     }
+    case ncm::model::IdType::Djradio: {
+        ncm::api::DjradioDetail           api;
+        ncm::api::DjradioProgram          program_api;
+        std::vector<model::DjradioDetail> djradios;
+        std::vector<model::Program>       programs;
+        for (auto& el : itemIds) {
+            convert(api.input.id, el);
+            convert(program_api.input.radioId, el);
+            program_api.input.limit = 100000;
+            {
+                auto out = co_await c.perform(api);
+                if (out) {
+                    djradios.push_back(out->data);
+                } else {
+                    co_return nstd::unexpected(out.error());
+                }
+            }
+            {
+                auto out = co_await c.perform(program_api);
+                if (out) {
+                    for (auto& el : out->programs) {
+                        programs.emplace_back(el);
+                    }
+                } else {
+                    co_return nstd::unexpected(out.error());
+                }
+            }
+        }
+        co_await insert_djraio(djradios, sql, {});
+        co_await insert_program(programs, sql, {});
+        co_await insert_song(std::views::transform(programs,
+                                                   [](const auto& el) -> model::SongB {
+                                                       auto s     = el.mainSong;
+                                                       s.coverUrl = el.coverUrl;
+                                                       return s;
+                                                   }),
+                             sql,
+                             {});
+
+        break;
+    }
     case ncm::model::IdType::Song: {
         ncm::api::SongDetail api;
         for (auto& el : itemIds) {
@@ -593,6 +670,18 @@ auto sync_items(ClientBase&                         cbase,
 
         auto out = co_await c.perform(api);
         if (out) {
+            co_await insert_song_album(
+                out->songs,
+                [](const auto& el) -> const decltype(out->songs[0].al)& {
+                    return el.al;
+                },
+                [](const auto& el) -> const decltype(out->songs[0].ar)& {
+                    return el.ar;
+                },
+                sql,
+                {},
+                { "name", "picUrl" },
+                { "name" });
         } else {
             co_return nstd::unexpected(out.error());
         }

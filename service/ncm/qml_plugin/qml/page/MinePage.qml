@@ -59,7 +59,7 @@ MD.Page {
                         text: qsTr("Artist")
                     }
                     MD.TabButton {
-                        text: qsTr("Djradio")
+                        text: qsTr("Radio")
                     }
                 }
                 StackLayout {

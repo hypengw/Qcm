@@ -7,6 +7,7 @@
 #include "qcm_interface/oper/song_oper.h"
 #include "qcm_interface/oper/playlist_oper.h"
 #include "qcm_interface/oper/djradio_oper.h"
+#include "qcm_interface/oper/program_oper.h"
 #include "ncm/model.h"
 #include "service_qml_ncm/enum.h"
 
@@ -30,6 +31,7 @@ DECLARE_CONVERT(qcm::oper::DjradioOper, ncm::model::Djradio)
 DECLARE_CONVERT(qcm::model::Song, ncm::model::SongB)
 DECLARE_CONVERT(qcm::oper::SongOper, ncm::model::SongB)
 DECLARE_CONVERT(qcm::model::Program, ncm::model::Program)
+DECLARE_CONVERT(qcm::oper::ProgramOper, ncm::model::Program)
 
 namespace ncm::model
 {
@@ -37,11 +39,13 @@ struct AlbumSublistItem;
 struct ArtistSublistItem;
 struct ArtistSublistItem;
 struct UserPlaylistItem;
+struct DjradioDetail;
 } // namespace ncm::model
 
 DECLARE_CONVERT(qcm::oper::AlbumOper, ncm::model::AlbumSublistItem)
 DECLARE_CONVERT(qcm::oper::ArtistOper, ncm::model::ArtistSublistItem)
 DECLARE_CONVERT(qcm::oper::PlaylistOper, ncm::model::UserPlaylistItem)
+DECLARE_CONVERT(qcm::oper::DjradioOper, ncm::model::DjradioDetail)
 namespace ncm
 {
 using ItemId = qcm::model::ItemId;

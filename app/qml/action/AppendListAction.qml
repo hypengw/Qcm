@@ -11,7 +11,10 @@ Action {
     onTriggered: {
         if (getSongIds) {
             QA.Action.queue_ids(root.getSongIds());
+        } else if(getSongs) {
+            QA.Action.queue(root.getSongs());
         }
     }
     property var getSongIds: null
+    property var getSongs: null
 }

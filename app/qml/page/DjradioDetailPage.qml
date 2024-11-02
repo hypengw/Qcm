@@ -12,7 +12,7 @@ MD.Page {
     property alias itemData: qr_dj.data
     property alias itemId: qr_dj.itemId
 
-    title: qsTr("djradio")
+    title: qsTr("radio")
     padding: 0
     scrolling: !m_view.atYBeginning
 
@@ -33,7 +33,7 @@ MD.Page {
         topMargin: MD.MatProp.size.verticalPadding
         bottomMargin: MD.MatProp.size.verticalPadding + m_view_pane.bottomMargin
 
-        model: qr_program.data
+        model: root.itemData
 
         readonly property bool single: width < m_cover.displaySize.width * (1.0 + 1.5) + 8
 
@@ -47,7 +47,7 @@ MD.Page {
 
                 displaySize: Qt.size(240, 240)
                 elevation: MD.Token.elevation.level2
-                source: QA.Util.image_url(root.itemData.picUrl)
+                source: QA.Util.image_url(root.itemData.info.picUrl)
                 radius: 16
             }
 
@@ -55,7 +55,7 @@ MD.Page {
                 id: m_title
                 Layout.fillWidth: true
                 maximumLineCount: 2
-                text: root.itemData.name
+                text: root.itemData.info.name
                 typescale: MD.Token.typescale.headline_large
             }
 
@@ -64,16 +64,16 @@ MD.Page {
                 spacing: 12
                 MD.Text {
                     typescale: MD.Token.typescale.body_medium
-                    text: `${root.itemData.programCount} programs`
+                    text: `${root.itemData.info.programCount} programs`
                 }
                 MD.Text {
                     typescale: MD.Token.typescale.body_medium
-                    text: Qt.formatDateTime(root.itemData.createTime, 'yyyy.MM.dd')
+                    text: Qt.formatDateTime(root.itemData.info.createTime, 'yyyy.MM.dd')
                 }
             }
             QA.ListDescription {
                 id: m_desc
-                description: root.itemData.description.trim()
+                description: root.itemData.info.description.trim()
             }
             RowLayout {
                 id: m_control_pane
@@ -81,20 +81,13 @@ MD.Page {
                 MD.IconButton {
                     action: QA.AppendListAction {
                         getSongs: function () {
-                            const songs = [];
-                            const model = qr_program.data;
-                            for (let i = 0; i < model.rowCount(); i++) {
-                                songs.push(model.item(i).song);
-                            }
-                            return songs;
+                            return m_view.model.collectSongs();
                         }
                     }
                 }
                 MD.IconButton {
                     id: btn_fav
-                    action: QA.SubAction {
-                        liked: root.itemData.subed
-                        querier: qr_sub
+                    action: QA.CollectAction {
                         itemId: root.itemId
                     }
                 }
@@ -200,10 +193,10 @@ MD.Page {
             leftMargin: 16
             rightMargin: 16
 
-            dgModel: QA.Util.create_program(model)
+            dgModel: model
 
             onClicked: {
-                QA.Action.play_by_id(model.song.itemId);
+                QA.Action.play(m_view.model.song(index));
             }
         }
         footer: MD.ListBusyFooter {
@@ -221,34 +214,13 @@ MD.Page {
             icon.name: MD.Token.icon.play_arrow
 
             onTriggered: {
-                const songs = [];
-                const model = qr_program.data;
-                for (let i = 0; i < model.rowCount(); i++) {
-                    songs.push(model.item(i).song);
-                }
-                if (songs.length)
-                    QA.App.playqueue.switchList(songs);
+                const songs = m_view.model.collectSongs();
+                QA.Action.switch_to(songs);
             }
         }
     }
 
-    QNcm.DjradioDetailQuerier {
+    QA.DjradioDetailQuery {
         id: qr_dj
-        autoReload: root.itemId.valid()
-    }
-    QNcm.DjradioProgramQuerier {
-        id: qr_program
-        autoReload: itemId.valid()
-        itemId: qr_dj.itemId
-    }
-    QNcm.DjradioSubQuerier {
-        id: qr_sub
-        autoReload: false
-
-        onStatusChanged: {
-            if (status === QA.enums.Finished) {
-                QA.App.djradioLiked(itemId, sub);
-            }
-        }
     }
 }

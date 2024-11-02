@@ -250,6 +250,9 @@ struct Song {
         属于这种歌曲的例子: https://music.163.com/song/1345937107
       2: 通过云盘上传的音乐，网易云存在公开
     */
+
+    // --- custom
+    std::string coverUrl;
 };
 
 struct SongB {
@@ -293,6 +296,9 @@ struct SongB {
     // rtype	0
     // rurl	null
     // mvid	0
+
+    // --- custom
+    std::string coverUrl;
 };
 
 struct Artist {
@@ -528,8 +534,8 @@ struct Program {
     // songs	null
     // dj	{…}
     std::string blurCoverUrl;
-    // radio	{…}
-    Time duration;
+    Djradio     radio;
+    Time        duration;
     // authDTO	null
     bool buyed { false };
     // programDesc	null
@@ -563,13 +569,13 @@ struct Program {
     i64         subscribedCount { 0 };
     // trackCount	0
     // titbitImages	null
-    bool isPublish { false };
-    i64  coverId { 0 };
-    bool privacy { false };
-    // channels	[]
-    i64         categoryId { 0 };
-    std::string commentThreadId;
-    i64         listenerCount { 0 };
+    bool                     isPublish { false };
+    i64                      coverId { 0 };
+    bool                     privacy { false };
+    std::vector<std::string> channels;
+    i64                      categoryId { 0 };
+    std::string              commentThreadId;
+    i64                      listenerCount { 0 };
     // createEventId	0
     i64  serialNum { 36 };
     Time scheduledPublishTime;

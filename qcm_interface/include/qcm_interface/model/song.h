@@ -25,7 +25,7 @@ public:
     static constexpr QStringView Select { uR"(
     song.itemId, 
     song.name, 
-    COALESCE(song.coverUrl, album.picUrl) AS picUrl,
+    song.coverUrl,
     song.canPlay
 )" };
 

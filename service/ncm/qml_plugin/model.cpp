@@ -258,6 +258,7 @@ IMPL_CONVERT(qcm::oper::SongOper, ncm::model::Song) {
     X(canPlay, (! in.privilege || in.privilege.value().st >= 0));
     X(trackNumber, in.no);
     X(albumId, in.al.id);
+    X(coverUrl, in.coverUrl);
     out.set_popularity(in.pop);
 
     if (in.privilege) {
@@ -296,6 +297,7 @@ IMPL_CONVERT(qcm::oper::SongOper, ncm::model::SongB) {
     X(duration, in.duration);
     X(trackNumber, in.no);
     X(albumId, in.album.id);
+    X(coverUrl, in.coverUrl);
     out.set_popularity(in.popularity);
     out.set_canPlay(true);
 }
@@ -320,6 +322,7 @@ IMPL_CONVERT(qcm::model::Djradio, ncm::model::Djradio) {
     convert(out.description, in.desc);
     convert(out.picUrl, in.picUrl);
     convert(out.programCount, in.programCount);
+    convert(out.createTime, in.createTime);
 }
 IMPL_CONVERT(qcm::model::Djradio, ncm::model::DjradioB) {
     convert(out.id, in.id);
@@ -334,6 +337,16 @@ IMPL_CONVERT(qcm::oper::DjradioOper, ncm::model::Djradio) {
     X(description, in.desc);
     X(picUrl, in.picUrl);
     X(programCount, in.programCount);
+    X(createTime, in.createTime);
+}
+
+IMPL_CONVERT(qcm::oper::DjradioOper, ncm::model::DjradioDetail) {
+    X(id, in.id);
+    X(name, in.name);
+    X(description, in.desc);
+    X(picUrl, in.picUrl);
+    X(programCount, in.programCount);
+    X(createTime, in.createTime);
 }
 
 IMPL_CONVERT(qcm::model::Program, ncm::model::Program) {
@@ -344,8 +357,24 @@ IMPL_CONVERT(qcm::model::Program, ncm::model::Program) {
     convert(out.name, in.name);
     convert(out.songId, in.mainSong.id);
     convert(out.createTime, in.createTime);
-    convert(out.serialNum, in.serialNum);
+    convert(out.serialNumber, in.serialNum);
+    convert(out.radioId, in.radio.id);
     if (in.mainSong.album.picId.value_or(1) == 0) {
         // convert(out.song.album.picUrl, in.coverUrl);
     }
+}
+
+IMPL_CONVERT(qcm::oper::ProgramOper, ncm::model::Program) {
+    X(coverUrl, in.coverUrl);
+    X(duration, in.duration);
+    X(description, in.description);
+    X(id, in.id);
+    X(name, in.name);
+    X(songId, in.mainSong.id);
+    X(createTime, in.createTime);
+    X(serialNumber, in.serialNum);
+    X(radioId, in.radio.id);
+    // if (in.mainSong.album.picId.value_or(1) == 0) {
+    //     // convert(out.song.album.picUrl, in.coverUrl);
+    // }
 }

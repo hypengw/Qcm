@@ -35,6 +35,20 @@ inline void load_query(model::Djradio& dj, QSqlQuery& query, int& i) {
     dj.description  = query.value(i++).toString();
     dj.programCount = query.value(i++).toInt();
 }
+inline void load_query(model::Program& dj, QSqlQuery& query, int& i) {
+    dj.id           = query.value(i++).toUrl();
+    dj.name         = query.value(i++).toString();
+    dj.description  = query.value(i++).toString();
+    dj.duration     = query.value(i++).toDateTime();
+    dj.coverUrl     = query.value(i++).toString();
+    dj.songId       = query.value(i++).toUrl();
+    dj.createTime   = query.value(i++).toDateTime();
+    dj.serialNumber = query.value(i++).toInt();
+    dj.radioId      = query.value(i++).toUrl();
+}
+inline void load_query(query::Program& self, QSqlQuery& query, int& i) {
+    query::load_query((model::Program&)self, query, i);
+}
 
 inline void load_query(query::Song& self, QSqlQuery& query, int& i) {
     query::load_query((model::Song&)self, query, i);

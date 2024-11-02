@@ -5,6 +5,7 @@
 #include "qcm_interface/model/song.h"
 #include "qcm_interface/model/playlist.h"
 #include "qcm_interface/model/djradio.h"
+#include "qcm_interface/model/program.h"
 #include "core/qstr_helper.h"
 
 namespace qcm::query
@@ -42,5 +43,15 @@ public:
     GROUP_CONCAT(artist.name) AS artistNames,
     GROUP_CONCAT(artist.picUrl) AS artistPicUrls
 )"_s.arg(model::Song::Select) };
+};
+
+struct Djradio : model::Djradio {
+    Q_GADGET_EXPORT(QCM_INTERFACE_API)
+public:
+};
+
+struct Program : model::Program {
+    Q_GADGET_EXPORT(QCM_INTERFACE_API)
+public:
 };
 } // namespace qcm::query
