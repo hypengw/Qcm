@@ -8,6 +8,7 @@
 #include "qcm_interface/enum.h"
 #include "qcm_interface/router.h"
 #include "asio_qt/qt_watcher.h"
+#include "qcm_interface/oper/comment_oper.h"
 
 #include "error/error.h"
 
@@ -34,6 +35,8 @@ struct Client {
 
     using ReqInfo = std::variant<ReqInfoImg>;
 
+    operator ClientBase&() const { return *instance; }
+
     struct Api {
         auto (*server_url)(ClientBase&, const model::ItemId&) -> std::string;
         bool (*make_request)(ClientBase&, request::Request&, const QUrl& url, const ReqInfo& info);
@@ -49,6 +52,9 @@ struct Client {
         auto (*sync_items)(ClientBase&, std::span<const model::ItemId>) -> task<Result<bool>>;
         auto (*sync_list)(ClientBase&, enums::SyncListType type, model::ItemId itemId, i32 offset,
                           i32 limit) -> task<Result<i32>>;
+
+        auto (*comments)(ClientBase&, model::ItemId itemId, i32 offset, i32 limit,
+                         i32& total) -> task<Result<oper::OperList<model::Comment>>>;
 
         void (*save)(ClientBase&, const std::filesystem::path&);
         void (*load)(ClientBase&, const std::filesystem::path&);

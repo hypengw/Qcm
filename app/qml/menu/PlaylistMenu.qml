@@ -16,7 +16,7 @@ MD.Menu {
     font.capitalization: Font.Capitalize
     modal: true
 
-    QNcm.CommentAction {
+    QA.CommentAction {
         itemId: root.itemId
     }
 

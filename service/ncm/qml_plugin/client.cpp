@@ -41,6 +41,7 @@
 #include "ncm/api/song_detail.h"
 #include "ncm/api/djradio_detail.h"
 #include "ncm/api/djradio_program.h"
+#include "ncm/api/comments.h"
 
 #include "ncm/client.h"
 
@@ -746,6 +747,52 @@ auto sync_list(ClientBase& cbase, qcm::enums::SyncListType type, qcm::model::Ite
     }
     co_return 0;
 }
+auto comments(ClientBase& cbase, qcm::model::ItemId item_id, i32 offset, i32 limit,
+              i32& total) -> qcm::task<Result<qcm::oper::OperList<qcm::model::Comment>>> {
+    auto               c = *get_client(cbase);
+    ncm::api::Comments api;
+
+    using CT         = ncm::params::Comments::Type;
+    using IT         = ncm::model::IdType;
+    auto& id         = api.input.id;
+    auto& type       = api.input.type;
+    api.input.offset = offset;
+    api.input.limit  = limit;
+    id.id            = item_id.id().toStdString();
+    switch (UNWRAP(ncm::ncm_id_type(item_id))) {
+    case IT::Album: {
+        type = CT::Album;
+        break;
+    }
+    case IT::Song: {
+        type = CT::Song;
+        break;
+    }
+    case IT::Playlist: {
+        type = CT::Playlist;
+        break;
+    }
+    case IT::Program: {
+        type = CT::Program;
+        break;
+    }
+    default: {
+        _assert_msg_rel_(false, "unsupport comment type: {}", item_id.type());
+    }
+    }
+
+    auto out = co_await c.perform(api);
+
+    co_return out.transform([&total](const auto& out) -> qcm::oper::OperList<qcm::model::Comment> {
+        total     = out.total;
+        auto list = qcm::oper::CommentOper::create_list(out.comments.size());
+        for (usize i = 0; i < list.size(); i++) {
+            auto oper = qcm::oper::CommentOper(list.at(i));
+            convert(oper, out.comments[i]);
+        }
+        return list;
+    });
+}
 
 } // namespace ncm::impl
 
@@ -775,6 +822,7 @@ auto create_client() -> qcm::Client {
     api->sync_list       = ncm::impl::sync_list;
     api->save            = ncm::impl::save;
     api->load            = ncm::impl::load;
+    api->comments        = ncm::impl::comments;
 
     return { .api = api, .instance = instance };
 }

@@ -94,7 +94,7 @@ MD.Page {
                 MD.IconButton {
                     id: btn_comment
                     visible: false
-                    action: QNcm.CommentAction {
+                    action: QA.CommentAction {
                         itemId: root.itemId
                     }
                 }

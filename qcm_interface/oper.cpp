@@ -10,7 +10,11 @@
 #include "qcm_interface/model/djradio.h"
 #include "qcm_interface/oper/program_oper.h"
 #include "qcm_interface/model/program.h"
+#include "qcm_interface/oper/comment_oper.h"
+#include "qcm_interface/model/comment.h"
+#include "core/log.h"
 
+void qcm::oper::empty_deletor(voidp p) { _assert_rel_(p == nullptr); }
 namespace qcm::oper
 {
 
@@ -51,6 +55,8 @@ X(model::Song)
 X(model::Playlist)
 X(model::Djradio)
 X(model::Program)
+X(model::Comment)
+X(model::ThirdUser)
 
 IMPL_OPER_PROPERTY(AlbumOper, ItemId, itemId, id)
 IMPL_OPER_PROPERTY(AlbumOper, QString, name, name)
@@ -107,4 +113,14 @@ IMPL_OPER_PROPERTY(ProgramOper, ItemId, songId, songId)
 IMPL_OPER_PROPERTY(ProgramOper, QDateTime, createTime, createTime)
 IMPL_OPER_PROPERTY(ProgramOper, qint32, serialNumber, serialNumber)
 IMPL_OPER_PROPERTY(ProgramOper, ItemId, radioId, radioId)
+
+IMPL_OPER_PROPERTY(CommentOper, ItemId, itemId, id)
+IMPL_OPER_PROPERTY(CommentOper, QString, content, content)
+IMPL_OPER_PROPERTY_COPY(CommentOper, ThirdUserOper, user, user)
+IMPL_OPER_PROPERTY(CommentOper, QDateTime, time, time)
+IMPL_OPER_PROPERTY(CommentOper, bool, liked, liked)
+
+IMPL_OPER_PROPERTY(ThirdUserOper, ItemId, itemId, id)
+IMPL_OPER_PROPERTY(ThirdUserOper, QString, name, name)
+IMPL_OPER_PROPERTY(ThirdUserOper, QString, picUrl, picUrl)
 } // namespace qcm::oper

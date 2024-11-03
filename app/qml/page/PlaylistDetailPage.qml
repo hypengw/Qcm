@@ -93,9 +93,9 @@ MD.Page {
                 }
                 MD.IconButton {
                     id: btn_comment
-                    //action: QNcm.CommentAction {
-                    //    itemId: root.itemId
-                    //}
+                    action: QA.CommentAction {
+                        itemId: root.itemId
+                    }
                 }
             }
         }

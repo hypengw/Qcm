@@ -308,6 +308,12 @@ IMPL_CONVERT(qcm::model::ThirdUser, ncm::model::User) {
     convert(out.picUrl, in.avatarUrl);
 }
 
+IMPL_CONVERT(qcm::oper::ThirdUserOper, ncm::model::User) {
+    X(id, in.userId);
+    X(name, in.nickname);
+    X(picUrl, in.avatarUrl);
+}
+
 IMPL_CONVERT(qcm::model::Comment, ncm::model::Comment) {
     convert(out.content, in.content);
     convert(out.id, in.commentId);
@@ -315,6 +321,15 @@ IMPL_CONVERT(qcm::model::Comment, ncm::model::Comment) {
     convert(out.user, in.user);
     convert(out.time, in.time);
 };
+
+IMPL_CONVERT(qcm::oper::CommentOper, ncm::model::Comment) {
+    X(content, in.content);
+    X(id, in.commentId);
+    X(liked, in.liked);
+    auto user = out.user();
+    convert(user, in.user);
+    X(time, in.time);
+}
 
 IMPL_CONVERT(qcm::model::Djradio, ncm::model::Djradio) {
     convert(out.id, in.id);

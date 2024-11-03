@@ -89,7 +89,13 @@ public:
         auto size = range.size();
         if (size < 1) return;
         beginInsertRows({}, index, index + size - 1);
-        crtp_impl().insert_impl(index, std::begin(range), std::end(range));
+        auto begin = std::begin(range);
+        auto end   = std::end(range);
+        if constexpr (std::same_as<decltype(begin), decltype(end)>) {
+            crtp_impl().insert_impl(index, begin, end);
+        } else {
+            crtp_impl().insert_impl(index, range);
+        }
         endInsertRows();
     }
 
@@ -220,6 +226,14 @@ protected:
     template<typename Tin>
     void insert_impl(std::size_t it, Tin beg, Tin end) {
         m_items.insert(begin() + it, beg, end);
+    }
+
+    template<typename TRange>
+    void insert_impl(std::size_t it, const TRange& range) {
+        std::vector<TItem, Allocator> tmp(m_items.get_allocator());
+        tmp.reserve(range.size());
+        std::ranges::copy(range, std::back_inserter(tmp));
+        m_items.insert(begin() + it, tmp.begin(), tmp.end());
     }
 
     void erase_impl(std::size_t index, std::size_t last) {

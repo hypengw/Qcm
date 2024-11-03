@@ -50,7 +50,7 @@ MD.Menu {
                 });
         }
     }
-    QNcm.CommentAction {
+    QA.CommentAction {
         itemId: root.song.itemId
     }
 

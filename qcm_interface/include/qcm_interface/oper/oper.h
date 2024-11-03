@@ -7,6 +7,8 @@
 namespace qcm::oper
 {
 
+QCM_INTERFACE_API void empty_deletor(voidp);
+
 template<typename T>
 class OperList {
 public:
@@ -16,18 +18,24 @@ public:
     using Advance     = T* (*)(T*, usize);
     using EmplaceBack = T* (*)(voidp);
 
-    OperList(): m_data(nullptr), m_size(nullptr), m_adv(nullptr), m_eb(nullptr) {}
+    OperList()
+        : m_holder(nullptr, empty_deletor),
+          m_data(nullptr),
+          m_size(nullptr),
+          m_adv(nullptr),
+          m_eb(nullptr) {}
     OperList(Holder&& h, DataOp data, SizeOp size, Advance adv, EmplaceBack eb)
         : m_holder(std::move(h)), m_data(data), m_size(size), m_adv(adv), m_eb(eb) {}
     ~OperList()                          = default;
     OperList(const OperList&)            = delete;
     OperList& operator=(const OperList&) = delete;
-    OperList(OperList&& o): OperList() { *this = o; }
+    OperList(OperList&& o): OperList() { *this = std::move(o); }
     OperList& operator=(OperList&& o) {
         m_holder.swap(o.m_holder);
         std::swap(m_data, o.m_data);
         std::swap(m_size, o.m_size);
         std::swap(m_adv, o.m_adv);
+        return *this;
     }
 
     auto operator[](usize i) const noexcept -> const T* { return m_adv(data(), i); }
@@ -57,6 +65,13 @@ public:
         });
     }
 
+    template<typename T2 = T>
+    auto to_ref_view() {
+        return std::views::transform(std::views::iota(0u, size()), [this](auto i) -> const T2& {
+            return *at(i);
+        });
+    }
+
 private:
     Holder      m_holder;
     DataOp      m_data;
@@ -67,10 +82,14 @@ private:
 
 template<typename T>
 struct QCM_INTERFACE_API Oper {
+    Oper(T& m): model(&m) {}
     Oper(T* m): model(m) {}
     ~Oper() = default;
 
-    operator T*() { return model; }
+    operator T*() const { return model; }
+    operator T() const { return *model; }
+
+    Oper& operator=(T& m) { model = &m; }
 
     static auto create_list(usize num) -> OperList<T>;
     T*          model;
@@ -82,6 +101,14 @@ struct QCM_INTERFACE_API Oper {
     auto mem() -> const type&;         \
     void set_##mem(const type&);
 
+#define OPER_PROPERTY_COPY(type, prop, mem) \
+    auto mem() -> type;                     \
+    void set_##mem(type);
+
 #define IMPL_OPER_PROPERTY(class_, type, prop, mem)                \
     auto class_::mem() -> const type& { return this->model->mem; } \
     void class_::set_##mem(const type& v) { this->model->mem = v; }
+
+#define IMPL_OPER_PROPERTY_COPY(class_, type, prop, mem)    \
+    auto class_::mem() -> type { return this->model->mem; } \
+    void class_::set_##mem(type v) { this->model->mem = v; }

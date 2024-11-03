@@ -11,8 +11,10 @@ namespace detail
 
 class QueryBase : public QAsyncResult {
     Q_OBJECT
+
+    Q_PROPERTY(bool delay READ delay WRITE setDelay NOTIFY delayChanged FINAL)
 public:
-    QueryBase(QObject* parent = nullptr): QAsyncResult(parent) {
+    QueryBase(QObject* parent = nullptr): QAsyncResult(parent), m_delay(true) {
         set_forwardError(true);
         m_timer.setSingleShot(true);
         connect(&m_timer, &QTimer::timeout, this, &QueryBase::reload);
@@ -20,9 +22,21 @@ public:
     ~QueryBase() {}
 
     Q_SLOT void request_reload() {
-        m_timer.setInterval(300);
-        m_timer.start();
+        if (delay()) {
+            m_timer.setInterval(100);
+            m_timer.start();
+        } else {
+            reload();
+        }
     }
+
+    auto delay() const -> bool { return m_delay; }
+    void setDelay(bool v) {
+        if (ycore::cmp_exchange(m_delay, v)) {
+            delayChanged();
+        }
+    }
+    Q_SIGNAL void delayChanged();
 
 protected:
     template<typename T, typename R, typename... ARGS>
@@ -32,6 +46,7 @@ protected:
 
 private:
     QTimer m_timer;
+    bool   m_delay;
 };
 
 class QueryListBase : public QueryBase {

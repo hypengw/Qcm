@@ -39,6 +39,7 @@ set(SOURCES
     include/Qcm/query/artist_detail.h
     include/Qcm/query/artist_albums.h
     include/Qcm/query/artist_songs.h
+    include/Qcm/query/comments.h
     src/action.cpp
     src/app.cpp
     src/image_provider.cpp
@@ -78,6 +79,7 @@ set(QML_FILES
     qml/page/AboutPage.qml
     qml/page/AlbumDetailPage.qml
     qml/page/ArtistDetailPage.qml
+    qml/page/CommentPage.qml
     qml/page/DescriptionPage.qml
     qml/page/DjradioDetailPage.qml
     qml/page/LoginPage.qml
@@ -114,6 +116,7 @@ set(QML_FILES
     qml/component/VolumeButton.qml
     qml/action/AppendListAction.qml
     qml/action/PlaynextAction.qml
+    qml/action/CommentAction.qml
     qml/action/CollectAction.qml
     qml/action/CopyAction.qml
     qml/action/ColorSchemeAction.qml

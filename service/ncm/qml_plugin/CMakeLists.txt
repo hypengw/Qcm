@@ -48,10 +48,7 @@ set(SOURCES
     )
 
 set(QML_FILES
-    qml/action/CommentAction.qml
-
     qml/page/CloudUploadPage.qml
-    qml/page/CommentPage.qml
     qml/page/LoginPage.qml
     qml/page/RecordPage.qml
     qml/page/MinePage.qml

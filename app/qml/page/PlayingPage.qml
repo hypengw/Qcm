@@ -200,7 +200,7 @@ MD.Page {
                         }
                     }
                     MD.IconButton {
-                        action: QNcm.CommentAction {
+                        action: QA.CommentAction {
                             itemId: QA.Global.cur_song.itemId
                         }
                     }

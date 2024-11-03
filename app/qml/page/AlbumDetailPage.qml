@@ -108,7 +108,7 @@ MD.Page {
                 MD.IconButton {
                     id: btn_comment
                     visible: QA.Global.session.supportComment
-                    action: QNcm.CommentAction {
+                    action: QA.CommentAction {
                         itemId: root.itemId
                     }
                 }

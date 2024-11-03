@@ -77,7 +77,7 @@ public:
     }
 
     auto query_songs(model::ItemId itemId, qint32 offset,
-                      qint32 limit) -> task<std::optional<std::vector<Song>>> {
+                     qint32 limit) -> task<std::optional<std::vector<Song>>> {
         auto sql = App::instance()->album_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
         auto query = sql->con()->query();
@@ -94,9 +94,9 @@ ORDER BY song.popularity DESC
 LIMIT :limit OFFSET :offset;
 )"_s.arg(Song::Select));
 
-        query.bindValue(":itemId", itemId.toUrl());
-        query.bindValue(":offset", offset);
-        query.bindValue(":limit", limit);
+        query.bindValue(u":itemId"_s, itemId.toUrl());
+        query.bindValue(u":offset"_s, offset);
+        query.bindValue(u":limit"_s, limit);
 
         if (! query.exec()) {
             ERROR_LOG("{}", query.lastError().text());
@@ -130,8 +130,7 @@ LIMIT :limit OFFSET :offset;
             std::optional<error::Error>      error;
             for (;;) {
                 auto count = co_await self->query_artist_song_count(itemId);
-                DEBUG_LOG("------ {}", count.value_or(0));
-                songs = co_await self->query_songs(itemId, offset, limit);
+                songs      = co_await self->query_songs(itemId, offset, limit);
                 if (! synced &&
                     (! count || ! songs ||
                      (offset + (int)songs->size() != count && (int)songs->size() < limit))) {
