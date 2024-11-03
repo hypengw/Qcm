@@ -57,6 +57,7 @@ set(QML_FILES
     qml/page/MinePage.qml
     qml/page/TodayPage.qml
     qml/page/CloudPage.qml
+    qml/page/PlaylistCataloguePage.qml
     qml/page/PlaylistListPage.qml
 
     qml/component/PlaylistListView.qml

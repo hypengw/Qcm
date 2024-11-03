@@ -18,9 +18,9 @@ MD.Page {
     MD.FlickablePane {
         id: m_view_pane
         view: m_view
-        excludeBegin: m_view.headerItem.height - m_control_pane.height
+        excludeBegin: m_view.headerItem.height - m_control_pane.height + view.topMargin
         radius: root.radius
-        topMargin: 0
+        bottomMargin: MD.MatProp.size.verticalPadding
     }
 
     MD.ListView {
@@ -30,7 +30,7 @@ MD.Page {
         contentY: 0
 
         topMargin: MD.MatProp.size.verticalPadding
-        bottomMargin: MD.MatProp.size.verticalPadding + m_view_pane.bottomMargin
+        bottomMargin: MD.MatProp.size.verticalPadding * 2
 
         model: qr_al.data
 
@@ -107,9 +107,10 @@ MD.Page {
                 }
                 MD.IconButton {
                     id: btn_comment
-                    //action: QNcm.CommentAction {
-                    //    itemId: root.itemId
-                    //}
+                    visible: QA.Global.session.supportComment
+                    action: QNcm.CommentAction {
+                        itemId: root.itemId
+                    }
                 }
             }
         }

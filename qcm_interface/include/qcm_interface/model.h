@@ -20,6 +20,7 @@
 #include "qcm_interface/model/playlist.h"
 #include "qcm_interface/model/djradio.h"
 #include "qcm_interface/model/program.h"
+#include "qcm_interface/model/comment.h"
 
 namespace qcm::model
 {
@@ -28,29 +29,6 @@ using Extra = std::map<QString, QString, std::less<>>;
 template<typename T>
 using to_param =
     std::conditional_t<std::is_pointer_v<T>, T, std::add_lvalue_reference_t<std::add_const_t<T>>>;
-
-class QCM_INTERFACE_API User {
-    Q_GADGET
-public:
-    GADGET_PROPERTY_DEF(ItemId, itemId, id)
-    GADGET_PROPERTY_DEF(QString, name, name)
-    GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
-
-    std::strong_ordering operator<=>(const User&) const = default;
-};
-
-class QCM_INTERFACE_API Comment {
-    Q_GADGET
-public:
-    GADGET_PROPERTY_DEF(ItemId, itemId, id)
-    GADGET_PROPERTY_DEF(User, user, user)
-    GADGET_PROPERTY_DEF(QString, content, content)
-    GADGET_PROPERTY_DEF(QDateTime, time, time)
-    GADGET_PROPERTY_DEF(bool, liked, liked)
-
-    std::strong_ordering operator<=>(const Comment&) const = default;
-};
-
 
 } // namespace qcm::model
 

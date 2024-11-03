@@ -116,6 +116,7 @@ Session::Session(QObject* parent) {
     this->setParent(parent);
     set_user(new model::UserAccount(this));
     set_valid(false);
+    set_supportComment(false);
 }
 Session::~Session() {}
 

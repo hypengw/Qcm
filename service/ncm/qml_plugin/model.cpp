@@ -302,7 +302,7 @@ IMPL_CONVERT(qcm::oper::SongOper, ncm::model::SongB) {
     out.set_canPlay(true);
 }
 
-IMPL_CONVERT(qcm::model::User, ncm::model::User) {
+IMPL_CONVERT(qcm::model::ThirdUser, ncm::model::User) {
     convert(out.id, in.userId);
     convert(out.name, in.nickname);
     convert(out.picUrl, in.avatarUrl);

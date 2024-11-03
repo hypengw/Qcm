@@ -1,7 +1,6 @@
 import QtQuick
-import QtQuick.Controls.Basic
-import QtQuick.Layouts
 import Qcm.App as QA
+import QtQuick.Templates as T
 import Qcm.Material as MD
 import Qcm.Service.Ncm as QNcm
 
@@ -16,11 +15,10 @@ MD.Control {
         implicitHeight: 0
         MD.FlickablePane {
             view: m_view
-            contentWidth: view.contentItem.width + view.ScrollBar.vertical.width
+            contentWidth: view.contentItem.width
             contentHeight: view.contentItem.height
             corners: MD.Util.corner(0, root.MD.MatProp.page.radius)
             color: root.MD.MatProp.backgroundColor
-            topMargin: 0
         }
     }
 

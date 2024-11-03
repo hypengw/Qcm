@@ -9,7 +9,7 @@ MD.ListItem {
     id: root
 
     readonly property bool isPlaying: QA.Global.cur_song.itemId === dgModel.itemId
-    readonly property var dgModel: {
+    property var dgModel: {
         // bind visible
         if (visible) {
             if (typeof modelData?.objectName == 'string') {

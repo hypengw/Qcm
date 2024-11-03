@@ -81,7 +81,6 @@ set(QML_FILES
     qml/page/DescriptionPage.qml
     qml/page/DjradioDetailPage.qml
     qml/page/LoginPage.qml
-    qml/page/PlaylistCataloguePage.qml
     qml/page/PlaylistDetailPage.qml
     qml/page/PlaylistCreatePage.qml
     qml/page/RetryPage.qml
