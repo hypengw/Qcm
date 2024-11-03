@@ -38,6 +38,8 @@ public:
     Q_INVOKABLE QUrl media_cache_of(const QString& id) const;
 
     Q_INVOKABLE std::vector<model::ItemId> collect_ids(QAbstractItemModel* model) const;
+    Q_INVOKABLE int  dynCardWidth(qint32 containerWidth, qint32 spacing = 0) const;
+    Q_INVOKABLE void print(const QJSValue&) const;
 };
 } // namespace qml
 

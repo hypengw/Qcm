@@ -144,6 +144,7 @@ App::App(std::monostate)
       m_util(make_rc<qml::Util>(std::monostate {})),
       m_play_id_queue(new PlayIdQueue(this)),
       m_playqueu(new qcm::PlayQueue(this)),
+      m_empty(new qcm::model::EmptyModel(this)),
 #ifndef NODEBUS
       m_mpris(make_up<mpris::Mpris>()),
 #endif
@@ -257,8 +258,14 @@ void App::init() {
 
     load_plugins();
 
-    // avoid listitem index reference error
-    engine->rootContext()->setContextProperty("index", 0);
+    // default delegate var
+    {
+        engine->rootContext()->setContextProperty("index", 0);
+        engine->rootContext()->setContextProperty("model", QVariant::fromValue(nullptr));
+        engine->rootContext()->setContextProperty("modelData",
+                                                  QVariant::fromValue(nullptr));
+    }
+
     engine->addImageProvider("qcm", new QcmImageProvider);
 
     engine->load(u"qrc:/main/main.qml"_s);
@@ -434,7 +441,7 @@ auto App::play_id_queue() const -> PlayIdQueue* { return m_play_id_queue; }
 // #include <private/qquickpixmapcache_p.h>
 void App::releaseResources(QQuickWindow* win) {
     INFO_LOG("gc");
-    win->releaseResources();
+    // win->releaseResources();
     m_qml_engine->trimComponentCache();
     m_qml_engine->collectGarbage();
     // QQuickPixmap::purgeCache();
@@ -501,6 +508,7 @@ void App::set_player_sender(Sender<Player::NotifyInfo> sender) {
 auto App::media_cache_sql() const -> rc<CacheSql> { return m_media_cache_sql; }
 auto App::cache_sql() const -> rc<CacheSql> { return m_cache_sql; }
 auto App::album_sql() const -> rc<ItemSql> { return m_item_sql; }
+auto App::empty() const -> model::EmptyModel* { return m_empty; }
 
 void App::load_settings() {
     QSettings s;

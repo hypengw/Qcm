@@ -24,136 +24,123 @@ MD.Page {
             width: parent.width
             spacing: 24
 
-            MD.Pane {
-                Layout.fillWidth: true
-                radius: root.radius
-                verticalPadding: {
-                    return radius;
+            ColumnLayout {
+                MD.Label {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: 16
+                    Layout.rightMargin: 16
+
+                    font.capitalization: Font.Capitalize
+                    typescale: MD.Token.typescale.title_large
+                    text: qsTr('recommended mix')
                 }
 
-                ColumnLayout {
-                    width: parent.width
-                    spacing: 4
+                MD.Pane {
+                    id: m_rmd_mix_pane
+                    Layout.fillWidth: true
+                    radius: root.radius
+                    verticalPadding: radius
 
-                    MD.Text {
-                        Layout.fillWidth: true
-                        Layout.leftMargin: 16
-                        Layout.rightMargin: 16
+                    ColumnLayout {
+                        width: parent.width
+                        spacing: 4
 
-                        font.capitalization: Font.Capitalize
-                        typescale: MD.Token.typescale.title_large
-                        text: qsTr('recommended playlists')
-                    }
+                        QA.GridView {
+                            Layout.fillWidth: true
+                            fixedCellWidth: QA.Util.dynCardWidth(widthNoMargin, spacing)
+                            implicitHeight: maxImplicitCellHeight
+                            maxImplicitCellHeight: 200
+                            model: qr_rmd_res.data.dailyPlaylists
+                            flow: GridView.FlowTopToBottom
+                            hookWheel: false
+                            enabledCalMaxCellHeight: true
 
-                    SwipeView {
-                        id: swipe_playlist
-                        Layout.fillWidth: true
-
-                        readonly property int fixedCellWidth: Math.max(160, swipe_playlist.width / 6.0)
-                        readonly property int column: 2
-                        readonly property int space: 8
-                        readonly property int row: Math.max(2, Math.floor((width - space) / (fixedCellWidth + space / 2)))
-                        readonly property int itemCount: column * row
-                        currentIndex: swipe_indicator.currentIndex
-
-                        Repeater {
-                            model: Util.array_split(qr_rmd_res.data.dailyPlaylists, swipe_playlist.itemCount)
-                            QA.MGridView {
-                                fixedCellWidth: swipe_playlist.fixedCellWidth
-                                implicitHeight: contentHeight
-                                interactive: false
+                            delegate: Item {
                                 required property var modelData
-                                model: modelData
+                                required property int index
+                                width: GridView.view.cellWidth
+                                height: GridView.view.cellHeight
+                                implicitHeight: children[0].implicitHeight
+                                Component.onCompleted: GridView.view.calMaxCellHeight()
 
-                                delegate: Item {
-                                    required property var modelData
-                                    width: GridView.view.cellWidth
-                                    height: GridView.view.cellHeight
+                                QA.PicGridDelegate {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    width: parent.GridView.view.fixedCellWidth
+                                    picWidth: parent.GridView.view.fixedCellWidth
+                                    image.source: QA.Util.image_url(parent.modelData.picUrl)
+                                    text: parent.modelData.name
 
-                                    QA.PicGridDelegate {
-                                        anchors.horizontalCenter: parent.horizontalCenter
-                                        anchors.topMargin: 12
-                                        width: swipe_playlist.fixedCellWidth
-                                        height: Math.min(implicitHeight, parent.height)
-                                        picWidth: swipe_playlist.fixedCellWidth
-                                        image.source: QA.Util.image_url(parent.modelData.picUrl)
-                                        text: parent.modelData.name
-
-                                        onClicked: {
-                                            QA.Global.route(parent.modelData.itemId);
-                                        }
+                                    onClicked: {
+                                        QA.Global.route(parent.modelData.itemId);
                                     }
                                 }
-                                footer: MD.ListBusyFooter {
-                                    running: qr_rmd_res.status === QA.enums.Querying
-                                    width: GridView.view.width
-                                }
                             }
-                        }
-                    }
-                    MD.PageIndicator {
-                        id: swipe_indicator
-                        Layout.alignment: Qt.AlignHCenter
-                        count: swipe_playlist.count
-                        currentIndex: swipe_playlist.currentIndex
-                        interactive: true
-                    }
-                }
-            }
-            MD.Pane {
-                Layout.fillWidth: true
-                radius: root.radius
-                verticalPadding: radius
-
-                ColumnLayout {
-                    width: parent.width
-                    spacing: 4
-                    MD.Text {
-                        Layout.leftMargin: 16
-                        Layout.rightMargin: 16
-
-                        font.capitalization: Font.Capitalize
-                        typescale: MD.Token.typescale.title_large
-                        text: qsTr('radar playlists')
-                    }
-
-                    QA.MGridView {
-                        Layout.fillWidth: true
-
-                        fixedCellWidth: Math.max(160, width / 6.0)
-                        implicitHeight: contentHeight
-                        interactive: false
-                        model: QNcm.RadarPlaylistIdModel {}
-
-                        delegate: Item {
-                            required property var model
-                            width: GridView.view.cellWidth
-                            height: GridView.view.cellHeight
-
-                            QA.PicGridDelegate {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                anchors.top: parent.top
-                                anchors.topMargin: 12
-
-                                picWidth: parent.GridView.view.fixedCellWidth
-                                width: picWidth
-                                height: Math.min(implicitHeight, parent.height)
-                                image.source: QA.Util.image_url(pl_querier.data.info.picUrl)
-                                text: pl_querier.data.info.name
-
-                                onClicked: {
-                                    QA.Global.route(parent.model.id);
-                                }
-                            }
-
-                            QA.PlaylistDetailQuery {
-                                id: pl_querier
-                                itemId: model.id
+                            footer: MD.ListBusyFooter {
+                                running: qr_rmd_res.status === QA.enums.Querying
+                                width: GridView.view.count ? implicitWidth : GridView.view.width
                             }
                         }
                     }
                 }
             }
+            ColumnLayout {
+                MD.Label {
+                    Layout.leftMargin: 16
+                    Layout.rightMargin: 16
+
+                    font.capitalization: Font.Capitalize
+                    typescale: MD.Token.typescale.title_large
+                    text: qsTr('radar mix')
+                }
+                MD.Pane {
+                    Layout.fillWidth: true
+                    radius: root.radius
+                    verticalPadding: radius
+
+                    ColumnLayout {
+                        width: parent.width
+                        spacing: 4
+
+                        QA.GridView {
+                            Layout.fillWidth: true
+
+                            fixedCellWidth: QA.Util.dynCardWidth(widthNoMargin, spacing)
+                            implicitHeight: maxImplicitCellHeight
+                            maxImplicitCellHeight: 200
+                            flow: GridView.FlowTopToBottom
+                            model: QNcm.RadarPlaylistIdModel {}
+                            enabledCalMaxCellHeight: true
+                            hookWheel: false
+
+                            delegate: Item {
+                                required property var model
+                                width: GridView.view.cellWidth
+                                height: GridView.view.cellHeight
+                                implicitHeight: children[0].implicitHeight
+                                Component.onCompleted: GridView.view.calMaxCellHeight()
+
+                                QA.PicGridDelegate {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    picWidth: parent.GridView.view.fixedCellWidth
+                                    width: picWidth
+                                    image.source: QA.Util.image_url(pl_querier.data.info.picUrl)
+                                    text: pl_querier.data.info.name
+
+                                    onClicked: {
+                                        QA.Global.route(parent.model.id);
+                                    }
+                                }
+
+                                QA.PlaylistDetailQuery {
+                                    id: pl_querier
+                                    itemId: model.id
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            /*
             MD.Pane {
                 Layout.fillWidth: true
                 radius: root.radius
@@ -208,6 +195,7 @@ MD.Page {
                     }
                 }
             }
+            */
             QNcm.RecommendSongsQuerier {
                 id: qr_rmd_songs
             }

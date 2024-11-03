@@ -30,6 +30,7 @@
 #include "Qcm/play_queue.h"
 
 #include "qcm_interface/global.h"
+#include "qcm_interface/model/empty_model.h"
 
 namespace qcm
 {
@@ -60,6 +61,7 @@ class App : public QObject {
     Q_PROPERTY(bool debug READ debug CONSTANT FINAL)
     Q_PROPERTY(qcm::Global* global READ global CONSTANT FINAL)
     Q_PROPERTY(qcm::PlayQueue* playqueue READ playqueue CONSTANT FINAL)
+    Q_PROPERTY(qcm::model::EmptyModel* empty READ empty CONSTANT FINAL)
 
     friend class qml::Util;
 
@@ -107,6 +109,7 @@ public:
     auto        media_cache_sql() const -> rc<CacheSql>;
     auto        cache_sql() const -> rc<CacheSql>;
     auto        album_sql() const -> rc<ItemSql>;
+    auto        empty() const -> model::EmptyModel*;
 
     QObject* mpris() const;
 
@@ -164,8 +167,9 @@ private:
     rc<Global>    m_global;
     rc<qml::Util> m_util;
 
-    PlayIdQueue* m_play_id_queue;
-    PlayQueue*   m_playqueu;
+    PlayIdQueue*       m_play_id_queue;
+    PlayQueue*         m_playqueu;
+    model::EmptyModel* m_empty;
 #ifndef NODEBUS
     up<mpris::Mpris> m_mpris;
 #endif

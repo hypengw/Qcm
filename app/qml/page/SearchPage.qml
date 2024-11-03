@@ -111,7 +111,6 @@ MD.Page {
                     BaseView {
                         delegate: QA.SongDelegate {
                             width: ListView.view.contentWidth
-                            dgModel: QA.Util.create_song(model)
                             onClicked: {
                                 QA.Action.play_by_id(dgModel.itemId);
                             }

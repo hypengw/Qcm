@@ -21,7 +21,7 @@ Music Service:
 <a href='https://flathub.org/apps/details/io.github.hypengw.Qcm'><img width='240' alt='Download on Flathub' src='https://dl.flathub.org/assets/badges/flathub-badge-en.png'/></a>
 
 ### Require:  
-- Qt 6.7 (quick, dbus)
+- Qt 6.8 (quick, dbus)
 - C++ 23
 - Openssl 3
 - Curl

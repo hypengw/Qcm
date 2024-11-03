@@ -6,7 +6,6 @@
 #include "service_qml_ncm/model/artist_sub.h"
 #include "service_qml_ncm/model/artist_sublist.h"
 #include "service_qml_ncm/model/cloudsearch.h"
-#include "service_qml_ncm/model/djradio_detail.h"
 #include "service_qml_ncm/model/djradio_sub.h"
 #include "service_qml_ncm/model/djradio_sublist.h"
 #include "service_qml_ncm/model/djradio_program.h"
@@ -23,7 +22,6 @@
 #include "service_qml_ncm/model/recommend_resource.h"
 #include "service_qml_ncm/model/song_url.h"
 #include "service_qml_ncm/model/song_lyric.h"
-#include "service_qml_ncm/model/user_playlist.h"
 #include "service_qml_ncm/model/user_cloud.h"
 #include "service_qml_ncm/model/qrcode_login.h"
 #include "service_qml_ncm/model/qrcode_unikey.h"
@@ -38,6 +36,8 @@
 
 #include "core/qlist_helper.h"
 #include "core/strv_helper.h"
+#include "ncm/api/user_playlist.h"
+#include "ncm/api/djradio_detail.h"
 
 using namespace qcm;
 

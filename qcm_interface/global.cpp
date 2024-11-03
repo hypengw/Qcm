@@ -110,7 +110,11 @@ Global::Global(): d_ptr(make_up<Private>(this)) {
         }
     });
 }
-Global::~Global() { save_user(); }
+Global::~Global() {
+    save_user();
+    // delete child before private pointer
+    qDeleteAll(children());
+}
 
 auto Global::info() const -> const model::AppInfo& {
     C_D(const Global);

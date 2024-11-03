@@ -66,7 +66,8 @@ auto ItemId::provider() const -> const QString& {
 }
 auto ItemId::valid() const -> bool {
     C_D(const ItemId);
-    return ! (id().isEmpty() || provider().isEmpty()) && (d->validtor ? d->validtor(*this) : true);
+    return ! (id().isEmpty() || provider().isEmpty() || id() == "invalid" || id() == "empty") &&
+           (d->validtor ? d->validtor(*this) : true);
 }
 
 void ItemId::set_validator(const validator_t& v) {

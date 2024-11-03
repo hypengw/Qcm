@@ -1,4 +1,8 @@
 #include "Qcm/qml_util.h"
+
+#include <QtCore/QJsonDocument>
+#include <QtQml/QJSValueIterator>
+
 #include "meta_model/qgadget_helper.h"
 #include "qcm_interface/global.h"
 #include "qcm_interface/plugin.h"
@@ -130,6 +134,37 @@ auto Util::collect_ids(QAbstractItemModel* model) const -> std::vector<model::It
     return out;
 }
 
+int Util::dynCardWidth(qint32 containerWidth, qint32 spacing) const {
+    return std::max<qint32>(160, containerWidth / 6.0 - spacing);
+}
+
+void Util::print(const QJSValue& val) const {
+    if (val.isObject()) {
+        QJsonDocument    jdoc;
+        QJsonObject      j;
+        QJSValueIterator it(val);
+        while (it.hasNext()) {
+            it.next();
+            j[it.name()] = it.value().toString();
+        }
+        jdoc.setObject(j);
+        DEBUG_LOG("print: {}", jdoc.toJson(QJsonDocument::JsonFormat::Indented).toStdString());
+    } else if (auto var = val.toVariant(); var.isValid()) {
+        auto meta = var.metaType();
+        DEBUG_LOG(R"(print
+metaType: {}
+metaId: {}
+isNull: {}
+json: {}
+)",
+                  meta.name(),
+                  meta.id(),
+                  var.toJsonDocument().toJson(QJsonDocument::JsonFormat::Indented).toStdString(),
+                  var.isNull());
+    } else {
+        DEBUG_LOG("print: {}", val.toString());
+    }
+}
 } // namespace qcm::qml
 
 namespace qcm

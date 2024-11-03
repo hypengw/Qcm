@@ -63,7 +63,6 @@ set(QCM_INTERFACE_HEADER
     include/qcm_interface/model.h
     include/qcm_interface/model/plugin_model.h
     include/qcm_interface/model/query_model.h
-    include/qcm_interface/model/song.h
     )
 
 list(
@@ -98,7 +97,6 @@ set(QML_FILES
     qml/delegate/PicGridDelegate.qml
     qml/delegate/ProgramDelegate.qml
     qml/component/ArtistsPopup.qml
-    qml/component/InfoRow.qml
     qml/component/SnakeView.qml
     qml/component/Mpris.qml
     qml/component/SongTag.qml
@@ -108,10 +106,9 @@ set(QML_FILES
     qml/component/ListenIcon.qml
     qml/component/LyricView.qml
     qml/component/Image.qml
-    qml/component/IconRowLayout.qml
     qml/component/RoundImage.qml
     qml/component/Leaflet.qml
-    qml/component/MGridView.qml
+    qml/component/GridView.qml
     qml/component/PageContainer.qml
     qml/component/PagePopup.qml
     qml/component/PageStack.qml

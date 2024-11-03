@@ -224,7 +224,6 @@ MD.Page {
                                 delegate: QA.SongDelegate {
                                     required property var model
                                     required property int index
-                                    dgModel: model
                                     subtitle: `${dgModel.album.name}`
                                     width: ListView.view.contentWidth
 
@@ -237,7 +236,7 @@ MD.Page {
                                     width: ListView.view.width
                                 }
                             }
-                            QA.MGridView {
+                            QA.GridView {
                                 fixedCellWidth: Math.max(160, (Window.window?.width ?? 0) / 6.0)
                                 interactive: m_flick.atYEnd
                                 implicitHeight: contentHeight

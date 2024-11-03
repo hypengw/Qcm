@@ -54,7 +54,6 @@ MD.Pane {
             MD.Image {
                 readonly property string picUrl: {
                     const cover = root.currentSong.coverUrl;
-                    console.error('---cover', cover);
                     return cover ? cover : root.currentSong.album.picUrl;
                 }
                 source: QA.Util.image_url(picUrl)

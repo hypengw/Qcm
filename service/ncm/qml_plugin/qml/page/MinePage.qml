@@ -50,7 +50,7 @@ MD.Page {
                     }
 
                     MD.TabButton {
-                        text: qsTr("Playlist")
+                        text: qsTr("Mix")
                     }
                     MD.TabButton {
                         text: qsTr("Album")

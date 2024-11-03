@@ -9,7 +9,18 @@ MD.ListItem {
     id: root
 
     readonly property bool isPlaying: QA.Global.cur_song.itemId === dgModel.itemId
-    property var dgModel: modelData
+    readonly property var dgModel: {
+        // bind visible
+        if (visible) {
+            if (typeof modelData?.objectName == 'string') {
+                return modelData;
+            }
+            if (model) {
+                return model;
+            }
+        }
+        return QA.App.empty.song;
+    }
     property string subtitle: ''
     property bool showCover: false
     readonly property int coverSize: 48

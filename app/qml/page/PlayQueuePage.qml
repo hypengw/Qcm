@@ -7,7 +7,7 @@ import Qcm.Material as MD
 MD.Page {
     id: root
     padding: 0
-    title: 'Playlist'
+    title: qsTr('Queue')
     bottomPadding: radius
     scrolling: !m_view.atYBeginning
 
