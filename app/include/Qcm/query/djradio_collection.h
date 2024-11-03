@@ -58,8 +58,9 @@ public:
             auto                               sql = App::instance()->album_sql();
             std::vector<DjradioCollectionItem> items;
             co_await asio::post(asio::bind_executor(sql->get_executor(), asio::use_awaitable));
-            auto query = sql->con()->query();
-            query.prepare(uR"(
+            {
+                auto query = sql->con()->query();
+                query.prepare(uR"(
 SELECT 
     %1,
     collection.collectTime
@@ -69,18 +70,18 @@ WHERE collection.userId = :userId
 GROUP BY djradio.itemId
 ORDER BY collection.collectTime DESC;
 )"_s.arg(model::Djradio::Select));
-            query.bindValue(":userId", userId.toUrl());
+                query.bindValue(":userId", userId.toUrl());
 
-            if (! query.exec()) {
-                ERROR_LOG("{}", query.lastError().text());
+                if (! query.exec()) {
+                    ERROR_LOG("{}", query.lastError().text());
+                }
+                while (query.next()) {
+                    auto& item = items.emplace_back();
+                    int   i    = 0;
+                    query::load_query(item, query, i);
+                    item.subTime = query.value(i++).toDateTime();
+                }
             }
-            while (query.next()) {
-                auto& item = items.emplace_back();
-                int   i    = 0;
-                query::load_query(item, query, i);
-                item.subTime = query.value(i++).toDateTime();
-            }
-
             co_await asio::post(
                 asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
 

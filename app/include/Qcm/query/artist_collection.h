@@ -58,9 +58,10 @@ public:
         spawn(ex, [self, userId] -> asio::awaitable<void> {
             auto                              sql = App::instance()->album_sql();
             std::vector<ArtistCollectionItem> items;
-            co_await asio::post(asio::bind_executor(sql->get_executor(), asio::use_awaitable));
-            auto query = sql->con()->query();
-            query.prepare(uR"(
+            {
+                co_await asio::post(asio::bind_executor(sql->get_executor(), asio::use_awaitable));
+                auto query = sql->con()->query();
+                query.prepare(uR"(
 SELECT 
     artist.itemId, 
     artist.name, 
@@ -72,18 +73,19 @@ JOIN collection ON artist.itemId = collection.itemId
 WHERE collection.userId = :userId
 ORDER BY collection.collectTime DESC;
 )"_s);
-            query.bindValue(":userId", userId.toUrl());
+                query.bindValue(":userId", userId.toUrl());
 
-            if (! query.exec()) {
-                ERROR_LOG("{}", query.lastError().text());
-            }
-            while (query.next()) {
-                auto& item      = items.emplace_back();
-                item.id         = query.value(0).toUrl();
-                item.name       = query.value(1).toString();
-                item.picUrl     = query.value(2).toString();
-                item.albumCount = query.value(3).toInt();
-                item.subTime    = query.value(4).toDateTime();
+                if (! query.exec()) {
+                    ERROR_LOG("{}", query.lastError().text());
+                }
+                while (query.next()) {
+                    auto& item      = items.emplace_back();
+                    item.id         = query.value(0).toUrl();
+                    item.name       = query.value(1).toString();
+                    item.picUrl     = query.value(2).toString();
+                    item.albumCount = query.value(3).toInt();
+                    item.subTime    = query.value(4).toDateTime();
+                }
             }
 
             co_await asio::post(

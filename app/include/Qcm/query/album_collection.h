@@ -75,9 +75,10 @@ public:
         spawn(ex, [self, userId] -> asio::awaitable<void> {
             auto                             sql = App::instance()->album_sql();
             std::vector<AlbumCollectionItem> items;
-            co_await asio::post(asio::bind_executor(sql->get_executor(), asio::use_awaitable));
-            auto query = sql->con()->query();
-            query.prepare(uR"(
+            {
+                co_await asio::post(asio::bind_executor(sql->get_executor(), asio::use_awaitable));
+                auto query = sql->con()->query();
+                query.prepare(uR"(
 SELECT 
     album.itemId, 
     album.name, 
@@ -95,28 +96,29 @@ WHERE collection.userId = :userId
 GROUP BY album.itemId
 ORDER BY collection.collectTime DESC;
 )"_s);
-            query.bindValue(":userId", userId.toUrl());
+                query.bindValue(":userId", userId.toUrl());
 
-            if (! query.exec()) {
-                ERROR_LOG("{}", query.lastError().text());
-            }
-            while (query.next()) {
-                auto& item      = items.emplace_back();
-                item.id         = query.value(0).toUrl();
-                item.name       = query.value(1).toString();
-                item.picUrl     = query.value(2).toString();
-                item.trackCount = query.value(3).toInt();
-                item.subTime    = query.value(4).toDateTime();
+                if (! query.exec()) {
+                    ERROR_LOG("{}", query.lastError().text());
+                }
+                while (query.next()) {
+                    auto& item      = items.emplace_back();
+                    item.id         = query.value(0).toUrl();
+                    item.name       = query.value(1).toString();
+                    item.picUrl     = query.value(2).toString();
+                    item.trackCount = query.value(3).toInt();
+                    item.subTime    = query.value(4).toDateTime();
 
-                {
-                    auto artist_ids     = query.value(5).toStringList();
-                    auto artist_names   = query.value(6).toStringList();
-                    auto artist_picUrls = query.value(7).toStringList();
-                    for (qsizetype i = 0; i < artist_ids.size(); i++) {
-                        auto& ar  = item.artists.emplace_back();
-                        ar.id     = artist_ids[i];
-                        ar.name   = artist_names[i];
-                        ar.picUrl = artist_picUrls[i];
+                    {
+                        auto artist_ids     = query.value(5).toStringList();
+                        auto artist_names   = query.value(6).toStringList();
+                        auto artist_picUrls = query.value(7).toStringList();
+                        for (qsizetype i = 0; i < artist_ids.size(); i++) {
+                            auto& ar  = item.artists.emplace_back();
+                            ar.id     = artist_ids[i];
+                            ar.name   = artist_names[i];
+                            ar.picUrl = artist_picUrls[i];
+                        }
                     }
                 }
             }

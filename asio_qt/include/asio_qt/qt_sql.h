@@ -38,6 +38,25 @@ public:
         m_thread.wait();
     }
 
+    class Query : public QSqlQuery {
+    public:
+        Query(const QSqlDatabase& db): QSqlQuery(db), m_thread(db.thread()) {
+            _assert_rel_(m_thread == nullptr || m_thread->isCurrentThread());
+        }
+        ~Query() { _assert_rel_(m_thread == nullptr || m_thread->isCurrentThread()); }
+        Query(const Query&)            = delete;
+        Query& operator=(const Query&) = delete;
+        Query(Query&& o): QSqlQuery(std::move(o)), m_thread(std::exchange(o.m_thread, nullptr)) {}
+        Query& operator=(Query&& o) {
+            QSqlQuery::operator=(std::move(o));
+            m_thread = std::exchange(o.m_thread, nullptr);
+            return *this;
+        }
+
+    private:
+        QThread* m_thread;
+    };
+
     using Converter = std::function<QVariant(const QVariant&)>;
     static auto get_from_converter(int id) -> std::optional<Converter>;
     static auto get_to_converter(int id) -> std::optional<Converter>;
@@ -51,7 +70,7 @@ public:
 
     auto is_open() const -> bool { return m_db.isOpen(); }
 
-    auto query() const -> QSqlQuery { return QSqlQuery(m_db); }
+    auto query() const -> Query { return Query(m_db); }
     auto db() -> QSqlDatabase& { return m_db; }
     auto error_str() -> QString { return m_db.lastError().text(); }
 
