@@ -24,6 +24,7 @@ CollectionSql::CollectionSql(std::string_view table, rc<helper::SqlConnect> con)
 CollectionSql::~CollectionSql() {}
 
 auto CollectionSql::get_executor() -> QtExecutor& { return m_con->get_executor(); }
+auto CollectionSql::con() const -> rc<helper::SqlConnect> { return m_con; }
 
 void CollectionSql::connect_db() {
     if (m_con->is_open()) {
@@ -53,16 +54,15 @@ void CollectionSql::connect_db() {
     }
 }
 
-auto CollectionSql::insert(std::span<const Item> items) -> asio::awaitable<bool> {
+auto CollectionSql::insert(std::span<const Item> items) -> task<bool> {
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
     co_return insert_sync(items);
 }
-auto CollectionSql::remove(model::ItemId userId, model::ItemId itemId) -> asio::awaitable<bool> {
+auto CollectionSql::remove(model::ItemId userId, model::ItemId itemId) -> task<bool> {
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
     co_return remove_sync(userId, itemId);
 }
-auto CollectionSql::select_id(model::ItemId userId,
-                              QString) -> asio::awaitable<std::vector<model::ItemId>> {
+auto CollectionSql::select_id(model::ItemId userId, QString) -> task<std::vector<model::ItemId>> {
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
 
     auto query = m_con->query();
@@ -82,7 +82,7 @@ auto CollectionSql::select_id(model::ItemId userId,
 
 auto CollectionSql::refresh(model::ItemId userId, QString type,
                             std::span<const model::ItemId> itemIds,
-                            std::span<const QDateTime>     times) -> asio::awaitable<bool> {
+                            std::span<const QDateTime>     times) -> task<bool> {
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
     if (! m_con->db().transaction()) {
         ERROR_LOG("{}", m_con->error_str());

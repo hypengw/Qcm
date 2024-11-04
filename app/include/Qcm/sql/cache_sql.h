@@ -2,6 +2,7 @@
 
 #include "media_cache/database.h"
 #include "core/core.h"
+#include "asio_helper/task.h"
 
 #include <functional>
 #include "asio_qt/qt_executor.h"
@@ -27,16 +28,16 @@ public:
     void set_limit(i64);
     void set_clean_cb(clean_cb_t);
 
-    asio::awaitable<std::optional<Item>> get(std::string key) override;
-    asio::awaitable<void>                insert(Item) override;
+    task<std::optional<Item>> get(std::string key) override;
+    task<void>                insert(Item) override;
 
-    asio::awaitable<void>                remove(std::string key);
-    asio::awaitable<void>                remove(std::span<std::string> key);
-    asio::awaitable<usize>               total_size();
-    asio::awaitable<std::optional<Item>> lru();
-    asio::awaitable<std::vector<Item>>   get_all();
+    task<void>                remove(std::string key);
+    task<void>                remove(std::span<std::string> key);
+    task<usize>               total_size();
+    task<std::optional<Item>> lru();
+    task<std::vector<Item>>   get_all();
 
-    asio::awaitable<void> try_clean();
+    task<void> try_clean();
 
 private:
     void  try_connect();

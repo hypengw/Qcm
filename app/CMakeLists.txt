@@ -39,6 +39,9 @@ set(SOURCES
     include/Qcm/query/artist_detail.h
     include/Qcm/query/artist_albums.h
     include/Qcm/query/artist_songs.h
+    include/Qcm/query/mix_create.h
+    include/Qcm/query/mix_manipulate.h
+    include/Qcm/query/mix_delete.h
     include/Qcm/query/comments.h
     src/action.cpp
     src/app.cpp
@@ -123,6 +126,7 @@ set(QML_FILES
     qml/action/ColorSchemeAction.qml
     qml/action/SubAction.qml
     qml/action/SettingAction.qml
+    qml/dialog/MixCreateDialog.qml
     qml/menu/SongMenu.qml
     qml/menu/AlbumMenu.qml
     qml/menu/ArtistMenu.qml

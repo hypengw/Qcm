@@ -7,7 +7,8 @@ MD.Menu {
     id: root
 
     required property QA.t_id itemId 
-    readonly property bool isUserPlaylist: QA.Global.session.user.userId === root.playlist.userId
+    required property QA.t_id userId
+    readonly property bool isUserPlaylist: QA.Global.session.user.userId === root.userId
 
     dim: false
     font.capitalization: Font.Capitalize

@@ -14,6 +14,7 @@
 #include "qcm_interface/enum.h"
 
 #include "qcm_interface/sql/cache_sql.h"
+#include "qcm_interface/sql/collection_sql.h"
 
 #include "qcm_interface/metadata.h"
 #include "qcm_interface/client.h"
@@ -23,7 +24,6 @@
 #include "qcm_interface/action.h"
 
 #include "qcm_interface/state/app_state.h"
-#include "qcm_interface/collection_sql.h"
 
 namespace request
 {

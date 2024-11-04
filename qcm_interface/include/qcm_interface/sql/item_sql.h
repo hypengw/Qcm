@@ -24,7 +24,8 @@ namespace qcm::db
 
 class ItemSqlBase : public NoCopy {
 public:
-    using IdPair = std::tuple<model::ItemId, model::ItemId>;
+    using IdPair           = std::tuple<model::ItemId, model::ItemId>;
+    virtual ~ItemSqlBase() = default;
 
     virtual auto con() const -> rc<helper::SqlConnect>                        = 0;
     virtual auto get_executor() -> QtExecutor&                                = 0;

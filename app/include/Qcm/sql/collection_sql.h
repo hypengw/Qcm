@@ -3,8 +3,9 @@
 #include <asio/awaitable.hpp>
 
 #include "core/core.h"
+#include "asio_helper/task.h"
 #include "qcm_interface/item_id.h"
-#include "qcm_interface/collection_sql.h"
+#include "qcm_interface/sql/collection_sql.h"
 
 namespace helper
 {
@@ -19,13 +20,14 @@ public:
     ~CollectionSql();
 
     auto get_executor() -> QtExecutor& override;
-    auto insert(std::span<const Item>) -> asio::awaitable<bool> override;
-    auto remove(model::ItemId user_id, model::ItemId item_id) -> asio::awaitable<bool> override;
+    auto con() const -> rc<helper::SqlConnect>;
+    auto insert(std::span<const Item>) -> task<bool> override;
+    auto remove(model::ItemId user_id, model::ItemId item_id) -> task<bool> override;
     auto select_id(model::ItemId user_id,
-                   QString       type = {}) -> asio::awaitable<std::vector<model::ItemId>> override;
+                   QString       type = {}) -> task<std::vector<model::ItemId>> override;
 
     auto refresh(model::ItemId user_id, QString type, std::span<const model::ItemId>,
-                 std::span<const QDateTime> = {}) -> asio::awaitable<bool> override;
+                 std::span<const QDateTime> = {}) -> task<bool> override;
 
     bool insert_sync(std::span<const Item>);
     bool insert_sync(model::ItemId user_id, std::span<const model::ItemId>, std::span<const QDateTime> = {});

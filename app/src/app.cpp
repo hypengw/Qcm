@@ -262,8 +262,7 @@ void App::init() {
     {
         engine->rootContext()->setContextProperty("index", 0);
         engine->rootContext()->setContextProperty("model", QVariant::fromValue(nullptr));
-        engine->rootContext()->setContextProperty("modelData",
-                                                  QVariant::fromValue(nullptr));
+        engine->rootContext()->setContextProperty("modelData", QVariant::fromValue(nullptr));
     }
 
     engine->addImageProvider("qcm", new QcmImageProvider);
@@ -508,6 +507,7 @@ void App::set_player_sender(Sender<Player::NotifyInfo> sender) {
 auto App::media_cache_sql() const -> rc<CacheSql> { return m_media_cache_sql; }
 auto App::cache_sql() const -> rc<CacheSql> { return m_cache_sql; }
 auto App::album_sql() const -> rc<ItemSql> { return m_item_sql; }
+auto App::collect_sql() const -> rc<CollectionSql> { return m_collect_sql; }
 auto App::empty() const -> model::EmptyModel* { return m_empty; }
 
 void App::load_settings() {

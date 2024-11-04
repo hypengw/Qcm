@@ -28,8 +28,9 @@ public:
             return out;
         }
     };
-    virtual auto get_executor() -> QtExecutor&                                                 = 0;
-    virtual auto insert(std::span<const Item>) -> asio::awaitable<bool>                        = 0;
+    virtual ~ColletionSqlBase()                                         = default;
+    virtual auto get_executor() -> QtExecutor&                          = 0;
+    virtual auto insert(std::span<const Item>) -> asio::awaitable<bool> = 0;
     virtual auto remove(model::ItemId user_id, model::ItemId item_id) -> asio::awaitable<bool> = 0;
     virtual auto select_id(model::ItemId user_id,
                            QString type = {}) -> asio::awaitable<std::vector<model::ItemId>>   = 0;

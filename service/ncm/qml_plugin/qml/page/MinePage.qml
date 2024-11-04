@@ -102,7 +102,7 @@ MD.Page {
                             action: Action {
                                 icon.name: MD.Token.icon.add
                                 onTriggered: {
-                                    QA.Action.popup_page('qrc:/Qcm/App/qml/page/PlaylistCreatePage.qml', {});
+                                    MD.Util.show_popup('qrc:/Qcm/App/qml/dialog/MixCreateDialog.qml', {}, root.Overlay.overlay)
                                 }
                             }
                         }
@@ -214,6 +214,7 @@ MD.Page {
                         function showMenu(parent) {
                             MD.Util.show_popup('qrc:/Qcm/App/qml/menu/MixMenu.qml', {
                                 "itemId": model.itemId,
+                                "userId": model.userId,
                                 "y": parent.height
                             }, parent);
                         }
