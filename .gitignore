@@ -76,7 +76,7 @@ Thumbs.db
 
 # cm
 build
-build_release
+/build*
 target
 .cache
 CMakeLists.txt.*
