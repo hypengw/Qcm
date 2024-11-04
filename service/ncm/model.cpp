@@ -25,7 +25,8 @@
 #include "ncm/api/playlist_subscribe.h"
 #include "ncm/api/playlist_create.h"
 #include "ncm/api/playlist_delete.h"
-#include "ncm/api/playlist_tracks.h"
+#include "ncm/api/playlist_manipulate_tracks.h"
+#include "ncm/api/playlist_update_name.h"
 #include "ncm/api/recommend_songs.h"
 #include "ncm/api/recommend_resource.h"
 #include "ncm/api/song_url.h"
@@ -231,6 +232,7 @@ JSON_DEFINE_IMPL(PlaylistDetailDynamic, code, bookedCount, subscribed, playCount
 JSON_DEFINE_IMPL(PlaylistCatalogue, code, sub, all, categories);
 JSON_DEFINE_IMPL(PlaylistList, code, playlists, total, more, cat);
 JSON_DEFINE_IMPL(PlaylistSubscribe, code);
+JSON_DEFINE_IMPL(PlaylistUpdateName, code);
 
 JSON_DEFINE_IMPL(RecommendSongs::Data, dailySongs);
 JSON_DEFINE_IMPL(RecommendSongs, code, data);
@@ -266,7 +268,7 @@ JSON_DEFINE_IMPL(DjradioSub, code);
 JSON_DEFINE_IMPL(UserCloud, data, count, hasMore, maxSize, size, upgradeSign);
 JSON_DEFINE_IMPL(PlaylistCreate, id, playlist);
 JSON_DEFINE_IMPL(PlaylistDelete, code);
-JSON_DEFINE_IMPL(PlaylistTracks, code);
+JSON_DEFINE_IMPL(PlaylistManipulateTracks, code);
 
 JSON_DEFINE_IMPL(UploadCloudInfo, code, songId);
 JSON_DEFINE_IMPL(CloudUploadCheck, code, songId, needUpload);
@@ -305,7 +307,8 @@ JSON_GET_IMPL(ncm::api_model::PlaylistList);
 JSON_GET_IMPL(ncm::api_model::PlaylistSubscribe);
 JSON_GET_IMPL(ncm::api_model::PlaylistCreate);
 JSON_GET_IMPL(ncm::api_model::PlaylistDelete);
-JSON_GET_IMPL(ncm::api_model::PlaylistTracks);
+JSON_GET_IMPL(ncm::api_model::PlaylistManipulateTracks);
+JSON_GET_IMPL(ncm::api_model::PlaylistUpdateName);
 JSON_GET_IMPL(ncm::api_model::RecommendSongs);
 JSON_GET_IMPL(ncm::api_model::RecommendResource);
 JSON_GET_IMPL(ncm::api_model::SongUrl);

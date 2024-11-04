@@ -9,7 +9,7 @@ namespace ncm
 namespace params
 {
 
-struct PlaylistTracks {
+struct PlaylistManipulateTracks {
     constexpr static std::array oper_strs { "add", "del" };
     enum class Oper
     {
@@ -35,23 +35,23 @@ struct PlaylistTracks {};
 namespace api_model
 {
 
-struct PlaylistTracks {
-    static Result<PlaylistTracks> parse(std::span<const byte> bs, const auto&) {
-        return api_model::parse<PlaylistTracks>(bs);
+struct PlaylistManipulateTracks {
+    static Result<PlaylistManipulateTracks> parse(std::span<const byte> bs, const auto&) {
+        return api_model::parse<PlaylistManipulateTracks>(bs);
     }
     // 200
     i64 code;
 };
-JSON_DEFINE(PlaylistTracks);
+JSON_DEFINE(PlaylistManipulateTracks);
 
 } // namespace api_model
 
 namespace api
 {
 
-struct PlaylistTracks {
-    using in_type                      = params::PlaylistTracks;
-    using out_type                     = api_model::PlaylistTracks;
+struct PlaylistManipulateTracks {
+    using in_type                      = params::PlaylistManipulateTracks;
+    using out_type                     = api_model::PlaylistManipulateTracks;
     constexpr static Operation  oper   = Operation::PostOperation;
     constexpr static CryptoType crypto = CryptoType::WEAPI;
 
@@ -59,7 +59,7 @@ struct PlaylistTracks {
     UrlParams        query() const { return {}; }
     Params           body() const {
         Params p;
-        p["op"]  = params::PlaylistTracks::oper_strs[(int)input.op % 2];
+        p["op"]  = params::PlaylistManipulateTracks::oper_strs[(int)input.op % 2];
         p["pid"] = input.pid.as_str();
         p["trackIds"] =
             fmt::format("[{}]", fmt::join(model::id_str_range_view(input.trackIds), ","));
@@ -68,7 +68,7 @@ struct PlaylistTracks {
     }
     in_type input;
 };
-static_assert(ApiCP<PlaylistTracks>);
+static_assert(ApiCP<PlaylistManipulateTracks>);
 
 } // namespace api
 

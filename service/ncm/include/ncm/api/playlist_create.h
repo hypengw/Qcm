@@ -35,8 +35,8 @@ struct PlaylistCreate {
     static Result<PlaylistCreate> parse(std::span<const byte> bs, const auto&) {
         return api_model::parse<PlaylistCreate>(bs);
     }
-    i64             id { 0 };
-    model::Playlist playlist;
+    model::PlaylistId id { 0 };
+    model::Playlist   playlist;
 };
 JSON_DEFINE(PlaylistCreate);
 

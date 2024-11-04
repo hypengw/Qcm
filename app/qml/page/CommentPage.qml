@@ -5,7 +5,7 @@ import Qcm.Material as MD
 MD.Page {
     id: root
     padding: 0
-    title: `Comment(${m_view.model.total})`
+    title: m_view.model.total ? `Comments(${m_view.model.total})` : 'Comment'
     bottomPadding: radius
     scrolling: !m_view.atYBeginning
 

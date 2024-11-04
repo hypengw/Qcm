@@ -1,20 +1,13 @@
 #include "service_qml_ncm/model.h"
 
 #include "service_qml_ncm/model/album_detail_dynamic.h"
-#include "service_qml_ncm/model/album_sub.h"
-#include "service_qml_ncm/model/album_sublist.h"
-#include "service_qml_ncm/model/artist_sub.h"
-#include "service_qml_ncm/model/artist_sublist.h"
 #include "service_qml_ncm/model/cloudsearch.h"
-#include "service_qml_ncm/model/djradio_sub.h"
-#include "service_qml_ncm/model/djradio_sublist.h"
 #include "service_qml_ncm/model/djradio_program.h"
 #include "service_qml_ncm/model/login.h"
 #include "service_qml_ncm/model/logout.h"
 #include "service_qml_ncm/model/playlist_catalogue.h"
 #include "service_qml_ncm/model/playlist_detail_dynamic.h"
 #include "service_qml_ncm/model/playlist_list.h"
-#include "service_qml_ncm/model/playlist_subscribe.h"
 #include "service_qml_ncm/model/playlist_create.h"
 #include "service_qml_ncm/model/playlist_delete.h"
 #include "service_qml_ncm/model/playlist_tracks.h"
@@ -38,6 +31,8 @@
 #include "core/strv_helper.h"
 #include "ncm/api/user_playlist.h"
 #include "ncm/api/djradio_detail.h"
+#include "ncm/api/album_sublist.h"
+#include "ncm/api/artist_sublist.h"
 
 using namespace qcm;
 

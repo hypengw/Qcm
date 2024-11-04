@@ -42,6 +42,14 @@
 #include "ncm/api/djradio_detail.h"
 #include "ncm/api/djradio_program.h"
 #include "ncm/api/comments.h"
+#include "ncm/api/album_sub.h"
+#include "ncm/api/playlist_subscribe.h"
+#include "ncm/api/djradio_sub.h"
+#include "ncm/api/artist_sub.h"
+#include "ncm/api/playlist_create.h"
+#include "ncm/api/playlist_delete.h"
+#include "ncm/api/playlist_manipulate_tracks.h"
+#include "ncm/api/playlist_update_name.h"
 
 #include "ncm/client.h"
 
@@ -347,14 +355,59 @@ bool make_request(ClientBase& cbase, request::Request& req, const QUrl& url,
 }
 
 auto collect(ClientBase& cbase, qcm::model::ItemId id, bool act) -> qcm::task<Result<bool>> {
-    auto                c = *get_client(cbase);
-    ncm::api::RadioLike api;
-    api.input.like    = act;
-    api.input.trackId = convert_from<model::SongId>(id);
-    auto ok           = co_await c.perform(api);
-    co_return ok.transform([](const ncm::api_model::RadioLike& out) {
-        return out.code == 200;
-    });
+    using Res = qcm::task<Result<bool>>;
+    auto c    = *get_client(cbase);
+    auto nid  = to_ncm_id(id);
+
+    co_return co_await std::visit(overloaded { [act, &c](model::PlaylistId id) -> Res {
+                                                  ncm::api::PlaylistSubscribe api;
+                                                  api.input.sub = act;
+                                                  api.input.id  = id;
+                                                  auto ok       = co_await c.perform(api);
+                                                  co_return ok.transform([](const auto& out) {
+                                                      return out.code == 200;
+                                                  });
+                                              },
+                                               [act, &c](model::ArtistId id) -> Res {
+                                                   ncm::api::ArtistSub api;
+                                                   api.input.sub = act;
+                                                   api.input.id  = id;
+                                                   auto ok       = co_await c.perform(api);
+                                                   co_return ok.transform([](const auto& out) {
+                                                       return out.code == 200;
+                                                   });
+                                               },
+                                               [act, &c](model::AlbumId id) -> Res {
+                                                   ncm::api::AlbumSub api;
+                                                   api.input.sub = act;
+                                                   api.input.id  = id;
+                                                   auto ok       = co_await c.perform(api);
+                                                   co_return ok.transform([](const auto& out) {
+                                                       return out.code == 200;
+                                                   });
+                                               },
+                                               [act, &c](model::DjradioId id) -> Res {
+                                                   ncm::api::DjradioSub api;
+                                                   api.input.sub = act;
+                                                   api.input.id  = id;
+                                                   auto ok       = co_await c.perform(api);
+                                                   co_return ok.transform([](const auto& out) {
+                                                       return out.code == 200;
+                                                   });
+                                               },
+                                               [act, &c](model::SongId id) -> Res {
+                                                   ncm::api::RadioLike api;
+                                                   api.input.like    = act;
+                                                   api.input.trackId = id;
+                                                   auto ok           = co_await c.perform(api);
+                                                   co_return ok.transform([](const auto& out) {
+                                                       return out.code == 200;
+                                                   });
+                                               },
+                                               [](auto) -> Res {
+                                                   co_return false;
+                                               } },
+                                  nid);
 }
 
 auto media_url(ClientBase& cbase, qcm::model::ItemId id,
@@ -794,6 +847,60 @@ auto comments(ClientBase& cbase, qcm::model::ItemId item_id, i32 offset, i32 lim
     });
 }
 
+auto create_mix(ClientBase& cbase, QString name) -> qcm::task<Result<ItemId>> {
+    auto                     c = *get_client(cbase);
+    ncm::api::PlaylistCreate api;
+    convert(api.input.name, name);
+    co_return (co_await c.perform(api)).transform([](const auto& out) -> ItemId {
+        ItemId id;
+        convert(id, out.id);
+        return id;
+    });
+}
+auto delete_mix(ClientBase& cbase, std::span<const ItemId> ids) -> qcm::task<Result<bool>> {
+    auto                     c = *get_client(cbase);
+    ncm::api::PlaylistDelete api;
+    std::ranges::copy(std::views::transform(ids,
+                                            [](const ItemId& id) -> model::PlaylistId {
+                                                auto out = model::PlaylistId();
+                                                convert(out, id);
+                                                return out;
+                                            }),
+                      std::back_inserter(api.input.ids));
+
+    auto out = co_await c.perform(api);
+    co_return out.transform([](const auto& out) -> bool {
+        return out.code == 200;
+    });
+}
+auto rename_mix(ClientBase& cbase, ItemId id, QString name) -> qcm::task<Result<bool>> {
+    auto                         c = *get_client(cbase);
+    ncm::api::PlaylistUpdateName api;
+    convert(api.input.id, id);
+    convert(api.input.name, name);
+    co_return (co_await c.perform(api)).transform([](const auto& out) -> bool {
+        return out.code == 200;
+    });
+}
+auto manipulate_mix(ClientBase& cbase, ItemId id, qcm::enums::ManipulateMixAction act,
+                    std::span<const ItemId> ids) -> qcm::task<Result<i32>> {
+    auto                               c = *get_client(cbase);
+    ncm::api::PlaylistManipulateTracks api;
+    convert(api.input.pid, id);
+    api.input.op = (ncm::params::PlaylistManipulateTracks::Oper)act;
+    std::ranges::copy(std::views::transform(ids,
+                                            [](const ItemId& id) -> model::SongId {
+                                                auto out = model::SongId();
+                                                convert(out, id);
+                                                return out;
+                                            }),
+                      std::back_inserter(api.input.trackIds));
+
+    co_return (co_await c.perform(api)).transform([](const auto& out) -> i32 {
+        return out.code == 200 ? 1 : 0;
+    });
+}
+
 } // namespace ncm::impl
 
 namespace ncm::qml
@@ -823,6 +930,10 @@ auto create_client() -> qcm::Client {
     api->save            = ncm::impl::save;
     api->load            = ncm::impl::load;
     api->comments        = ncm::impl::comments;
+    api->create_mix      = ncm::impl::create_mix;
+    api->delete_mix      = ncm::impl::delete_mix;
+    api->rename_mix      = ncm::impl::rename_mix;
+    api->manipulate_mix  = ncm::impl::manipulate_mix;
 
     return { .api = api, .instance = instance };
 }

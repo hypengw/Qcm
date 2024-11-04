@@ -11,9 +11,6 @@ MD.Menu {
     font.capitalization: Font.Capitalize
     modal: true
 
-    QA.CommentAction {
-        itemId: root.itemId
-    }
 
     QA.CollectAction {
         itemId: root.itemId

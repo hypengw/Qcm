@@ -56,6 +56,12 @@ struct Client {
         auto (*comments)(ClientBase&, model::ItemId itemId, i32 offset, i32 limit,
                          i32& total) -> task<Result<oper::OperList<model::Comment>>>;
 
+        auto (*create_mix)(ClientBase&, QString name) -> task<Result<model::ItemId>>;
+        auto (*delete_mix)(ClientBase&, std::span<const model::ItemId> ids) -> task<Result<bool>>;
+        auto (*rename_mix)(ClientBase&, model::ItemId id, QString name) -> task<Result<bool>>;
+        auto (*manipulate_mix)(ClientBase&, model::ItemId id, enums::ManipulateMixAction act,
+                               std::span<const model::ItemId> ids) -> task<Result<i32>>;
+
         void (*save)(ClientBase&, const std::filesystem::path&);
         void (*load)(ClientBase&, const std::filesystem::path&);
 

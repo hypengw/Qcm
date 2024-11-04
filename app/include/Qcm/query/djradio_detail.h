@@ -21,6 +21,9 @@ class DjradioDetail : public meta_model::QGadgetListModel<Program> {
     Q_OBJECT
 
     Q_PROPERTY(Djradio info READ info NOTIFY infoChanged)
+
+    using base_type = meta_model::QGadgetListModel<Program>;
+
 public:
     DjradioDetail(QObject* parent = nullptr)
         : meta_model::QGadgetListModel<Program>(parent), m_has_more(true) {}
@@ -40,7 +43,7 @@ public:
     Q_SIGNAL void fetchMoreReq(qint32);
     Q_SIGNAL void infoChanged();
 
-    auto toSong(const Program& program) -> Song {
+    auto toSong(const Program& program) const -> Song {
         Song s;
         s.id           = program.songId;
         s.name         = program.name;
@@ -54,7 +57,19 @@ public:
         return s;
     }
 
-    Q_INVOKABLE Song song(qint32 idx) {
+    QHash<int, QByteArray> roleNames() const override {
+        auto rn = base_type::roleNames();
+        rn.insert(10, "song");
+        return rn;
+    }
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override {
+        if (role == 10) {
+            return QVariant::fromValue(song(index.row()));
+        }
+        return base_type::data(index, role);
+    };
+
+    Q_INVOKABLE Song song(qint32 idx) const {
         Song out;
         if (idx >= 0 && idx < rowCount()) {
             const auto& program = at(idx);
@@ -63,7 +78,7 @@ public:
         return out;
     }
 
-    Q_INVOKABLE std::vector<Song> collectSongs() {
+    Q_INVOKABLE std::vector<Song> collectSongs() const {
         std::vector<Song> out;
         for (auto i = 0; i < rowCount(); i++) {
             const auto& program = at(i);

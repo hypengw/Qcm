@@ -3,7 +3,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Qcm.App as QA
-import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 MD.Page {
@@ -186,7 +185,7 @@ MD.Page {
                         supportText: `${QA.Global.join_name(model.artists, '/')} - ${model.trackCount} tracks`
                         function showMenu(parent) {
                             MD.Util.show_popup('qrc:/Qcm/App/qml/menu/AlbumMenu.qml', {
-                                "album": QA.Util.create_album(model),
+                                "itemId": model.itemId,
                                 "y": parent.height
                             }, parent);
                         }
@@ -200,7 +199,7 @@ MD.Page {
                         supportText: `${model.albumCount} albums`
                         function showMenu(parent) {
                             MD.Util.show_popup('qrc:/Qcm/App/qml/menu/ArtistMenu.qml', {
-                                "artist": QA.Util.create_artist(model),
+                                "itemId": model.itemId,
                                 "y": parent.height
                             }, parent);
                         }
@@ -213,8 +212,8 @@ MD.Page {
                         text: model.name
                         supportText: `${model.trackCount} songs`
                         function showMenu(parent) {
-                            MD.Util.show_popup('qrc:/Qcm/App/qml/menu/PlaylistMenu.qml', {
-                                "playlist": QA.Util.create_playlist(model),
+                            MD.Util.show_popup('qrc:/Qcm/App/qml/menu/MixMenu.qml', {
+                                "itemId": model.itemId,
                                 "y": parent.height
                             }, parent);
                         }
@@ -227,8 +226,8 @@ MD.Page {
                         text: model.name
                         supportText: `${model.programCount} programs`
                         function showMenu(parent) {
-                            MD.Util.show_popup('qrc:/Qcm/App/qml/menu/DjradioMenu.qml', {
-                                "djradio": QA.Util.create_djradio(model),
+                            MD.Util.show_popup('qrc:/Qcm/App/qml/menu/RadioMenu.qml', {
+                                "itemId": model.itemId,
                                 "y": parent.height
                             }, parent);
                         }

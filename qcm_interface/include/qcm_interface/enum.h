@@ -108,6 +108,13 @@ enum class RecordAction
     RecordPrev,
 };
 Q_ENUM_NS(RecordAction)
+
+enum class ManipulateMixAction
+{
+    ManipulateMixAdd = 0,
+    ManipulateMixDel,
+};
+Q_ENUM_NS(ManipulateMixAction)
 } // namespace enums
 
 } // namespace qcm

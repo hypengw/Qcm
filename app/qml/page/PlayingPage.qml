@@ -12,6 +12,8 @@ MD.Page {
     showBackground: true
     backgroundColor: MD.MatProp.color.surface
 
+    readonly property var song: QA.App.playqueue.currentSong
+
     header: MD.Pane {
         clip: false
         implicitHeight: 0
@@ -52,7 +54,7 @@ MD.Page {
         }
 
         autoReload: songId.valid()
-        songId: QA.Global.cur_song.itemId
+        songId: root.song.itemId
     }
 
     Item {
@@ -80,7 +82,7 @@ MD.Page {
                 QA.Image {
                     Layout.alignment: Qt.AlignHCenter
                     elevation: MD.Token.elevation.level2
-                    source: QA.Util.image_url(QA.Global.cur_song.album.picUrl)
+                    source: QA.Util.image_url(root.song.coverUrl ? root.song.coverUrl : root.song.album.picUrl)
                     radius: 16
 
                     Layout.preferredWidth: displaySize.width
@@ -97,33 +99,33 @@ MD.Page {
                     font.bold: true
                     typescale: MD.Token.typescale.title_large
                     horizontalAlignment: Text.AlignHCenter
-                    text: QA.Global.cur_song.name
+                    text: root.song.name
                 }
                 MD.Text {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.fillWidth: true
                     typescale: MD.Token.typescale.body_medium
                     horizontalAlignment: Text.AlignHCenter
-                    text: QA.Global.cur_song.album.name
+                    text: root.song.album.name
                 }
                 MD.Text {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.fillWidth: true
                     typescale: MD.Token.typescale.body_medium
                     horizontalAlignment: Text.AlignHCenter
-                    text: QA.Global.join_name(QA.Global.cur_song.artists, '/')
+                    text: QA.Global.join_name(root.song.artists, '/')
                 }
                 RowLayout {
                     id: row_control
                     Layout.alignment: Qt.AlignHCenter
 
                     MD.IconButton {
-                        checked: QA.Global.session.user.collection.contains(QA.Global.cur_song.itemId)
-                        enabled: QA.Global.cur_song.itemId.valid()
+                        checked: QA.Global.session.user.collection.contains(root.song.itemId)
+                        enabled: root.song.itemId.valid()
                         icon.name: checked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
 
                         onClicked: {
-                            QA.Action.collect(QA.Global.cur_song.itemId, !checked);
+                            QA.Action.collect(root.song.itemId, !checked);
                         }
                     }
                     MD.IconButton {
@@ -201,7 +203,7 @@ MD.Page {
                     }
                     MD.IconButton {
                         action: QA.CommentAction {
-                            itemId: QA.Global.cur_song.itemId
+                            itemId: root.song.itemId
                         }
                     }
                     MD.IconButton {
@@ -209,7 +211,7 @@ MD.Page {
 
                         onClicked: {
                             const popup = MD.Util.show_popup('qrc:/Qcm/App/qml/menu/SongMenu.qml', {
-                                "song": QA.Global.cur_song,
+                                "song": root.song,
                                 "y": 0
                             }, this);
                             popup.y = -popup.height;

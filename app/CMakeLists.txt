@@ -62,6 +62,7 @@ set(QCM_INTERFACE_HEADER
     include/qcm_interface/global.h
     include/qcm_interface/action.h
     include/qcm_interface/model.h
+    include/qcm_interface/item_id.h
     include/qcm_interface/model/plugin_model.h
     include/qcm_interface/model/query_model.h
     )
@@ -81,7 +82,7 @@ set(QML_FILES
     qml/page/ArtistDetailPage.qml
     qml/page/CommentPage.qml
     qml/page/DescriptionPage.qml
-    qml/page/DjradioDetailPage.qml
+    qml/page/RadioDetailPage.qml
     qml/page/LoginPage.qml
     qml/page/PlaylistDetailPage.qml
     qml/page/PlaylistCreatePage.qml
@@ -125,8 +126,8 @@ set(QML_FILES
     qml/menu/SongMenu.qml
     qml/menu/AlbumMenu.qml
     qml/menu/ArtistMenu.qml
-    qml/menu/DjradioMenu.qml
-    qml/menu/PlaylistMenu.qml
+    qml/menu/RadioMenu.qml
+    qml/menu/MixMenu.qml
     qml/menu/ProgramMenu.qml)
 set(RESOURCES
     assets/Qcm.svg)

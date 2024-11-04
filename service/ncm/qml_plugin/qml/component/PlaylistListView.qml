@@ -25,7 +25,7 @@ MD.Control {
     contentItem: QA.GridView {
         id: m_view
         model: qr_pl.data
-        fixedCellWidth: Math.max(160, QA.Global.main_win.width / 6.0)
+        fixedCellWidth: QA.Util.dynCardWidth(widthNoMargin, spacing)
 
         delegate: Item {
             width: GridView.view.cellWidth
