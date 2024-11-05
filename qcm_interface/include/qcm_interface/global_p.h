@@ -5,6 +5,7 @@
 #include <QUuid>
 
 #include "qcm_interface/plugin.h"
+#include "qcm_interface/sql/item_sql.h"
 
 namespace qcm
 {
@@ -27,6 +28,7 @@ public:
     QUuid                     uuid;
     rc<media_cache::DataBase> cache_sql;
     rc<db::ColletionSqlBase>  collection_sql;
+    rc<db::ItemSqlBase>      album_sql;
 
     MetadataImpl metadata_impl;
 
@@ -34,6 +36,7 @@ public:
 
     model::AppInfo   info;
     Action*          action;
+    Notifier*        notifier;
     model::BusyInfo* busy_info;
     UserModel*       user_model;
     QQmlComponent*   copy_action_comp;

@@ -21,13 +21,13 @@ MD.Page {
 
         ColumnLayout {
             height: implicitHeight
-            spacing: 8
+            spacing: 12
             width: parent.width
 
             SettingSection {
                 id: sec_app
                 Layout.fillWidth: true
-                title: qsTr('application')
+                title: qsTr('theme')
 
                 ColumnLayout {
                     spacing: 8
@@ -121,7 +121,7 @@ MD.Page {
                 }
                 SettingRow {
                     Layout.fillWidth: true
-                    text: qsTr('auto-night mode')
+                    text: qsTr('follow system night mode')
                     actionItem: MD.Switch {
                         checked: QA.Global.use_system_color_scheme
                         onCheckedChanged: QA.Global.use_system_color_scheme = checked
@@ -154,18 +154,9 @@ MD.Page {
                         }
                     }
                 }
-            }
-
-            MD.Divider {}
-
-            SettingSection {
-                id: sec_play
-                Layout.fillWidth: true
-                title: qsTr('quality')
-
                 SettingRow {
                     Layout.fillWidth: true
-                    text: qsTr('playing quality')
+                    text: qsTr('streaming quality')
                     canInput: !comb_playing_quality.popup.visible
 
                     actionItem: MD.ComboBox {
@@ -196,8 +187,8 @@ MD.Page {
                                     "value": QA.enums.AQLossless
                                 }
                             ].map(el => model.append(el));
-                            currentIndex = indexOfValue(settings_play.play_quality);
-                            settings_play.play_quality = Qt.binding(() => {
+                            currentIndex = indexOfValue(settings_audio.streaming_quality);
+                            settings_audio.streaming_quality = Qt.binding(() => {
                                 return comb_playing_quality.currentValue;
                             });
                         }
@@ -207,8 +198,14 @@ MD.Page {
                         }
                     }
                 }
+            }
 
-                /*
+            /*
+            MD.Divider {}
+            SettingSection {
+                id: sec_play
+                Layout.fillWidth: true
+                title: qsTr('quality')
                 SettingRow {
                     Layout.fillWidth: true
                     text: qsTr('cover quality')
@@ -253,8 +250,8 @@ MD.Page {
                         }
                     }
                 }
-*/
             }
+*/
 
             MD.Divider {}
 
@@ -368,7 +365,7 @@ MD.Page {
                     QA.StorageInfoQuerier {
                         id: m_qr_storage
 
-                        Component.onCompleted: reload();
+                        Component.onCompleted: reload()
                     }
 
                     actionItem: MD.Button {
@@ -418,6 +415,26 @@ MD.Page {
                     }
                 }
             }
+            MD.Divider {}
+            SettingSection {
+                id: sec_misc
+                Layout.fillWidth: true
+                title: qsTr('misc')
+
+                SettingRow {
+                    Layout.fillWidth: true
+                    font.capitalization: Font.MixedCase
+                    text: qsTr('Random Playback Mode')
+                    supportText: qsTr('Truly random playback instead of shuffle')
+
+                    actionItem: MD.Switch {
+                        checked: QA.App.playqueue.randomMode
+                        onCheckedChanged: {
+                            QA.App.playqueue.randomMode = checked;
+                        }
+                    }
+                }
+            }
         }
         Settings {
             id: settings_cache
@@ -443,12 +460,9 @@ MD.Page {
             }
         }
         Settings {
-            id: settings_play
-
-            property int play_quality: QNcm.SongUrlQuerier.LevelExhigh
-
-            category: 'play'
-
+            id: settings_audio
+            category: 'audio'
+            property int streaming_quality: QA.enums.AQExhigh
             Component.onCompleted: {}
         }
         Settings {
@@ -488,7 +502,7 @@ MD.Page {
         property alias belowItem: sr_below.contentItem
         property alias text: sr_label.text
         property alias supportText: sr_label_support.text
-        property alias font: sr_label.font
+        property alias font: sr_item.font
         property bool canInput: true
 
         MD.InputBlock {
@@ -500,22 +514,21 @@ MD.Page {
         MD.ListItem {
             id: sr_item
             Layout.fillWidth: true
+            font.capitalization: Font.Capitalize
 
             contentItem: ColumnLayout {
                 RowLayout {
                     ColumnLayout {
-                        MD.Text {
+                        MD.Label {
                             id: sr_label
                             Layout.fillWidth: true
                             typescale: MD.Token.typescale.title_small
-                            font.capitalization: Font.Capitalize
                         }
-                        MD.Text {
+                        MD.Label {
                             id: sr_label_support
                             visible: text
                             Layout.fillWidth: true
                             typescale: MD.Token.typescale.title_small
-                            font.capitalization: Font.Capitalize
                             color: MD.MatProp.color.on_surface_variant
                         }
                     }
@@ -543,19 +556,19 @@ MD.Page {
         default property alias m_children: sec_column.children
         property alias title: sec_title.text
         horizontalPadding: 0
+        font.capitalization: Font.Capitalize
 
         ColumnLayout {
             id: sec_column
             anchors.fill: parent
             spacing: 12
 
-            MD.Text {
+            MD.Label {
                 id: sec_title
                 Layout.leftMargin: 12
                 Layout.rightMargin: 12
                 MD.MatProp.textColor: MD.Token.color.primary
                 typescale: MD.Token.typescale.title_medium
-                font.capitalization: Font.Capitalize
             }
         }
     }

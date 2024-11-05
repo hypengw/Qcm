@@ -1,6 +1,9 @@
 #pragma once
 
 #include <filesystem>
+#include <set>
+#include <ranges>
+
 #include <QtCore/QThread>
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlError>
@@ -9,8 +12,44 @@
 #include <asio/dispatch.hpp>
 
 #include "core/log.h"
+#include "core/strv_helper.h"
 #include "core/qstr_helper.h"
+#include "core/qmeta_helper.h"
 #include "asio_qt/qt_executor.h"
+
+namespace helper
+{
+
+struct SqlColumn {
+    std::string name {};
+    std::string type {};
+    bool        notnull { false };
+    std::string dflt_value {};
+    bool        pk { false };
+
+    std::strong_ordering operator<=>(const SqlColumn&) const = default;
+
+    static auto from(QSqlQuery& query) {
+        int       i = 1;
+        SqlColumn c;
+        c.name       = query.value(i++).toString().toStdString();
+        c.type       = query.value(i++).toString().toStdString();
+        c.notnull    = query.value(i++).toBool();
+        c.dflt_value = query.value(i++).toString().toStdString();
+        c.pk         = query.value(i++).toBool();
+        return c;
+    }
+};
+} // namespace helper
+
+DEFINE_CONVERT(std::string, helper::SqlColumn) {
+    out = fmt::format("{} {}{}{}{}",
+                      in.name,
+                      in.type,
+                      in.notnull ? " NOT NULL"sv : ""sv,
+                      in.dflt_value.empty() ? "" : fmt::format(" DEFAULT ({})", in.dflt_value),
+                      in.pk ? " PRIMARY KEY"sv : ""sv);
+}
 
 namespace helper
 {
@@ -33,13 +72,213 @@ public:
         m_thread.wait();
     }
 
+    class Query : public QSqlQuery {
+    public:
+        Query(const QSqlDatabase& db): QSqlQuery(db), m_thread(db.thread()) {
+            _assert_rel_(m_thread == nullptr || m_thread->isCurrentThread());
+        }
+        ~Query() { _assert_rel_(m_thread == nullptr || m_thread->isCurrentThread()); }
+        Query(const Query&)            = delete;
+        Query& operator=(const Query&) = delete;
+        Query(Query&& o): QSqlQuery(std::move(o)), m_thread(std::exchange(o.m_thread, nullptr)) {}
+        Query& operator=(Query&& o) {
+            QSqlQuery::operator=(std::move(o));
+            m_thread = std::exchange(o.m_thread, nullptr);
+            return *this;
+        }
+
+    private:
+        QThread* m_thread;
+    };
+
+    using Converter = std::function<QVariant(const QVariant&)>;
+    static auto get_from_converter(int id) -> std::optional<Converter>;
+    static auto get_to_converter(int id) -> std::optional<Converter>;
+
+    inline static auto EditTimeColumn = SqlColumn {
+        .name       = "_editTIme",
+        .type       = "DATETIME",
+        .dflt_value = "STRFTIME('%Y-%m-%dT%H:%M:%S.000Z', 'now')",
+    };
+
     auto get_executor() -> QtExecutor& { return m_ex; }
 
     auto is_open() const -> bool { return m_db.isOpen(); }
 
-    auto query() const -> QSqlQuery { return QSqlQuery(m_db); }
+    auto query() const -> Query { return Query(m_db); }
     auto db() -> QSqlDatabase& { return m_db; }
     auto error_str() -> QString { return m_db.lastError().text(); }
+
+    auto generate_column_migration(QStringView table_name, std::span<const SqlColumn> req_columns,
+                                   std::span<const std::string> extra = {}) -> QStringList {
+        QSqlQuery                query(m_db);
+        QString                  pragmaQuery = QString("PRAGMA table_info(%1);").arg(table_name);
+        std::vector<std::string> columns;
+        std::ranges::copy(std::views::transform(req_columns,
+                                                [](const auto& in) {
+                                                    return convert_from<std::string>(in);
+                                                }),
+                          std::back_inserter(columns));
+        columns.insert(columns.end(), extra.begin(), extra.end());
+
+        QString create_sql = QString::fromStdString(fmt::format(R"(
+CREATE TABLE IF NOT EXISTS {} (
+{}
+);
+)",
+                                                                table_name,
+                                                                fmt::join(columns, ",\n")));
+
+        std::set<SqlColumn, std::less<>> current_columns;
+
+        if (query.exec(pragmaQuery)) {
+            while (query.next()) {
+                current_columns.insert(SqlColumn::from(query));
+            }
+        }
+
+        if (current_columns.size() > 0) {
+            std::set<std::string> common_columns;
+            for (auto& el : req_columns) {
+                if (current_columns.contains(el)) {
+                    common_columns.insert(el.name);
+                }
+            }
+            if (common_columns.size() < req_columns.size()) {
+                auto column_names = QString::fromStdString(fmt::format(
+                    "{}",
+                    fmt::join(std::views::transform(common_columns,
+                                                    [](std::string_view in) {
+                                                        return in.substr(0, in.find_first_of(' '));
+                                                    }),
+                              ", ")));
+
+                QStringList out;
+                out << u"ALTER TABLE %1 RENAME TO %1_backup;"_s.arg(table_name);
+                out << create_sql;
+                out << u"INSERT INTO %1 (%2) SELECT %2 FROM %1_backup;"_s.arg(table_name,
+                                                                              column_names);
+                out << u"DROP TABLE %1_backup;"_s.arg(table_name);
+                return out;
+            }
+        }
+        return { create_sql };
+    }
+
+    auto generate_meta_migration(QStringView table_name, QStringView primary,
+                                 const QMetaObject& meta, std::span<const std::string> extras,
+                                 std::set<std::string_view> exclude = {}) {
+        std::vector<std::string> column_names;
+        std::vector<SqlColumn>   columns;
+        for (int i = 0; i < meta.propertyCount(); i++) {
+            const auto& p    = meta.property(i);
+            auto        name = p.name();
+            if (exclude.contains(name)) {
+                continue;
+            }
+
+            auto& c = columns.emplace_back();
+
+            std::string_view type;
+            if (p.typeId() == qMetaTypeId<QString>()) {
+                type = "TEXT"sv;
+            } else if (helper::is_integer_metatype_id(p.typeId())) {
+                type = "INTEGER"sv;
+            } else if (helper::is_floating_point_metatype_id(p.typeId())) {
+                type = "REAL"sv;
+            } else if (p.typeId() == qMetaTypeId<QDateTime>()) {
+                type = "DATETIME"sv;
+            } else {
+                type = "TEXT"sv;
+            }
+            c.type = type;
+            c.name = name;
+            c.pk   = name == primary;
+        }
+
+        columns.emplace_back(EditTimeColumn);
+        return generate_column_migration(table_name, columns, extras);
+    }
+
+    struct InsertHelper {
+        QString                         sql;
+        std::map<QString, QVariantList> binds;
+        void                            bind(QSqlQuery& q) {
+            q.prepare(sql);
+            for (auto& b : binds) {
+                q.bindValue(u":%1"_s.arg(b.first), b.second);
+            }
+        }
+    };
+    template<typename T>
+    auto generate_insert_helper(
+        QStringView table_name, QStringView conflict, const QMetaObject& meta,
+        std::span<const T> items, const std::set<std::string>& on_update,
+        std::map<QString, std::function<QVariant(const QVariant&)>> converters = {},
+        std::set<std::string_view>                                  ignores = {}) -> InsertHelper {
+        InsertHelper             out;
+        std::vector<std::string> column_names;
+        std::set<std::string>    on_update_include, on_update_exclude;
+        for (auto& el : on_update) {
+            if (el.starts_with('^')) {
+                on_update_exclude.insert(el.substr(1));
+            } else {
+                on_update_include.insert(el);
+            }
+        }
+
+        for (int i = 0; i < meta.propertyCount(); i++) {
+            auto name = meta.property(i).name();
+            if (ignores.contains(name)) continue;
+            column_names.push_back(name);
+            out.binds.insert({ name, {} });
+        }
+        auto view_values =
+            std::views::transform(column_names, [](const std::string& s) -> std::string {
+                return ":" + s;
+            });
+        auto view_set = std::views::transform(
+            std::views::filter(column_names,
+                               [&on_update_include, &on_update_exclude](const std::string& s) {
+                                   return (on_update_include.empty() ||
+                                           on_update_include.contains(s)) &&
+                                          ! on_update_exclude.contains(s);
+                               }),
+            [](const std::string& s) -> std::string {
+                return fmt::format("{0} = :{0}", s);
+            });
+        out.sql = QString::fromStdString(
+            fmt::format("INSERT INTO {0}({1}) VALUES ({2}) ON CONFLICT({3}) DO UPDATE SET {4};",
+                        table_name,
+                        fmt::join(column_names, ", "),
+                        fmt::join(view_values, ", "),
+                        conflict,
+                        fmt::join(view_set, ", ")));
+        for (int i = 0; i < meta.propertyCount(); i++) {
+            auto name = meta.property(i).name();
+            if (ignores.contains(name)) continue;
+            auto& list = out.binds.at(name);
+
+            std::optional<std::function<QVariant(const QVariant&)>> converter;
+
+            if (converters.contains(name)) {
+                converter = converters.at(name);
+            }
+
+            for (auto& el : items) {
+                auto value = meta.property(i).readOnGadget(&el);
+                if (converter) {
+                    list << converter->operator()(value);
+                } else if (auto converter = get_to_converter(value.metaType().id())) {
+                    list << converter->operator()(value);
+                } else {
+                    list << value;
+                }
+            }
+        }
+
+        return out;
+    }
 
 private:
     void connect_db() {

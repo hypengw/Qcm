@@ -15,6 +15,12 @@
 #include "qcm_interface/macro.h"
 #include "qcm_interface/export.h"
 #include "qcm_interface/item_id.h"
+#include "qcm_interface/model/artist.h"
+#include "qcm_interface/model/song.h"
+#include "qcm_interface/model/playlist.h"
+#include "qcm_interface/model/djradio.h"
+#include "qcm_interface/model/program.h"
+#include "qcm_interface/model/comment.h"
 
 namespace qcm::model
 {
@@ -24,126 +30,6 @@ template<typename T>
 using to_param =
     std::conditional_t<std::is_pointer_v<T>, T, std::add_lvalue_reference_t<std::add_const_t<T>>>;
 
-class QCM_INTERFACE_API Artist {
-    Q_GADGET
-    QML_VALUE_TYPE(t_artist)
-public:
-    GADGET_PROPERTY_DEF(ItemId, itemId, id)
-    GADGET_PROPERTY_DEF(QString, name, name)
-    GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
-    GADGET_PROPERTY_DEF(QString, briefDesc, briefDesc)
-    GADGET_PROPERTY_DEF(qint32, albumSize, albumSize)
-    GADGET_PROPERTY_DEF(qint32, musicSize, musicSize)
-    GADGET_PROPERTY_DEF(std::vector<QString>, alias, alias)
-    GADGET_PROPERTY_DEF(bool, followed, followed)
-
-    std::strong_ordering operator<=>(const Artist&) const = default;
-};
-
-class QCM_INTERFACE_API Album {
-    Q_GADGET
-    QML_VALUE_TYPE(t_album)
-public:
-    GADGET_PROPERTY_DEF(ItemId, itemId, id)
-    GADGET_PROPERTY_DEF(QString, name, name)
-    GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
-    GADGET_PROPERTY_DEF(QDateTime, publishTime, publishTime)
-    GADGET_PROPERTY_DEF(int, trackCount, trackCount)
-    GADGET_PROPERTY_DEF(bool, subscribed, subscribed)
-    GATGET_LIST_PROPERTY(Artist, artists, artists)
-
-    std::weak_ordering operator<=>(const Album&) const = default;
-};
-
-class QCM_INTERFACE_API Playlist {
-    Q_GADGET
-    QML_VALUE_TYPE(t_playlist)
-public:
-    GADGET_PROPERTY_DEF(ItemId, itemId, id)
-    GADGET_PROPERTY_DEF(QString, name, name)
-    GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
-    GADGET_PROPERTY_DEF(QString, description, description)
-    GADGET_PROPERTY_DEF(QDateTime, updateTime, updateTime)
-    GADGET_PROPERTY_DEF(qint32, playCount, playCount)
-    GADGET_PROPERTY_DEF(qint32, trackCount, trackCount)
-    GADGET_PROPERTY_DEF(bool, subscribed, subscribed)
-    GADGET_PROPERTY_DEF(ItemId, userId, userId)
-
-    std::strong_ordering operator<=>(const Playlist&) const = default;
-};
-
-class QCM_INTERFACE_API Song {
-    Q_GADGET
-    QML_VALUE_TYPE(t_song)
-public:
-    GADGET_PROPERTY_DEF(ItemId, itemId, id)
-    GADGET_PROPERTY_DEF(QString, name, name)
-    GADGET_PROPERTY_DEF(Album, album, album)
-    GADGET_PROPERTY_DEF(QDateTime, duration, duration)
-    GADGET_PROPERTY_DEF(bool, canPlay, canPlay)
-    GADGET_PROPERTY_DEF(QString, coverUrl, coverUrl)
-    GADGET_PROPERTY_DEF(QList<QString>, tags, tags)
-
-    GADGET_PROPERTY_DEF(QVariant, source, source)
-    GADGET_PROPERTY_DEF(ItemId, sourceId, sourceId)
-
-    GATGET_LIST_PROPERTY(Artist, artists, artists)
-
-    std::strong_ordering operator<=>(const Song&) const = default;
-};
-
-class QCM_INTERFACE_API User {
-    Q_GADGET
-public:
-    GADGET_PROPERTY_DEF(ItemId, itemId, id)
-    GADGET_PROPERTY_DEF(QString, name, name)
-    GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
-
-    std::strong_ordering operator<=>(const User&) const = default;
-};
-
-class QCM_INTERFACE_API Comment {
-    Q_GADGET
-public:
-    GADGET_PROPERTY_DEF(ItemId, itemId, id)
-    GADGET_PROPERTY_DEF(User, user, user)
-    GADGET_PROPERTY_DEF(QString, content, content)
-    GADGET_PROPERTY_DEF(QDateTime, time, time)
-    GADGET_PROPERTY_DEF(bool, liked, liked)
-
-    std::strong_ordering operator<=>(const Comment&) const = default;
-};
-
-class QCM_INTERFACE_API Djradio {
-    Q_GADGET
-    QML_VALUE_TYPE(t_djradio)
-public:
-    GADGET_PROPERTY_DEF(ItemId, itemId, id)
-    GADGET_PROPERTY_DEF(QString, name, name)
-    GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
-    GADGET_PROPERTY_DEF(std::vector<Artist>, artists, artists)
-    GADGET_PROPERTY_DEF(qint32, programCount, programCount)
-    GADGET_PROPERTY_DEF(bool, subscribed, subscribed)
-
-    std::strong_ordering operator<=>(const Djradio&) const = default;
-};
-
-class QCM_INTERFACE_API Program {
-    Q_GADGET
-    QML_VALUE_TYPE(t_program)
-public:
-    GADGET_PROPERTY_DEF(ItemId, itemId, id)
-    GADGET_PROPERTY_DEF(QString, name, name)
-    GADGET_PROPERTY_DEF(QDateTime, duration, duration)
-    GADGET_PROPERTY_DEF(QString, coverUrl, coverUrl)
-    GADGET_PROPERTY_DEF(Song, song, song)
-    GADGET_PROPERTY_DEF(QDateTime, createTime, createTime)
-    GADGET_PROPERTY_DEF(qint32, serialNum, serialNum)
-    GADGET_PROPERTY_DEF(ItemId, sourceId, sourceId)
-
-    std::strong_ordering operator<=>(const Program&) const = default;
-};
-
 } // namespace qcm::model
 
 DECLARE_CONVERT(std::string, qcm::model::ItemId, QCM_INTERFACE_API);
@@ -151,6 +37,7 @@ DECLARE_CONVERT(std::string, qcm::model::ItemId, QCM_INTERFACE_API);
 DECLARE_JSON_SERIALIZER(QString, QCM_INTERFACE_API);
 DECLARE_JSON_SERIALIZER(QUrl, QCM_INTERFACE_API);
 DECLARE_JSON_SERIALIZER(QVariantMap, QCM_INTERFACE_API);
+DECLARE_JSON_SERIALIZER(QDateTime, QCM_INTERFACE_API);
 DECLARE_JSON_SERIALIZER(qcm::model::ItemId, QCM_INTERFACE_API);
 
 JSON_SERIALIZER_NAMESPACE_BEGIN

@@ -32,14 +32,15 @@ public:
     CloudUploadApi(QObject* parent = nullptr);
     ~CloudUploadApi();
 
-    auto data() const -> QObject* override;
+    auto data() const -> QVariant override;
     void reload() override;
 
 public Q_SLOTS:
     void upload(const QUrl&);
 
 private:
-    auto upload_impl(std::filesystem::path) -> asio::awaitable<nstd::expected<std::monostate, error::Error>>;
+    auto upload_impl(std::filesystem::path)
+        -> asio::awaitable<nstd::expected<std::monostate, error::Error>>;
 
     CloudUploadModel* m_data;
 };

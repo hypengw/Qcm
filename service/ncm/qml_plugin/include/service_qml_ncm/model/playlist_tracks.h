@@ -3,7 +3,7 @@
 #include <QQmlEngine>
 #include "service_qml_ncm/api.h"
 #include "service_qml_ncm/model.h"
-#include "ncm/api/playlist_tracks.h"
+#include "ncm/api/playlist_manipulate_tracks.h"
 
 #include "core/log.h"
 #include "core/qlist_helper.h"
@@ -17,15 +17,15 @@ class PlaylistTracks : public QObject {
 public:
     PlaylistTracks(QObject* parent = nullptr): QObject(parent) {}
 
-    using out_type = ncm::api_model::PlaylistTracks;
+    using out_type = ncm::api_model::PlaylistManipulateTracks;
 
     void handle_output(const out_type&, const auto&) {}
 };
-static_assert(modelable<PlaylistTracks, ncm::api::PlaylistTracks>);
+static_assert(modelable<PlaylistTracks, ncm::api::PlaylistManipulateTracks>);
 
 } // namespace model
 
-using PlaylistTracksQuerier_base = ApiQuerier<ncm::api::PlaylistTracks, model::PlaylistTracks>;
+using PlaylistTracksQuerier_base = ApiQuerier<ncm::api::PlaylistManipulateTracks, model::PlaylistTracks>;
 class PlaylistTracksQuerier : public PlaylistTracksQuerier_base {
     Q_OBJECT
     QML_ELEMENT
@@ -45,10 +45,10 @@ public:
 };
 
 } // namespace qcm
-DEFINE_CONVERT(qcm::PlaylistTracksQuerier::Oper, ncm::params::PlaylistTracks::Oper) {
+DEFINE_CONVERT(qcm::PlaylistTracksQuerier::Oper, ncm::params::PlaylistManipulateTracks::Oper) {
     out = static_cast<out_type>(in);
 }
-DEFINE_CONVERT(ncm::params::PlaylistTracks::Oper, qcm::PlaylistTracksQuerier::Oper) {
+DEFINE_CONVERT(ncm::params::PlaylistManipulateTracks::Oper, qcm::PlaylistTracksQuerier::Oper) {
     out = static_cast<out_type>(in);
 }
 

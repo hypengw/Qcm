@@ -20,13 +20,13 @@ set(MODEL_SOURCES
     include/qcm_interface/model/plugin_info.h
     include/qcm_interface/model/page.h
     include/qcm_interface/model/session.h
-    include/qcm_interface/model/router_msg.h
-    )
+    include/qcm_interface/model/router_msg.h)
 
 add_library(
   qcm_interface SHARED
   include/qcm_interface/async.h
   include/qcm_interface/action.h
+  include/qcm_interface/notifier.h
   include/qcm_interface/client.h
   include/qcm_interface/global.h
   include/qcm_interface/global_p.h
@@ -41,8 +41,20 @@ add_library(
   include/qcm_interface/plugin.h
   include/qcm_interface/model/plugin_model.h
   include/qcm_interface/model/user_model.h
+  include/qcm_interface/model/artist.h
+  include/qcm_interface/model/song.h
+  include/qcm_interface/model/album.h
+  include/qcm_interface/model/playlist.h
+  include/qcm_interface/model/djradio.h
+  include/qcm_interface/model/program.h
+  include/qcm_interface/model/comment.h
+  include/qcm_interface/model/third_user.h
+  include/qcm_interface/model/query_model.h
+  include/qcm_interface/model/id_queue.h
+  include/qcm_interface/model/empty_model.h
   include/qcm_interface/state/app_state.h
   action.cpp
+  notifier.cpp
   api.cpp
   model.cpp
   item_id.cpp
@@ -52,7 +64,10 @@ add_library(
   state.cpp
   global.cpp
   plugin.cpp
+  oper.cpp
+  sync_api.cpp
   model/plugin.cpp
+  model/id_queue.cpp
   model/user_model.cpp
   ${MODEL_SOURCES})
 
@@ -67,10 +82,13 @@ foreach(
   set(gen
       "${gen_dir}/${src_name}.cpp")
 
-  set(model_generator "$<TARGET_FILE:qcm_model_generator>")
-  set(model_generator_native "${model_generator}")
+  set(model_generator
+      "$<TARGET_FILE:qcm_model_generator>")
+  set(model_generator_native
+      "${model_generator}")
   if(ANDROID)
-    set(model_generator "${QCM_MODEL_GENERATOR}")
+    set(model_generator
+        "${QCM_MODEL_GENERATOR}")
   endif()
   add_custom_command(
     OUTPUT ${gen}
@@ -109,8 +127,6 @@ target_link_libraries(
          json_helper
          meta_model
          Qt::Qml
-  PRIVATE
-         ctre
-        )
+  PRIVATE ctre)
 
 install(TARGETS qcm_interface)

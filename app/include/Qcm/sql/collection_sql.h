@@ -2,9 +2,11 @@
 
 #include <asio/awaitable.hpp>
 
+#include <set>
 #include "core/core.h"
+#include "asio_helper/task.h"
 #include "qcm_interface/item_id.h"
-#include "qcm_interface/collection_sql.h"
+#include "qcm_interface/sql/collection_sql.h"
 
 namespace helper
 {
@@ -19,20 +21,26 @@ public:
     ~CollectionSql();
 
     auto get_executor() -> QtExecutor& override;
-    auto insert(std::span<const Item>) -> asio::awaitable<bool> override;
-    auto remove(model::ItemId user_id, model::ItemId item_id) -> asio::awaitable<bool> override;
+    auto con() const -> rc<helper::SqlConnect>;
+    auto insert(std::span<const Item>) -> task<bool> override;
+    auto remove(model::ItemId user_id, model::ItemId item_id) -> task<bool> override;
+    auto remove(model::ItemId user_id, std::span<const model::ItemId> ids) -> task<bool>;
     auto select_id(model::ItemId user_id,
-                   QString       type = {}) -> asio::awaitable<std::vector<model::ItemId>> override;
+                   QString       type = {}) -> task<std::vector<model::ItemId>> override;
 
-    auto refresh(model::ItemId user_id, QString type,
-                 std::span<const model::ItemId>) -> asio::awaitable<bool> override;
+    auto select_removed(model::ItemId user_id, const QString& type,
+                        const QDateTime& time) -> task<std::vector<model::ItemId>>;
+
+    auto refresh(model::ItemId user_id, QString type, std::span<const model::ItemId>,
+                 std::span<const QDateTime> = {}) -> task<bool> override;
 
     bool insert_sync(std::span<const Item>);
-    bool insert_sync(model::ItemId userId, std::span<const model::ItemId>);
-    bool remove_sync(model::ItemId user_id, model::ItemId item_id);
+    bool insert_sync(model::ItemId user_id, std::span<const model::ItemId>,
+                     std::span<const QDateTime> = {});
+    bool remove_sync(model::ItemId user_id, std::span<const model::ItemId> ids);
+    bool remove_sync(model::ItemId user_id, QString type = {});
     bool delete_with(model::ItemId user_id, QString type = {});
-    bool un_valid(model::ItemId user_id, QString type = {});
-    bool clean_not_valid();
+    bool delete_removed();
 
 private:
     void connect_db();

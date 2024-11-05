@@ -109,7 +109,7 @@ MD.Page {
             icon.name: MD.Token.icon.edit
 
             onTriggered: {
-                QA.Action.popup_page('qrc:/Qcm/App/qml/page/PlaylistCataloguePage.qml', {}, {
+                QA.Action.popup_page('qrc:/Qcm/Service/Ncm/qml/page/PlaylistCataloguePage.qml', {}, {
                     "fillHeight": true
                 }, popup => {
                     popup.closed.connect(() => {

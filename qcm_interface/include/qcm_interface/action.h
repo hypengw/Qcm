@@ -6,6 +6,7 @@
 #include "qcm_interface/enum.h"
 #include "qcm_interface/model/router_msg.h"
 #include "qcm_interface/model/session.h"
+#include "qcm_interface/model/query_model.h"
 
 namespace qcm
 {
@@ -37,8 +38,17 @@ Q_SIGNALS:
                QObject* action = nullptr);
     void collect(model::ItemId itemId, bool act = true);
 
-    void queue_songs(const std::vector<model::Song>&);
+    void next();
+    void prev();
+    void play(const query::Song&);
+    void queue(const std::vector<query::Song>&);
+    void switch_to(const std::vector<query::Song>&);
+    void play_by_id(model::ItemId songId, model::ItemId sourceId = {});
+    void queue_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
+    void switch_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
     void play(const QUrl& url, bool refresh = false);
+    void sync_collection(enums::CollectionType);
+    void record(enums::RecordAction);
     void playbackLog(enums::PlaybackState state, model::ItemId item, model::ItemId souce,
                      QVariantMap extra = {});
 };

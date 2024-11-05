@@ -31,7 +31,7 @@ MD.Page {
             autoReload: false
             onStatusChanged: {
                 if (status === QA.enums.Finished) {
-                    QA.App.playlistCreated();
+                    QA.App.playqueueCreated();
                     MD.Util.closePopup(root);
                 }
             }

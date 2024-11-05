@@ -5,27 +5,14 @@ find_package(
 set(SOURCES
     include/service_qml_ncm/api/user_account.h
     include/service_qml_ncm/model.h
-    include/service_qml_ncm/model/album_detail.h
     include/service_qml_ncm/model/album_detail_dynamic.h
-    include/service_qml_ncm/model/album_sub.h
-    include/service_qml_ncm/model/album_sublist.h
-    include/service_qml_ncm/model/artist.h
-    include/service_qml_ncm/model/artist_albums.h
-    include/service_qml_ncm/model/artist_sub.h
-    include/service_qml_ncm/model/artist_sublist.h
-    include/service_qml_ncm/model/comments.h
     include/service_qml_ncm/model/cloudsearch.h
-    include/service_qml_ncm/model/djradio_detail.h
-    include/service_qml_ncm/model/djradio_sub.h
-    include/service_qml_ncm/model/djradio_sublist.h
     include/service_qml_ncm/model/djradio_program.h
     include/service_qml_ncm/model/login.h
     include/service_qml_ncm/model/logout.h
     include/service_qml_ncm/model/playlist_catalogue.h
-    include/service_qml_ncm/model/playlist_detail.h
     include/service_qml_ncm/model/playlist_detail_dynamic.h
     include/service_qml_ncm/model/playlist_list.h
-    include/service_qml_ncm/model/playlist_subscribe.h
     include/service_qml_ncm/model/playlist_create.h
     include/service_qml_ncm/model/playlist_delete.h
     include/service_qml_ncm/model/playlist_tracks.h
@@ -33,7 +20,6 @@ set(SOURCES
     include/service_qml_ncm/model/recommend_resource.h
     include/service_qml_ncm/model/song_url.h
     include/service_qml_ncm/model/song_lyric.h
-    include/service_qml_ncm/model/user_playlist.h
     include/service_qml_ncm/model/user_cloud.h
     include/service_qml_ncm/model/qrcode_login.h
     include/service_qml_ncm/model/qrcode_unikey.h
@@ -54,15 +40,13 @@ set(SOURCES
     )
 
 set(QML_FILES
-    qml/action/CommentAction.qml
-
     qml/page/CloudUploadPage.qml
-    qml/page/CommentPage.qml
     qml/page/LoginPage.qml
     qml/page/RecordPage.qml
     qml/page/MinePage.qml
     qml/page/TodayPage.qml
     qml/page/CloudPage.qml
+    qml/page/PlaylistCataloguePage.qml
     qml/page/PlaylistListPage.qml
 
     qml/component/PlaylistListView.qml

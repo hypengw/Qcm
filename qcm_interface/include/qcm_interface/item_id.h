@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QUrl>
+#include <QQmlEngine>
 
 #include "core/core.h"
 #include "qcm_interface/export.h"
@@ -16,6 +17,7 @@ namespace model
 // itemid://{id_type}@{provider}/{id}
 class QCM_INTERFACE_API ItemId {
     Q_GADGET
+    QML_VALUE_TYPE(t_id)
 public:
     using validator_t = std::function<bool(const ItemId&)>;
     Q_PROPERTY(QString type READ type)
@@ -33,6 +35,8 @@ public:
     ItemId& operator=(const ItemId&);
     ItemId(ItemId&&);
     ItemId& operator=(ItemId&&);
+
+    ItemId& operator=(const QUrl&);
 
     auto type() const -> const QString&;
     auto id() const -> const QString&;

@@ -30,6 +30,7 @@ Session::Session(QObject* parent): qcm::model::Session(parent) {
     set_valid(true);
     set_pages(main_pages());
     set_client(ncm::qml::create_client());
+    set_supportComment(true);
 }
 Session::~Session() {}
 

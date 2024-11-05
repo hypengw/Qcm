@@ -1,25 +1,34 @@
 import QtQuick
-import QtQuick.Controls.Basic
 import QtQuick.Layouts
+import QtQuick.Controls.Basic as QC
 import Qcm.App as QA
 import Qcm.Material as MD
 
 MD.Page {
     id: root
     padding: 0
-    title: 'Playlist'
+    title: qsTr('Queue')
     bottomPadding: radius
     scrolling: !m_view.atYBeginning
+
+    actions: [
+        QC.Action {
+            icon.name: MD.Token.icon.delete
+            onTriggered: {
+                QA.App.playqueue.clear();
+            }
+        }
+    ]
 
     MD.ListView {
         id: m_view
         anchors.fill: parent
         expand: true
         bottomMargin: 8
-        currentIndex: model.curIndex
+        currentIndex: model.currentIndex
         highlightMoveDuration: 1000
         highlightMoveVelocity: -1
-        model: QA.App.playlist
+        model: QA.App.playqueue
         reuseItems: true
         topMargin: 8
 
@@ -33,9 +42,9 @@ MD.Page {
 
         delegate: MD.ListItem {
             width: ListView.view.width
-            readonly property bool is_playing: model.song.itemId === QA.App.playlist.cur.itemId
+            readonly property bool is_playing: ListView.isCurrentItem
             onClicked: {
-                QA.App.playlist.switchTo(model.song);
+                QA.Action.play_by_id(model.itemId);
             }
 
             contentItem: RowLayout {
@@ -53,14 +62,14 @@ MD.Page {
                     Layout.fillWidth: true
                     typescale: MD.Token.typescale.body_medium
                     verticalAlignment: Qt.AlignVCenter
-                    text: model.song.name
+                    text: model.name
                 }
 
                 MD.IconButton {
                     icon.name: MD.Token.icon.remove
 
                     onClicked: {
-                        QA.App.playlist.remove(model.song.itemId);
+                        m_view.model.removeRow(model.index);
                     }
                 }
             }

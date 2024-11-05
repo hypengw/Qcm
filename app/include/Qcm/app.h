@@ -20,16 +20,17 @@
 // #include "service_qml_ncm/model/user_account.h"
 
 #ifndef NODEBUS
-#include "mpris/mpris.h"
-#include "mpris/mediaplayer2.h"
+#    include "mpris/mpris.h"
+#    include "mpris/mediaplayer2.h"
 #endif
 
 #include "media_cache/media_cache.h"
 #include "qcm_interface/model/user_account.h"
 #include "Qcm/player.h"
-#include "Qcm/playlist.h"
+#include "Qcm/play_queue.h"
 
 #include "qcm_interface/global.h"
+#include "qcm_interface/model/empty_model.h"
 
 namespace qcm
 {
@@ -39,6 +40,7 @@ class Util;
 }
 class CacheSql;
 class CollectionSql;
+class ItemSql;
 
 void register_meta_type();
 auto gen_image_cache_entry(const QString& provider, const QUrl& url,
@@ -57,8 +59,9 @@ class App : public QObject {
 
     Q_PROPERTY(QObject* mpris READ mpris CONSTANT FINAL)
     Q_PROPERTY(bool debug READ debug CONSTANT FINAL)
-    Q_PROPERTY(Global* global READ global CONSTANT FINAL)
-    Q_PROPERTY(Playlist* playlist READ playlist CONSTANT FINAL)
+    Q_PROPERTY(qcm::Global* global READ global CONSTANT FINAL)
+    Q_PROPERTY(qcm::PlayQueue* playqueue READ playqueue CONSTANT FINAL)
+    Q_PROPERTY(qcm::model::EmptyModel* empty READ empty CONSTANT FINAL)
 
     friend class qml::Util;
 
@@ -100,10 +103,14 @@ public:
     auto        engine() const -> QQmlApplicationEngine*;
     auto        global() const -> Global*;
     auto        util() const -> qml::Util*;
-    auto        playlist() const -> Playlist*;
+    auto        playqueue() const -> PlayQueue*;
+    auto        play_id_queue() const -> PlayIdQueue*;
     void        set_player_sender(Sender<Player::NotifyInfo>);
     auto        media_cache_sql() const -> rc<CacheSql>;
     auto        cache_sql() const -> rc<CacheSql>;
+    auto        album_sql() const -> rc<ItemSql>;
+    auto        collect_sql() const -> rc<CollectionSql>;
+    auto        empty() const -> model::EmptyModel*;
 
     QObject* mpris() const;
 
@@ -120,44 +127,51 @@ public:
     Q_INVOKABLE QSizeF bound_image_size(QSizeF displaySize) const;
 
     Q_INVOKABLE QVariant import_path_list();
-    Q_INVOKABLE void test();
+    Q_INVOKABLE void     test();
 
-Q_SIGNALS:
-    void instanceStarted();
-    void songLiked(model::ItemId, bool);
-    void artistLiked(model::ItemId, bool);
-    void albumLiked(model::ItemId, bool);
-    void playlistLiked(model::ItemId, bool);
-    void djradioLiked(model::ItemId, bool);
-    void programLiked(model::ItemId, bool);
-    void playlistCreated();
-    void playlistDeleted();
-    void playlistChanged();
-    void collected(model::ItemId, bool);
+    Q_SIGNAL void instanceStarted();
+    Q_SIGNAL void songLiked(model::ItemId, bool);
+    Q_SIGNAL void artistLiked(model::ItemId, bool);
+    Q_SIGNAL void albumLiked(model::ItemId, bool);
+    Q_SIGNAL void playlistLiked(model::ItemId, bool);
+    Q_SIGNAL void djradioLiked(model::ItemId, bool);
+    Q_SIGNAL void programLiked(model::ItemId, bool);
+    Q_SIGNAL void playlistCreated();
+    Q_SIGNAL void playlistDeleted();
+    Q_SIGNAL void playlistChanged();
 
-public Q_SLOTS:
-    void releaseResources(QQuickWindow*);
-    void triggerCacheLimit();
-    void setProxy(ProxyType, QString);
-    void setVerifyCertificate(bool);
-    void load_settings();
-    void save_settings();
+    Q_SLOT void releaseResources(QQuickWindow*);
+    Q_SLOT void triggerCacheLimit();
+    Q_SLOT void setProxy(ProxyType, QString);
+    Q_SLOT void setVerifyCertificate(bool);
+    Q_SLOT void load_settings();
+    Q_SLOT void save_settings();
 
-    void on_queue_songs(const std::vector<model::Song>&);
-    void on_logout();
-    void on_load_session(model::Session*);
-    void on_switch_user(model::ItemId);
-    void on_collect(model::ItemId, bool);
+    Q_SLOT void on_play_by_id(model::ItemId songId, model::ItemId sourceId);
+    Q_SLOT void on_queue_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId);
+    Q_SLOT void on_switch_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId);
+    Q_SLOT void on_logout();
+    Q_SLOT void on_load_session(model::Session*);
+    Q_SLOT void on_switch_user(model::ItemId);
+    Q_SLOT void on_collect(model::ItemId, bool);
+    Q_SLOT void on_sync_collecttion(enums::CollectionType);
+    Q_SLOT void on_record(enums::RecordAction);
+    Q_SLOT void on_play_song(const query::Song&);
+    Q_SLOT void on_queue(const std::vector<query::Song>&);
+    Q_SLOT void on_switch_to(const std::vector<query::Song>&);
 
 private:
     void load_plugins();
     void connect_actions();
 
-    rc<Global>                  m_global;
-    rc<qml::Util>               m_util;
-    Playlist*                   m_playlist;
+    rc<Global>    m_global;
+    rc<qml::Util> m_util;
+
+    PlayIdQueue*       m_play_id_queue;
+    PlayQueue*         m_playqueu;
+    model::EmptyModel* m_empty;
 #ifndef NODEBUS
-    up<mpris::Mpris>            m_mpris;
+    up<mpris::Mpris> m_mpris;
 #endif
 
     rc<media_cache::MediaCache> m_media_cache;
@@ -165,6 +179,7 @@ private:
     rc<CacheSql>      m_media_cache_sql;
     rc<CacheSql>      m_cache_sql;
     rc<CollectionSql> m_collect_sql;
+    rc<ItemSql>       m_item_sql;
 
     std::optional<Sender<Player::NotifyInfo>> m_player_sender;
     QPointer<QQuickWindow>                    m_main_win;

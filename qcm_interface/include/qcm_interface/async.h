@@ -7,6 +7,8 @@
 #include "asio_qt/qt_executor.h"
 #include "qcm_interface/enum.h"
 
+#include <asio/thread_pool.hpp>
+
 namespace helper
 {
 class WatchDog;
@@ -20,7 +22,7 @@ class QCM_INTERFACE_API QAsyncResult : public QObject {
 
     Q_PROPERTY(QString error READ error NOTIFY errorChanged FINAL)
     Q_PROPERTY(Status status READ status WRITE set_status NOTIFY statusChanged FINAL)
-    Q_PROPERTY(QObject* data READ data NOTIFY dataChanged FINAL)
+    Q_PROPERTY(QVariant data READ data NOTIFY dataChanged)
     Q_PROPERTY(
         bool forwardError READ forwardError WRITE set_forwardError NOTIFY forwardErrorChanged FINAL)
 public:
@@ -28,15 +30,17 @@ public:
     virtual ~QAsyncResult();
 
     using Status = enums::ApiStatus;
-    virtual auto data() const -> QObject*;
+    virtual auto data() const -> QVariant;
 
+    auto qexecutor() const -> QtExecutor&;
+    auto pool_executor() const -> asio::thread_pool::executor_type;
     auto status() const -> Status;
     auto error() const -> const QString&;
     bool forwardError() const;
     auto get_executor() -> QtExecutor&;
 
     Q_INVOKABLE virtual void reload();
-    void set_reload_callback(const std::function<void()>&);
+    void                     set_reload_callback(const std::function<void()>&);
 
     template<typename Ex, typename Fn>
     void spawn(Ex&& ex, Fn&& f, const std::source_location loc = {});
@@ -57,21 +61,19 @@ public:
         }
     }
 
-public Q_SLOTS:
-    void cancel();
-    void set_data(QObject*);
-    void set_status(Status);
-    void set_error(QString);
-    void set_forwardError(bool);
-    void hold(QStringView, QObject*);
+    Q_SLOT void cancel();
+    Q_SLOT void set_data(QObject*);
+    Q_SLOT void set_status(Status);
+    Q_SLOT void set_error(QString);
+    Q_SLOT void set_forwardError(bool);
+    Q_SLOT void hold(QStringView, QObject*);
 
-Q_SIGNALS:
-    void dataChanged();
-    void statusChanged(Status);
-    void errorChanged();
-    void forwardErrorChanged();
-    void finished();
-    void errorOccurred(QString);
+    Q_SIGNAL void dataChanged();
+    Q_SIGNAL void statusChanged(Status);
+    Q_SIGNAL void errorChanged();
+    Q_SIGNAL void forwardErrorChanged();
+    Q_SIGNAL void finished();
+    Q_SIGNAL void errorOccurred(QString);
 
 private:
     auto watch_dog() -> helper::WatchDog&;

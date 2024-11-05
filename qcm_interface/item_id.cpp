@@ -47,6 +47,11 @@ ItemId& ItemId::operator=(ItemId&& o) {
     return *this;
 }
 
+ItemId& ItemId::operator=(const QUrl& url) {
+    set_url(url);
+    return *this;
+}
+
 auto ItemId::type() const -> const QString& {
     C_D(const ItemId);
     return d->type;
@@ -61,7 +66,8 @@ auto ItemId::provider() const -> const QString& {
 }
 auto ItemId::valid() const -> bool {
     C_D(const ItemId);
-    return ! (id().isEmpty() || provider().isEmpty()) && (d->validtor ? d->validtor(*this) : true);
+    return ! (id().isEmpty() || provider().isEmpty() || id() == "invalid" || id() == "empty") &&
+           (d->validtor ? d->validtor(*this) : true);
 }
 
 void ItemId::set_validator(const validator_t& v) {
@@ -87,10 +93,10 @@ void ItemId::set_provider(QStringView v) {
 
 void ItemId::set_url(const QUrl& u) {
     C_D(ItemId);
-    _assert_(u.scheme() == "itemid");
+    _assert_(u.scheme() == "itemid" || u.scheme().isEmpty());
     auto p = u.path();
     // remove '/'
-    _assert_(p.startsWith('/'));
+    _assert_(p.startsWith('/') || p.isEmpty());
     d->id       = p.isEmpty() ? p : p.sliced(1);
     d->provider = u.host();
     d->type     = u.userName();

@@ -40,6 +40,8 @@ struct PlaylistDetail {
                     tracks[i].privilege = privileges[i];
                 }
             }
+            // use trackids's size
+            in.playlist.trackCount = in.playlist.trackIds->size();
             return in;
         });
     }

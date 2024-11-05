@@ -1,9 +1,11 @@
 #pragma once
 
 #include <QQmlEngine>
+#include <QAbstractItemModel>
 
 #include "qcm_interface/model/page.h"
 #include "qcm_interface/model/router_msg.h"
+#include "qcm_interface/model/album.h"
 
 namespace qcm
 {
@@ -34,6 +36,10 @@ public:
     Q_INVOKABLE QUrl           image_url(const QUrl&) const;
     Q_INVOKABLE QUrl image_cache_of(const QString& provider, const QUrl& url, QSize reqSize) const;
     Q_INVOKABLE QUrl media_cache_of(const QString& id) const;
+
+    Q_INVOKABLE std::vector<model::ItemId> collect_ids(QAbstractItemModel* model) const;
+    Q_INVOKABLE int  dynCardWidth(qint32 containerWidth, qint32 spacing = 0) const;
+    Q_INVOKABLE void print(const QJSValue&) const;
 };
 } // namespace qml
 

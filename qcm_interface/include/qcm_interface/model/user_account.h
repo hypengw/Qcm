@@ -27,7 +27,7 @@ class QCM_INTERFACE_API UserAccount : public Model<UserAccount, QObject> {
     Q_OBJECT
     DECLARE_MODEL()
 
-    Q_PROPERTY(UserAccountCollection* collection READ collection NOTIFY collectionChanged FINAL)
+    Q_PROPERTY(qcm::model::UserAccountCollection* collection READ collection NOTIFY collectionChanged FINAL)
 public:
     UserAccount(QObject* parent = nullptr);
     ~UserAccount();

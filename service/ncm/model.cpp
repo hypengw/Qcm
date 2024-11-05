@@ -9,6 +9,7 @@
 #include "ncm/api/artist_albums.h"
 #include "ncm/api/artist_sublist.h"
 #include "ncm/api/artist_sub.h"
+#include "ncm/api/artist_songs.h"
 #include "ncm/api/cloudsearch.h"
 #include "ncm/api/comments.h"
 #include "ncm/api/djradio_detail.h"
@@ -24,7 +25,8 @@
 #include "ncm/api/playlist_subscribe.h"
 #include "ncm/api/playlist_create.h"
 #include "ncm/api/playlist_delete.h"
-#include "ncm/api/playlist_tracks.h"
+#include "ncm/api/playlist_manipulate_tracks.h"
+#include "ncm/api/playlist_update_name.h"
 #include "ncm/api/recommend_songs.h"
 #include "ncm/api/recommend_resource.h"
 #include "ncm/api/song_url.h"
@@ -44,6 +46,7 @@
 #include "ncm/api/nos_token_alloc.h"
 #include "ncm/api/upload_addr.h"
 #include "ncm/api/upload.h"
+#include "ncm/api/song_detail.h"
 
 #include "ncm/api/play_record.h"
 
@@ -83,8 +86,8 @@ JSON_DEFINE_IMPL(Song::Privilege, downloadMaxBrLevel, playMaxBrLevel, downloadMa
                  playMaxbr, preSell, plLevel, flLevel, dlLevel, toast, payed, maxbr, subp, flag, sp,
                  pl, fl, dl, cs, fee, st, id, cp);
 
-JSON_DEFINE_IMPL(SongB, name, ftype, album, artists, commentThreadId, copyright, copyrightId, disc,
-                 duration, fee, hearTime, id, status, starred, score, popularity, playedNum)
+JSON_DEFINE_IMPL(SongB, name, no, ftype, album, artists, commentThreadId, copyright, copyrightId,
+                 disc, duration, fee, hearTime, id, status, starred, score, popularity, playedNum)
 
 struct Song_ : Song {};
 JSON_DEFINE_IMPL(Song_, ar, al, st, rtype, pst, alia, pop, rt, mst, cp, cf, dt, ftype, no, fee, mv,
@@ -136,9 +139,11 @@ JSON_DEFINE_IMPL(ArtistSublistItem, mvSize, info, albumSize, trans, img1v1Url, p
 
 JSON_DEFINE_IMPL(PlaylistCatalogue, resourceCount, resourceType, category, activity, imgId, hot,
                  type, name);
-JSON_DEFINE_IMPL(Playlist, id, commentCount, specialType, shareCount, tracks, status, tags,
-                 commentThreadId, updateTime, subscribed, name, coverImgUrl, playCount, description,
-                 createTime, userId, trackCount);
+
+JSON_DEFINE_IMPL(Playlist::TrackId, id)
+JSON_DEFINE_IMPL(Playlist, id, commentCount, specialType, shareCount, tracks, trackIds, status,
+                 tags, commentThreadId, updateTime, subscribed, name, coverImgUrl, playCount,
+                 description, createTime, userId, trackCount);
 
 JSON_DEFINE_IMPL(RecommendResourceItem, copywriter, playcount, picUrl, type, name, id, trackCount,
                  createTime);
@@ -152,7 +157,7 @@ JSON_DEFINE_WITH_DEFAULT_IMPL(UserAccountProfile, defaultAvatar, accountStatus, 
 
 JSON_DEFINE_IMPL(UserPlaylistItem, tags, description, commentThreadId, id, subscribedCount,
                  coverImgUrl, updateTime, trackCount, subscribed, createTime, playCount, userId,
-                 name);
+                 name, specialType);
 
 JSON_DEFINE_IMPL(DjradioDetail, name, category, categoryId, secondCategory, secondCategoryId,
                  commentCount, likedCount, playCount, programCount, shareCount,
@@ -163,7 +168,7 @@ JSON_DEFINE_IMPL(Program, programFeeType, privacy, auditDisPlayStatus, auditStat
                  blurCoverUrl, coverId, coverUrl, buyed, canReward, categoryId, secondCategoryId,
                  secondCategoryName, createTime, scheduledPublishTime, commentCount,
                  commentThreadId, auditDisPlayStatus, id, mainSong, existLyric, duration, serialNum,
-                 subscribed, score, name)
+                 subscribed, score, name, radio, channels)
 
 // clang-format off
 JSON_DEFINE_IMPL(Creator, 
@@ -215,6 +220,7 @@ JSON_DEFINE_IMPL(AlbumSub, code);
 JSON_DEFINE_IMPL(AlbumSublist, code, data, count, hasMore);
 JSON_DEFINE_IMPL(Artist, code, hotSongs, artist, more);
 JSON_DEFINE_IMPL(ArtistAlbums, code, hotAlbums, more);
+JSON_DEFINE_IMPL(ArtistSongs, code, songs, more, total);
 JSON_DEFINE_IMPL(ArtistSub, code);
 JSON_DEFINE_IMPL(ArtistSublist, code, data, count, hasMore);
 JSON_DEFINE_IMPL(Login, code);
@@ -226,6 +232,7 @@ JSON_DEFINE_IMPL(PlaylistDetailDynamic, code, bookedCount, subscribed, playCount
 JSON_DEFINE_IMPL(PlaylistCatalogue, code, sub, all, categories);
 JSON_DEFINE_IMPL(PlaylistList, code, playlists, total, more, cat);
 JSON_DEFINE_IMPL(PlaylistSubscribe, code);
+JSON_DEFINE_IMPL(PlaylistUpdateName, code);
 
 JSON_DEFINE_IMPL(RecommendSongs::Data, dailySongs);
 JSON_DEFINE_IMPL(RecommendSongs, code, data);
@@ -234,6 +241,7 @@ JSON_DEFINE_IMPL(RecommendResource, code, recommend);
 
 JSON_DEFINE_IMPL(SongUrl, code, data);
 JSON_DEFINE_IMPL(SongLyric, code, lrc, romalrc, tlyric, klyric);
+JSON_DEFINE_IMPL(SongDetail, code, songs, privileges);
 JSON_DEFINE_WITH_DEFAULT_IMPL(UserAccount, code, profile);
 JSON_DEFINE_IMPL(UserPlaylist, playlist, more);
 
@@ -260,7 +268,7 @@ JSON_DEFINE_IMPL(DjradioSub, code);
 JSON_DEFINE_IMPL(UserCloud, data, count, hasMore, maxSize, size, upgradeSign);
 JSON_DEFINE_IMPL(PlaylistCreate, id, playlist);
 JSON_DEFINE_IMPL(PlaylistDelete, code);
-JSON_DEFINE_IMPL(PlaylistTracks, code);
+JSON_DEFINE_IMPL(PlaylistManipulateTracks, code);
 
 JSON_DEFINE_IMPL(UploadCloudInfo, code, songId);
 JSON_DEFINE_IMPL(CloudUploadCheck, code, songId, needUpload);
@@ -285,6 +293,7 @@ JSON_GET_IMPL(ncm::api_model::AlbumSub);
 JSON_GET_IMPL(ncm::api_model::AlbumSublist);
 JSON_GET_IMPL(ncm::api_model::Artist);
 JSON_GET_IMPL(ncm::api_model::ArtistAlbums);
+JSON_GET_IMPL(ncm::api_model::ArtistSongs);
 JSON_GET_IMPL(ncm::api_model::ArtistSub);
 JSON_GET_IMPL(ncm::api_model::ArtistSublist);
 JSON_GET_IMPL(ncm::api_model::CloudSearch);
@@ -298,11 +307,13 @@ JSON_GET_IMPL(ncm::api_model::PlaylistList);
 JSON_GET_IMPL(ncm::api_model::PlaylistSubscribe);
 JSON_GET_IMPL(ncm::api_model::PlaylistCreate);
 JSON_GET_IMPL(ncm::api_model::PlaylistDelete);
-JSON_GET_IMPL(ncm::api_model::PlaylistTracks);
+JSON_GET_IMPL(ncm::api_model::PlaylistManipulateTracks);
+JSON_GET_IMPL(ncm::api_model::PlaylistUpdateName);
 JSON_GET_IMPL(ncm::api_model::RecommendSongs);
 JSON_GET_IMPL(ncm::api_model::RecommendResource);
 JSON_GET_IMPL(ncm::api_model::SongUrl);
 JSON_GET_IMPL(ncm::api_model::SongLyric);
+JSON_GET_IMPL(ncm::api_model::SongDetail);
 JSON_GET_IMPL(ncm::api_model::UserAccount);
 JSON_GET_IMPL(ncm::api_model::UserPlaylist);
 JSON_GET_IMPL(ncm::api_model::QrcodeUnikey);

@@ -6,15 +6,26 @@ namespace qcm
 {
 namespace enums
 {
-QCM_INTERFACE_API Q_NAMESPACE QML_ELEMENT
+Q_NAMESPACE_EXPORT(QCM_INTERFACE_API)
+QML_ELEMENT
 
-    enum class QCM_INTERFACE_API ApiStatus {
-        Uninitialized = 0,
-        Querying,
-        Finished,
-        Error
-    };
+enum class QCM_INTERFACE_API ApiStatus
+{
+    Uninitialized = 0,
+    Querying,
+    Finished,
+    Error
+};
 Q_ENUM_NS(ApiStatus);
+
+enum class QCM_INTERFACE_API LoopMode
+{
+    NoneLoop,
+    SingleLoop,
+    ListLoop,
+    ShuffleLoop
+};
+Q_ENUM_NS(LoopMode)
 
 enum class QCM_INTERFACE_API PluginBasicPage
 {
@@ -73,6 +84,39 @@ enum class SpecialRoute
     SRStatus,
 };
 Q_ENUM_NS(SpecialRoute)
+
+enum class CollectionType
+{
+    CTAlbum = 0,
+    CTArtist,
+    CTPlaylist,
+    CTDjradio,
+};
+Q_ENUM_NS(CollectionType)
+
+enum class SyncListType
+{
+    CTArtistSong = 0,
+    CTArtistAlbum,
+};
+Q_ENUM_NS(SyncListType)
+
+enum class RecordAction
+{
+    RecordSwitch = 0,
+    RecordNext,
+    RecordPrev,
+};
+Q_ENUM_NS(RecordAction)
+
+enum class ManipulateMixAction
+{
+    ManipulateMixAdd = 0,
+    ManipulateMixDel,
+};
+Q_ENUM_NS(ManipulateMixAction)
 } // namespace enums
 
 } // namespace qcm
+
+DECLARE_CONVERT(std::string_view, qcm::enums::CollectionType, QCM_INTERFACE_API);

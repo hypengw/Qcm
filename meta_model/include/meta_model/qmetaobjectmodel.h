@@ -10,29 +10,66 @@
 #include <set>
 
 #include <QtCore/QAbstractListModel>
+#include <QtCore/QMetaProperty>
 
 #include "core/core.h"
 
 namespace meta_model
 {
-class QMetaListModelBase : public QAbstractListModel {
+
+struct Empty {
+    Q_GADGET
+};
+
+void update_role_names(QHash<int, QByteArray>& role_names, const QMetaObject& meta);
+
+template<typename TBase>
+class QMetaModelBase : public TBase {
+public:
+    QMetaModelBase(QObject* parent = nullptr): TBase(parent), m_meta(Empty::staticMetaObject) {}
+    ~QMetaModelBase() {}
+    QHash<int, QByteArray> roleNames() const override { return m_role_names; }
+    const QMetaObject&     meta() const { return m_meta; }
+    auto                   roleOf(QByteArrayView name) const -> int {
+        if (auto it = std::find_if(roleNamesRef().keyValueBegin(),
+                                   roleNamesRef().keyValueEnd(),
+                                   [name](const auto& el) -> bool {
+                                       return el.second == name;
+                                   });
+            it != roleNamesRef().keyValueEnd()) {
+            return it->first;
+        }
+        return -1;
+    }
+
+protected:
+    void updateRoleNames(const QMetaObject& meta) {
+        this->layoutAboutToBeChanged();
+        m_meta = meta;
+        meta_model::update_role_names(m_role_names, m_meta);
+        this->layoutChanged();
+    }
+    const QHash<int, QByteArray>& roleNamesRef() const { return m_role_names; }
+    auto                          propertyOfRole(int role) const -> std::optional<QMetaProperty> {
+        if (auto prop_idx = meta().indexOfProperty(roleNamesRef().value(role).constData());
+            prop_idx != -1) {
+            return meta().property(prop_idx);
+        }
+        return std::nullopt;
+    }
+
+private:
+    QHash<int, QByteArray> m_role_names;
+    QMetaObject            m_meta;
+};
+
+class QMetaListModelBase : public QMetaModelBase<QAbstractListModel> {
     Q_OBJECT
 public:
     QMetaListModelBase(QObject* parent = nullptr);
     virtual ~QMetaListModelBase();
 
-    virtual QHash<int, QByteArray> roleNames() const override;
-
     Q_INVOKABLE virtual QVariant item(int index) const = 0;
-
-protected:
-    std::optional<QMetaProperty> propertyOfRole(int role) const;
-    void                         updateRoleNames(const QMetaObject&);
-    const QMetaObject&           meta() const;
-
-private:
-    QHash<int, QByteArray> m_role_names;
-    QMetaObject            m_meta;
 };
 
 template<typename TItem, typename IMPL>
@@ -52,16 +89,45 @@ public:
         auto size = range.size();
         if (size < 1) return;
         beginInsertRows({}, index, index + size - 1);
-        crtp_impl().insert_impl(index, std::begin(range), std::end(range));
+        auto begin = std::begin(range);
+        auto end   = std::end(range);
+        if constexpr (std::same_as<decltype(begin), decltype(end)>) {
+            crtp_impl().insert_impl(index, begin, end);
+        } else {
+            crtp_impl().insert_impl(index, range);
+        }
         endInsertRows();
+    }
+
+    void update(int idx, const value_type& val) {
+        auto& item = crtp_impl().at(idx);
+        item       = val;
+        dataChanged(index(idx, 0), index(idx, 0));
     }
 
     void remove(int index, int size = 1) {
         if (size < 1) return;
-        auto last = index + size;
-        beginRemoveRows({}, index, last - 1);
-        crtp_impl().erase_impl(index, last);
+        removeRows(index, size);
+    }
+    auto removeRows(int row, int count, const QModelIndex& parent = {}) -> bool override {
+        if (count < 1) return false;
+        beginRemoveRows(parent, row, row + count - 1);
+        crtp_impl().erase_impl(row, row + count);
         endRemoveRows();
+        return true;
+    }
+    template<typename Func>
+    void remove_if(Func&& func) {
+        std::set<int, std::greater<>> indexes;
+        for (int i = 0; i < rowCount(); i++) {
+            auto& el = crtp_impl().at(i);
+            if (func(el)) {
+                indexes.insert(i);
+            }
+        }
+        for (auto& i : indexes) {
+            removeRow(i);
+        }
     }
     void replace(int row, param_type item) {
         crtp_impl().assign(row, item);
@@ -72,6 +138,18 @@ public:
     void resetModel() {
         beginResetModel();
         crtp_impl().reset_impl();
+        endResetModel();
+    }
+
+    template<typename T>
+        requires std::ranges::sized_range<T>
+    void resetModel(const std::optional<T>& items) {
+        beginResetModel();
+        if (items) {
+            crtp_impl().reset_impl(items.value());
+        } else {
+            crtp_impl().reset_impl();
+        }
         endResetModel();
     }
 
@@ -171,6 +249,14 @@ protected:
     template<typename Tin>
     void insert_impl(std::size_t it, Tin beg, Tin end) {
         m_items.insert(begin() + it, beg, end);
+    }
+
+    template<typename TRange>
+    void insert_impl(std::size_t it, const TRange& range) {
+        std::vector<TItem, Allocator> tmp(m_items.get_allocator());
+        tmp.reserve(range.size());
+        std::ranges::copy(range, std::back_inserter(tmp));
+        m_items.insert(begin() + it, tmp.begin(), tmp.end());
     }
 
     void erase_impl(std::size_t index, std::size_t last) {

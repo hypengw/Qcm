@@ -9,11 +9,15 @@
 using namespace Qt::StringLiterals;
 
 template<typename T>
-    requires std::convertible_to<T, std::string_view> || convertable<std::string, T>
+    requires std::convertible_to<T, std::string_view> || convertable<std::string_view, T> ||
+             convertable<std::string, T>
 struct Convert<QString, T> {
     static void from(QString& out, const T& in) {
         if constexpr (std::convertible_to<T, std::string_view>) {
             auto sv = std::string_view(in);
+            out     = QString::fromUtf8(sv.data(), sv.size());
+        } else if constexpr (convertable<std::string_view, T>) {
+            auto sv = convert_from<std::string_view>(in);
             out     = QString::fromUtf8(sv.data(), sv.size());
         } else {
             out = QString::fromStdString(convert_from<std::string>(in));

@@ -352,7 +352,7 @@ auto parse(std::string_view src, std::span<const std::string_view> macro_names) 
     };
 
     auto do_del = [&emit_word, &ctx, &extend_word](char c) {
-        if (is_in_macro_call(ctx) && c != ',' && c != ' ') {
+        if (is_in_macro_call(ctx) && c != ',' && c != ' ' && c != ')') {
             extend_word(1);
         }
         if (! ctx.last_is_del) {

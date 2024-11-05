@@ -17,19 +17,36 @@ set(SOURCES
     include/Qcm/app.h
     include/Qcm/info.h
     include/Qcm/image_provider.h
-    include/Qcm/playlist.h
+    include/Qcm/play_queue.h
     include/Qcm/qr_image.h
     include/Qcm/lyric.h
     include/Qcm/clipboard.h
     include/Qcm/player.h
     include/Qcm/qml_util.h
     include/Qcm/storage_info.h
+    include/Qcm/sql/item_sql.h
     include/Qcm/sql/cache_sql.h
     include/Qcm/sql/collection_sql.h
+    include/Qcm/query/query.h
+    include/Qcm/query/query_model.h
+    include/Qcm/query/album_collection.h
+    include/Qcm/query/artist_collection.h
+    include/Qcm/query/djradio_collection.h
+    include/Qcm/query/playlist_collection.h
+    include/Qcm/query/album_detail.h
+    include/Qcm/query/playlist_detail.h
+    include/Qcm/query/djradio_detail.h
+    include/Qcm/query/artist_detail.h
+    include/Qcm/query/artist_albums.h
+    include/Qcm/query/artist_songs.h
+    include/Qcm/query/mix_create.h
+    include/Qcm/query/mix_manipulate.h
+    include/Qcm/query/mix_delete.h
+    include/Qcm/query/comments.h
     src/action.cpp
     src/app.cpp
     src/image_provider.cpp
-    src/playlist.cpp
+    src/play_queue.cpp
     src/qr_image.cpp
     src/lyric.cpp
     src/clipboard.cpp
@@ -37,13 +54,22 @@ set(SOURCES
     src/fake_moc.cpp
     src/qml_util.cpp
     src/storage_info.cpp
+    src/sql/item_sql.cpp
     src/sql/cache_sql.cpp
-    src/sql/collection_sql.cpp)
+    src/sql/collection_sql.cpp
+    src/sql/sql.cpp
+    src/query.cpp)
 
 set(QCM_INTERFACE_HEADER
-    include/qcm_interface/enum.h include/qcm_interface/global.h
-    include/qcm_interface/action.h include/qcm_interface/model.h
-    include/qcm_interface/model/plugin_model.h)
+    include/qcm_interface/enum.h
+    include/qcm_interface/global.h
+    include/qcm_interface/action.h
+    include/qcm_interface/notifier.h
+    include/qcm_interface/model.h
+    include/qcm_interface/item_id.h
+    include/qcm_interface/model/plugin_model.h
+    include/qcm_interface/model/query_model.h
+    )
 
 list(
   TRANSFORM QCM_INTERFACE_HEADER
@@ -58,10 +84,10 @@ set(QML_FILES
     qml/page/AboutPage.qml
     qml/page/AlbumDetailPage.qml
     qml/page/ArtistDetailPage.qml
+    qml/page/CommentPage.qml
     qml/page/DescriptionPage.qml
-    qml/page/DjradioDetailPage.qml
+    qml/page/RadioDetailPage.qml
     qml/page/LoginPage.qml
-    qml/page/PlaylistCataloguePage.qml
     qml/page/PlaylistDetailPage.qml
     qml/page/PlaylistCreatePage.qml
     qml/page/RetryPage.qml
@@ -77,7 +103,6 @@ set(QML_FILES
     qml/delegate/PicGridDelegate.qml
     qml/delegate/ProgramDelegate.qml
     qml/component/ArtistsPopup.qml
-    qml/component/InfoRow.qml
     qml/component/SnakeView.qml
     qml/component/Mpris.qml
     qml/component/SongTag.qml
@@ -87,25 +112,27 @@ set(QML_FILES
     qml/component/ListenIcon.qml
     qml/component/LyricView.qml
     qml/component/Image.qml
-    qml/component/IconRowLayout.qml
     qml/component/RoundImage.qml
     qml/component/Leaflet.qml
-    qml/component/MGridView.qml
+    qml/component/GridView.qml
     qml/component/PageContainer.qml
     qml/component/PagePopup.qml
     qml/component/PageStack.qml
     qml/component/VolumeButton.qml
     qml/action/AppendListAction.qml
     qml/action/PlaynextAction.qml
+    qml/action/CommentAction.qml
+    qml/action/CollectAction.qml
     qml/action/CopyAction.qml
     qml/action/ColorSchemeAction.qml
     qml/action/SubAction.qml
     qml/action/SettingAction.qml
+    qml/dialog/MixCreateDialog.qml
     qml/menu/SongMenu.qml
     qml/menu/AlbumMenu.qml
     qml/menu/ArtistMenu.qml
-    qml/menu/DjradioMenu.qml
-    qml/menu/PlaylistMenu.qml
+    qml/menu/RadioMenu.qml
+    qml/menu/MixMenu.qml
     qml/menu/ProgramMenu.qml)
 set(RESOURCES
     assets/Qcm.svg)
@@ -147,7 +174,7 @@ target_compile_definitions(
 target_include_directories(
   app
   PUBLIC include
-  PRIVATE src/ include/Qcm include/Qcm/util
+  PRIVATE src/ include/Qcm include/Qcm/util include/Qcm/query
           ${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface
           ${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface/model)
 target_link_libraries(

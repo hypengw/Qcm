@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Controls.Basic
-import QtQuick.Layouts
 import Qcm.App as QA
 import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
@@ -50,7 +49,7 @@ MD.Menu {
                 });
         }
     }
-    QNcm.CommentAction {
+    QA.CommentAction {
         itemId: root.song.itemId
     }
 
@@ -95,7 +94,7 @@ MD.Menu {
         autoReload: playlistId.valid()
         onStatusChanged: {
             if (status === QA.enums.Finished) {
-                QA.App.playlistChanged();
+                QA.App.playqueueChanged();
             }
         }
     }

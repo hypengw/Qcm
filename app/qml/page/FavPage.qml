@@ -54,7 +54,7 @@ MD.Page {
                     if (playlistId === view.model.item(0)?.itemId) {
                         QA.App.songLiked(root.songId, true);
                     }
-                    QA.App.playlistChanged();
+                    QA.App.playqueueChanged();
                     MD.Util.closePopup(root);
                 }
             }

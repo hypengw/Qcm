@@ -12,16 +12,19 @@
 #include "qcm_interface/export.h"
 #include "qcm_interface/model/app_info.h"
 #include "qcm_interface/enum.h"
-#include "qcm_interface/cache_sql.h"
+
+#include "qcm_interface/sql/cache_sql.h"
+#include "qcm_interface/sql/collection_sql.h"
+
 #include "qcm_interface/metadata.h"
 #include "qcm_interface/client.h"
 #include "qcm_interface/model/user_model.h"
 #include "qcm_interface/model/session.h"
 #include "qcm_interface/model/busy_info.h"
 #include "qcm_interface/action.h"
+#include "qcm_interface/notifier.h"
 
 #include "qcm_interface/state/app_state.h"
-#include "qcm_interface/collection_sql.h"
 
 namespace request
 {
@@ -32,6 +35,11 @@ namespace qcm
 class App;
 class PluginModel;
 class QcmPluginInterface;
+
+namespace db
+{
+class ItemSqlBase;
+}
 
 struct StopSignal {
     bool val { false };
@@ -47,14 +55,14 @@ QCM_INTERFACE_API auto parse_image_provider_url(const QUrl& url) -> std::tuple<Q
 class GlobalWrapper;
 class QCM_INTERFACE_API Global : public QObject {
     Q_OBJECT
-    Q_PROPERTY(model::AppInfo info READ info CONSTANT FINAL)
+    Q_PROPERTY(qcm::model::AppInfo info READ info CONSTANT FINAL)
     Q_PROPERTY(QQmlComponent* copy_action_comp READ copy_action_comp WRITE set_copy_action_comp
                    NOTIFY copyActionCompChanged FINAL)
 
-    Q_PROPERTY(UserModel* userModel READ user_model CONSTANT FINAL)
-    Q_PROPERTY(model::Session* session READ qsession NOTIFY sessionChanged FINAL)
-    Q_PROPERTY(model::BusyInfo* busy READ busy_info CONSTANT FINAL)
-    Q_PROPERTY(state::AppState* appState READ app_state CONSTANT FINAL)
+    Q_PROPERTY(qcm::UserModel* userModel READ user_model CONSTANT FINAL)
+    Q_PROPERTY(qcm::model::Session* session READ qsession NOTIFY sessionChanged FINAL)
+    Q_PROPERTY(qcm::model::BusyInfo* busy READ busy_info CONSTANT FINAL)
+    Q_PROPERTY(qcm::state::AppState* appState READ app_state CONSTANT FINAL)
 
     friend class GlobalWrapper;
     friend class App;
@@ -76,11 +84,13 @@ public:
     auto session() -> rc<request::Session>;
     auto qsession() const -> model::Session*;
     auto action() const -> Action*;
+    auto notifier() const -> Notifier*;
     auto busy_info() const -> model::BusyInfo*;
     auto app_state() const -> state::AppState*;
 
     auto get_cache_sql() const -> rc<media_cache::DataBase>;
     auto get_collection_sql() const -> rc<db::ColletionSqlBase>;
+    auto get_item_sql() const -> rc<db::ItemSqlBase>;
 
     auto user_model() const -> UserModel*;
 
@@ -114,8 +124,11 @@ private:
     using MetadataImpl = std::function<Metadata(const std::filesystem::path&)>;
     void set_uuid(const QUuid&);
     void set_session(model::Session*);
+
     void set_cache_sql(rc<media_cache::DataBase>);
     void set_collection_sql(rc<db::ColletionSqlBase>);
+    void set_album_sql(rc<db::ItemSqlBase>);
+
     void set_metadata_impl(const MetadataImpl&);
     auto load_plugin(const std::filesystem::path&) -> bool;
 

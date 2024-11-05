@@ -81,6 +81,7 @@ Global::Private::Private(Global* p)
       qsession(nullptr),
       qsession_empty(new model::Session(p)),
       action(new Action(p)),
+      notifier(new Notifier(p)),
       user_model(nullptr),
       copy_action_comp(nullptr),
       app_state(new state::AppState(p)) {
@@ -110,7 +111,11 @@ Global::Global(): d_ptr(make_up<Private>(this)) {
         }
     });
 }
-Global::~Global() { save_user(); }
+Global::~Global() {
+    save_user();
+    // delete child before private pointer
+    qDeleteAll(children());
+}
 
 auto Global::info() const -> const model::AppInfo& {
     C_D(const Global);
@@ -120,6 +125,10 @@ auto Global::info() const -> const model::AppInfo& {
 auto Global::action() const -> Action* {
     C_D(const Global);
     return d->action;
+}
+auto Global::notifier() const -> Notifier* {
+    C_D(const Global);
+    return d->notifier;
 }
 
 auto Global::busy_info() const -> model::BusyInfo* {
@@ -168,6 +177,11 @@ auto Global::get_cache_sql() const -> rc<media_cache::DataBase> {
 auto Global::get_collection_sql() const -> rc<db::ColletionSqlBase> {
     C_D(const Global);
     return d->collection_sql;
+}
+
+auto Global::get_item_sql() const -> rc<db::ItemSqlBase> {
+    C_D(const Global);
+    return d->album_sql;
 }
 
 auto Global::get_metadata(const std::filesystem::path& path) const -> Metadata {
@@ -267,6 +281,11 @@ void Global::set_cache_sql(rc<media_cache::DataBase> val) {
 void Global::set_collection_sql(rc<db::ColletionSqlBase> val) {
     C_D(Global);
     d->collection_sql = val;
+}
+
+void Global::set_album_sql(rc<db::ItemSqlBase> val) {
+    C_D(Global);
+    d->album_sql = val;
 }
 
 void Global::set_metadata_impl(const MetadataImpl& impl) {

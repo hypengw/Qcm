@@ -17,8 +17,8 @@ namespace model
 {
 
 struct DjradioDetail {
-    i64         id { 0 };
-    std::string name;
+    model::DjradioId id { 0 };
+    std::string      name;
     // dj	{…}
     i64         picId { 0 };
     std::string picUrl;

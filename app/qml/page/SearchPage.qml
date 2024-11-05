@@ -8,10 +8,7 @@ MD.Page {
     id: root
     padding: 0
     title: qsTr('search')
-
     topPadding: showHeader ? 0 : MD.MatProp.size.verticalPadding
-
-    // MD.MatProp.backgroundColor: item_search.focus ? item_search.MD.MatProp.backgroundColor : MD.Token.color.surface
 
     function search() {
         this.keywords = item_search.text;
@@ -111,9 +108,8 @@ MD.Page {
                     BaseView {
                         delegate: QA.SongDelegate {
                             width: ListView.view.contentWidth
-                            dgModel: QA.Util.create_song(model)
                             onClicked: {
-                                QA.App.playlist.switchTo(dgModel);
+                                QA.Action.play_by_id(dgModel.itemId);
                             }
                         }
                         type: QNCM.CloudSearchQuerier.SongType

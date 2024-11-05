@@ -1,7 +1,5 @@
 import QtQuick
-import QtQuick.Controls.Basic
 import Qcm.App as QA
-import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 MD.Slider {

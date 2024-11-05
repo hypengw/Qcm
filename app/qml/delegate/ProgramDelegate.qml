@@ -1,15 +1,13 @@
 import QtQuick
-import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Qcm.App as QA
-import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 MD.ListItem {
     id: root
 
-    readonly property bool isPlaying: QA.App.playlist.cur.itemId === dgModel.song.itemId
-    property QA.t_program dgModel: modelData
+    readonly property bool isPlaying: QA.App.playqueue.currentSong.itemId === dgModel.songId
+    property var dgModel: modelData
     property string subtitle: ''
 
     // enabled: dgModel.canPlay
@@ -40,7 +38,7 @@ MD.ListItem {
             Layout.minimumWidth: item_font_metrics.advanceWidth(root.count.toString()) + 2
 
             isPlaying: root.isPlaying
-            index: root.dgModel.serialNum
+            index: root.dgModel.serialNumber
 
             MD.FontMetrics {
                 id: item_font_metrics
@@ -71,7 +69,7 @@ MD.ListItem {
                     verticalAlignment: Qt.AlignVCenter
                     typescale: MD.Token.typescale.body_medium
                     color: root.mdState.supportTextColor
-                    text: root.subtitle ? root.subtitle : `${Qt.formatDateTime(root.dgModel.createTime, 'yyyy.MM.dd')} - ${QA.Global.join_name(root.dgModel.song.artists, '/')}`
+                    // text: root.subtitle ? root.subtitle : `${Qt.formatDateTime(root.dgModel.createTime, 'yyyy.MM.dd')} - ${QA.Global.join_name(root.dgModel.song.artists, '/')}`
                 }
             }
         }
@@ -88,7 +86,8 @@ MD.ListItem {
 
                 onClicked: {
                     MD.Util.show_popup('qrc:/Qcm/App/qml/menu/ProgramMenu.qml', {
-                        "program": dgModel,
+                        "itemId": root.dgModel.itemId,
+                        "song": root.dgModel.song,
                         "y": height
                     }, this);
                 }

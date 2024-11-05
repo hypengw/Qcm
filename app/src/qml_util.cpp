@@ -1,4 +1,8 @@
 #include "Qcm/qml_util.h"
+
+#include <QtCore/QJsonDocument>
+#include <QtQml/QJSValueIterator>
+
 #include "meta_model/qgadget_helper.h"
 #include "qcm_interface/global.h"
 #include "qcm_interface/plugin.h"
@@ -97,6 +101,70 @@ QUrl Util::media_cache_of(const QString& id_) const {
     return {};
 }
 
+auto Util::collect_ids(QAbstractItemModel* model) const -> std::vector<model::ItemId> {
+    std::vector<model::ItemId> out;
+    auto                       roleNames = model->roleNames();
+    int                        id_role { -1 };
+    int                        can_role { -1 };
+    QHashIterator              i { roleNames };
+    while (i.hasNext()) {
+        i.next();
+        const auto& v = i.value();
+        if (v == "itemId") {
+            id_role = i.key();
+        } else if (v == "canPlay") {
+            can_role = i.key();
+        }
+    }
+    if (id_role != -1) {
+        for (int i = 0; i < model->rowCount(); i++) {
+            auto idx = model->index(i, 0);
+            if (can_role != -1) {
+                auto can = model->data(idx, can_role).toBool();
+                if (! can) continue;
+            }
+            auto id_v = model->data(idx, id_role);
+            if (auto id_p = get_if<model::ItemId>(&id_v)) {
+                out.emplace_back(*id_p);
+            } else {
+                _assert_(false);
+            }
+        }
+    }
+    return out;
+}
+
+int Util::dynCardWidth(qint32 containerWidth, qint32 spacing) const {
+    return std::max<qint32>(160, containerWidth / 6.0 - spacing);
+}
+
+void Util::print(const QJSValue& val) const {
+    if (val.isObject()) {
+        QJsonDocument    jdoc;
+        QJsonObject      j;
+        QJSValueIterator it(val);
+        while (it.hasNext()) {
+            it.next();
+            j[it.name()] = it.value().toString();
+        }
+        jdoc.setObject(j);
+        DEBUG_LOG("print: {}", jdoc.toJson(QJsonDocument::JsonFormat::Indented).toStdString());
+    } else if (auto var = val.toVariant(); var.isValid()) {
+        auto meta = var.metaType();
+        DEBUG_LOG(R"(print
+metaType: {}
+metaId: {}
+isNull: {}
+json: {}
+)",
+                  meta.name(),
+                  meta.id(),
+                  var.toJsonDocument().toJson(QJsonDocument::JsonFormat::Indented).toStdString(),
+                  var.isNull());
+    } else {
+        DEBUG_LOG("print: {}", val.toString());
+    }
+}
 } // namespace qcm::qml
 
 namespace qcm
@@ -113,7 +181,6 @@ inline std::string gen_file_name(std::string_view uniq) {
 }
 
 } // namespace qcm
-
 
 auto qcm::gen_image_cache_entry(const QString& provider, const QUrl& url,
                                 QSize reqSize) -> std::optional<std::filesystem::path> {
@@ -152,4 +219,3 @@ auto qcm::media_cache_path_of(std::string_view id) -> std::filesystem::path {
     auto file            = media_cache_dir / gen_prefix(id) / id;
     return file;
 }
-

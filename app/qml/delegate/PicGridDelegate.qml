@@ -29,7 +29,7 @@ MD.Card {
             Layout.bottomMargin: 8
             Layout.fillWidth: true
 
-            MD.Text {
+            MD.Label {
                 id: label
                 Layout.fillWidth: true
                 text: root.text
@@ -37,13 +37,14 @@ MD.Card {
                 typescale: MD.Token.typescale.body_medium
             }
 
-            MD.Text {
+            MD.Label {
                 id: label_sub
                 Layout.alignment: Qt.AlignHCenter
                 text: root.subText
                 visible: !!text
                 opacity: 0.6
                 typescale: MD.Token.typescale.body_medium
+                maximumLineCount: 1
             }
         }
     }

@@ -8,16 +8,16 @@ import Qcm.Material as MD
 QA.GlobalWrapper {
     id: root
 
-    readonly property QA.t_song cur_song: QA.App.playlist.cur
+    readonly property QA.t_song cur_song: QA.App.playqueue.currentSong
 
-    readonly property string loop_icon: switch (QA.App.playlist.loopMode) {
-    case QA.Playlist.SingleLoop:
+    readonly property string loop_icon: switch (QA.App.playqueue.loopMode) {
+    case QA.enums.SingleLoop:
         return MD.Token.icon.repeat_one;
-    case QA.Playlist.ListLoop:
+    case QA.enums.ListLoop:
         return MD.Token.icon.loop;
-    case QA.Playlist.ShuffleLoop:
+    case QA.enums.ShuffleLoop:
         return MD.Token.icon.shuffle;
-    case QA.Playlist.NoneLoop:
+    case QA.enums.NoneLoop:
     default:
         return MD.Token.icon.trending_flat;
     }
@@ -25,7 +25,7 @@ QA.GlobalWrapper {
     property QtObject main_win: null
     property alias category: m_category
     property alias player: m_player
-    property QtObject playlist: QA.App.playlist
+    property QtObject playlist: QA.App.playqueue
 
     property string song_cover: ''
 
@@ -139,9 +139,13 @@ QA.GlobalWrapper {
     Connections {
         target: QA.Action
         function onPlay(url, reload) {
-            if(reload) m_player.source = '';
+            if (reload && m_player.source == Qt.url(url)) {
+                m_player.source = '';
+            }
             m_player.source = url;
-            if(url) m_player.play();
+            if (url) {
+                m_player.play();
+            }
         }
     }
 
@@ -161,7 +165,7 @@ QA.GlobalWrapper {
 
             if (p.playbackState === QA.enums.StoppedState && p.source) {
                 if (p.position / p.duration > 0.98) {
-                    root.playlist.next();
+                    root.playlist.next(root.playlist.loopMode);
                 }
             }
             if (p.playbackState !== QA.enums.StoppedState) {

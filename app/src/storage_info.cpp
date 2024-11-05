@@ -31,7 +31,7 @@ void StorageInfoQuerier::reload() {
         co_await asio::post(
             asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
 
-        auto d = static_cast<StorageInfo*>(data());
+        auto d = data().value<StorageInfo*>();
         d->setTotal(media_size + normal_size);
         set_status(Status::Finished);
     });

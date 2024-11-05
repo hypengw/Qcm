@@ -1,9 +1,12 @@
 #pragma once
 
 #include <asio/recycling_allocator.hpp>
+#include <asio/bind_executor.hpp>
+#include <asio/strand.hpp>
 
 #include "qcm_interface/async.h"
 #include "asio_helper/watch_dog.h"
+#include "asio_qt/qt_watcher.h"
 
 namespace qcm
 {

@@ -38,6 +38,7 @@
 #include "Qcm/qml_util.h"
 #include "Qcm/sql/collection_sql.h"
 #include "Qcm/sql/cache_sql.h"
+#include "Qcm/sql/item_sql.h"
 #include "Qcm/info.h"
 
 using namespace qcm;
@@ -141,7 +142,9 @@ App::App(std::monostate)
     : QObject(nullptr),
       m_global(make_rc<Global>()),
       m_util(make_rc<qml::Util>(std::monostate {})),
-      m_playlist(new qcm::Playlist(this)),
+      m_play_id_queue(new PlayIdQueue(this)),
+      m_playqueu(new qcm::PlayQueue(this)),
+      m_empty(new qcm::model::EmptyModel(this)),
 #ifndef NODEBUS
       m_mpris(make_up<mpris::Mpris>()),
 #endif
@@ -152,6 +155,7 @@ App::App(std::monostate)
     register_meta_type();
     connect_actions();
     { QGuiApplication::setDesktopFileName(APP_ID); }
+    m_playqueu->setSourceModel(m_play_id_queue);
     {
         auto fbs = make_rc<media_cache::Fallbacks>();
         m_media_cache =
@@ -169,10 +173,12 @@ App::App(std::monostate)
         auto data_db      = make_rc<helper::SqlConnect>(data_path() / "data.db", u"data");
         m_media_cache_sql = make_rc<CacheSql>("media_cache", 0, cache_db);
         m_cache_sql       = make_rc<CacheSql>("cache", 0, cache_db);
+        m_item_sql        = make_rc<ItemSql>(data_db);
         m_collect_sql     = make_rc<CollectionSql>("collection", data_db);
         m_global->set_cache_sql(m_cache_sql);
         m_global->set_metadata_impl(player::get_metadata);
         m_global->set_collection_sql(m_collect_sql);
+        m_global->set_album_sql(m_item_sql);
     }
 }
 App::~App() {
@@ -252,8 +258,13 @@ void App::init() {
 
     load_plugins();
 
-    // avoid listitem index reference error
-    engine->rootContext()->setContextProperty("index", 0);
+    // default delegate var
+    {
+        engine->rootContext()->setContextProperty("index", 0);
+        engine->rootContext()->setContextProperty("model", QVariant::fromValue(nullptr));
+        engine->rootContext()->setContextProperty("modelData", QVariant::fromValue(nullptr));
+    }
+
     engine->addImageProvider("qcm", new QcmImageProvider);
 
     engine->load(u"qrc:/main/main.qml"_s);
@@ -415,7 +426,7 @@ QString App::itemIdPageUrl(const QJSValue& js) const {
     } else if (type == "playlist") {
         return "qrc:/Qcm/App/qml/page/PlaylistDetailPage.qml";
     } else if (type == "djradio") {
-        return "qrc:/Qcm/App/qml/page/DjradioDetailPage.qml";
+        return "qrc:/Qcm/App/qml/page/RadioDetailPage.qml";
     }
     return {};
 }
@@ -423,12 +434,13 @@ QString App::itemIdPageUrl(const QJSValue& js) const {
 auto App::engine() const -> QQmlApplicationEngine* { return m_qml_engine.get(); }
 auto App::global() const -> Global* { return m_global.get(); }
 auto App::util() const -> qml::Util* { return m_util.get(); }
-auto App::playlist() const -> Playlist* { return m_playlist; }
+auto App::playqueue() const -> PlayQueue* { return m_playqueu; }
+auto App::play_id_queue() const -> PlayIdQueue* { return m_play_id_queue; }
 
 // #include <private/qquickpixmapcache_p.h>
 void App::releaseResources(QQuickWindow* win) {
     INFO_LOG("gc");
-    win->releaseResources();
+    // win->releaseResources();
     m_qml_engine->trimComponentCache();
     m_qml_engine->collectGarbage();
     // QQuickPixmap::purgeCache();
@@ -494,10 +506,22 @@ void App::set_player_sender(Sender<Player::NotifyInfo> sender) {
 
 auto App::media_cache_sql() const -> rc<CacheSql> { return m_media_cache_sql; }
 auto App::cache_sql() const -> rc<CacheSql> { return m_cache_sql; }
+auto App::album_sql() const -> rc<ItemSql> { return m_item_sql; }
+auto App::collect_sql() const -> rc<CollectionSql> { return m_collect_sql; }
+auto App::empty() const -> model::EmptyModel* { return m_empty; }
 
 void App::load_settings() {
     QSettings s;
-    playlist()->setLoopMode(s.value("play/loop").value<Playlist::LoopMode>());
+    playqueue()->setLoopMode(s.value("play/loop").value<enums::LoopMode>());
+    connect(playqueue(), &PlayQueue::loopModeChanged, this, [](enums::LoopMode v) {
+        QSettings s;
+        s.setValue("play/loop", (int)v);
+    });
+    playqueue()->setRandomMode(s.value("play/random").value<bool>());
+    connect(playqueue(), &PlayQueue::randomModeChanged, this, [](bool v) {
+        QSettings s;
+        s.setValue("play/random", v);
+    });
     // session proxy
     {
         auto type        = s.value("network/proxy_type").value<ProxyType>();
@@ -511,7 +535,7 @@ void App::load_settings() {
 }
 void App::save_settings() {
     QSettings s;
-    s.setValue("play/loop", playlist()->loopMode());
+    s.setValue("play/loop", (int)playqueue()->loopMode());
 }
 
 void qcm::register_meta_type() {}

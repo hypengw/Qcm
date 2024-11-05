@@ -70,7 +70,7 @@ void CacheSql::set_limit(i64 limit) {
 
 void CacheSql::set_clean_cb(clean_cb_t f) { m_clean_cb = std::move(f); }
 
-asio::awaitable<std::optional<CacheSql::Item>> CacheSql::get(std::string key) {
+task<std::optional<CacheSql::Item>> CacheSql::get(std::string key) {
     co_await asio::post(asio::bind_executor(get_qexecutor(), asio::use_awaitable));
     {
         QSqlQuery q = m_con->query();
@@ -98,7 +98,7 @@ asio::awaitable<std::optional<CacheSql::Item>> CacheSql::get(std::string key) {
     co_return std::nullopt;
 }
 
-asio::awaitable<void> CacheSql::insert(Item item) {
+task<void> CacheSql::insert(Item item) {
     co_await asio::post(asio::bind_executor(get_qexecutor(), asio::use_awaitable));
     {
         QSqlQuery q = m_con->query();
@@ -119,7 +119,7 @@ asio::awaitable<void> CacheSql::insert(Item item) {
     co_return;
 }
 
-asio::awaitable<void> CacheSql::remove(std::string key) {
+task<void> CacheSql::remove(std::string key) {
     co_await asio::post(asio::bind_executor(get_qexecutor(), asio::use_awaitable));
     {
         QSqlQuery q = m_con->query();
@@ -130,7 +130,7 @@ asio::awaitable<void> CacheSql::remove(std::string key) {
     co_return;
 }
 
-asio::awaitable<void> CacheSql::remove(std::span<std::string> keys) {
+task<void> CacheSql::remove(std::span<std::string> keys) {
     co_await asio::post(asio::bind_executor(get_qexecutor(), asio::use_awaitable));
     {
         QSqlQuery   q = m_con->query();
@@ -150,7 +150,7 @@ asio::awaitable<void> CacheSql::remove(std::span<std::string> keys) {
     co_return;
 }
 
-asio::awaitable<std::optional<CacheSql::Item>> CacheSql::lru() {
+task<std::optional<CacheSql::Item>> CacheSql::lru() {
     co_await asio::post(asio::bind_executor(get_qexecutor(), asio::use_awaitable));
     {
         QSqlQuery q = m_con->query();
@@ -178,12 +178,12 @@ usize CacheSql::total_size_sync() {
     return 0;
 }
 
-asio::awaitable<usize> CacheSql::total_size() {
+task<usize> CacheSql::total_size() {
     co_await asio::post(asio::bind_executor(get_qexecutor(), asio::use_awaitable));
     co_return total_size_sync();
 }
 
-asio::awaitable<std::vector<CacheSql::Item>> CacheSql::get_all() {
+task<std::vector<CacheSql::Item>> CacheSql::get_all() {
     co_await asio::post(asio::bind_executor(get_qexecutor(), asio::use_awaitable));
     std::vector<CacheSql::Item> out;
     {
@@ -198,7 +198,7 @@ asio::awaitable<std::vector<CacheSql::Item>> CacheSql::get_all() {
     co_return out;
 }
 
-asio::awaitable<void> CacheSql::try_clean() {
+task<void> CacheSql::try_clean() {
     co_await asio::post(asio::bind_executor(get_qexecutor(), asio::use_awaitable));
     m_total    = co_await total_size();
     auto limit = m_limit * 0.9;
@@ -217,7 +217,7 @@ void CacheSql::trigger_try_clean() {
     auto self = shared_from_this();
     asio::co_spawn(
         get_qexecutor(),
-        [self]() -> asio::awaitable<void> {
+        [self]() -> task<void> {
             co_await self->try_clean();
             co_return;
         },

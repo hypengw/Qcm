@@ -3,7 +3,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Qcm.App as QA
-import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 MD.Page {
@@ -50,7 +49,7 @@ MD.Page {
                     }
 
                     MD.TabButton {
-                        text: qsTr("Playlist")
+                        text: qsTr("Mix")
                     }
                     MD.TabButton {
                         text: qsTr("Album")
@@ -59,7 +58,7 @@ MD.Page {
                         text: qsTr("Artist")
                     }
                     MD.TabButton {
-                        text: qsTr("Djradio")
+                        text: qsTr("Radio")
                     }
                 }
                 StackLayout {
@@ -75,10 +74,6 @@ MD.Page {
                         }
 
                         Connections {
-                            function onCollected() {
-                                view_playlist.dirty = true;
-                            }
-
                             function onPlaylistChanged() {
                                 view_playlist.dirty = true;
                             }
@@ -103,7 +98,7 @@ MD.Page {
                             action: Action {
                                 icon.name: MD.Token.icon.add
                                 onTriggered: {
-                                    QA.Action.popup_page('qrc:/Qcm/App/qml/page/PlaylistCreatePage.qml', {});
+                                    MD.Util.show_popup('qrc:/Qcm/App/qml/dialog/MixCreateDialog.qml', {}, root.Overlay.overlay)
                                 }
                             }
                         }
@@ -157,25 +152,26 @@ MD.Page {
                         }
                     }
                 }
-                QNcm.AlbumSublistQuerier {
+                QA.AlbumCollectionQuery {
                     id: qr_albumlist
-                    autoReload: limit > 0
+                    Component.onCompleted: reload()
                 }
-                QNcm.ArtistSublistQuerier {
+                QA.ArtistCollectionQuery {
                     id: qr_artistlist
-                    autoReload: limit > 0
+                    Component.onCompleted: reload()
                 }
-                QNcm.UserPlaylistQuerier {
+                QA.PlaylistCollectionQuery {
                     id: qr_playlist
-                    autoReload: uid.valid() && limit > 0
-                    limit: 30
-                    Component.onCompleted: {
-                        uid = QA.Global.session.user.userId;
-                    }
+                    //autoReload: uid.valid() && limit > 0
+                    //limit: 30
+                    //Component.onCompleted: {
+                    //    uid = QA.Global.session.user.userId;
+                    //}
+                    Component.onCompleted: reload()
                 }
-                QNcm.DjradioSublistQuerier {
+                QA.DjradioCollectionQuery {
                     id: qr_djradiolist
-                    autoReload: limit > 0
+                    Component.onCompleted: reload()
                 }
                 Component {
                     id: dg_albumlist
@@ -185,7 +181,7 @@ MD.Page {
                         supportText: `${QA.Global.join_name(model.artists, '/')} - ${model.trackCount} tracks`
                         function showMenu(parent) {
                             MD.Util.show_popup('qrc:/Qcm/App/qml/menu/AlbumMenu.qml', {
-                                "album": QA.Util.create_album(model),
+                                "itemId": model.itemId,
                                 "y": parent.height
                             }, parent);
                         }
@@ -196,10 +192,10 @@ MD.Page {
                     BaseItem {
                         image: QA.Util.image_url(model.picUrl)
                         text: model.name
-                        supportText: `${model.albumSize} albums`
+                        supportText: `${model.albumCount} albums`
                         function showMenu(parent) {
                             MD.Util.show_popup('qrc:/Qcm/App/qml/menu/ArtistMenu.qml', {
-                                "artist": QA.Util.create_artist(model),
+                                "itemId": model.itemId,
                                 "y": parent.height
                             }, parent);
                         }
@@ -212,8 +208,9 @@ MD.Page {
                         text: model.name
                         supportText: `${model.trackCount} songs`
                         function showMenu(parent) {
-                            MD.Util.show_popup('qrc:/Qcm/App/qml/menu/PlaylistMenu.qml', {
-                                "playlist": QA.Util.create_playlist(model),
+                            MD.Util.show_popup('qrc:/Qcm/App/qml/menu/MixMenu.qml', {
+                                "itemId": model.itemId,
+                                "userId": model.userId,
                                 "y": parent.height
                             }, parent);
                         }
@@ -226,8 +223,8 @@ MD.Page {
                         text: model.name
                         supportText: `${model.programCount} programs`
                         function showMenu(parent) {
-                            MD.Util.show_popup('qrc:/Qcm/App/qml/menu/DjradioMenu.qml', {
-                                "djradio": QA.Util.create_djradio(model),
+                            MD.Util.show_popup('qrc:/Qcm/App/qml/menu/RadioMenu.qml', {
+                                "itemId": model.itemId,
                                 "y": parent.height
                             }, parent);
                         }

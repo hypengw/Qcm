@@ -8,8 +8,19 @@ import Qcm.Material as MD
 MD.ListItem {
     id: root
 
-    readonly property bool isPlaying: QA.App.playlist.cur.itemId === dgModel.itemId
-    property QA.t_song dgModel: modelData
+    readonly property bool isPlaying: QA.Global.cur_song.itemId === dgModel.itemId
+    property var dgModel: {
+        // bind visible
+        if (visible) {
+            if (typeof modelData?.objectName == 'string') {
+                return modelData;
+            }
+            if (model) {
+                return model;
+            }
+        }
+        return QA.App.empty.song;
+    }
     property string subtitle: ''
     property bool showCover: false
     readonly property int coverSize: 48
@@ -66,7 +77,7 @@ MD.ListItem {
                     id: m_comp_song_image
                     QA.Image {
                         radius: 8
-                        source: QA.Util.image_url(root.dgModel.album.picUrl)
+                        source: QA.Util.image_url(root.dgModel?.album.picUrl ?? root.dgModel.coverUrl)
                         displaySize: Qt.size(48, 48)
                     }
                 }

@@ -1,7 +1,6 @@
 import QtQuick
 
 import Qcm.App as QA
-import Qcm.Service.Ncm as QNcm
 
 Item {
     required property QtObject playlist
@@ -27,17 +26,17 @@ Item {
             });
         mpris.loopStatus = Qt.binding(() => {
                 switch (playlist.loopMode) {
-                case QA.Playlist.NoneLoop:
+                case QA.enums.NoneLoop:
                     return QA.MprisMediaPlayer.None;
-                case QA.Playlist.SingleLoop:
+                case QA.enums.SingleLoop:
                     return QA.MprisMediaPlayer.Track;
-                case QA.Playlist.ListLoop:
-                case QA.Playlist.ShuffleLoop:
+                case QA.enums.ListLoop:
+                case QA.enums.ShuffleLoop:
                     return QA.MprisMediaPlayer.Playlist;
                 }
             });
         mpris.shuffle = Qt.binding(() => {
-                return playlist.loopMode === QA.Playlist.ShuffleLoop;
+                return playlist.loopMode === QA.enums.ShuffleLoop;
             });
         mpris.volume = Qt.binding(() => {
                 return 1.0;
@@ -58,7 +57,7 @@ Item {
         const key = QA.App.mpris.metakey;
         mpris.metadata = Qt.binding(() => {
                 const meta = {};
-                const song = playlist.cur;
+                const song = playlist.currentSong;
 
                 meta[key(QA.MprisMediaPlayer.MetaTrackId)] = QA.Util.mpris_trackid(song.itemId);
                 if (root.song_cover)
@@ -88,21 +87,21 @@ Item {
         mpris.loopStatusRequested.connect(s => {
                 switch (s) {
                 case QA.MprisMediaPlayer.None:
-                    playlist.loopMode = QA.Playlist.NoneLoop;
+                    playlist.loopMode = QA.enums.NoneLoop;
                     break;
                 case QA.MprisMediaPlayer.Track:
-                    playlist.loopMode = QA.Playlist.SingleLoop;
+                    playlist.loopMode = QA.enums.SingleLoop;
                     break;
                 case QA.MprisMediaPlayer.Playlist:
-                    playlist.loopMode = QA.Playlist.ListLoop;
+                    playlist.loopMode = QA.enums.ListLoop;
                     break;
                 }
             });
         mpris.shuffleRequested.connect(shuffle => {
                 if (shuffle)
-                    playlist.loopMode = QA.Playlist.ShuffleLoop;
+                    playlist.loopMode = QA.enums.ShuffleLoop;
                 else
-                    playlist.loopMode = QA.Playlist.ListLoop;
+                    playlist.loopMode = QA.enums.ListLoop;
             });
         mpris.setPositionRequested.connect((_, pos) => {
                 player.position = pos / 1000;

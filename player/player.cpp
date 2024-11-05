@@ -32,7 +32,7 @@ Player::Private::Private(std::string_view name, Notifier notifier, executor_type
             while (! m_end) {
                 auto [ec, info] =
                     co_await channel->async_receive(asio::as_tuple(asio::use_awaitable));
-                if (! ec) {
+                if (! ec && ! m_end) {
                     this->m_notifier.try_send(notify::busy { true });
                     u32 id = std::visit(overloaded {
                                             [this](action::play a) {
