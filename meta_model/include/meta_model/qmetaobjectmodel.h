@@ -99,13 +99,19 @@ public:
         endInsertRows();
     }
 
+    void update(int idx, const value_type& val) {
+        auto& item = crtp_impl().at(idx);
+        item       = val;
+        dataChanged(index(idx, 0), index(idx, 0));
+    }
+
     void remove(int index, int size = 1) {
         if (size < 1) return;
         removeRows(index, size);
     }
-    auto removeRows(int row, int count, const QModelIndex& = {}) -> bool override {
+    auto removeRows(int row, int count, const QModelIndex& parent = {}) -> bool override {
         if (count < 1) return false;
-        beginRemoveRows({}, row, row + count - 1);
+        beginRemoveRows(parent, row, row + count - 1);
         crtp_impl().erase_impl(row, row + count);
         endRemoveRows();
         return true;

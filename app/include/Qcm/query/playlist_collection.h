@@ -74,7 +74,7 @@ public:
 SELECT 
     itemId
 FROM collection
-WHERE userId = :userId AND type = "playlist" AND itemId NOT IN (SELECT itemId FROM playlist);
+WHERE userId = :userId AND type = "playlist" AND itemId NOT IN (SELECT itemId FROM playlist) AND removed = 0;
 )"_s);
         query.bindValue(":userId", user_id.toUrl());
 
@@ -99,7 +99,7 @@ SELECT
     collection.collectTime 
 FROM playlist 
 JOIN collection ON playlist.itemId = collection.itemId
-WHERE collection.userId = :userId AND collection.type = "playlist" AND collection.collectTime > :time
+WHERE collection.userId = :userId AND collection.type = "playlist" AND collection.collectTime > :time AND removed = 0
 GROUP BY playlist.itemId
 ORDER BY collection.collectTime DESC;
 )"_s.arg(model::Playlist::Select));
@@ -150,19 +150,34 @@ ORDER BY collection.collectTime DESC;
                 });
 
                 for (auto& el : items) {
-                    auto it = std::lower_bound(
-                        t->begin(), t->end(), el, [userId](const auto& el, const auto& val) {
-                            auto left_is_user  = el.userId == userId;
-                            auto right_is_user = val.userId == userId;
-                            if (left_is_user && ! right_is_user) {
-                                return true;
-                            } else if (! left_is_user && right_is_user) {
-                                return false;
-                            } else {
-                                return el.subTime > val.subTime;
-                            }
+                    {
+                        auto it = std::find_if(t->begin(), t->end(), [&el](const auto& sub) {
+                            return sub.id == el.id;
                         });
-                    t->insert(std::distance(t->begin(), it), el);
+
+                        if (it != t->end()) {
+                            t->update(std::distance(t->begin(), it), el);
+                            continue;
+                        }
+                    }
+                    {
+                        auto it = std::lower_bound(
+                            t->begin(),
+                            t->end(),
+                            el,
+                            [userId](const PlaylistCollectionItem& el, const auto& val) {
+                                auto left_is_user  = el.userId == userId;
+                                auto right_is_user = val.userId == userId;
+                                if (left_is_user && ! right_is_user) {
+                                    return true;
+                                } else if ((! left_is_user && right_is_user)) {
+                                    return false;
+                                } else {
+                                    return el.subTime > val.subTime;
+                                }
+                            });
+                        t->insert(std::distance(t->begin(), it), el);
+                    }
                 }
                 self->set_status(Status::Finished);
             }

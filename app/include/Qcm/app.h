@@ -139,7 +139,6 @@ public:
     Q_SIGNAL void playlistCreated();
     Q_SIGNAL void playlistDeleted();
     Q_SIGNAL void playlistChanged();
-    Q_SIGNAL void collected(model::ItemId, bool);
 
     Q_SLOT void releaseResources(QQuickWindow*);
     Q_SLOT void triggerCacheLimit();

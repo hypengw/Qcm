@@ -297,11 +297,11 @@ void App::on_collect(model::ItemId id, bool act) {
                     auto item = db::ColletionSqlBase::Item::from(user->userId(), id);
                     if (act) {
                         user->insert(id);
-                        App::instance()->collected(id, true);
+                        Notifier::instance()->collected(id, true);
                         co_await sql->insert(std::array { item });
                     } else {
                         user->remove(id);
-                        App::instance()->collected(id, false);
+                        Notifier::instance()->collected(id, false);
                         co_await sql->remove(user->userId(), id);
                     }
                 }

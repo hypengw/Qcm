@@ -74,10 +74,6 @@ MD.Page {
                         }
 
                         Connections {
-                            function onCollected() {
-                                view_playlist.dirty = true;
-                            }
-
                             function onPlaylistChanged() {
                                 view_playlist.dirty = true;
                             }
