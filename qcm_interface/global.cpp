@@ -81,6 +81,7 @@ Global::Private::Private(Global* p)
       qsession(nullptr),
       qsession_empty(new model::Session(p)),
       action(new Action(p)),
+      notifier(new Notifier(p)),
       user_model(nullptr),
       copy_action_comp(nullptr),
       app_state(new state::AppState(p)) {
@@ -124,6 +125,10 @@ auto Global::info() const -> const model::AppInfo& {
 auto Global::action() const -> Action* {
     C_D(const Global);
     return d->action;
+}
+auto Global::notifier() const -> Notifier* {
+    C_D(const Global);
+    return d->notifier;
 }
 
 auto Global::busy_info() const -> model::BusyInfo* {

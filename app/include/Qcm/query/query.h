@@ -85,14 +85,22 @@ private:
 template<typename T, typename Base = detail::QueryBase>
 class Query : public Base {
 public:
-    Query(QObject* parent = nullptr): Base(parent), m_data(new T(this)) {}
+    Query(QObject* parent = nullptr): Base(parent), m_data(new T(this)) { record(); }
     ~Query() {}
 
     auto data() const -> QVariant override { return QVariant::fromValue(m_data); }
     auto tdata() const -> T* { return m_data; }
 
+    auto last() const -> const QDateTime& { return m_last; }
+    auto record() {
+        auto old = m_last;
+        m_last   = QDateTime::currentDateTimeUtc();
+        return old;
+    }
+
 private:
-    T* m_data;
+    T*        m_data;
+    QDateTime m_last;
 };
 
 template<typename T>

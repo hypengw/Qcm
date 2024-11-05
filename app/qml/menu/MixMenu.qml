@@ -6,7 +6,7 @@ import Qcm.Material as MD
 MD.Menu {
     id: root
 
-    required property QA.t_id itemId 
+    required property QA.t_id itemId
     required property QA.t_id userId
     readonly property bool isUserPlaylist: QA.Global.session.user.userId === root.userId
 
@@ -19,6 +19,7 @@ MD.Menu {
     }
 
     QA.CollectAction {
+        enabled: !root.isUserPlaylist
         itemId: root.itemId
     }
 
@@ -27,17 +28,11 @@ MD.Menu {
         icon.name: MD.Token.icon.delete
         text: qsTr('delete')
         onTriggered: {
-            qr_delete.itemIds = [root.itemId];
-            qr_delete.query();
+            m_query_delete.itemIds = [root.itemId];
+            m_query_delete.reload();
         }
     }
-
-    ///QNcm.PlaylistDeleteQuerier {
-    ///    id: qr_delete
-    ///    autoReload: false
-    ///    onStatusChanged: {
-    ///        if (status === QA.enums.Finished)
-    ///            QA.App.playqueueDeleted();
-    ///    }
-    ///}
+    QA.MixDeleteQuery {
+        id: m_query_delete
+    }
 }

@@ -27,9 +27,9 @@ ItemSql::ItemSql(rc<helper::SqlConnect> con)
       m_song_artist_table("song_artist"),
       m_playlist_table("playlist"),
       m_playlist_song_table("playlist_song"),
-      m_djradio_table("djradio"),
+      m_radio_table("djradio"),
       m_program_table("program"),
-      m_djradio_program_table("djradio_program"),
+      m_radio_program_table("djradio_program"),
       m_con(con) {
     asio::dispatch(m_con->get_executor(), [this] {
         create_album_table();
@@ -39,9 +39,9 @@ ItemSql::ItemSql(rc<helper::SqlConnect> con)
         create_song_artist_table();
         create_playlist_table();
         create_playlist_song_table();
-        create_djradio_table();
+        create_radio_table();
         create_program_table();
-        create_djradio_program_table();
+        create_radio_program_table();
     });
 }
 ItemSql::~ItemSql() {}
@@ -49,10 +49,10 @@ ItemSql::~ItemSql() {}
 void ItemSql::create_album_table() {
     m_con->db().transaction();
 
-    auto migs = m_con->generate_column_migration(m_album_table,
-                                                 u"itemId",
-                                                 model::Album::staticMetaObject,
-                                                 std::array { "full INTEGER DEFAULT 0"sv });
+    auto migs = m_con->generate_meta_migration(m_album_table,
+                                               u"itemId",
+                                               model::Album::staticMetaObject,
+                                               std::array { "full INTEGER DEFAULT 0"s });
 
     QSqlQuery q = m_con->query();
 
@@ -71,10 +71,10 @@ void ItemSql::create_album_table() {
 void ItemSql::create_artist_table() {
     m_con->db().transaction();
 
-    auto migs = m_con->generate_column_migration(m_artist_table,
-                                                 u"itemId",
-                                                 model::Artist::staticMetaObject,
-                                                 std::array { "full INTEGER DEFAULT 0"sv });
+    auto migs = m_con->generate_meta_migration(m_artist_table,
+                                               u"itemId",
+                                               model::Artist::staticMetaObject,
+                                               std::array { "full INTEGER DEFAULT 0"s });
 
     QSqlQuery q = m_con->query();
 
@@ -93,11 +93,11 @@ void ItemSql::create_artist_table() {
 void ItemSql::create_song_table() {
     m_con->db().transaction();
 
-    auto migs = m_con->generate_column_migration(m_song_table,
-                                                 u"itemId",
-                                                 model::Song::staticMetaObject,
-                                                 std::array { "full INTEGER DEFAULT 0"sv },
-                                                 get_song_ignore());
+    auto migs = m_con->generate_meta_migration(m_song_table,
+                                               u"itemId",
+                                               model::Song::staticMetaObject,
+                                               std::array { "full INTEGER DEFAULT 0"s },
+                                               get_song_ignore());
 
     QSqlQuery q = m_con->query();
 
@@ -116,10 +116,10 @@ void ItemSql::create_song_table() {
 void ItemSql::create_playlist_table() {
     m_con->db().transaction();
 
-    auto migs = m_con->generate_column_migration(m_playlist_table,
-                                                 u"itemId",
-                                                 model::Playlist::staticMetaObject,
-                                                 std::array { "full INTEGER DEFAULT 0"sv });
+    auto migs = m_con->generate_meta_migration(m_playlist_table,
+                                               u"itemId",
+                                               model::Playlist::staticMetaObject,
+                                               std::array { "full INTEGER DEFAULT 0"s });
 
     QSqlQuery q = m_con->query();
 
@@ -135,13 +135,13 @@ void ItemSql::create_playlist_table() {
     }
 }
 
-void ItemSql::create_djradio_table() {
+void ItemSql::create_radio_table() {
     m_con->db().transaction();
 
-    auto migs = m_con->generate_column_migration(m_djradio_table,
-                                                 u"itemId",
-                                                 model::Djradio::staticMetaObject,
-                                                 std::array { "full INTEGER DEFAULT 0"sv });
+    auto migs = m_con->generate_meta_migration(m_radio_table,
+                                               u"itemId",
+                                               model::Djradio::staticMetaObject,
+                                               std::array { "full INTEGER DEFAULT 0"s });
 
     QSqlQuery q = m_con->query();
 
@@ -160,10 +160,10 @@ void ItemSql::create_djradio_table() {
 void ItemSql::create_program_table() {
     m_con->db().transaction();
 
-    auto migs = m_con->generate_column_migration(m_program_table,
-                                                 u"itemId",
-                                                 model::Program::staticMetaObject,
-                                                 std::array { "full INTEGER DEFAULT 0"sv });
+    auto migs = m_con->generate_meta_migration(m_program_table,
+                                               u"itemId",
+                                               model::Program::staticMetaObject,
+                                               std::array { "full INTEGER DEFAULT 0"s });
 
     QSqlQuery q = m_con->query();
 
@@ -182,18 +182,14 @@ void ItemSql::create_program_table() {
 void ItemSql::create_album_artist_table() {
     m_con->db().transaction();
 
-    auto migs = m_con->generate_column_migration(m_album_artist_table,
-                                                 uR"(
-CREATE TABLE IF NOT EXISTS %1 (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    albumId TEXT NOT NULL,
-    artistId TEXT NOT NULL,
-    %2,
-    UNIQUE(albumId, artistId)
-);
-)"_s.arg(m_album_artist_table)
-                                                     .arg(m_con->EditTimeColumnQSV),
-                                                 std::array { "id"s, "albumId"s, "artistId"s });
+    auto migs = m_con->generate_column_migration(
+        m_album_artist_table,
+        std::array {
+            helper::SqlColumn { .name = "albumId", .type = "TEXT", .notnull = 1 },
+            helper::SqlColumn { .name = "artistId", .type = "TEXT", .notnull = 1 },
+            m_con->EditTimeColumn,
+        },
+        std::array { "UNIQUE(albumId, artistId)"s });
 
     QSqlQuery q = m_con->query();
 
@@ -211,19 +207,14 @@ CREATE TABLE IF NOT EXISTS %1 (
 
 void ItemSql::create_song_artist_table() {
     m_con->db().transaction();
-
-    auto migs = m_con->generate_column_migration(m_song_artist_table,
-                                                 uR"(
-CREATE TABLE IF NOT EXISTS %1 (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    songId TEXT NOT NULL,
-    artistId TEXT NOT NULL,
-    %2,
-    UNIQUE(songId, artistId)
-);
-)"_s.arg(m_song_artist_table)
-                                                     .arg(m_con->EditTimeColumnQSV),
-                                                 std::array { "id"s, "songId"s, "artistId"s });
+    auto migs = m_con->generate_column_migration(
+        m_song_artist_table,
+        std::array {
+            helper::SqlColumn { .name = "songId", .type = "TEXT", .notnull = 1 },
+            helper::SqlColumn { .name = "artistId", .type = "TEXT", .notnull = 1 },
+            m_con->EditTimeColumn,
+        },
+        std::array { "UNIQUE(songId, artistId)"s });
 
     QSqlQuery q = m_con->query();
 
@@ -242,19 +233,15 @@ CREATE TABLE IF NOT EXISTS %1 (
 void ItemSql::create_playlist_song_table() {
     m_con->db().transaction();
 
-    auto migs = m_con->generate_column_migration(m_playlist_song_table,
-                                                 uR"(
-CREATE TABLE IF NOT EXISTS %1 (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    songId TEXT NOT NULL,
-    playlistId TEXT NOT NULL,
-    orderIdx INTEGER,
-    %2,
-    UNIQUE(songId, playlistId)
-);
-)"_s.arg(m_playlist_song_table)
-                                                     .arg(m_con->EditTimeColumnQSV),
-                                                 std::array { "id"s, "songId"s, "playlistId"s });
+    auto migs = m_con->generate_column_migration(
+        m_playlist_song_table,
+        std::array {
+            helper::SqlColumn { .name = "songId", .type = "TEXT", .notnull = 1 },
+            helper::SqlColumn { .name = "playlistId", .type = "TEXT", .notnull = 1 },
+            helper::SqlColumn { .name = "orderIdx", .type = "INTEGER" },
+            m_con->EditTimeColumn,
+        },
+        std::array { "UNIQUE(songId, playlistId)"s });
 
     QSqlQuery q = m_con->query();
 
@@ -269,21 +256,17 @@ CREATE TABLE IF NOT EXISTS %1 (
         ERROR_LOG("{}", m_con->error_str());
     }
 }
-void ItemSql::create_djradio_program_table() {
+void ItemSql::create_radio_program_table() {
     m_con->db().transaction();
 
-    auto migs = m_con->generate_column_migration(m_djradio_program_table,
-                                                 uR"(
-CREATE TABLE IF NOT EXISTS %1 (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    djradioId TEXT NOT NULL,
-    programId TEXT NOT NULL,
-    %2,
-    UNIQUE(djradioId, programId)
-);
-)"_s.arg(m_djradio_program_table)
-                                                     .arg(m_con->EditTimeColumnQSV),
-                                                 std::array { "id"s, "djradioId"s, "programId"s });
+    auto migs = m_con->generate_column_migration(
+        m_radio_program_table,
+        std::array {
+            helper::SqlColumn { .name = "djradioId", .type = "TEXT", .notnull = 1 },
+            helper::SqlColumn { .name = "programId", .type = "TEXT", .notnull = 1 },
+            m_con->EditTimeColumn,
+        },
+        std::array { "UNIQUE(djradioId, programId)"s });
 
     QSqlQuery q = m_con->query();
 
@@ -409,7 +392,7 @@ auto ItemSql::insert(std::span<const model::Playlist> items,
 auto ItemSql::insert(std::span<const model::Djradio> items,
                      const std::set<std::string>&    on_update) -> task<bool> {
     DEBUG_LOG("start insert djradio, {}", items.size());
-    auto insert_helper = m_con->generate_insert_helper(m_djradio_table,
+    auto insert_helper = m_con->generate_insert_helper(m_radio_table,
                                                        u"itemId"_s,
                                                        model::Djradio::staticMetaObject,
                                                        items,
@@ -434,13 +417,14 @@ auto ItemSql::insert(std::span<const model::Djradio> items,
 auto ItemSql::insert(std::span<const model::Program> items,
                      const std::set<std::string>&    on_update) -> task<bool> {
     DEBUG_LOG("start insert program, {}", items.size());
-    auto insert_helper = m_con->generate_insert_helper(
-        m_program_table,
-        u"itemId"_s,
-        model::Program::staticMetaObject,
-        items,
-        on_update,
-        { { u"itemId"_s, item_id_converter }, { u"songId"_s, item_id_converter }, { u"radioId"_s, item_id_converter } });
+    auto insert_helper = m_con->generate_insert_helper(m_program_table,
+                                                       u"itemId"_s,
+                                                       model::Program::staticMetaObject,
+                                                       items,
+                                                       on_update,
+                                                       { { u"itemId"_s, item_id_converter },
+                                                         { u"songId"_s, item_id_converter },
+                                                         { u"radioId"_s, item_id_converter } });
 
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
 
@@ -508,7 +492,7 @@ INSERT OR IGNORE INTO %1 (songId, artistId) VALUES (:songId, :artistId);
     co_return true;
 }
 
-auto ItemSql::insert_djradio_program(std::span<const IdPair> ids) -> task<bool> {
+auto ItemSql::insert_radio_program(std::span<const IdPair> ids) -> task<bool> {
     QVariantList djradioIds, programIds;
     for (auto& el : ids) {
         djradioIds << std::get<0>(el).toUrl();
@@ -632,13 +616,13 @@ auto ItemSql::table_name(Table t) const -> QStringView {
     case Table::PLAYLIST: return m_playlist_table;
     case Table::ARTIST: return m_artist_table;
     case Table::SONG_ARTIST: return m_song_artist_table;
-    case Table::DJRADIO: return m_djradio_table;
+    case Table::DJRADIO: return m_radio_table;
     }
     _assert_rel_(false);
     return {};
 }
 auto ItemSql::clean(const QDateTime& before, Table table) -> task<void> {
-    auto cur = QDateTime::currentDateTime();
+    auto cur = QDateTime::currentDateTimeUtc();
 
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
     auto query = m_con->query();

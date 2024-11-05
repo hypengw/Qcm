@@ -64,6 +64,7 @@ set(QCM_INTERFACE_HEADER
     include/qcm_interface/enum.h
     include/qcm_interface/global.h
     include/qcm_interface/action.h
+    include/qcm_interface/notifier.h
     include/qcm_interface/model.h
     include/qcm_interface/item_id.h
     include/qcm_interface/model/plugin_model.h

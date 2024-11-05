@@ -28,23 +28,19 @@ auto CollectionSql::con() const -> rc<helper::SqlConnect> { return m_con; }
 
 void CollectionSql::connect_db() {
     if (m_con->is_open()) {
-        auto    q           = m_con->query();
-        QString createTable = QStringLiteral(R"(
-    CREATE TABLE IF NOT EXISTS %1 (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        userId TEXT NOT NULL,
-        type TEXT NOT NULL,
-        itemId TEXT NOT NULL,
-        collectTime DATETIME DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(userId, itemId)
-    )
-)")
-                                  .arg(m_table);
-
+        auto q    = m_con->query();
         auto migs = m_con->generate_column_migration(
             m_table,
-            createTable,
-            std::array { "id"s, "userId"s, "type"s, "itemId"s, "collectTime"s });
+            std::array {
+                helper::SqlColumn { .name = "userId", .type = "TEXT", .notnull = 1 },
+                helper::SqlColumn { .name = "type", .type = "TEXT", .notnull = 1 },
+                helper::SqlColumn { .name = "itemId", .type = "TEXT", .notnull = 1 },
+                helper::SqlColumn { .name       = "collectTime",
+                                    .type       = "DATETIME",
+                                    .dflt_value = "STRFTIME('%Y-%m-%dT%H:%M:%S.000Z', 'now')" },
+                helper::SqlColumn { .name = "removed", .type = "INTEGER", .dflt_value = "0" },
+            },
+            std::array { "UNIQUE(userId, itemId)"s });
 
         for (auto& el : migs) {
             if (! q.exec(el)) {
@@ -60,19 +56,57 @@ auto CollectionSql::insert(std::span<const Item> items) -> task<bool> {
 }
 auto CollectionSql::remove(model::ItemId userId, model::ItemId itemId) -> task<bool> {
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
-    co_return remove_sync(userId, itemId);
+    co_return remove_sync(userId, std::array { itemId });
 }
-auto CollectionSql::select_id(model::ItemId userId, QString) -> task<std::vector<model::ItemId>> {
+
+auto CollectionSql::remove(model::ItemId                  user_id,
+                           std::span<const model::ItemId> ids) -> task<bool> {
+    co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
+    co_return remove_sync(user_id, ids);
+}
+
+auto CollectionSql::select_id(model::ItemId userId,
+                              QString       type) -> task<std::vector<model::ItemId>> {
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
 
-    auto query = m_con->query();
-    query.prepare(QStringLiteral("SELECT itemId FROM %1 WHERE userId = :userId").arg(m_table));
+    auto    query = m_con->query();
+    QString cond;
+    if (! type.isEmpty()) {
+        cond = "AND type = :type";
+    }
+    query.prepare(u"SELECT itemId FROM %1 WHERE userId = :userId %2"_s.arg(m_table).arg(cond));
     query.bindValue(":userId", userId.toUrl());
+    if (! type.isEmpty()) {
+        query.bindValue(":type", type);
+    }
 
     std::vector<model::ItemId> out;
     if (query.exec()) {
         while (query.next()) {
             out.emplace_back(model::ItemId(query.value("itemId").toString()));
+        }
+    } else {
+        ERROR_LOG("{}", query.lastError().text());
+    }
+    co_return out;
+}
+auto CollectionSql::select_removed(model::ItemId user_id, const QString& type,
+                                   const QDateTime& time) -> task<std::vector<model::ItemId>> {
+    co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
+
+    auto query = m_con->query();
+    query.prepare(
+        uR"(SELECT itemId FROM %1 WHERE userId = :userId AND type = :type AND collectTime >= :time AND removed = 1;)"_s
+            .arg(m_table));
+    query.bindValue(":userId", user_id.toUrl());
+    query.bindValue(":type", type);
+    query.bindValue(":time", time.toUTC().addSecs(-1));
+
+    std::vector<model::ItemId> out;
+    if (query.exec()) {
+        while (query.next()) {
+            auto id = model::ItemId(query.value("itemId").toString());
+            out.emplace_back(id);
         }
     } else {
         ERROR_LOG("{}", query.lastError().text());
@@ -89,7 +123,8 @@ auto CollectionSql::refresh(model::ItemId userId, QString type,
         co_return false;
     }
 
-    if (! un_valid(userId, type) || ! insert_sync(userId, itemIds, times) || ! clean_not_valid()) {
+    if (! remove_sync(userId, type) || ! insert_sync(userId, itemIds, times) ||
+        ! delete_removed()) {
         m_con->db().rollback();
         co_return false;
     }
@@ -105,8 +140,13 @@ auto CollectionSql::refresh(model::ItemId userId, QString type,
 bool CollectionSql::insert_sync(std::span<const Item> items) {
     auto query = m_con->query();
     query.prepare(QStringLiteral(R"(
-    INSERT INTO %1 (userId, type, itemId, collectTime)
-    VALUES (:userId, :type, :itemId, :collectTime)
+INSERT INTO %1 (userId, type, itemId, collectTime)
+VALUES (:userId, :type, :itemId, :collectTime)
+ON CONFLICT(userId, itemId) DO UPDATE
+SET 
+type = :type,
+collectTime = :collectTime,
+removed = 0;
 )")
                       .arg(m_table));
 
@@ -114,7 +154,8 @@ bool CollectionSql::insert_sync(std::span<const Item> items) {
         query.bindValue(":userId", item.user_id.toUrl());
         query.bindValue(":type", item.type);
         query.bindValue(":itemId", item.item_id.toUrl());
-        query.bindValue(":collectTime", item.collect_time.value_or(QDateTime::currentDateTime()));
+        query.bindValue(":collectTime",
+                        item.collect_time.value_or(QDateTime::currentDateTimeUtc()));
 
         if (! query.exec()) {
             ERROR_LOG("{}", query.lastError().text());
@@ -133,10 +174,11 @@ VALUES (:userId, :itemId, :type, :collectTime)
 ON CONFLICT(userId, itemId) DO UPDATE
 SET 
 type = :type,
-collectTime = :collectTime;
+collectTime = :collectTime,
+removed = 0;
 )")
                       .arg(m_table));
-    auto cur = QDateTime::currentDateTime();
+    auto cur = QDateTime::currentDateTimeUtc();
     for (usize i = 0; i < ids.size(); i++) {
         query.bindValue(":userId", userId.toUrl());
         query.bindValue(":itemId", ids[i].toUrl());
@@ -155,13 +197,24 @@ collectTime = :collectTime;
     return true;
 }
 
-bool CollectionSql::remove_sync(model::ItemId userId, model::ItemId itemId) {
+bool CollectionSql::remove_sync(model::ItemId user_id, std::span<const model::ItemId> ids) {
+    QStringList list;
+    for (usize i = 0; i < ids.size(); i++) {
+        list << QString(":id%1").arg(i);
+    }
     auto query = m_con->query();
-    query.prepare(QStringLiteral(R"(DELETE FROM %1 WHERE userId = :userId AND itemId = :itemId)")
-                      .arg(m_table));
+    query.prepare(uR"(
+UPDATE %1
+SET removed = 1, collectTime = (STRFTIME('%Y-%m-%dT%H:%M:%S.000Z', 'now'))
+WHERE userId = :userId AND itemId IN (%2);
+)"_s.arg(m_table)
+                      .arg(list.join(",")));
 
-    query.bindValue(":userId", userId.toUrl());
-    query.bindValue(":itemId", itemId.toUrl());
+    query.bindValue(":userId", user_id.toUrl());
+
+    for (usize i = 0; i < ids.size(); i++) {
+        query.bindValue(list[i], ids[i].toUrl());
+    }
 
     if (! query.exec()) {
         ERROR_LOG("{}", query.lastError().text());
@@ -187,7 +240,7 @@ bool CollectionSql::delete_with(model::ItemId userId, QString type) {
     return true;
 }
 
-bool CollectionSql::un_valid(model::ItemId userId, QString type) {
+bool CollectionSql::remove_sync(model::ItemId userId, QString type) {
     auto query = m_con->query();
 
     QStringList cond;
@@ -196,7 +249,7 @@ bool CollectionSql::un_valid(model::ItemId userId, QString type) {
 
     query.prepare(QStringLiteral(R"(
 UPDATE %1
-SET type = 'invalid'
+SET removed = 1
 WHERE %2
 )")
                       .arg(m_table)
@@ -212,9 +265,9 @@ WHERE %2
     return true;
 }
 
-bool CollectionSql::clean_not_valid() {
+bool CollectionSql::delete_removed() {
     auto query = m_con->query();
-    query.prepare(QStringLiteral(R"(DELETE FROM %1 WHERE type = 'invalid')").arg(m_table));
+    query.prepare(QStringLiteral(R"(DELETE FROM %1 WHERE removed = 1)").arg(m_table));
     if (! query.exec()) {
         ERROR_LOG("{}", query.lastError().text());
         return false;

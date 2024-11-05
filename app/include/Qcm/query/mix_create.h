@@ -75,6 +75,7 @@ public:
             if (self) {
                 if (out) {
                     self->set_status(Status::Finished);
+                    Notifier::instance()->collected(pl.id, true);
                 } else {
                     self->set_error(convert_from<QString>(out.error().what()));
                     self->set_status(Status::Error);

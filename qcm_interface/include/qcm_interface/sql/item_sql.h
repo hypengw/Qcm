@@ -44,7 +44,7 @@ public:
 
     virtual auto insert_album_artist(std::span<const IdPair>) -> task<bool>                  = 0;
     virtual auto insert_song_artist(std::span<const IdPair>) -> task<bool>                   = 0;
-    virtual auto insert_djradio_program(std::span<const IdPair>) -> task<bool>               = 0;
+    virtual auto insert_radio_program(std::span<const IdPair>) -> task<bool>               = 0;
     virtual auto insert_playlist_song(i32 pos, model::ItemId palylist_id,
                                       std::span<const model::ItemId> song_ids) -> task<bool> = 0;
 

@@ -478,7 +478,7 @@ auto sync_collection(ClientBase&                cbase,
         std::vector<ItemId>    collects;
         std::vector<QDateTime> collect_times;
         auto                   type = convert_from<QString>(collection_type);
-        auto                   cur  = QDateTime::currentDateTime();
+        auto                   cur  = QDateTime::currentDateTimeUtc();
         do {
             auto out = co_await c.perform(api);
             api.input.offset += api.input.limit;
@@ -512,7 +512,7 @@ auto sync_collection(ClientBase&                cbase,
         std::vector<ItemId>    collects;
         std::vector<QDateTime> collect_times;
         auto                   type = convert_from<QString>(collection_type);
-        auto                   cur  = QDateTime::currentDateTime();
+        auto                   cur  = QDateTime::currentDateTimeUtc();
         do {
             auto out = co_await c.perform(api);
             api.input.offset += api.input.limit;
@@ -544,7 +544,7 @@ auto sync_collection(ClientBase&                cbase,
         std::vector<ItemId>    collects;
         std::vector<QDateTime> collect_times;
         auto                   type = convert_from<QString>(collection_type);
-        auto                   cur  = QDateTime::currentDateTime();
+        auto                   cur  = QDateTime::currentDateTimeUtc();
         do {
             auto out = co_await c.perform(api);
             api.input.offset += api.input.limit;

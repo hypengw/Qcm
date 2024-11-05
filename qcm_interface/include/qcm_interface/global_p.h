@@ -36,6 +36,7 @@ public:
 
     model::AppInfo   info;
     Action*          action;
+    Notifier*        notifier;
     model::BusyInfo* busy_info;
     UserModel*       user_model;
     QQmlComponent*   copy_action_comp;

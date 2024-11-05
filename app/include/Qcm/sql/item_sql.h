@@ -38,7 +38,7 @@ public:
 
     auto insert_album_artist(std::span<const IdPair>) -> task<bool> override;
     auto insert_song_artist(std::span<const IdPair>) -> task<bool> override;
-    auto insert_djradio_program(std::span<const IdPair>) -> task<bool> override;
+    auto insert_radio_program(std::span<const IdPair>) -> task<bool> override;
     auto insert_playlist_song(i32 pos, model::ItemId palylist_id,
                               std::span<const model::ItemId> song_ids) -> task<bool> override;
     auto table_name(Table) const -> QStringView override;
@@ -53,9 +53,9 @@ private:
     void create_song_artist_table();
     void create_playlist_table();
     void create_playlist_song_table();
-    void create_djradio_table();
+    void create_radio_table();
     void create_program_table();
-    void create_djradio_program_table();
+    void create_radio_program_table();
 
     QString                m_album_table;
     QString                m_artist_table;
@@ -64,9 +64,9 @@ private:
     QString                m_song_artist_table;
     QString                m_playlist_table;
     QString                m_playlist_song_table;
-    QString                m_djradio_table;
+    QString                m_radio_table;
     QString                m_program_table;
-    QString                m_djradio_program_table;
+    QString                m_radio_program_table;
     rc<helper::SqlConnect> m_con;
 };
 

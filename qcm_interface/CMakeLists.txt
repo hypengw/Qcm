@@ -26,6 +26,7 @@ add_library(
   qcm_interface SHARED
   include/qcm_interface/async.h
   include/qcm_interface/action.h
+  include/qcm_interface/notifier.h
   include/qcm_interface/client.h
   include/qcm_interface/global.h
   include/qcm_interface/global_p.h
@@ -53,6 +54,7 @@ add_library(
   include/qcm_interface/model/empty_model.h
   include/qcm_interface/state/app_state.h
   action.cpp
+  notifier.cpp
   api.cpp
   model.cpp
   item_id.cpp

@@ -25,7 +25,7 @@ Music Service:
 - C++ 23
 - Openssl 3
 - Curl
-- FFmpeg 6
+- FFmpeg 7
 
 ### Build:  
 ```

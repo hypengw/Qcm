@@ -101,10 +101,27 @@ public:
 
     void remove(int index, int size = 1) {
         if (size < 1) return;
-        auto last = index + size;
-        beginRemoveRows({}, index, last - 1);
-        crtp_impl().erase_impl(index, last);
+        removeRows(index, size);
+    }
+    auto removeRows(int row, int count, const QModelIndex& = {}) -> bool override {
+        if (count < 1) return false;
+        beginRemoveRows({}, row, row + count - 1);
+        crtp_impl().erase_impl(row, row + count);
         endRemoveRows();
+        return true;
+    }
+    template<typename Func>
+    void remove_if(Func&& func) {
+        std::set<int, std::greater<>> indexes;
+        for (int i = 0; i < rowCount(); i++) {
+            auto& el = crtp_impl().at(i);
+            if (func(el)) {
+                indexes.insert(i);
+            }
+        }
+        for (auto& i : indexes) {
+            removeRow(i);
+        }
     }
     void replace(int row, param_type item) {
         crtp_impl().assign(row, item);

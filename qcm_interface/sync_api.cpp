@@ -5,7 +5,9 @@ namespace qcm::query
 {
 auto SyncAPi::sync_collection(enums::CollectionType ct) -> task<Result<bool>> {
     if (auto c = Global::instance()->qsession()->client()) {
-        co_return co_await c->api->sync_collection(*c->instance, ct);
+        auto out= co_await c->api->sync_collection(*c->instance, ct);
+        Notifier::instance()->collection_synced(ct);
+        co_return out;
     }
     co_return false;
 }
