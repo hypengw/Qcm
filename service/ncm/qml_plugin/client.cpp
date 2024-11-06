@@ -2,6 +2,7 @@
 
 #include <mutex>
 #include <ranges>
+#include <unordered_set>
 #include <QUuid>
 #include "asio_helper/basic.h"
 #include "core/str_helper.h"
@@ -661,12 +662,33 @@ auto sync_items(ClientBase&                         cbase,
                     { "name" },
                     { "name" });
 
-                auto ids_view = std::views::transform(songs, [](auto& el) {
+                auto ids_view      = std::views::transform(songs, [](auto& el) {
                     ItemId id;
                     convert(id, el.id);
                     return id;
                 });
-                auto ids      = std::vector<ItemId> { ids_view.begin(), ids_view.end() };
+                auto ids_hash_view = std::views::transform(ids_view, std::hash<ItemId>());
+
+                std::unordered_set<usize> id_set(ids_hash_view.begin(), ids_hash_view.end());
+                std::vector<ItemId>       ids;
+                if (out->playlist.trackIds) {
+                    auto ids_view =
+                        std::views::transform(out->playlist.trackIds.value(), [](auto& el) {
+                            ItemId id;
+                            convert(id, el.id);
+                            return id;
+                        });
+                    std::ranges::copy(ids_view, std::back_inserter(ids));
+
+                    auto                filter = std::views::filter(ids, [&id_set](const auto& el) {
+                        return ! id_set.contains(std::hash<ItemId>()(el));
+                    });
+                    std::vector<ItemId> songs(filter.begin(), filter.end());
+                    co_await sync_items(cbase, songs);
+                } else {
+                    std::ranges::copy(ids_view, std::back_inserter(ids));
+                }
+
                 co_await sql->insert_playlist_song(-1, oper.id(), ids);
             } else {
                 co_return nstd::unexpected(out.error());
@@ -951,7 +973,10 @@ auto uniq(const QUrl& url, const QVariant& info) -> QString {
     if (size.isValid()) {
         size = get_down_size(size);
     }
-    return QStringLiteral("%1&param=%2y%3").arg(url.toString()).arg(size.width()).arg(size.height());
+    return QStringLiteral("%1&param=%2y%3")
+        .arg(url.toString())
+        .arg(size.width())
+        .arg(size.height());
 }
 
 } // namespace ncm::qml

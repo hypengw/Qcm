@@ -28,18 +28,6 @@ public:
     AlbumCollection(QObject* parent = nullptr)
         : meta_model::QGadgetListModel<AlbumCollectionItem>(parent), m_has_more(true) {}
 
-    // void handle_output(const out_type& re, const auto& input) {
-    //     if (input.offset == 0) {
-    //         auto in_ = convert_from<std::vector<AlbumSublistItem>>(re.data);
-    //         // convertModel(in_, [](const AlbumSublistItem& it) -> std::string {
-    //         //     return convert_from<std::string>(it.id);
-    //         // });
-    //     } else if (input.offset == (int)rowCount()) {
-    //         insert(rowCount(), convert_from<std::vector<AlbumSublistItem>>(re.data));
-    //     }
-    //     m_has_more = re.hasMore;
-    // }
-
     bool canFetchMore(const QModelIndex&) const override { return m_has_more; }
     void fetchMore(const QModelIndex&) override {
         m_has_more = false;
@@ -58,11 +46,7 @@ class AlbumCollectionQuery : public Query<AlbumCollection> {
 public:
     AlbumCollectionQuery(QObject* parent = nullptr): Query<AlbumCollection>(parent) {}
 
-    // FORWARD_PROPERTY(qint32, offset, offset)
-    // FORWARD_PROPERTY(qint32, limit, limit)
-
 public:
-    // void fetch_more(qint32 cur_count) override { set_offset(cur_count); }
     void reload() override {
         if (status() == Status::Uninitialized) {
             Action::instance()->sync_collection(enums::CollectionType::CTAlbum);

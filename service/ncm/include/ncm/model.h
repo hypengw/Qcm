@@ -384,7 +384,7 @@ struct Album {
 
 struct Playlist {
     struct TrackId {
-        PlaylistId id {};
+        SongId id {};
     };
     PlaylistId  id {};
     std::string name;
