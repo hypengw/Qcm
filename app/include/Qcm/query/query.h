@@ -1,4 +1,5 @@
 #pragma once
+#include <deque>
 #include <QTimer>
 #include "qcm_interface/sync_api.h"
 #include "qcm_interface/async.h"
@@ -47,6 +48,8 @@ protected:
 private:
     QTimer m_timer;
     bool   m_delay;
+
+    std::deque<std::function<task<void>()>> m_queue;
 };
 
 class QueryListBase : public QueryBase {

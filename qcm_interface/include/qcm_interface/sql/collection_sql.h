@@ -28,6 +28,7 @@ public:
             return out;
         }
     };
+
     virtual ~ColletionSqlBase()                                         = default;
     virtual auto get_executor() -> QtExecutor&                          = 0;
     virtual auto insert(std::span<const Item>) -> asio::awaitable<bool> = 0;

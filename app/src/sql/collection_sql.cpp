@@ -6,6 +6,7 @@
 #include <asio/bind_executor.hpp>
 #include <asio/use_awaitable.hpp>
 
+#include "qcm_interface/sql/meta_sql.h"
 #include "qcm_interface/path.h"
 #include "core/str_helper.h"
 #include "core/qstr_helper.h"
@@ -112,6 +113,35 @@ auto CollectionSql::select_removed(model::ItemId user_id, const QString& type,
         ERROR_LOG("{}", query.lastError().text());
     }
     co_return out;
+}
+
+auto CollectionSql::select_missing(const model::ItemId& user_id, std::string_view type,
+                                   std::string_view join, const std::set<std::string>& not_null)
+    -> task<std::vector<model::ItemId>> {
+    std::vector<model::ItemId> ids;
+    co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
+    auto query = con()->query();
+    query.prepare_sv(fmt::format(
+        R"(
+SELECT 
+    collection.itemId
+FROM collection
+LEFT JOIN {1} ON {1}.itemId = collection.itemId  
+WHERE collection.userId = :userId AND collection.type = '{0}' AND collection.removed = 0 AND ({2});
+)",
+        type,
+        join,
+        db::null<db::OR, db::EQ>(not_null, join)));
+    query.bindValue(":userId", user_id.toUrl());
+
+    if (! query.exec()) {
+        ERROR_LOG("{}", query.lastError().text());
+    }
+    auto x = query.lastQuery();
+    while (query.next()) {
+        ids.emplace_back(query.value(0).toUrl());
+    }
+    co_return ids;
 }
 
 auto CollectionSql::refresh(model::ItemId userId, QString type,

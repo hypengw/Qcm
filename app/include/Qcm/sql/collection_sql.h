@@ -30,6 +30,10 @@ public:
 
     auto select_removed(model::ItemId user_id, const QString& type,
                         const QDateTime& time) -> task<std::vector<model::ItemId>>;
+    auto select_missing(const model::ItemId& user_id, std::string_view type, std::string_view join,
+                        const std::set<std::string>& not_null) -> task<std::vector<model::ItemId>>;
+    auto select_missing(const model::ItemId& user_id, std::string_view type, std::string_view join,
+                        const QMetaObject& meta) -> task<std::vector<model::ItemId>>;
 
     auto refresh(model::ItemId user_id, QString type, std::span<const model::ItemId>,
                  std::span<const QDateTime> = {}) -> task<bool> override;

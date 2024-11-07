@@ -7,12 +7,19 @@
 #include "core/str_helper.h"
 #include "core/strv_helper.h"
 #include "core/qstr_helper.h"
+#include "qcm_interface/sql/meta_sql.h"
 
 namespace qcm
 {
 namespace
 {
 auto get_song_ignore() -> std::set<std::string_view> { return { "source"sv, "sourceId"sv }; }
+auto song_ignore(const std::set<std::string>& in) {
+    auto out = in;
+    out.insert("^source");
+    out.insert("^sourceId");
+    return out;
+}
 auto item_id_converter(const QVariant& v) -> QVariant {
     auto id = v.value<model::ItemId>();
     return id.toUrl();
@@ -285,13 +292,14 @@ void ItemSql::create_radio_program_table() {
 auto ItemSql::get_executor() -> QtExecutor& { return m_con->get_executor(); }
 auto ItemSql::con() const -> rc<helper::SqlConnect> { return m_con; }
 
-auto ItemSql::insert(std::span<const model::Album> items,
-                     const std::set<std::string>&  on_update) -> task<bool> {
+auto ItemSql::insert(std::span<const model::Album> items, ListParam columns,
+                     ListParam on_update) -> task<bool> {
     DEBUG_LOG("start insert album, {}", items.size());
     auto insert_helper = m_con->generate_insert_helper(m_album_table,
-                                                       u"itemId"_s,
+                                                       { "itemId"s },
                                                        model::Album::staticMetaObject,
                                                        items,
+                                                       columns,
                                                        on_update,
                                                        { { u"itemId"_s, item_id_converter } });
 
@@ -311,13 +319,14 @@ auto ItemSql::insert(std::span<const model::Album> items,
     co_return true;
 }
 
-auto ItemSql::insert(std::span<const model::Artist> items,
-                     const std::set<std::string>&   on_update) -> task<bool> {
+auto ItemSql::insert(std::span<const model::Artist> items, ListParam columns,
+                     const std::set<std::string>& on_update) -> task<bool> {
     DEBUG_LOG("start insert artist, {}", items.size());
     auto insert_helper = m_con->generate_insert_helper(m_artist_table,
-                                                       u"itemId"_s,
+                                                       { "itemId"s },
                                                        model::Artist::staticMetaObject,
                                                        items,
+                                                       columns,
                                                        on_update,
                                                        { { u"itemId"_s, item_id_converter } });
 
@@ -336,17 +345,17 @@ auto ItemSql::insert(std::span<const model::Artist> items,
     DEBUG_LOG("end insert");
     co_return true;
 }
-auto ItemSql::insert(std::span<const model::Song> items,
-                     const std::set<std::string>& on_update) -> task<bool> {
+auto ItemSql::insert(std::span<const model::Song> items, ListParam columns,
+                     ListParam on_update) -> task<bool> {
     DEBUG_LOG("start insert song, {}", items.size());
     auto insert_helper = m_con->generate_insert_helper(
         m_song_table,
-        u"itemId"_s,
+        { "itemId"s },
         model::Song::staticMetaObject,
         items,
+        song_ignore(columns),
         on_update,
-        { { u"itemId"_s, item_id_converter }, { u"albumId"_s, item_id_converter } },
-        get_song_ignore());
+        { { u"itemId"_s, item_id_converter }, { u"albumId"_s, item_id_converter } });
 
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
 
@@ -363,14 +372,15 @@ auto ItemSql::insert(std::span<const model::Song> items,
     DEBUG_LOG("end insert");
     co_return true;
 }
-auto ItemSql::insert(std::span<const model::Playlist> items,
-                     const std::set<std::string>&     on_update) -> task<bool> {
+auto ItemSql::insert(std::span<const model::Playlist> items, ListParam columns,
+                     const std::set<std::string>& on_update) -> task<bool> {
     DEBUG_LOG("start insert playlist, {}", items.size());
     auto insert_helper = m_con->generate_insert_helper(
         m_playlist_table,
-        u"itemId"_s,
+        { "itemId"s },
         model::Playlist::staticMetaObject,
         items,
+        columns,
         on_update,
         { { u"itemId"_s, item_id_converter }, { u"userId"_s, item_id_converter } });
 
@@ -389,13 +399,14 @@ auto ItemSql::insert(std::span<const model::Playlist> items,
     DEBUG_LOG("end insert");
     co_return true;
 }
-auto ItemSql::insert(std::span<const model::Djradio> items,
-                     const std::set<std::string>&    on_update) -> task<bool> {
+auto ItemSql::insert(std::span<const model::Djradio> items, ListParam columns,
+                     const std::set<std::string>& on_update) -> task<bool> {
     DEBUG_LOG("start insert djradio, {}", items.size());
     auto insert_helper = m_con->generate_insert_helper(m_radio_table,
-                                                       u"itemId"_s,
+                                                       { "itemId"s },
                                                        model::Djradio::staticMetaObject,
                                                        items,
+                                                       columns,
                                                        on_update,
                                                        { { u"itemId"_s, item_id_converter } });
 
@@ -414,13 +425,14 @@ auto ItemSql::insert(std::span<const model::Djradio> items,
     DEBUG_LOG("end insert");
     co_return true;
 }
-auto ItemSql::insert(std::span<const model::Program> items,
-                     const std::set<std::string>&    on_update) -> task<bool> {
+auto ItemSql::insert(std::span<const model::Program> items, ListParam columns,
+                     const std::set<std::string>& on_update) -> task<bool> {
     DEBUG_LOG("start insert program, {}", items.size());
     auto insert_helper = m_con->generate_insert_helper(m_program_table,
-                                                       u"itemId"_s,
+                                                       { "itemId"s },
                                                        model::Program::staticMetaObject,
                                                        items,
+                                                       columns,
                                                        on_update,
                                                        { { u"itemId"_s, item_id_converter },
                                                          { u"songId"_s, item_id_converter },
@@ -630,7 +642,7 @@ auto ItemSql::clean(const QDateTime& before, Table table) -> task<void> {
     query.prepare(uR"(
 DELETE FROM %1
 WHERE _editTime < :before OR _editTime > :after;
-)"_s);
+)"_s.arg(table_name(table)));
     query.bindValue(":before", before);
     query.bindValue(":after", cur);
     if (! query.exec()) {
@@ -638,8 +650,8 @@ WHERE _editTime < :before OR _editTime > :after;
     }
 }
 
-auto ItemSql::missing(Table                          table,
-                      std::span<const model::ItemId> ids) -> task<std::vector<model::ItemId>> {
+auto ItemSql::missing(std::span<const model::ItemId> ids, Table table, std::optional<Table> join,
+                      ListParam not_null) -> task<std::vector<model::ItemId>> {
     std::unordered_set<model::ItemId> include;
     std::vector<model::ItemId>        out;
     QStringList                       placeholders;
@@ -650,13 +662,23 @@ auto ItemSql::missing(Table                          table,
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
 
     auto query = m_con->query();
-    query.prepare(uR"(
+    query.prepare_sv(fmt::format(
+        R"(
 SELECT 
-    itemId
-FROM %1 
-WHERE itemId IN (%2);
-)"_s.arg(table_name(table))
-                      .arg(placeholders.join(", ")));
+    {0}.itemId
+FROM {0}
+{1}
+WHERE {0}.itemId IN ({2}) {3};
+)",
+        table_name(table),
+        join.transform([this, table](const auto& in) {
+                return fmt::format(
+                    "LEFT JOIN {1} ON {1}.itemId = {0}.itemId", table_name(table), table_name(in));
+            })
+            .value_or(""s),
+        placeholders.join(", "),
+        not_null.size() ? fmt::format("AND ({})", db::null<db::Logical::AND, db::Eq::Not>(not_null))
+                        : ""s));
     for (usize i = 0; i < ids.size(); ++i) {
         query.bindValue(placeholders[i], ids[i].toUrl());
     }

@@ -121,12 +121,12 @@ IMPL_CONVERT(qcm::oper::PlaylistOper, ncm::model::Playlist) {
     X(name, in.name);
     X(picUrl, in.coverImgUrl);
     X(description, in.description.value_or(""));
-    if (in.updateTime) {
-        X(updateTime, in.updateTime.value());
-    }
+    X(createTime, in.createTime.value_or(ncm::model::Time {}));
+    X(updateTime, in.updateTime.value_or(ncm::model::Time {}));
     X(playCount, in.playCount);
     X(trackCount, in.trackCount);
     X(userId, in.userId);
+    X(tags, in.tags.value_or(std::vector<std::string> {}));
 };
 
 IMPL_CONVERT(qcm::oper::PlaylistOper, ncm::model::UserPlaylistItem) {

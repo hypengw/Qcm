@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ranges>
 #include <QQmlEngine>
 
 #include "Qcm/query/query.h"
@@ -14,6 +15,7 @@
 #include "qcm_interface/model/album.h"
 #include "qcm_interface/model/artist.h"
 #include "qcm_interface/async.inl"
+#include "qcm_interface/sql/meta_sql.h"
 
 namespace qcm::query
 {
@@ -46,6 +48,7 @@ class PlaylistCollectionQuery : public Query<PlaylistCollection> {
     QML_ELEMENT
 public:
     PlaylistCollectionQuery(QObject* parent = nullptr): Query<PlaylistCollection>(parent) {
+        set_use_queue(true);
         connect(Notifier::instance(),
                 &Notifier::collected,
                 this,
@@ -65,28 +68,6 @@ public:
     }
 
 public:
-    auto select_sync(const model::ItemId& user_id) -> task<std::vector<model::ItemId>> {
-        auto                       sql = App::instance()->album_sql();
-        std::vector<model::ItemId> ids;
-        co_await asio::post(asio::bind_executor(sql->get_executor(), asio::use_awaitable));
-        auto query = sql->con()->query();
-        query.prepare(uR"(
-SELECT 
-    itemId
-FROM collection
-WHERE userId = :userId AND type = "playlist" AND itemId NOT IN (SELECT itemId FROM playlist) AND removed = 0;
-)"_s);
-        query.bindValue(":userId", user_id.toUrl());
-
-        if (! query.exec()) {
-            ERROR_LOG("{}", query.lastError().text());
-        }
-        while (query.next()) {
-            auto& item = ids.emplace_back();
-            ids.emplace_back(query.value(0).toUrl());
-        }
-        co_return ids;
-    }
     auto query_collect(const model::ItemId& userId,
                        const QDateTime&     time) -> task<std::vector<PlaylistCollectionItem>> {
         auto                                sql = App::instance()->album_sql();
@@ -130,13 +111,18 @@ ORDER BY collection.collectTime DESC;
         auto ex   = asio::make_strand(pool_executor());
         auto self = helper::QWatcher { this };
         spawn(ex, [self, userId, time] -> asio::awaitable<void> {
-            auto sql  = App::instance()->collect_sql();
-            auto sync = co_await self->select_sync(userId);
+            auto sql     = App::instance()->collect_sql();
+            auto missing = co_await sql->select_missing(
+                userId,
+                "playlist",
+                "playlist",
+                db::range_to<std::set<std::string>>(
+                    db::meta_prop_names(model::Playlist::staticMetaObject)));
 
             auto deleted_vec = co_await sql->select_removed(userId, u"playlist"_s, time);
             std::unordered_set<model::ItemId> deleted(deleted_vec.begin(), deleted_vec.end());
 
-            if (! sync.empty()) co_await SyncAPi::sync_items(sync);
+            if (! missing.empty()) co_await SyncAPi::sync_items(missing);
 
             auto items = co_await self->query_collect(userId, time);
 

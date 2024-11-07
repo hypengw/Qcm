@@ -25,26 +25,27 @@ namespace qcm::db
 class ItemSqlBase : public NoCopy {
 public:
     using IdPair           = std::tuple<model::ItemId, model::ItemId>;
+    using ListParam        = const std::set<std::string>&;
     virtual ~ItemSqlBase() = default;
 
-    virtual auto con() const -> rc<helper::SqlConnect>                        = 0;
-    virtual auto get_executor() -> QtExecutor&                                = 0;
-    virtual auto insert(std::span<const model::Album> items,
-                        const std::set<std::string>&  on_update) -> task<bool> = 0;
-    virtual auto insert(std::span<const model::Artist> items,
-                        const std::set<std::string>&   on_update) -> task<bool> = 0;
-    virtual auto insert(std::span<const model::Song> items,
-                        const std::set<std::string>& on_update) -> task<bool> = 0;
-    virtual auto insert(std::span<const model::Playlist> items,
-                        const std::set<std::string>&     on_update) -> task<bool> = 0;
-    virtual auto insert(std::span<const model::Djradio> items,
-                        const std::set<std::string>&    on_update) -> task<bool> = 0;
-    virtual auto insert(std::span<const model::Program> items,
-                        const std::set<std::string>&    on_update) -> task<bool> = 0;
+    virtual auto con() const -> rc<helper::SqlConnect>          = 0;
+    virtual auto get_executor() -> QtExecutor&                  = 0;
+    virtual auto insert(std::span<const model::Album> items, ListParam columns,
+                        ListParam on_update = {}) -> task<bool> = 0;
+    virtual auto insert(std::span<const model::Artist> items, ListParam columns,
+                        ListParam on_update = {}) -> task<bool> = 0;
+    virtual auto insert(std::span<const model::Song> items, ListParam columns,
+                        ListParam on_update = {}) -> task<bool> = 0;
+    virtual auto insert(std::span<const model::Playlist> items, ListParam columns,
+                        ListParam on_update = {}) -> task<bool> = 0;
+    virtual auto insert(std::span<const model::Djradio> items, ListParam columns,
+                        ListParam on_update = {}) -> task<bool> = 0;
+    virtual auto insert(std::span<const model::Program> items, ListParam columns,
+                        ListParam on_update = {}) -> task<bool> = 0;
 
     virtual auto insert_album_artist(std::span<const IdPair>) -> task<bool>                  = 0;
     virtual auto insert_song_artist(std::span<const IdPair>) -> task<bool>                   = 0;
-    virtual auto insert_radio_program(std::span<const IdPair>) -> task<bool>               = 0;
+    virtual auto insert_radio_program(std::span<const IdPair>) -> task<bool>                 = 0;
     virtual auto insert_playlist_song(i32 pos, model::ItemId palylist_id,
                                       std::span<const model::ItemId> song_ids) -> task<bool> = 0;
 

@@ -87,6 +87,10 @@ public:
             return *this;
         }
 
+        bool prepare_sv(std::string_view query) {
+            return QSqlQuery::prepare(QString::fromUtf8(query));
+        }
+
     private:
         QThread* m_thread;
     };
@@ -210,53 +214,20 @@ CREATE TABLE IF NOT EXISTS {} (
             }
         }
     };
+
+    // insert with columns
     template<typename T>
     auto generate_insert_helper(
-        QStringView table_name, QStringView conflict, const QMetaObject& meta,
-        std::span<const T> items, const std::set<std::string>& on_update,
-        std::map<QString, std::function<QVariant(const QVariant&)>> converters = {},
-        std::set<std::string_view>                                  ignores = {}) -> InsertHelper {
-        InsertHelper             out;
-        std::vector<std::string> column_names;
-        std::set<std::string>    on_update_include, on_update_exclude;
-        for (auto& el : on_update) {
-            if (el.starts_with('^')) {
-                on_update_exclude.insert(el.substr(1));
-            } else {
-                on_update_include.insert(el);
-            }
-        }
+        QStringView table_name, const std::set<std::string, std::less<>>& conflicts,
+        const QMetaObject& meta, std::span<const T> items, const std::set<std::string>& columns,
+        const std::set<std::string>&        on_update  = {},
+        const std::map<QString, Converter>& converters = {}) const -> InsertHelper {
+        InsertHelper out =
+            generate_insert_helper_sql(table_name, conflicts, meta, columns, on_update);
 
         for (int i = 0; i < meta.propertyCount(); i++) {
             auto name = meta.property(i).name();
-            if (ignores.contains(name)) continue;
-            column_names.push_back(name);
-            out.binds.insert({ name, {} });
-        }
-        auto view_values =
-            std::views::transform(column_names, [](const std::string& s) -> std::string {
-                return ":" + s;
-            });
-        auto view_set = std::views::transform(
-            std::views::filter(column_names,
-                               [&on_update_include, &on_update_exclude](const std::string& s) {
-                                   return (on_update_include.empty() ||
-                                           on_update_include.contains(s)) &&
-                                          ! on_update_exclude.contains(s);
-                               }),
-            [](const std::string& s) -> std::string {
-                return fmt::format("{0} = :{0}", s);
-            });
-        out.sql = QString::fromStdString(
-            fmt::format("INSERT INTO {0}({1}) VALUES ({2}) ON CONFLICT({3}) DO UPDATE SET {4};",
-                        table_name,
-                        fmt::join(column_names, ", "),
-                        fmt::join(view_values, ", "),
-                        conflict,
-                        fmt::join(view_set, ", ")));
-        for (int i = 0; i < meta.propertyCount(); i++) {
-            auto name = meta.property(i).name();
-            if (ignores.contains(name)) continue;
+            if (! out.binds.contains(name)) continue;
             auto& list = out.binds.at(name);
 
             std::optional<std::function<QVariant(const QVariant&)>> converter;
@@ -281,6 +252,68 @@ CREATE TABLE IF NOT EXISTS {} (
     }
 
 private:
+    auto generate_insert_helper_sql(QStringView                               table_name,
+                                    const std::set<std::string, std::less<>>& conflicts,
+                                    const QMetaObject& meta, const std::set<std::string>& columns,
+                                    const std::set<std::string>& on_update) const -> InsertHelper {
+        InsertHelper               out;
+        std::vector<std::string>   column_names;
+        std::set<std::string_view> column_include, column_exclude, on_update_include,
+            on_update_exclude;
+
+        auto column_filter = [&conflicts, &column_include, &column_exclude](std::string_view in) {
+            return (column_include.empty() || column_include.contains(in) ||
+                    conflicts.contains(in)) &&
+                   ! column_exclude.contains(in);
+        };
+        auto on_update_filter =
+            [&conflicts, &on_update_include, &on_update_exclude](std::string_view in) {
+                return (on_update_include.empty() || on_update_include.contains(in)) &&
+                       ! conflicts.contains(in) && ! on_update_exclude.contains(in);
+            };
+        {
+            for (auto& s : columns) {
+                auto el = std::string_view(s);
+                if (el.starts_with('^')) {
+                    column_exclude.insert(el.substr(1));
+                } else {
+                    column_include.insert(el);
+                }
+            }
+            for (auto& s : on_update) {
+                auto el = std::string_view(s);
+                if (el.starts_with('^')) {
+                    on_update_exclude.insert(el.substr(1));
+                } else {
+                    on_update_include.insert(el);
+                }
+            }
+        }
+
+        for (int i = 0; i < meta.propertyCount(); i++) {
+            auto name = meta.property(i).name();
+            if (! column_filter(name)) continue;
+            column_names.push_back(name);
+            out.binds.insert({ name, {} });
+        }
+        auto view_values =
+            std::views::transform(column_names, [](const std::string& s) -> std::string {
+                return ":" + s;
+            });
+        auto view_set = std::views::transform(std::views::filter(column_names, on_update_filter),
+                                              [](const std::string& s) -> std::string {
+                                                  return fmt::format("{0} = :{0}", s);
+                                              });
+        out.sql       = QString::fromStdString(
+            fmt::format("INSERT INTO {0}({1}) VALUES ({2}) ON CONFLICT({3}) DO UPDATE SET {4};",
+                        table_name,
+                        fmt::join(column_names, ", "),
+                        fmt::join(view_values, ", "),
+                        fmt::join(conflicts, ", "),
+                        fmt::join(view_set, ", ")));
+        return out;
+    }
+
     void connect_db() {
         m_db   = QSqlDatabase::addDatabase("QSQLITE", m_name);
         auto p = m_db_path;

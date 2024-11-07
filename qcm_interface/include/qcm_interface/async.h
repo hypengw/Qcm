@@ -6,7 +6,7 @@
 #include "core/expected_helper.h"
 #include "asio_qt/qt_executor.h"
 #include "qcm_interface/enum.h"
-
+#include "asio_helper/task.h"
 #include <asio/thread_pool.hpp>
 
 namespace helper
@@ -38,6 +38,8 @@ public:
     auto error() const -> const QString&;
     bool forwardError() const;
     auto get_executor() -> QtExecutor&;
+    auto use_queue() const -> bool;
+    void set_use_queue(bool);
 
     Q_INVOKABLE virtual void reload();
     void                     set_reload_callback(const std::function<void()>&);
@@ -76,6 +78,9 @@ public:
     Q_SIGNAL void errorOccurred(QString);
 
 private:
+    void  push(std::function<task<void>()>, const std::source_location& loc);
+    usize size() const;
+
     auto watch_dog() -> helper::WatchDog&;
 
     class Private;

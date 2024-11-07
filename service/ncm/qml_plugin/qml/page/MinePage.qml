@@ -162,11 +162,6 @@ MD.Page {
                 }
                 QA.PlaylistCollectionQuery {
                     id: qr_playlist
-                    //autoReload: uid.valid() && limit > 0
-                    //limit: 30
-                    //Component.onCompleted: {
-                    //    uid = QA.Global.session.user.userId;
-                    //}
                     Component.onCompleted: reload()
                 }
                 QA.DjradioCollectionQuery {

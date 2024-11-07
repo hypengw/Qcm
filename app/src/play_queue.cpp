@@ -473,7 +473,8 @@ ORDER BY song.trackNumber ASC;
 
 auto PlayQueue::querySongs(std::span<const model::ItemId> ids) -> task<void> {
     auto sql     = App::instance()->album_sql();
-    auto missing = co_await sql->missing(ItemSql::Table::SONG, ids);
+    auto missing = co_await sql->missing(
+        ids, ItemSql::Table::SONG, ItemSql::Table::ALBUM, { "album.picUrl"s });
     if (! missing.empty()) co_await query::SyncAPi::sync_items(missing);
     auto songs = co_await querySongsSql(ids);
     co_await asio::post(asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));

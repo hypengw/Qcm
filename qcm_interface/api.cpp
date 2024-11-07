@@ -6,8 +6,14 @@ namespace qcm
 
 class QAsyncResult::Private {
 public:
-    Private(): m_status(Status::Uninitialized), m_forward_error(true), m_data(nullptr) {}
-
+    Private(QAsyncResult* p)
+        : m_p(p),
+          m_status(Status::Uninitialized),
+          m_forward_error(true),
+          m_data(nullptr),
+          m_use_queue(false),
+          m_queue_exec_mark(false) {}
+    QAsyncResult*         m_p;
     Status                m_status;
     bool                  m_forward_error;
     QObject*              m_data;
@@ -16,9 +22,63 @@ public:
     helper::WatchDog                         m_wdog;
     QString                                  m_error;
     std::map<QString, QObject*, std::less<>> m_hold;
+
+    bool                                                                      m_use_queue;
+    bool                                                                      m_queue_exec_mark;
+    std::deque<std::tuple<std::function<task<void>()>, std::source_location>> m_queue;
+
+    void try_run() {
+        if (m_queue.empty() || m_queue_exec_mark || ! m_use_queue) return;
+
+        auto [f, loc] = m_queue.front();
+        m_queue.pop_front();
+
+        auto                           ex = asio::make_strand(m_p->pool_executor());
+        helper::QWatcher<QAsyncResult> self { m_p };
+        auto                           main_ex { m_p->get_executor() };
+        auto                           alloc = asio::recycling_allocator<void>();
+
+        m_p->set_status(Status::Querying);
+        m_queue_exec_mark = true;
+        asio::co_spawn(ex,
+                       m_p->watch_dog().watch(
+                           ex,
+                           [f = std::move(f)] -> task<void> {
+                               co_await f();
+                           },
+                           asio::chrono::minutes(3),
+                           alloc),
+                       asio::bind_allocator(alloc, [self, main_ex, loc](std::exception_ptr p) {
+                           if (p) {
+                               try {
+                                   std::rethrow_exception(p);
+                               } catch (const std::exception& e) {
+                                   std::string e_str = e.what();
+                                   asio::post(main_ex, [self, e_str]() {
+                                       if (self) {
+                                           self->set_error(QString::fromStdString(e_str));
+                                           self->set_status(Status::Error);
+                                       }
+                                   });
+                                   LogManager::instance()->log(LogLevel::ERROR, loc, "{}", e_str);
+                               }
+                           }
+
+                           asio::post(main_ex, [self] {
+                               if (self) {
+                                   self->d_func()->handle_queue();
+                               }
+                           });
+                       }));
+    }
+
+    void handle_queue() {
+        m_queue_exec_mark = false;
+        try_run();
+    }
 };
 
-QAsyncResult::QAsyncResult(QObject* parent): QObject(parent), d_ptr(make_up<Private>()) {}
+QAsyncResult::QAsyncResult(QObject* parent): QObject(parent), d_ptr(make_up<Private>(this)) {}
 QAsyncResult::~QAsyncResult() {}
 
 void QAsyncResult::hold(QStringView name, QObject* o) {
@@ -99,6 +159,14 @@ auto QAsyncResult::get_executor() -> QtExecutor& {
     C_D(QAsyncResult);
     return Global::instance()->qexecutor();
 }
+auto QAsyncResult::use_queue() const -> bool {
+    C_D(const QAsyncResult);
+    return d->m_use_queue;
+}
+void QAsyncResult::set_use_queue(bool v) {
+    C_D(QAsyncResult);
+    d->m_use_queue = v;
+}
 
 auto QAsyncResult::watch_dog() -> helper::WatchDog& {
     C_D(QAsyncResult);
@@ -117,6 +185,17 @@ void QAsyncResult::set_data(QObject* v) {
     if (d->m_data != nullptr && d->m_data->parent() != this) {
         d->m_data->setParent(this);
     }
+}
+void QAsyncResult::push(std::function<task<void>()> in, const std::source_location& loc) {
+    C_D(QAsyncResult);
+    d->m_queue.emplace_back(in, loc);
+
+    d->try_run();
+}
+
+usize QAsyncResult::size() const {
+    C_D(const QAsyncResult);
+    return d->m_queue.size();
 }
 
 class ApiQuerierBase::Private {

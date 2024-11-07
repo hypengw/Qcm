@@ -15,7 +15,7 @@ public:
     GADGET_PROPERTY_DEF(QString, name, name)
     GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
     GADGET_PROPERTY_DEF(QString, description, description)
-    GADGET_PROPERTY_DEF(QDateTime, createIime, createTime)
+    GADGET_PROPERTY_DEF(QDateTime, createTime, createTime)
     GADGET_PROPERTY_DEF(QDateTime, updateTime, updateTime)
     GADGET_PROPERTY_DEF(qint32, playCount, playCount)
     GADGET_PROPERTY_DEF(qint32, trackCount, trackCount)

@@ -18,23 +18,18 @@ public:
     auto get_executor() -> QtExecutor& override;
     auto con() const -> rc<helper::SqlConnect> override;
 
-    auto insert(std::span<const model::Album> items,
-                const std::set<std::string>&  on_update) -> task<bool> override;
-
-    auto insert(std::span<const model::Artist> items,
-                const std::set<std::string>&   on_update) -> task<bool> override;
-
-    auto insert(std::span<const model::Song> items,
-                const std::set<std::string>& on_update) -> task<bool> override;
-
-    auto insert(std::span<const model::Playlist> items,
-                const std::set<std::string>&     on_update) -> task<bool> override;
-
-    auto insert(std::span<const model::Djradio> items,
-                const std::set<std::string>&    on_update) -> task<bool> override;
-
-    auto insert(std::span<const model::Program> items,
-                const std::set<std::string>&    on_update) -> task<bool> override;
+    auto insert(std::span<const model::Album> items, ListParam columns,
+                ListParam on_update = {}) -> task<bool> override;
+    auto insert(std::span<const model::Artist> items, ListParam columns,
+                ListParam on_update = {}) -> task<bool> override;
+    auto insert(std::span<const model::Song> items, ListParam columns,
+                ListParam on_update = {}) -> task<bool> override;
+    auto insert(std::span<const model::Playlist> items, ListParam columns,
+                ListParam on_update = {}) -> task<bool> override;
+    auto insert(std::span<const model::Djradio> items, ListParam columns,
+                ListParam on_update = {}) -> task<bool> override;
+    auto insert(std::span<const model::Program> items, ListParam columns,
+                ListParam on_update = {}) -> task<bool> override;
 
     auto insert_album_artist(std::span<const IdPair>) -> task<bool> override;
     auto insert_song_artist(std::span<const IdPair>) -> task<bool> override;
@@ -43,7 +38,8 @@ public:
                               std::span<const model::ItemId> song_ids) -> task<bool> override;
     auto table_name(Table) const -> QStringView override;
     auto clean(const QDateTime& before, Table table) -> task<void>;
-    auto missing(Table table, std::span<const model::ItemId>) -> task<std::vector<model::ItemId>>;
+    auto missing(std::span<const model::ItemId> ids, Table table, std::optional<Table> join = {},
+                 ListParam not_null = {}) -> task<std::vector<model::ItemId>>;
 
 private:
     void create_album_table();
