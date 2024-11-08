@@ -45,7 +45,7 @@ add_library(
   include/qcm_interface/model/song.h
   include/qcm_interface/model/album.h
   include/qcm_interface/model/playlist.h
-  include/qcm_interface/model/djradio.h
+  include/qcm_interface/model/radio.h
   include/qcm_interface/model/program.h
   include/qcm_interface/model/comment.h
   include/qcm_interface/model/third_user.h

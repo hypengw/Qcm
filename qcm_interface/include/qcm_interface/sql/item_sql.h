@@ -10,7 +10,7 @@
 #include "qcm_interface/model/artist.h"
 #include "qcm_interface/model/song.h"
 #include "qcm_interface/model/playlist.h"
-#include "qcm_interface/model/djradio.h"
+#include "qcm_interface/model/radio.h"
 #include "qcm_interface/model/program.h"
 #include "asio_qt/qt_executor.h"
 #include "asio_helper/task.h"
@@ -38,7 +38,7 @@ public:
                         ListParam on_update = {}) -> task<bool> = 0;
     virtual auto insert(std::span<const model::Playlist> items, ListParam columns,
                         ListParam on_update = {}) -> task<bool> = 0;
-    virtual auto insert(std::span<const model::Djradio> items, ListParam columns,
+    virtual auto insert(std::span<const model::Radio> items, ListParam columns,
                         ListParam on_update = {}) -> task<bool> = 0;
     virtual auto insert(std::span<const model::Program> items, ListParam columns,
                         ListParam on_update = {}) -> task<bool> = 0;

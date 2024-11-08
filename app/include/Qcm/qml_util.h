@@ -31,7 +31,7 @@ public:
     Q_INVOKABLE model::Album create_album(const QJSValue& = {}) const;
     Q_INVOKABLE model::Song create_song(const QJSValue& = {}) const;
     Q_INVOKABLE model::Artist create_artist(const QJSValue& = {}) const;
-    Q_INVOKABLE model::Djradio create_djradio(const QJSValue& = {}) const;
+    Q_INVOKABLE model::Radio create_djradio(const QJSValue& = {}) const;
     Q_INVOKABLE model::Program create_program(const QJSValue& = {}) const;
     Q_INVOKABLE QUrl           image_url(const QUrl&) const;
     Q_INVOKABLE QUrl image_cache_of(const QString& provider, const QUrl& url, QSize reqSize) const;

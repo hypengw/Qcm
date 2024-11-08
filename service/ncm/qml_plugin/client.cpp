@@ -16,7 +16,7 @@
 #include "qcm_interface/oper/artist_oper.h"
 #include "qcm_interface/oper/song_oper.h"
 #include "qcm_interface/oper/playlist_oper.h"
-#include "qcm_interface/oper/djradio_oper.h"
+#include "qcm_interface/oper/radio_oper.h"
 #include "qcm_interface/oper/program_oper.h"
 #include "qcm_interface/sql/item_sql.h"
 

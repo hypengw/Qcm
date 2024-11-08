@@ -4,7 +4,7 @@
 #include "qcm_interface/model/artist.h"
 #include "qcm_interface/model/song.h"
 #include "qcm_interface/model/playlist.h"
-#include "qcm_interface/model/djradio.h"
+#include "qcm_interface/model/radio.h"
 #include "qcm_interface/model/program.h"
 #include "core/qstr_helper.h"
 
@@ -45,7 +45,7 @@ public:
 )"_s.arg(model::Song::Select) };
 };
 
-struct Djradio : model::Djradio {
+struct Djradio : model::Radio {
     Q_GADGET_EXPORT(QCM_INTERFACE_API)
 public:
 };

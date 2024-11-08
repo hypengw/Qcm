@@ -5,15 +5,15 @@
 
 namespace qcm::model
 {
-struct Djradio;
+struct Radio;
 }
 
 namespace qcm::oper
 {
 using ItemId = model::ItemId;
 
-struct QCM_INTERFACE_API DjradioOper : Oper<model::Djradio> {
-    using Oper<model::Djradio>::Oper;
+struct QCM_INTERFACE_API DjradioOper : Oper<model::Radio> {
+    using Oper<model::Radio>::Oper;
 
     OPER_PROPERTY(ItemId, itemId, id)
     OPER_PROPERTY(QString, name, name)

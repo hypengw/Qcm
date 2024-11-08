@@ -326,7 +326,7 @@ IMPL_CONVERT(qcm::oper::CommentOper, ncm::model::Comment) {
     X(time, in.time);
 }
 
-IMPL_CONVERT(qcm::model::Djradio, ncm::model::Djradio) {
+IMPL_CONVERT(qcm::model::Radio, ncm::model::Djradio) {
     convert(out.id, in.id);
     convert(out.name, in.name);
     convert(out.description, in.desc);
@@ -334,7 +334,7 @@ IMPL_CONVERT(qcm::model::Djradio, ncm::model::Djradio) {
     convert(out.programCount, in.programCount);
     convert(out.createTime, in.createTime);
 }
-IMPL_CONVERT(qcm::model::Djradio, ncm::model::DjradioB) {
+IMPL_CONVERT(qcm::model::Radio, ncm::model::DjradioB) {
     convert(out.id, in.id);
     convert(out.name, in.name);
     convert(out.picUrl, in.picUrl);

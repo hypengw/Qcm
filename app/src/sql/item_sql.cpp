@@ -147,7 +147,7 @@ void ItemSql::create_radio_table() {
 
     auto migs = m_con->generate_meta_migration(m_radio_table,
                                                u"itemId",
-                                               model::Djradio::staticMetaObject,
+                                               model::Radio::staticMetaObject,
                                                std::array { "full INTEGER DEFAULT 0"s });
 
     QSqlQuery q = m_con->query();
@@ -399,12 +399,12 @@ auto ItemSql::insert(std::span<const model::Playlist> items, ListParam columns,
     DEBUG_LOG("end insert");
     co_return true;
 }
-auto ItemSql::insert(std::span<const model::Djradio> items, ListParam columns,
+auto ItemSql::insert(std::span<const model::Radio> items, ListParam columns,
                      const std::set<std::string>& on_update) -> task<bool> {
     DEBUG_LOG("start insert djradio, {}", items.size());
     auto insert_helper = m_con->generate_insert_helper(m_radio_table,
                                                        { "itemId"s },
-                                                       model::Djradio::staticMetaObject,
+                                                       model::Radio::staticMetaObject,
                                                        items,
                                                        columns,
                                                        on_update,

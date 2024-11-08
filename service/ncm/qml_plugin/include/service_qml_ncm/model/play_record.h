@@ -42,7 +42,7 @@ DEFINE_CONVERT(qcm::model::PlayRecordItem, ncm::model::PlayRecordItem) {
                          return QVariant::fromValue(convert_from<qcm::model::Playlist>(in));
                      },
                      [](const ncm::model::DjradioB& in) {
-                         return QVariant::fromValue(convert_from<qcm::model::Djradio>(in));
+                         return QVariant::fromValue(convert_from<qcm::model::Radio>(in));
                      } },
         in.data);
     out.data = data;

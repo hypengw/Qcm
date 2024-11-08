@@ -14,7 +14,7 @@
 
 namespace qcm::query
 {
-struct DjradioCollectionItem : public model::Djradio {
+struct DjradioCollectionItem : public model::Radio {
     Q_GADGET
 public:
     GADGET_PROPERTY_DEF(QDateTime, subTime, subTime)
@@ -69,7 +69,7 @@ JOIN collection ON djradio.itemId = collection.itemId
 WHERE collection.userId = :userId
 GROUP BY djradio.itemId
 ORDER BY collection.collectTime DESC;
-)"_s.arg(model::Djradio::Select));
+)"_s.arg(model::Radio::sql().select));
                 query.bindValue(":userId", userId.toUrl());
 
                 if (! query.exec()) {

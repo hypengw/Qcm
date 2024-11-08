@@ -56,8 +56,8 @@ auto Util::create_song(const QJSValue& js) const -> model::Song {
 auto Util::create_artist(const QJSValue& js) const -> model::Artist {
     return meta_model::toGadget<model::Artist>(js);
 }
-auto Util::create_djradio(const QJSValue& js) const -> model::Djradio {
-    return meta_model::toGadget<model::Djradio>(js);
+auto Util::create_djradio(const QJSValue& js) const -> model::Radio {
+    return meta_model::toGadget<model::Radio>(js);
 }
 auto Util::create_program(const QJSValue& js) const -> model::Program {
     return meta_model::toGadget<model::Program>(js);

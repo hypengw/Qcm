@@ -6,8 +6,8 @@
 #include "qcm_interface/model/song.h"
 #include "qcm_interface/oper/playlist_oper.h"
 #include "qcm_interface/model/playlist.h"
-#include "qcm_interface/oper/djradio_oper.h"
-#include "qcm_interface/model/djradio.h"
+#include "qcm_interface/oper/radio_oper.h"
+#include "qcm_interface/model/radio.h"
 #include "qcm_interface/oper/program_oper.h"
 #include "qcm_interface/model/program.h"
 #include "qcm_interface/oper/comment_oper.h"
@@ -53,7 +53,7 @@ X(model::Album)
 X(model::Artist)
 X(model::Song)
 X(model::Playlist)
-X(model::Djradio)
+X(model::Radio)
 X(model::Program)
 X(model::Comment)
 X(model::ThirdUser)

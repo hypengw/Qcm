@@ -6,7 +6,7 @@
 #include "qcm_interface/oper/artist_oper.h"
 #include "qcm_interface/oper/song_oper.h"
 #include "qcm_interface/oper/playlist_oper.h"
-#include "qcm_interface/oper/djradio_oper.h"
+#include "qcm_interface/oper/radio_oper.h"
 #include "qcm_interface/oper/program_oper.h"
 #include "qcm_interface/oper/comment_oper.h"
 #include "ncm/model.h"
@@ -28,8 +28,8 @@ DECLARE_CONVERT(qcm::model::ThirdUser, ncm::model::User)
 DECLARE_CONVERT(qcm::oper::ThirdUserOper, ncm::model::User)
 DECLARE_CONVERT(qcm::model::Comment, ncm::model::Comment)
 DECLARE_CONVERT(qcm::oper::CommentOper, ncm::model::Comment)
-DECLARE_CONVERT(qcm::model::Djradio, ncm::model::Djradio)
-DECLARE_CONVERT(qcm::model::Djradio, ncm::model::DjradioB)
+DECLARE_CONVERT(qcm::model::Radio, ncm::model::Djradio)
+DECLARE_CONVERT(qcm::model::Radio, ncm::model::DjradioB)
 DECLARE_CONVERT(qcm::oper::DjradioOper, ncm::model::Djradio)
 DECLARE_CONVERT(qcm::model::Song, ncm::model::SongB)
 DECLARE_CONVERT(qcm::oper::SongOper, ncm::model::SongB)

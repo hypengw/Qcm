@@ -18,12 +18,12 @@ namespace model
 {
 
 class CloudSearch : public meta_model::VariantListModel<model::Song, model::Album, model::Playlist,
-                                                        model::Artist, model::Djradio> {
+                                                        model::Artist, model::Radio> {
     Q_OBJECT
 public:
     CloudSearch(QObject* parent = nullptr)
         : meta_model::VariantListModel<model::Song, model::Album, model::Playlist, model::Artist,
-                                       model::Djradio>(parent),
+                                       model::Radio>(parent),
           m_has_more(true) {
         connect(this, &CloudSearch::modelReset, this, [this]() {
             fetchMore({});
@@ -83,7 +83,7 @@ public:
             }
         }
         {
-            Helper<out_type::DjradioResult, model::Djradio> h(*this, re);
+            Helper<out_type::DjradioResult, model::Radio> h(*this, re);
             if (h) {
                 this->insert(rowCount(), h.to(helper::value_or_default(h.src().djRadios)));
                 m_has_more = h.src().djRadiosCount > rowCount();
@@ -172,7 +172,7 @@ inline void qcm::model::CloudSearch::updateType(int t) {
         i    = 3;
         break;
     case CloudSearchQuerier::DjradioType:
-        meta = &model::Djradio::staticMetaObject;
+        meta = &model::Radio::staticMetaObject;
         i    = 4;
         break;
     default:

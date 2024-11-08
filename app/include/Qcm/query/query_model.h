@@ -46,7 +46,7 @@ inline void load_query(model::Playlist& pl, QSqlQuery& query, int& i) {
     pl.updateTime  = query.value(i++).toDateTime();
     pl.userId      = query.value(i++).toUrl();
 }
-inline void load_query(model::Djradio& dj, QSqlQuery& query, int& i) {
+inline void load_query(model::Radio& dj, QSqlQuery& query, int& i) {
     dj.id           = query.value(i++).toUrl();
     dj.name         = query.value(i++).toString();
     dj.picUrl       = query.value(i++).toString();
