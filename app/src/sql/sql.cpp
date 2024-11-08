@@ -1,5 +1,6 @@
 #include "asio_qt/qt_sql.h"
 #include "json_helper/helper.inl"
+#include "Qcm/query/query_model.h"
 
 #include <QDateTime>
 
@@ -53,10 +54,19 @@ auto get_converter(int id) -> std::optional<Converter> {
                       }
                       return date;
                   },
-              } } },
-        {
+              } },
+            { qcm::model::ItemId::staticMetaObject.metaType().id(),
+              {
+                  [](const QVariant& in) -> QVariant {
+                      return QVariant::fromValue(qcm::model::ItemId(in.toUrl()));
+                  },
+                  [](const QVariant& in) -> QVariant {
+                      return in.value<qcm::model::ItemId>().toUrl();
+                  },
+              } },
+        },
 
-        }
+        {}
     };
 
     if (auto it = impl.con.find(id); it != impl.con.end()) {
@@ -77,3 +87,17 @@ auto SqlConnect::get_to_converter(int id) -> std::optional<Converter> {
     });
 }
 } // namespace helper
+
+namespace qcm
+{
+auto query::get_from_converter(int id) -> std::optional<Converter> {
+    return helper::detail::get_converter(id).transform([](const auto& c) {
+        return c.from;
+    });
+}
+auto query::get_to_converter(int id) -> std::optional<Converter> {
+    return helper::detail::get_converter(id).transform([](const auto& c) {
+        return c.to;
+    });
+}
+} // namespace qcm

@@ -44,7 +44,7 @@ auto null(const R& r, std::string_view table = {}) -> std::string {
 
 inline auto meta_prop_names(const QMetaObject& meta) {
     return std::views::transform(std::views::iota(0, meta.propertyCount()), [&meta](int i) {
-        return meta.property(i).name();
+        return std::string_view(meta.property(i).name());
     });
 }
 

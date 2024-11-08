@@ -1,9 +1,27 @@
 #pragma once
 #include <QSqlQuery>
 #include "qcm_interface/model/query_model.h"
+#include "qcm_interface/sql/meta_sql.h"
 namespace qcm::query
 {
+using Converter = std::function<QVariant(const QVariant&)>;
+auto get_from_converter(int id) -> std::optional<Converter>;
+auto get_to_converter(int id) -> std::optional<Converter>;
+
+template<typename T>
+void load_query(QSqlQuery& query, T& gad, int& i) {
+    for (auto prop_i : T::sql().idxs) {
+        auto val  = query.value(i++);
+        auto prop = T::staticMetaObject.property(prop_i);
+        if (auto c = get_from_converter(prop.metaType().id())) {
+            val = (*c)(val);
+        }
+        prop.writeOnGadget(&gad, val);
+    }
+}
+
 inline void load_query(model::Album& al, QSqlQuery& query, int& i) {
+    al.staticMetaObject.property(i).metaType().id();
     al.id          = query.value(i++).toUrl();
     al.name        = query.value(i++).toString();
     al.picUrl      = query.value(i++).toString();

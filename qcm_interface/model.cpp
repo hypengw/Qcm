@@ -11,6 +11,7 @@
 #include "qcm_interface/model/router_msg.h"
 #include "qcm_interface/global.h"
 #include "qcm_interface/notifier.h"
+#include "qcm_interface/sql/meta_sql.h"
 #include "asio_helper/basic.h"
 
 #include "json_helper/helper.inl"
@@ -223,3 +224,43 @@ IMPL_JSON_SERIALIZER_FROM(QDateTime) {
 IMPL_JSON_SERIALIZER_TO(QDateTime) { j = t.toString(Qt::DateFormat::TextDate); }
 
 IMPL_CONVERT(std::string, qcm::model::ItemId) { out = in.toUrl().toString().toStdString(); }
+
+// select
+namespace qcm::model
+{
+
+template<typename T>
+auto generate_sql(std::string_view table, std::set<std::string_view> ignore = {},
+                  std::string_view pre = {}) -> ModelSql {
+    const auto& meta = T::staticMetaObject;
+    ModelSql    out;
+    for (int i = 0; i < meta.propertyCount(); i++) {
+        std::string_view name = meta.property(i).name();
+        if (ignore.contains(name)) continue;
+        out.names.emplace_back(name);
+        out.idxs.emplace_back(i);
+    }
+    out.select = fmt::format(
+        "{}{}",
+        pre.empty() ? ""s : fmt::format("{}\n,", pre),
+        fmt::join(std::views::transform(std::views::filter(out.names,
+                                                           [&ignore](const auto& el) -> bool {
+                                                               return ! ignore.contains(el);
+                                                           }),
+                                        [table](const auto& el) {
+                                            return fmt::format("{}.{}", table, el);
+                                        }),
+                  ",\n"));
+
+    return out;
+}
+
+#define X(type, table, ...)                                                         \
+    auto type::sql() -> const ModelSql& {                                           \
+        static auto select = generate_sql<type>(#table __VA_OPT__(, ) __VA_ARGS__); \
+        return select;                                                              \
+    }
+
+X(ArtistRefer, artist)
+X(Artist, artist)
+} // namespace qcm::model

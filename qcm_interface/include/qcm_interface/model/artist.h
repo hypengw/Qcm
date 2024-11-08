@@ -3,6 +3,7 @@
 #include <QQmlEngine>
 #include "qcm_interface/macro.h"
 #include "qcm_interface/item_id.h"
+#include "qcm_interface/sql/model_sql.h"
 
 namespace qcm::model
 {
@@ -14,6 +15,8 @@ public:
     GADGET_PROPERTY_DEF(QString, name, name)
     GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
     std::strong_ordering operator<=>(const ArtistRefer&) const = default;
+
+    QCM_INTERFACE_API static auto sql() -> const ModelSql&;
 };
 
 struct Artist : ArtistRefer {
@@ -23,7 +26,8 @@ public:
     GADGET_PROPERTY_DEF(qint32, albumCount, albumCount)
     GADGET_PROPERTY_DEF(qint32, musicCount, musicCount)
     GADGET_PROPERTY_DEF(std::vector<QString>, alias, alias)
-    // GADGET_PROPERTY_DEF(bool, followed, followed)
+
+    QCM_INTERFACE_API static auto sql() -> const ModelSql&;
 };
 
 } // namespace qcm::model
