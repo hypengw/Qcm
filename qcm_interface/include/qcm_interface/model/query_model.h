@@ -45,7 +45,7 @@ public:
 )"_s.arg(model::Song::Select) };
 };
 
-struct Djradio : model::Radio {
+struct Radio : model::Radio {
     Q_GADGET_EXPORT(QCM_INTERFACE_API)
 public:
 };

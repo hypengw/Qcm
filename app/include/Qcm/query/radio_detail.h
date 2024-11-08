@@ -17,20 +17,20 @@
 namespace qcm::query
 {
 
-class DjradioDetail : public meta_model::QGadgetListModel<Program> {
+class RadioDetail : public meta_model::QGadgetListModel<Program> {
     Q_OBJECT
 
-    Q_PROPERTY(Djradio info READ info NOTIFY infoChanged)
+    Q_PROPERTY(Radio info READ info NOTIFY infoChanged)
 
     using base_type = meta_model::QGadgetListModel<Program>;
 
 public:
-    DjradioDetail(QObject* parent = nullptr)
+    RadioDetail(QObject* parent = nullptr)
         : meta_model::QGadgetListModel<Program>(parent), m_has_more(true) {}
 
-    auto info() const -> const Djradio& { return m_info; }
-    void setInfo(const std::optional<Djradio>& v) {
-        m_info = v.value_or(Djradio {});
+    auto info() const -> const Radio& { return m_info; }
+    void setInfo(const std::optional<Radio>& v) {
+        m_info = v.value_or(Radio {});
         infoChanged();
     }
 
@@ -89,24 +89,24 @@ public:
     }
 
 private:
-    bool    m_has_more;
-    Djradio m_info;
+    bool  m_has_more;
+    Radio m_info;
 };
 
-class DjradioDetailQuery : public Query<DjradioDetail> {
+class RadioDetailQuery : public Query<RadioDetail> {
     Q_OBJECT
     QML_ELEMENT
 
     Q_PROPERTY(model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
-    Q_PROPERTY(DjradioDetail* data READ tdata NOTIFY itemIdChanged FINAL)
+    Q_PROPERTY(RadioDetail* data READ tdata NOTIFY itemIdChanged FINAL)
 public:
-    DjradioDetailQuery(QObject* parent = nullptr): Query<DjradioDetail>(parent) {
-        connect(this, &DjradioDetailQuery::itemIdChanged, this, &DjradioDetailQuery::reload);
+    RadioDetailQuery(QObject* parent = nullptr): Query<RadioDetail>(parent) {
+        connect(this, &RadioDetailQuery::itemIdChanged, this, &RadioDetailQuery::reload);
     }
 
-    auto itemId() const -> const model::ItemId& { return m_djradio_id; }
+    auto itemId() const -> const model::ItemId& { return m_radio_id; }
     void setItemId(const model::ItemId& v) {
-        if (ycore::cmp_exchange(m_djradio_id, v)) {
+        if (ycore::cmp_exchange(m_radio_id, v)) {
             itemIdChanged();
         }
     }
@@ -114,7 +114,7 @@ public:
     Q_SIGNAL void itemIdChanged();
 
 public:
-    auto query_djradio(model::ItemId itemId) -> task<std::optional<Djradio>> {
+    auto query_radio(model::ItemId itemId) -> task<std::optional<Radio>> {
         auto sql = App::instance()->album_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
 
@@ -122,9 +122,9 @@ public:
         query.prepare_sv(std::format(R"(
 SELECT 
     {}
-FROM djradio
-WHERE djradio.itemId = :itemId
-GROUP BY djradio.itemId;
+FROM radio
+WHERE radio.itemId = :itemId
+GROUP BY radio.itemId;
 )",
                                      model::Radio::sql().select));
         query.bindValue(":itemId", itemId.toUrl());
@@ -132,8 +132,8 @@ GROUP BY djradio.itemId;
         if (! query.exec()) {
             ERROR_LOG("{}", query.lastError().text());
         } else if (query.next()) {
-            Djradio dj;
-            int     i = 0;
+            Radio dj;
+            int   i = 0;
             load_query(dj, query, i);
             co_return dj;
         }
@@ -173,19 +173,19 @@ ORDER BY program.serialNumber DESC;
         set_status(Status::Querying);
         auto ex     = asio::make_strand(pool_executor());
         auto self   = helper::QWatcher { this };
-        auto itemId = m_djradio_id;
+        auto itemId = m_radio_id;
         spawn(ex, [self, itemId] -> task<void> {
             auto sql        = App::instance()->album_sql();
             bool needReload = false;
 
             bool                                synced { 0 };
-            std::optional<Djradio>              djradio;
+            std::optional<Radio>                radio;
             std::optional<std::vector<Program>> programes;
             for (;;) {
-                djradio   = co_await self->query_djradio(itemId);
+                radio     = co_await self->query_radio(itemId);
                 programes = co_await self->query_programs(itemId);
                 if (! synced &&
-                    (! djradio || ! programes || djradio->programCount != (int)programes->size())) {
+                    (! radio || ! programes || radio->programCount != (int)programes->size())) {
                     co_await SyncAPi::sync_item(itemId);
                     synced = true;
                     continue;
@@ -196,7 +196,7 @@ ORDER BY program.serialNumber DESC;
             co_await asio::post(
                 asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
             if (self) {
-                self->tdata()->setInfo(djradio);
+                self->tdata()->setInfo(radio);
                 self->tdata()->resetModel(programes);
                 self->set_status(Status::Finished);
             }
@@ -207,7 +207,7 @@ ORDER BY program.serialNumber DESC;
     Q_SLOT void reset() {}
 
 private:
-    model::ItemId m_djradio_id;
+    model::ItemId m_radio_id;
 };
 
 } // namespace qcm::query

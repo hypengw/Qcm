@@ -220,7 +220,7 @@ MD.Page {
         }
     }
 
-    QA.DjradioDetailQuery {
+    QA.RadioDetailQuery {
         id: qr_dj
     }
 }
