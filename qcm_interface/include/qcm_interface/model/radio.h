@@ -16,7 +16,7 @@ public:
     GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
     std::strong_ordering operator<=>(const RadioRefer&) const = default;
 
-    static auto sql() -> const ModelSql&;
+    QCM_INTERFACE_API static auto sql() -> const ModelSql&;
 };
 
 struct Radio : RadioRefer {
@@ -26,7 +26,7 @@ public:
     GADGET_PROPERTY_DEF(qint32, programCount, programCount)
     GADGET_PROPERTY_DEF(QDateTime, createTime, createTime)
 
-    static auto sql() -> const ModelSql&;
+    QCM_INTERFACE_API static auto sql() -> const ModelSql&;
 };
 
 } // namespace qcm::model

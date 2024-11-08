@@ -58,7 +58,7 @@ public:
         SONG_ARTIST,
         PLAYLIST,
         PLAYLIST_SONG,
-        DJRADIO
+        RADIO
     };
     virtual auto table_name(Table) const -> QStringView = 0;
 };

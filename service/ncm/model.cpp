@@ -411,7 +411,7 @@ IMPL_CONVERT(std::string, ncm::model::IdType) {
     case ncm::model::IdType::User: out = "user"sv; break;
     case ncm::model::IdType::Artist: out = "artist"sv; break;
     case ncm::model::IdType::Comment: out = "comment"sv; break;
-    case ncm::model::IdType::Djradio: out = "djradio"sv; break;
+    case ncm::model::IdType::Djradio: out = "radio"sv; break;
     case ncm::model::IdType::Song: out = "song"sv; break;
     case ncm::model::IdType::Program: out = "program"sv; break;
     case ncm::model::IdType::Playlist: out = "playlist"sv; break;
@@ -452,8 +452,8 @@ using get_model_type_t = typename get_model_type<T>::type;
 namespace ncm::api_model
 {
 
-auto PlayRecord::parse(std::span<const byte>     bs,
-                       const params::PlayRecord& input) -> Result<PlayRecord> {
+auto PlayRecord::parse(std::span<const byte> bs, const params::PlayRecord& input)
+    -> Result<PlayRecord> {
     return json::parse(convert_from<std::string_view>(bs))
         .map_error([](auto err) {
             return Error::push(err);

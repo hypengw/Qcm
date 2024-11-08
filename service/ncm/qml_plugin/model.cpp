@@ -68,7 +68,7 @@ auto ncm_id_type(const ItemId& id) -> std::optional<model::IdType> {
         return model::IdType::User;
     else if (t == "program")
         return model::IdType::Program;
-    else if (t == "djradio")
+    else if (t == "radio")
         return model::IdType::Djradio;
     else if (t == "song")
         return model::IdType::Song;

@@ -90,7 +90,7 @@ enum class CollectionType
     CTAlbum = 0,
     CTArtist,
     CTPlaylist,
-    CTDjradio,
+    CTRadio,
 };
 Q_ENUM_NS(CollectionType)
 

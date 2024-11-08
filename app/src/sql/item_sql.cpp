@@ -34,9 +34,9 @@ ItemSql::ItemSql(rc<helper::SqlConnect> con)
       m_song_artist_table("song_artist"),
       m_playlist_table("playlist"),
       m_playlist_song_table("playlist_song"),
-      m_radio_table("djradio"),
+      m_radio_table("radio"),
       m_program_table("program"),
-      m_radio_program_table("djradio_program"),
+      m_radio_program_table("radio_program"),
       m_con(con) {
     asio::dispatch(m_con->get_executor(), [this] {
         create_album_table();
@@ -269,11 +269,11 @@ void ItemSql::create_radio_program_table() {
     auto migs = m_con->generate_column_migration(
         m_radio_program_table,
         std::array {
-            helper::SqlColumn { .name = "djradioId", .type = "TEXT", .notnull = 1 },
+            helper::SqlColumn { .name = "radioId", .type = "TEXT", .notnull = 1 },
             helper::SqlColumn { .name = "programId", .type = "TEXT", .notnull = 1 },
             m_con->EditTimeColumn,
         },
-        std::array { "UNIQUE(djradioId, programId)"s });
+        std::array { "UNIQUE(radioId, programId)"s });
 
     QSqlQuery q = m_con->query();
 
@@ -401,7 +401,7 @@ auto ItemSql::insert(std::span<const model::Playlist> items, ListParam columns,
 }
 auto ItemSql::insert(std::span<const model::Radio> items, ListParam columns,
                      const std::set<std::string>& on_update) -> task<bool> {
-    DEBUG_LOG("start insert djradio, {}", items.size());
+    DEBUG_LOG("start insert radio, {}", items.size());
     auto insert_helper = m_con->generate_insert_helper(m_radio_table,
                                                        { "itemId"s },
                                                        model::Radio::staticMetaObject,
@@ -505,9 +505,9 @@ INSERT OR IGNORE INTO %1 (songId, artistId) VALUES (:songId, :artistId);
 }
 
 auto ItemSql::insert_radio_program(std::span<const IdPair> ids) -> task<bool> {
-    QVariantList djradioIds, programIds;
+    QVariantList radioIds, programIds;
     for (auto& el : ids) {
-        djradioIds << std::get<0>(el).toUrl();
+        radioIds << std::get<0>(el).toUrl();
         programIds << std::get<1>(el).toUrl();
     }
 
@@ -515,9 +515,9 @@ auto ItemSql::insert_radio_program(std::span<const IdPair> ids) -> task<bool> {
     auto query = m_con->query();
 
     query.prepare(uR"(
-INSERT OR IGNORE INTO %1 (djradioId, programId) VALUES (:djradioId, :programId);
+INSERT OR IGNORE INTO %1 (radioId, programId) VALUES (:radioId, :programId);
 )"_s.arg(m_song_artist_table));
-    query.bindValue(":djradioId", djradioIds);
+    query.bindValue(":radioId", radioIds);
     query.bindValue(":programId", programIds);
     m_con->db().transaction();
     if (! query.execBatch()) {
@@ -628,7 +628,7 @@ auto ItemSql::table_name(Table t) const -> QStringView {
     case Table::PLAYLIST: return m_playlist_table;
     case Table::ARTIST: return m_artist_table;
     case Table::SONG_ARTIST: return m_song_artist_table;
-    case Table::DJRADIO: return m_radio_table;
+    case Table::RADIO: return m_radio_table;
     }
     _assert_rel_(false);
     return {};

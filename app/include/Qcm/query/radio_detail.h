@@ -119,13 +119,14 @@ public:
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
 
         auto query = sql->con()->query();
-        query.prepare(uR"(
+        query.prepare_sv(std::format(R"(
 SELECT 
-    %1
+    {}
 FROM djradio
 WHERE djradio.itemId = :itemId
 GROUP BY djradio.itemId;
-)"_s.arg(Djradio::Select));
+)",
+                                     model::Radio::sql().select));
         query.bindValue(":itemId", itemId.toUrl());
 
         if (! query.exec()) {

@@ -164,7 +164,7 @@ MD.Page {
                     id: qr_playlist
                     Component.onCompleted: reload()
                 }
-                QA.DjradioCollectionQuery {
+                QA.RadioCollectionQuery {
                     id: qr_djradiolist
                     Component.onCompleted: reload()
                 }

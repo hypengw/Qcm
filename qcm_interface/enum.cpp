@@ -20,7 +20,7 @@ IMPL_CONVERT(std::string_view, qcm::enums::CollectionType) {
         out = "playlist"sv;
         break;
     }
-    case in_type::CTDjradio: {
+    case in_type::CTRadio: {
         out = "djradio"sv;
         break;
     }

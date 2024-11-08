@@ -538,7 +538,7 @@ auto sync_collection(ClientBase&                cbase,
         co_await collect_sql->refresh(user_id, type, collects, collect_times);
         break;
     }
-    case qcm::enums::CollectionType::CTDjradio: {
+    case qcm::enums::CollectionType::CTRadio: {
         ncm::api::DjradioSublist api;
         api.input.limit                 = 1000;
         bool                   has_more = false;

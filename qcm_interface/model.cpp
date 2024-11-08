@@ -263,4 +263,6 @@ auto generate_sql(std::string_view table, std::set<std::string_view> ignore = {}
 
 X(ArtistRefer, artist)
 X(Artist, artist)
+X(RadioRefer, radio)
+X(Radio, radio)
 } // namespace qcm::model
