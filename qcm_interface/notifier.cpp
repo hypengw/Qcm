@@ -1,10 +1,18 @@
 #include "qcm_interface/notifier.h"
 #include "qcm_interface/global.h"
 
+#include "qcm_interface/global_static.h"
 namespace qcm
 {
 
-auto Notifier::instance() -> Notifier* { return Global::instance()->notifier(); };
+auto Notifier::instance() -> Notifier* {
+    static auto the =
+        GlobalStatic::instance()->add<Notifier>("notifier", new Notifier(nullptr), [](Notifier* p) {
+            delete p;
+        });
+    return the;
+};
+
 Notifier::Notifier(QObject* parent): QObject(parent) {}
 Notifier::~Notifier() {}
 

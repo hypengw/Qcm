@@ -11,6 +11,8 @@
 #include "request/session.h"
 #include "qcm_interface/path.h"
 #include "qcm_interface/plugin.h"
+#include "qcm_interface/global_static.h"
+#include "qcm_interface/action.h"
 
 namespace
 {
@@ -80,8 +82,6 @@ Global::Private::Private(Global* p)
       session(std::make_shared<request::Session>(pool.get_executor())),
       qsession(nullptr),
       qsession_empty(new model::Session(p)),
-      action(new Action(p)),
-      notifier(new Notifier(p)),
       user_model(nullptr),
       copy_action_comp(nullptr),
       app_state(new state::AppState(p)) {
@@ -115,20 +115,12 @@ Global::~Global() {
     save_user();
     // delete child before private pointer
     qDeleteAll(children());
+    GlobalStatic::instance()->reset();
 }
 
 auto Global::info() const -> const model::AppInfo& {
     C_D(const Global);
     return d->info;
-}
-
-auto Global::action() const -> Action* {
-    C_D(const Global);
-    return d->action;
-}
-auto Global::notifier() const -> Notifier* {
-    C_D(const Global);
-    return d->notifier;
 }
 
 auto Global::busy_info() const -> model::BusyInfo* {
@@ -340,7 +332,7 @@ GlobalWrapper::GlobalWrapper(): m_g(Global::instance()) {
                 map.insert("error", error);
                 act = comp->createWithInitialProperties(map);
             }
-            m_g->action()->toast(error, 0, enums::ToastFlag::TFCloseable, act);
+            Action::instance()->toast(error, 0, enums::ToastFlag::TFCloseable, act);
         }
     });
 }
@@ -361,7 +353,9 @@ void GlobalWrapper::set_copy_action_comp(QQmlComponent* val) { m_g->set_copy_act
 namespace qcm
 {
 auto image_provider_url(const QUrl& url, const QString& provider) -> QUrl {
-    return QStringLiteral("image://qcm/%1/%2").arg(provider).arg(url.toString().toUtf8().toBase64());
+    return QStringLiteral("image://qcm/%1/%2")
+        .arg(provider)
+        .arg(url.toString().toUtf8().toBase64());
 }
 
 auto parse_image_provider_url(const QUrl& url) -> std::tuple<QUrl, QString> {

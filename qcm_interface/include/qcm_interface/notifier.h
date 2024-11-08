@@ -22,6 +22,6 @@ public:
 
 Q_SIGNALS:
     void collected(const model::ItemId&, bool);
-    void collection_synced(enums::CollectionType);
+    void collection_synced(enums::CollectionType type, model::ItemId userId, QDateTime time);
 };
 } // namespace qcm

@@ -21,9 +21,6 @@
 #include "qcm_interface/model/user_model.h"
 #include "qcm_interface/model/session.h"
 #include "qcm_interface/model/busy_info.h"
-#include "qcm_interface/action.h"
-#include "qcm_interface/notifier.h"
-
 #include "qcm_interface/state/app_state.h"
 
 namespace request
@@ -83,8 +80,6 @@ public:
     auto pool_executor() -> pool_executor_t;
     auto session() -> rc<request::Session>;
     auto qsession() const -> model::Session*;
-    auto action() const -> Action*;
-    auto notifier() const -> Notifier*;
     auto busy_info() const -> model::BusyInfo*;
     auto app_state() const -> state::AppState*;
 

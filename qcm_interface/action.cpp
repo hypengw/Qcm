@@ -1,10 +1,18 @@
 #include "qcm_interface/action.h"
 #include "qcm_interface/global.h"
+#include "qcm_interface/global_static.h"
 
 namespace qcm
 {
 
-auto Action::instance() -> Action* { return Global::instance()->action(); };
+auto Action::instance() -> Action* {
+    static auto the =
+        GlobalStatic::instance()->add<Action>("action", new Action(nullptr), [](Action* p) {
+            delete p;
+        });
+    return the;
+};
+
 Action::Action(QObject* parent): QObject(parent) {}
 Action::~Action() {}
 

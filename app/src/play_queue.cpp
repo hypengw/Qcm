@@ -10,6 +10,7 @@
 #include "asio_helper/basic.h"
 #include "asio_qt/qt_sql.h"
 #include "qcm_interface/global.h"
+#include "qcm_interface/action.h"
 #include "qcm_interface/sync_api.h"
 #include "Qcm/app.h"
 #include "Qcm/sql/item_sql.h"

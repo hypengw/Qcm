@@ -27,7 +27,8 @@ class QCM_INTERFACE_API UserAccount : public Model<UserAccount, QObject> {
     Q_OBJECT
     DECLARE_MODEL()
 
-    Q_PROPERTY(qcm::model::UserAccountCollection* collection READ collection NOTIFY collectionChanged FINAL)
+    Q_PROPERTY(qcm::model::UserAccountCollection* collection READ collection NOTIFY
+                   collectionChanged FINAL)
 public:
     UserAccount(QObject* parent = nullptr);
     ~UserAccount();
@@ -48,7 +49,7 @@ public:
 
     auto collection() const -> UserAccountCollection*;
 
-    Q_SIGNAL void query();
+    Q_SIGNAL void query(QString type = {});
     Q_SIGNAL void collectionChanged();
 
 private:

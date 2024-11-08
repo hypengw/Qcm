@@ -4,7 +4,7 @@ add_library(
   include/ncm/enum.h
   include/ncm/crypto.h
   include/ncm/api.h
-  include/ncm/api/album_detail.h
+  include/ncm/api/v1_album.h
   include/ncm/api/album_detail_dynamic.h
   include/ncm/api/album_sub.h
   include/ncm/api/album_sublist.h

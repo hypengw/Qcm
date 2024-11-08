@@ -3,6 +3,8 @@
 #include <QTimer>
 #include "qcm_interface/sync_api.h"
 #include "qcm_interface/async.h"
+#include "qcm_interface/action.h"
+#include "qcm_interface/notifier.h"
 
 namespace qcm::query
 {
@@ -88,13 +90,18 @@ private:
 template<typename T, typename Base = detail::QueryBase>
 class Query : public Base {
 public:
-    Query(QObject* parent = nullptr): Base(parent), m_data(new T(this)) { record(); }
+    Query(QObject* parent = nullptr)
+        : Base(parent), m_data(new T(this)), m_last(QDateTime::fromSecsSinceEpoch(0)) {}
     ~Query() {}
 
     auto data() const -> QVariant override { return QVariant::fromValue(m_data); }
     auto tdata() const -> T* { return m_data; }
 
     auto last() const -> const QDateTime& { return m_last; }
+    void setLast(const QDateTime& t, const QDateTime& last = QDateTime::currentDateTime()) {
+        m_last = std::min<QDateTime>(t, last);
+    }
+    void resetLast() { m_last = QDateTime::fromSecsSinceEpoch(0); }
     auto record() {
         auto old = m_last;
         m_last   = QDateTime::currentDateTimeUtc();

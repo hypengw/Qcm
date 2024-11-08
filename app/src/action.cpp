@@ -134,7 +134,7 @@ void App::connect_actions() {
             bool refresh = true;
             if (std::filesystem::exists(path)) {
                 auto url = QUrl::fromLocalFile(convert_from<QString>(path.native()));
-                Global::instance()->action()->play(url, refresh);
+                Action::instance()->play(url, refresh);
                 return;
             }
 
@@ -146,7 +146,7 @@ void App::connect_actions() {
                         auto res = co_await c->api->media_url(*c->instance, curId.value(), qu);
                         res.transform([&hash, refresh](QUrl url) -> bool {
                                url = App::instance()->media_url(url, convert_from<QString>(hash));
-                               Global::instance()->action()->play(url, refresh);
+                               Action::instance()->play(url, refresh);
                                return true;
                            })
                             .transform_error([](auto err) -> std::nullptr_t {

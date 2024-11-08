@@ -2,17 +2,21 @@
 
 #include <QQmlEngine>
 
-#include "Qcm/query/query.h"
-#include "Qcm/query/query_model.h"
-#include "Qcm/sql/item_sql.h"
-#include "Qcm/app.h"
 #include "asio_qt/qt_sql.h"
-#include "qcm_interface/global.h"
 #include "meta_model/qgadgetlistmodel.h"
+
+#include "qcm_interface/global.h"
 #include "qcm_interface/macro.h"
 #include "qcm_interface/model/album.h"
 #include "qcm_interface/model/artist.h"
 #include "qcm_interface/async.inl"
+#include "qcm_interface/sql/meta_sql.h"
+
+#include "Qcm/query/query.h"
+#include "Qcm/query/query_model.h"
+#include "Qcm/sql/item_sql.h"
+#include "Qcm/sql/collection_sql.h"
+#include "Qcm/app.h"
 
 namespace qcm::query
 {
@@ -44,9 +48,60 @@ class AlbumCollectionQuery : public Query<AlbumCollection> {
     Q_OBJECT
     QML_ELEMENT
 public:
-    AlbumCollectionQuery(QObject* parent = nullptr): Query<AlbumCollection>(parent) {}
+    AlbumCollectionQuery(QObject* parent = nullptr): Query<AlbumCollection>(parent) {
+        set_use_queue(true);
+        connect(Notifier::instance(),
+                &Notifier::collected,
+                this,
+                [this](const model::ItemId& id, bool) {
+                    if (id.type() == u"album") {
+                        request_reload();
+                    }
+                });
+        connect(Notifier::instance(),
+                &Notifier::collection_synced,
+                this,
+                [this](enums::CollectionType type) {
+                    if (type == enums::CollectionType::CTAlbum) {
+                        request_reload();
+                    }
+                });
+    }
 
 public:
+    auto query_collect(const model::ItemId& userId, const QDateTime& time)
+        -> task<std::vector<AlbumCollectionItem>> {
+        auto                             sql = App::instance()->album_sql();
+        std::vector<AlbumCollectionItem> items;
+        co_await asio::post(asio::bind_executor(sql->get_executor(), asio::use_awaitable));
+        auto query = sql->con()->query();
+        query.prepare(uR"(
+SELECT 
+    %1,
+    collection.collectTime 
+FROM album 
+JOIN collection ON album.itemId = collection.itemId
+LEFT JOIN album_artist ON album.itemId = album_artist.albumId
+LEFT JOIN artist ON album_artist.artistId = artist.itemId
+WHERE collection.userId = :userId AND collection.type = "album" AND collection.collectTime > :time AND collection.removed = 0
+GROUP BY album.itemId
+ORDER BY collection.collectTime DESC;
+)"_s.arg(Album::Select));
+        query.bindValue(":userId", userId.toUrl());
+        query.bindValue(":time", time);
+
+        if (! query.exec()) {
+            ERROR_LOG("{}", query.lastError().text());
+        }
+        while (query.next()) {
+            auto& item = items.emplace_back();
+            int   i    = 0;
+            query::load_query(item, query, i);
+            item.subTime = query.value(i++).toDateTime();
+        }
+        co_return items;
+    }
+
     void reload() override {
         if (status() == Status::Uninitialized) {
             Action::instance()->sync_collection(enums::CollectionType::CTAlbum);
@@ -56,71 +111,55 @@ public:
 
         auto ex   = asio::make_strand(pool_executor());
         auto self = helper::QWatcher { this };
-        spawn(ex, [self, userId] -> asio::awaitable<void> {
-            auto                             sql = App::instance()->album_sql();
-            std::vector<AlbumCollectionItem> items;
-            {
-                co_await asio::post(asio::bind_executor(sql->get_executor(), asio::use_awaitable));
-                auto query = sql->con()->query();
-                query.prepare(uR"(
-SELECT 
-    album.itemId, 
-    album.name, 
-    album.picUrl, 
-    album.trackCount, 
-    collection.collectTime, 
-    GROUP_CONCAT(artist.itemId) AS artistIds, 
-    GROUP_CONCAT(artist.name) AS artistNames,
-    GROUP_CONCAT(artist.picUrl) AS artistPicUrls
-FROM album
-JOIN collection ON album.itemId = collection.itemId
-JOIN album_artist ON album.itemId = album_artist.albumId
-JOIN artist ON album_artist.artistId = artist.itemId
-WHERE collection.userId = :userId
-GROUP BY album.itemId
-ORDER BY collection.collectTime DESC;
-)"_s);
-                query.bindValue(":userId", userId.toUrl());
 
-                if (! query.exec()) {
-                    ERROR_LOG("{}", query.lastError().text());
-                }
-                while (query.next()) {
-                    auto& item      = items.emplace_back();
-                    item.id         = query.value(0).toUrl();
-                    item.name       = query.value(1).toString();
-                    item.picUrl     = query.value(2).toString();
-                    item.trackCount = query.value(3).toInt();
-                    item.subTime    = query.value(4).toDateTime();
+        auto time = last();
+        spawn(ex, [self, userId, time] -> asio::awaitable<void> {
+            auto sql     = App::instance()->collect_sql();
+            auto missing = co_await sql->select_missing(
+                userId, "album", "album", { "name", "picUrl", "trackCount" });
 
-                    {
-                        auto artist_ids     = query.value(5).toStringList();
-                        auto artist_names   = query.value(6).toStringList();
-                        auto artist_picUrls = query.value(7).toStringList();
-                        for (qsizetype i = 0; i < artist_ids.size(); i++) {
-                            auto& ar  = item.artists.emplace_back();
-                            ar.id     = artist_ids[i];
-                            ar.name   = artist_names[i];
-                            ar.picUrl = artist_picUrls[i];
-                        }
-                    }
-                }
-            }
+            auto deleted_vec = co_await sql->select_removed(userId, u"album"_s, time);
+            std::unordered_set<model::ItemId> deleted(deleted_vec.begin(), deleted_vec.end());
+
+            if (! missing.empty()) co_await SyncAPi::sync_items(missing);
+
+            auto items = co_await self->query_collect(userId, time);
 
             co_await asio::post(
                 asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
 
             if (self) {
-                self->tdata()->resetModel(items);
+                auto t = self->tdata();
+                t->remove_if([&deleted](const auto& el) -> bool {
+                    return deleted.contains(el.id);
+                });
+
+                auto last = time;
+                for (auto& el : items) {
+                    last = std::max<QDateTime>(last, el.subTime);
+                    {
+                        auto it = std::find_if(t->begin(), t->end(), [&el](const auto& sub) {
+                            return sub.id == el.id;
+                        });
+
+                        if (it != t->end()) {
+                            t->update(std::distance(t->begin(), it), el);
+                            continue;
+                        }
+                    }
+                    {
+                        auto it = std::lower_bound(
+                            t->begin(), t->end(), el, [userId](const auto& el, const auto& val) {
+                                return el.subTime > val.subTime;
+                            });
+                        t->insert(std::distance(t->begin(), it), el);
+                    }
+                }
+                self->setLast(last);
                 self->set_status(Status::Finished);
             }
             co_return;
         });
-    }
-
-    Q_SLOT void reset() {
-        // api().input.offset = 0;
-        // reload();
     }
 };
 

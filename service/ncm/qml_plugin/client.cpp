@@ -34,7 +34,7 @@
 #include "ncm/api/artist_sublist.h"
 #include "ncm/api/user_playlist.h"
 #include "ncm/api/djradio_sublist.h"
-#include "ncm/api/album_detail.h"
+#include "ncm/api/v1_album.h"
 #include "ncm/api/playlist_detail.h"
 #include "ncm/api/artist.h"
 #include "ncm/api/artist_albums.h"
@@ -101,8 +101,8 @@ auto insert_artist(const T& in_list, rc<qcm::db::ItemSqlBase> sql,
 
 template<typename T, typename Func>
 auto insert_album(const T& in_list, Func&& get_artists, rc<qcm::db::ItemSqlBase> sql,
-                  const std::set<std::string>& on_update,
-                  const std::set<std::string>& on_artist_update) -> qcm::task<void> {
+                  const std::set<std::string>& columns,
+                  const std::set<std::string>& artist_columns) -> qcm::task<void> {
     auto                                      list = qcm::oper::AlbumOper::create_list(0);
     std::vector<qcm::db::ItemSqlBase::IdPair> album_artist_ids;
     for (auto& el : in_list) {
@@ -113,12 +113,12 @@ auto insert_album(const T& in_list, Func&& get_artists, rc<qcm::db::ItemSqlBase>
                 { convert_from<ncm::ItemId>(el.id), convert_from<ncm::ItemId>(ar.id) });
         }
     }
-    co_await sql->insert(list, on_update);
+    co_await sql->insert(list, columns);
 
     co_await insert_artist(
         std::ranges::join_view(std::ranges::transform_view(in_list, get_artists)),
         sql,
-        on_artist_update);
+        artist_columns);
 
     co_await sql->insert_album_artist(album_artist_ids);
 }

@@ -10,6 +10,7 @@
 #include "qcm_interface/model/session.h"
 #include "qcm_interface/model/router_msg.h"
 #include "qcm_interface/global.h"
+#include "qcm_interface/notifier.h"
 #include "asio_helper/basic.h"
 
 #include "json_helper/helper.inl"
@@ -28,15 +29,31 @@ public:
 
 UserAccount::UserAccount(QObject* parent): d_ptr(make_up<Private>(this)) {
     this->setParent(parent);
-    connect(this, &UserAccount::query, this, [this] {
+
+    connect(Notifier::instance(),
+            &Notifier::collection_synced,
+            this,
+            [this](enums::CollectionType type, model::ItemId userId) {
+                if (userId == this->userId()) {
+                    this->query(convert_from<QString>(type));
+                }
+            });
+    connect(this, &UserAccount::query, this, [this](QString type) {
         asio::co_spawn(
             Global::instance()->qexecutor(),
-            [this] -> asio::awaitable<void> {
+            [this, type] -> asio::awaitable<void> {
                 C_D(UserAccount);
                 auto sql = Global::instance()->get_collection_sql();
-                auto res = co_await sql->select_id(userId());
+                auto res = co_await sql->select_id(userId(), type);
 
-                d->items.clear();
+                if (type.isEmpty()) {
+                    d->items.clear();
+                } else {
+                    auto type_hash = std::hash<QString> {}(type);
+                    std::erase_if(d->items, [type_hash](const auto& el) -> bool {
+                        return el.second == type_hash;
+                    });
+                }
                 insert(res);
                 co_return;
             },

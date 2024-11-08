@@ -13,6 +13,6 @@ Action {
     text: qsTr(liked ? 'favorited' : 'favorite')
 
     onTriggered: {
-        QA.Action.collect(root.itemId, !checked);
+        QA.Action.collect(root.itemId, !liked);
     }
 }

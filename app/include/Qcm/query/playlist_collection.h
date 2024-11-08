@@ -68,8 +68,8 @@ public:
     }
 
 public:
-    auto query_collect(const model::ItemId& userId,
-                       const QDateTime&     time) -> task<std::vector<PlaylistCollectionItem>> {
+    auto query_collect(const model::ItemId& userId, const QDateTime& time)
+        -> task<std::vector<PlaylistCollectionItem>> {
         auto                                sql = App::instance()->album_sql();
         std::vector<PlaylistCollectionItem> items;
         co_await asio::post(asio::bind_executor(sql->get_executor(), asio::use_awaitable));
@@ -80,7 +80,7 @@ SELECT
     collection.collectTime 
 FROM playlist 
 JOIN collection ON playlist.itemId = collection.itemId
-WHERE collection.userId = :userId AND collection.type = "playlist" AND collection.collectTime > :time AND removed = 0
+WHERE collection.userId = :userId AND collection.type = "playlist" AND collection.collectTime > :time AND collection.removed = 0
 GROUP BY playlist.itemId
 ORDER BY collection.collectTime DESC;
 )"_s.arg(model::Playlist::Select));
@@ -100,10 +100,9 @@ ORDER BY collection.collectTime DESC;
     }
 
     void reload() override {
-        auto time = record();
+        auto time = last();
         if (status() == Status::Uninitialized) {
             Action::instance()->sync_collection(enums::CollectionType::CTPlaylist);
-            time = QDateTime::fromSecsSinceEpoch(0);
         }
         set_status(Status::Querying);
         auto userId = Global::instance()->qsession()->user()->userId();
@@ -135,7 +134,9 @@ ORDER BY collection.collectTime DESC;
                     return deleted.contains(el.id);
                 });
 
+                auto last = time;
                 for (auto& el : items) {
+                    last = std::max<QDateTime>(last, el.subTime);
                     {
                         auto it = std::find_if(t->begin(), t->end(), [&el](const auto& sub) {
                             return sub.id == el.id;
@@ -165,6 +166,7 @@ ORDER BY collection.collectTime DESC;
                         t->insert(std::distance(t->begin(), it), el);
                     }
                 }
+                self->setLast(last);
                 self->set_status(Status::Finished);
             }
             co_return;

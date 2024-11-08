@@ -63,6 +63,7 @@ add_library(
   router.cpp
   state.cpp
   global.cpp
+  global_static.cpp
   plugin.cpp
   oper.cpp
   sync_api.cpp
