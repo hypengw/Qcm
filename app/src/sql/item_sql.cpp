@@ -56,10 +56,8 @@ ItemSql::~ItemSql() {}
 void ItemSql::create_album_table() {
     m_con->db().transaction();
 
-    auto migs = m_con->generate_meta_migration(m_album_table,
-                                               u"itemId",
-                                               model::Album::staticMetaObject,
-                                               std::array { "full INTEGER DEFAULT 0"s });
+    auto migs = m_con->generate_meta_migration(
+        m_album_table, u"itemId", model::Album::staticMetaObject, {});
 
     QSqlQuery q = m_con->query();
 
@@ -78,10 +76,8 @@ void ItemSql::create_album_table() {
 void ItemSql::create_artist_table() {
     m_con->db().transaction();
 
-    auto migs = m_con->generate_meta_migration(m_artist_table,
-                                               u"itemId",
-                                               model::Artist::staticMetaObject,
-                                               std::array { "full INTEGER DEFAULT 0"s });
+    auto migs = m_con->generate_meta_migration(
+        m_artist_table, u"itemId", model::Artist::staticMetaObject, {});
 
     QSqlQuery q = m_con->query();
 
@@ -100,11 +96,8 @@ void ItemSql::create_artist_table() {
 void ItemSql::create_song_table() {
     m_con->db().transaction();
 
-    auto migs = m_con->generate_meta_migration(m_song_table,
-                                               u"itemId",
-                                               model::Song::staticMetaObject,
-                                               std::array { "full INTEGER DEFAULT 0"s },
-                                               get_song_ignore());
+    auto migs = m_con->generate_meta_migration(
+        m_song_table, u"itemId", model::Song::staticMetaObject, {}, get_song_ignore());
 
     QSqlQuery q = m_con->query();
 
@@ -123,10 +116,8 @@ void ItemSql::create_song_table() {
 void ItemSql::create_playlist_table() {
     m_con->db().transaction();
 
-    auto migs = m_con->generate_meta_migration(m_playlist_table,
-                                               u"itemId",
-                                               model::Playlist::staticMetaObject,
-                                               std::array { "full INTEGER DEFAULT 0"s });
+    auto migs = m_con->generate_meta_migration(
+        m_playlist_table, u"itemId", model::Playlist::staticMetaObject, {});
 
     QSqlQuery q = m_con->query();
 
@@ -145,10 +136,8 @@ void ItemSql::create_playlist_table() {
 void ItemSql::create_radio_table() {
     m_con->db().transaction();
 
-    auto migs = m_con->generate_meta_migration(m_radio_table,
-                                               u"itemId",
-                                               model::Radio::staticMetaObject,
-                                               std::array { "full INTEGER DEFAULT 0"s });
+    auto migs = m_con->generate_meta_migration(
+        m_radio_table, u"itemId", model::Radio::staticMetaObject, {});
 
     QSqlQuery q = m_con->query();
 
@@ -167,10 +156,8 @@ void ItemSql::create_radio_table() {
 void ItemSql::create_program_table() {
     m_con->db().transaction();
 
-    auto migs = m_con->generate_meta_migration(m_program_table,
-                                               u"itemId",
-                                               model::Program::staticMetaObject,
-                                               std::array { "full INTEGER DEFAULT 0"s });
+    auto migs = m_con->generate_meta_migration(
+        m_program_table, u"itemId", model::Program::staticMetaObject, {});
 
     QSqlQuery q = m_con->query();
 
@@ -292,8 +279,8 @@ void ItemSql::create_radio_program_table() {
 auto ItemSql::get_executor() -> QtExecutor& { return m_con->get_executor(); }
 auto ItemSql::con() const -> rc<helper::SqlConnect> { return m_con; }
 
-auto ItemSql::insert(std::span<const model::Album> items, ListParam columns,
-                     ListParam on_update) -> task<bool> {
+auto ItemSql::insert(std::span<const model::Album> items, ListParam columns, ListParam on_update)
+    -> task<bool> {
     DEBUG_LOG("start insert album, {}", items.size());
     auto insert_helper = m_con->generate_insert_helper(m_album_table,
                                                        { "itemId"s },
@@ -345,8 +332,8 @@ auto ItemSql::insert(std::span<const model::Artist> items, ListParam columns,
     DEBUG_LOG("end insert");
     co_return true;
 }
-auto ItemSql::insert(std::span<const model::Song> items, ListParam columns,
-                     ListParam on_update) -> task<bool> {
+auto ItemSql::insert(std::span<const model::Song> items, ListParam columns, ListParam on_update)
+    -> task<bool> {
     DEBUG_LOG("start insert song, {}", items.size());
     auto insert_helper = m_con->generate_insert_helper(
         m_song_table,
