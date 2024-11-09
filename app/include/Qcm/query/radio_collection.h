@@ -91,7 +91,7 @@ ORDER BY collection.collectTime DESC;
         while (query.next()) {
             auto& item = items.emplace_back();
             int   i    = 0;
-            query::load_query(item, query, i);
+            query::load_query<model::Radio>(query, item, i);
             item.subTime = query.value(i++).toDateTime();
         }
         co_return items;

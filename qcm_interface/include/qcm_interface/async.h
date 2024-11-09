@@ -54,7 +54,7 @@ public:
                           std::is_pointer_v<T>) {
                 set_data(exp.value());
             } else {
-                set_data(nullptr);
+                set_data(QVariant::fromValue(nullptr));
             }
             set_status(Status::Finished);
         } else {
@@ -64,7 +64,6 @@ public:
     }
 
     Q_SLOT void cancel();
-    Q_SLOT void set_data(QObject*);
     Q_SLOT void set_status(Status);
     Q_SLOT void set_error(QString);
     Q_SLOT void set_forwardError(bool);
@@ -76,6 +75,10 @@ public:
     Q_SIGNAL void forwardErrorChanged();
     Q_SIGNAL void finished();
     Q_SIGNAL void errorOccurred(QString);
+
+protected:
+    Q_SLOT void set_data(QVariant);
+    void        set_data(QObject*);
 
 private:
     void  push(std::function<task<void>()>, const std::source_location& loc);

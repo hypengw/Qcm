@@ -29,15 +29,7 @@ public:
     GADGET_PROPERTY_DEF(model::AlbumRefer, album, album)
     GADGET_PROPERTY_DEF(std::vector<model::ArtistRefer>, artists, artists)
 
-    inline static QString Select { uR"(
-    %1,
-    album.itemId,
-    album.name,
-    album.picUrl,
-    GROUP_CONCAT(artist.itemId) AS artistIds, 
-    GROUP_CONCAT(artist.name) AS artistNames,
-    GROUP_CONCAT(artist.picUrl) AS artistPicUrls
-)"_s.arg(model::Song::Select) };
+    QCM_INTERFACE_API static auto sql() -> const model::ModelSql&;
 };
 
 struct Radio : model::Radio {

@@ -443,18 +443,19 @@ auto PlayQueue::querySongsSql(std::span<const model::ItemId> ids)
     }
     co_await asio::post(asio::bind_executor(sql->get_executor(), asio::use_awaitable));
     auto query = sql->con()->query();
-    query.prepare(uR"(
+    query.prepare_sv(fmt::format(R"(
 SELECT 
-    %1
+    {0}
 FROM song
 JOIN album ON song.albumId = album.itemId
 LEFT JOIN song_artist ON song.itemId = song_artist.songId
 LEFT JOIN artist ON song_artist.artistId = artist.itemId
-WHERE song.itemId IN (%2)
+WHERE song.itemId IN ({1})
 GROUP BY song.itemId
 ORDER BY song.trackNumber ASC;
-)"_s.arg(query::Song::Select)
-                      .arg(placeholders.join(",")));
+)",
+                                 query::Song::sql().select,
+                                 placeholders.join(",")));
 
     for (usize i = 0; i < ids.size(); ++i) {
         query.bindValue(placeholders[i], ids[i].toUrl());
@@ -465,7 +466,7 @@ ORDER BY song.trackNumber ASC;
         while (query.next()) {
             auto& s = out.emplace_back();
             int   i = 0;
-            query::load_query(s, query, i);
+            query::load_query(query, s, i);
         }
     }
 

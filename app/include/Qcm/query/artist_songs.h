@@ -76,14 +76,14 @@ public:
         co_return std::nullopt;
     }
 
-    auto query_songs(model::ItemId itemId, qint32 offset,
-                     qint32 limit) -> task<std::optional<std::vector<Song>>> {
+    auto query_songs(model::ItemId itemId, qint32 offset, qint32 limit)
+        -> task<std::optional<std::vector<Song>>> {
         auto sql = App::instance()->album_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
         auto query = sql->con()->query();
-        query.prepare(uR"(
+        query.prepare_sv(fmt::format(R"(
 SELECT 
-    %1
+    {0}
 FROM song
 JOIN album ON album.itemId = song.albumId
 JOIN song_artist ON song.itemId = song_artist.songId
@@ -92,7 +92,8 @@ WHERE song_artist.artistId = :itemId
 GROUP BY song.itemId
 ORDER BY song.popularity DESC
 LIMIT :limit OFFSET :offset;
-)"_s.arg(Song::Select));
+)",
+                                     Song::sql().select));
 
         query.bindValue(u":itemId"_s, itemId.toUrl());
         query.bindValue(u":offset"_s, offset);
@@ -105,7 +106,7 @@ LIMIT :limit OFFSET :offset;
             while (query.next()) {
                 auto& s = songs.emplace_back();
                 int   i = 0;
-                load_query(s, query, i);
+                load_query(query, s, i);
             }
             co_return songs;
         }

@@ -9,7 +9,7 @@ MD.Page {
     bottomPadding: radius
     scrolling: !m_view.atYBeginning
 
-    property var itemId
+    property QA.t_id itemId
 
     MD.ListView {
         id: m_view

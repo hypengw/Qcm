@@ -135,7 +135,7 @@ MD.ListItem {
 
                 onClicked: {
                     MD.Util.show_popup('qrc:/Qcm/App/qml/menu/SongMenu.qml', {
-                        "song": dgModel,
+                        "itemId": root.dgModel.itemId,
                         "y": height
                     }, this);
                 }

@@ -119,16 +119,15 @@ public:
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
 
         auto query = sql->con()->query();
-        query.prepare_sv(
-            std::format(R"(
+        query.prepare_sv(std::format(R"(
 SELECT 
     {0}
 FROM radio
 WHERE radio.itemId = :itemId AND ({1})
 GROUP BY radio.itemId;
 )",
-                        model::Radio::sql().select,
-                        db::null<db::AND, db::NOT>(model::Radio::sql().columns, "radio"sv)));
+                                     model::Radio::sql().select,
+                                     db::null<db::AND, db::NOT>(model::Radio::sql().columns)));
         query.bindValue(":itemId", itemId.toUrl());
 
         if (! query.exec()) {
@@ -136,7 +135,7 @@ GROUP BY radio.itemId;
         } else if (query.next()) {
             Radio dj;
             int   i = 0;
-            load_query(dj, query, i);
+            load_query(query, dj, i);
             co_return dj;
         }
         co_return std::nullopt;
@@ -146,14 +145,15 @@ GROUP BY radio.itemId;
         auto sql = App::instance()->album_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
         auto query = sql->con()->query();
-        query.prepare(uR"(
+        query.prepare_sv(fmt::format(R"(
 SELECT 
-    %1
+    {0}
 FROM program
 WHERE program.radioId = :itemId
 GROUP BY program.itemId
 ORDER BY program.serialNumber DESC;
-)"_s.arg(Program::Select));
+)",
+                                     Program::sql().select));
 
         query.bindValue(":itemId", itemId.toUrl());
 
@@ -164,7 +164,7 @@ ORDER BY program.serialNumber DESC;
             while (query.next()) {
                 auto& s = programes.emplace_back();
                 int   i = 0;
-                load_query(s, query, i);
+                load_query(query, s, i);
             }
             co_return programes;
         }

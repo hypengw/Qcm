@@ -3,6 +3,7 @@
 #include <QQmlEngine>
 #include "qcm_interface/macro.h"
 #include "qcm_interface/item_id.h"
+#include "qcm_interface/sql/model_sql.h"
 
 namespace qcm::model
 {
@@ -22,12 +23,7 @@ public:
 
     GADGET_PROPERTY_DEF(ItemId, sourceId, sourceId)
 
-    static constexpr QStringView Select { uR"(
-    song.itemId, 
-    song.name, 
-    song.coverUrl,
-    song.canPlay
-)" };
+    QCM_INTERFACE_API static auto sql() -> const ModelSql&;
 
     bool operator==(const Song&) const = default;
 };

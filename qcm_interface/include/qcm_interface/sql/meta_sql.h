@@ -23,23 +23,39 @@ enum class Eq
 using enum Logical;
 using enum Eq;
 
+constexpr auto suffix(bool v, std::string_view in, std::string_view suffix_) -> std::string {
+    return v ? std::string(in) : fmt::format("{}{}", in, suffix_);
+}
 constexpr auto suffix(std::string_view in, std::string_view suffix_) -> std::string {
-    return in.empty() ? std::string(in) : fmt::format("{}{}", in, suffix_);
+    return suffix(in.empty(), in, suffix_);
 }
 
 template<Logical op, Eq eq, std::ranges::range R>
 auto null(const R& r, std::string_view table = {}) -> std::string {
-    return fmt::format("{}",
-                       fmt::join(std::views::transform(r,
-                                                       [table](const auto& el) {
-                                                           return fmt::format("{}{} {}",
-                                                                              suffix(table, "."),
-                                                                              el,
-                                                                              eq == Eq::EQ
-                                                                                  ? "IS NULL"
-                                                                                  : "IS NOT NULL");
-                                                       }),
-                                 op == Logical::AND ? " AND " : " OR "));
+    std::string_view x;
+
+    return fmt::format(
+        "{}",
+        fmt::join(
+            std::views::transform(
+                r,
+                [table](const auto& el) {
+                    std::optional<std::string> store;
+                    std::string_view           sv;
+                    if constexpr (std::convertible_to<std::remove_cvref_t<decltype(el)>,
+                                                      std::string_view>) {
+                        sv = el;
+                    } else if constexpr (std::convertible_to<std::remove_cvref_t<decltype(el)>,
+                                                             std::string>) {
+                        store = el;
+                        sv = *store;
+                    }
+                    return fmt::format("{}{} {}",
+                                       suffix(table.empty() || sv.contains('.'), table, "."),
+                                       sv,
+                                       eq == Eq::EQ ? "IS NULL" : "IS NOT NULL");
+                }),
+            op == Logical::AND ? " AND " : " OR "));
 }
 
 inline auto meta_prop_names(const QMetaObject& meta) {

@@ -12,7 +12,6 @@
 #include "qcm_interface/global.h"
 #include "meta_model/qgadgetlistmodel.h"
 #include "qcm_interface/macro.h"
-#include "qcm_interface/model/album.h"
 #include "qcm_interface/model/artist.h"
 #include "qcm_interface/async.inl"
 
@@ -64,15 +63,14 @@ public:
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
 
         auto query = sql->con()->query();
-        query.prepare_sv(
-            fmt::format(R"(
+        query.prepare_sv(fmt::format(R"(
 SELECT 
     {0}
 FROM artist 
 WHERE itemId = :itemId AND ({1});
 )",
-                        model::Artist::sql().select,
-                        db::null<db::AND, db::NOT>(model::Artist::sql().columns, "artist")));
+                                     model::Artist::sql().select,
+                                     db::null<db::AND, db::NOT>(model::Artist::sql().columns)));
         query.bindValue(":itemId", itemId.toUrl());
 
         if (! query.exec()) {
@@ -86,38 +84,6 @@ WHERE itemId = :itemId AND ({1});
         co_return std::nullopt;
     }
 
-    auto query_albums(model::ItemId itemId) -> task<std::optional<std::vector<model::Album>>> {
-        auto sql = App::instance()->album_sql();
-        co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
-        auto query = sql->con()->query();
-        query.prepare_sv(fmt::format(R"(
-SELECT 
-    {0}
-FROM album
-JOIN album_artist ON album.itemId = album_artist.albumId
-JOIN artist ON album_artist.artistId = artist.itemId
-WHERE album_artist.artistId = :itemId
-GROUP BY album.itemId
-ORDER BY album.publishTime DESC;
-)",
-                                     Album::sql().select));
-
-        query.bindValue(":itemId", itemId.toUrl());
-
-        if (! query.exec()) {
-            ERROR_LOG("{}", query.lastError().text());
-        } else {
-            std::vector<model::Album> albums;
-            while (query.next()) {
-                auto& al = albums.emplace_back();
-                int   i  = 0;
-                load_query(al, query, i);
-            }
-            co_return albums;
-        }
-        co_return std::nullopt;
-    }
-
     void reload() override {
         set_status(Status::Querying);
         auto ex     = asio::make_strand(pool_executor());
@@ -126,14 +92,12 @@ ORDER BY album.publishTime DESC;
         spawn(ex, [self, itemId] -> task<void> {
             auto                     sql = App::instance()->album_sql();
             std::vector<model::Song> items;
-            bool                     needReload = false;
 
             bool                                     synced { 0 };
             std::optional<Artist>                    artist;
             std::optional<std::vector<model::Album>> albums;
             for (;;) {
                 artist = co_await self->query_artist(itemId);
-                // albums = co_await self->query_albums(itemId);
                 if (! synced && ! artist) {
                     co_await SyncAPi::sync_item(itemId);
                     synced = true;

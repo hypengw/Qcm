@@ -1,21 +1,21 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import Qcm.App as QA
-import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 
 MD.Menu {
     id: root
 
-    required property QA.t_song song
+    property QA.t_id itemId
+    property var song: qr_detail.data
 
     dim: false
     font.capitalization: Font.Capitalize
     modal: true
 
     QA.PlaynextAction {
-        enabled: root.song.itemId !== QA.Global.cur_song.itemId
-        song: root.song
+        enabled: root.song.itemId !== QA.App.playqueue.currentSong.itemId
+        songId: root.itemId
     }
     Action {
         icon.name: MD.Token.icon.queue
@@ -50,16 +50,16 @@ MD.Menu {
         }
     }
     QA.CommentAction {
-        itemId: root.song.itemId
+        itemId: root.itemId
     }
 
     Action {
         enabled: root.song.source?.userId === QA.Global.session.user.userId
         icon.name: MD.Token.icon.delete
         text: qsTr('delete')
-        onTriggered: {
-            qr_tracks.playlistId = root.song.source?.itemId;
-        }
+        onTriggered:
+        // qr_tracks.playlistId = root.song.source?.itemId;
+        {}
     }
 
     MD.Menu {
@@ -67,35 +67,40 @@ MD.Menu {
         QA.CopyAction {
             text: qsTr('title')
             icon.name: MD.Token.icon.title
-            getCopyString: function() {
+            getCopyString: function () {
                 return root.song.name;
             }
         }
         QA.CopyAction {
             text: qsTr('album')
             icon.name: MD.Token.icon.album
-            getCopyString: function() {
+            getCopyString: function () {
                 return root.song.album.name;
             }
         }
         QA.CopyAction {
             text: qsTr('url')
             icon.name: MD.Token.icon.link
-            getCopyString: function() {
+            getCopyString: function () {
                 return QA.Global.server_url(root.song.itemId);
             }
         }
     }
 
-    QNcm.PlaylistTracksQuerier {
-        id: qr_tracks
-        operation: QNcm.PlaylistTracksQuerier.Del
-        trackIds: [root.song.itemId]
-        autoReload: playlistId.valid()
-        onStatusChanged: {
-            if (status === QA.enums.Finished) {
-                QA.App.playqueueChanged();
-            }
-        }
+    QA.SongDetailQuery {
+        id: qr_detail
+        itemId: root.itemId
     }
+
+    //QNcm.PlaylistTracksQuerier {
+    //    id: qr_tracks
+    //    operation: QNcm.PlaylistTracksQuerier.Del
+    //    trackIds: [root.song.itemId]
+    //    autoReload: playlistId.valid()
+    //    onStatusChanged: {
+    //        if (status === QA.enums.Finished) {
+    //            QA.App.playqueueChanged();
+    //        }
+    //    }
+    //}
 }

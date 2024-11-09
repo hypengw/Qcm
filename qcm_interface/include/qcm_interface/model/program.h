@@ -3,6 +3,7 @@
 #include <QQmlEngine>
 #include "qcm_interface/macro.h"
 #include "qcm_interface/item_id.h"
+#include "qcm_interface/sql/model_sql.h"
 
 namespace qcm::model
 {
@@ -19,18 +20,7 @@ public:
     GADGET_PROPERTY_DEF(QDateTime, createTime, createTime)
     GADGET_PROPERTY_DEF(qint32, serialNumber, serialNumber)
     GADGET_PROPERTY_DEF(ItemId, radioId, radioId)
-
-    static constexpr QStringView Select { uR"(
-    program.itemId,
-    program.name,
-    program.description,
-    program.duration,
-    program.coverUrl,
-    program.songId,
-    program.createTime,
-    program.serialNumber,
-    program.radioId
-)" };
+    QCM_INTERFACE_API static auto sql() -> const ModelSql&;
 
     std::strong_ordering operator<=>(const Program&) const = default;
 };

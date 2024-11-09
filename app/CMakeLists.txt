@@ -39,6 +39,7 @@ set(SOURCES
     include/Qcm/query/artist_detail.h
     include/Qcm/query/artist_albums.h
     include/Qcm/query/artist_songs.h
+    include/Qcm/query/song_detail.h
     include/Qcm/query/mix_create.h
     include/Qcm/query/mix_manipulate.h
     include/Qcm/query/mix_delete.h

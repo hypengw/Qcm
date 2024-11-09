@@ -1,20 +1,20 @@
 #pragma once
 
-#pragma once
-
 #include <QQmlEngine>
+
+#include "asio_qt/qt_sql.h"
+#include "meta_model/qgadgetlistmodel.h"
+
+#include "qcm_interface/global.h"
+#include "qcm_interface/macro.h"
+#include "qcm_interface/model/album.h"
+#include "qcm_interface/model/artist.h"
+#include "qcm_interface/async.inl"
 
 #include "Qcm/query/query.h"
 #include "Qcm/query/query_model.h"
 #include "Qcm/sql/item_sql.h"
 #include "Qcm/app.h"
-#include "asio_qt/qt_sql.h"
-#include "qcm_interface/global.h"
-#include "meta_model/qgadgetlistmodel.h"
-#include "qcm_interface/macro.h"
-#include "qcm_interface/model/album.h"
-#include "qcm_interface/model/artist.h"
-#include "qcm_interface/async.inl"
 
 namespace qcm::query
 {
@@ -73,8 +73,7 @@ public:
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
 
         auto query = sql->con()->query();
-        query.prepare_sv(
-            std::format(R"(
+        query.prepare_sv(std::format(R"(
 SELECT 
     {0}
 FROM album
@@ -83,8 +82,8 @@ JOIN artist ON album_artist.artistId = artist.itemId
 WHERE album.itemId = :itemId AND ({1})
 GROUP BY album.itemId;
 )",
-                        Album::sql().select,
-                        db::null<db::AND, db::NOT>(model::Album::sql().columns, "album"sv)));
+                                     Album::sql().select,
+                                     db::null<db::AND, db::NOT>(model::Album::sql().columns)));
         query.bindValue(":itemId", itemId.toUrl());
 
         if (! query.exec()) {
@@ -102,9 +101,9 @@ GROUP BY album.itemId;
         auto sql = App::instance()->album_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
         auto query = sql->con()->query();
-        query.prepare(uR"(
+        query.prepare_sv(fmt::format(R"(
 SELECT 
-    %1
+    {0}
 FROM song
 JOIN album ON song.albumId = album.itemId
 JOIN song_artist ON song.itemId = song_artist.songId
@@ -112,7 +111,8 @@ JOIN artist ON song_artist.artistId = artist.itemId
 WHERE song.albumId = :itemId
 GROUP BY song.itemId
 ORDER BY song.trackNumber ASC;
-)"_s.arg(Song::Select));
+)",
+                                     Song::sql().select));
 
         query.bindValue(":itemId", itemId.toUrl());
 
@@ -123,7 +123,7 @@ ORDER BY song.trackNumber ASC;
             while (query.next()) {
                 auto& s = songs.emplace_back();
                 int   i = 0;
-                load_query(s, query, i);
+                load_query(query, s, i);
             }
             co_return songs;
         }

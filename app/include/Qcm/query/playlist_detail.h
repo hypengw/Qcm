@@ -73,15 +73,14 @@ public:
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
 
         auto query = sql->con()->query();
-        query.prepare_sv(
-            fmt::format(R"(
+        query.prepare_sv(fmt::format(R"(
 SELECT 
     {0} 
 FROM playlist
 WHERE playlist.itemId = :itemId AND ({1});
 )",
-                        model::Playlist::sql().select,
-                        db::null<db::AND, db::NOT>(model::Playlist::sql().columns, "playlist"sv)));
+                                     model::Playlist::sql().select,
+                                     db::null<db::AND, db::NOT>(model::Playlist::sql().columns)));
         query.bindValue(":itemId", itemId.toUrl());
 
         if (! query.exec()) {
@@ -99,9 +98,9 @@ WHERE playlist.itemId = :itemId AND ({1});
         auto sql = App::instance()->album_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
         auto query = sql->con()->query();
-        query.prepare(uR"(
+        query.prepare_sv(fmt::format(R"(
 SELECT 
-    %1
+    {0}
 FROM song
 JOIN album ON song.albumId = album.itemId
 JOIN song_artist ON song.itemId = song_artist.songId
@@ -110,7 +109,8 @@ JOIN playlist_song ON playlist_song.songId = song.itemId
 WHERE playlist_song.playlistId = :itemId
 GROUP BY song.itemId
 ORDER BY playlist_song.orderIdx;
-)"_s.arg(Song::Select));
+)",
+                                     Song::sql().select));
 
         query.bindValue(":itemId", itemId.toUrl());
 
@@ -121,7 +121,7 @@ ORDER BY playlist_song.orderIdx;
             while (query.next()) {
                 auto& s = songs.emplace_back();
                 int   i = 0;
-                load_query(s, query, i);
+                load_query(query, s, i);
             }
             co_return songs;
         }

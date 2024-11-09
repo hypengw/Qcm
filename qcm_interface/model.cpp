@@ -236,7 +236,7 @@ auto generate_sql(std::string_view table, std::set<std::string_view> ignore = {}
     for (int i = 0; i < meta.propertyCount(); i++) {
         std::string_view name = meta.property(i).name();
         if (ignore.contains(name)) continue;
-        out.columns.emplace_back(name);
+        out.columns.emplace_back(name, table);
         out.idxs.emplace_back(i);
     }
     out.select = fmt::format(
@@ -244,24 +244,26 @@ auto generate_sql(std::string_view table, std::set<std::string_view> ignore = {}
         pre.empty() ? ""s : fmt::format("{}\n,", pre),
         fmt::join(std::views::transform(std::views::filter(out.columns,
                                                            [&ignore](const auto& el) -> bool {
-                                                               return ! ignore.contains(el);
+                                                               return ! ignore.contains(el.name);
                                                            }),
-                                        [table](const auto& el) {
-                                            return fmt::format("{}.{}", table, el);
+                                        [](const auto& el) {
+                                            return fmt::format("{}.{}", el.table, el.name);
                                         }),
                   ",\n"));
 
     out.group_select = fmt::format(
         "{}{}",
         pre.empty() ? ""s : fmt::format("{}\n,", pre),
-        fmt::join(std::views::transform(
-                      std::views::filter(out.columns,
-                                         [&ignore](const auto& el) -> bool {
-                                             return ! ignore.contains(el);
-                                         }),
-                      [table](const auto& el) {
-                          return fmt::format("GROUP_CONCAT({0}.{1}) AS group_{0}_{1}", table, el);
-                      }),
+        fmt::join(std::views::transform(std::views::filter(out.columns,
+                                                           [&ignore](const auto& el) -> bool {
+                                                               return ! ignore.contains(el.name);
+                                                           }),
+                                        [](const auto& el) {
+                                            return fmt::format(
+                                                "GROUP_CONCAT({0}.{1}) AS group_{0}_{1}",
+                                                el.table,
+                                                el.name);
+                                        }),
                   ",\n"));
 
     return out;
@@ -284,6 +286,8 @@ IMPL_SQL_MODEL(model::AlbumRefer, album)
 IMPL_SQL_MODEL(model::Album, album)
 IMPL_SQL_MODEL(model::PlaylistRefer, playlist)
 IMPL_SQL_MODEL(model::Playlist, playlist)
+IMPL_SQL_MODEL(model::Song, song, { "sourceId" })
+IMPL_SQL_MODEL(model::Program, program)
 
 } // namespace qcm
 
@@ -296,11 +300,24 @@ auto generate_sql<qcm::query::Album>(std::string_view, std::set<std::string_view
     sql.select = fmt::format("{},\n{}", sql.select, qcm::model::ArtistRefer::sql().group_select);
     return sql;
 }
+template<>
+auto generate_sql<qcm::query::Song>(std::string_view, std::set<std::string_view>, std::string_view)
+    -> qcm::model::ModelSql {
+    auto sql   = qcm::model::Song::sql();
+    sql.select = fmt::format("{}",
+                             fmt::join(std::array { sql.select,
+                                                    qcm::model::AlbumRefer::sql().select,
+                                                    qcm::model::ArtistRefer::sql().group_select },
+                                       ",\n"));
+    std::ranges::copy(qcm::model::AlbumRefer::sql().columns, std::back_inserter(sql.columns));
+    return sql;
+}
 
 } // namespace
 
 namespace qcm
 {
 IMPL_SQL_MODEL(query::Album, album)
+IMPL_SQL_MODEL(query::Song, song)
 
 } // namespace qcm

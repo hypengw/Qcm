@@ -106,7 +106,7 @@ LIMIT :limit OFFSET :offset;
             while (query.next()) {
                 auto& al = albums.emplace_back();
                 int   i  = 0;
-                load_query(al, query, i);
+                load_query( query, al, i);
             }
             co_return albums;
         }

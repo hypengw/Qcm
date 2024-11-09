@@ -10,13 +10,13 @@ public:
         : m_p(p),
           m_status(Status::Uninitialized),
           m_forward_error(true),
-          m_data(nullptr),
+          m_data(QVariant::fromValue(nullptr)),
           m_use_queue(false),
           m_queue_exec_mark(false) {}
     QAsyncResult*         m_p;
     Status                m_status;
     bool                  m_forward_error;
-    QObject*              m_data;
+    QVariant              m_data;
     std::function<void()> m_cb;
 
     helper::WatchDog                         m_wdog;
@@ -175,15 +175,19 @@ auto QAsyncResult::watch_dog() -> helper::WatchDog& {
 
 auto QAsyncResult::data() const -> QVariant {
     C_D(const QAsyncResult);
-    return QVariant::fromValue(d->m_data);
+    return d->m_data;
 }
-void QAsyncResult::set_data(QObject* v) {
+
+void QAsyncResult::set_data(QObject* v) { set_data(QVariant::fromValue(v)); }
+void QAsyncResult::set_data(QVariant v) {
     C_D(QAsyncResult);
     if (ycore::cmp_exchange(d->m_data, v)) {
         dataChanged();
     }
-    if (d->m_data != nullptr && d->m_data->parent() != this) {
-        d->m_data->setParent(this);
+    if (auto obj = d->m_data.value<QObject*>(); obj != nullptr) {
+        if (obj->parent() != this) {
+            obj->setParent(this);
+        }
     }
 }
 void QAsyncResult::push(std::function<task<void>()> in, const std::source_location& loc) {
