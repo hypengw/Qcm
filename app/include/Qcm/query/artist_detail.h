@@ -64,28 +64,23 @@ public:
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
 
         auto query = sql->con()->query();
-        query.prepare(uR"(
+        query.prepare_sv(
+            fmt::format(R"(
 SELECT 
-    itemId, 
-    name, 
-    picUrl, 
-    albumCount,
-    musicCount
+    {0}
 FROM artist 
-WHERE itemId = :itemId;
-)"_s);
+WHERE itemId = :itemId AND ({1});
+)",
+                        model::Artist::sql().select,
+                        db::null<db::AND, db::NOT>(model::Artist::sql().columns, "artist")));
         query.bindValue(":itemId", itemId.toUrl());
 
         if (! query.exec()) {
             ERROR_LOG("{}", query.lastError().text());
         } else if (query.next()) {
             Artist artist;
-            int    i          = 0;
-            artist.id         = query.value(i++).toUrl();
-            artist.name       = query.value(i++).toString();
-            artist.picUrl     = query.value(i++).toString();
-            artist.albumCount = query.value(i++).toInt();
-            artist.musicCount = query.value(i++).toInt();
+            int    i = 0;
+            query::load_query(query, artist, i);
             co_return artist;
         }
         co_return std::nullopt;
@@ -95,16 +90,17 @@ WHERE itemId = :itemId;
         auto sql = App::instance()->album_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
         auto query = sql->con()->query();
-        query.prepare(uR"(
+        query.prepare_sv(fmt::format(R"(
 SELECT 
-    %1
+    {0}
 FROM album
 JOIN album_artist ON album.itemId = album_artist.albumId
 JOIN artist ON album_artist.artistId = artist.itemId
 WHERE album_artist.artistId = :itemId
 GROUP BY album.itemId
 ORDER BY album.publishTime DESC;
-)"_s.arg(Album::Select));
+)",
+                                     Album::sql().select));
 
         query.bindValue(":itemId", itemId.toUrl());
 

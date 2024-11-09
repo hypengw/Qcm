@@ -205,7 +205,11 @@ IMPL_CONVERT(qcm::oper::AlbumOper, ncm::model::Album) {
     X(publishTime, in.publishTime);
     X(trackCount, std::max(in.size, (i64)in.songs.size()));
     X(company, in.company.value_or(""));
-    X(description, in.briefDesc.value_or(""));
+    if (in.description) {
+        X(description, in.description.value());
+    } else {
+        X(description, in.briefDesc.value_or(""));
+    }
     // use subtype
     X(type, in.subType);
 }

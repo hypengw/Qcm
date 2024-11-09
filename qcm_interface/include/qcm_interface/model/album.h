@@ -3,6 +3,7 @@
 #include <QQmlEngine>
 #include "qcm_interface/macro.h"
 #include "qcm_interface/item_id.h"
+#include "qcm_interface/sql/model_sql.h"
 
 namespace qcm::model
 {
@@ -14,6 +15,8 @@ public:
     GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
 
     std::strong_ordering operator<=>(const AlbumRefer&) const = default;
+
+    QCM_INTERFACE_API static auto sql() -> const ModelSql&;
 };
 
 struct Album : AlbumRefer {
@@ -25,16 +28,7 @@ public:
     GADGET_PROPERTY_DEF(QString, company, company)
     GADGET_PROPERTY_DEF(QString, type, type)
 
-    // READ_PROPERTY(QString, subType, m_subType, infoChanged)
-    // READ_PROPERTY(bool, paid, m_paid, infoChanged)
-    // READ_PROPERTY(std::vector<QString>, alias, m_alias, infoChanged)
-    static constexpr QStringView Select { uR"(
-    album.itemId, 
-    album.name, 
-    album.picUrl, 
-    album.trackCount,
-    album.publishTime
-)" };
+    QCM_INTERFACE_API static auto sql() -> const ModelSql&;
 };
 
 } // namespace qcm::model

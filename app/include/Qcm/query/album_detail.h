@@ -73,15 +73,18 @@ public:
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
 
         auto query = sql->con()->query();
-        query.prepare(uR"(
+        query.prepare_sv(
+            std::format(R"(
 SELECT 
-    %1
+    {0}
 FROM album
 JOIN album_artist ON album.itemId = album_artist.albumId
 JOIN artist ON album_artist.artistId = artist.itemId
-WHERE album.itemId = :itemId
+WHERE album.itemId = :itemId AND ({1})
 GROUP BY album.itemId;
-)"_s.arg(Album::Select));
+)",
+                        Album::sql().select,
+                        db::null<db::AND, db::NOT>(model::Album::sql().columns, "album"sv)));
         query.bindValue(":itemId", itemId.toUrl());
 
         if (! query.exec()) {
@@ -89,7 +92,7 @@ GROUP BY album.itemId;
         } else if (query.next()) {
             Album album;
             int   i = 0;
-            load_query(album, query, i);
+            load_query(query, album, i);
             co_return album;
         }
         co_return std::nullopt;

@@ -77,14 +77,14 @@ public:
         }
         co_return std::nullopt;
     }
-    auto query_albums(model::ItemId itemId, qint32 offset,
-                      qint32 limit) -> task<std::optional<std::vector<model::Album>>> {
+    auto query_albums(model::ItemId itemId, qint32 offset, qint32 limit)
+        -> task<std::optional<std::vector<model::Album>>> {
         auto sql = App::instance()->album_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
         auto query = sql->con()->query();
-        query.prepare(uR"(
+        query.prepare_sv(std::format(R"(
 SELECT 
-    %1
+    {0}
 FROM album
 JOIN album_artist ON album.itemId = album_artist.albumId
 JOIN artist ON album_artist.artistId = artist.itemId
@@ -92,7 +92,8 @@ WHERE album_artist.artistId = :itemId
 GROUP BY album.itemId
 ORDER BY album.publishTime DESC
 LIMIT :limit OFFSET :offset;
-)"_s.arg(Album::Select));
+)",
+                                     Album::sql().select));
 
         query.bindValue(":itemId", itemId.toUrl());
         query.bindValue(":offset", offset);
@@ -145,8 +146,7 @@ LIMIT :limit OFFSET :offset;
             if (self) {
                 if (albums) {
                     self->tdata()->setHasMore(albums->size());
-                    self->tdata()->insert(self->tdata()->rowCount(),
-                                          albums.value());
+                    self->tdata()->insert(self->tdata()->rowCount(), albums.value());
                 }
                 self->set_status(Status::Finished);
             }

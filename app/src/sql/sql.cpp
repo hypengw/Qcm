@@ -20,6 +20,27 @@ auto get_converter(int id) -> std::optional<Converter> {
     };
     const static Impl impl {
         std::map<int, Converter> {
+            { QMetaType::fromType<std::vector<QString>>().id(),
+              {
+                  [](const QVariant& in) -> QVariant {
+                      std::vector<QString> out;
+                      auto j = qcm::json::parse(std::string_view { in.toString().toStdString() });
+                      if (j) {
+                          for (const auto& el : *j.value()) {
+                              out.emplace_back(QString::fromStdString(el.get<std::string>()));
+                          }
+                      }
+                      return QVariant::fromValue(out);
+                  },
+                  [](const QVariant& in) -> QVariant {
+                      auto             list = in.value<std::vector<QString>>();
+                      qcm::json::njson j;
+                      for (auto& el : list) {
+                          j.push_back(el.toStdString());
+                      }
+                      return QString::fromStdString(j.dump());
+                  },
+              } },
             { QMetaType::QStringList,
               {
                   [](const QVariant& in) -> QVariant {

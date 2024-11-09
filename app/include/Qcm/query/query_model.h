@@ -20,6 +20,27 @@ void load_query(QSqlQuery& query, T& gad, int& i) {
     }
 }
 
+template<>
+inline void load_query<std::vector<model::ArtistRefer>>(QSqlQuery&                       query,
+                                                        std::vector<model::ArtistRefer>& artists,
+                                                        int&                             i) {
+    auto artist_ids     = query.value(i++).toStringList();
+    auto artist_names   = query.value(i++).toStringList();
+    auto artist_picUrls = query.value(i++).toStringList();
+    for (qsizetype i = 0; i < artist_ids.size(); i++) {
+        auto& ar  = artists.emplace_back();
+        ar.id     = artist_ids[i];
+        ar.name   = artist_names[i];
+        ar.picUrl = artist_picUrls[i];
+    }
+}
+
+template<>
+inline void load_query<Album>(QSqlQuery& query, Album& gad, int& i) {
+    load_query<model::Album>(query, gad, i);
+    load_query(query, gad.artists, i);
+}
+
 inline void load_query(model::Album& al, QSqlQuery& query, int& i) {
     al.staticMetaObject.property(i).metaType().id();
     al.id          = query.value(i++).toUrl();
@@ -36,16 +57,6 @@ inline void load_query(model::Song& song, QSqlQuery& query, int& i) {
     song.canPlay  = query.value(i++).toInt();
 }
 
-inline void load_query(model::Playlist& pl, QSqlQuery& query, int& i) {
-    pl.id          = query.value(i++).toUrl();
-    pl.name        = query.value(i++).toString();
-    pl.picUrl      = query.value(i++).toString();
-    pl.description = query.value(i++).toString();
-    pl.trackCount  = query.value(i++).toInt();
-    pl.playCount   = query.value(i++).toInt();
-    pl.updateTime  = query.value(i++).toDateTime();
-    pl.userId      = query.value(i++).toUrl();
-}
 inline void load_query(model::Radio& dj, QSqlQuery& query, int& i) {
     dj.id           = query.value(i++).toUrl();
     dj.name         = query.value(i++).toString();
@@ -74,20 +85,6 @@ inline void load_query(query::Song& self, QSqlQuery& query, int& i) {
     self.album.id     = self.albumId;
     self.album.name   = query.value(i++).toString();
     self.album.picUrl = query.value(i++).toString();
-    {
-        auto artist_ids     = query.value(i++).toStringList();
-        auto artist_names   = query.value(i++).toStringList();
-        auto artist_picUrls = query.value(i++).toStringList();
-        for (qsizetype i = 0; i < artist_ids.size(); i++) {
-            auto& ar  = self.artists.emplace_back();
-            ar.id     = artist_ids[i];
-            ar.name   = artist_names[i];
-            ar.picUrl = artist_picUrls[i];
-        }
-    }
-}
-inline void load_query(query::Album& self, QSqlQuery& query, int& i) {
-    query::load_query((model::Album&)self, query, i);
     {
         auto artist_ids     = query.value(i++).toStringList();
         auto artist_names   = query.value(i++).toStringList();

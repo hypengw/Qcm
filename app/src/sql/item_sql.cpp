@@ -677,7 +677,7 @@ WHERE {0}.itemId IN ({2}) {3};
             })
             .value_or(""s),
         placeholders.join(", "),
-        not_null.size() ? fmt::format("AND ({})", db::null<db::Logical::AND, db::Eq::Not>(not_null))
+        not_null.size() ? fmt::format("AND ({})", db::null<db::Logical::AND, db::Eq::NOT>(not_null))
                         : ""s));
     for (usize i = 0; i < ids.size(); ++i) {
         query.bindValue(placeholders[i], ids[i].toUrl());

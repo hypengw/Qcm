@@ -12,6 +12,7 @@
 #include "qcm_interface/global.h"
 #include "qcm_interface/notifier.h"
 #include "qcm_interface/sql/meta_sql.h"
+#include "qcm_interface/model/query_model.h"
 #include "asio_helper/basic.h"
 
 #include "json_helper/helper.inl"
@@ -225,25 +226,23 @@ IMPL_JSON_SERIALIZER_TO(QDateTime) { j = t.toString(Qt::DateFormat::TextDate); }
 
 IMPL_CONVERT(std::string, qcm::model::ItemId) { out = in.toUrl().toString().toStdString(); }
 
-// select
-namespace qcm::model
+namespace
 {
-
 template<typename T>
 auto generate_sql(std::string_view table, std::set<std::string_view> ignore = {},
-                  std::string_view pre = {}) -> ModelSql {
-    const auto& meta = T::staticMetaObject;
-    ModelSql    out;
+                  std::string_view pre = {}) -> qcm::model::ModelSql {
+    const auto&          meta = T::staticMetaObject;
+    qcm::model::ModelSql out;
     for (int i = 0; i < meta.propertyCount(); i++) {
         std::string_view name = meta.property(i).name();
         if (ignore.contains(name)) continue;
-        out.names.emplace_back(name);
+        out.columns.emplace_back(name);
         out.idxs.emplace_back(i);
     }
     out.select = fmt::format(
         "{}{}",
         pre.empty() ? ""s : fmt::format("{}\n,", pre),
-        fmt::join(std::views::transform(std::views::filter(out.names,
+        fmt::join(std::views::transform(std::views::filter(out.columns,
                                                            [&ignore](const auto& el) -> bool {
                                                                return ! ignore.contains(el);
                                                            }),
@@ -252,17 +251,56 @@ auto generate_sql(std::string_view table, std::set<std::string_view> ignore = {}
                                         }),
                   ",\n"));
 
+    out.group_select = fmt::format(
+        "{}{}",
+        pre.empty() ? ""s : fmt::format("{}\n,", pre),
+        fmt::join(std::views::transform(
+                      std::views::filter(out.columns,
+                                         [&ignore](const auto& el) -> bool {
+                                             return ! ignore.contains(el);
+                                         }),
+                      [table](const auto& el) {
+                          return fmt::format("GROUP_CONCAT({0}.{1}) AS group_{0}_{1}", table, el);
+                      }),
+                  ",\n"));
+
     return out;
 }
-
-#define X(type, table, ...)                                                         \
-    auto type::sql() -> const ModelSql& {                                           \
-        static auto select = generate_sql<type>(#table __VA_OPT__(, ) __VA_ARGS__); \
-        return select;                                                              \
+#define IMPL_SQL_MODEL(type, table, ...)                                         \
+    auto type::sql() -> const model::ModelSql& {                                 \
+        static auto sql = generate_sql<type>(#table __VA_OPT__(, ) __VA_ARGS__); \
+        return sql;                                                              \
     }
+} // namespace
+// select
+namespace qcm
+{
 
-X(ArtistRefer, artist)
-X(Artist, artist)
-X(RadioRefer, radio)
-X(Radio, radio)
-} // namespace qcm::model
+IMPL_SQL_MODEL(model::ArtistRefer, artist)
+IMPL_SQL_MODEL(model::Artist, artist)
+IMPL_SQL_MODEL(model::RadioRefer, radio)
+IMPL_SQL_MODEL(model::Radio, radio)
+IMPL_SQL_MODEL(model::AlbumRefer, album)
+IMPL_SQL_MODEL(model::Album, album)
+IMPL_SQL_MODEL(model::PlaylistRefer, playlist)
+IMPL_SQL_MODEL(model::Playlist, playlist)
+
+} // namespace qcm
+
+namespace
+{
+template<>
+auto generate_sql<qcm::query::Album>(std::string_view, std::set<std::string_view>, std::string_view)
+    -> qcm::model::ModelSql {
+    auto sql   = qcm::model::Album::sql();
+    sql.select = fmt::format("{},\n{}", sql.select, qcm::model::ArtistRefer::sql().group_select);
+    return sql;
+}
+
+} // namespace
+
+namespace qcm
+{
+IMPL_SQL_MODEL(query::Album, album)
+
+} // namespace qcm

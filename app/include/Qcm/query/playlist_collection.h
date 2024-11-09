@@ -74,16 +74,17 @@ public:
         std::vector<PlaylistCollectionItem> items;
         co_await asio::post(asio::bind_executor(sql->get_executor(), asio::use_awaitable));
         auto query = sql->con()->query();
-        query.prepare(uR"(
+        query.prepare_sv(fmt::format(R"(
 SELECT 
-    %1,
+    {0},
     collection.collectTime 
 FROM playlist 
 JOIN collection ON playlist.itemId = collection.itemId
 WHERE collection.userId = :userId AND collection.type = "playlist" AND collection.collectTime > :time AND collection.removed = 0
 GROUP BY playlist.itemId
 ORDER BY collection.collectTime DESC;
-)"_s.arg(model::Playlist::Select));
+)",
+                                     model::Playlist::sql().select));
         query.bindValue(":userId", userId.toUrl());
         query.bindValue(":time", time);
 
@@ -93,7 +94,7 @@ ORDER BY collection.collectTime DESC;
         while (query.next()) {
             auto& item = items.emplace_back();
             int   i    = 0;
-            query::load_query(item, query, i);
+            query::load_query<model::Playlist>(query, item, i);
             item.subTime = query.value(i++).toDateTime();
         }
         co_return items;

@@ -75,9 +75,9 @@ public:
         std::vector<AlbumCollectionItem> items;
         co_await asio::post(asio::bind_executor(sql->get_executor(), asio::use_awaitable));
         auto query = sql->con()->query();
-        query.prepare(uR"(
+        query.prepare_sv(fmt::format(R"(
 SELECT 
-    %1,
+    {0},
     collection.collectTime 
 FROM album 
 JOIN collection ON album.itemId = collection.itemId
@@ -86,7 +86,8 @@ LEFT JOIN artist ON album_artist.artistId = artist.itemId
 WHERE collection.userId = :userId AND collection.type = "album" AND collection.collectTime > :time AND collection.removed = 0
 GROUP BY album.itemId
 ORDER BY collection.collectTime DESC;
-)"_s.arg(Album::Select));
+)",
+                                     Album::sql().select));
         query.bindValue(":userId", userId.toUrl());
         query.bindValue(":time", time);
 
@@ -96,7 +97,7 @@ ORDER BY collection.collectTime DESC;
         while (query.next()) {
             auto& item = items.emplace_back();
             int   i    = 0;
-            query::load_query(item, query, i);
+            query::load_query<Album>(query, item, i);
             item.subTime = query.value(i++).toDateTime();
         }
         co_return items;

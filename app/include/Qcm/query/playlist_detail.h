@@ -73,12 +73,15 @@ public:
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
 
         auto query = sql->con()->query();
-        query.prepare(uR"(
+        query.prepare_sv(
+            fmt::format(R"(
 SELECT 
-    %1
+    {0} 
 FROM playlist
-WHERE playlist.itemId = :itemId;
-)"_s.arg(model::Playlist::Select));
+WHERE playlist.itemId = :itemId AND ({1});
+)",
+                        model::Playlist::sql().select,
+                        db::null<db::AND, db::NOT>(model::Playlist::sql().columns, "playlist"sv)));
         query.bindValue(":itemId", itemId.toUrl());
 
         if (! query.exec()) {
@@ -86,7 +89,7 @@ WHERE playlist.itemId = :itemId;
         } else if (query.next()) {
             model::Playlist pl;
             int             i = 0;
-            query::load_query(pl, query, i);
+            query::load_query(query, pl, i);
             co_return pl;
         }
         co_return std::nullopt;

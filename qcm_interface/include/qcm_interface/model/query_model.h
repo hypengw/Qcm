@@ -19,12 +19,7 @@ struct Album : model::Album {
     Q_GADGET_EXPORT(QCM_INTERFACE_API)
 public:
     GADGET_PROPERTY_DEF(std::vector<model::ArtistRefer>, artists, artists)
-    inline static const QString Select { uR"(
-    %1,
-    GROUP_CONCAT(artist.itemId) AS artistIds, 
-    GROUP_CONCAT(artist.name) AS artistNames,
-    GROUP_CONCAT(artist.picUrl) AS artistPicUrls
-)"_s.arg(model::Album::Select) };
+    QCM_INTERFACE_API static auto sql() -> const model::ModelSql&;
 };
 
 struct Song : model::Song {

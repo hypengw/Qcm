@@ -8,9 +8,10 @@ namespace qcm::model
 {
 
 struct ModelSql {
-    std::vector<std::string_view> names;
+    std::vector<std::string_view> columns;
     std::vector<int>              idxs;
     std::string                   select;
+    std::string                   group_select;
 };
 
 } // namespace qcm::model

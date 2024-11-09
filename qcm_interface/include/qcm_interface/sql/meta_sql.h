@@ -17,7 +17,7 @@ enum class Logical
 
 enum class Eq
 {
-    Not = 0,
+    NOT = 0,
     EQ
 };
 using enum Logical;

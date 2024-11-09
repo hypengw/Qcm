@@ -154,7 +154,9 @@ App::App(std::monostate)
     app_instance(this);
     register_meta_type();
     connect_actions();
-    { QGuiApplication::setDesktopFileName(APP_ID); }
+    {
+        QGuiApplication::setDesktopFileName(APP_ID);
+    }
     m_playqueu->setSourceModel(m_play_id_queue);
     {
         auto fbs = make_rc<media_cache::Fallbacks>();
