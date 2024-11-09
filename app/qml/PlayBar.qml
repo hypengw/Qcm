@@ -128,13 +128,14 @@ MD.Pane {
                             hoverEnabled: true
 
                             onClicked: {
-                                const artists = root.currentSong.artists;
-                                if (artists.length === 1)
-                                    QA.Global.route(artists[0].itemId);
-                                else
-                                    QA.Action.popup_page('qrc:/Qcm/App/qml/component/ArtistsPopup.qml', {
-                                        "model": artists
-                                    });
+                                m_go_to_artist_act.trigger();
+                            }
+                        }
+
+                        QA.GoToArtistAction {
+                            id: m_go_to_artist_act
+                            getItemIds: function () {
+                                return root.currentSong.artists.map(el => el.itemId);
                             }
                         }
                     }
