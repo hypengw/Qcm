@@ -160,7 +160,7 @@ MD.Page {
                     id: qr_artistlist
                     Component.onCompleted: reload()
                 }
-                QA.PlaylistCollectionQuery {
+                QA.MixCollectionQuery {
                     id: qr_playlist
                     Component.onCompleted: reload()
                 }

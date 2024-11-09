@@ -24,7 +24,7 @@ public:
                 ListParam on_update = {}) -> task<bool> override;
     auto insert(std::span<const model::Song> items, ListParam columns,
                 ListParam on_update = {}) -> task<bool> override;
-    auto insert(std::span<const model::Playlist> items, ListParam columns,
+    auto insert(std::span<const model::Mix> items, ListParam columns,
                 ListParam on_update = {}) -> task<bool> override;
     auto insert(std::span<const model::Radio> items, ListParam columns,
                 ListParam on_update = {}) -> task<bool> override;

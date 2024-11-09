@@ -15,7 +15,7 @@
 #include "qcm_interface/oper/album_oper.h"
 #include "qcm_interface/oper/artist_oper.h"
 #include "qcm_interface/oper/song_oper.h"
-#include "qcm_interface/oper/playlist_oper.h"
+#include "qcm_interface/oper/mix_oper.h"
 #include "qcm_interface/oper/radio_oper.h"
 #include "qcm_interface/oper/program_oper.h"
 #include "qcm_interface/sql/item_sql.h"
@@ -520,12 +520,12 @@ auto sync_collection(ClientBase&                cbase,
             if (out) {
                 has_more = out->more;
                 {
-                    auto list = qcm::oper::PlaylistOper::create_list(out->playlist.size());
+                    auto list = qcm::oper::MixOper::create_list(out->playlist.size());
                     for (usize i = 0; i < out->playlist.size(); i++) {
                         auto& el = out->playlist[i];
                         collects.push_back(convert_from<ItemId>(el.id));
                         collect_times.push_back(cur);
-                        auto oper = qcm::oper::PlaylistOper(list[i]);
+                        auto oper = qcm::oper::MixOper(list[i]);
                         convert(oper, el);
                         cur = cur.addSecs(-5);
                     }
@@ -636,8 +636,8 @@ auto sync_items(ClientBase&                         cbase,
             api.input.n = 100000;
             auto out    = co_await c.perform(api);
             if (out) {
-                auto                    list = qcm::oper::PlaylistOper::create_list(1);
-                qcm::oper::PlaylistOper oper(list.at(0));
+                auto                    list = qcm::oper::MixOper::create_list(1);
+                qcm::oper::MixOper oper(list.at(0));
                 convert(oper, out->playlist);
                 co_await sql->insert(list, {});
 

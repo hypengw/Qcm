@@ -100,7 +100,7 @@ auto to_ncm_id(const ItemId& id) -> model::IdTypes::append<std::monostate>::to<s
 
 } // namespace ncm
 
-IMPL_CONVERT(qcm::model::Playlist, ncm::model::Playlist) {
+IMPL_CONVERT(qcm::model::Mix, ncm::model::Playlist) {
     convert(out.id, in.id);
     convert(out.name, in.name);
     convert(out.picUrl, in.coverImgUrl);
@@ -116,7 +116,7 @@ IMPL_CONVERT(qcm::model::Playlist, ncm::model::Playlist) {
 
 #define X(prop, in) out.set_##prop(convert_from<std::remove_cvref_t<decltype(out.prop())>>(in))
 
-IMPL_CONVERT(qcm::oper::PlaylistOper, ncm::model::Playlist) {
+IMPL_CONVERT(qcm::oper::MixOper, ncm::model::Playlist) {
     X(id, in.id);
     X(name, in.name);
     X(picUrl, in.coverImgUrl);
@@ -129,7 +129,7 @@ IMPL_CONVERT(qcm::oper::PlaylistOper, ncm::model::Playlist) {
     X(tags, in.tags.value_or(std::vector<std::string> {}));
 };
 
-IMPL_CONVERT(qcm::oper::PlaylistOper, ncm::model::UserPlaylistItem) {
+IMPL_CONVERT(qcm::oper::MixOper, ncm::model::UserPlaylistItem) {
     X(id, in.id);
     X(name, in.name);
     X(picUrl, in.coverImgUrl);

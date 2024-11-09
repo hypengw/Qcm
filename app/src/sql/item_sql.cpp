@@ -117,7 +117,7 @@ void ItemSql::create_playlist_table() {
     m_con->db().transaction();
 
     auto migs = m_con->generate_meta_migration(
-        m_playlist_table, u"itemId", model::Playlist::staticMetaObject, {});
+        m_playlist_table, u"itemId", model::Mix::staticMetaObject, {});
 
     QSqlQuery q = m_con->query();
 
@@ -359,13 +359,13 @@ auto ItemSql::insert(std::span<const model::Song> items, ListParam columns, List
     DEBUG_LOG("end insert");
     co_return true;
 }
-auto ItemSql::insert(std::span<const model::Playlist> items, ListParam columns,
+auto ItemSql::insert(std::span<const model::Mix> items, ListParam columns,
                      const std::set<std::string>& on_update) -> task<bool> {
     DEBUG_LOG("start insert playlist, {}", items.size());
     auto insert_helper = m_con->generate_insert_helper(
         m_playlist_table,
         { "itemId"s },
-        model::Playlist::staticMetaObject,
+        model::Mix::staticMetaObject,
         items,
         columns,
         on_update,

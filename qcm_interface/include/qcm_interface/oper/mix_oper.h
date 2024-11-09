@@ -5,15 +5,15 @@
 
 namespace qcm::model
 {
-struct Playlist;
+struct Mix;
 }
 
 namespace qcm::oper
 {
 using ItemId = model::ItemId;
 
-struct QCM_INTERFACE_API PlaylistOper : Oper<model::Playlist> {
-    using Oper<model::Playlist>::Oper;
+struct QCM_INTERFACE_API MixOper : Oper<model::Mix> {
+    using Oper<model::Mix>::Oper;
 
     OPER_PROPERTY(ItemId, itemId, id)
     OPER_PROPERTY(QString, name, name)

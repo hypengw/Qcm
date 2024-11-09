@@ -32,9 +32,9 @@ set(SOURCES
     include/Qcm/query/album_collection.h
     include/Qcm/query/artist_collection.h
     include/Qcm/query/radio_collection.h
-    include/Qcm/query/playlist_collection.h
+    include/Qcm/query/mix_collection.h
     include/Qcm/query/album_detail.h
-    include/Qcm/query/playlist_detail.h
+    include/Qcm/query/mix_detail.h
     include/Qcm/query/radio_detail.h
     include/Qcm/query/artist_detail.h
     include/Qcm/query/artist_albums.h

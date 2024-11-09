@@ -19,17 +19,17 @@
 namespace qcm::query
 {
 
-class PlaylistDetail : public meta_model::QGadgetListModel<Song> {
+class MixDetail : public meta_model::QGadgetListModel<Song> {
     Q_OBJECT
 
-    Q_PROPERTY(qcm::model::Playlist info READ info NOTIFY infoChanged)
+    Q_PROPERTY(qcm::model::Mix info READ info NOTIFY infoChanged)
 public:
-    PlaylistDetail(QObject* parent = nullptr)
+    MixDetail(QObject* parent = nullptr)
         : meta_model::QGadgetListModel<Song>(parent), m_has_more(true) {}
 
-    auto info() const -> const model::Playlist& { return m_info; }
-    void setInfo(const std::optional<model::Playlist>& v) {
-        m_info = v.value_or(model::Playlist {});
+    auto info() const -> const model::Mix& { return m_info; }
+    void setInfo(const std::optional<model::Mix>& v) {
+        m_info = v.value_or(model::Mix {});
         infoChanged();
     }
 
@@ -44,18 +44,18 @@ public:
 
 private:
     bool            m_has_more;
-    model::Playlist m_info;
+    model::Mix m_info;
 };
 
-class PlaylistDetailQuery : public Query<PlaylistDetail> {
+class MixDetailQuery : public Query<MixDetail> {
     Q_OBJECT
     QML_ELEMENT
 
     Q_PROPERTY(model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
-    Q_PROPERTY(PlaylistDetail* data READ tdata NOTIFY itemIdChanged FINAL)
+    Q_PROPERTY(MixDetail* data READ tdata NOTIFY itemIdChanged FINAL)
 public:
-    PlaylistDetailQuery(QObject* parent = nullptr): Query<PlaylistDetail>(parent) {
-        connect(this, &PlaylistDetailQuery::itemIdChanged, this, &PlaylistDetailQuery::reload);
+    MixDetailQuery(QObject* parent = nullptr): Query<MixDetail>(parent) {
+        connect(this, &MixDetailQuery::itemIdChanged, this, &MixDetailQuery::reload);
     }
 
     auto itemId() const -> const model::ItemId& { return m_album_id; }
@@ -68,7 +68,7 @@ public:
     Q_SIGNAL void itemIdChanged();
 
 public:
-    auto query_playlist(model::ItemId itemId) -> task<std::optional<model::Playlist>> {
+    auto query_playlist(model::ItemId itemId) -> task<std::optional<model::Mix>> {
         auto sql = App::instance()->album_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
 
@@ -79,14 +79,14 @@ SELECT
 FROM playlist
 WHERE playlist.itemId = :itemId AND ({1});
 )",
-                                     model::Playlist::sql().select,
-                                     db::null<db::AND, db::NOT>(model::Playlist::sql().columns)));
+                                     model::Mix::sql().select,
+                                     db::null<db::AND, db::NOT>(model::Mix::sql().columns)));
         query.bindValue(":itemId", itemId.toUrl());
 
         if (! query.exec()) {
             ERROR_LOG("{}", query.lastError().text());
         } else if (query.next()) {
-            model::Playlist pl;
+            model::Mix pl;
             int             i = 0;
             query::load_query(query, pl, i);
             co_return pl;
@@ -139,7 +139,7 @@ ORDER BY playlist_song.orderIdx;
             bool                     needReload = false;
 
             bool                             synced { 0 };
-            std::optional<model::Playlist>   playlist;
+            std::optional<model::Mix>   playlist;
             std::optional<std::vector<Song>> songs;
             for (;;) {
                 playlist = co_await self->query_playlist(itemId);

@@ -17,12 +17,12 @@ namespace qcm
 namespace model
 {
 
-class CloudSearch : public meta_model::VariantListModel<model::Song, model::Album, model::Playlist,
+class CloudSearch : public meta_model::VariantListModel<model::Song, model::Album, model::Mix,
                                                         model::Artist, model::Radio> {
     Q_OBJECT
 public:
     CloudSearch(QObject* parent = nullptr)
-        : meta_model::VariantListModel<model::Song, model::Album, model::Playlist, model::Artist,
+        : meta_model::VariantListModel<model::Song, model::Album, model::Mix, model::Artist,
                                        model::Radio>(parent),
           m_has_more(true) {
         connect(this, &CloudSearch::modelReset, this, [this]() {
@@ -69,7 +69,7 @@ public:
             }
         }
         {
-            Helper<out_type::PlaylistResult, model::Playlist> h(*this, re);
+            Helper<out_type::PlaylistResult, model::Mix> h(*this, re);
             if (h) {
                 this->insert(rowCount(), h.to(helper::value_or_default(h.src().playlists)));
                 m_has_more = h.src().playlistCount > rowCount();
@@ -164,7 +164,7 @@ inline void qcm::model::CloudSearch::updateType(int t) {
         i    = 1;
         break;
     case CloudSearchQuerier::PlaylistType:
-        meta = &model::Playlist::staticMetaObject;
+        meta = &model::Mix::staticMetaObject;
         i    = 2;
         break;
     case CloudSearchQuerier::AritstType:

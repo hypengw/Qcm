@@ -5,7 +5,7 @@
 #include "qcm_interface/oper/album_oper.h"
 #include "qcm_interface/oper/artist_oper.h"
 #include "qcm_interface/oper/song_oper.h"
-#include "qcm_interface/oper/playlist_oper.h"
+#include "qcm_interface/oper/mix_oper.h"
 #include "qcm_interface/oper/radio_oper.h"
 #include "qcm_interface/oper/program_oper.h"
 #include "qcm_interface/oper/comment_oper.h"
@@ -20,8 +20,8 @@ DECLARE_CONVERT(qcm::oper::ArtistOper, ncm::model::Song::Ar)
 DECLARE_CONVERT(qcm::model::Album, ncm::model::Album)
 DECLARE_CONVERT(qcm::oper::AlbumOper, ncm::model::Album)
 DECLARE_CONVERT(qcm::oper::AlbumOper, ncm::model::Song::Al)
-DECLARE_CONVERT(qcm::model::Playlist, ncm::model::Playlist)
-DECLARE_CONVERT(qcm::oper::PlaylistOper, ncm::model::Playlist)
+DECLARE_CONVERT(qcm::model::Mix, ncm::model::Playlist)
+DECLARE_CONVERT(qcm::oper::MixOper, ncm::model::Playlist)
 DECLARE_CONVERT(qcm::model::Song, ncm::model::Song)
 DECLARE_CONVERT(qcm::oper::SongOper, ncm::model::Song)
 DECLARE_CONVERT(qcm::model::ThirdUser, ncm::model::User)
@@ -47,7 +47,7 @@ struct DjradioDetail;
 
 DECLARE_CONVERT(qcm::oper::AlbumOper, ncm::model::AlbumSublistItem)
 DECLARE_CONVERT(qcm::oper::ArtistOper, ncm::model::ArtistSublistItem)
-DECLARE_CONVERT(qcm::oper::PlaylistOper, ncm::model::UserPlaylistItem)
+DECLARE_CONVERT(qcm::oper::MixOper, ncm::model::UserPlaylistItem)
 DECLARE_CONVERT(qcm::oper::DjradioOper, ncm::model::DjradioDetail)
 namespace ncm
 {

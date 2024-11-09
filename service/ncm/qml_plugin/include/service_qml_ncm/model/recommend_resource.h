@@ -7,7 +7,7 @@
 
 #include "core/log.h"
 
-DEFINE_CONVERT(qcm::model::Playlist, ncm::model::RecommendResourceItem) {
+DEFINE_CONVERT(qcm::model::Mix, ncm::model::RecommendResourceItem) {
     convert(out.id, in.id);
     convert(out.name, in.name);
     convert(out.picUrl, in.picUrl);
@@ -27,7 +27,7 @@ public:
     RecommendResource(QObject* parent = nullptr): QObject(parent) {}
     using out_type = ncm::api_model::RecommendResource;
 
-    READ_PROPERTY(std::vector<Playlist>, dailyPlaylists, m_dailyPlaylists, infoChanged)
+    READ_PROPERTY(std::vector<Mix>, dailyPlaylists, m_dailyPlaylists, infoChanged)
 
     void handle_output(const out_type& in, const auto&) {
         auto& o = *this;

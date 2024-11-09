@@ -213,7 +213,7 @@ MD.Page {
         }
     }
 
-    QA.PlaylistDetailQuery {
+    QA.MixDetailQuery {
         id: qr_pl
     }
 }

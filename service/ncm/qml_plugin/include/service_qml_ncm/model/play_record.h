@@ -24,7 +24,7 @@ public:
 } // namespace model
 } // namespace qcm
 
-DEFINE_CONVERT(qcm::model::Playlist, ncm::model::PlayRecordItem::Playlist) {
+DEFINE_CONVERT(qcm::model::Mix, ncm::model::PlayRecordItem::Playlist) {
     convert(out.id, in.id);
     convert(out.picUrl, in.coverImgUrl);
     convert(out.name, in.name);
@@ -39,7 +39,7 @@ DEFINE_CONVERT(qcm::model::PlayRecordItem, ncm::model::PlayRecordItem) {
                          return QVariant::fromValue(convert_from<qcm::model::Album>(in));
                      },
                      [](const ncm::model::PlayRecordItem::Playlist& in) {
-                         return QVariant::fromValue(convert_from<qcm::model::Playlist>(in));
+                         return QVariant::fromValue(convert_from<qcm::model::Mix>(in));
                      },
                      [](const ncm::model::DjradioB& in) {
                          return QVariant::fromValue(convert_from<qcm::model::Radio>(in));

@@ -44,8 +44,8 @@ auto Util::create_route_msg(QVariantMap props) const -> model::RouteMsg {
     msg.set_props(props.value("props").toMap());
     return msg;
 }
-auto Util::create_playlist(const QJSValue& js) const -> model::Playlist {
-    return meta_model::toGadget<model::Playlist>(js);
+auto Util::create_playlist(const QJSValue& js) const -> model::Mix {
+    return meta_model::toGadget<model::Mix>(js);
 }
 auto Util::create_album(const QJSValue& js) const -> model::Album {
     return meta_model::toGadget<model::Album>(js);

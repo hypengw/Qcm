@@ -16,18 +16,18 @@ namespace qcm
 namespace model
 {
 
-class PlaylistList : public meta_model::QGadgetListModel<Playlist> {
+class PlaylistList : public meta_model::QGadgetListModel<Mix> {
     Q_OBJECT
 public:
     PlaylistList(QObject* parent = nullptr)
-        : meta_model::QGadgetListModel<Playlist>(parent), m_has_more(true) {}
+        : meta_model::QGadgetListModel<Mix>(parent), m_has_more(true) {}
     using out_type = ncm::api_model::PlaylistList;
 
     void handle_output(const out_type& re, const auto& input) {
         if (input.offset != (int)rowCount()) {
             return;
         }
-        auto in_ = convert_from<std::vector<Playlist>>(re.playlists);
+        auto in_ = convert_from<std::vector<Mix>>(re.playlists);
         for (auto& el : in_) {
             // remove query
             el.picUrl = el.picUrl.split('?').front();

@@ -27,7 +27,7 @@ public:
     Q_INVOKABLE model::ItemId create_itemid() const;
     Q_INVOKABLE QString       mpris_trackid(model::ItemId) const;
     Q_INVOKABLE model::RouteMsg create_route_msg(QVariantMap) const;
-    Q_INVOKABLE model::Playlist create_playlist(const QJSValue& = {}) const;
+    Q_INVOKABLE model::Mix create_playlist(const QJSValue& = {}) const;
     Q_INVOKABLE model::Album create_album(const QJSValue& = {}) const;
     Q_INVOKABLE model::Song create_song(const QJSValue& = {}) const;
     Q_INVOKABLE model::Artist create_artist(const QJSValue& = {}) const;

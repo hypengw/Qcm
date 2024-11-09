@@ -4,8 +4,8 @@
 #include "qcm_interface/model/artist.h"
 #include "qcm_interface/oper/song_oper.h"
 #include "qcm_interface/model/song.h"
-#include "qcm_interface/oper/playlist_oper.h"
-#include "qcm_interface/model/playlist.h"
+#include "qcm_interface/oper/mix_oper.h"
+#include "qcm_interface/model/mix.h"
 #include "qcm_interface/oper/radio_oper.h"
 #include "qcm_interface/model/radio.h"
 #include "qcm_interface/oper/program_oper.h"
@@ -52,7 +52,7 @@ auto create_list(usize num) -> OperList<T> {
 X(model::Album)
 X(model::Artist)
 X(model::Song)
-X(model::Playlist)
+X(model::Mix)
 X(model::Radio)
 X(model::Program)
 X(model::Comment)
@@ -86,16 +86,16 @@ IMPL_OPER_PROPERTY(SongOper, QStringList, tags, tags)
 IMPL_OPER_PROPERTY(SongOper, qreal, popularity, popularity)
 IMPL_OPER_PROPERTY(SongOper, ItemId, sourceId, sourceId)
 
-IMPL_OPER_PROPERTY(PlaylistOper, ItemId, itemId, id)
-IMPL_OPER_PROPERTY(PlaylistOper, QString, name, name)
-IMPL_OPER_PROPERTY(PlaylistOper, QString, picUrl, picUrl)
-IMPL_OPER_PROPERTY(PlaylistOper, QString, description, description)
-IMPL_OPER_PROPERTY(PlaylistOper, QDateTime, createTime, createTime)
-IMPL_OPER_PROPERTY(PlaylistOper, QDateTime, updateTime, updateTime)
-IMPL_OPER_PROPERTY(PlaylistOper, qint32, playCount, playCount)
-IMPL_OPER_PROPERTY(PlaylistOper, qint32, trackCount, trackCount)
-IMPL_OPER_PROPERTY(PlaylistOper, ItemId, userId, userId)
-IMPL_OPER_PROPERTY(PlaylistOper, std::vector<QString>, tags, tags)
+IMPL_OPER_PROPERTY(MixOper, ItemId, itemId, id)
+IMPL_OPER_PROPERTY(MixOper, QString, name, name)
+IMPL_OPER_PROPERTY(MixOper, QString, picUrl, picUrl)
+IMPL_OPER_PROPERTY(MixOper, QString, description, description)
+IMPL_OPER_PROPERTY(MixOper, QDateTime, createTime, createTime)
+IMPL_OPER_PROPERTY(MixOper, QDateTime, updateTime, updateTime)
+IMPL_OPER_PROPERTY(MixOper, qint32, playCount, playCount)
+IMPL_OPER_PROPERTY(MixOper, qint32, trackCount, trackCount)
+IMPL_OPER_PROPERTY(MixOper, ItemId, userId, userId)
+IMPL_OPER_PROPERTY(MixOper, std::vector<QString>, tags, tags)
 
 IMPL_OPER_PROPERTY(DjradioOper, ItemId, itemId, id)
 IMPL_OPER_PROPERTY(DjradioOper, QString, name, name)

@@ -8,7 +8,7 @@
 namespace qcm::model
 {
 
-struct PlaylistRefer {
+struct MixRefer {
     Q_GADGET_EXPORT(QCM_INTERFACE_API)
 public:
     GADGET_PROPERTY_DEF(ItemId, itemId, id)
@@ -17,10 +17,10 @@ public:
     GADGET_PROPERTY_DEF(qint32, trackCount, trackCount)
 
     QCM_INTERFACE_API static auto sql() -> const ModelSql&;
-    std::strong_ordering          operator<=>(const PlaylistRefer&) const = default;
+    std::strong_ordering          operator<=>(const MixRefer&) const = default;
 };
 
-struct Playlist : PlaylistRefer {
+struct Mix : MixRefer {
     Q_GADGET_EXPORT(QCM_INTERFACE_API)
     QML_VALUE_TYPE(t_playlist)
 public:

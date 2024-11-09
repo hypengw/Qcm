@@ -17,7 +17,7 @@
 #include "qcm_interface/item_id.h"
 #include "qcm_interface/model/artist.h"
 #include "qcm_interface/model/song.h"
-#include "qcm_interface/model/playlist.h"
+#include "qcm_interface/model/mix.h"
 #include "qcm_interface/model/radio.h"
 #include "qcm_interface/model/program.h"
 #include "qcm_interface/model/comment.h"

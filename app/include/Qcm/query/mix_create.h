@@ -41,7 +41,7 @@ public:
     Q_SIGNAL void nameChanged();
 
 public:
-    auto mix_create(const model::Playlist& pl) -> task<void> {
+    auto mix_create(const model::Mix& pl) -> task<void> {
         {
             auto sql = App::instance()->album_sql();
             co_await sql->insert(std::array { pl }, {});
@@ -60,7 +60,7 @@ public:
         auto userId = Global::instance()->qsession()->user()->userId();
         if (! c) return;
         spawn(ex, [self, c = c.value(), name = m_name, userId] -> task<void> {
-            model::Playlist pl;
+            model::Mix pl;
             auto            out = co_await c.api->create_mix(c, name);
             if (out) {
                 pl.id     = out.value();

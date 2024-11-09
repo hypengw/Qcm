@@ -7,9 +7,11 @@ MD.Page {
     id: root
     property alias text: label.text
     title: qsTr('description')
+    bottomPadding: radius
+    scrolling: !m_flick.atYBeginning
 
     MD.Flickable {
-        id: flick
+        id: m_flick
 
         anchors.fill: parent
         leftMargin: 24
@@ -28,21 +30,6 @@ MD.Page {
                 readOnly: true
                 wrapMode: Text.Wrap
                 typescale: MD.Token.typescale.body_medium
-            }
-        }
-    }
-    footer: MD.Control {
-        horizontalPadding: 24
-        contentItem: RowLayout {
-            Item {
-                Layout.fillWidth: true
-            }
-            MD.Button {
-                type: MD.Enum.BtText
-                text: qsTr('close')
-                onClicked: {
-                    MD.Util.closePopup(root);
-                }
             }
         }
     }

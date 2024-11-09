@@ -19,17 +19,17 @@
 
 namespace qcm::query
 {
-struct PlaylistCollectionItem : public model::Playlist {
+struct MixCollectionItem : public model::Mix {
     Q_GADGET
 public:
     GADGET_PROPERTY_DEF(QDateTime, subTime, subTime)
 };
 
-class PlaylistCollection : public meta_model::QGadgetListModel<PlaylistCollectionItem> {
+class MixCollection : public meta_model::QGadgetListModel<MixCollectionItem> {
     Q_OBJECT
 public:
-    PlaylistCollection(QObject* parent = nullptr)
-        : meta_model::QGadgetListModel<PlaylistCollectionItem>(parent), m_has_more(true) {}
+    MixCollection(QObject* parent = nullptr)
+        : meta_model::QGadgetListModel<MixCollectionItem>(parent), m_has_more(true) {}
 
     bool canFetchMore(const QModelIndex&) const override { return m_has_more; }
     void fetchMore(const QModelIndex&) override {
@@ -43,11 +43,11 @@ private:
     bool m_has_more;
 };
 
-class PlaylistCollectionQuery : public Query<PlaylistCollection> {
+class MixCollectionQuery : public Query<MixCollection> {
     Q_OBJECT
     QML_ELEMENT
 public:
-    PlaylistCollectionQuery(QObject* parent = nullptr): Query<PlaylistCollection>(parent) {
+    MixCollectionQuery(QObject* parent = nullptr): Query<MixCollection>(parent) {
         set_use_queue(true);
         connect(Notifier::instance(),
                 &Notifier::collected,
@@ -69,9 +69,9 @@ public:
 
 public:
     auto query_collect(const model::ItemId& userId, const QDateTime& time)
-        -> task<std::vector<PlaylistCollectionItem>> {
+        -> task<std::vector<MixCollectionItem>> {
         auto                                sql = App::instance()->album_sql();
-        std::vector<PlaylistCollectionItem> items;
+        std::vector<MixCollectionItem> items;
         co_await asio::post(asio::bind_executor(sql->get_executor(), asio::use_awaitable));
         auto query = sql->con()->query();
         query.prepare_sv(fmt::format(R"(
@@ -84,7 +84,7 @@ WHERE collection.userId = :userId AND collection.type = "playlist" AND collectio
 GROUP BY playlist.itemId
 ORDER BY collection.collectTime DESC;
 )",
-                                     model::Playlist::sql().select));
+                                     model::Mix::sql().select));
         query.bindValue(":userId", userId.toUrl());
         query.bindValue(":time", time);
 
@@ -94,7 +94,7 @@ ORDER BY collection.collectTime DESC;
         while (query.next()) {
             auto& item = items.emplace_back();
             int   i    = 0;
-            query::load_query<model::Playlist>(query, item, i);
+            query::load_query<model::Mix>(query, item, i);
             item.subTime = query.value(i++).toDateTime();
         }
         co_return items;
@@ -117,7 +117,7 @@ ORDER BY collection.collectTime DESC;
                 "playlist",
                 "playlist",
                 db::range_to<std::set<std::string>>(
-                    db::meta_prop_names(model::Playlist::staticMetaObject)));
+                    db::meta_prop_names(model::Mix::staticMetaObject)));
 
             auto deleted_vec = co_await sql->select_removed(userId, u"playlist"_s, time);
             std::unordered_set<model::ItemId> deleted(deleted_vec.begin(), deleted_vec.end());
@@ -153,7 +153,7 @@ ORDER BY collection.collectTime DESC;
                             t->begin(),
                             t->end(),
                             el,
-                            [userId](const PlaylistCollectionItem& el, const auto& val) {
+                            [userId](const MixCollectionItem& el, const auto& val) {
                                 auto left_is_user  = el.userId == userId;
                                 auto right_is_user = val.userId == userId;
                                 if (left_is_user && ! right_is_user) {

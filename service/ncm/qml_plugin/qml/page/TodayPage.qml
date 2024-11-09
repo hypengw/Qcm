@@ -131,7 +131,7 @@ MD.Page {
                                     }
                                 }
 
-                                QA.PlaylistDetailQuery {
+                                QA.MixDetailQuery {
                                     id: pl_querier
                                     itemId: model.id
                                 }
