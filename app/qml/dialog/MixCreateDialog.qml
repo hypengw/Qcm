@@ -16,7 +16,6 @@ MD.Dialog {
             item_input.focus = true;
         }
     }
-    onRejected: MD.Util.closePopup(root)
 
     ColumnLayout {
         anchors.fill: parent

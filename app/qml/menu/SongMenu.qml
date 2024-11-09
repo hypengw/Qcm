@@ -8,13 +8,14 @@ MD.Menu {
 
     property QA.t_id itemId
     property var song: qr_detail.data
+    readonly property QA.t_id itemId_: itemId.valid() ? itemId : song.itemId
 
     dim: false
     font.capitalization: Font.Capitalize
     modal: true
 
     QA.PlaynextAction {
-        enabled: root.song.itemId !== QA.App.playqueue.currentSong.itemId
+        enabled: root.itemId_ !== QA.App.playqueue.currentSong.itemId
         songId: root.itemId
     }
     Action {
@@ -22,7 +23,7 @@ MD.Menu {
         text: qsTr('Add to Playlist')
         onTriggered: {
             QA.Action.popup_page('qrc:/Qcm/App/qml/page/FavPage.qml', {
-                songId: root.song.itemId
+                songId: root.itemId_
             });
         }
     }
@@ -35,22 +36,13 @@ MD.Menu {
             QA.Global.route(root.song.album.itemId);
         }
     }
-    Action {
-        icon.name: MD.Token.icon.person
-        text: qsTr('go to artist')
-
-        onTriggered: {
-            const artists = root.song.artists;
-            if (artists.length === 1)
-                QA.Global.route(artists[0].itemId);
-            else
-                QA.Action.popup_page('qrc:/Qcm/App/qml/component/ArtistsPopup.qml', {
-                    "model": artists
-                });
+    QA.GoToArtistAction {
+        getItemIds: function () {
+            return root.song.artists.map(el => el.itemId);
         }
     }
     QA.CommentAction {
-        itemId: root.itemId
+        itemId: root.itemId_
     }
 
     Action {

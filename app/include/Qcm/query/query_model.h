@@ -24,14 +24,16 @@ template<>
 inline void load_query<std::vector<model::ArtistRefer>>(QSqlQuery&                       query,
                                                         std::vector<model::ArtistRefer>& artists,
                                                         int&                             i) {
-    auto artist_ids     = query.value(i++).toStringList();
-    auto artist_names   = query.value(i++).toStringList();
-    auto artist_picUrls = query.value(i++).toStringList();
-    for (qsizetype i = 0; i < artist_ids.size(); i++) {
-        auto& ar  = artists.emplace_back();
-        ar.id     = artist_ids[i];
-        ar.name   = artist_names[i];
-        ar.picUrl = artist_picUrls[i];
+    auto artist_ids     = query.value(i++).toString().split(',');
+    auto artist_names   = query.value(i++).toString().split(',');
+    auto artist_picUrls = query.value(i++).toString().split(',');
+
+    auto num = artist_ids.size();
+    for (qsizetype i = 0; i < num; i++) {
+        auto& ar = artists.emplace_back();
+        ar.id    = artist_ids[i];
+        if (i < artist_names.size()) ar.name = artist_names[i];
+        if (i < artist_picUrls.size()) ar.picUrl = artist_picUrls[i];
     }
 }
 

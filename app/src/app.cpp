@@ -426,7 +426,7 @@ QString App::itemIdPageUrl(const QJSValue& js) const {
     } else if (type == "artist") {
         return "qrc:/Qcm/App/qml/page/ArtistDetailPage.qml";
     } else if (type == "playlist") {
-        return "qrc:/Qcm/App/qml/page/PlaylistDetailPage.qml";
+        return "qrc:/Qcm/App/qml/page/MixDetailPage.qml";
     } else if (type == "radio") {
         return "qrc:/Qcm/App/qml/page/RadioDetailPage.qml";
     }

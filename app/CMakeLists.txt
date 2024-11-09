@@ -89,8 +89,7 @@ set(QML_FILES
     qml/page/DescriptionPage.qml
     qml/page/RadioDetailPage.qml
     qml/page/LoginPage.qml
-    qml/page/PlaylistDetailPage.qml
-    qml/page/PlaylistCreatePage.qml
+    qml/page/MixDetailPage.qml
     qml/page/RetryPage.qml
     qml/page/SettingsPage.qml
     qml/page/SearchPage.qml
@@ -103,7 +102,6 @@ set(QML_FILES
     qml/delegate/SongDelegate.qml
     qml/delegate/PicGridDelegate.qml
     qml/delegate/ProgramDelegate.qml
-    qml/component/ArtistsPopup.qml
     qml/component/SnakeView.qml
     qml/component/Mpris.qml
     qml/component/SongTag.qml
@@ -128,7 +126,9 @@ set(QML_FILES
     qml/action/ColorSchemeAction.qml
     qml/action/SubAction.qml
     qml/action/SettingAction.qml
+    qml/action/GoToArtistAction.qml
     qml/dialog/MixCreateDialog.qml
+    qml/dialog/GoToArtistDialog.qml
     qml/menu/SongMenu.qml
     qml/menu/AlbumMenu.qml
     qml/menu/ArtistMenu.qml
