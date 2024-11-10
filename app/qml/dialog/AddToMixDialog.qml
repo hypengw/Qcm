@@ -4,7 +4,7 @@ import Qcm.Material as MD
 
 MD.Dialog {
     id: root
-    title: qsTr(`add to playlist`)
+    title: qsTr(`add to mix`)
     padding: 0
     standardButtons: MD.Dialog.Cancel
 

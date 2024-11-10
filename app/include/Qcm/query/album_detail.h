@@ -124,6 +124,7 @@ ORDER BY song.trackNumber ASC;
                 auto& s = songs.emplace_back();
                 int   i = 0;
                 load_query(query, s, i);
+                s.sourceId = itemId;
             }
             co_return songs;
         }

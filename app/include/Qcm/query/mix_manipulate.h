@@ -63,6 +63,13 @@ public:
     Q_SIGNAL void operChanged();
 
 public:
+    auto mix_manipulate(const model::Mix& pl) -> task<void> {
+        {
+            auto sql = App::instance()->album_sql();
+            co_await sql->insert(std::array { pl }, {});
+        }
+    }
+
     void reload() override {
         set_status(Status::Querying);
         auto ex   = asio::make_strand(pool_executor());

@@ -689,7 +689,7 @@ auto sync_items(ClientBase&                         cbase,
                     std::ranges::copy(ids_view, std::back_inserter(ids));
                 }
 
-                co_await sql->insert_playlist_song(-1, oper.id(), ids);
+                co_await sql->refresh_playlist_song(-1, oper.id(), ids);
             } else {
                 co_return nstd::unexpected(out.error());
             }

@@ -7,6 +7,8 @@ MD.Menu {
     id: root
 
     property QA.t_id itemId
+    property QA.t_id sourceId
+    property bool canDelete: false
     property var song: qr_detail.data
     readonly property QA.t_id itemId_: itemId.valid() ? itemId : song.itemId
 
@@ -16,16 +18,11 @@ MD.Menu {
 
     QA.PlaynextAction {
         enabled: root.itemId_ !== QA.App.playqueue.currentSong.itemId
-        songId: root.itemId
+        songId: root.itemId_
     }
-    Action {
-        icon.name: MD.Token.icon.queue
-        text: qsTr('Add to Playlist')
-        onTriggered: {
-            MD.Util.show_popup('qrc:/Qcm/App/qml/dialog/AddToMixDialog.qml', {
-                "songId": root.itemId_
-            }, QA.Global.main_win.Overlay.overlay);
-        }
+
+    QA.AddToMixAction {
+        songId: root.itemId_
     }
 
     Action {
@@ -46,12 +43,14 @@ MD.Menu {
     }
 
     Action {
-        enabled: root.song.source?.userId === QA.Global.session.user.userId
+        enabled: root.canDelete
         icon.name: MD.Token.icon.delete
         text: qsTr('delete')
-        onTriggered:
-        // qr_tracks.playlistId = root.song.source?.itemId;
-        {}
+        onTriggered: {
+            m_qr_manipulate.mixId = root.sourceId;
+            m_qr_manipulate.itemIds = [root.itemId_];
+            m_qr_manipulate.reload();
+        }
     }
 
     MD.Menu {
@@ -84,15 +83,8 @@ MD.Menu {
         itemId: root.itemId
     }
 
-    //QNcm.PlaylistTracksQuerier {
-    //    id: qr_tracks
-    //    operation: QNcm.PlaylistTracksQuerier.Del
-    //    trackIds: [root.song.itemId]
-    //    autoReload: playlistId.valid()
-    //    onStatusChanged: {
-    //        if (status === QA.enums.Finished) {
-    //            QA.App.playqueueChanged();
-    //        }
-    //    }
-    //}
+    QA.MixManipulateQuery {
+        id: m_qr_manipulate
+        oper: QA.enums.ManipulateMixDel
+    }
 }

@@ -34,6 +34,7 @@ MD.Page {
 
         model: root.itemData
         readonly property bool single: width < m_cover.displaySize.width * (1.0 + 1.5) + 8
+        readonly property bool canDelete: root.itemData.info.userId == QA.Global.session.user.userId
 
         Item {
             visible: false
@@ -188,6 +189,7 @@ MD.Page {
             width: ListView.view.contentWidth
             leftMargin: 16
             rightMargin: 16
+            canDelete: ListView.view.canDelete
 
             onClicked: {
                 QA.Action.play_by_id(dgModel.itemId);

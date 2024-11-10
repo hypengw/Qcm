@@ -163,6 +163,22 @@ public:
         crtp_impl().reset_impl(items);
         endResetModel();
     }
+    template<typename T>
+        requires std::ranges::sized_range<T>
+    void replaceResetModel(const T& items) {
+        auto  size = items.size();
+        usize old  = std::max(rowCount(), 0);
+        auto  num  = std::min<int>(old, size);
+        for (auto i = 0; i < num; i++) {
+            crtp_impl().assign(i, items[i]);
+        }
+        if (num > 0) dataChanged(index(0), index(num));
+        if (size > old) {
+            insert(num, std::ranges::subrange(items.begin() + num, items.end(), size - num));
+        } else if (size < old) {
+            removeRows(size, old - size);
+        }
+    }
 
     QVariant item(int idx) const override {
         if ((usize)std::max(idx, 0) >= crtp_impl().size()) return {};

@@ -129,6 +129,7 @@ set(QML_FILES
     qml/action/SubAction.qml
     qml/action/SettingAction.qml
     qml/action/GoToArtistAction.qml
+    qml/action/AddToMixAction.qml
     qml/action/MixCreateAction.qml
     qml/dialog/MixCreateDialog.qml
     qml/dialog/GoToArtistDialog.qml

@@ -23,6 +23,7 @@ MD.ListItem {
     }
     property string subtitle: ''
     property bool showCover: false
+    property bool canDelete: false
     readonly property int coverSize: 48
 
     enabled: dgModel.canPlay
@@ -134,10 +135,17 @@ MD.ListItem {
                 icon.name: MD.Token.icon.more_vert
 
                 onClicked: {
-                    MD.Util.show_popup('qrc:/Qcm/App/qml/menu/SongMenu.qml', {
+                    const props = {
                         "itemId": root.dgModel.itemId,
                         "y": height
-                    }, this);
+                    };
+                    if (root.canDelete) {
+                        props["canDelete"] = true;
+                    }
+                    if (root.dgModel.sourceId) {
+                        props["sourceId"] = root.dgModel.sourceId;
+                    }
+                    MD.Util.show_popup('qrc:/Qcm/App/qml/menu/SongMenu.qml', props, this);
                 }
             }
         }

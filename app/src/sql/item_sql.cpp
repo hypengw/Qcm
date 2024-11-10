@@ -233,6 +233,7 @@ void ItemSql::create_playlist_song_table() {
             helper::SqlColumn { .name = "songId", .type = "TEXT", .notnull = 1 },
             helper::SqlColumn { .name = "playlistId", .type = "TEXT", .notnull = 1 },
             helper::SqlColumn { .name = "orderIdx", .type = "INTEGER" },
+            helper::SqlColumn { .name = "removed", .type = "INTEGER", .dflt_value = "0"s },
             m_con->EditTimeColumn,
         },
         std::array { "UNIQUE(songId, playlistId)"s });
@@ -516,6 +517,58 @@ INSERT OR IGNORE INTO %1 (radioId, programId) VALUES (:radioId, :programId);
     co_return true;
 }
 
+auto ItemSql::insert_playlist_song(u32 last, u32 count, const model::ItemId& playlist_id,
+                                   std::span<const model::ItemId> song_ids) -> bool {
+    Q_UNUSED(count);
+    u32 limit = 100;
+
+    auto query         = m_con->query();
+    auto rerange_query = m_con->query();
+    query.prepare(uR"(
+INSERT OR REPLACE INTO %1 (playlistId, songId, orderIdx)
+VALUES (:playlistId, :songId, :orderIdx);
+)"_s.arg(m_playlist_song_table));
+    rerange_query.prepare(uR"(
+WITH OrderedSongs AS (
+    SELECT songId,
+           ROW_NUMBER() OVER (ORDER BY orderIdx) * :limit AS newOrderIdx
+    FROM playlist_song
+    WHERE playlistId = :playlistId
+)
+UPDATE playlist_song
+SET orderIdx = (SELECT newOrderIdx FROM OrderedSongs WHERE playlist_song.songId = OrderedSongs.songId)
+WHERE playlistId = :playlistId;
+)"_s);
+    u32 offset { last };
+    for (u32 i = 0; i < song_ids.size(); i += limit - 1, offset += (limit - 1) * limit) {
+        QVariantList playlist_id_list;
+        QVariantList song_id_list;
+        QVariantList order_idx;
+        auto         n = std::min<usize>(i + limit, song_ids.size());
+        for (u32 j = i, k = 1; j < n; j++, k++) {
+            playlist_id_list << playlist_id.toUrl();
+            song_id_list << song_ids[j].toUrl();
+            order_idx << offset + k;
+        }
+
+        query.bindValue(":playlistId", playlist_id_list);
+        query.bindValue(":songId", song_id_list);
+        query.bindValue(":orderIdx", order_idx);
+        if (! query.execBatch()) {
+            ERROR_LOG("{}", query.lastError().text());
+            return false;
+        }
+
+        rerange_query.bindValue(":limit", limit);
+        rerange_query.bindValue(":playlistId", playlist_id.toUrl());
+        if (! rerange_query.exec()) {
+            ERROR_LOG("{}", rerange_query.lastError().text());
+            return false;
+        }
+    }
+    return true;
+}
+
 auto ItemSql::insert_playlist_song(i32 pos, model::ItemId playlist_id,
                                    std::span<const model::ItemId> song_ids) -> task<bool> {
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
@@ -548,59 +601,41 @@ WHERE playlistId = :playlistId;
     } else if (query.next()) {
         u32 last  = query.value(0).toUInt();
         u32 count = query.value(1).toUInt();
-        u32 limit = 100;
-
         m_con->db().transaction();
-
-        query              = m_con->query();
-        auto rerange_query = m_con->query();
-        query.prepare(uR"(
-INSERT OR REPLACE INTO %1 (playlistId, songId, orderIdx)
-VALUES (:playlistId, :songId, :orderIdx);
-)"_s.arg(m_playlist_song_table));
-        rerange_query.prepare(uR"(
-WITH OrderedSongs AS (
-    SELECT songId,
-           ROW_NUMBER() OVER (ORDER BY orderIdx) * :limit AS newOrderIdx
-    FROM playlist_song
-    WHERE playlistId = :playlistId
-)
-UPDATE playlist_song
-SET orderIdx = (SELECT newOrderIdx FROM OrderedSongs WHERE playlist_song.songId = OrderedSongs.songId)
-WHERE playlistId = :playlistId;
-)"_s);
-        u32 offset { last };
-        for (u32 i = 0; i < song_ids.size(); i += limit - 1, offset += (limit - 1) * limit) {
-            QVariantList playlist_id_list;
-            QVariantList song_id_list;
-            QVariantList order_idx;
-            auto         n = std::min<usize>(i + limit, song_ids.size());
-            for (u32 j = i, k = 1; j < n; j++, k++) {
-                playlist_id_list << playlist_id.toUrl();
-                song_id_list << song_ids[j].toUrl();
-                order_idx << offset + k;
-            }
-
-            query.bindValue(":playlistId", playlist_id_list);
-            query.bindValue(":songId", song_id_list);
-            query.bindValue(":orderIdx", order_idx);
-            if (! query.execBatch()) {
-                ERROR_LOG("{}", query.lastError().text());
-                m_con->db().rollback();
-                co_return false;
-            }
-
-            rerange_query.bindValue(":limit", limit);
-            rerange_query.bindValue(":playlistId", playlist_id.toUrl());
-            if (! rerange_query.exec()) {
-                ERROR_LOG("{}", rerange_query.lastError().text());
-                m_con->db().rollback();
-                co_return false;
-            }
+        if (insert_playlist_song(last, count, playlist_id, song_ids)) {
+            m_con->db().commit();
+        } else {
+            m_con->db().rollback();
+            co_return false;
         }
-
-        m_con->db().commit();
     } else {
+    }
+
+    co_return true;
+}
+auto ItemSql::refresh_playlist_song(i32 pos, model::ItemId playlist_id,
+                                    std::span<const model::ItemId> song_ids) -> task<bool> {
+    co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
+    m_con->db().transaction();
+
+    auto query = con()->query();
+
+    query.prepare_sv(fmt::format(R"(
+DELETE FROM {0}
+WHERE playlistId = :playlistId;
+)",
+                                 m_playlist_song_table));
+    query.bindValue(":playlistId", playlist_id.toUrl());
+
+    if (! query.exec()) {
+        ERROR_LOG("{}", query.lastError().text());
+        m_con->db().rollback();
+        co_return false;
+    }
+
+    if (! insert_playlist_song(0, 0, playlist_id, song_ids)) {
+        m_con->db().rollback();
+        co_return false;
     }
 
     co_return true;

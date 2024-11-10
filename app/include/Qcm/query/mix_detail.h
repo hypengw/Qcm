@@ -43,7 +43,7 @@ public:
     Q_SIGNAL void infoChanged();
 
 private:
-    bool            m_has_more;
+    bool       m_has_more;
     model::Mix m_info;
 };
 
@@ -56,6 +56,12 @@ class MixDetailQuery : public Query<MixDetail> {
 public:
     MixDetailQuery(QObject* parent = nullptr): Query<MixDetail>(parent) {
         connect(this, &MixDetailQuery::itemIdChanged, this, &MixDetailQuery::reload);
+        connect(
+            Notifier::instance(), &Notifier::itemChanged, this, [this](const model::ItemId& id) {
+                if (this->itemId() == id) {
+                    request_reload();
+                }
+            });
     }
 
     auto itemId() const -> const model::ItemId& { return m_album_id; }
@@ -87,7 +93,7 @@ WHERE playlist.itemId = :itemId AND ({1});
             ERROR_LOG("{}", query.lastError().text());
         } else if (query.next()) {
             model::Mix pl;
-            int             i = 0;
+            int        i = 0;
             query::load_query(query, pl, i);
             co_return pl;
         }
@@ -122,6 +128,7 @@ ORDER BY playlist_song.orderIdx;
                 auto& s = songs.emplace_back();
                 int   i = 0;
                 load_query(query, s, i);
+                s.sourceId = itemId;
             }
             co_return songs;
         }
@@ -139,7 +146,7 @@ ORDER BY playlist_song.orderIdx;
             bool                     needReload = false;
 
             bool                             synced { 0 };
-            std::optional<model::Mix>   playlist;
+            std::optional<model::Mix>        playlist;
             std::optional<std::vector<Song>> songs;
             for (;;) {
                 playlist = co_await self->query_playlist(itemId);
@@ -157,7 +164,11 @@ ORDER BY playlist_song.orderIdx;
                 asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
             if (self) {
                 self->tdata()->setInfo(playlist);
-                self->tdata()->resetModel(songs);
+                if (self->tdata()->rowCount() && songs) {
+                    self->tdata()->replaceResetModel(*songs);
+                } else {
+                    self->tdata()->resetModel(songs);
+                }
                 self->set_status(Status::Finished);
             }
             co_return;
