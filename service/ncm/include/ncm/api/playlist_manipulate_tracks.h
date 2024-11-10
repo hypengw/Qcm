@@ -40,6 +40,7 @@ struct PlaylistManipulateTracks {
         return api_model::parse<PlaylistManipulateTracks>(bs);
     }
     // 200
+    // "{\"message\":\"歌单内歌曲重复\",\"code\":502}"
     i64 code;
 };
 JSON_DEFINE(PlaylistManipulateTracks);

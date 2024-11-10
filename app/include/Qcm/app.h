@@ -43,13 +43,13 @@ class CollectionSql;
 class ItemSql;
 
 void register_meta_type();
-auto gen_image_cache_entry(const QString& provider, const QUrl& url,
-                           QSize reqSize) -> std::optional<std::filesystem::path>;
+auto gen_image_cache_entry(const QString& provider, const QUrl& url, QSize reqSize)
+    -> std::optional<std::filesystem::path>;
 
 auto cache_path_of(std::string_view id) -> std::filesystem::path;
 auto media_cache_path_of(std::string_view id) -> std::filesystem::path;
-auto image_uniq_hash(const QString& provider, const QUrl& url,
-                     QSize reqSize) -> std::optional<std::string>;
+auto image_uniq_hash(const QString& provider, const QUrl& url, QSize reqSize)
+    -> std::optional<std::string>;
 auto song_uniq_hash(const model::ItemId& id, enums::AudioQuality quality) -> std::string;
 
 class App : public QObject {
@@ -154,6 +154,7 @@ public:
     Q_SLOT void on_load_session(model::Session*);
     Q_SLOT void on_switch_user(model::ItemId);
     Q_SLOT void on_collect(model::ItemId, bool);
+    Q_SLOT void on_sync_item(const model::ItemId& itemId, bool notify);
     Q_SLOT void on_sync_collecttion(enums::CollectionType);
     Q_SLOT void on_record(enums::RecordAction);
     Q_SLOT void on_play_song(const query::Song&);

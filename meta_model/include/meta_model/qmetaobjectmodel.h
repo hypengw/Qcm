@@ -7,6 +7,8 @@
 
 #include <ranges>
 #include <vector>
+#include <unordered_set>
+#include <unordered_map>
 #include <set>
 
 #include <QtCore/QAbstractListModel>
@@ -219,14 +221,38 @@ private:
     const auto& crtp_impl() const { return *static_cast<const IMPL*>(this); }
 };
 
-template<typename TItem, typename CRTP, typename Allocator = std::allocator<TItem>>
+enum class QMetaListStore
+{
+    Vector = 0,
+    VectorWithMap,
+    Map
+};
+
+namespace detail
+{
+template<typename T, QMetaListStore>
+struct allocator_helper {
+    using value_type = T;
+};
+template<typename T>
+struct allocator_helper<T, QMetaListStore::Map> {
+    using value_type = std::pair<usize, T>;
+};
+
+template<typename T, QMetaListStore S>
+using allocator_value_type = allocator_helper<T, S>::value_type;
+
+} // namespace detail
+
+template<typename TItem, typename CRTP, QMetaListStore Store = QMetaListStore::Vector,
+         typename Allocator = std::allocator<detail::allocator_value_type<TItem, Store>>>
 class QMetaListModel : public QMetaListModelPre<TItem, CRTP> {
     friend class QMetaListModelPre<TItem, CRTP>;
 
 public:
     using base_type      = QMetaListModelPre<TItem, CRTP>;
     using allocator_type = Allocator;
-    using container_type = std::vector<TItem>;
+    using container_type = std::vector<TItem, Allocator>;
     using iterator       = container_type::iterator;
     using param_type     = base_type::param_type;
 
@@ -247,16 +273,16 @@ public:
 
 protected:
     template<typename Tin>
-    void insert_impl(std::size_t it, Tin beg, Tin end) {
-        m_items.insert(begin() + it, beg, end);
+    void insert_impl(std::size_t idx, Tin beg, Tin end) {
+        m_items.insert(begin() + idx, beg, end);
     }
 
     template<typename TRange>
-    void insert_impl(std::size_t it, const TRange& range) {
-        std::vector<TItem, Allocator> tmp(m_items.get_allocator());
+    void insert_impl(std::size_t idx, const TRange& range) {
+        container_type tmp(m_items.get_allocator());
         tmp.reserve(range.size());
         std::ranges::copy(range, std::back_inserter(tmp));
-        m_items.insert(begin() + it, tmp.begin(), tmp.end());
+        m_items.insert(begin() + idx, tmp.begin(), tmp.end());
     }
 
     void erase_impl(std::size_t index, std::size_t last) {
@@ -273,7 +299,171 @@ protected:
     }
 
 private:
-    std::vector<TItem, Allocator> m_items;
+    container_type m_items;
+};
+
+template<typename TItem, typename CRTP, typename Allocator>
+class QMetaListModel<TItem, CRTP, QMetaListStore::VectorWithMap, Allocator>
+    : public QMetaListModelPre<TItem, CRTP> {
+    friend class QMetaListModelPre<TItem, CRTP>;
+
+public:
+    using base_type      = QMetaListModelPre<TItem, CRTP>;
+    using allocator_type = Allocator;
+    using container_type = std::vector<TItem, Allocator>;
+    using iterator       = container_type::iterator;
+    using param_type     = base_type::param_type;
+
+    QMetaListModel(QObject* parent = nullptr, Allocator allc = Allocator())
+        : base_type(parent), m_map(), m_items(allc) {}
+    virtual ~QMetaListModel() {}
+
+    auto        begin() const { return std::begin(m_items); }
+    auto        end() const { return std::end(m_items); }
+    auto        begin() { return std::begin(m_items); }
+    auto        end() { return std::end(m_items); }
+    auto        size() const { return std::size(m_items); }
+    const auto& at(std::size_t idx) const { return m_items.at(idx); }
+    auto&       at(std::size_t idx) { return m_items.at(idx); }
+    void        assign(std::size_t idx, const TItem& t) { m_items.at(idx) = t; }
+    auto        find(param_type t) const { return std::find(begin(), end(), t); }
+    auto        find(param_type t) { return std::find(begin(), end(), t); }
+
+    virtual auto hash(const TItem& t) const noexcept -> usize = 0;
+    auto         contains(const TItem& t) const { return m_map.contains(hash(t)); }
+    auto         contains_hash(usize hash) const { return m_map.contains(hash); }
+    const auto&  value_at(std::size_t hash) const { return m_items.at(m_map.at(hash)); };
+    auto&        value_at(std::size_t hash) { return m_items.at(m_map.at(hash)); };
+    auto         idx_at(std::size_t hash) const -> usize { return m_map.at(hash); };
+
+protected:
+    template<typename Tin>
+    void insert_impl(std::size_t idx, Tin beg, Tin end) {
+        auto size = m_items.size();
+        m_items.insert(begin() + idx, beg, end);
+        for (auto i = idx; i < m_items.size(); i++) {
+            m_map.insert_or_assign(hash(m_items.at(i)), i);
+        }
+    }
+
+    template<typename TRange>
+    void insert_impl(std::size_t idx, const TRange& range) {
+        container_type tmp(m_items.get_allocator());
+        tmp.reserve(range.size());
+        std::ranges::copy(range, std::back_inserter(tmp));
+        m_items.insert(begin() + idx, tmp.begin(), tmp.end());
+        for (auto i = idx; i < m_items.size(); i++) {
+            m_map.insert_or_assign(hash(m_items.at(i)), i);
+        }
+    }
+
+    void erase_impl(std::size_t idx, std::size_t last) {
+        auto it = m_items.begin();
+        for (auto i = idx; i < last; i++) {
+            m_map.erase(hash(m_items.at(i)));
+        }
+        m_items.erase(it + idx, it + last);
+    }
+
+    void reset_impl() {
+        m_items.clear();
+        m_map.clear();
+    }
+
+    template<typename T>
+    void reset_impl(const T& items) {
+        m_items.clear();
+        m_map.clear();
+        insert_impl(0, std::begin(items), std::end(items));
+    }
+
+private:
+    std::unordered_map<usize, usize> m_map;
+    container_type                   m_items;
+};
+
+template<typename TItem, typename CRTP, typename Allocator>
+class QMetaListModel<TItem, CRTP, QMetaListStore::Map, Allocator>
+    : public QMetaListModelPre<TItem, CRTP> {
+    friend class QMetaListModelPre<TItem, CRTP>;
+
+public:
+    using base_type      = QMetaListModelPre<TItem, CRTP>;
+    using allocator_type = Allocator;
+    using container_type =
+        std::unordered_map<usize, TItem, std::hash<usize>, std::equal_to<usize>, Allocator>;
+    using iterator   = container_type::iterator;
+    using param_type = base_type::param_type;
+
+    QMetaListModel(QObject* parent = nullptr, Allocator allc = Allocator())
+        : base_type(parent), m_order(), m_items(allc) {}
+    virtual ~QMetaListModel() {}
+
+    auto        begin() const { return std::begin(m_items); }
+    auto        end() const { return std::end(m_items); }
+    auto        begin() { return std::begin(m_items); }
+    auto        end() { return std::end(m_items); }
+    auto        size() const { return std::size(m_items); }
+    const auto& at(std::size_t idx) const { return value_at(m_order.at(idx)); }
+    auto&       at(std::size_t idx) { return value_at(m_order.at(idx)); }
+    void        assign(std::size_t idx, const TItem& t) { at(idx) = t; }
+    // auto        find(param_type t) const { return std::find(begin(), end(), t); }
+    // auto        find(param_type t) { return std::find(begin(), end(), t); }
+
+    const auto& value_at(std::size_t hash) const { return m_items.at(hash); };
+    auto&       value_at(std::size_t hash) { return m_items.at(hash); };
+
+    virtual auto hash(const TItem& t) const noexcept -> usize = 0;
+    auto         contains(const TItem& t) const { return m_items.contains(hash(t)); }
+
+protected:
+    template<typename Tin>
+    void insert_impl(std::size_t it, Tin beg, Tin end) {
+        std::vector<usize> order;
+        for (auto it = beg; it != end; it++) {
+            auto k = hash(*it);
+            order.emplace_back(k);
+            m_items.insert_or_assign(k, *it);
+        }
+        m_order.insert(m_order.begin() + it, order.begin(), order.end());
+    }
+
+    template<typename TRange>
+    void insert_impl(std::size_t it, const TRange& range) {
+        std::vector<usize> order;
+        for (const auto& el : range) {
+            auto k = hash(el);
+            order.emplace_back(k);
+            m_items.insert_or_assign(k, el);
+        }
+        m_order.insert(m_order.begin() + it, order.begin(), order.end());
+    }
+
+    void erase_impl(std::size_t index, std::size_t last) {
+        auto it    = m_order.begin();
+        auto begin = it + index;
+        auto end   = it + last;
+        for (auto it = begin; it != end; it++) {
+            m_items.erase(*it);
+        }
+        m_order.erase(it + index, it + last);
+    }
+
+    void reset_impl() {
+        m_items.clear();
+        m_order.clear();
+    }
+
+    template<typename T>
+    void reset_impl(const T& items) {
+        m_order.clear();
+        m_items.clear();
+        insert_impl(0, std::begin(items), std::end(items));
+    }
+
+private:
+    std::vector<usize> m_order;
+    container_type     m_items;
 };
 
 } // namespace meta_model

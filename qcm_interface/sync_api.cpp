@@ -14,9 +14,13 @@ auto SyncAPi::sync_collection(enums::CollectionType ct) -> task<Result<bool>> {
     }
     co_return false;
 }
-auto SyncAPi::sync_item(model::ItemId itemId) -> task<Result<bool>> {
+auto SyncAPi::sync_item(model::ItemId itemId, bool notify) -> task<Result<bool>> {
     if (auto c = Global::instance()->qsession()->client()) {
-        co_return co_await c->api->sync_items(*c->instance, std::array { itemId });
+        auto out = co_await c->api->sync_items(*c->instance, std::array { itemId });
+        if (notify) {
+            Notifier::instance()->itemChanged(itemId);
+        }
+        co_return out;
     }
     co_return false;
 }

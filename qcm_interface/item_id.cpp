@@ -111,7 +111,7 @@ QUrl ItemId::toUrl() const {
     return url;
 }
 
-std::strong_ordering ItemId::operator<=>(const ItemId& o) const {
+std::strong_ordering ItemId::operator<=>(const ItemId& o) const noexcept {
     C_D(const ItemId);
     std::strong_ordering cmp { std::strong_ordering::equal };
     do {
@@ -122,7 +122,7 @@ std::strong_ordering ItemId::operator<=>(const ItemId& o) const {
     return cmp;
 }
 
-bool ItemId::operator==(const ItemId& o) const {
+bool ItemId::operator==(const ItemId& o) const noexcept {
     return (*this <=> o) == std::strong_ordering::equal;
 }
 

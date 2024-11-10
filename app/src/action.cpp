@@ -20,6 +20,7 @@ void App::connect_actions() {
     connect(Action::instance(), &Action::switch_user, this, &App::on_switch_user);
     connect(Action::instance(), &Action::logout, this, &App::on_logout);
     connect(Action::instance(), &Action::collect, this, &App::on_collect);
+    connect(Action::instance(), &Action::sync_item, this, &App::on_sync_item);
     connect(Action::instance(), &Action::sync_collection, this, &App::on_sync_collecttion);
     connect(Action::instance(), &Action::queue_ids, this, &App::on_queue_ids);
     connect(Action::instance(), &Action::switch_ids, this, &App::on_switch_ids);
@@ -307,6 +308,16 @@ void App::on_collect(model::ItemId id, bool act) {
                 }
             }
             co_return;
+        },
+        helper::asio_detached_log_t {});
+}
+
+void App::on_sync_item(const model::ItemId& itemId, bool notify) {
+    auto ex = asio::make_strand(m_global->pool_executor());
+    asio::co_spawn(
+        ex,
+        [itemId, notify] -> task<void> {
+            co_await query::SyncAPi::sync_item(itemId, notify);
         },
         helper::asio_detached_log_t {});
 }

@@ -32,9 +32,14 @@ class MixManipulateQuery : public Query<MixManipulate> {
 public:
     MixManipulateQuery(QObject* parent = nullptr): Query<MixManipulate>(parent), m_oper(0) {
         // connect_requet_reload(&MixManipulateQuery::idsChanged);
+        connect(this, &MixManipulateQuery::statusChanged, [this](Status s) {
+            if (s == Status::Finished) {
+                Action::instance()->sync_item(this->itemId(), true);
+            }
+        });
     }
 
-    auto itemId() const { return m_id; }
+    auto itemId() const -> const model::ItemId& { return m_id; }
     void setItemId(const model::ItemId& id) {
         if (ycore::cmp_exchange(m_id, id)) {
             itemIdChanged();

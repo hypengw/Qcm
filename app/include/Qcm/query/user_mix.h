@@ -84,9 +84,6 @@ ORDER BY collection.collectTime DESC;
 
     void reload() override {
         auto time = last();
-        if (status() == Status::Uninitialized) {
-            Action::instance()->sync_collection(enums::CollectionType::CTPlaylist);
-        }
         set_status(Status::Querying);
         auto userId = Global::instance()->qsession()->user()->userId();
 

@@ -8,12 +8,15 @@
 namespace meta_model
 {
 
-template<typename TGadget>
+template<typename TGadget, QMetaListStore Store = QMetaListStore::Vector,
+         typename Allocator = std::allocator<detail::allocator_value_type<TGadget, Store>>>
     requires cp_is_gadget<TGadget>
-class QGadgetListModel : public QMetaListModel<TGadget, QGadgetListModel<TGadget>> {
+class QGadgetListModel : public QMetaListModel<TGadget, QGadgetListModel<TGadget, Store, Allocator>,
+                                               Store, Allocator> {
 public:
     QGadgetListModel(QObject* parent = nullptr)
-        : QMetaListModel<TGadget, QGadgetListModel<TGadget>>(parent) {
+        : QMetaListModel<TGadget, QGadgetListModel<TGadget, Store, Allocator>, Store, Allocator>(
+              parent) {
         this->updateRoleNames(TGadget::staticMetaObject);
     }
     virtual ~QGadgetListModel() {}

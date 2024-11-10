@@ -47,6 +47,7 @@ Q_SIGNALS:
     void queue_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
     void switch_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
     void play(const QUrl& url, bool refresh = false);
+    void sync_item(const model::ItemId& itemId, bool notify = false);
     void sync_collection(enums::CollectionType);
     void record(enums::RecordAction);
     void playbackLog(enums::PlaybackState state, model::ItemId item, model::ItemId souce,
