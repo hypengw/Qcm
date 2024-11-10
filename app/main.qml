@@ -108,7 +108,11 @@ ApplicationWindow {
         width: Math.min(Math.max(implicitWidth, 350), parent.width)
         */
         id: m_snake
+        parent: Overlay.overlay
         anchors.fill: parent
+        MD.InputBlock {
+            target: m_snake
+        }
     }
 
     QA.PagePopup {
