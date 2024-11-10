@@ -43,7 +43,6 @@ set(QML_FILES
     qml/page/CloudUploadPage.qml
     qml/page/LoginPage.qml
     qml/page/RecordPage.qml
-    qml/page/MinePage.qml
     qml/page/TodayPage.qml
     qml/page/CloudPage.qml
     qml/page/PlaylistCataloguePage.qml

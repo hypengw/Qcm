@@ -11,6 +11,7 @@ static_assert(false);
 #include <moc_notifier.cpp>
 #include <moc_item_id.cpp>
 #include <moc_user_account.cpp>
+#include <moc_duration.cpp>
 #include <model/moc_plugin_model.cpp>
 #include <model/moc_query_model.cpp>
 

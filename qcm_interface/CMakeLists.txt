@@ -39,6 +39,7 @@ add_library(
   include/qcm_interface/path.h
   include/qcm_interface/router.h
   include/qcm_interface/plugin.h
+  include/qcm_interface/duration.h
   include/qcm_interface/model/plugin_model.h
   include/qcm_interface/model/user_model.h
   include/qcm_interface/model/artist.h

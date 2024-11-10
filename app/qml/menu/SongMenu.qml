@@ -22,9 +22,9 @@ MD.Menu {
         icon.name: MD.Token.icon.queue
         text: qsTr('Add to Playlist')
         onTriggered: {
-            QA.Action.popup_page('qrc:/Qcm/App/qml/page/FavPage.qml', {
-                songId: root.itemId_
-            });
+            MD.Util.show_popup('qrc:/Qcm/App/qml/dialog/AddToMixDialog.qml', {
+                "songId": root.itemId_
+            }, QA.Global.main_win.Overlay.overlay);
         }
     }
 

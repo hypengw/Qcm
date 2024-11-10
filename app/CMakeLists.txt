@@ -43,6 +43,7 @@ set(SOURCES
     include/Qcm/query/mix_create.h
     include/Qcm/query/mix_manipulate.h
     include/Qcm/query/mix_delete.h
+    include/Qcm/query/user_mix.h
     include/Qcm/query/comments.h
     src/action.cpp
     src/app.cpp
@@ -68,6 +69,7 @@ set(QCM_INTERFACE_HEADER
     include/qcm_interface/notifier.h
     include/qcm_interface/model.h
     include/qcm_interface/item_id.h
+    include/qcm_interface/duration.h
     include/qcm_interface/model/plugin_model.h
     include/qcm_interface/model/query_model.h
     )
@@ -96,7 +98,7 @@ set(QML_FILES
     qml/page/PlayingPage.qml
     qml/page/PlayQueuePage.qml
     qml/page/MainPage.qml
-    qml/page/FavPage.qml
+    qml/page/MinePage.qml
     qml/page/StatusPage.qml
     qml/delegate/CommentDelegate.qml
     qml/delegate/SongDelegate.qml
@@ -127,8 +129,10 @@ set(QML_FILES
     qml/action/SubAction.qml
     qml/action/SettingAction.qml
     qml/action/GoToArtistAction.qml
+    qml/action/MixCreateAction.qml
     qml/dialog/MixCreateDialog.qml
     qml/dialog/GoToArtistDialog.qml
+    qml/dialog/AddToMixDialog.qml
     qml/menu/SongMenu.qml
     qml/menu/AlbumMenu.qml
     qml/menu/ArtistMenu.qml
