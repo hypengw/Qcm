@@ -72,11 +72,10 @@ public:
 
     void reload() override {
         set_status(Status::Querying);
-        auto ex   = asio::make_strand(pool_executor());
         auto self = helper::QWatcher { this };
         auto c    = Global::instance()->qsession()->client();
         if (! c) return;
-        spawn(ex, [self, c = c.value(), id = m_id, ids = m_ids, oper = m_oper] -> task<void> {
+        spawn( [self, c = c.value(), id = m_id, ids = m_ids, oper = m_oper] -> task<void> {
             auto out = co_await c.api->manipulate_mix(c, id, (enums::ManipulateMixAction)oper, ids);
             co_await asio::post(
                 asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));

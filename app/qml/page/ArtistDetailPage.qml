@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
@@ -248,6 +249,7 @@ MD.Page {
                                 }
 
                                 delegate: Item {
+                                    required property var model
                                     width: GridView.view.cellWidth
                                     height: GridView.view.cellHeight
                                     QA.PicGridDelegate {

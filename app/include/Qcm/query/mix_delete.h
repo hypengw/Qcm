@@ -48,12 +48,11 @@ public:
 
     void reload() override {
         set_status(Status::Querying);
-        auto ex      = asio::make_strand(pool_executor());
         auto self    = helper::QWatcher { this };
         auto user_id = Global::instance()->qsession()->user()->userId();
         auto c       = Global::instance()->qsession()->client();
         if (! c) return;
-        spawn(ex, [self, c = c.value(), ids = m_ids, user_id] -> task<void> {
+        spawn( [self, c = c.value(), ids = m_ids, user_id] -> task<void> {
             auto out = co_await c.api->delete_mix(c, ids);
             if (out) {
                 co_await self->mix_delete(user_id, ids);

@@ -54,12 +54,11 @@ public:
 
     void reload() override {
         set_status(Status::Querying);
-        auto ex     = asio::make_strand(pool_executor());
         auto self   = helper::QWatcher { this };
         auto c      = Global::instance()->qsession()->client();
         auto userId = Global::instance()->qsession()->user()->userId();
         if (! c) return;
-        spawn(ex, [self, c = c.value(), name = m_name, userId] -> task<void> {
+        spawn( [self, c = c.value(), name = m_name, userId] -> task<void> {
             model::Mix pl;
             auto            out = co_await c.api->create_mix(c, name);
             if (out) {

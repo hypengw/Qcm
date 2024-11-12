@@ -25,23 +25,19 @@ private:
     std::vector<Item> m_items;
 };
 
-class CloudUploadApi : public ApiQuerierBase {
+class CloudUploadApi : public QAsyncResultT<CloudUploadModel, ApiQuerierBase> {
     Q_OBJECT
     QML_ELEMENT
 public:
     CloudUploadApi(QObject* parent = nullptr);
     ~CloudUploadApi();
 
-    auto data() const -> QVariant override;
     void reload() override;
 
-public Q_SLOTS:
-    void upload(const QUrl&);
+    Q_SLOT void upload(const QUrl&);
 
 private:
     auto upload_impl(std::filesystem::path)
         -> asio::awaitable<nstd::expected<std::monostate, error::Error>>;
-
-    CloudUploadModel* m_data;
 };
 } // namespace qcm::qml_ncm

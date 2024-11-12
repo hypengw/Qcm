@@ -4,7 +4,8 @@
 #include "service_qml_ncm/api.h"
 #include "service_qml_ncm/model.h"
 #include "ncm/api/recommend_songs.h"
-
+#include "qcm_interface/model/query_model.h"
+#include "meta_model/qgadgetlistmodel.h"
 #include "core/log.h"
 
 namespace qcm
@@ -13,37 +14,33 @@ namespace qcm
 namespace model
 {
 
-class RecommendSongs : public QObject {
+class RecommendSongs : public meta_model::QGadgetListModel<query::Song> {
     Q_OBJECT
 public:
-    RecommendSongs(QObject* parent = nullptr): QObject(parent) {}
+    RecommendSongs(QObject* parent = nullptr): meta_model::QGadgetListModel<query::Song>(parent) {}
     using out_type = ncm::api_model::RecommendSongs;
-
-    READ_PROPERTY(std::vector<Song>, dailySongs, m_dailySongs, infoChanged)
-
-    void handle_output(const out_type& in, const auto&) {
-        auto& o = *this;
-        convert(o.m_dailySongs, in.data.dailySongs);
-        for (auto& s : o.m_dailySongs) {
-            convert(
-                s.sourceId,
-                ncm::model::SpecialId { std::string(ncm::model::SpecialId_DailySongRecommend) });
-        }
-        emit infoChanged();
-    }
-
-signals:
-    void infoChanged();
 };
-static_assert(modelable<RecommendSongs, ncm::api::RecommendSongs>);
 
 } // namespace model
 
-using RecommendSongsQuerier_base = ApiQuerier<ncm::api::RecommendSongs, model::RecommendSongs>;
-class RecommendSongsQuerier : public RecommendSongsQuerier_base {
+using RecommendSongsQuery_base = ApiQuerier<ncm::api::RecommendSongs, model::RecommendSongs>;
+class RecommendSongsQuery : public RecommendSongsQuery_base {
     Q_OBJECT
     QML_ELEMENT
 public:
-    RecommendSongsQuerier(QObject* parent = nullptr): RecommendSongsQuerier_base(parent) {}
+    RecommendSongsQuery(QObject* parent = nullptr): RecommendSongsQuery_base(parent) {}
+
+    void handle_output(const out_type& in) override {
+        auto view = std::views::transform(in.data.dailySongs, [](const auto& el) {
+            qcm::query::Song s;
+            auto             oper = qcm::query::SongOper(s);
+            convert(oper, el);
+            convert(
+                s.sourceId,
+                ncm::model::SpecialId { std::string(ncm::model::SpecialId_DailySongRecommend) });
+            return s;
+        });
+        tdata()->resetModel(view);
+    }
 };
 } // namespace qcm

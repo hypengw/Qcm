@@ -25,17 +25,19 @@ MD.Page {
             visible: !root.background.visible
             color: root.backgroundColor
             corners: MD.Util.corner(root.header.visible ? 0 : root.radius, root.radius)
+            topMargin: 0
+            bottomMargin: MD.MatProp.size.verticalPadding
         }
 
         MD.ListView {
             id: m_view
             anchors.fill: parent
             expand: true
-            topMargin: root.vpadding
-            bottomMargin: root.vpadding
 
             leftMargin: 24
             rightMargin: 24
+            topMargin: MD.MatProp.size.verticalPadding
+            bottomMargin: MD.MatProp.size.verticalPadding * 2
 
             header: Item {
                 width: parent.width
@@ -49,11 +51,7 @@ MD.Page {
                         MD.IconButton {
                             action: QA.AppendListAction {
                                 getSongs: function () {
-                                    const songs = [];
-                                    const model = qr_cloud.data;
-                                    for (let i = 0; i < model.rowCount(); i++) {
-                                        songs.push(model.item(i).song);
-                                    }
+                                    const songs = qr_cloud.data.songs();
                                     return songs;
                                 }
                             }
@@ -71,11 +69,11 @@ MD.Page {
             }
             model: qr_cloud.data
             delegate: QA.SongDelegate {
+                required property var model
+                required property int index
                 width: ListView.view.contentWidth
-                dgModel: model.song
-
                 onClicked: {
-                    QA.Action.play_by_id(dgModel.itemId);
+                    QA.Action.play(qr_cloud.data.itemAt(index));
                 }
             }
 
@@ -117,13 +115,8 @@ MD.Page {
                     icon.name: MD.Token.icon.play_arrow
 
                     onTriggered: {
-                        const songs = [];
-                        const model = qr_cloud.data;
-                        for (let i = 0; i < model.rowCount(); i++) {
-                            songs.push(model.item(i).song);
-                        }
-                        if (songs.length)
-                            QA.App.playqueue.switchList(songs);
+                        const songs = qr_cloud.data.songs();
+                        QA.Action.switch_to(songs);
                     }
                 }
             }

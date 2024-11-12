@@ -110,11 +110,10 @@ ORDER BY collection.collectTime DESC;
         set_status(Status::Querying);
         auto userId = Global::instance()->qsession()->user()->userId();
 
-        auto ex   = asio::make_strand(pool_executor());
         auto self = helper::QWatcher { this };
 
         auto time = last();
-        spawn(ex, [self, userId, time] -> asio::awaitable<void> {
+        spawn([self, userId, time] -> asio::awaitable<void> {
             auto sql     = App::instance()->collect_sql();
             auto missing = co_await sql->select_missing(
                 userId, "album", "album", { "name", "picUrl", "trackCount" });

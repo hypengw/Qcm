@@ -173,13 +173,17 @@ auto QAsyncResult::watch_dog() -> helper::WatchDog& {
     return d->m_wdog;
 }
 
-auto QAsyncResult::data() const -> QVariant {
+auto QAsyncResult::data() const -> const QVariant& {
     C_D(const QAsyncResult);
     return d->m_data;
 }
 
-void QAsyncResult::set_data(QObject* v) { set_data(QVariant::fromValue(v)); }
-void QAsyncResult::set_data(QVariant v) {
+auto QAsyncResult::data() -> QVariant& {
+    C_D(QAsyncResult);
+    return d->m_data;
+}
+
+void QAsyncResult::set_data(const QVariant& v) {
     C_D(QAsyncResult);
     if (ycore::cmp_exchange(d->m_data, v)) {
         dataChanged();

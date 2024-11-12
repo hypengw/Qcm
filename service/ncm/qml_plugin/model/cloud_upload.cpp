@@ -41,10 +41,9 @@ auto CloudUploadModel::roleNames() const -> QHash<int, QByteArray> {
 }
 
 CloudUploadApi::CloudUploadApi(QObject* parent)
-    : ApiQuerierBase(parent), m_data(new CloudUploadModel(this)) {}
+    : qcm::QAsyncResultT<CloudUploadModel, ApiQuerierBase>(parent) {}
 CloudUploadApi::~CloudUploadApi() {}
 
-auto CloudUploadApi::data() const -> QVariant { return QVariant::fromValue(m_data); }
 void CloudUploadApi::reload() {}
 
 auto CloudUploadApi::upload_impl(std::filesystem::path path)
@@ -148,7 +147,9 @@ auto CloudUploadApi::upload_impl(std::filesystem::path path)
             EC_RET_CO(upload_info_res, co_await client->perform(upload_info_api));
 
             ncm::api::CloudPub pub_api;
-            { pub_api.input.songId = upload_info_res.songId; }
+            {
+                pub_api.input.songId = upload_info_res.songId;
+            }
             ncm::api_model::CloudPub pub_res;
             EC_RET_CO(pub_res, co_await client->perform(pub_api));
         }

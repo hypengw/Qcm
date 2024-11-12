@@ -19,7 +19,6 @@ class QCM_INTERFACE_API ItemId {
     Q_GADGET
     QML_VALUE_TYPE(t_id)
 public:
-    using validator_t = std::function<bool(const ItemId&)>;
     Q_PROPERTY(QString type READ type)
     Q_PROPERTY(QString sid READ id)
     Q_PROPERTY(QString provider READ provider)
@@ -29,7 +28,6 @@ public:
     ItemId(QStringView provider, QStringView type, QStringView id);
     ItemId(std::string_view provider, std::string_view type, std::string_view id);
     explicit ItemId(const QUrl&);
-    ItemId(const QUrl&, validator_t);
     ~ItemId();
     ItemId(const ItemId&);
     ItemId& operator=(const ItemId&);
@@ -42,7 +40,6 @@ public:
     auto id() const -> const QString&;
     auto provider() const -> const QString&;
 
-    void                 set_validator(const validator_t&);
     std::strong_ordering operator<=>(const ItemId&) const noexcept;
     bool                 operator==(const ItemId&) const noexcept;
     bool                 operator==(const QUrl&) const;

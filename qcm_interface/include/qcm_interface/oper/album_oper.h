@@ -5,12 +5,21 @@
 
 namespace qcm::model
 {
+struct AlbumRefer;
 struct Album;
-}
+} // namespace qcm::model
 
 namespace qcm::oper
 {
 using ItemId = model::ItemId;
+
+struct QCM_INTERFACE_API AlbumReferOper : Oper<model::AlbumRefer> {
+    using Oper<model::AlbumRefer>::Oper;
+
+    OPER_PROPERTY(ItemId, itemId, id)
+    OPER_PROPERTY(QString, name, name)
+    OPER_PROPERTY(QString, picUrl, picUrl)
+};
 
 struct QCM_INTERFACE_API AlbumOper : Oper<model::Album> {
     using Oper<model::Album>::Oper;

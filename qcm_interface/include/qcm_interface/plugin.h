@@ -17,6 +17,7 @@ public:
     virtual auto info() -> const model::PluginInfo&                     = 0;
     virtual auto create_session() -> up<model::Session>                 = 0;
     virtual auto uniq(const QUrl& url, const QVariant& info) -> QString = 0;
+    virtual auto valid_id(const model::ItemId&) -> bool                 = 0;
 };
 class PluginModel;
 class QCM_INTERFACE_API PluginManager {
@@ -27,8 +28,8 @@ public:
     ~PluginManager();
     static auto instance() -> PluginManager*;
     void        register_plugin(std::string_view, qcm::QcmPluginInterface*);
-    auto
-        plugin(std::string_view) const -> std::optional<std::reference_wrapper<QcmPluginInterface>>;
+    auto        plugin(std::string_view) const
+        -> std::optional<std::reference_wrapper<QcmPluginInterface>>;
 
 private:
     class Private;

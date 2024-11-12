@@ -2,16 +2,16 @@
 
 #include "core/qstr_helper.h"
 #include "core/log.h"
+#include "qcm_interface/plugin.h"
 
 namespace qcm::model
 {
 
 class ItemId::Private {
 public:
-    QString     id;
-    QString     provider;
-    QString     type;
-    validator_t validtor;
+    QString id;
+    QString provider;
+    QString type;
 };
 
 ItemId::ItemId(): d_ptr(make_up<Private>()) {}
@@ -30,10 +30,6 @@ ItemId::ItemId(std::string_view provider, std::string_view type, std::string_vie
 }
 
 ItemId::ItemId(const QUrl& u): ItemId() { set_url(u); }
-ItemId::ItemId(const QUrl& url, validator_t v): ItemId(url) {
-    C_D(ItemId);
-    set_validator(v);
-}
 ItemId::~ItemId() {}
 ItemId::ItemId(const ItemId& o): ItemId() { *this = o; }
 ItemId& ItemId::operator=(const ItemId& o) {
@@ -66,14 +62,16 @@ auto ItemId::provider() const -> const QString& {
 }
 auto ItemId::valid() const -> bool {
     C_D(const ItemId);
-    return ! (id().isEmpty() || provider().isEmpty() || id() == "invalid" || id() == "empty") &&
-           (d->validtor ? d->validtor(*this) : true);
+
+    if (id().isEmpty() || provider().isEmpty() || id() == "invalid" || id() == "empty") {
+        return false;
+    }
+    if (auto p = PluginManager::instance()->plugin(provider().toStdString())) {
+        return p->get().valid_id(*this);
+    }
+    return true;
 }
 
-void ItemId::set_validator(const validator_t& v) {
-    C_D(ItemId);
-    std::exchange(d->validtor, v);
-}
 void ItemId::set_type(std::string_view v) { set_type(convert_from<QString>(v)); }
 void ItemId::set_id(std::string_view v) { set_id(convert_from<QString>(v)); }
 void ItemId::set_provider(std::string_view v) { set_provider(convert_from<QString>(v)); }

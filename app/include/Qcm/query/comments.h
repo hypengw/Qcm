@@ -79,7 +79,6 @@ public:
 
     void reload() override {
         set_status(Status::Querying);
-        auto ex     = asio::make_strand(pool_executor());
         auto self   = helper::QWatcher { this };
         auto itemId = m_id;
         auto offset = this->offset();
@@ -90,7 +89,7 @@ public:
             return;
         }
 
-        spawn(ex, [self, itemId, offset, limit, client = client.value()] -> task<void> {
+        spawn([self, itemId, offset, limit, client = client.value()] -> task<void> {
             auto                     sql = App::instance()->album_sql();
             std::vector<model::Song> items;
             i32                      total { 0 };

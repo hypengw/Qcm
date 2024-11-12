@@ -8,7 +8,9 @@ namespace ncm
 
 namespace params
 {
-struct RecommendSongs {};
+struct RecommendSongs {
+    bool ispush { false };
+};
 } // namespace params
 
 namespace api_model
@@ -24,7 +26,7 @@ struct RecommendSongs {
     };
 
     Data data;
-    i64 code;
+    i64  code;
 };
 JSON_DEFINE(RecommendSongs);
 
@@ -41,8 +43,12 @@ struct RecommendSongs {
 
     std::string_view path() const { return "/v3/discovery/recommend/songs"; }
     UrlParams        query() const { return {}; }
-    Params           body() const { return {}; }
-    in_type          input;
+    Params           body() const {
+        Params p;
+        convert(p["ispush"], input.ispush);
+        return p;
+    }
+    in_type input;
 };
 static_assert(ApiCP<RecommendSongs>);
 

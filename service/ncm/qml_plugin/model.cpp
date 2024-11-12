@@ -2,29 +2,19 @@
 
 #include "service_qml_ncm/model/album_detail_dynamic.h"
 #include "service_qml_ncm/model/cloudsearch.h"
-#include "service_qml_ncm/model/djradio_program.h"
 #include "service_qml_ncm/model/login.h"
 #include "service_qml_ncm/model/logout.h"
 #include "service_qml_ncm/model/playlist_catalogue.h"
 #include "service_qml_ncm/model/playlist_detail_dynamic.h"
 #include "service_qml_ncm/model/playlist_list.h"
-#include "service_qml_ncm/model/playlist_create.h"
-#include "service_qml_ncm/model/playlist_delete.h"
-#include "service_qml_ncm/model/playlist_tracks.h"
 #include "service_qml_ncm/model/recommend_songs.h"
 #include "service_qml_ncm/model/recommend_resource.h"
-#include "service_qml_ncm/model/song_url.h"
 #include "service_qml_ncm/model/song_lyric.h"
 #include "service_qml_ncm/model/user_cloud.h"
 #include "service_qml_ncm/model/qrcode_login.h"
 #include "service_qml_ncm/model/qrcode_unikey.h"
-#include "service_qml_ncm/model/radio_like.h"
-#include "service_qml_ncm/model/song_like.h"
 
 #include "service_qml_ncm/model/play_record.h"
-
-#include "service_qml_ncm/api/user_account.h"
-
 #include "qcm_interface/model/user_account.h"
 
 #include "core/qlist_helper.h"
@@ -51,10 +41,6 @@ auto to_ncm_id(model::IdType t, std::string_view id) -> qcm::model::ItemId {
     }
 
     ItemId out { provider, type_str, id };
-
-    out.set_validator([](const auto& id) -> bool {
-        return ! id.type().isEmpty() && id.id() != "0";
-    });
     return out;
 }
 
@@ -161,7 +147,6 @@ IMPL_CONVERT(qcm::oper::ArtistOper, ncm::model::Artist) {
     X(description, in.briefDesc.value_or(""));
     X(musicCount, in.musicSize);
     X(albumCount, in.albumSize);
-    // convert(out.followed, in.followed);
 }
 
 IMPL_CONVERT(qcm::oper::ArtistOper, ncm::model::ArtistSublistItem) {
@@ -169,6 +154,11 @@ IMPL_CONVERT(qcm::oper::ArtistOper, ncm::model::ArtistSublistItem) {
     X(name, in.name);
     X(picUrl, in.picUrl);
     X(albumCount, in.albumSize);
+}
+
+IMPL_CONVERT(qcm::oper::ArtistReferOper, ncm::model::Song::Ar) {
+    X(id, in.id);
+    X(name, in.name.value_or(std::string {}));
 }
 
 IMPL_CONVERT(qcm::model::Artist, ncm::model::Song::Ar) {
@@ -190,6 +180,12 @@ IMPL_CONVERT(qcm::model::Album, ncm::model::Album) {
     // convert(out.artists, in.artists);
     // convert(out.publishTime, in.publishTime);
     // convert(out.trackCount, std::max(in.size, (i64)in.songs.size()));
+}
+
+IMPL_CONVERT(qcm::oper::AlbumReferOper, ncm::model::Song::Al) {
+    X(id, in.id);
+    X(name, in.name.value_or(""));
+    X(picUrl, in.picUrl.value_or(""));
 }
 
 IMPL_CONVERT(qcm::oper::AlbumOper, ncm::model::Song::Al) {
@@ -275,6 +271,23 @@ IMPL_CONVERT(qcm::oper::SongOper, ncm::model::Song) {
         }
         if (! tag.isEmpty()) {
             out.set_tags({ tag });
+        }
+    }
+}
+IMPL_CONVERT(qcm::query::SongOper, ncm::model::Song) {
+    {
+        auto oper = qcm::oper::SongOper(out);
+        convert(oper, in);
+    }
+    {
+        auto oper = out.album();
+        convert(oper, in.al);
+    }
+    {
+        auto list = out.artists();
+        for (auto& el : in.ar) {
+            auto oper = qcm::oper::ArtistReferOper(list.emplace_back());
+            convert(oper, el);
         }
     }
 }

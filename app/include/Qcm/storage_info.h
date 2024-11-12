@@ -20,7 +20,7 @@ private:
     double m_total;
 };
 
-class StorageInfoQuerier : public QAsyncResult {
+class StorageInfoQuerier : public QAsyncResultT<StorageInfo> {
     Q_OBJECT
     QML_ELEMENT
 public:

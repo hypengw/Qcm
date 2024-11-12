@@ -6,40 +6,35 @@
 #include "service_qml_ncm/api.h"
 #include "service_qml_ncm/model.h"
 #include "ncm/api/user_cloud.h"
+#include "qcm_interface/oper/song_oper.h"
 
 #include "meta_model/qgadgetlistmodel.h"
+#include "qcm_interface/model/query_model.h"
 
 #include "core/log.h"
 
-namespace qcm
-{
-namespace model
-{
-struct UserCloudItem {
-    Q_GADGET
-public:
-    GADGET_PROPERTY_DEF(ItemId, itemId, id)
-    GADGET_PROPERTY_DEF(QString, name, name)
-    GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
-    GADGET_PROPERTY_DEF(QString, albumName, albumName)
-    GADGET_PROPERTY_DEF(QString, artistName, artistName)
-    GADGET_PROPERTY_DEF(qint32, bitrate, bitrate)
-    GADGET_PROPERTY_DEF(QDateTime, addTime, addTime)
-    GADGET_PROPERTY_DEF(Song, song, song)
+DEFINE_CONVERT(qcm::query::Song, ncm::model::UserCloudItem) {
+    auto oper = qcm::oper::SongOper(out);
+    convert(oper, in.simpleSong);
+    convert(out.album.name, in.album);
+    convert(out.album.picUrl, in.simpleSong.al.picUrl.value_or(""s));
 
-    std::strong_ordering operator<=>(const UserCloudItem&) const = default;
-};
-} // namespace model
-} // namespace qcm
-
-DEFINE_CONVERT(qcm::model::UserCloudItem, ncm::model::UserCloudItem) {
-    convert(out.id, in.songId);
-    convert(out.name, in.songName);
-    convert(out.albumName, in.album);
-    convert(out.artistName, in.artist);
-    convert(out.bitrate, in.bitrate);
-    convert(out.addTime, in.addTime);
-    convert(out.song, in.simpleSong);
+    oper.set_id(convert_from<qcm::model::ItemId>(in.songId));
+    for (usize i = 0; i < in.simpleSong.ar.size(); i++) {
+        auto& a    = out.artists.emplace_back();
+        auto  oper = qcm::oper::ArtistReferOper(a);
+        convert(oper, in.simpleSong.ar[i]);
+    }
+    if (out.artists.size() == 1 && out.artists.front().name.isEmpty()) {
+        convert(out.artists.front().name, in.artist);
+    }
+    if (in.simpleSong.dt.milliseconds == 0 && in.bitrate) {
+        auto t = in.simpleSong.dt;
+        // seems netease use 1024
+        t.milliseconds = (in.fileSize * 8.0 / 1024.0) / in.bitrate * 1000.0;
+        convert(out.duration, t);
+    }
+    // convert(out.addTime, in.addTime);
 }
 
 namespace qcm
@@ -47,21 +42,21 @@ namespace qcm
 namespace model
 {
 
-class UserCloud : public meta_model::QGadgetListModel<UserCloudItem> {
+class UserCloud : public meta_model::QGadgetListModel<query::Song> {
     Q_OBJECT
 public:
     UserCloud(QObject* parent = nullptr)
-        : meta_model::QGadgetListModel<UserCloudItem>(parent), m_has_more(true) {}
+        : meta_model::QGadgetListModel<query::Song>(parent), m_has_more(true) {}
     using out_type = ncm::api_model::UserCloud;
 
     void handle_output(const out_type& re, const auto& input) {
         if (input.offset == 0) {
-            auto in_ = convert_from<std::vector<UserCloudItem>>(re.data);
-            convertModel(in_, [](const UserCloudItem& it) {
+            auto in_ = convert_from<std::vector<query::Song>>(re.data);
+            convertModel(in_, [](const auto& it) {
                 return convert_from<std::string>(it.id.toUrl().toString());
             });
         } else if (input.offset == (int)rowCount()) {
-            insert(rowCount(), convert_from<std::vector<UserCloudItem>>(re.data));
+            insert(rowCount(), convert_from<std::vector<query::Song>>(re.data));
         }
         m_has_more = re.hasMore;
     }
@@ -71,8 +66,25 @@ public:
         m_has_more = false;
         emit fetchMoreReq(rowCount());
     }
-signals:
-    void fetchMoreReq(qint32);
+    Q_SIGNAL void fetchMoreReq(qint32);
+
+    Q_INVOKABLE query::Song itemAt(qint32 idx) const {
+        if (idx < rowCount() && idx >= 0)
+            return at(idx);
+        else
+            return {};
+    }
+    Q_INVOKABLE QVariantList songs() const {
+        auto view =
+            std::views::transform(std::views::filter(std::ranges::subrange(begin(), end(), size()),
+                                                     [](const auto& el) {
+                                                         return el.canPlay;
+                                                     }),
+                                  [](const auto& el) {
+                                      return QVariant::fromValue(el);
+                                  });
+        return QVariantList { view.begin(), view.end() };
+    }
 
 private:
     bool m_has_more;
@@ -91,9 +103,8 @@ public:
     FORWARD_PROPERTY(qint32, limit, limit)
 
 public:
-    void fetch_more(qint32 cur_count) override { set_offset(cur_count); }
-public slots:
-    void reset() {
+    void        fetch_more(qint32 cur_count) override { set_offset(cur_count); }
+    Q_SLOT void reset() {
         api().input.offset = 0;
         reload();
     }

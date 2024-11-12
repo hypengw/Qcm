@@ -16,15 +16,12 @@ void StorageInfo::setTotal(double v) {
         totalChanged();
     }
 }
-StorageInfoQuerier::StorageInfoQuerier(QObject* parent): QAsyncResult(parent) {
-    set_data(new StorageInfo(this));
-}
+StorageInfoQuerier::StorageInfoQuerier(QObject* parent): QAsyncResultT<StorageInfo>(parent) {}
 void StorageInfoQuerier::reload() {
     set_status(Status::Querying);
-    auto ex              = asio::make_strand(Global::instance()->pool_executor());
     auto media_cache_sql = App::instance()->media_cache_sql();
     auto cache_sql       = App::instance()->cache_sql();
-    this->spawn(ex, [media_cache_sql, cache_sql, this]() -> asio::awaitable<void> {
+    this->spawn([media_cache_sql, cache_sql, this]() -> asio::awaitable<void> {
         auto media_size  = co_await media_cache_sql->total_size();
         auto normal_size = co_await cache_sql->total_size();
 

@@ -3,7 +3,7 @@ import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Qcm.App as QA
-import Qcm.Service.Ncm as QNcm
+import Qcm.Service.Ncm as QNCM
 import Qcm.Material as MD
 import "qrc:/Qcm/App/qml/js/util.mjs" as Util
 
@@ -23,6 +23,61 @@ MD.Page {
             height: implicitHeight
             width: parent.width
             spacing: 24
+
+            ColumnLayout {
+                MD.Label {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: 16
+                    Layout.rightMargin: 16
+
+                    font.capitalization: Font.Capitalize
+                    typescale: MD.Token.typescale.title_large
+                    text: qsTr('daily recommendations')
+                }
+
+                MD.Pane {
+                    Layout.fillWidth: true
+                    radius: root.radius
+                    verticalPadding: radius
+
+                    ColumnLayout {
+                        width: parent.width
+                        spacing: 4
+
+                        QA.GridView {
+                            Layout.fillWidth: true
+                            fixedCellWidth: QA.Util.dynCardWidth(widthNoMargin, spacing)
+                            implicitHeight: maxImplicitCellHeight
+                            maxImplicitCellHeight: 200
+                            model: qr_rmd_res.data.dailyPlaylists
+                            flow: GridView.FlowTopToBottom
+                            hookWheel: false
+                            enabledCalMaxCellHeight: true
+
+                            delegate: Item {
+                                required property var modelData
+                                required property int index
+                                width: GridView.view.cellWidth
+                                height: GridView.view.cellHeight
+                                implicitHeight: children[0].implicitHeight
+                                Component.onCompleted: GridView.view.calMaxCellHeight()
+
+                                QA.PicGridDelegate {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    width: parent.GridView.view.fixedCellWidth
+                                    picWidth: parent.GridView.view.fixedCellWidth
+                                    image.source: QA.Util.image_url(parent.modelData.picUrl)
+                                    text: parent.modelData.name
+
+                                    onClicked: {
+                                        QA.Global.route(parent.modelData.itemId);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             ColumnLayout {
                 MD.Label {
@@ -108,7 +163,7 @@ MD.Page {
                             implicitHeight: maxImplicitCellHeight
                             maxImplicitCellHeight: 200
                             flow: GridView.FlowTopToBottom
-                            model: QNcm.RadarPlaylistIdModel {}
+                            model: QNCM.RadarPlaylistIdModel {}
                             enabledCalMaxCellHeight: true
                             hookWheel: false
 
@@ -196,11 +251,14 @@ MD.Page {
                 }
             }
             */
-            QNcm.RecommendSongsQuerier {
+            QNCM.RecommendSongsQuery {
                 id: qr_rmd_songs
             }
-            QNcm.RecommendResourceQuerier {
+            QNCM.RecommendResourceQuerier {
                 id: qr_rmd_res
+            }
+            QNCM.TodayQuery {
+                id: m_qr
             }
             // avoid loading with switch page
             Timer {
@@ -235,25 +293,6 @@ MD.Page {
                     timer_refresh_delay.dirty = true;
                     timer_refresh_delay.start();
                 }
-            }
-        }
-    }
-
-    MD.FAB {
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        anchors.rightMargin: 16
-        anchors.bottomMargin: 16
-        flickable: m_fk
-        action: Action {
-            icon.name: MD.Token.icon.play_arrow
-
-            onTriggered: {
-                const songs = qr_rmd_songs.data.dailySongs.filter(s => {
-                    return s.canPlay;
-                });
-                if (songs.length)
-                    QA.App.playqueue.switchList(songs);
             }
         }
     }

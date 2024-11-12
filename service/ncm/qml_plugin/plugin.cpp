@@ -49,6 +49,11 @@ public:
         return ncm::qml::uniq(url, info);
     }
 
+    virtual auto valid_id(const qcm::model::ItemId& id) -> bool override {
+        auto sid = id.id();
+        return ! (sid.isEmpty() || sid == "0"sv);
+    }
+
 private:
     qcm::Router*           m_router;
     qcm::model::PluginInfo m_info;

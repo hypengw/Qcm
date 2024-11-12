@@ -25,15 +25,12 @@ MD.Menu {
         songId: root.itemId_
     }
 
-    Action {
-        icon.name: MD.Token.icon.album
-        text: qsTr('go to album')
-
-        onTriggered: {
-            QA.Global.route(root.song.album.itemId);
-        }
+    QA.GoToAlbumAction {
+        albumId: root.song.album.itemId
     }
+
     QA.GoToArtistAction {
+        enabled: root.song.artists.length > 1 || root.song.artists[0]?.itemId.valid()
         getItemIds: function () {
             return root.song.artists.map(el => el.itemId);
         }

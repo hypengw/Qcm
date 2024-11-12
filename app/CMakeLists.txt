@@ -128,6 +128,7 @@ set(QML_FILES
     qml/action/ColorSchemeAction.qml
     qml/action/SubAction.qml
     qml/action/SettingAction.qml
+    qml/action/GoToAlbumAction.qml
     qml/action/GoToArtistAction.qml
     qml/action/AddToMixAction.qml
     qml/action/MixCreateAction.qml

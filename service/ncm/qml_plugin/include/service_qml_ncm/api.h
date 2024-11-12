@@ -5,6 +5,7 @@
 
 #include "qcm_interface/api.h"
 #include "asio_qt/qt_executor.h"
+#include "asio_qt/qt_watcher.h"
 #include "service_qml_ncm/client.h"
 
 namespace qcm
@@ -12,16 +13,17 @@ namespace qcm
 
 template<typename TApi, typename TModel>
     requires ncm::api::ApiCP<TApi> //&& modelable<TModel, TApi>
-class ApiQuerier : public ApiQuerierBase {
+class ApiQuerier : public QAsyncResultT<TModel, ApiQuerierBase> {
 public:
     using api_type   = TApi;
     using out_type   = typename TApi::out_type;
     using in_type    = typename TApi::in_type;
     using model_type = TModel;
+    using Status     = QAsyncResult::Status;
 
-    ApiQuerier(QObject* parent): ApiQuerierBase(parent), m_model(new model_type(this)) {
-        if constexpr (std::derived_from<TModel, QAbstractItemModel>) {
-            connect(m_model,
+    ApiQuerier(QObject* parent): QAsyncResultT<TModel, ApiQuerierBase>(parent) {
+        if constexpr (requires() { TModel::fetchMoreReq; }) {
+            connect(this->tdata(),
                     &TModel::fetchMoreReq,
                     this,
                     &ApiQuerier::fetch_more,
@@ -29,23 +31,20 @@ public:
         }
     }
 
-    QVariant data() const override { return QVariant::fromValue(m_model); }
-    auto     tdata() const -> model_type* { return m_model; }
-
-    void reload() override {
+    virtual void handle_output(const out_type&) {}
+    void         reload() override {
         // co_spawn need strand for cancel
         auto cnt = gen_context();
         if (! cnt) {
-            cancel();
+            this->cancel();
             ERROR_LOG("session not valid");
-            set_error("session not valid");
-            set_status(Status::Error);
+            this->set_error("session not valid");
+            this->set_status(Status::Error);
             return;
         }
 
-        auto ex = asio::make_strand(cnt->client.get_executor());
         this->set_status(Status::Querying);
-        this->spawn(ex, [cnt = cnt.value()]() mutable -> asio::awaitable<void> {
+        this->spawn([cnt = cnt.value()]() mutable -> asio::awaitable<void> {
             auto& self = cnt.self;
             auto& cli  = cnt.client;
 
@@ -62,7 +61,7 @@ public:
                     if constexpr (modelable<TModel, TApi>) {
                         self->model()->handle_output(std::move(out).value(), cnt.api.input);
                     } else {
-                        handle_output(*self->model(), out.value());
+                        self->handle_output(out.value());
                     }
                     self->set_status(Status::Finished);
                 } else {
@@ -77,29 +76,27 @@ public:
 protected:
     api_type&       api() { return m_api; }
     const api_type& api() const { return m_api; }
-    model_type*     model() { return m_model; }
-    auto            client() { return session()->client().and_then(ncm::qml::get_ncm_client); }
+    model_type*     model() { return this->tdata(); }
+    auto client() { return this->session()->client().and_then(ncm::qml::get_ncm_client); }
 
 private:
     struct Context {
-        QtExecutor                         main_ex;
-        ncm::Client                        client;
-        api_type                           api;
-        QPointer<ApiQuerier<TApi, TModel>> self;
+        QtExecutor                                 main_ex;
+        ncm::Client                                client;
+        api_type                                   api;
+        helper::QWatcher<ApiQuerier<TApi, TModel>> self;
     };
 
     auto gen_context() -> std::optional<Context> {
         return client().transform([this](auto c) {
             return Context {
-                .main_ex = get_executor(),
+                .main_ex = this->get_executor(),
                 .client  = c,
                 .api     = this->api(),
                 .self    = this,
             };
         });
     }
-
-    api_type    m_api;
-    model_type* m_model;
+    api_type m_api;
 };
 } // namespace qcm

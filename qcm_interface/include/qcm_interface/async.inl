@@ -10,10 +10,11 @@
 
 namespace qcm
 {
-template<typename Ex, typename Fn>
-void QAsyncResult::spawn(Ex&& ex, Fn&& f, const std::source_location loc) {
+template<typename Fn>
+void QAsyncResult::spawn(Fn&& f, const std::source_location loc) {
     helper::QWatcher<QAsyncResult> self { this };
     auto                           main_ex { get_executor() };
+    auto                           ex    = asio::make_strand(pool_executor());
     auto                           alloc = asio::recycling_allocator<void>();
     if (use_queue()) {
         push(f, loc);

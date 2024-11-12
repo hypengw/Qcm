@@ -86,10 +86,9 @@ WHERE itemId = :itemId AND ({1});
 
     void reload() override {
         set_status(Status::Querying);
-        auto ex     = asio::make_strand(pool_executor());
         auto self   = helper::QWatcher { this };
         auto itemId = m_album_id;
-        spawn(ex, [self, itemId] -> task<void> {
+        spawn( [self, itemId] -> task<void> {
             auto                     sql = App::instance()->album_sql();
             std::vector<model::Song> items;
 

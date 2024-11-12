@@ -30,7 +30,8 @@ public:
     virtual ~QAsyncResult();
 
     using Status = enums::ApiStatus;
-    virtual auto data() const -> QVariant;
+    auto data() const -> const QVariant&;
+    auto data() -> QVariant&;
 
     auto qexecutor() const -> QtExecutor&;
     auto pool_executor() const -> asio::thread_pool::executor_type;
@@ -44,8 +45,8 @@ public:
     Q_INVOKABLE virtual void reload();
     void                     set_reload_callback(const std::function<void()>&);
 
-    template<typename Ex, typename Fn>
-    void spawn(Ex&& ex, Fn&& f, const std::source_location loc = {});
+    template<typename Fn>
+    void spawn(Fn&& f, const std::source_location loc = {});
 
     template<typename T, typename TE>
     void from(const nstd::expected<T, TE>& exp) {
@@ -63,6 +64,8 @@ public:
         }
     }
 
+    Q_SLOT virtual void set_data(const QVariant&);
+
     Q_SLOT void cancel();
     Q_SLOT void set_status(Status);
     Q_SLOT void set_error(QString);
@@ -76,10 +79,6 @@ public:
     Q_SIGNAL void finished();
     Q_SIGNAL void errorOccurred(QString);
 
-protected:
-    Q_SLOT void set_data(QVariant);
-    void        set_data(QObject*);
-
 private:
     void  push(std::function<task<void>()>, const std::source_location& loc);
     usize size() const;
@@ -88,5 +87,31 @@ private:
 
     class Private;
     C_DECLARE_PRIVATE(QAsyncResult, d_ptr);
+};
+
+template<typename T, typename Base = QAsyncResult>
+    requires std::is_base_of_v<QAsyncResult, Base>
+class QAsyncResultT : public Base {
+public:
+    using value_type = std::conditional_t<std::is_base_of_v<QObject, T>, std::add_pointer_t<T>, T>;
+    using const_reference_value_type =
+        std::conditional_t<std::is_base_of_v<QObject, T>, std::add_pointer_t<T>,
+                           std::add_lvalue_reference_t<std::add_const_t<T>>>;
+
+    QAsyncResultT(QObject* parent = nullptr): Base(parent) {
+        if constexpr (std::is_base_of_v<QObject, T>) {
+            set_tdata(new T(this));
+        } else {
+            set_tdata(T());
+        }
+    }
+    auto tdata() const { return this->data().template value<value_type>(); }
+    auto tdata() { return this->data().template value<value_type>(); }
+    void set_tdata(const_reference_value_type val) {
+        QAsyncResult::set_data(QVariant::fromValue(val));
+    }
+
+private:
+    void set_data(const QVariant&) override { _assert_rel_(false); }
 };
 } // namespace qcm

@@ -173,10 +173,9 @@ ORDER BY program.serialNumber DESC;
 
     void reload() override {
         set_status(Status::Querying);
-        auto ex     = asio::make_strand(pool_executor());
         auto self   = helper::QWatcher { this };
         auto itemId = m_radio_id;
-        spawn(ex, [self, itemId] -> task<void> {
+        spawn( [self, itemId] -> task<void> {
             auto sql        = App::instance()->album_sql();
             bool needReload = false;
 

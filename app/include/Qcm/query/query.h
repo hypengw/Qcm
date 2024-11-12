@@ -88,34 +88,10 @@ private:
 } // namespace detail
 
 template<typename T, typename Base = detail::QueryBase>
-class Query : public Base {
-    static auto createData(QObject* q) {
-        if constexpr (std::is_base_of_v<QObject, T>) {
-            return new T(q);
-        } else {
-            return T();
-        }
-    }
-
+class Query : public QAsyncResultT<T, Base> {
 public:
-    using value_type        = decltype(Query::createData(nullptr));
-    using const_value_type  = std::add_const_t<value_type>;
-    using borrow_type       = std::conditional_t<std::is_pointer_v<value_type>, value_type,
-                                                 std::add_lvalue_reference_t<value_type>>;
-    using const_borrow_type = std::conditional_t<std::is_pointer_v<value_type>, value_type,
-                                                 std::add_lvalue_reference_t<const_value_type>>;
-
-    Query(QObject* parent = nullptr)
-        : Base(parent), m_data(createData(this)), m_last(QDateTime::fromSecsSinceEpoch(0)) {}
+    Query(QObject* parent = nullptr): QAsyncResultT<T, Base>(parent), m_last(QDateTime::fromSecsSinceEpoch(0)) {}
     ~Query() {}
-
-    auto data() const -> QVariant override { return QVariant::fromValue(m_data); }
-    auto tdata() const -> const_borrow_type { return m_data; }
-    auto tdata() -> borrow_type { return m_data; }
-    void set_tdata(const_borrow_type v) {
-        m_data = v;
-        this->dataChanged();
-    }
 
     auto last() const -> const QDateTime& { return m_last; }
     void setLast(const QDateTime& t, const QDateTime& last = QDateTime::currentDateTime()) {
@@ -128,8 +104,7 @@ public:
         return old;
     }
 
-    value_type m_data;
-    QDateTime  m_last;
+    QDateTime m_last;
 };
 
 template<typename T>

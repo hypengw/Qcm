@@ -12,9 +12,11 @@
 #include "qcm_interface/model/program.h"
 #include "qcm_interface/oper/comment_oper.h"
 #include "qcm_interface/model/comment.h"
+#include "qcm_interface/oper/query_oper.h"
+#include "qcm_interface/model/query_model.h"
 #include "core/log.h"
 
-void qcm::oper::empty_deletor(voidp p) { _assert_rel_(p == nullptr); }
+void qcm::oper::empty_deletor(voidp) {}
 namespace qcm::oper
 {
 
@@ -25,8 +27,23 @@ auto create_list(usize num) -> OperList<T> {
     auto holder = typename OperList<T>::Holder(new std::vector<T>(num), [](voidp p) {
         delete static_cast<std::vector<T>*>(p);
     });
-    auto vec    = static_cast<std::vector<T>*>(holder.get());
-    auto span   = std::span { *vec };
+    return { std::move(holder),
+             [](voidp h) {
+                 return static_cast<std::vector<T>*>(h)->data();
+             },
+             [](voidp h) {
+                 return static_cast<std::vector<T>*>(h)->size();
+             },
+             [](T* d, usize s) -> T* {
+                 return d + s;
+             },
+             [](voidp handle) -> T* {
+                 return &(static_cast<std::vector<T>*>(handle)->emplace_back());
+             } };
+}
+template<typename T>
+auto create_list_ref(std::vector<T>& vec) -> OperList<T> {
+    auto holder = typename OperList<T>::Holder(&vec, empty_deletor);
     return { std::move(holder),
              [](voidp h) {
                  return static_cast<std::vector<T>*>(h)->data();
@@ -43,13 +60,23 @@ auto create_list(usize num) -> OperList<T> {
 }
 } // namespace detail
 
+#define IMPL_OPER_PROPERTY_LIST(class_, type, prop, mem)                                   \
+    auto class_::mem() -> type { return oper::detail::create_list_ref(this->model->mem); } \
+    void class_::set_##mem(type v) {                                                       \
+        auto& vec = this->model->mem;                                                      \
+        vec.clear();                                                                       \
+        vec.insert(vec.end(), v.data(), v.data() + v.size());                              \
+    }
+
 #define X(T)                                                                \
     template<>                                                              \
     QCM_INTERFACE_API auto Oper<T>::create_list(usize num) -> OperList<T> { \
         return detail::create_list<T>(num);                                 \
     }
 
+X(model::AlbumRefer)
 X(model::Album)
+X(model::ArtistRefer)
 X(model::Artist)
 X(model::Song)
 X(model::Mix)
@@ -57,6 +84,11 @@ X(model::Radio)
 X(model::Program)
 X(model::Comment)
 X(model::ThirdUser)
+X(query::Song)
+
+IMPL_OPER_PROPERTY(AlbumReferOper, ItemId, itemId, id)
+IMPL_OPER_PROPERTY(AlbumReferOper, QString, name, name)
+IMPL_OPER_PROPERTY(AlbumReferOper, QString, picUrl, picUrl)
 
 IMPL_OPER_PROPERTY(AlbumOper, ItemId, itemId, id)
 IMPL_OPER_PROPERTY(AlbumOper, QString, name, name)
@@ -66,6 +98,10 @@ IMPL_OPER_PROPERTY(AlbumOper, int, trackCount, trackCount)
 IMPL_OPER_PROPERTY(AlbumOper, QString, description, description)
 IMPL_OPER_PROPERTY(AlbumOper, QString, company, company)
 IMPL_OPER_PROPERTY(AlbumOper, QString, type, type)
+
+IMPL_OPER_PROPERTY(ArtistReferOper, ItemId, itemId, id)
+IMPL_OPER_PROPERTY(ArtistReferOper, QString, name, name)
+IMPL_OPER_PROPERTY(ArtistReferOper, QString, picUrl, picUrl)
 
 IMPL_OPER_PROPERTY(ArtistOper, ItemId, itemId, id)
 IMPL_OPER_PROPERTY(ArtistOper, QString, name, name)
@@ -124,3 +160,21 @@ IMPL_OPER_PROPERTY(ThirdUserOper, ItemId, itemId, id)
 IMPL_OPER_PROPERTY(ThirdUserOper, QString, name, name)
 IMPL_OPER_PROPERTY(ThirdUserOper, QString, picUrl, picUrl)
 } // namespace qcm::oper
+
+namespace qcm::query
+{
+IMPL_OPER_PROPERTY(SongOper, ItemId, itemId, id)
+IMPL_OPER_PROPERTY(SongOper, QString, name, name)
+IMPL_OPER_PROPERTY(SongOper, ItemId, albumId, albumId)
+IMPL_OPER_PROPERTY(SongOper, qint32, trackNumber, trackNumber)
+IMPL_OPER_PROPERTY(SongOper, QDateTime, duration, duration)
+IMPL_OPER_PROPERTY(SongOper, bool, canPlay, canPlay)
+IMPL_OPER_PROPERTY(SongOper, QString, coverUrl, coverUrl)
+IMPL_OPER_PROPERTY(SongOper, QStringList, tags, tags)
+IMPL_OPER_PROPERTY(SongOper, qreal, popularity, popularity)
+IMPL_OPER_PROPERTY(SongOper, ItemId, sourceId, sourceId)
+
+IMPL_OPER_PROPERTY_COPY(SongOper, oper::AlbumReferOper, album, album)
+IMPL_OPER_PROPERTY_LIST(SongOper, oper::OperList<model::ArtistRefer>, artists, artists)
+
+} // namespace qcm::query

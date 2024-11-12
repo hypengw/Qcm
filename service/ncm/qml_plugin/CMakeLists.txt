@@ -3,31 +3,24 @@ find_package(
   COMPONENTS Qml Quick)
 
 set(SOURCES
-    include/service_qml_ncm/api/user_account.h
     include/service_qml_ncm/model.h
     include/service_qml_ncm/model/album_detail_dynamic.h
     include/service_qml_ncm/model/cloudsearch.h
-    include/service_qml_ncm/model/djradio_program.h
     include/service_qml_ncm/model/login.h
     include/service_qml_ncm/model/logout.h
     include/service_qml_ncm/model/playlist_catalogue.h
     include/service_qml_ncm/model/playlist_detail_dynamic.h
     include/service_qml_ncm/model/playlist_list.h
-    include/service_qml_ncm/model/playlist_create.h
-    include/service_qml_ncm/model/playlist_delete.h
-    include/service_qml_ncm/model/playlist_tracks.h
     include/service_qml_ncm/model/recommend_songs.h
     include/service_qml_ncm/model/recommend_resource.h
-    include/service_qml_ncm/model/song_url.h
     include/service_qml_ncm/model/song_lyric.h
     include/service_qml_ncm/model/user_cloud.h
     include/service_qml_ncm/model/qrcode_login.h
     include/service_qml_ncm/model/qrcode_unikey.h
-    include/service_qml_ncm/model/radio_like.h
-    include/service_qml_ncm/model/song_like.h
     include/service_qml_ncm/model/radar_playlist_id.h
     include/service_qml_ncm/model/cloud_upload.h
     include/service_qml_ncm/model/play_record.h
+    include/service_qml_ncm/model/today_model.h
     include/service_qml_ncm/enum.h
     include/service_qml_ncm/client.h
     include/service_qml_ncm/session.h

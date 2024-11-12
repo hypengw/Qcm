@@ -9,32 +9,37 @@
 #include "qcm_interface/oper/radio_oper.h"
 #include "qcm_interface/oper/program_oper.h"
 #include "qcm_interface/oper/comment_oper.h"
+#include "qcm_interface/oper/query_oper.h"
 #include "ncm/model.h"
 #include "service_qml_ncm/enum.h"
 
+DECLARE_CONVERT(qcm::oper::ArtistOper, ncm::model::Artist)
+DECLARE_CONVERT(qcm::oper::ArtistReferOper, ncm::model::Song::Ar)
+DECLARE_CONVERT(qcm::oper::ArtistOper, ncm::model::Song::Ar)
+DECLARE_CONVERT(qcm::oper::AlbumOper, ncm::model::Album)
+DECLARE_CONVERT(qcm::oper::AlbumReferOper, ncm::model::Song::Al)
+DECLARE_CONVERT(qcm::oper::AlbumOper, ncm::model::Song::Al)
+DECLARE_CONVERT(qcm::oper::MixOper, ncm::model::Playlist)
+DECLARE_CONVERT(qcm::oper::SongOper, ncm::model::Song)
+DECLARE_CONVERT(qcm::query::SongOper, ncm::model::Song)
+DECLARE_CONVERT(qcm::oper::ThirdUserOper, ncm::model::User)
+DECLARE_CONVERT(qcm::oper::CommentOper, ncm::model::Comment)
+DECLARE_CONVERT(qcm::oper::DjradioOper, ncm::model::Djradio)
+DECLARE_CONVERT(qcm::oper::SongOper, ncm::model::SongB)
+DECLARE_CONVERT(qcm::oper::ProgramOper, ncm::model::Program)
+
 DECLARE_CONVERT(QDateTime, ncm::model::Time)
 DECLARE_CONVERT(qcm::model::Artist, ncm::model::Artist)
-DECLARE_CONVERT(qcm::oper::ArtistOper, ncm::model::Artist)
 DECLARE_CONVERT(qcm::model::Artist, ncm::model::Song::Ar)
-DECLARE_CONVERT(qcm::oper::ArtistOper, ncm::model::Song::Ar)
 DECLARE_CONVERT(qcm::model::Album, ncm::model::Album)
-DECLARE_CONVERT(qcm::oper::AlbumOper, ncm::model::Album)
-DECLARE_CONVERT(qcm::oper::AlbumOper, ncm::model::Song::Al)
 DECLARE_CONVERT(qcm::model::Mix, ncm::model::Playlist)
-DECLARE_CONVERT(qcm::oper::MixOper, ncm::model::Playlist)
 DECLARE_CONVERT(qcm::model::Song, ncm::model::Song)
-DECLARE_CONVERT(qcm::oper::SongOper, ncm::model::Song)
 DECLARE_CONVERT(qcm::model::ThirdUser, ncm::model::User)
-DECLARE_CONVERT(qcm::oper::ThirdUserOper, ncm::model::User)
 DECLARE_CONVERT(qcm::model::Comment, ncm::model::Comment)
-DECLARE_CONVERT(qcm::oper::CommentOper, ncm::model::Comment)
 DECLARE_CONVERT(qcm::model::Radio, ncm::model::Djradio)
 DECLARE_CONVERT(qcm::model::Radio, ncm::model::DjradioB)
-DECLARE_CONVERT(qcm::oper::DjradioOper, ncm::model::Djradio)
 DECLARE_CONVERT(qcm::model::Song, ncm::model::SongB)
-DECLARE_CONVERT(qcm::oper::SongOper, ncm::model::SongB)
 DECLARE_CONVERT(qcm::model::Program, ncm::model::Program)
-DECLARE_CONVERT(qcm::oper::ProgramOper, ncm::model::Program)
 
 namespace ncm::model
 {

@@ -115,13 +115,12 @@ LIMIT :limit OFFSET :offset;
 
     void reload() override {
         set_status(Status::Querying);
-        auto ex     = asio::make_strand(pool_executor());
         auto self   = helper::QWatcher { this };
         auto itemId = m_album_id;
         auto offset = this->offset();
         auto limit  = this->limit();
 
-        spawn(ex, [self, itemId, offset, limit] -> task<void> {
+        spawn([self, itemId, offset, limit] -> task<void> {
             auto                     sql = App::instance()->album_sql();
             std::vector<model::Song> items;
             bool                     needReload = false;
