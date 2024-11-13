@@ -6,8 +6,9 @@
 #include "core/expected_helper.h"
 #include "asio_qt/qt_executor.h"
 #include "qcm_interface/enum.h"
+#include "qcm_interface/ex.h"
+#include "asio_qt/qt_watcher.h"
 #include "asio_helper/task.h"
-#include <asio/thread_pool.hpp>
 
 namespace helper
 {
@@ -79,6 +80,14 @@ public:
     Q_SIGNAL void finished();
     Q_SIGNAL void errorOccurred(QString);
 
+    template<typename T, typename Err>
+    void check(const nstd::expected<T, Err>& res) {
+        if (! res) {
+            set_error(QString::fromStdString(res.error().what()));
+            set_status(Status::Error);
+        }
+    }
+
 private:
     void  push(std::function<task<void>()>, const std::source_location& loc);
     usize size() const;
@@ -98,13 +107,15 @@ public:
         std::conditional_t<std::is_base_of_v<QObject, T>, std::add_pointer_t<T>,
                            std::add_lvalue_reference_t<std::add_const_t<T>>>;
 
-    QAsyncResultT(QObject* parent = nullptr): Base(parent) {
+    template<typename... Arg>
+    QAsyncResultT(QObject* parent, Arg... arg): Base(parent) {
         if constexpr (std::is_base_of_v<QObject, T>) {
-            set_tdata(new T(this));
+            set_tdata(new T(arg..., this));
         } else {
             set_tdata(T());
         }
     }
+
     auto tdata() const { return this->data().template value<value_type>(); }
     auto tdata() { return this->data().template value<value_type>(); }
     void set_tdata(const_reference_value_type val) {

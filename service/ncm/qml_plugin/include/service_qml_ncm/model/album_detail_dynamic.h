@@ -7,7 +7,7 @@
 
 #include "core/log.h"
 
-namespace qcm
+namespace ncm::qml
 {
 
 namespace model
@@ -31,14 +31,12 @@ public:
         emit infoChanged();
     }
 
-signals:
-    void infoChanged();
+    Q_SIGNAL void infoChanged();
 };
-static_assert(modelable<AlbumDetailDynamic, ncm::api::AlbumDetailDynamic>);
-
 } // namespace model
 
-using AlbumDetailDynamicQuerier_base = ApiQuerier<ncm::api::AlbumDetailDynamic, model::AlbumDetailDynamic>;
+using AlbumDetailDynamicQuerier_base =
+    NcmApiQuery<ncm::api::AlbumDetailDynamic, model::AlbumDetailDynamic>;
 class AlbumDetailDynamicQuerier : public AlbumDetailDynamicQuerier_base {
     Q_OBJECT
     QML_ELEMENT
@@ -47,4 +45,4 @@ public:
 
     FORWARD_PROPERTY(model::ItemId, itemId, id)
 };
-}
+} // namespace ncm::qml

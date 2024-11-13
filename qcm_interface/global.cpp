@@ -10,6 +10,7 @@
 #include "core/log.h"
 #include "request/session.h"
 #include "qcm_interface/path.h"
+#include "qcm_interface/ex.h"
 #include "qcm_interface/plugin.h"
 #include "qcm_interface/global_static.h"
 #include "qcm_interface/action.h"
@@ -29,12 +30,20 @@ auto get_session_path(const qcm::model::ItemId& id) {
 }
 } // namespace
 
+auto qcm::qexecutor() -> QtExecutor& { return Global::instance()->qexecutor(); }
+auto qcm::pool_executor() -> asio::thread_pool::executor_type {
+    return Global::instance()->pool_executor();
+}
+
+auto qcm::get_client() -> std::optional<Client> { return Global::instance()->qsession()->client(); }
+
 namespace qcm
 {
 
 auto get_pool_size() -> std::size_t {
     return std::clamp<u32>(std::thread::hardware_concurrency(), 4, 12);
 }
+
 namespace
 {
 template<typename T>

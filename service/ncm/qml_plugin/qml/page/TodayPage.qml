@@ -49,29 +49,21 @@ MD.Page {
                             fixedCellWidth: QA.Util.dynCardWidth(widthNoMargin, spacing)
                             implicitHeight: maxImplicitCellHeight
                             maxImplicitCellHeight: 200
-                            model: qr_rmd_res.data.dailyPlaylists
+                            model: m_qr.data
                             flow: GridView.FlowTopToBottom
                             hookWheel: false
                             enabledCalMaxCellHeight: true
 
-                            delegate: Item {
-                                required property var modelData
+                            delegate: QA.PicCardGridDelegate {
+                                required property var model
                                 required property int index
-                                width: GridView.view.cellWidth
-                                height: GridView.view.cellHeight
-                                implicitHeight: children[0].implicitHeight
                                 Component.onCompleted: GridView.view.calMaxCellHeight()
 
-                                QA.PicGridDelegate {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    width: parent.GridView.view.fixedCellWidth
-                                    picWidth: parent.GridView.view.fixedCellWidth
-                                    image.source: QA.Util.image_url(parent.modelData.picUrl)
-                                    text: parent.modelData.name
-
-                                    onClicked: {
-                                        QA.Global.route(parent.modelData.itemId);
-                                    }
+                                image.source: QA.Util.image_url(model.picUrl)
+                                text: model.name
+                                onClicked: {
+                                    GridView.view.model.trigger(model.itemId);
+                                    // QA.Global.route(modelData.itemId);
                                 }
                             }
                         }
@@ -110,24 +102,16 @@ MD.Page {
                             hookWheel: false
                             enabledCalMaxCellHeight: true
 
-                            delegate: Item {
+                            delegate: QA.PicCardGridDelegate {
                                 required property var modelData
                                 required property int index
-                                width: GridView.view.cellWidth
-                                height: GridView.view.cellHeight
-                                implicitHeight: children[0].implicitHeight
                                 Component.onCompleted: GridView.view.calMaxCellHeight()
 
-                                QA.PicGridDelegate {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    width: parent.GridView.view.fixedCellWidth
-                                    picWidth: parent.GridView.view.fixedCellWidth
-                                    image.source: QA.Util.image_url(parent.modelData.picUrl)
-                                    text: parent.modelData.name
+                                image.source: QA.Util.image_url(modelData.picUrl)
+                                text: modelData.name
 
-                                    onClicked: {
-                                        QA.Global.route(parent.modelData.itemId);
-                                    }
+                                onClicked: {
+                                    QA.Global.route(modelData.itemId);
                                 }
                             }
                             footer: MD.ListBusyFooter {
@@ -167,23 +151,15 @@ MD.Page {
                             enabledCalMaxCellHeight: true
                             hookWheel: false
 
-                            delegate: Item {
+                            delegate: QA.PicCardGridDelegate {
                                 required property var model
-                                width: GridView.view.cellWidth
-                                height: GridView.view.cellHeight
-                                implicitHeight: children[0].implicitHeight
                                 Component.onCompleted: GridView.view.calMaxCellHeight()
 
-                                QA.PicGridDelegate {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    picWidth: parent.GridView.view.fixedCellWidth
-                                    width: picWidth
-                                    image.source: QA.Util.image_url(pl_querier.data.info.picUrl)
-                                    text: pl_querier.data.info.name
+                                image.source: QA.Util.image_url(pl_querier.data.info.picUrl)
+                                text: pl_querier.data.info.name
 
-                                    onClicked: {
-                                        QA.Global.route(parent.model.id);
-                                    }
+                                onClicked: {
+                                    QA.Global.route(model.id);
                                 }
 
                                 QA.MixDetailQuery {
@@ -251,9 +227,6 @@ MD.Page {
                 }
             }
             */
-            QNCM.RecommendSongsQuery {
-                id: qr_rmd_songs
-            }
             QNCM.RecommendResourceQuerier {
                 id: qr_rmd_res
             }
@@ -271,7 +244,7 @@ MD.Page {
                 onTriggered: {
                     if (root.visible && dirty) {
                         qr_rmd_res.query();
-                        qr_rmd_songs.query();
+                        m_qr.query();
                         dirty = false;
                     }
                 }

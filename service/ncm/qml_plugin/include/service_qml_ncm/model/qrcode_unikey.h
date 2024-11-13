@@ -7,7 +7,7 @@
 
 #include "core/log.h"
 
-namespace qcm
+namespace ncm::qml
 {
 
 namespace model
@@ -29,18 +29,16 @@ public:
         emit infoChanged();
     }
 
-signals:
-    void infoChanged();
+    Q_SIGNAL void infoChanged();
 };
-static_assert(modelable<QrcodeUnikey, ncm::api::QrcodeUnikey>);
 
 } // namespace model
 
-using QrcodeUnikeyQuerier_base = ApiQuerier<ncm::api::QrcodeUnikey, model::QrcodeUnikey>;
+using QrcodeUnikeyQuerier_base = NcmApiQuery<ncm::api::QrcodeUnikey, model::QrcodeUnikey>;
 class QrcodeUnikeyQuerier : public QrcodeUnikeyQuerier_base {
     Q_OBJECT
     QML_ELEMENT
 public:
     QrcodeUnikeyQuerier(QObject* parent = nullptr): QrcodeUnikeyQuerier_base(parent) {}
 };
-} // namespace qcm
+} // namespace ncm::qml

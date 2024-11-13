@@ -7,7 +7,7 @@
 
 #include "core/log.h"
 
-namespace qcm
+namespace ncm::qml
 {
 
 namespace model
@@ -29,11 +29,10 @@ public:
 
     Q_SIGNAL void infoChanged();
 };
-static_assert(modelable<Login, ncm::api::Login>);
 
 } // namespace model
 
-using LoginQuerier_base = ApiQuerier<ncm::api::Login, model::Login>;
+using LoginQuerier_base = NcmApiQuery<ncm::api::Login, model::Login>;
 class LoginQuerier : public LoginQuerier_base {
     Q_OBJECT
     QML_ELEMENT
@@ -43,4 +42,4 @@ public:
     FORWARD_PROPERTY(QString, username, username)
     FORWARD_PROPERTY(QString, password, password_md5)
 };
-} // namespace qcm
+} // namespace ncm::qml

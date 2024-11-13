@@ -3,7 +3,7 @@
 #include <QtCore/QAbstractListModel>
 #include <QtQml/QQmlEngine>
 
-namespace qcm::qml_ncm
+namespace ncm::qml
 {
 
 class RadarPlaylistIdModel : public QAbstractListModel {
@@ -15,4 +15,4 @@ public:
     QHash<int, QByteArray> roleNames() const override;
 };
 
-} // namespace qcm::qml_ncm
+} // namespace ncm::qml

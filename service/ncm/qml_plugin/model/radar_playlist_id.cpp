@@ -1,7 +1,7 @@
 #include "service_qml_ncm/model/radar_playlist_id.h"
 #include "service_qml_ncm/model.h"
 
-namespace qcm::qml_ncm
+namespace ncm::qml
 {
 
 namespace
@@ -34,4 +34,4 @@ QHash<int, QByteArray> RadarPlaylistIdModel::roleNames() const {
     return { { Qt::UserRole, "id" } };
 }
 
-} // namespace qcm::qml_ncm
+} // namespace ncm::qml

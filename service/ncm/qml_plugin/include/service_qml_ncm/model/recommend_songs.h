@@ -8,22 +8,23 @@
 #include "meta_model/qgadgetlistmodel.h"
 #include "core/log.h"
 
-namespace qcm
+namespace ncm::qml
 {
 
 namespace model
 {
 
-class RecommendSongs : public meta_model::QGadgetListModel<query::Song> {
+class RecommendSongs : public meta_model::QGadgetListModel<qcm::query::Song> {
     Q_OBJECT
 public:
-    RecommendSongs(QObject* parent = nullptr): meta_model::QGadgetListModel<query::Song>(parent) {}
+    RecommendSongs(QObject* parent = nullptr)
+        : meta_model::QGadgetListModel<qcm::query::Song>(parent) {}
     using out_type = ncm::api_model::RecommendSongs;
 };
 
 } // namespace model
 
-using RecommendSongsQuery_base = ApiQuerier<ncm::api::RecommendSongs, model::RecommendSongs>;
+using RecommendSongsQuery_base = NcmApiQuery<ncm::api::RecommendSongs, model::RecommendSongs>;
 class RecommendSongsQuery : public RecommendSongsQuery_base {
     Q_OBJECT
     QML_ELEMENT
@@ -43,4 +44,4 @@ public:
         tdata()->resetModel(view);
     }
 };
-} // namespace qcm
+} // namespace ncm::qml

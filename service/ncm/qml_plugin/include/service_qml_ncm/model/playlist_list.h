@@ -11,23 +11,23 @@
 
 #include "core/log.h"
 
-namespace qcm
+namespace ncm::qml
 {
 namespace model
 {
 
-class PlaylistList : public meta_model::QGadgetListModel<Mix> {
+class PlaylistList : public meta_model::QGadgetListModel<qcm::model::Mix> {
     Q_OBJECT
 public:
     PlaylistList(QObject* parent = nullptr)
-        : meta_model::QGadgetListModel<Mix>(parent), m_has_more(true) {}
+        : meta_model::QGadgetListModel<qcm::model::Mix>(parent), m_has_more(true) {}
     using out_type = ncm::api_model::PlaylistList;
 
     void handle_output(const out_type& re, const auto& input) {
         if (input.offset != (int)rowCount()) {
             return;
         }
-        auto in_ = convert_from<std::vector<Mix>>(re.playlists);
+        auto in_ = convert_from<std::vector<qcm::model::Mix>>(re.playlists);
         for (auto& el : in_) {
             // remove query
             el.picUrl = el.picUrl.split('?').front();
@@ -47,10 +47,9 @@ signals:
 private:
     bool m_has_more;
 };
-static_assert(modelable<PlaylistList, ncm::api::PlaylistList>);
 } // namespace model
 
-using PlaylistListQuerier_base = ApiQuerier<ncm::api::PlaylistList, model::PlaylistList>;
+using PlaylistListQuerier_base = NcmApiQuery<ncm::api::PlaylistList, model::PlaylistList>;
 class PlaylistListQuerier : public PlaylistListQuerier_base {
     Q_OBJECT
     QML_ELEMENT
@@ -65,4 +64,4 @@ public:
     void fetch_more(qint32 cur_count) override { set_offset(cur_count); }
 };
 
-} // namespace qcm
+} // namespace ncm::qml

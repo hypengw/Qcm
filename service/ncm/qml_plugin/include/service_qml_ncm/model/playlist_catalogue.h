@@ -10,7 +10,7 @@
 
 #include "core/log.h"
 
-namespace qcm
+namespace ncm::qml
 {
 namespace model
 {
@@ -23,16 +23,16 @@ public:
     GADGET_PROPERTY_DEF(bool, hot, hot)
 };
 } // namespace model
-} // namespace qcm
+} // namespace ncm::qml
 
-DEFINE_CONVERT(qcm::model::PlaylistCatalogueItem, ncm::model::PlaylistCatalogue) {
+DEFINE_CONVERT(ncm::qml::model::PlaylistCatalogueItem, ncm::model::PlaylistCatalogue) {
     convert(out.name, in.name);
     convert(out.resourceCount, in.resourceCount);
     convert(out.category, in.category);
     convert(out.hot, in.hot);
 }
 
-namespace qcm
+namespace ncm::qml
 {
 namespace model
 {
@@ -71,12 +71,11 @@ signals:
 private:
     QMap<QString, std::vector<PlaylistCatalogueItem>> m_cats;
 };
-static_assert(modelable<PlaylistCatalogue, ncm::api::PlaylistCatalogue>);
 
 } // namespace model
 
 using PlaylistCatalogueQuerier_base =
-    ApiQuerier<ncm::api::PlaylistCatalogue, model::PlaylistCatalogue>;
+    NcmApiQuery<ncm::api::PlaylistCatalogue, model::PlaylistCatalogue>;
 class PlaylistCatalogueQuerier : public PlaylistCatalogueQuerier_base {
     Q_OBJECT
     QML_ELEMENT
@@ -84,4 +83,4 @@ public:
     PlaylistCatalogueQuerier(QObject* parent = nullptr): PlaylistCatalogueQuerier_base(parent) {}
 };
 
-} // namespace qcm
+} // namespace ncm::qml

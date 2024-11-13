@@ -9,7 +9,6 @@ set(SOURCES
     include/service_qml_ncm/model/login.h
     include/service_qml_ncm/model/logout.h
     include/service_qml_ncm/model/playlist_catalogue.h
-    include/service_qml_ncm/model/playlist_detail_dynamic.h
     include/service_qml_ncm/model/playlist_list.h
     include/service_qml_ncm/model/recommend_songs.h
     include/service_qml_ncm/model/recommend_resource.h
@@ -21,6 +20,7 @@ set(SOURCES
     include/service_qml_ncm/model/cloud_upload.h
     include/service_qml_ncm/model/play_record.h
     include/service_qml_ncm/model/today_model.h
+    include/service_qml_ncm/model/fm_queue.h
     include/service_qml_ncm/enum.h
     include/service_qml_ncm/client.h
     include/service_qml_ncm/session.h
@@ -28,9 +28,10 @@ set(SOURCES
     model.cpp
     model/radar_playlist_id.cpp
     model/cloud_upload.cpp
+    model/fm_queue.cpp
+    model/today_model.cpp
     client.cpp
-    api.cpp
-    )
+    api.cpp)
 
 set(QML_FILES
     qml/page/CloudUploadPage.qml
@@ -40,16 +41,16 @@ set(QML_FILES
     qml/page/CloudPage.qml
     qml/page/PlaylistCataloguePage.qml
     qml/page/PlaylistListPage.qml
-
-    qml/component/PlaylistListView.qml
-    )
+    qml/component/PlaylistListView.qml)
 
 set(RESOURCES
     assets/netease-line.svg assets/netease.svg)
 
-set(BUILD_TYPE SHARED)
+set(BUILD_TYPE
+    SHARED)
 if(QCM_SERVICE_STATIC_BUILD)
-  set(BUILD_TYPE STATIC)
+  set(BUILD_TYPE
+      STATIC)
   add_compile_definitions(QCM_STATIC_BUILD)
   register_qcm_service(Qcm.Service.Ncm service_qml_ncmplugin)
 endif()

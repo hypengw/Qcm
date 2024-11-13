@@ -47,6 +47,7 @@
 #include "ncm/api/upload_addr.h"
 #include "ncm/api/upload.h"
 #include "ncm/api/song_detail.h"
+#include "ncm/api/v1_radio_get.h"
 
 #include "ncm/api/play_record.h"
 
@@ -282,6 +283,8 @@ JSON_DEFINE_IMPL(FeedbackWeblog, code, data);
 JSON_DEFINE_IMPL(PlayRecord, code, data);
 JSON_DEFINE_IMPL(PlayRecord::Data, list, total);
 
+JSON_DEFINE_IMPL(RadioGet, code, popAdjust, data);
+
 } // namespace api_model
 
 } // namespace ncm
@@ -332,6 +335,7 @@ JSON_GET_IMPL(ncm::api_model::NosTokenAlloc);
 JSON_GET_IMPL(ncm::api_model::UploadAddr);
 JSON_GET_IMPL(ncm::api_model::Upload);
 JSON_GET_IMPL(ncm::api_model::FeedbackWeblog);
+JSON_GET_IMPL(ncm::api_model::RadioGet);
 
 JSON_GET_IMPL(ncm::api_model::PlayRecord);
 
@@ -493,3 +497,22 @@ auto PlayRecord::parse(std::span<const byte> bs, const params::PlayRecord& input
         });
 }
 } // namespace ncm::api_model
+
+IMPL_CONVERT(std::string_view, ncm::params::RadioGet::Mode) {
+    switch (in) {
+    case in_type::AIDJ: out = "aidj"sv; break;
+    case in_type::DEFAULT: out = "DEFAULT"sv; break;
+    case in_type::EXPLORE: out = "EXPLORE"sv; break;
+    case in_type::FAMILIAR: out = "FAMILIAR"sv; break;
+    case in_type::SCENE_RCMD: out = "SCENE_RCMD"sv; break;
+    }
+}
+IMPL_CONVERT(std::string_view, ncm::params::RadioGet::SubMode) {
+    switch (in) {
+    case in_type::EXERCISE: out = "EXERCISE"sv; break;
+    case in_type::FOCUS: out = "FOCUS"sv; break;
+    case in_type::NIGHT_EMO: out = "NIGHT_EMO"sv; break;
+    default: {
+    }
+    }
+}

@@ -5,7 +5,7 @@
 #include "service_qml_ncm/model.h"
 #include "ncm/api/qrcode_login.h"
 
-namespace qcm
+namespace ncm::qml
 {
 
 namespace model
@@ -34,11 +34,10 @@ public:
 signals:
     void infoChanged();
 };
-static_assert(modelable<QrcodeLogin, ncm::api::QrcodeLogin>);
 
 } // namespace model
 
-using QrcodeLoginQuerier_base = ApiQuerier<ncm::api::QrcodeLogin, model::QrcodeLogin>;
+using QrcodeLoginQuerier_base = NcmApiQuery<ncm::api::QrcodeLogin, model::QrcodeLogin>;
 class QrcodeLoginQuerier : public QrcodeLoginQuerier_base {
     Q_OBJECT
     QML_ELEMENT
@@ -47,4 +46,4 @@ public:
 
     FORWARD_PROPERTY(QString, key, key)
 };
-} // namespace qcm
+} // namespace ncm::qml

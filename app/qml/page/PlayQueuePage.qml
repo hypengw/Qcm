@@ -29,7 +29,6 @@ MD.Page {
         highlightMoveDuration: 1000
         highlightMoveVelocity: -1
         model: QA.App.playqueue
-        reuseItems: true
         topMargin: 8
 
         MD.FontMetrics {
@@ -41,10 +40,18 @@ MD.Page {
         footer: Item {}
 
         delegate: MD.ListItem {
-            width: ListView.view.width
+            required property var model
+            required property var index
             readonly property bool is_playing: ListView.isCurrentItem
+
+            width: ListView.view.width
             onClicked: {
-                QA.Action.play_by_id(model.itemId);
+                const m = ListView.view.model;
+                if (m.canJump) {
+                    QA.Action.play_by_id(model.itemId);
+                } else {
+                    QA.Action.toast(qsTr(`${m.name} does not support switch`));
+                }
             }
 
             contentItem: RowLayout {

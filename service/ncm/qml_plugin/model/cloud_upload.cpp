@@ -19,7 +19,9 @@
 #include "crypto/crypto.h"
 #include "core/log.h"
 
-namespace qcm::qml_ncm
+using namespace qcm;
+
+namespace ncm::qml
 {
 
 CloudUploadModel::CloudUploadModel(QObject* parent): QAbstractListModel(parent) {}
@@ -41,14 +43,14 @@ auto CloudUploadModel::roleNames() const -> QHash<int, QByteArray> {
 }
 
 CloudUploadApi::CloudUploadApi(QObject* parent)
-    : qcm::QAsyncResultT<CloudUploadModel, ApiQuerierBase>(parent) {}
+    : qcm::QAsyncResultT<CloudUploadModel, NcmApiQueryBase>(parent) {}
 CloudUploadApi::~CloudUploadApi() {}
 
 void CloudUploadApi::reload() {}
 
 auto CloudUploadApi::upload_impl(std::filesystem::path path)
     -> asio::awaitable<nstd::expected<std::monostate, error::Error>> {
-    auto client = Global::instance()->qsession()->client().and_then(ncm::qml::get_ncm_client);
+    auto client = this->client();
     if (! client) co_return nstd::unexpected(error::Error::push("wrong session client"));
 
     ncm::api::CloudUploadCheck api;
@@ -195,4 +197,4 @@ void CloudUploadApi::upload(const QUrl& file) {
         });
 }
 
-} // namespace qcm::qml_ncm
+} // namespace ncm::qml

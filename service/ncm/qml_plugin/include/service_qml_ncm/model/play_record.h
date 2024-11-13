@@ -12,7 +12,7 @@
 
 #include "meta_model/qgadgetlistmodel.h"
 
-namespace qcm
+namespace ncm::qml
 {
 namespace model
 {
@@ -22,7 +22,7 @@ public:
     GADGET_PROPERTY_DEF(QVariant, data, data)
 };
 } // namespace model
-} // namespace qcm
+} // namespace ncm::qml
 
 DEFINE_CONVERT(qcm::model::Mix, ncm::model::PlayRecordItem::Playlist) {
     convert(out.id, in.id);
@@ -30,24 +30,24 @@ DEFINE_CONVERT(qcm::model::Mix, ncm::model::PlayRecordItem::Playlist) {
     convert(out.name, in.name);
 }
 
-DEFINE_CONVERT(qcm::model::PlayRecordItem, ncm::model::PlayRecordItem) {
-    auto data = std::visit(
-        overloaded { [](const ncm::model::Song& in) {
-                        return QVariant::fromValue(convert_from<qcm::model::Song>(in));
-                    },
-                     [](const ncm::model::Album& in) {
-                         return QVariant::fromValue(convert_from<qcm::model::Album>(in));
-                     },
-                     [](const ncm::model::PlayRecordItem::Playlist& in) {
-                         return QVariant::fromValue(convert_from<qcm::model::Mix>(in));
-                     },
-                     [](const ncm::model::DjradioB& in) {
-                         return QVariant::fromValue(convert_from<qcm::model::Radio>(in));
-                     } },
-        in.data);
+DEFINE_CONVERT(ncm::qml::model::PlayRecordItem, ncm::model::PlayRecordItem) {
+    auto data =
+        std::visit(overloaded { [](const ncm::model::Song& in) {
+                                   return QVariant::fromValue(convert_from<qcm::model::Song>(in));
+                               },
+                                [](const ncm::model::Album& in) {
+                                    return QVariant::fromValue(convert_from<qcm::model::Album>(in));
+                                },
+                                [](const ncm::model::PlayRecordItem::Playlist& in) {
+                                    return QVariant::fromValue(convert_from<qcm::model::Mix>(in));
+                                },
+                                [](const ncm::model::DjradioB& in) {
+                                    return QVariant::fromValue(convert_from<qcm::model::Radio>(in));
+                                } },
+                   in.data);
     out.data = data;
 }
-namespace qcm
+namespace ncm::qml
 {
 namespace model
 {
@@ -71,20 +71,19 @@ signals:
 };
 } // namespace model
 
-using PlayRecordQuerier_base = ApiQuerier<ncm::api::PlayRecord, model::PlayRecord>;
+using PlayRecordQuerier_base = NcmApiQuery<ncm::api::PlayRecord, model::PlayRecord>;
 class PlayRecordQuerier : public PlayRecordQuerier_base {
     Q_OBJECT
     QML_ELEMENT
 public:
     PlayRecordQuerier(QObject* parent = nullptr): PlayRecordQuerier_base(parent) {}
 
-    FORWARD_PROPERTY(qml_ncm::enums::IdType, type, type)
+    FORWARD_PROPERTY(enums::IdType, type, type)
     FORWARD_PROPERTY(qint32, limit, limit)
 
 public:
-    void fetch_more(qint32 cur_count) override {}
-public slots:
-    void reset() { reload(); }
+    void        fetch_more(qint32) override {}
+    Q_SLOT void reset() { reload(); }
 };
 
-} // namespace qcm
+} // namespace ncm::qml

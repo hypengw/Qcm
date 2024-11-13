@@ -248,25 +248,13 @@ MD.Page {
                                     }
                                 }
 
-                                delegate: Item {
+                                delegate: QA.PicCardGridDelegate {
                                     required property var model
-                                    width: GridView.view.cellWidth
-                                    height: GridView.view.cellHeight
-                                    QA.PicGridDelegate {
-                                        anchors.horizontalCenter: parent.horizontalCenter
-                                        anchors.top: parent.top
-                                        anchors.topMargin: 8
-
-                                        picWidth: parent.GridView.view.fixedCellWidth
-                                        width: picWidth
-                                        height: Math.min(implicitHeight, parent.height)
-                                        image.source: QA.Util.image_url(model.picUrl)
-                                        text: model.name
-                                        subText: Qt.formatDateTime(model.publishTime, 'yyyy')
-
-                                        onClicked: {
-                                            QA.Global.route(model.itemId);
-                                        }
+                                    image.source: QA.Util.image_url(model.picUrl)
+                                    text: model.name
+                                    subText: Qt.formatDateTime(model.publishTime, 'yyyy')
+                                    onClicked: {
+                                        QA.Global.route(model.itemId);
                                     }
                                 }
                             }

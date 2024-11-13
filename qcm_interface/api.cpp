@@ -206,7 +206,7 @@ usize QAsyncResult::size() const {
     return d->m_queue.size();
 }
 
-class ApiQuerierBase::Private {
+class ApiQueryBase::Private {
 public:
     Private(): m_auto_reload(true), m_dirty(true), m_session(nullptr) {}
 
@@ -219,75 +219,75 @@ public:
     model::Session* m_session;
 };
 
-ApiQuerierBase::ApiQuerierBase(QObject* parent): QAsyncResult(parent), d_ptr(make_up<Private>()) {
+ApiQueryBase::ApiQueryBase(QObject* parent): QAsyncResult(parent), d_ptr(make_up<Private>()) {
     connect(this,
-            &ApiQuerierBase::autoReloadChanged,
+            &ApiQueryBase::autoReloadChanged,
             this,
-            &ApiQuerierBase::reload_if_needed,
+            &ApiQueryBase::reload_if_needed,
             Qt::DirectConnection);
 }
 
-ApiQuerierBase::~ApiQuerierBase() {}
+ApiQueryBase::~ApiQueryBase() {}
 
-bool ApiQuerierBase::autoReload() const {
-    C_D(const ApiQuerierBase);
+bool ApiQueryBase::autoReload() const {
+    C_D(const ApiQueryBase);
     return d->m_auto_reload;
 }
 
-void ApiQuerierBase::set_autoReload(bool v) {
-    C_D(ApiQuerierBase);
+void ApiQueryBase::set_autoReload(bool v) {
+    C_D(ApiQueryBase);
     if (std::exchange(d->m_auto_reload, v) != v) {
         emit autoReloadChanged();
     }
 }
 
-auto ApiQuerierBase::session() const -> model::Session* {
-    C_D(const ApiQuerierBase);
+auto ApiQueryBase::session() const -> model::Session* {
+    C_D(const ApiQueryBase);
     if (d->m_session == nullptr) {
         return Global::instance()->qsession();
     }
     return d->m_session;
 }
-void ApiQuerierBase::set_session(model::Session* val) {
-    C_D(ApiQuerierBase);
+void ApiQueryBase::set_session(model::Session* val) {
+    C_D(ApiQueryBase);
     if (ycore::cmp_exchange(d->m_session, val)) {
         sessionChanged();
     }
 }
 
-void ApiQuerierBase::classBegin() {
-    C_D(ApiQuerierBase);
+void ApiQueryBase::classBegin() {
+    C_D(ApiQueryBase);
     d->m_qml_parsing = true;
 }
-void ApiQuerierBase::componentComplete() {
-    C_D(ApiQuerierBase);
+void ApiQueryBase::componentComplete() {
+    C_D(ApiQueryBase);
     d->m_qml_parsing = false;
     reload_if_needed();
 }
 
-bool ApiQuerierBase::is_qml_parsing() const {
-    C_D(const ApiQuerierBase);
+bool ApiQueryBase::is_qml_parsing() const {
+    C_D(const ApiQueryBase);
     return d->m_qml_parsing;
 }
 
-bool ApiQuerierBase::dirty() const {
-    C_D(const ApiQuerierBase);
+bool ApiQueryBase::dirty() const {
+    C_D(const ApiQueryBase);
     return d->m_dirty;
 }
-void ApiQuerierBase::mark_dirty(bool v) {
-    C_D(ApiQuerierBase);
+void ApiQueryBase::mark_dirty(bool v) {
+    C_D(ApiQueryBase);
     d->m_dirty = v;
 }
 
-void ApiQuerierBase::reload_if_needed() {
+void ApiQueryBase::reload_if_needed() {
     if (! is_qml_parsing() && autoReload() && dirty()) {
         reload();
         mark_dirty(false);
     }
 }
 
-void ApiQuerierBase::fetch_more(qint32) {}
+void ApiQueryBase::fetch_more(qint32) {}
 
-void ApiQuerierBase::query() { reload(); }
+void ApiQueryBase::query() { reload(); }
 
 } // namespace qcm

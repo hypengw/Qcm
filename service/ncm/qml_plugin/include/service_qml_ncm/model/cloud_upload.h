@@ -6,8 +6,9 @@
 
 #include "qcm_interface/api.h"
 #include "error/error.h"
+#include "service_qml_ncm/api.h"
 
-namespace qcm::qml_ncm
+namespace ncm::qml
 {
 
 class CloudUploadModel : public QAbstractListModel {
@@ -25,7 +26,7 @@ private:
     std::vector<Item> m_items;
 };
 
-class CloudUploadApi : public QAsyncResultT<CloudUploadModel, ApiQuerierBase> {
+class CloudUploadApi : public qcm::QAsyncResultT<CloudUploadModel, NcmApiQueryBase> {
     Q_OBJECT
     QML_ELEMENT
 public:
@@ -40,4 +41,4 @@ private:
     auto upload_impl(std::filesystem::path)
         -> asio::awaitable<nstd::expected<std::monostate, error::Error>>;
 };
-} // namespace qcm::qml_ncm
+} // namespace ncm::qml

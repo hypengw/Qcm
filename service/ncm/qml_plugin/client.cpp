@@ -89,8 +89,8 @@ auto prepare_session(ncm::Client c, qcm::model::ItemId userId) -> qcm::task<void
 }
 
 template<typename T>
-auto insert_artist(const T& in_list, rc<qcm::db::ItemSqlBase> sql,
-                   std::set<std::string> on_update) -> qcm::task<void> {
+auto insert_artist(const T& in_list, rc<qcm::db::ItemSqlBase> sql, std::set<std::string> on_update)
+    -> qcm::task<void> {
     auto list = qcm::oper::ArtistOper::create_list(0);
     for (auto& ar : in_list) {
         auto oper = qcm::oper::ArtistOper(list.emplace_back());
@@ -101,8 +101,8 @@ auto insert_artist(const T& in_list, rc<qcm::db::ItemSqlBase> sql,
 
 template<typename T, typename Func>
 auto insert_album(const T& in_list, Func&& get_artists, rc<qcm::db::ItemSqlBase> sql,
-                  const std::set<std::string>& columns,
-                  const std::set<std::string>& artist_columns) -> qcm::task<void> {
+                  const std::set<std::string>& columns, const std::set<std::string>& artist_columns)
+    -> qcm::task<void> {
     auto                                      list = qcm::oper::AlbumOper::create_list(0);
     std::vector<qcm::db::ItemSqlBase::IdPair> album_artist_ids;
     for (auto& el : in_list) {
@@ -411,8 +411,8 @@ auto collect(ClientBase& cbase, qcm::model::ItemId id, bool act) -> qcm::task<Re
                                   nid);
 }
 
-auto media_url(ClientBase& cbase, qcm::model::ItemId id,
-               qcm::enums::AudioQuality quality) -> qcm::task<Result<QUrl>> {
+auto media_url(ClientBase& cbase, qcm::model::ItemId id, qcm::enums::AudioQuality quality)
+    -> qcm::task<Result<QUrl>> {
     auto c = *get_client(cbase);
 
     ncm::api::SongUrl api;
@@ -427,8 +427,8 @@ auto media_url(ClientBase& cbase, qcm::model::ItemId id,
     });
 }
 
-auto sync_collection(ClientBase&                cbase,
-                     qcm::enums::CollectionType collection_type) -> qcm::task<Result<bool>> {
+auto sync_collection(ClientBase& cbase, qcm::enums::CollectionType collection_type)
+    -> qcm::task<Result<bool>> {
     auto c       = *get_client(cbase);
     auto user_id = get_user_id(cbase);
 
@@ -572,8 +572,8 @@ auto sync_collection(ClientBase&                cbase,
     co_return true;
 }
 
-auto sync_items(ClientBase&                         cbase,
-                std::span<const qcm::model::ItemId> itemIds) -> qcm::task<Result<bool>> {
+auto sync_items(ClientBase& cbase, std::span<const qcm::model::ItemId> itemIds)
+    -> qcm::task<Result<bool>> {
     auto c   = *get_client(cbase);
     auto sql = qcm::Global::instance()->get_item_sql();
     if (itemIds.empty()) co_return false;
@@ -636,7 +636,7 @@ auto sync_items(ClientBase&                         cbase,
             api.input.n = 100000;
             auto out    = co_await c.perform(api);
             if (out) {
-                auto                    list = qcm::oper::MixOper::create_list(1);
+                auto               list = qcm::oper::MixOper::create_list(1);
                 qcm::oper::MixOper oper(list.at(0));
                 convert(oper, out->playlist);
                 co_await sql->insert(list, {});
@@ -822,8 +822,8 @@ auto sync_list(ClientBase& cbase, qcm::enums::SyncListType type, qcm::model::Ite
     }
     co_return 0;
 }
-auto comments(ClientBase& cbase, qcm::model::ItemId item_id, i32 offset, i32 limit,
-              i32& total) -> qcm::task<Result<qcm::oper::OperList<qcm::model::Comment>>> {
+auto comments(ClientBase& cbase, qcm::model::ItemId item_id, i32 offset, i32 limit, i32& total)
+    -> qcm::task<Result<qcm::oper::OperList<qcm::model::Comment>>> {
     auto               c = *get_client(cbase);
     ncm::api::Comments api;
 
@@ -925,10 +925,10 @@ auto manipulate_mix(ClientBase& cbase, ItemId id, qcm::enums::ManipulateMixActio
 
 } // namespace ncm::impl
 
-namespace ncm::qml
+namespace ncm
 {
 
-auto create_client() -> qcm::Client {
+auto qml::create_client() -> qcm::Client {
     auto c = ncm::Client(
         qcm::Global::instance()->session(),
         qcm::Global::instance()->pool_executor(),
@@ -960,14 +960,26 @@ auto create_client() -> qcm::Client {
     return { .api = api, .instance = instance };
 }
 
-auto get_ncm_client(const qcm::Client& c) -> std::optional<ncm::Client> {
+auto qml::to_ncm_client(const qcm::Client& c) -> std::optional<ncm::Client> {
     if (c.api->provider == ncm::provider) {
         return *impl::get_client(*c.instance);
     } else
         return std::nullopt;
 }
 
-auto uniq(const QUrl& url, const QVariant& info) -> QString {
+auto qml::get_ncm_client() -> std::optional<ncm::Client> {
+    return qcm::get_client().and_then(to_ncm_client);
+}
+
+auto qml::check(std::optional<ncm::Client> opt, const std::source_location loc) -> bool {
+    if (! opt) {
+        qcm::LogManager::instance()->log(qcm::LogLevel::ERROR, loc, "client not valid");
+        return false;
+    }
+    return true;
+}
+
+auto qml::uniq(const QUrl& url, const QVariant& info) -> QString {
     auto    size = info.value<QSize>();
     QString size_query;
     if (size.isValid()) {
@@ -979,4 +991,4 @@ auto uniq(const QUrl& url, const QVariant& info) -> QString {
         .arg(size.height());
 }
 
-} // namespace ncm::qml
+} // namespace ncm

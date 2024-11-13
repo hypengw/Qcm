@@ -440,7 +440,7 @@ auto App::playqueue() const -> PlayQueue* { return m_playqueu; }
 auto App::play_id_queue() const -> PlayIdQueue* { return m_play_id_queue; }
 
 // #include <private/qquickpixmapcache_p.h>
-void App::releaseResources(QQuickWindow* win) {
+void App::releaseResources(QQuickWindow*) {
     INFO_LOG("gc");
     // win->releaseResources();
     m_qml_engine->trimComponentCache();
@@ -511,6 +511,7 @@ auto App::cache_sql() const -> rc<CacheSql> { return m_cache_sql; }
 auto App::album_sql() const -> rc<ItemSql> { return m_item_sql; }
 auto App::collect_sql() const -> rc<CollectionSql> { return m_collect_sql; }
 auto App::empty() const -> model::EmptyModel* { return m_empty; }
+void App::switchPlayIdQueue() { m_playqueu->setSourceModel(m_play_id_queue); }
 
 void App::load_settings() {
     QSettings s;

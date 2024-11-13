@@ -37,26 +37,26 @@ DEFINE_CONVERT(qcm::query::Song, ncm::model::UserCloudItem) {
     // convert(out.addTime, in.addTime);
 }
 
-namespace qcm
+namespace ncm::qml
 {
 namespace model
 {
 
-class UserCloud : public meta_model::QGadgetListModel<query::Song> {
+class UserCloud : public meta_model::QGadgetListModel<qcm::query::Song> {
     Q_OBJECT
 public:
     UserCloud(QObject* parent = nullptr)
-        : meta_model::QGadgetListModel<query::Song>(parent), m_has_more(true) {}
+        : meta_model::QGadgetListModel<qcm::query::Song>(parent), m_has_more(true) {}
     using out_type = ncm::api_model::UserCloud;
 
     void handle_output(const out_type& re, const auto& input) {
         if (input.offset == 0) {
-            auto in_ = convert_from<std::vector<query::Song>>(re.data);
+            auto in_ = convert_from<std::vector<qcm::query::Song>>(re.data);
             convertModel(in_, [](const auto& it) {
                 return convert_from<std::string>(it.id.toUrl().toString());
             });
         } else if (input.offset == (int)rowCount()) {
-            insert(rowCount(), convert_from<std::vector<query::Song>>(re.data));
+            insert(rowCount(), convert_from<std::vector<qcm::query::Song>>(re.data));
         }
         m_has_more = re.hasMore;
     }
@@ -68,7 +68,7 @@ public:
     }
     Q_SIGNAL void fetchMoreReq(qint32);
 
-    Q_INVOKABLE query::Song itemAt(qint32 idx) const {
+    Q_INVOKABLE qcm::query::Song itemAt(qint32 idx) const {
         if (idx < rowCount() && idx >= 0)
             return at(idx);
         else
@@ -89,10 +89,9 @@ public:
 private:
     bool m_has_more;
 };
-static_assert(modelable<UserCloud, ncm::api::UserCloud>);
 } // namespace model
 
-using UserCloudQuerier_base = ApiQuerier<ncm::api::UserCloud, model::UserCloud>;
+using UserCloudQuerier_base = NcmApiQuery<ncm::api::UserCloud, model::UserCloud>;
 class UserCloudQuerier : public UserCloudQuerier_base {
     Q_OBJECT
     QML_ELEMENT
@@ -110,4 +109,4 @@ public:
     }
 };
 
-} // namespace qcm
+} // namespace ncm::qml

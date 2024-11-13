@@ -53,8 +53,8 @@ struct Client {
         auto (*sync_list)(ClientBase&, enums::SyncListType type, model::ItemId itemId, i32 offset,
                           i32 limit) -> task<Result<i32>>;
 
-        auto (*comments)(ClientBase&, model::ItemId itemId, i32 offset, i32 limit,
-                         i32& total) -> task<Result<oper::OperList<model::Comment>>>;
+        auto (*comments)(ClientBase&, model::ItemId itemId, i32 offset, i32 limit, i32& total)
+            -> task<Result<oper::OperList<model::Comment>>>;
 
         auto (*create_mix)(ClientBase&, QString name) -> task<Result<model::ItemId>>;
         auto (*delete_mix)(ClientBase&, std::span<const model::ItemId> ids) -> task<Result<bool>>;
@@ -73,5 +73,7 @@ struct Client {
     rc<Api>        api;
     rc<ClientBase> instance;
 };
+
+QCM_INTERFACE_API auto get_client() -> std::optional<Client>;
 
 } // namespace qcm

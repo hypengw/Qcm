@@ -8,7 +8,7 @@
 
 #include "core/log.h"
 
-namespace qcm
+namespace ncm::qml
 {
 namespace model
 {
@@ -38,14 +38,12 @@ public:
         emit infoChanged();
     }
 
-signals:
-    void infoChanged();
+    Q_SIGNAL void infoChanged();
 };
-static_assert(modelable<SongLyric, ncm::api::SongLyric>);
 
 } // namespace model
 
-using SongLyricQuerier_base = ApiQuerier<ncm::api::SongLyric, model::SongLyric>;
+using SongLyricQuerier_base = NcmApiQuery<ncm::api::SongLyric, model::SongLyric>;
 class SongLyricQuerier : public SongLyricQuerier_base {
     Q_OBJECT
     QML_ELEMENT
@@ -54,4 +52,4 @@ public:
 
     FORWARD_PROPERTY(model::ItemId, songId, id)
 };
-} // namespace qcm
+} // namespace ncm::qml

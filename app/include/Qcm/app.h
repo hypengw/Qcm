@@ -111,6 +111,7 @@ public:
     auto        album_sql() const -> rc<ItemSql>;
     auto        collect_sql() const -> rc<CollectionSql>;
     auto        empty() const -> model::EmptyModel*;
+    void        switchPlayIdQueue();
 
     QObject* mpris() const;
 
@@ -150,6 +151,7 @@ public:
     Q_SLOT void on_play_by_id(model::ItemId songId, model::ItemId sourceId);
     Q_SLOT void on_queue_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId);
     Q_SLOT void on_switch_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId);
+    Q_SLOT void on_switch_queue(model::IdQueue*);
     Q_SLOT void on_logout();
     Q_SLOT void on_load_session(model::Session*);
     Q_SLOT void on_switch_user(model::ItemId);

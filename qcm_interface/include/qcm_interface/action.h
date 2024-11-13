@@ -8,9 +8,14 @@
 #include "qcm_interface/model/session.h"
 #include "qcm_interface/model/query_model.h"
 
+Q_MOC_INCLUDE("qcm_interface/model/id_queue.h")
 namespace qcm
 {
 
+namespace model
+{
+class IdQueue;
+}
 class QCM_INTERFACE_API Action : public QObject {
     Q_OBJECT
     QML_ELEMENT
@@ -42,6 +47,7 @@ Q_SIGNALS:
     void prev();
     void play(const query::Song&);
     void queue(const std::vector<query::Song>&);
+    void switch_queue(model::IdQueue*);
     void switch_to(const std::vector<query::Song>&);
     void play_by_id(model::ItemId songId, model::ItemId sourceId = {});
     void queue_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});

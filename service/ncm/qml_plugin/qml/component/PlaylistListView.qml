@@ -27,23 +27,12 @@ MD.Control {
         model: qr_pl.data
         fixedCellWidth: QA.Util.dynCardWidth(widthNoMargin, spacing)
 
-        delegate: Item {
-            width: GridView.view.cellWidth
-            height: GridView.view.cellHeight
-            QA.PicGridDelegate {
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.top: parent.top
-                anchors.topMargin: 8
-
-                picWidth: parent.GridView.view.fixedCellWidth
-                width: picWidth
-                height: Math.min(implicitHeight, parent.height)
-                text: model.name
-                // subText:
-                image.source: QA.Util.image_url(model.picUrl)
-                onClicked: {
-                    QA.Global.route(model.itemId);
-                }
+        delegate: QA.PicCardGridDelegate {
+            text: model.name
+            // subText:
+            image.source: QA.Util.image_url(model.picUrl)
+            onClicked: {
+                QA.Global.route(model.itemId);
             }
         }
 

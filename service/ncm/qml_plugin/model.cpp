@@ -5,7 +5,6 @@
 #include "service_qml_ncm/model/login.h"
 #include "service_qml_ncm/model/logout.h"
 #include "service_qml_ncm/model/playlist_catalogue.h"
-#include "service_qml_ncm/model/playlist_detail_dynamic.h"
 #include "service_qml_ncm/model/playlist_list.h"
 #include "service_qml_ncm/model/recommend_songs.h"
 #include "service_qml_ncm/model/recommend_resource.h"
@@ -174,12 +173,12 @@ IMPL_CONVERT(qcm::oper::ArtistOper, ncm::model::Song::Ar) {
 }
 
 IMPL_CONVERT(qcm::model::Album, ncm::model::Album) {
-    // convert(out.id, in.id);
-    // convert(out.name, in.name);
-    // convert(out.picUrl, in.picUrl);
+    convert(out.id, in.id);
+    convert(out.name, in.name);
+    convert(out.picUrl, in.picUrl);
     // convert(out.artists, in.artists);
-    // convert(out.publishTime, in.publishTime);
-    // convert(out.trackCount, std::max(in.size, (i64)in.songs.size()));
+    convert(out.publishTime, in.publishTime);
+    convert(out.trackCount, std::max(in.size, (i64)in.songs.size()));
 }
 
 IMPL_CONVERT(qcm::oper::AlbumReferOper, ncm::model::Song::Al) {

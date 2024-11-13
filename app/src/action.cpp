@@ -25,6 +25,7 @@ void App::connect_actions() {
     connect(Action::instance(), &Action::queue_ids, this, &App::on_queue_ids);
     connect(Action::instance(), &Action::switch_ids, this, &App::on_switch_ids);
     connect(Action::instance(), &Action::play_by_id, this, &App::on_play_by_id);
+    connect(Action::instance(), &Action::switch_queue, this, &App::on_switch_queue);
     connect(Action::instance(), &Action::record, this, &App::on_record);
     connect(Action::instance(),
             QOverload<const query::Song&>::of(&Action::play),
@@ -114,6 +115,7 @@ void App::connect_actions() {
         auto dog = make_rc<helper::WatchDog>();
         connect(Action::instance(), &Action::record, this, [dog, this](enums::RecordAction act) {
             switch (act) {
+            case enums::RecordAction::RecordSwitchQueue:
             case enums::RecordAction::RecordSwitch:
             case enums::RecordAction::RecordNext:
             case enums::RecordAction::RecordPrev: {
@@ -222,6 +224,8 @@ void App::on_load_session(model::Session* session) {
         helper::asio_detached_log_t {});
 }
 void App::on_play_by_id(model::ItemId songId, model::ItemId sourceId) {
+    switchPlayIdQueue();
+
     auto q   = App::instance()->play_id_queue();
     auto row = q->rowCount();
     q->insert(row, std::array { songId });
@@ -232,6 +236,8 @@ void App::on_play_by_id(model::ItemId songId, model::ItemId sourceId) {
 }
 
 void App::on_queue_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId) {
+    switchPlayIdQueue();
+
     auto q        = App::instance()->play_id_queue();
     auto inserted = q->insert(q->rowCount(), songIds);
     {
@@ -243,6 +249,8 @@ void App::on_queue_ids(const std::vector<model::ItemId>& songIds, model::ItemId 
         inserted > 0 ? fmt::format("Add {} songs to queue", inserted) : "Already added"s));
 }
 void App::on_switch_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId) {
+    switchPlayIdQueue();
+
     auto q = App::instance()->play_id_queue();
     q->removeRows(0, q->rowCount());
     q->insert(q->rowCount(), songIds);
@@ -343,10 +351,14 @@ void App::on_record(enums::RecordAction record) {
     }
 }
 void App::on_play_song(const query::Song& s) {
+    switchPlayIdQueue();
+
     App::instance()->playqueue()->update(std::array { s });
     on_play_by_id(s.id, {});
 }
 void App::on_queue(const std::vector<query::Song>& s) {
+    switchPlayIdQueue();
+
     std::vector<model::ItemId> ids;
     for (auto& el : s) {
         ids.emplace_back(el.id);
@@ -355,12 +367,26 @@ void App::on_queue(const std::vector<query::Song>& s) {
     on_queue_ids(ids, {});
 }
 void App::on_switch_to(const std::vector<query::Song>& s) {
+    switchPlayIdQueue();
+
     std::vector<model::ItemId> ids;
     for (auto& el : s) {
         ids.emplace_back(el.id);
     }
     App::instance()->playqueue()->update(s);
     on_switch_ids(ids, {});
+}
+
+void App::on_switch_queue(model::IdQueue* queue) {
+    if (queue == nullptr) {
+        INFO_LOG("queue is null");
+    } else {
+        m_playqueu->setSourceModel(queue);
+        if (queue->rowCount()) {
+            queue->setCurrentIndex(0);
+        }
+        Action::instance()->record(enums::RecordAction::RecordSwitchQueue);
+    }
 }
 
 } // namespace qcm

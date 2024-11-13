@@ -15,7 +15,7 @@ DEFINE_CONVERT(qcm::model::Mix, ncm::model::RecommendResourceItem) {
     convert(out.updateTime, in.createTime);
 }
 
-namespace qcm
+namespace ncm::qml
 {
 
 namespace model
@@ -27,7 +27,7 @@ public:
     RecommendResource(QObject* parent = nullptr): QObject(parent) {}
     using out_type = ncm::api_model::RecommendResource;
 
-    READ_PROPERTY(std::vector<Mix>, dailyPlaylists, m_dailyPlaylists, infoChanged)
+    READ_PROPERTY(std::vector<qcm::model::Mix>, dailyPlaylists, m_dailyPlaylists, infoChanged)
 
     void handle_output(const out_type& in, const auto&) {
         auto& o = *this;
@@ -38,16 +38,15 @@ public:
 signals:
     void infoChanged();
 };
-static_assert(modelable<RecommendResource, ncm::api::RecommendResource>);
 
 } // namespace model
 
 using RecommendResourceQuerier_base =
-    ApiQuerier<ncm::api::RecommendResource, model::RecommendResource>;
+    NcmApiQuery<ncm::api::RecommendResource, model::RecommendResource>;
 class RecommendResourceQuerier : public RecommendResourceQuerier_base {
     Q_OBJECT
     QML_ELEMENT
 public:
     RecommendResourceQuerier(QObject* parent = nullptr): RecommendResourceQuerier_base(parent) {}
 };
-} // namespace qcm
+} // namespace ncm::qml

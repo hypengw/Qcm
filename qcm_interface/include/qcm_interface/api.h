@@ -26,17 +26,18 @@ concept modelable =
     detail::modelable<M, A> && (! std::derived_from<M, QAbstractItemModel> ||
                                 requires(M t, qint32 offset) { t.fetchMoreReq(offset); });
 
-class QCM_INTERFACE_API ApiQuerierBase : public QAsyncResult, public QQmlParserStatus {
+class QCM_INTERFACE_API ApiQueryBase : public QAsyncResult, public QQmlParserStatus {
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)
 
     Q_PROPERTY(bool autoReload READ autoReload WRITE set_autoReload NOTIFY autoReloadChanged FINAL)
     Q_PROPERTY(QObject* parent READ parent CONSTANT FINAL)
-    Q_PROPERTY(qcm::model::Session* session READ session WRITE set_session NOTIFY sessionChanged FINAL)
+    Q_PROPERTY(
+        qcm::model::Session* session READ session WRITE set_session NOTIFY sessionChanged FINAL)
 
 public:
-    ApiQuerierBase(QObject* parent = nullptr);
-    virtual ~ApiQuerierBase();
+    ApiQueryBase(QObject* parent = nullptr);
+    virtual ~ApiQueryBase();
     using Status = enums::ApiStatus;
 
     Q_INVOKABLE void query();
@@ -96,7 +97,7 @@ protected:
 
 private:
     class Private;
-    C_DECLARE_PRIVATE(ApiQuerierBase, d_ptr);
+    C_DECLARE_PRIVATE(ApiQueryBase, d_ptr);
 };
 
 } // namespace qcm

@@ -7,7 +7,7 @@
 
 #include "core/log.h"
 
-namespace qcm
+namespace ncm::qml
 {
 
 namespace model
@@ -27,18 +27,16 @@ public:
         emit infoChanged();
     }
 
-signals:
-    void infoChanged();
+    Q_SIGNAL void infoChanged();
 };
-static_assert(modelable<Logout, ncm::api::Logout>);
 
 } // namespace model
 
-using LogoutQuerier_base = ApiQuerier<ncm::api::Logout, model::Logout>;
+using LogoutQuerier_base = NcmApiQuery<ncm::api::Logout, model::Logout>;
 class LogoutQuerier : public LogoutQuerier_base {
     Q_OBJECT
     QML_ELEMENT
 public:
     LogoutQuerier(QObject* parent = nullptr): LogoutQuerier_base(parent) {}
 };
-} // namespace qcm
+} // namespace ncm::qml

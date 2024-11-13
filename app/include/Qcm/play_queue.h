@@ -83,6 +83,8 @@ class PlayQueue : public meta_model::QMetaModelBase<QIdentityProxyModel> {
     Q_PROPERTY(bool randomMode READ randomMode WRITE setRandomMode NOTIFY randomModeChanged FINAL)
     Q_PROPERTY(bool canNext READ canNext NOTIFY canNextChanged FINAL)
     Q_PROPERTY(bool canPrev READ canPrev NOTIFY canPrevChanged FINAL)
+    Q_PROPERTY(bool canJump READ canJump NOTIFY canJumpChanged FINAL)
+    Q_PROPERTY(QString name READ name NOTIFY nameChanged FINAL)
 
     using base_type = meta_model::QMetaModelBase<QIdentityProxyModel>;
 
@@ -96,6 +98,7 @@ public:
     auto data(const QModelIndex& index, int role) const -> QVariant override;
     void setSourceModel(QAbstractItemModel* sourceModel) override;
 
+    auto          name() const -> const QString&;
     auto          currentId() const -> std::optional<model::ItemId>;
     auto          getId(qint32 idx) const -> std::optional<model::ItemId>;
     auto          currentIndex() const -> qint32;
@@ -119,10 +122,14 @@ public:
 
     auto          canNext() const -> bool;
     auto          canPrev() const -> bool;
+    auto          canJump() const -> bool;
     void          setCanNext(bool);
     void          setCanPrev(bool);
+    void          setCanJump(bool);
     Q_SIGNAL void canNextChanged();
     Q_SIGNAL void canPrevChanged();
+    Q_SIGNAL void canJumpChanged();
+    Q_SIGNAL void nameChanged();
 
     Q_SLOT void next();
     Q_SLOT void prev();
@@ -154,9 +161,11 @@ private:
     mutable std::unordered_map<usize, query::Song>   m_songs;
     mutable std::unordered_map<usize, model::ItemId> m_source_ids;
 
-    bool m_can_next;
-    bool m_can_prev;
-    bool m_random_mode;
+    bool    m_can_next;
+    bool    m_can_prev;
+    bool    m_can_jump;
+    bool    m_random_mode;
+    QString m_name;
 
     Q_OBJECT_BINDABLE_PROPERTY(PlayQueue, int, m_current_index, &PlayQueue::currentIndexChanged)
 };

@@ -102,7 +102,8 @@ set(QML_FILES
     qml/page/StatusPage.qml
     qml/delegate/CommentDelegate.qml
     qml/delegate/SongDelegate.qml
-    qml/delegate/PicGridDelegate.qml
+    qml/delegate/PicCardDelegate.qml
+    qml/delegate/PicCardGridDelegate.qml
     qml/delegate/ProgramDelegate.qml
     qml/component/SnakeView.qml
     qml/component/Mpris.qml

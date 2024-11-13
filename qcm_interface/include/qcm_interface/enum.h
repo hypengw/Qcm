@@ -106,6 +106,7 @@ enum class RecordAction
     RecordSwitch = 0,
     RecordNext,
     RecordPrev,
+    RecordSwitchQueue
 };
 Q_ENUM_NS(RecordAction)
 

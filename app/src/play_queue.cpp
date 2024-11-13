@@ -9,7 +9,7 @@
 #include "core/optional_helper.h"
 #include "asio_helper/basic.h"
 #include "asio_qt/qt_sql.h"
-#include "qcm_interface/global.h"
+#include "qcm_interface/ex.h"
 #include "qcm_interface/action.h"
 #include "qcm_interface/sync_api.h"
 #include "Qcm/app.h"
@@ -38,6 +38,8 @@ PlayIdProxyQueue::PlayIdProxyQueue(QObject* parent)
 PlayIdProxyQueue::~PlayIdProxyQueue() {}
 void PlayIdProxyQueue::setSourceModel(QAbstractItemModel* source_model) {
     auto old = sourceModel();
+    if (old == source_model) return;
+
     QIdentityProxyModel::setSourceModel(source_model);
     QBindable<qint32> source_idx(source_model, "currentIndex");
     m_current_index.setBinding([source_idx, this] {
@@ -229,6 +231,9 @@ auto PlayQueue::data(const QModelIndex& index, int role) const -> QVariant {
 
 void PlayQueue::setSourceModel(QAbstractItemModel* source_model) {
     auto old = sourceModel();
+
+    if (old == source_model) return;
+
     base_type::setSourceModel(source_model);
     QBindable<qint32> source_idx(source_model, "currentIndex");
     m_current_index.setBinding([source_idx] {
@@ -242,9 +247,9 @@ void PlayQueue::setSourceModel(QAbstractItemModel* source_model) {
                    &QAbstractItemModel::rowsAboutToBeRemoved,
                    this,
                    &PlayQueue::onSourceRowsAboutToBeRemoved);
-        disconnect(this, SIGNAL(requestNext), old, SIGNAL(requestNext));
+        disconnect(this, SIGNAL(requestNext()), old, SIGNAL(requestNext()));
     }
-    connect(this, SIGNAL(requestNext), source_model, SIGNAL(requestNext));
+    connect(this, SIGNAL(requestNext()), source_model, SIGNAL(requestNext()));
     connect(
         source_model, &QAbstractItemModel::rowsInserted, this, &PlayQueue::onSourceRowsInserted);
     connect(source_model, &QAbstractItemModel::rowsRemoved, this, &PlayQueue::onSourceRowsRemoved);
@@ -256,6 +261,17 @@ void PlayQueue::setSourceModel(QAbstractItemModel* source_model) {
     m_options = source_model->property("options").value<model::IdQueue::Options>();
     m_proxy->setSourceModel(source_model);
     checkCanMove();
+
+    if (old) {
+        this->onSourceRowsInserted({}, 0, source_model->rowCount());
+    }
+
+    if (auto p = source_model->property("name"); p.isValid()) {
+        m_name = p.toString();
+        nameChanged();
+    }
+
+    setCanJump(m_options & Option::SupportJump);
 }
 
 auto PlayQueue::currentSong() const -> query::Song {
@@ -291,6 +307,7 @@ void PlayQueue::setCurrentSong(qint32 idx) {
     }));
 }
 
+auto PlayQueue::name() const -> const QString& { return m_name; }
 auto PlayQueue::currentId() const -> std::optional<model::ItemId> { return getId(currentIndex()); }
 
 auto PlayQueue::getId(qint32 idx) const -> std::optional<model::ItemId> {
@@ -335,8 +352,9 @@ void PlayQueue::setRandomMode(bool v) {
 }
 
 auto PlayQueue::canNext() const -> bool { return m_can_next; }
-
 auto PlayQueue::canPrev() const -> bool { return m_can_prev; }
+auto PlayQueue::canJump() const -> bool { return m_can_jump; }
+
 void PlayQueue::setCanNext(bool v) {
     if (ycore::cmp_exchange(m_can_next, v)) {
         canNextChanged();
@@ -345,6 +363,11 @@ void PlayQueue::setCanNext(bool v) {
 void PlayQueue::setCanPrev(bool v) {
     if (ycore::cmp_exchange(m_can_prev, v)) {
         canPrevChanged();
+    }
+}
+void PlayQueue::setCanJump(bool v) {
+    if (ycore::cmp_exchange(m_can_jump, v)) {
+        canJumpChanged();
     }
 }
 
@@ -479,7 +502,7 @@ auto PlayQueue::querySongs(std::span<const model::ItemId> ids) -> task<void> {
         ids, ItemSql::Table::SONG, ItemSql::Table::ALBUM, { "album.picUrl"s });
     if (! missing.empty()) co_await query::SyncAPi::sync_items(missing);
     auto songs = co_await querySongsSql(ids);
-    co_await asio::post(asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
+    co_await asio::post(asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
     std::unordered_set<usize> hashes;
     for (auto& s : songs) {
         auto  hash      = get_hash(s.id);
@@ -531,7 +554,7 @@ void PlayQueue::onSourceRowsInserted(const QModelIndex&, int first, int last) {
         }
     }
 
-    auto ex = asio::make_strand(Global::instance()->pool_executor());
+    auto ex = asio::make_strand(qcm::pool_executor());
     asio::co_spawn(
         ex,
         [ids, this] -> task<void> {

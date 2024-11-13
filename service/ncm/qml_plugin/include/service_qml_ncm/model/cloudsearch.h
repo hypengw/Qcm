@@ -12,18 +12,19 @@
 
 #include "core/log.h"
 
-namespace qcm
+namespace ncm::qml
 {
 namespace model
 {
 
-class CloudSearch : public meta_model::VariantListModel<model::Song, model::Album, model::Mix,
-                                                        model::Artist, model::Radio> {
+class CloudSearch
+    : public meta_model::VariantListModel<qcm::model::Song, qcm::model::Album, qcm::model::Mix,
+                                          qcm::model::Artist, qcm::model::Radio> {
     Q_OBJECT
 public:
     CloudSearch(QObject* parent = nullptr)
-        : meta_model::VariantListModel<model::Song, model::Album, model::Mix, model::Artist,
-                                       model::Radio>(parent),
+        : meta_model::VariantListModel<qcm::model::Song, qcm::model::Album, qcm::model::Mix,
+                                       qcm::model::Artist, qcm::model::Radio>(parent),
           m_has_more(true) {
         connect(this, &CloudSearch::modelReset, this, [this]() {
             fetchMore({});
@@ -55,35 +56,35 @@ public:
 
     void handle_output(const out_type& re, const auto&) {
         {
-            Helper<out_type::SongResult, model::Song> h(*this, re);
+            Helper<out_type::SongResult, qcm::model::Song> h(*this, re);
             if (h) {
                 this->insert(rowCount(), h.to(helper::value_or_default(h.src().songs)));
                 m_has_more = h.src().songCount > rowCount();
             }
         }
         {
-            Helper<out_type::AlbumResult, model::Album> h(*this, re);
+            Helper<out_type::AlbumResult, qcm::model::Album> h(*this, re);
             if (h) {
                 this->insert(rowCount(), h.to(helper::value_or_default(h.src().albums)));
                 m_has_more = h.src().albumCount > rowCount();
             }
         }
         {
-            Helper<out_type::PlaylistResult, model::Mix> h(*this, re);
+            Helper<out_type::PlaylistResult, qcm::model::Mix> h(*this, re);
             if (h) {
                 this->insert(rowCount(), h.to(helper::value_or_default(h.src().playlists)));
                 m_has_more = h.src().playlistCount > rowCount();
             }
         }
         {
-            Helper<out_type::ArtistResult, model::Artist> h(*this, re);
+            Helper<out_type::ArtistResult, qcm::model::Artist> h(*this, re);
             if (h) {
                 this->insert(rowCount(), h.to(helper::value_or_default(h.src().artists)));
                 m_has_more = h.src().artistCount > rowCount();
             }
         }
         {
-            Helper<out_type::DjradioResult, model::Radio> h(*this, re);
+            Helper<out_type::DjradioResult, qcm::model::Radio> h(*this, re);
             if (h) {
                 this->insert(rowCount(), h.to(helper::value_or_default(h.src().djRadios)));
                 m_has_more = h.src().djRadiosCount > rowCount();
@@ -104,10 +105,9 @@ signals:
 private:
     bool m_has_more;
 };
-static_assert(modelable<CloudSearch, ncm::api::CloudSearch>);
 } // namespace model
 
-using CloudSearchQuerier_base = ApiQuerier<ncm::api::CloudSearch, model::CloudSearch>;
+using CloudSearchQuerier_base = NcmApiQuery<ncm::api::CloudSearch, model::CloudSearch>;
 class CloudSearchQuerier : public CloudSearchQuerier_base {
     Q_OBJECT
     QML_ELEMENT
@@ -153,31 +153,31 @@ public:
     void fetch_more(qint32 cur_count) override { set_offset(cur_count); }
 };
 
-} // namespace qcm
+} // namespace ncm::qml
 
-inline void qcm::model::CloudSearch::updateType(int t) {
+inline void ncm::qml::model::CloudSearch::updateType(int t) {
     const QMetaObject* meta { nullptr };
     std::size_t        i { 0 };
     switch (t) {
     case CloudSearchQuerier::AlbumType:
-        meta = &model::Album::staticMetaObject;
+        meta = &qcm::model::Album::staticMetaObject;
         i    = 1;
         break;
     case CloudSearchQuerier::PlaylistType:
-        meta = &model::Mix::staticMetaObject;
+        meta = &qcm::model::Mix::staticMetaObject;
         i    = 2;
         break;
     case CloudSearchQuerier::AritstType:
-        meta = &model::Artist::staticMetaObject;
+        meta = &qcm::model::Artist::staticMetaObject;
         i    = 3;
         break;
     case CloudSearchQuerier::DjradioType:
-        meta = &model::Radio::staticMetaObject;
+        meta = &qcm::model::Radio::staticMetaObject;
         i    = 4;
         break;
     default:
     case CloudSearchQuerier::SongType:
-        meta = &model::Song::staticMetaObject;
+        meta = &qcm::model::Song::staticMetaObject;
         i    = 0;
         break;
     }

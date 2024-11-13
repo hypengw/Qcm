@@ -8,26 +8,39 @@
 #include "asio_qt/qt_watcher.h"
 #include "service_qml_ncm/client.h"
 
-namespace qcm
+namespace ncm::qml
 {
+
+namespace model
+{
+using ItemId = qcm::model::ItemId;
+}
+
+class NcmApiQueryBase : public qcm::ApiQueryBase {
+protected:
+    using ApiQueryBase::ApiQueryBase;
+    auto client() { return this->session()->client().and_then(ncm::qml::to_ncm_client); }
+};
 
 template<typename TApi, typename TModel>
     requires ncm::api::ApiCP<TApi> //&& modelable<TModel, TApi>
-class ApiQuerier : public QAsyncResultT<TModel, ApiQuerierBase> {
+class NcmApiQuery : public qcm::QAsyncResultT<TModel, NcmApiQueryBase> {
 public:
     using api_type   = TApi;
     using out_type   = typename TApi::out_type;
     using in_type    = typename TApi::in_type;
     using model_type = TModel;
-    using Status     = QAsyncResult::Status;
+    using Status     = qcm::QAsyncResult::Status;
 
-    ApiQuerier(QObject* parent): QAsyncResultT<TModel, ApiQuerierBase>(parent) {
-        if constexpr (requires() { TModel::fetchMoreReq; }) {
-            connect(this->tdata(),
-                    &TModel::fetchMoreReq,
-                    this,
-                    &ApiQuerier::fetch_more,
-                    Qt::DirectConnection);
+    NcmApiQuery(QObject* parent): qcm::QAsyncResultT<TModel, NcmApiQueryBase>(parent) {
+        if constexpr (requires(TModel* m, qint32 offset) {
+                          { m->fetchMoreReq(offset) };
+                      }) {
+            this->connect(this->tdata(),
+                          &TModel::fetchMoreReq,
+                          this,
+                          &NcmApiQuery::fetch_more,
+                          Qt::DirectConnection);
         }
     }
 
@@ -58,7 +71,7 @@ public:
             co_await asio::post(asio::bind_executor(cnt.main_ex, asio::use_awaitable));
             if (self) {
                 if (out) {
-                    if constexpr (modelable<TModel, TApi>) {
+                    if constexpr (qcm::modelable<TModel, TApi>) {
                         self->model()->handle_output(std::move(out).value(), cnt.api.input);
                     } else {
                         self->handle_output(out.value());
@@ -77,18 +90,17 @@ protected:
     api_type&       api() { return m_api; }
     const api_type& api() const { return m_api; }
     model_type*     model() { return this->tdata(); }
-    auto client() { return this->session()->client().and_then(ncm::qml::get_ncm_client); }
 
 private:
     struct Context {
-        QtExecutor                                 main_ex;
-        ncm::Client                                client;
-        api_type                                   api;
-        helper::QWatcher<ApiQuerier<TApi, TModel>> self;
+        QtExecutor                                  main_ex;
+        ncm::Client                                 client;
+        api_type                                    api;
+        helper::QWatcher<NcmApiQuery<TApi, TModel>> self;
     };
 
     auto gen_context() -> std::optional<Context> {
-        return client().transform([this](auto c) {
+        return this->client().transform([this](auto c) {
             return Context {
                 .main_ex = this->get_executor(),
                 .client  = c,
@@ -99,4 +111,4 @@ private:
     }
     api_type m_api;
 };
-} // namespace qcm
+} // namespace ncm::qml
