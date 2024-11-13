@@ -35,6 +35,7 @@ set(SOURCES
 
 set(QML_FILES
     qml/page/CloudUploadPage.qml
+    qml/page/DailySongPage.qml
     qml/page/LoginPage.qml
     qml/page/RecordPage.qml
     qml/page/TodayPage.qml

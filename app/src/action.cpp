@@ -4,7 +4,7 @@
 #include <QVariant>
 
 #include "Qcm/app.h"
-#include "Qcm/query/query.h"
+#include "qcm_interface/query.h"
 #include "core/strv_helper.h"
 
 #include "asio_helper/basic.h"
@@ -27,6 +27,7 @@ void App::connect_actions() {
     connect(Action::instance(), &Action::play_by_id, this, &App::on_play_by_id);
     connect(Action::instance(), &Action::switch_queue, this, &App::on_switch_queue);
     connect(Action::instance(), &Action::record, this, &App::on_record);
+    connect(Action::instance(), &Action::route_by_id, this, &App::on_route_by_id);
     connect(Action::instance(),
             QOverload<const query::Song&>::of(&Action::play),
             this,
@@ -387,6 +388,36 @@ void App::on_switch_queue(model::IdQueue* queue) {
         }
         Action::instance()->record(enums::RecordAction::RecordSwitchQueue);
     }
+}
+
+void App::on_route_by_id(const model::ItemId& id, const QVariantMap& in_props) {
+    model::RouteMsg msg;
+    QUrl            url;
+    auto&           type = id.type();
+    if (type == "album") {
+        url = u"qrc:/Qcm/App/qml/page/AlbumDetailPage.qml"_s;
+    } else if (type == "artist") {
+        url = u"qrc:/Qcm/App/qml/page/ArtistDetailPage.qml"_s;
+    } else if (type == "playlist") {
+        url = u"qrc:/Qcm/App/qml/page/MixDetailPage.qml"_s;
+    } else if (type == "radio") {
+        url = u"qrc:/Qcm/App/qml/page/RadioDetailPage.qml"_s;
+    } else {
+        INFO_LOG("no page url for item type: {}", type);
+        return;
+    }
+
+    Action::instance()->route_special(u"main"_s);
+
+    auto props = in_props;
+    msg.set_url(url);
+    props["itemId"] = QVariant::fromValue(id);
+    msg.set_props(std::move(props));
+
+    if (debug()) {
+        INFO_LOG("route to: {}", url.toString());
+    }
+    Action::instance()->route(msg);
 }
 
 } // namespace qcm

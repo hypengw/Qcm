@@ -4,6 +4,7 @@
 #include "service_qml_ncm/api.h"
 #include "service_qml_ncm/model.h"
 #include "ncm/api/recommend_resource.h"
+#include "meta_model/qgadgetlistmodel.h"
 
 #include "core/log.h"
 
@@ -21,22 +22,12 @@ namespace ncm::qml
 namespace model
 {
 
-class RecommendResource : public QObject {
+class RecommendResource : public meta_model::QGadgetListModel<qcm::model::Mix> {
     Q_OBJECT
 public:
-    RecommendResource(QObject* parent = nullptr): QObject(parent) {}
+    RecommendResource(QObject* parent = nullptr)
+        : meta_model::QGadgetListModel<qcm::model::Mix>(parent) {}
     using out_type = ncm::api_model::RecommendResource;
-
-    READ_PROPERTY(std::vector<qcm::model::Mix>, dailyPlaylists, m_dailyPlaylists, infoChanged)
-
-    void handle_output(const out_type& in, const auto&) {
-        auto& o = *this;
-        convert(o.m_dailyPlaylists, in.recommend);
-        emit infoChanged();
-    }
-
-signals:
-    void infoChanged();
 };
 
 } // namespace model
@@ -48,5 +39,20 @@ class RecommendResourceQuerier : public RecommendResourceQuerier_base {
     QML_ELEMENT
 public:
     RecommendResourceQuerier(QObject* parent = nullptr): RecommendResourceQuerier_base(parent) {}
+
+    void handle_output(const out_type& in) {
+        auto                         view = std::views::transform(std::views::filter(in.recommend,
+                                                             [](const auto& el) {
+                                                                 return el.id !=
+                                                                        ncm::model::RadarId_Private;
+                                                             }),
+                                          [](const auto& el) {
+                                              qcm::model::Mix mix;
+                                              convert(mix, el);
+                                              return mix;
+                                          });
+        std::vector<qcm::model::Mix> mixs { view.begin(), view.end() };
+        tdata()->resetModel(mixs);
+    }
 };
 } // namespace ncm::qml

@@ -32,7 +32,7 @@ MD.Control {
             // subText:
             image.source: QA.Util.image_url(model.picUrl)
             onClicked: {
-                QA.Global.route(model.itemId);
+                QA.Action.route_by_id(model.itemId);
             }
         }
 

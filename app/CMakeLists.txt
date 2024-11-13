@@ -27,7 +27,6 @@ set(SOURCES
     include/Qcm/sql/item_sql.h
     include/Qcm/sql/cache_sql.h
     include/Qcm/sql/collection_sql.h
-    include/Qcm/query/query.h
     include/Qcm/query/query_model.h
     include/Qcm/query/album_collection.h
     include/Qcm/query/artist_collection.h

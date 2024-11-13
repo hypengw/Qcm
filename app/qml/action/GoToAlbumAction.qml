@@ -13,6 +13,6 @@ Action {
     enabled: albumId.valid()
     onTriggered: {
         console.error(root.albumId);
-        QA.Global.route(root.albumId);
+        QA.Action.route_by_id(root.albumId);
     }
 }

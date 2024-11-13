@@ -71,7 +71,8 @@ public:
     QMetaListModelBase(QObject* parent = nullptr);
     virtual ~QMetaListModelBase();
 
-    Q_INVOKABLE virtual QVariant item(int index) const = 0;
+    Q_INVOKABLE virtual QVariant     item(qint32 index) const                      = 0;
+    Q_INVOKABLE virtual QVariantList items(qint32 offset = 0, qint32 n = -1) const = 0;
 };
 
 template<typename TItem, typename IMPL>
@@ -192,6 +193,15 @@ public:
             return QVariant::fromValue(crtp_impl().at(idx));
         }
     }
+
+    auto items(qint32 offset = 0, qint32 n = -1) const -> QVariantList override {
+        if (n == -1) n = rowCount();
+        auto view = std::views::transform(std::views::iota(offset, n), [this](qint32 idx) {
+            return item(idx);
+        });
+        return QVariantList { view.begin(), view.end() };
+    }
+
     virtual int rowCount(const QModelIndex& = QModelIndex()) const override {
         return crtp_impl().size();
     }

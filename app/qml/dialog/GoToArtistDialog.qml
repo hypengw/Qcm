@@ -38,7 +38,7 @@ MD.Dialog {
             }
             onClicked: {
                 MD.Util.closePopup(root);
-                QA.Global.route(modelData);
+                QA.Action.route_by_id(modelData);
             }
         }
     }

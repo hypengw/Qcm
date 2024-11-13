@@ -75,7 +75,7 @@ MD.Page {
                         onClicked: {
                             const artists = root.albumInfo.artists;
                             if (artists.length === 1)
-                                QA.Global.route(artists[0].itemId);
+                                QA.Action.route_by_id(artists[0].itemId);
                             else
                                 MD.Util.show_popup('qrc:/Qcm/App/qml/component/ArtistsPopup.qml', {
                                         "model": artists

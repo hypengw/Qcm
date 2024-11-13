@@ -171,7 +171,7 @@ MD.Page {
                                 action: QC.Action {
                                     icon.name: MD.Token.icon.search
                                     onTriggered: {
-                                        QA.Global.route('qrc:/Qcm/App/qml/page/SearchPage.qml');
+                                        // QA.Action.route_by_id('qrc:/Qcm/App/qml/page/SearchPage.qml');
                                     }
                                 }
                             }

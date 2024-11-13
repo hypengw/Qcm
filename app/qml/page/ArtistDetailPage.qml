@@ -254,7 +254,7 @@ MD.Page {
                                     text: model.name
                                     subText: Qt.formatDateTime(model.publishTime, 'yyyy')
                                     onClicked: {
-                                        QA.Global.route(model.itemId);
+                                        QA.Action.route_by_id(model.itemId);
                                     }
                                 }
                             }

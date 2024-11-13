@@ -24,12 +24,12 @@ MD.Page {
         id: m_view
         anchors.fill: parent
         expand: true
-        bottomMargin: 8
         currentIndex: model.currentIndex
         highlightMoveDuration: 1000
         highlightMoveVelocity: -1
         model: QA.App.playqueue
         topMargin: 8
+        bottomMargin: 8
 
         MD.FontMetrics {
             id: item_font_metrics
@@ -44,6 +44,7 @@ MD.Page {
             required property var index
             readonly property bool is_playing: ListView.isCurrentItem
 
+            rightPadding: 4
             width: ListView.view.width
             onClicked: {
                 const m = ListView.view.model;

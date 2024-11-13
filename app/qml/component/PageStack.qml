@@ -3,7 +3,7 @@ import QtQuick.Controls.Basic
 
 import Qcm.Material as MD
 
-StackView {
+MD.StackView {
     id: root
 
     readonly property var pages: new Map()
@@ -20,7 +20,7 @@ StackView {
     function push_page(url, props = {}) {
         const key = JSON.stringify({
             "url": url,
-            "props": props
+            "props": MD.Util.params_string(props)
         });
         let item = pages.get(key);
         if (item) {

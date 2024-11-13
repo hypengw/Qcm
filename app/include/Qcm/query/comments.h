@@ -4,7 +4,7 @@
 #include <QAbstractListModel>
 
 #include "asio_helper/basic.h"
-#include "Qcm/query/query.h"
+#include "qcm_interface/query.h"
 #include "qcm_interface/model/comment.h"
 #include "meta_model/qgadgetlistmodel.h"
 #include "core/log.h"

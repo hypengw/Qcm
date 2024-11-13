@@ -18,7 +18,12 @@ namespace model
 using IdType = enums::IdType;
 
 struct Id {
-    std::variant<i64, std::string> id { 0 };
+    std::variant<i64, std::string> id;
+
+    Id(std::string_view id): id(std::string(id)) {}
+    Id(const std::string& id): id(id) {}
+    Id(i64 id): id(id) {}
+    Id(): id(0) {}
 
     auto as_str() const -> std::string {
         return std::visit(
@@ -43,7 +48,15 @@ struct Id {
                           id);
     }
 
-    std::strong_ordering operator<=>(const Id&) const = default;
+    bool                 operator==(std::string_view id) const { return as_str() == id; }
+    bool                 operator==(const Id& id) const { return (*this <=> id) == 0; }
+    std::strong_ordering operator<=>(const Id& o) const {
+        if (this->id.index() == o.id.index()) {
+            return o.id <=> this->id;
+        } else {
+            return as_str() <=> o.as_str();
+        }
+    }
 };
 
 struct AlbumId : Id {
@@ -80,6 +93,7 @@ using IdTypes = ycore::type_list<SongId, ProgramId, AlbumId, PlaylistId, Djradio
 
 constexpr auto SpecialId_DailySongRecommend { "dailySongRecommend"sv };
 constexpr auto SpecialId_UserFM { "userfm"sv };
+constexpr auto RadarId_Private { "3136952023"sv };
 
 template<typename T>
     requires std::ranges::range<T> && std::is_base_of_v<Id, std::ranges::range_value_t<T>>

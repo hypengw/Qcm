@@ -11,7 +11,7 @@
 #include "qcm_interface/model/artist.h"
 #include "qcm_interface/async.inl"
 
-#include "Qcm/query/query.h"
+#include "qcm_interface/query.h"
 #include "Qcm/query/query_model.h"
 #include "Qcm/sql/item_sql.h"
 #include "Qcm/app.h"

@@ -162,6 +162,7 @@ public:
     Q_SLOT void on_play_song(const query::Song&);
     Q_SLOT void on_queue(const std::vector<query::Song>&);
     Q_SLOT void on_switch_to(const std::vector<query::Song>&);
+    Q_SLOT void on_route_by_id(const model::ItemId&, const QVariantMap&);
 
 private:
     void load_plugins();

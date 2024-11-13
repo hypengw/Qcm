@@ -12,7 +12,7 @@
 #include "qcm_interface/async.inl"
 #include "qcm_interface/sql/meta_sql.h"
 
-#include "Qcm/query/query.h"
+#include "qcm_interface/query.h"
 #include "Qcm/query/query_model.h"
 #include "Qcm/sql/item_sql.h"
 #include "Qcm/sql/collection_sql.h"

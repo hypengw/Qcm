@@ -541,4 +541,8 @@ void App::save_settings() {
     s.setValue("play/loop", (int)playqueue()->loopMode());
 }
 
-void qcm::register_meta_type() {}
+#include "Qcm/query/mix_detail.h"
+
+void qcm::register_meta_type() {
+    qRegisterMetaType<query::MixDetailQuery>();
+}

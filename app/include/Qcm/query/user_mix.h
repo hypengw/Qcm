@@ -3,7 +3,7 @@
 #include <ranges>
 #include <QQmlEngine>
 
-#include "Qcm/query/query.h"
+#include "qcm_interface/query.h"
 #include "Qcm/query/query_model.h"
 #include "Qcm/sql/item_sql.h"
 #include "Qcm/sql/collection_sql.h"

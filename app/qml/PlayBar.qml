@@ -97,7 +97,7 @@ MD.Pane {
                         hoverEnabled: true
 
                         onClicked: {
-                            QA.Global.route(root.currentSong.album.itemId);
+                            QA.Action.route_by_id(root.currentSong.album.itemId);
                         }
                     }
                 }

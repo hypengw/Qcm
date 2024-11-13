@@ -63,7 +63,7 @@ MD.Page {
                                 text: model.name
                                 onClicked: {
                                     GridView.view.model.trigger(model.itemId);
-                                    // QA.Global.route(modelData.itemId);
+                                    // QA.Action.route_by_id(modelData.itemId);
                                 }
                             }
                         }
@@ -97,21 +97,21 @@ MD.Page {
                             fixedCellWidth: QA.Util.dynCardWidth(widthNoMargin, spacing)
                             implicitHeight: maxImplicitCellHeight
                             maxImplicitCellHeight: 200
-                            model: qr_rmd_res.data.dailyPlaylists
+                            model: qr_rmd_res.data
                             flow: GridView.FlowTopToBottom
                             hookWheel: false
                             enabledCalMaxCellHeight: true
 
                             delegate: QA.PicCardGridDelegate {
-                                required property var modelData
+                                required property var model
                                 required property int index
                                 Component.onCompleted: GridView.view.calMaxCellHeight()
 
-                                image.source: QA.Util.image_url(modelData.picUrl)
-                                text: modelData.name
+                                image.source: QA.Util.image_url(model.picUrl)
+                                text: model.name
 
                                 onClicked: {
-                                    QA.Global.route(modelData.itemId);
+                                    QA.Action.route_by_id(model.itemId);
                                 }
                             }
                             footer: MD.ListBusyFooter {
@@ -159,7 +159,7 @@ MD.Page {
                                 text: pl_querier.data.info.name
 
                                 onClicked: {
-                                    QA.Global.route(model.id);
+                                    QA.Action.route_by_id(model.id);
                                 }
 
                                 QA.MixDetailQuery {

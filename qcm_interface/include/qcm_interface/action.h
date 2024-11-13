@@ -33,7 +33,8 @@ Q_SIGNALS:
     void load_session(model::Session* session);
     void open_drawer();
     void logout();
-    void route(model::RouteMsg msg);
+    void route(const model::RouteMsg& msg);
+    void route_by_id(const model::ItemId& id, const QVariantMap& props = {});
     void route_special(QVariant name_id);
     void popup_special(QVariant name_id);
     void popup_page(const QJSValue& url_or_comp, QVariantMap props, QVariantMap popup_props = {},
