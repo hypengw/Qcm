@@ -24,7 +24,7 @@ class UserAccount;
 class Session;
 } // namespace model
 
-struct ClientBase : NoCopy {};
+struct ClientBase : std::enable_shared_from_this<ClientBase>, NoCopy {};
 struct Client {
     template<typename T>
     using Result = nstd::expected<T, error::Error>;

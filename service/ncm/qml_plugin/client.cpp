@@ -56,6 +56,45 @@
 
 #include "ncm/client.h"
 
+namespace ncm::impl
+{
+using ClientBase = qcm::ClientBase;
+
+struct Client : public ClientBase {
+    Client(ncm::Client ncm): ncm(ncm), user_fav_mix_id() {}
+    ncm::Client           ncm;
+    ItemId                user_id;
+    std::optional<ItemId> user_fav_mix_id;
+
+    std::mutex mutex;
+
+    auto rc() -> rc<Client> { return std::static_pointer_cast<Client>(shared_from_this()); }
+};
+static auto get_client(ClientBase& c) -> ncm::Client* { return &static_cast<Client&>(c).ncm; }
+static auto get_client_rc(ClientBase& c) -> rc<ncm::impl::Client> {
+    return static_cast<Client&>(c).rc();
+}
+static auto get_user_id(ClientBase& cb) -> ItemId {
+    auto&            c = static_cast<Client&>(cb);
+    std::unique_lock lock { c.mutex };
+    return c.user_id;
+}
+static auto get_user_fav_mix_id(ClientBase& cb) -> std::optional<ItemId> {
+    auto&            c = static_cast<Client&>(cb);
+    std::unique_lock lock { c.mutex };
+    return c.user_fav_mix_id;
+}
+static void set_user_id(ClientBase& cb, const ItemId& id) {
+    auto&            c = static_cast<Client&>(cb);
+    std::unique_lock lock { c.mutex };
+    c.user_id = id;
+}
+static void set_user_fav_mix_id(ClientBase& cb, const ItemId& id) {
+    auto&            c = static_cast<Client&>(cb);
+    std::unique_lock lock { c.mutex };
+    c.user_fav_mix_id = id;
+}
+} // namespace ncm::impl
 namespace
 {
 
@@ -88,6 +127,46 @@ auto prepare_session(ncm::Client c, qcm::model::ItemId userId) -> qcm::task<void
         qcm::Global::instance()->qsession()->user()->query();
     }
     co_return;
+}
+
+void refresh_fav_mix(rc<ncm::impl::Client> c) {
+    auto ex = asio::make_strand(qcm::pool_executor());
+
+    asio::co_spawn(
+        ex,
+        [c, ex] -> qcm::task<void> {
+            auto timer = make_rc<asio::steady_timer>(ex);
+            timer->expires_after(asio::chrono::milliseconds(1000));
+            co_await timer->async_wait(asio::as_tuple(asio::use_awaitable));
+
+            auto                   sql    = qcm::Global::instance()->get_item_sql();
+            auto                   userId = get_user_id(*c);
+            ncm::api::UserPlaylist api;
+            convert(api.input.uid, userId);
+            api.input.limit = 1;
+            auto out        = co_await c->ncm.perform(api);
+            if (out) {
+                auto list = qcm::oper::MixOper::create_list(0);
+                for (auto& el : out->playlist) {
+                    auto oper = qcm::oper::MixOper(list.emplace_back());
+                    convert(oper, el);
+                }
+                co_await sql->insert(list, {});
+
+                if (list.size()) {
+                    qcm::Notifier::instance()->itemChanged(qcm::oper::MixOper(list.at(0)).id());
+                }
+                //   auto mix_id = get_user_fav_mix_id(cbase);
+                //   if (! mix_id) {
+                //       if (auto mix = co_await
+                //       sql->select_mix(get_user_id(cbase), 5)) {
+                //           mix_id = mix->id;
+                //           set_user_fav_mix_id(cbase, mix->id);
+                //       }
+                //   }
+            }
+        },
+        helper::asio_detached_log_t {});
 }
 
 template<typename T>
@@ -217,38 +296,6 @@ auto insert_program(const T& in_list, rc<qcm::db::ItemSqlBase> sql,
 
 namespace ncm::impl
 {
-using ClientBase = qcm::ClientBase;
-
-struct Client : public ClientBase {
-    Client(ncm::Client ncm): ncm(ncm), user_fav_mix_id() {}
-    ncm::Client           ncm;
-    ItemId                user_id;
-    std::optional<ItemId> user_fav_mix_id;
-
-    std::mutex mutex;
-};
-
-static auto get_client(ClientBase& c) -> ncm::Client* { return &static_cast<Client&>(c).ncm; }
-static auto get_user_id(ClientBase& cb) -> ItemId {
-    auto&            c = static_cast<Client&>(cb);
-    std::unique_lock lock { c.mutex };
-    return c.user_id;
-}
-static auto get_user_fav_mix_id(ClientBase& cb) -> std::optional<ItemId> {
-    auto&            c = static_cast<Client&>(cb);
-    std::unique_lock lock { c.mutex };
-    return c.user_fav_mix_id;
-}
-static void set_user_id(ClientBase& cb, const ItemId& id) {
-    auto&            c = static_cast<Client&>(cb);
-    std::unique_lock lock { c.mutex };
-    c.user_id = id;
-}
-static void set_user_fav_mix_id(ClientBase& cb, const ItemId& id) {
-    auto&            c = static_cast<Client&>(cb);
-    std::unique_lock lock { c.mutex };
-    c.user_fav_mix_id = id;
-}
 
 static auto server_url(ClientBase& cbase, const qcm::model::ItemId& id) -> std::string {
     auto c = get_client(cbase);
@@ -416,24 +463,13 @@ auto collect(ClientBase& cbase, qcm::model::ItemId id, bool act) -> qcm::task<Re
                          api.input.trackId = id;
                          auto ok           = co_await c.perform(api);
 
-                         // notify user fav playlist changed
-                         if (ok && ok->code == 200) {
-                             auto sql    = qcm::Global::instance()->get_item_sql();
-                             auto mix_id = get_user_fav_mix_id(cbase);
-                             if (! mix_id) {
-                                 if (auto mix = co_await sql->select_mix(get_user_id(cbase), 5)) {
-                                     mix_id = mix->id;
-                                     set_user_fav_mix_id(cbase, mix->id);
-                                 }
+                         co_return ok.transform([&cbase](const auto& out) {
+                             auto ok = out.code == 200;
+                             if (ok) {
+                                 // notify user fav playlist changed
+                                 refresh_fav_mix(get_client_rc(cbase));
                              }
-
-                             if (mix_id) {
-                                 qcm::Action::instance()->sync_item(*mix_id, true);
-                             }
-                         }
-
-                         co_return ok.transform([](const auto& out) {
-                             return out.code == 200;
+                             return ok;
                          });
                      },
                      [](auto) -> Res {
