@@ -13,17 +13,19 @@ class QCM_INTERFACE_API IdQueue : public QAbstractListModel {
     Q_PROPERTY(qint32 currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY
                    currentIndexChanged BINDABLE bindableCurrentIndex FINAL)
     Q_PROPERTY(Options options READ options CONSTANT FINAL)
+    Q_PROPERTY(QString name READ name CONSTANT FINAL)
 public:
     IdQueue(QObject* parent = nullptr);
     ~IdQueue();
 
     enum Option
     {
-        NoOptions      = 0,
-        SupportShuffle = 1,
-        SupportLoop    = 1 << 1,
-        SupportPrev    = 1 << 2,
-        SupportJump    = 1 << 3,
+        NoOptions         = 0,
+        SupportShuffle    = 1,
+        SupportLoop       = 1 << 1,
+        SupportPrev       = 1 << 2,
+        SupportJump       = 1 << 3,
+        SupportUserRemove = 1 << 4,
     };
     Q_DECLARE_FLAGS(Options, Option)
 
@@ -53,14 +55,18 @@ public:
     bool moveRows(const QModelIndex& sourceParent, int sourceRow, int count,
                   const QModelIndex& destinationParent, int destinationChild) override;
 
+    auto name() const -> const QString&;
+
 protected:
     void setOptions(Options);
+    void setName(QStringView);
 
 private:
     Q_OBJECT_BINDABLE_PROPERTY(IdQueue, int, m_current_index, &IdQueue::currentIndexChanged)
     std::vector<Item>         m_queue;
     std::unordered_set<usize> m_set;
     Options                   m_opts;
+    QString                   m_name;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(IdQueue::Options)

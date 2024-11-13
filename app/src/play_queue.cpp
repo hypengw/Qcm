@@ -186,6 +186,8 @@ PlayQueue::PlayQueue(QObject* parent)
       m_loop_mode(LoopMode::NoneLoop),
       m_can_next(false),
       m_can_prev(false),
+      m_can_jump(true),
+      m_can_user_remove(true),
       m_random_mode(false) {
     updateRoleNames(query::Song::staticMetaObject);
     connect(this, &PlayQueue::currentIndexChanged, this, [this](qint32 idx) {
@@ -272,6 +274,7 @@ void PlayQueue::setSourceModel(QAbstractItemModel* source_model) {
     }
 
     setCanJump(m_options & Option::SupportJump);
+    setCanRemove(m_options & Option::SupportUserRemove);
 }
 
 auto PlayQueue::currentSong() const -> query::Song {
@@ -354,6 +357,7 @@ void PlayQueue::setRandomMode(bool v) {
 auto PlayQueue::canNext() const -> bool { return m_can_next; }
 auto PlayQueue::canPrev() const -> bool { return m_can_prev; }
 auto PlayQueue::canJump() const -> bool { return m_can_jump; }
+auto PlayQueue::canRemove() const -> bool { return m_can_user_remove; }
 
 void PlayQueue::setCanNext(bool v) {
     if (ycore::cmp_exchange(m_can_next, v)) {
@@ -368,6 +372,11 @@ void PlayQueue::setCanPrev(bool v) {
 void PlayQueue::setCanJump(bool v) {
     if (ycore::cmp_exchange(m_can_jump, v)) {
         canJumpChanged();
+    }
+}
+void PlayQueue::setCanRemove(bool v) {
+    if (ycore::cmp_exchange(m_can_user_remove, v)) {
+        canRemoveChanged();
     }
 }
 

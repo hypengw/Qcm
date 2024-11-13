@@ -84,6 +84,7 @@ class PlayQueue : public meta_model::QMetaModelBase<QIdentityProxyModel> {
     Q_PROPERTY(bool canNext READ canNext NOTIFY canNextChanged FINAL)
     Q_PROPERTY(bool canPrev READ canPrev NOTIFY canPrevChanged FINAL)
     Q_PROPERTY(bool canJump READ canJump NOTIFY canJumpChanged FINAL)
+    Q_PROPERTY(bool canRemove READ canRemove NOTIFY canRemoveChanged FINAL)
     Q_PROPERTY(QString name READ name NOTIFY nameChanged FINAL)
 
     using base_type = meta_model::QMetaModelBase<QIdentityProxyModel>;
@@ -123,12 +124,15 @@ public:
     auto          canNext() const -> bool;
     auto          canPrev() const -> bool;
     auto          canJump() const -> bool;
+    auto          canRemove() const -> bool;
     void          setCanNext(bool);
     void          setCanPrev(bool);
     void          setCanJump(bool);
+    void          setCanRemove(bool);
     Q_SIGNAL void canNextChanged();
     Q_SIGNAL void canPrevChanged();
     Q_SIGNAL void canJumpChanged();
+    Q_SIGNAL void canRemoveChanged();
     Q_SIGNAL void nameChanged();
 
     Q_SLOT void next();
@@ -164,6 +168,7 @@ private:
     bool    m_can_next;
     bool    m_can_prev;
     bool    m_can_jump;
+    bool    m_can_user_remove;
     bool    m_random_mode;
     QString m_name;
 

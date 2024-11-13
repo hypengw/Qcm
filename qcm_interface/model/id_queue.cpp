@@ -3,7 +3,8 @@
 #include <ranges>
 namespace qcm::model
 {
-IdQueue::IdQueue(QObject* parent): QAbstractListModel(parent), m_current_index(-1) {}
+IdQueue::IdQueue(QObject* parent)
+    : QAbstractListModel(parent), m_current_index(-1), m_name("Queue") {}
 IdQueue::~IdQueue() {}
 
 auto IdQueue::rowCount(const QModelIndex&) const -> int { return m_queue.size(); }
@@ -11,6 +12,8 @@ auto IdQueue::data(const QModelIndex& index, int) const -> QVariant {
     if (! index.isValid() || index.row() >= (int)m_queue.size()) return {};
     return QVariant::fromValue(m_queue.at(index.row()).id);
 }
+auto IdQueue::name() const -> const QString& { return m_name; }
+void IdQueue::setName(QStringView name) { m_name = name.toString(); }
 
 auto IdQueue::options() const -> Options { return m_opts; }
 void IdQueue::setOptions(Options opts) { m_opts = opts; }

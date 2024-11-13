@@ -386,6 +386,9 @@ void App::on_switch_queue(model::IdQueue* queue) {
         if (queue->rowCount()) {
             queue->setCurrentIndex(0);
         }
+        if (queue->rowCount() <= 1) {
+            queue->requestNext();
+        }
         Action::instance()->record(enums::RecordAction::RecordSwitchQueue);
     }
 }

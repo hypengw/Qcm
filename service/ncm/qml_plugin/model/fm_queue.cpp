@@ -5,16 +5,18 @@
 
 #include "qcm_interface/async.inl"
 #include "qcm_interface/client.h"
+#include "qcm_interface/action.h"
 #include "ncm/api/v1_radio_get.h"
 
 namespace ncm::qml
 {
 FmQueue::FmQueue(QObject* parent)
-    : qcm::model::IdQueue(parent), m_query(new qcm::QAsyncResult(this)), m_name("Private Radio") {
+    : qcm::model::IdQueue(parent), m_query(new qcm::QAsyncResult(this)) {
     setOptions(Options(0));
+    this->setName(u"Private Radio");
     connect(this, &qcm::model::IdQueue::requestNext, this, &FmQueue::onRequestNext);
 }
-auto FmQueue::name() const -> const QString& { return m_name; }
+
 FmQueue::~FmQueue() {}
 
 void FmQueue::onRequestNext() {

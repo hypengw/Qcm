@@ -7,7 +7,7 @@ import Qcm.Material as MD
 MD.Page {
     id: root
     padding: 0
-    title: qsTr('Queue')
+    title: QA.App.playqueue.name //qsTr('Queue')
     bottomPadding: radius
     scrolling: !m_view.atYBeginning
 
@@ -51,7 +51,7 @@ MD.Page {
                 if (m.canJump) {
                     QA.Action.play_by_id(model.itemId);
                 } else {
-                    QA.Action.toast(qsTr(`${m.name} does not support switch`));
+                    QA.Action.toast(qsTr(`not support for ${m.name}`));
                 }
             }
 
@@ -77,7 +77,12 @@ MD.Page {
                     icon.name: MD.Token.icon.remove
 
                     onClicked: {
-                        m_view.model.removeRow(model.index);
+                        const q = QA.App.playqueue;
+                        if (q.canRemove) {
+                            m_view.model.removeRow(model.index);
+                        } else {
+                            QA.Action.toast(`not support for ${q.name}`);
+                        }
                     }
                 }
             }
