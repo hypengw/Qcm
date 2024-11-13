@@ -52,9 +52,10 @@ class MixDetailQuery : public Query<MixDetail> {
     QML_ELEMENT
 
     Q_PROPERTY(model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
+    Q_PROPERTY(bool querySong READ querySong WRITE setQuerySong NOTIFY querySongChanged)
     Q_PROPERTY(MixDetail* data READ tdata NOTIFY itemIdChanged FINAL)
 public:
-    MixDetailQuery(QObject* parent = nullptr): Query<MixDetail>(parent) {
+    MixDetailQuery(QObject* parent = nullptr): Query<MixDetail>(parent), m_query_song(false) {
         connect(this, &MixDetailQuery::itemIdChanged, this, &MixDetailQuery::reload);
         connect(
             Notifier::instance(), &Notifier::itemChanged, this, [this](const model::ItemId& id) {
@@ -64,24 +65,34 @@ public:
             });
     }
 
-    auto itemId() const -> const model::ItemId& { return m_album_id; }
+    auto itemId() const -> const model::ItemId& { return m_id; }
     void setItemId(const model::ItemId& v) {
-        if (ycore::cmp_exchange(m_album_id, v)) {
+        if (ycore::cmp_exchange(m_id, v)) {
             itemIdChanged();
         }
     }
 
+    auto querySong() const -> bool { return m_query_song; };
+    void setQuerySong(bool v) {
+        if (ycore::cmp_exchange(m_query_song, v)) {
+            querySongChanged();
+        }
+    }
+
     Q_SIGNAL void itemIdChanged();
+    Q_SIGNAL void querySongChanged();
 
 public:
-    auto query_playlist(model::ItemId itemId) -> task<std::optional<model::Mix>> {
+    auto query_mix(const model::ItemId& itemId, QDateTime& editTime)
+        -> task<std::optional<model::Mix>> {
         auto sql = App::instance()->album_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
 
         auto query = sql->con()->query();
         query.prepare_sv(fmt::format(R"(
 SELECT 
-    {0} 
+    {0},
+    _editTime
 FROM playlist
 WHERE playlist.itemId = :itemId AND ({1});
 )",
@@ -95,6 +106,7 @@ WHERE playlist.itemId = :itemId AND ({1});
             model::Mix pl;
             int        i = 0;
             query::load_query(query, pl, i);
+            editTime = query.value(i++).toDateTime();
             co_return pl;
         }
         co_return std::nullopt;
@@ -137,21 +149,24 @@ ORDER BY playlist_song.orderIdx;
 
     void reload() override {
         set_status(Status::Querying);
-        auto self   = helper::QWatcher { this };
-        auto itemId = m_album_id;
-        spawn( [self, itemId] -> task<void> {
-            auto                     sql = App::instance()->album_sql();
-            std::vector<model::Song> items;
-            bool                     needReload = false;
+        auto self      = helper::QWatcher { this };
+        auto itemId    = m_id;
+        auto querySong = m_query_song;
+        spawn([self, itemId, querySong] -> task<void> {
+            auto sql = App::instance()->album_sql();
 
             bool                             synced { 0 };
-            std::optional<model::Mix>        playlist;
+            std::optional<model::Mix>        mix;
             std::optional<std::vector<Song>> songs;
+            QDateTime                        editTime;
             for (;;) {
-                playlist = co_await self->query_playlist(itemId);
-                songs    = co_await self->query_songs(itemId);
-                if (! synced &&
-                    (! playlist || ! songs || playlist->trackCount != (int)songs->size())) {
+                mix = co_await self->query_mix(itemId, editTime);
+                if (querySong) songs = co_await self->query_songs(itemId);
+                bool songOld = querySong && (! songs || mix->trackCount != (int)songs->size());
+                // half hour
+                auto duration = editTime.secsTo(QDateTime::currentDateTime());
+                bool timeOld  = duration > 60 * 30;
+                if (! synced && (! mix || songOld || timeOld)) {
                     co_await SyncAPi::sync_item(itemId);
                     synced = true;
                     continue;
@@ -162,11 +177,13 @@ ORDER BY playlist_song.orderIdx;
             co_await asio::post(
                 asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
             if (self) {
-                self->tdata()->setInfo(playlist);
-                if (self->tdata()->rowCount() && songs) {
-                    self->tdata()->replaceResetModel(*songs);
-                } else {
-                    self->tdata()->resetModel(songs);
+                self->tdata()->setInfo(mix);
+                if (querySong) {
+                    if (self->tdata()->rowCount() && songs) {
+                        self->tdata()->replaceResetModel(*songs);
+                    } else {
+                        self->tdata()->resetModel(songs);
+                    }
                 }
                 self->set_status(Status::Finished);
             }
@@ -177,7 +194,8 @@ ORDER BY playlist_song.orderIdx;
     Q_SLOT void reset() {}
 
 private:
-    model::ItemId m_album_id;
+    bool          m_query_song;
+    model::ItemId m_id;
 };
 
 } // namespace qcm::query

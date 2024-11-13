@@ -13,6 +13,7 @@
 
 #include "core/log.h"
 #include "core/strv_helper.h"
+#include "core/str_helper.h"
 #include "core/qstr_helper.h"
 #include "core/qmeta_helper.h"
 #include "asio_qt/qt_executor.h"
@@ -100,7 +101,7 @@ public:
     static auto get_to_converter(int id) -> std::optional<Converter>;
 
     inline static auto EditTimeColumn = SqlColumn {
-        .name       = "_editTIme",
+        .name       = "_editTime",
         .type       = "DATETIME",
         .dflt_value = "STRFTIME('%Y-%m-%dT%H:%M:%S.000Z', 'now')",
     };
@@ -217,13 +218,15 @@ CREATE TABLE IF NOT EXISTS {} (
 
     // insert with columns
     template<typename T>
-    auto generate_insert_helper(
-        QStringView table_name, const std::set<std::string, std::less<>>& conflicts,
-        const QMetaObject& meta, std::span<const T> items, const std::set<std::string>& columns,
-        const std::set<std::string>&        on_update  = {},
-        const std::map<QString, Converter>& converters = {}) const -> InsertHelper {
-        InsertHelper out =
-            generate_insert_helper_sql(table_name, conflicts, meta, columns, on_update);
+    auto generate_insert_helper(QStringView                               table_name,
+                                const std::set<std::string, std::less<>>& conflicts,
+                                const QMetaObject& meta, std::span<const T> items,
+                                const std::set<std::string>&        columns,
+                                const std::set<std::string>&        on_update  = {},
+                                const std::map<QString, Converter>& converters = {},
+                                bool use_edit_time = true) const -> InsertHelper {
+        InsertHelper out = generate_insert_helper_sql(
+            table_name, conflicts, meta, columns, on_update, use_edit_time);
 
         for (int i = 0; i < meta.propertyCount(); i++) {
             auto name = meta.property(i).name();
@@ -255,7 +258,8 @@ private:
     auto generate_insert_helper_sql(QStringView                               table_name,
                                     const std::set<std::string, std::less<>>& conflicts,
                                     const QMetaObject& meta, const std::set<std::string>& columns,
-                                    const std::set<std::string>& on_update) const -> InsertHelper {
+                                    const std::set<std::string>& on_update,
+                                    bool use_edit_time) const -> InsertHelper {
         InsertHelper               out;
         std::vector<std::string>   column_names;
         std::set<std::string_view> column_include, column_exclude, on_update_include,
@@ -304,13 +308,14 @@ private:
                                               [](const std::string& s) -> std::string {
                                                   return fmt::format("{0} = :{0}", s);
                                               });
-        out.sql       = QString::fromStdString(
-            fmt::format("INSERT INTO {0}({1}) VALUES ({2}) ON CONFLICT({3}) DO UPDATE SET {4};",
-                        table_name,
-                        fmt::join(column_names, ", "),
-                        fmt::join(view_values, ", "),
-                        fmt::join(conflicts, ", "),
-                        fmt::join(view_set, ", ")));
+        out.sql       = QString::fromStdString(fmt::format(
+            "INSERT INTO {0}({1}) VALUES ({2}) ON CONFLICT({3}) DO UPDATE SET {4}{5};",
+            table_name,
+            fmt::join(column_names, ", "),
+            fmt::join(view_values, ", "),
+            fmt::join(conflicts, ", "),
+            fmt::join(view_set, ", "),
+            use_edit_time ? ", _editTime = (STRFTIME('%Y-%m-%dT%H:%M:%S.000Z', 'now'))"s : ""s));
         return out;
     }
 

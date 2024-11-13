@@ -217,5 +217,6 @@ MD.Page {
 
     QA.MixDetailQuery {
         id: qr_pl
+        querySong: true
     }
 }
