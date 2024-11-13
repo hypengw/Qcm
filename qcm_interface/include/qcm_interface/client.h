@@ -24,7 +24,7 @@ class UserAccount;
 class Session;
 } // namespace model
 
-struct ClientBase {};
+struct ClientBase : NoCopy {};
 struct Client {
     template<typename T>
     using Result = nstd::expected<T, error::Error>;

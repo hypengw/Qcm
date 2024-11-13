@@ -18,6 +18,7 @@ struct QCM_INTERFACE_API MixOper : Oper<model::Mix> {
     OPER_PROPERTY(ItemId, itemId, id)
     OPER_PROPERTY(QString, name, name)
     OPER_PROPERTY(QString, picUrl, picUrl)
+    OPER_PROPERTY(qint32, specialType, specialType)
     OPER_PROPERTY(QString, description, description)
     OPER_PROPERTY(QDateTime, createTime, createTime)
     OPER_PROPERTY(QDateTime, updateTime, updateTime)

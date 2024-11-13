@@ -24,6 +24,7 @@ struct Mix : MixRefer {
     Q_GADGET_EXPORT(QCM_INTERFACE_API)
     QML_VALUE_TYPE(t_playlist)
 public:
+    GADGET_PROPERTY_DEF(qint32, specialType, specialType)
     GADGET_PROPERTY_DEF(QString, description, description)
     GADGET_PROPERTY_DEF(QDateTime, createTime, createTime)
     GADGET_PROPERTY_DEF(QDateTime, updateTime, updateTime)

@@ -19,6 +19,8 @@
 #include "qcm_interface/oper/radio_oper.h"
 #include "qcm_interface/oper/program_oper.h"
 #include "qcm_interface/sql/item_sql.h"
+#include "qcm_interface/notifier.h"
+#include "qcm_interface/action.h"
 
 #include "service_qml_ncm/model.h"
 #include "asio_helper/detached_log.h"
@@ -218,9 +220,10 @@ namespace ncm::impl
 using ClientBase = qcm::ClientBase;
 
 struct Client : public ClientBase {
-    Client(ncm::Client ncm): ncm(ncm) {}
-    ncm::Client ncm;
-    ItemId      user_id;
+    Client(ncm::Client ncm): ncm(ncm), user_fav_mix_id() {}
+    ncm::Client           ncm;
+    ItemId                user_id;
+    std::optional<ItemId> user_fav_mix_id;
 
     std::mutex mutex;
 };
@@ -231,10 +234,20 @@ static auto get_user_id(ClientBase& cb) -> ItemId {
     std::unique_lock lock { c.mutex };
     return c.user_id;
 }
+static auto get_user_fav_mix_id(ClientBase& cb) -> std::optional<ItemId> {
+    auto&            c = static_cast<Client&>(cb);
+    std::unique_lock lock { c.mutex };
+    return c.user_fav_mix_id;
+}
 static void set_user_id(ClientBase& cb, const ItemId& id) {
     auto&            c = static_cast<Client&>(cb);
     std::unique_lock lock { c.mutex };
     c.user_id = id;
+}
+static void set_user_fav_mix_id(ClientBase& cb, const ItemId& id) {
+    auto&            c = static_cast<Client&>(cb);
+    std::unique_lock lock { c.mutex };
+    c.user_fav_mix_id = id;
 }
 
 static auto server_url(ClientBase& cbase, const qcm::model::ItemId& id) -> std::string {
@@ -360,55 +373,73 @@ auto collect(ClientBase& cbase, qcm::model::ItemId id, bool act) -> qcm::task<Re
     auto c    = *get_client(cbase);
     auto nid  = to_ncm_id(id);
 
-    co_return co_await std::visit(overloaded { [act, &c](model::PlaylistId id) -> Res {
-                                                  ncm::api::PlaylistSubscribe api;
-                                                  api.input.sub = act;
-                                                  api.input.id  = id;
-                                                  auto ok       = co_await c.perform(api);
-                                                  co_return ok.transform([](const auto& out) {
-                                                      return out.code == 200;
-                                                  });
-                                              },
-                                               [act, &c](model::ArtistId id) -> Res {
-                                                   ncm::api::ArtistSub api;
-                                                   api.input.sub = act;
-                                                   api.input.id  = id;
-                                                   auto ok       = co_await c.perform(api);
-                                                   co_return ok.transform([](const auto& out) {
-                                                       return out.code == 200;
-                                                   });
-                                               },
-                                               [act, &c](model::AlbumId id) -> Res {
-                                                   ncm::api::AlbumSub api;
-                                                   api.input.sub = act;
-                                                   api.input.id  = id;
-                                                   auto ok       = co_await c.perform(api);
-                                                   co_return ok.transform([](const auto& out) {
-                                                       return out.code == 200;
-                                                   });
-                                               },
-                                               [act, &c](model::DjradioId id) -> Res {
-                                                   ncm::api::DjradioSub api;
-                                                   api.input.sub = act;
-                                                   api.input.id  = id;
-                                                   auto ok       = co_await c.perform(api);
-                                                   co_return ok.transform([](const auto& out) {
-                                                       return out.code == 200;
-                                                   });
-                                               },
-                                               [act, &c](model::SongId id) -> Res {
-                                                   ncm::api::RadioLike api;
-                                                   api.input.like    = act;
-                                                   api.input.trackId = id;
-                                                   auto ok           = co_await c.perform(api);
-                                                   co_return ok.transform([](const auto& out) {
-                                                       return out.code == 200;
-                                                   });
-                                               },
-                                               [](auto) -> Res {
-                                                   co_return false;
-                                               } },
-                                  nid);
+    co_return co_await std::visit(
+        overloaded { [act, &c](model::PlaylistId id) -> Res {
+                        ncm::api::PlaylistSubscribe api;
+                        api.input.sub = act;
+                        api.input.id  = id;
+                        auto ok       = co_await c.perform(api);
+                        co_return ok.transform([](const auto& out) {
+                            return out.code == 200;
+                        });
+                    },
+                     [act, &c](model::ArtistId id) -> Res {
+                         ncm::api::ArtistSub api;
+                         api.input.sub = act;
+                         api.input.id  = id;
+                         auto ok       = co_await c.perform(api);
+                         co_return ok.transform([](const auto& out) {
+                             return out.code == 200;
+                         });
+                     },
+                     [act, &c](model::AlbumId id) -> Res {
+                         ncm::api::AlbumSub api;
+                         api.input.sub = act;
+                         api.input.id  = id;
+                         auto ok       = co_await c.perform(api);
+                         co_return ok.transform([](const auto& out) {
+                             return out.code == 200;
+                         });
+                     },
+                     [act, &c](model::DjradioId id) -> Res {
+                         ncm::api::DjradioSub api;
+                         api.input.sub = act;
+                         api.input.id  = id;
+                         auto ok       = co_await c.perform(api);
+                         co_return ok.transform([](const auto& out) {
+                             return out.code == 200;
+                         });
+                     },
+                     [act, &c, &cbase](model::SongId id) -> Res {
+                         ncm::api::RadioLike api;
+                         api.input.like    = act;
+                         api.input.trackId = id;
+                         auto ok           = co_await c.perform(api);
+
+                         // notify user fav playlist changed
+                         if (ok && ok->code == 200) {
+                             auto sql    = qcm::Global::instance()->get_item_sql();
+                             auto mix_id = get_user_fav_mix_id(cbase);
+                             if (! mix_id) {
+                                 if (auto mix = co_await sql->select_mix(get_user_id(cbase), 5)) {
+                                     mix_id = mix->id;
+                                     set_user_fav_mix_id(cbase, mix->id);
+                                 }
+                             }
+
+                             if (mix_id) {
+                                 qcm::Action::instance()->sync_item(*mix_id, true);
+                             }
+                         }
+
+                         co_return ok.transform([](const auto& out) {
+                             return out.code == 200;
+                         });
+                     },
+                     [](auto) -> Res {
+                         co_return false;
+                     } },
+        nid);
 }
 
 auto media_url(ClientBase& cbase, qcm::model::ItemId id, qcm::enums::AudioQuality quality)
@@ -689,7 +720,7 @@ auto sync_items(ClientBase& cbase, std::span<const qcm::model::ItemId> itemIds)
                     std::ranges::copy(ids_view, std::back_inserter(ids));
                 }
 
-                co_await sql->refresh_playlist_song(-1, oper.id(), ids);
+                co_await sql->refresh_mix_song(-1, oper.id(), ids);
             } else {
                 co_return nstd::unexpected(out.error());
             }

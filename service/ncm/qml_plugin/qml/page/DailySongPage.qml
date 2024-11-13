@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
@@ -48,7 +49,22 @@ MD.Page {
                 implicitHeight: children[0].implicitHeight
                 ColumnLayout {
                     anchors.fill: parent
-                    spacing: 0
+                    spacing: 8
+
+                    MD.Label {
+                        id: m_date_label
+                        readonly property date cur: new Date()
+                        text: `<span>${Qt.formatDateTime(cur, 'dd')}</span><span style='font-size: 18px;'>${Qt.formatDateTime(cur, '/MM')}</span>`
+                        textFormat: Text.RichText
+                        typescale: MD.Token.typescale.display_small
+                    }
+
+                    Binding {
+                        target: m_view_pane
+                        property: "excludeBegin"
+                        value: m_date_label.height + 8
+                    }
+
                     RowLayout {
                         Layout.alignment: Qt.AlignHCenter
 

@@ -112,6 +112,7 @@ IMPL_CONVERT(qcm::oper::MixOper, ncm::model::Playlist) {
     X(trackCount, in.trackCount);
     X(userId, in.userId);
     X(tags, in.tags.value_or(std::vector<std::string> {}));
+    X(specialType, in.specialType);
 };
 
 IMPL_CONVERT(qcm::oper::MixOper, ncm::model::UserPlaylistItem) {
@@ -125,6 +126,7 @@ IMPL_CONVERT(qcm::oper::MixOper, ncm::model::UserPlaylistItem) {
     X(trackCount, in.trackCount);
     X(userId, in.userId);
     X(tags, in.tags);
+    X(specialType, in.specialType);
 }
 
 IMPL_CONVERT(QDateTime, ncm::model::Time) { out = QDateTime::fromMSecsSinceEpoch(in.milliseconds); }

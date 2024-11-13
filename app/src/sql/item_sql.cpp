@@ -8,6 +8,7 @@
 #include "core/strv_helper.h"
 #include "core/qstr_helper.h"
 #include "qcm_interface/sql/meta_sql.h"
+#include "Qcm/query/query_model.h"
 
 namespace qcm
 {
@@ -32,8 +33,8 @@ ItemSql::ItemSql(rc<helper::SqlConnect> con)
       m_song_table("song"),
       m_album_artist_table("album_artist"),
       m_song_artist_table("song_artist"),
-      m_playlist_table("playlist"),
-      m_playlist_song_table("playlist_song"),
+      m_mix_table("playlist"),
+      m_mix_song_table("playlist_song"),
       m_radio_table("radio"),
       m_program_table("program"),
       m_radio_program_table("radio_program"),
@@ -44,8 +45,8 @@ ItemSql::ItemSql(rc<helper::SqlConnect> con)
         create_song_table();
         create_album_artist_table();
         create_song_artist_table();
-        create_playlist_table();
-        create_playlist_song_table();
+        create_mix_table();
+        create_mix_song_table();
         create_radio_table();
         create_program_table();
         create_radio_program_table();
@@ -113,11 +114,11 @@ void ItemSql::create_song_table() {
     }
 }
 
-void ItemSql::create_playlist_table() {
+void ItemSql::create_mix_table() {
     m_con->db().transaction();
 
-    auto migs = m_con->generate_meta_migration(
-        m_playlist_table, u"itemId", model::Mix::staticMetaObject, {});
+    auto migs =
+        m_con->generate_meta_migration(m_mix_table, u"itemId", model::Mix::staticMetaObject, {});
 
     QSqlQuery q = m_con->query();
 
@@ -224,11 +225,11 @@ void ItemSql::create_song_artist_table() {
     }
 }
 
-void ItemSql::create_playlist_song_table() {
+void ItemSql::create_mix_song_table() {
     m_con->db().transaction();
 
     auto migs = m_con->generate_column_migration(
-        m_playlist_song_table,
+        m_mix_song_table,
         std::array {
             helper::SqlColumn { .name = "songId", .type = "TEXT", .notnull = 1 },
             helper::SqlColumn { .name = "playlistId", .type = "TEXT", .notnull = 1 },
@@ -364,7 +365,7 @@ auto ItemSql::insert(std::span<const model::Mix> items, ListParam columns,
                      const std::set<std::string>& on_update) -> task<bool> {
     DEBUG_LOG("start insert playlist, {}", items.size());
     auto insert_helper = m_con->generate_insert_helper(
-        m_playlist_table,
+        m_mix_table,
         { "itemId"s },
         model::Mix::staticMetaObject,
         items,
@@ -527,7 +528,7 @@ auto ItemSql::insert_playlist_song(u32 last, u32 count, const model::ItemId& pla
     query.prepare(uR"(
 INSERT OR REPLACE INTO %1 (playlistId, songId, orderIdx)
 VALUES (:playlistId, :songId, :orderIdx);
-)"_s.arg(m_playlist_song_table));
+)"_s.arg(m_mix_song_table));
     rerange_query.prepare(uR"(
 WITH OrderedSongs AS (
     SELECT songId,
@@ -569,8 +570,8 @@ WHERE playlistId = :playlistId;
     return true;
 }
 
-auto ItemSql::insert_playlist_song(i32 pos, model::ItemId playlist_id,
-                                   std::span<const model::ItemId> song_ids) -> task<bool> {
+auto ItemSql::insert_mix_song(i32 pos, model::ItemId playlist_id,
+                              std::span<const model::ItemId> song_ids) -> task<bool> {
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
     auto query = m_con->query();
     query.prepare(uR"(
@@ -613,8 +614,9 @@ WHERE playlistId = :playlistId;
 
     co_return true;
 }
-auto ItemSql::refresh_playlist_song(i32 pos, model::ItemId playlist_id,
-                                    std::span<const model::ItemId> song_ids) -> task<bool> {
+auto ItemSql::refresh_mix_song(i32 pos, model::ItemId playlist_id,
+                               std::span<const model::ItemId> song_ids) -> task<bool> {
+    Q_UNUSED(pos);
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
     m_con->db().transaction();
 
@@ -624,7 +626,7 @@ auto ItemSql::refresh_playlist_song(i32 pos, model::ItemId playlist_id,
 DELETE FROM {0}
 WHERE playlistId = :playlistId;
 )",
-                                 m_playlist_song_table));
+                                 m_mix_song_table));
     query.bindValue(":playlistId", playlist_id.toUrl());
 
     if (! query.exec()) {
@@ -640,14 +642,44 @@ WHERE playlistId = :playlistId;
 
     co_return true;
 }
+auto ItemSql::select_mix(const model::ItemId& user_id, qint32 special_type)
+    -> task<std::optional<model::Mix>> {
+    co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
+    m_con->db().transaction();
+
+    auto query = con()->query();
+
+    query.prepare_sv(fmt::format(R"(
+SELECT 
+    {1}
+FROM {0}
+WHERE userId = :userId AND specialType = :specialType
+LIMIT 1;
+)",
+                                 m_mix_table,
+                                 model::Mix::sql().select));
+    query.bindValue(":userId", user_id.toUrl());
+    query.bindValue(":specialType", special_type);
+    if (! query.exec()) {
+        ERROR_LOG("{}", query.lastError().text());
+    }
+
+    if (query.next()) {
+        model::Mix m;
+        int        i = 0;
+        query::load_query(query, m, i);
+        co_return m;
+    }
+    co_return std::nullopt;
+}
 
 auto ItemSql::table_name(Table t) const -> QStringView {
     switch (t) {
     case Table::ALBUM: return m_album_table;
     case Table::SONG: return m_song_table;
     case Table::ALBUM_ARTIST: return m_album_artist_table;
-    case Table::PLAYLIST_SONG: return m_playlist_song_table;
-    case Table::PLAYLIST: return m_playlist_table;
+    case Table::PLAYLIST_SONG: return m_mix_song_table;
+    case Table::PLAYLIST: return m_mix_table;
     case Table::ARTIST: return m_artist_table;
     case Table::SONG_ARTIST: return m_song_artist_table;
     case Table::RADIO: return m_radio_table;
