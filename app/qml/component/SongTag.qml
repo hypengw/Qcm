@@ -25,5 +25,7 @@ MD.Pane {
         border.width: 1
         border.color: root.MD.MatProp.textColor
     }
-
+    MD.InputBlock {
+        target: root
+    }
 }
