@@ -14,7 +14,7 @@ target_compile_definitions(nlohmann_json INTERFACE JSON_DIAGNOSTICS=1)
 
 add_library(asio INTERFACE)
 # ASIO_ENABLE_HANDLER_TRACKING ASIO_NO_TYPEID
-target_compile_definitions(asio INTERFACE ASIO_NO_DEPRECATED ASIO_NO_TYPEID ASIO_NO_WIN32_LEAN_AND_MEAN ASIO_NO_NOMINMAX)
+target_compile_definitions(asio INTERFACE ASIO_NO_DEPRECATED)
 target_include_directories(asio INTERFACE asio/asio/include)
 
 add_library(ctre INTERFACE)

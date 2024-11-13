@@ -17,9 +17,8 @@ namespace helper
 asio_detached_log_t::asio_detached_log_t(const std::source_location loc): loc(loc) {}
 
 void asio_detached_log_t::operator()(std::exception_ptr ptr) {
-    if (! ptr) return;
     try {
-        std::rethrow_exception(ptr);
+        if (ptr) std::rethrow_exception(ptr);
     } catch (const std::exception& e) {
         auto level = qcm::LogLevel::ERROR;
         auto what  = std::string_view { e.what() };
