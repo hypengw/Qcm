@@ -60,14 +60,14 @@ auto CollectionSql::remove(model::ItemId userId, model::ItemId itemId) -> task<b
     co_return remove_sync(userId, std::array { itemId });
 }
 
-auto CollectionSql::remove(model::ItemId                  user_id,
-                           std::span<const model::ItemId> ids) -> task<bool> {
+auto CollectionSql::remove(model::ItemId user_id, std::span<const model::ItemId> ids)
+    -> task<bool> {
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
     co_return remove_sync(user_id, ids);
 }
 
-auto CollectionSql::select_id(model::ItemId userId,
-                              QString       type) -> task<std::vector<model::ItemId>> {
+auto CollectionSql::select_id(model::ItemId userId, QString type)
+    -> task<std::vector<model::ItemId>> {
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
 
     auto    query = m_con->query();
@@ -148,19 +148,17 @@ auto CollectionSql::refresh(model::ItemId userId, QString type,
                             std::span<const model::ItemId> itemIds,
                             std::span<const QDateTime>     times) -> task<bool> {
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
-    if (! m_con->db().transaction()) {
-        ERROR_LOG("{}", m_con->error_str());
+    if (! m_con->transaction()) {
         co_return false;
     }
 
     if (! remove_sync(userId, type) || ! insert_sync(userId, itemIds, times) ||
         ! delete_removed()) {
-        m_con->db().rollback();
+        m_con->rollback();
         co_return false;
     }
 
-    if (! m_con->db().commit()) {
-        ERROR_LOG("{}", m_con->error_str());
+    if (! m_con->commit()) {
         co_return false;
     }
 

@@ -81,6 +81,22 @@ public:
         return ok;
     }
 
+    auto rollback(const std::source_location loc = std::source_location::current()) -> bool {
+        auto ok = db().rollback();
+        if (! ok) {
+            qcm::log::log(qcm::LogLevel::ERROR, loc, "{}", db().lastError().text());
+        }
+        return ok;
+    }
+
+    auto commit(const std::source_location loc = std::source_location::current()) -> bool {
+        auto ok = db().commit();
+        if (! ok) {
+            qcm::log::log(qcm::LogLevel::ERROR, loc, "{}", db().lastError().text());
+        }
+        return ok;
+    }
+
     class Query : public QSqlQuery {
     public:
         Query(const QSqlDatabase& db): QSqlQuery(db), m_thread(db.thread()) {

@@ -55,7 +55,7 @@ ItemSql::ItemSql(rc<helper::SqlConnect> con)
 ItemSql::~ItemSql() {}
 
 void ItemSql::create_album_table() {
-    m_con->db().transaction();
+    m_con->transaction();
 
     auto migs = m_con->generate_meta_migration(
         m_album_table, u"itemId", model::Album::staticMetaObject, {});
@@ -65,17 +65,15 @@ void ItemSql::create_album_table() {
     for (auto el : migs) {
         if (! q.exec(el)) {
             ERROR_LOG("{}", q.lastError().text());
-            m_con->db().rollback();
+            m_con->rollback();
             return;
         }
     }
-    if (! m_con->db().commit()) {
-        ERROR_LOG("{}", m_con->error_str());
-    }
+    m_con->commit();
 }
 
 void ItemSql::create_artist_table() {
-    m_con->db().transaction();
+    m_con->transaction();
 
     auto migs = m_con->generate_meta_migration(
         m_artist_table, u"itemId", model::Artist::staticMetaObject, {});
@@ -85,17 +83,15 @@ void ItemSql::create_artist_table() {
     for (auto el : migs) {
         if (! q.exec(el)) {
             ERROR_LOG("{}", q.lastError().text());
-            m_con->db().rollback();
+            m_con->rollback();
             return;
         }
     }
-    if (! m_con->db().commit()) {
-        ERROR_LOG("{}", m_con->error_str());
-    }
+    m_con->commit();
 }
 
 void ItemSql::create_song_table() {
-    m_con->db().transaction();
+    m_con->transaction();
 
     auto migs = m_con->generate_meta_migration(
         m_song_table, u"itemId", model::Song::staticMetaObject, {}, get_song_ignore());
@@ -105,17 +101,15 @@ void ItemSql::create_song_table() {
     for (auto el : migs) {
         if (! q.exec(el)) {
             ERROR_LOG("{}", q.lastError().text());
-            m_con->db().rollback();
+            m_con->rollback();
             return;
         }
     }
-    if (! m_con->db().commit()) {
-        ERROR_LOG("{}", m_con->error_str());
-    }
+    m_con->commit();
 }
 
 void ItemSql::create_mix_table() {
-    m_con->db().transaction();
+    m_con->transaction();
 
     auto migs =
         m_con->generate_meta_migration(m_mix_table, u"itemId", model::Mix::staticMetaObject, {});
@@ -125,17 +119,15 @@ void ItemSql::create_mix_table() {
     for (auto el : migs) {
         if (! q.exec(el)) {
             ERROR_LOG("{}", q.lastError().text());
-            m_con->db().rollback();
+            m_con->rollback();
             return;
         }
     }
-    if (! m_con->db().commit()) {
-        ERROR_LOG("{}", m_con->error_str());
-    }
+    m_con->commit();
 }
 
 void ItemSql::create_radio_table() {
-    m_con->db().transaction();
+    m_con->transaction();
 
     auto migs = m_con->generate_meta_migration(
         m_radio_table, u"itemId", model::Radio::staticMetaObject, {});
@@ -145,17 +137,15 @@ void ItemSql::create_radio_table() {
     for (auto el : migs) {
         if (! q.exec(el)) {
             ERROR_LOG("{}", q.lastError().text());
-            m_con->db().rollback();
+            m_con->rollback();
             return;
         }
     }
-    if (! m_con->db().commit()) {
-        ERROR_LOG("{}", m_con->error_str());
-    }
+    m_con->commit();
 }
 
 void ItemSql::create_program_table() {
-    m_con->db().transaction();
+    m_con->transaction();
 
     auto migs = m_con->generate_meta_migration(
         m_program_table, u"itemId", model::Program::staticMetaObject, {});
@@ -165,17 +155,15 @@ void ItemSql::create_program_table() {
     for (auto el : migs) {
         if (! q.exec(el)) {
             ERROR_LOG("{}", q.lastError().text());
-            m_con->db().rollback();
+            m_con->rollback();
             return;
         }
     }
-    if (! m_con->db().commit()) {
-        ERROR_LOG("{}", m_con->error_str());
-    }
+    m_con->commit();
 }
 
 void ItemSql::create_album_artist_table() {
-    m_con->db().transaction();
+    m_con->transaction();
 
     auto migs = m_con->generate_column_migration(
         m_album_artist_table,
@@ -191,17 +179,15 @@ void ItemSql::create_album_artist_table() {
     for (auto el : migs) {
         if (! q.exec(el)) {
             ERROR_LOG("{}", q.lastError().text());
-            m_con->db().rollback();
+            m_con->rollback();
             return;
         }
     }
-    if (! m_con->db().commit()) {
-        ERROR_LOG("{}", m_con->error_str());
-    }
+    m_con->commit();
 }
 
 void ItemSql::create_song_artist_table() {
-    m_con->db().transaction();
+    m_con->transaction();
     auto migs = m_con->generate_column_migration(
         m_song_artist_table,
         std::array {
@@ -216,17 +202,15 @@ void ItemSql::create_song_artist_table() {
     for (auto el : migs) {
         if (! q.exec(el)) {
             ERROR_LOG("{}", q.lastError().text());
-            m_con->db().rollback();
+            m_con->rollback();
             return;
         }
     }
-    if (! m_con->db().commit()) {
-        ERROR_LOG("{}", m_con->error_str());
-    }
+    m_con->commit();
 }
 
 void ItemSql::create_mix_song_table() {
-    m_con->db().transaction();
+    m_con->transaction();
 
     auto migs = m_con->generate_column_migration(
         m_mix_song_table,
@@ -244,16 +228,14 @@ void ItemSql::create_mix_song_table() {
     for (auto el : migs) {
         if (! q.exec(el)) {
             ERROR_LOG("{}", q.lastError().text());
-            m_con->db().rollback();
+            m_con->rollback();
             return;
         }
     }
-    if (! m_con->db().commit()) {
-        ERROR_LOG("{}", m_con->error_str());
-    }
+    m_con->commit();
 }
 void ItemSql::create_radio_program_table() {
-    m_con->db().transaction();
+    m_con->transaction();
 
     auto migs = m_con->generate_column_migration(
         m_radio_program_table,
@@ -269,13 +251,11 @@ void ItemSql::create_radio_program_table() {
     for (auto el : migs) {
         if (! q.exec(el)) {
             ERROR_LOG("{}", q.lastError().text());
-            m_con->db().rollback();
+            m_con->rollback();
             return;
         }
     }
-    if (! m_con->db().commit()) {
-        ERROR_LOG("{}", m_con->error_str());
-    }
+    m_con->commit();
 }
 
 auto ItemSql::get_executor() -> QtExecutor& { return m_con->get_executor(); }
@@ -297,13 +277,13 @@ auto ItemSql::insert(std::span<const model::Album> items, ListParam columns, Lis
     auto query = m_con->query();
     insert_helper.bind(query);
 
-    m_con->db().transaction();
+    m_con->transaction();
     if (! query.execBatch()) {
         ERROR_LOG("{}", query.lastError().text());
-        m_con->db().rollback();
+        m_con->rollback();
         co_return false;
     }
-    m_con->db().commit();
+    m_con->commit();
     DEBUG_LOG("end insert");
     co_return true;
 }
@@ -324,13 +304,13 @@ auto ItemSql::insert(std::span<const model::Artist> items, ListParam columns,
     auto query = m_con->query();
     insert_helper.bind(query);
 
-    m_con->db().transaction();
+    m_con->transaction();
     if (! query.execBatch()) {
         ERROR_LOG("{}", query.lastError().text());
-        m_con->db().rollback();
+        m_con->rollback();
         co_return false;
     }
-    m_con->db().commit();
+    m_con->commit();
     DEBUG_LOG("end insert");
     co_return true;
 }
@@ -351,13 +331,13 @@ auto ItemSql::insert(std::span<const model::Song> items, ListParam columns, List
     auto query = m_con->query();
     insert_helper.bind(query);
 
-    m_con->db().transaction();
+    m_con->transaction();
     if (! query.execBatch()) {
         ERROR_LOG("{}", query.lastError().text());
-        m_con->db().rollback();
+        m_con->rollback();
         co_return false;
     }
-    m_con->db().commit();
+    m_con->commit();
     DEBUG_LOG("end insert");
     co_return true;
 }
@@ -378,13 +358,13 @@ auto ItemSql::insert(std::span<const model::Mix> items, ListParam columns,
     auto query = m_con->query();
     insert_helper.bind(query);
 
-    m_con->db().transaction();
+    m_con->transaction();
     if (! query.execBatch()) {
         ERROR_LOG("{}", query.lastError().text());
-        m_con->db().rollback();
+        m_con->rollback();
         co_return false;
     }
-    m_con->db().commit();
+    m_con->commit();
     DEBUG_LOG("end insert");
     co_return true;
 }
@@ -404,13 +384,13 @@ auto ItemSql::insert(std::span<const model::Radio> items, ListParam columns,
     auto query = m_con->query();
     insert_helper.bind(query);
 
-    m_con->db().transaction();
+    m_con->transaction();
     if (! query.execBatch()) {
         ERROR_LOG("{}", query.lastError().text());
-        m_con->db().rollback();
+        m_con->rollback();
         co_return false;
     }
-    m_con->db().commit();
+    m_con->commit();
     DEBUG_LOG("end insert");
     co_return true;
 }
@@ -432,13 +412,13 @@ auto ItemSql::insert(std::span<const model::Program> items, ListParam columns,
     auto query = m_con->query();
     insert_helper.bind(query);
 
-    m_con->db().transaction();
+    m_con->transaction();
     if (! query.execBatch()) {
         ERROR_LOG("{}", query.lastError().text());
-        m_con->db().rollback();
+        m_con->rollback();
         co_return false;
     }
-    m_con->db().commit();
+    m_con->commit();
     DEBUG_LOG("end insert");
     co_return true;
 }
@@ -458,13 +438,13 @@ INSERT OR IGNORE INTO %1 (albumId, artistId) VALUES (:albumId, :artistId);
 )"_s.arg(m_album_artist_table));
     query.bindValue(":albumId", albumIds);
     query.bindValue(":artistId", artistIds);
-    m_con->db().transaction();
+    m_con->transaction();
     if (! query.execBatch()) {
         ERROR_LOG("{}", query.lastError().text());
-        m_con->db().rollback();
+        m_con->rollback();
         co_return false;
     }
-    m_con->db().commit();
+    m_con->commit();
     co_return true;
 }
 
@@ -483,13 +463,13 @@ INSERT OR IGNORE INTO %1 (songId, artistId) VALUES (:songId, :artistId);
 )"_s.arg(m_song_artist_table));
     query.bindValue(":songId", songIds);
     query.bindValue(":artistId", artistIds);
-    m_con->db().transaction();
+    m_con->transaction();
     if (! query.execBatch()) {
         ERROR_LOG("{}", query.lastError().text());
-        m_con->db().rollback();
+        m_con->rollback();
         co_return false;
     }
-    m_con->db().commit();
+    m_con->commit();
     co_return true;
 }
 
@@ -508,13 +488,13 @@ INSERT OR IGNORE INTO %1 (radioId, programId) VALUES (:radioId, :programId);
 )"_s.arg(m_song_artist_table));
     query.bindValue(":radioId", radioIds);
     query.bindValue(":programId", programIds);
-    m_con->db().transaction();
+    m_con->transaction();
     if (! query.execBatch()) {
         ERROR_LOG("{}", query.lastError().text());
-        m_con->db().rollback();
+        m_con->rollback();
         co_return false;
     }
-    m_con->db().commit();
+    m_con->commit();
     co_return true;
 }
 
@@ -603,11 +583,11 @@ WHERE playlistId = :playlistId;
         u32 last  = query.value(0).toUInt();
         u32 count = query.value(1).toUInt();
         if (pos == 0) last = 0;
-        m_con->db().transaction();
+        m_con->transaction();
         if (insert_mix_song(last, count, playlist_id, song_ids)) {
-            m_con->db().commit();
+            m_con->commit();
         } else {
-            m_con->db().rollback();
+            m_con->rollback();
             co_return false;
         }
     } else {
@@ -646,7 +626,7 @@ auto ItemSql::refresh_mix_song(i32 pos, model::ItemId mix_id,
                                std::span<const model::ItemId> song_ids) -> task<bool> {
     Q_UNUSED(pos);
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
-    m_con->db().transaction();
+    m_con->transaction();
 
     auto query = con()->query();
 
@@ -659,17 +639,16 @@ WHERE playlistId = :playlistId;
 
     if (! query.exec()) {
         ERROR_LOG("{}", query.lastError().text());
-        m_con->db().rollback();
+        m_con->rollback();
         co_return false;
     }
 
     if (! insert_mix_song(0, 0, mix_id, song_ids)) {
-        m_con->db().rollback();
+        m_con->rollback();
         co_return false;
     }
 
-    if (! m_con->db().commit()) {
-        ERROR_LOG("{}", m_con->db().lastError().text());
+    if (! m_con->commit()) {
         co_return false;
     }
 
