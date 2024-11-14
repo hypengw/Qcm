@@ -65,26 +65,25 @@ MD.Page {
                     currentIndex: bar.currentIndex
 
                     BaseView {
-                        id: view_playlist
+                        id: m_view_mix
                         busy: qr_playlist.status === QA.enums.Querying
                         delegate: dg_playlist
                         model: qr_playlist.data
                         refresh: function () {
                             root.refresh_list(qr_playlist);
                         }
-
                         Connections {
                             function onPlaylistChanged() {
-                                view_playlist.dirty = true;
+                                m_view_mix.dirty = true;
                             }
                             function onPlaylistDeleted() {
-                                view_playlist.dirty = true;
+                                m_view_mix.dirty = true;
                             }
                             function onPlaylistCreated() {
-                                view_playlist.dirty = true;
+                                m_view_mix.dirty = true;
                             }
                             function onPlaylistLiked() {
-                                view_playlist.dirty = true;
+                                m_view_mix.dirty = true;
                             }
 
                             target: QA.App
@@ -94,7 +93,7 @@ MD.Page {
                             anchors.bottom: parent.bottom
                             anchors.rightMargin: 16
                             anchors.bottomMargin: 16
-                            flickable: view_playlist
+                            flickable: m_view_mix
                             action: Action {
                                 icon.name: MD.Token.icon.add
                                 onTriggered: {
