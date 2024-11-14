@@ -10,8 +10,11 @@ namespace
 {
 auto main_pages() -> std::vector<qcm::model::Page> {
     return {
-        qcm::model::Page {
-            "library", "library_music", QStringLiteral("qrc:/Qcm/App/qml/page/MinePage.qml"), true, true },
+        qcm::model::Page { "library",
+                           "library_music",
+                           QStringLiteral("qrc:/Qcm/App/qml/page/MinePage.qml"),
+                           true,
+                           true },
         qcm::model::Page { "today", "today", QStringLiteral(PAGE_URL "TodayPage.qml"), true, true },
         qcm::model::Page { "playlist",
                            "queue_music",
@@ -20,8 +23,9 @@ auto main_pages() -> std::vector<qcm::model::Page> {
                            true },
         qcm::model::Page {
             "cloud", "cloud", QStringLiteral(PAGE_URL "CloudPage.qml"), true, false },
-        qcm::model::Page {
-            "history", "history", QStringLiteral(PAGE_URL "RecordPage.qml"), false, false },
+        //        qcm::model::Page {
+        //            "history", "history", QStringLiteral(PAGE_URL "RecordPage.qml"), false, false
+        //            },
     };
 }
 } // namespace
