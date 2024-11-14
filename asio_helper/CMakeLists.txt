@@ -7,7 +7,8 @@ target_include_directories(
   PUBLIC include)
 target_compile_definitions(
   asio_helper
-  PUBLIC ASIO_DYN_LINK ASIO_DISABLE_VISIBILITY)
+  PUBLIC ASIO_DYN_LINK ASIO_DISABLE_VISIBILITY
+  PRIVATE QCM_ASIO_EXPORT)
 target_link_libraries(
   asio_helper
   PUBLIC core asio)

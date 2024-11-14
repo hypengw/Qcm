@@ -6,6 +6,7 @@
 
 #include "qcm_interface/async.h"
 #include "asio_helper/watch_dog.h"
+#include "asio_helper/error.h"
 #include "asio_qt/qt_watcher.h"
 
 namespace qcm
@@ -22,18 +23,18 @@ void QAsyncResult::spawn(Fn&& f, const std::source_location loc) {
         asio::co_spawn(ex,
                        watch_dog().watch(ex, std::forward<Fn>(f), asio::chrono::minutes(3), alloc),
                        asio::bind_allocator(alloc, [self, main_ex, loc](std::exception_ptr p) {
-                           try {
-                               if (p) std::rethrow_exception(p);
-                           } catch (const std::exception& e) {
-                               std::string e_str = e.what();
-                               asio::post(main_ex, [self, e_str]() {
-                                   if (self) {
-                                       self->set_error(QString::fromStdString(e_str));
-                                       self->set_status(Status::Error);
-                                   }
-                               });
-                               log::log(LogLevel::ERROR, loc, "{}", e_str);
-                           }
+                           helper::handle_asio_exception(
+                               p,
+                               [main_ex, self](std::string_view error) {
+                                   auto e_str = std::string(error);
+                                   asio::post(main_ex, [self, e_str]() {
+                                       if (self) {
+                                           self->set_error(QString::fromStdString(e_str));
+                                           self->set_status(Status::Error);
+                                       }
+                                   });
+                               },
+                               loc);
                        }));
     }
 }
