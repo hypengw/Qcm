@@ -22,9 +22,8 @@ void QAsyncResult::spawn(Fn&& f, const std::source_location loc) {
         asio::co_spawn(ex,
                        watch_dog().watch(ex, std::forward<Fn>(f), asio::chrono::minutes(3), alloc),
                        asio::bind_allocator(alloc, [self, main_ex, loc](std::exception_ptr p) {
-                           if (! p) return;
                            try {
-                               std::rethrow_exception(p);
+                               if (p) std::rethrow_exception(p);
                            } catch (const std::exception& e) {
                                std::string e_str = e.what();
                                asio::post(main_ex, [self, e_str]() {

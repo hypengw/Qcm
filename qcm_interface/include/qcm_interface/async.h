@@ -47,7 +47,7 @@ public:
     void                     set_reload_callback(const std::function<void()>&);
 
     template<typename Fn>
-    void spawn(Fn&& f, const std::source_location loc = {});
+    void spawn(Fn&& f, const std::source_location loc = std::source_location::current());
 
     template<typename T, typename TE>
     void from(const nstd::expected<T, TE>& exp) {
