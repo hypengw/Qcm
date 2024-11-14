@@ -43,12 +43,14 @@ public:
     virtual auto insert(std::span<const model::Program> items, ListParam columns,
                         ListParam on_update = {}) -> task<bool> = 0;
 
-    virtual auto insert_album_artist(std::span<const IdPair>) -> task<bool>              = 0;
-    virtual auto insert_song_artist(std::span<const IdPair>) -> task<bool>               = 0;
-    virtual auto insert_radio_program(std::span<const IdPair>) -> task<bool>             = 0;
-    virtual auto insert_mix_song(i32 pos, model::ItemId palylist_id,
-                                 std::span<const model::ItemId> song_ids) -> task<bool>  = 0;
-    virtual auto refresh_mix_song(i32 pos, model::ItemId palylist_id,
+    virtual auto insert_album_artist(std::span<const IdPair>) -> task<bool>             = 0;
+    virtual auto insert_song_artist(std::span<const IdPair>) -> task<bool>              = 0;
+    virtual auto insert_radio_program(std::span<const IdPair>) -> task<bool>            = 0;
+    virtual auto insert_mix_song(i32 pos, model::ItemId mix_id,
+                                 std::span<const model::ItemId> song_ids) -> task<bool> = 0;
+    virtual auto remove_mix_song(model::ItemId mix_id, std::span<const model::ItemId> song_ids)
+        -> task<bool>                                                                    = 0;
+    virtual auto refresh_mix_song(i32 pos, model::ItemId mix_id,
                                   std::span<const model::ItemId> song_ids) -> task<bool> = 0;
 
     virtual auto select_mix(const model::ItemId& user_id, qint32 special_type)

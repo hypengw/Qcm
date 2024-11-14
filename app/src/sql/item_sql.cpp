@@ -518,8 +518,8 @@ INSERT OR IGNORE INTO %1 (radioId, programId) VALUES (:radioId, :programId);
     co_return true;
 }
 
-auto ItemSql::insert_playlist_song(u32 last, u32 count, const model::ItemId& playlist_id,
-                                   std::span<const model::ItemId> song_ids) -> bool {
+auto ItemSql::insert_mix_song(u32 last, u32 count, const model::ItemId& playlist_id,
+                              std::span<const model::ItemId> song_ids) -> bool {
     Q_UNUSED(count);
     u32 limit = 100;
 
@@ -602,8 +602,9 @@ WHERE playlistId = :playlistId;
     } else if (query.next()) {
         u32 last  = query.value(0).toUInt();
         u32 count = query.value(1).toUInt();
+        if (pos == 0) last = 0;
         m_con->db().transaction();
-        if (insert_playlist_song(last, count, playlist_id, song_ids)) {
+        if (insert_mix_song(last, count, playlist_id, song_ids)) {
             m_con->db().commit();
         } else {
             m_con->db().rollback();
@@ -614,7 +615,34 @@ WHERE playlistId = :playlistId;
 
     co_return true;
 }
-auto ItemSql::refresh_mix_song(i32 pos, model::ItemId playlist_id,
+auto ItemSql::remove_mix_song(model::ItemId mix_id, std::span<const model::ItemId> song_ids)
+    -> task<bool> {
+    QStringList placeholders;
+    for (usize i = 0; i < song_ids.size(); ++i) {
+        placeholders << u":id%1"_s.arg(i);
+    }
+    co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
+    auto query = con()->query();
+    query.prepare_sv(fmt::format(R"(
+DELETE FROM {0}
+WHERE playlistId = :playlistId AND songId IN ({1});
+)",
+                                 m_mix_song_table,
+                                 placeholders.join(",")));
+
+    query.bindValue(":playlistId", mix_id.toUrl());
+    for (usize i = 0; i < song_ids.size(); ++i) {
+        query.bindValue(placeholders[i], song_ids[i].toUrl());
+    }
+
+    if (! query.exec()) {
+        ERROR_LOG("{}", query.lastError().text());
+        co_return false;
+    }
+    co_return true;
+}
+
+auto ItemSql::refresh_mix_song(i32 pos, model::ItemId mix_id,
                                std::span<const model::ItemId> song_ids) -> task<bool> {
     Q_UNUSED(pos);
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
@@ -627,7 +655,7 @@ DELETE FROM {0}
 WHERE playlistId = :playlistId;
 )",
                                  m_mix_song_table));
-    query.bindValue(":playlistId", playlist_id.toUrl());
+    query.bindValue(":playlistId", mix_id.toUrl());
 
     if (! query.exec()) {
         ERROR_LOG("{}", query.lastError().text());
@@ -635,8 +663,13 @@ WHERE playlistId = :playlistId;
         co_return false;
     }
 
-    if (! insert_playlist_song(0, 0, playlist_id, song_ids)) {
+    if (! insert_mix_song(0, 0, mix_id, song_ids)) {
         m_con->db().rollback();
+        co_return false;
+    }
+
+    if (! m_con->db().commit()) {
+        ERROR_LOG("{}", m_con->db().lastError().text());
         co_return false;
     }
 
@@ -645,7 +678,6 @@ WHERE playlistId = :playlistId;
 auto ItemSql::select_mix(const model::ItemId& user_id, qint32 special_type)
     -> task<std::optional<model::Mix>> {
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
-    m_con->db().transaction();
 
     auto query = con()->query();
 

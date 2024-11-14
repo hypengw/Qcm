@@ -34,10 +34,12 @@ public:
     auto insert_album_artist(std::span<const IdPair>) -> task<bool> override;
     auto insert_song_artist(std::span<const IdPair>) -> task<bool> override;
     auto insert_radio_program(std::span<const IdPair>) -> task<bool> override;
-    auto insert_mix_song(i32 pos, model::ItemId palylist_id,
-                         std::span<const model::ItemId> song_ids) -> task<bool> override;
-    auto refresh_mix_song(i32 pos, model::ItemId palylist_id,
-                          std::span<const model::ItemId> song_ids) -> task<bool> override;
+    auto insert_mix_song(i32 pos, model::ItemId mix_id, std::span<const model::ItemId> song_ids)
+        -> task<bool> override;
+    auto remove_mix_song(model::ItemId mix_id, std::span<const model::ItemId> song_ids)
+        -> task<bool> override;
+    auto refresh_mix_song(i32 pos, model::ItemId mix_id, std::span<const model::ItemId> song_ids)
+        -> task<bool> override;
     auto select_mix(const model::ItemId& user_id, qint32 special_type)
         -> task<std::optional<model::Mix>> override;
 
@@ -47,8 +49,8 @@ public:
                  ListParam not_null = {}) -> task<std::vector<model::ItemId>>;
 
 private:
-    auto insert_playlist_song(u32 last, u32 count, const model::ItemId& playlist_id,
-                              std::span<const model::ItemId> song_ids) -> bool;
+    auto insert_mix_song(u32 last, u32 count, const model::ItemId& mix_id,
+                         std::span<const model::ItemId> song_ids) -> bool;
     void create_album_table();
     void create_artist_table();
     void create_album_artist_table();

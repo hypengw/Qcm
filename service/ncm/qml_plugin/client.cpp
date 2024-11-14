@@ -129,46 +129,6 @@ auto prepare_session(ncm::Client c, qcm::model::ItemId userId) -> qcm::task<void
     co_return;
 }
 
-void refresh_fav_mix(rc<ncm::impl::Client> c) {
-    auto ex = asio::make_strand(qcm::pool_executor());
-
-    asio::co_spawn(
-        ex,
-        [c, ex] -> qcm::task<void> {
-            auto timer = make_rc<asio::steady_timer>(ex);
-            timer->expires_after(asio::chrono::milliseconds(1000));
-            co_await timer->async_wait(asio::as_tuple(asio::use_awaitable));
-
-            auto                   sql    = qcm::Global::instance()->get_item_sql();
-            auto                   userId = get_user_id(*c);
-            ncm::api::UserPlaylist api;
-            convert(api.input.uid, userId);
-            api.input.limit = 1;
-            auto out        = co_await c->ncm.perform(api);
-            if (out) {
-                auto list = qcm::oper::MixOper::create_list(0);
-                for (auto& el : out->playlist) {
-                    auto oper = qcm::oper::MixOper(list.emplace_back());
-                    convert(oper, el);
-                }
-                co_await sql->insert(list, {});
-
-                if (list.size()) {
-                    qcm::Notifier::instance()->itemChanged(qcm::oper::MixOper(list.at(0)).id());
-                }
-                //   auto mix_id = get_user_fav_mix_id(cbase);
-                //   if (! mix_id) {
-                //       if (auto mix = co_await
-                //       sql->select_mix(get_user_id(cbase), 5)) {
-                //           mix_id = mix->id;
-                //           set_user_fav_mix_id(cbase, mix->id);
-                //       }
-                //   }
-            }
-        },
-        helper::asio_detached_log_t {});
-}
-
 template<typename T>
 auto insert_artist(const T& in_list, rc<qcm::db::ItemSqlBase> sql, std::set<std::string> on_update)
     -> qcm::task<void> {
@@ -292,6 +252,58 @@ auto insert_program(const T& in_list, rc<qcm::db::ItemSqlBase> sql,
     }
     co_await sql->insert(list, on_update);
 }
+
+void refresh_fav_mix(rc<ncm::impl::Client> c, std::optional<qcm::model::ItemId> song_id = {},
+                     bool collect_act = false) {
+    auto ex = asio::make_strand(qcm::pool_executor());
+    asio::co_spawn(
+        ex,
+        [c, ex, song_id, collect_act] -> qcm::task<void> {
+            auto timer = make_rc<asio::steady_timer>(ex);
+            timer->expires_after(asio::chrono::milliseconds(1000));
+            {
+                auto sql    = qcm::Global::instance()->get_item_sql();
+                auto mix_id = get_user_fav_mix_id(*c);
+                if (! mix_id) {
+                    if (auto mix = co_await sql->select_mix(get_user_id(*c), 5)) {
+                        mix_id = mix->id;
+                        set_user_fav_mix_id(*c, mix->id);
+                    }
+                }
+
+                if (mix_id && song_id) {
+                    if (collect_act) {
+                        co_await sql->insert_mix_song(0, *mix_id, std::array { *song_id });
+                    } else {
+                        co_await sql->remove_mix_song(*mix_id, std::array { *song_id });
+                    }
+                }
+            }
+
+            co_await timer->async_wait(asio::as_tuple(asio::use_awaitable));
+
+            auto                   sql    = qcm::Global::instance()->get_item_sql();
+            auto                   userId = get_user_id(*c);
+            ncm::api::UserPlaylist api;
+            convert(api.input.uid, userId);
+            api.input.limit = 1;
+            auto out        = co_await c->ncm.perform(api);
+            if (out) {
+                auto list = qcm::oper::MixOper::create_list(0);
+                for (auto& el : out->playlist) {
+                    auto oper = qcm::oper::MixOper(list.emplace_back());
+                    convert(oper, el);
+                }
+                co_await sql->insert(list, {});
+
+                if (list.size()) {
+                    qcm::Notifier::instance()->itemChanged(qcm::oper::MixOper(list.at(0)).id());
+                }
+            }
+        },
+        helper::asio_detached_log_t {});
+}
+
 } // namespace
 
 namespace ncm::impl
@@ -415,10 +427,10 @@ bool make_request(ClientBase& cbase, request::Request& req, const QUrl& url,
     return true;
 }
 
-auto collect(ClientBase& cbase, qcm::model::ItemId id, bool act) -> qcm::task<Result<bool>> {
+auto collect(ClientBase& cbase, qcm::model::ItemId item_id, bool act) -> qcm::task<Result<bool>> {
     using Res = qcm::task<Result<bool>>;
     auto c    = *get_client(cbase);
-    auto nid  = to_ncm_id(id);
+    auto nid  = to_ncm_id(item_id);
 
     co_return co_await std::visit(
         overloaded { [act, &c](model::PlaylistId id) -> Res {
@@ -457,17 +469,17 @@ auto collect(ClientBase& cbase, qcm::model::ItemId id, bool act) -> qcm::task<Re
                              return out.code == 200;
                          });
                      },
-                     [act, &c, &cbase](model::SongId id) -> Res {
+                     [act, &c, &cbase, &item_id](model::SongId id) -> Res {
                          ncm::api::RadioLike api;
                          api.input.like    = act;
                          api.input.trackId = id;
                          auto ok           = co_await c.perform(api);
 
-                         co_return ok.transform([&cbase](const auto& out) {
+                         co_return ok.transform([&cbase, &item_id, act](const auto& out) {
                              auto ok = out.code == 200;
                              if (ok) {
                                  // notify user fav playlist changed
-                                 refresh_fav_mix(get_client_rc(cbase));
+                                 refresh_fav_mix(get_client_rc(cbase), item_id, act);
                              }
                              return ok;
                          });

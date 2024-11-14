@@ -165,7 +165,7 @@ ORDER BY playlist_song.orderIdx;
                 bool songOld = querySong && (! songs || mix->trackCount != (int)songs->size());
                 // half hour
                 auto duration = editTime.secsTo(QDateTime::currentDateTime());
-                bool timeOld  = duration > 60 * 30;
+                bool timeOld  = duration > 60 * 60 * 2;
                 if (! synced && (! mix || songOld || timeOld)) {
                     co_await SyncAPi::sync_item(itemId);
                     synced = true;
