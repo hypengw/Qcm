@@ -5,6 +5,8 @@
 #include <QLoggingCategory>
 #include <QThread>
 
+#define QCM_LOG_IMPL
+
 #include "Qcm/app.h"
 #include "request/request.h"
 #include "core/log.h"

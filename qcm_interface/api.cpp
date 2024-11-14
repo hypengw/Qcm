@@ -60,7 +60,7 @@ public:
                                            self->set_status(Status::Error);
                                        }
                                    });
-                                   LogManager::instance()->log(LogLevel::ERROR, loc, "{}", e_str);
+                                   log::log(LogLevel::ERROR, loc, "{}", e_str);
                                }
                            }
 

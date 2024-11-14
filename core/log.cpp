@@ -6,10 +6,10 @@
 #include <cassert>
 #include <cstdio>
 
-using namespace qcm;
-
 namespace
 {
+
+using LogLevel = qcm::LogLevel;
 
 constexpr auto COLOR_RESET   = "\033[0m"sv;
 constexpr auto COLOR_RED     = "\033[31m"sv;
@@ -96,25 +96,16 @@ auto supports_color() -> bool {
 #endif
 
 } // namespace
-namespace qcm {
-auto the_log_manager() -> LogManager* {
-    static LogManager manager;
-    return &manager;
-}
-}
 
-LogManager* LogManager::init() {
-    return qcm::the_log_manager();
-}
+namespace qcm
+{
 
-LogManager* LogManager::instance() { return qcm::the_log_manager(); }
+extern auto the_log_manager() -> qcm::LogManager*;
 
-LogManager::LogManager(): m_level(LogLevel::WARN) {}
-LogManager::~LogManager() {}
+LogManager* LogManager::init() { return the_log_manager(); }
 
-void LogManager::set_level(LogLevel l) { m_level = l; }
-
-void LogManager::log_raw(LogLevel level, std::string_view content) {
+LogManager* LogManager::instance() { return the_log_manager(); }
+void        log::log_raw(LogLevel level, std::string_view content) {
     FILE* out = nullptr;
     switch (level) {
         using enum LogLevel;
@@ -131,8 +122,7 @@ void LogManager::log_raw(LogLevel level, std::string_view content) {
     }
     std::fflush(out);
 };
-void LogManager::log_loc_raw(LogLevel level, const std::source_location loc,
-                             std::string_view content) {
+void log::log_loc_raw(LogLevel level, const std::source_location loc, std::string_view content) {
     std::time_t t = std::time(nullptr);
     log_raw(level,
             fmt::format("{:<7} [{:%H:%M:%S}] {} [{}:{},{}] \n",
@@ -144,8 +134,8 @@ void LogManager::log_loc_raw(LogLevel level, const std::source_location loc,
                         loc.column()));
 }
 
-std::string log::format_assert(std::string_view expr_str, const std::source_location& loc,
-                               std::string_view msg) {
+auto log::format_assert(std::string_view expr_str, const std::source_location& loc,
+                        std::string_view msg) -> std::string {
     return fmt::format("{}:{}: {}: Assertion `{}` failed.{}{}\n",
                        extract_last(loc.file_name(), 2),
                        loc.line(),
@@ -154,3 +144,4 @@ std::string log::format_assert(std::string_view expr_str, const std::source_loca
                        msg.empty() ? "" : "\n",
                        msg);
 }
+} // namespace qcm

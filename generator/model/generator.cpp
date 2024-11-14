@@ -10,6 +10,8 @@
 
 #include <QtCore>
 
+#define QCM_LOG_IMPL
+
 #include "peg_cpp.hpp"
 
 #include "core/core.h"
@@ -33,8 +35,8 @@ constexpr auto dels { " :;,(){}<>[]|+=/\\\n"sv };
 
 inline auto is_del(char c) -> bool { return dels.find(c) != std::string_view::npos; };
 
-inline auto replace_identity(std::string_view src, std::string_view match,
-                             std::string_view replace) -> std::string {
+inline auto replace_identity(std::string_view src, std::string_view match, std::string_view replace)
+    -> std::string {
     std::string out;
     out.reserve(src.size());
     auto is_del = [src](std::string_view::iterator it) -> bool {
@@ -572,7 +574,10 @@ void {0}::to_json(json::njson& j) const {{
     std::string helper;
     {
         auto view_equal = std::ranges::transform_view(info.vars, [](auto& v) -> std::string {
-            return fmt::format("        if constexpr(ycore::has_equal_operator<decltype(self.d_func()->{0})>) {{ if(!(self.d_func()->{0} == m.d_func()->{0})) return false; }}", v.name);
+            return fmt::format(
+                "        if constexpr(ycore::has_equal_operator<decltype(self.d_func()->{0})>) {{ "
+                "if(!(self.d_func()->{0} == m.d_func()->{0})) return false; }}",
+                v.name);
         });
         helper          = fmt::format(R"(
 // Helper

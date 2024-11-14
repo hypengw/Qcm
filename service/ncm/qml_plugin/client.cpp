@@ -1052,7 +1052,7 @@ auto qml::get_ncm_client() -> std::optional<ncm::Client> {
 
 auto qml::check(std::optional<ncm::Client> opt, const std::source_location loc) -> bool {
     if (! opt) {
-        qcm::LogManager::instance()->log(qcm::LogLevel::ERROR, loc, "client not valid");
+        qcm::log::log(qcm::LogLevel::ERROR, loc, "client not valid");
         return false;
     }
     return true;

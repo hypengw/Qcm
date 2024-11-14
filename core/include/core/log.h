@@ -46,35 +46,29 @@ constexpr auto extract_basename(std::string_view path) -> std::string_view {
     return extract_last(path, 1);
 }
 
-class LogManager {
-public:
+struct LogManager {
     static LogManager* init();
     static LogManager* instance();
 
-    LogManager();
-    ~LogManager();
-
-    template<typename... T>
-    void log(LogLevel level, const std::source_location loc, fmt::format_string<T...> fmt,
-             T&&... args) {
-        if (level < m_level) return;
-        log_loc_raw(level, loc, fmt::vformat(fmt, fmt::make_format_args(args...)));
-    }
-
-    void log_loc_raw(LogLevel level, const std::source_location loc, std::string_view);
-    void log_raw(LogLevel level, std::string_view);
-
-    void set_level(LogLevel);
-
-private:
-    LogLevel m_level;
+    virtual auto level() const -> LogLevel = 0;
+    virtual void set_level(LogLevel)       = 0;
 };
+
+template<typename... T>
+void log(LogLevel level, const std::source_location loc, fmt::format_string<T...> fmt,
+         T&&... args) {
+    if (level < LogManager::instance()->level()) return;
+    log_loc_raw(level, loc, fmt::vformat(fmt, fmt::make_format_args(args...)));
+}
+
+void log_loc_raw(LogLevel level, const std::source_location loc, std::string_view);
+void log_raw(LogLevel level, std::string_view);
 
 inline constexpr void             noop() {}
 inline constexpr std::string_view noop_str() { return {}; }
 
 [[noreturn]] inline void fail(std::string_view msg) {
-    LogManager::instance()->log_raw(LogLevel::ERROR, msg);
+    log_raw(LogLevel::ERROR, msg);
 
     // Crash with access violation and generate crash report.
     volatile auto nullptr_value = (int*)nullptr;
@@ -117,7 +111,7 @@ using LogManager = log::LogManager;
 } // namespace qcm
 
 // clang-format off
-#define GENERIC_LOG(lv, ...) qcm::LogManager::instance()->log(lv, std::source_location::current(), __VA_ARGS__);
+#define GENERIC_LOG(lv, ...) qcm::log::log(lv, std::source_location::current(), __VA_ARGS__);
 
 #define ERROR_LOG(...)   do { GENERIC_LOG(qcm::LogLevel::ERROR,   __VA_ARGS__) } while (false)
 #define WARN_LOG(...)    do { GENERIC_LOG(qcm::LogLevel::WARN, __VA_ARGS__) } while (false)
@@ -152,3 +146,21 @@ using LogManager = log::LogManager;
 #define _assert_rel_(EXPR) _tpl_assert_(true, EXPR, std::source_location::current())
 #define _assert_msg_rel_(EXPR, ...) \
     _tpl_assert_msg_(true, EXPR, std::source_location::current(), __VA_ARGS__)
+
+#ifdef QCM_LOG_IMPL
+namespace qcm
+{
+struct LogManagerImpl final : LogManager {
+    auto level() const -> LogLevel override { return m_level; }
+    void set_level(LogLevel v) override { m_level = v; }
+
+    LogLevel m_level { LogLevel::INFO };
+};
+
+C_DECL_EXPORT auto the_log_manager() -> LogManager* {
+    static LogManagerImpl manager;
+    return &manager;
+}
+} // namespace qcm
+
+#endif

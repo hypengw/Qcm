@@ -33,7 +33,7 @@ void QAsyncResult::spawn(Fn&& f, const std::source_location loc) {
                                        self->set_status(Status::Error);
                                    }
                                });
-                               LogManager::instance()->log(LogLevel::ERROR, loc, "{}", e_str);
+                               log::log(LogLevel::ERROR, loc, "{}", e_str);
                            }
                        }));
     }

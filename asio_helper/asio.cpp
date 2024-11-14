@@ -25,7 +25,7 @@ void asio_detached_log_t::operator()(std::exception_ptr ptr) {
         if (what.ends_with("Operation aborted.")) {
             level = qcm::LogLevel::WARN;
         }
-        qcm::LogManager::instance()->log(level, loc, "{}", e.what());
+        qcm::log::log(level, loc, "{}", e.what());
     }
 }
 } // namespace helper
