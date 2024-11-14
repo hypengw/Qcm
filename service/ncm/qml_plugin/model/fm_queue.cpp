@@ -21,8 +21,9 @@ FmQueue::~FmQueue() {}
 
 void FmQueue::onRequestNext() {
     if (rowCount() >= 3) {
-        setCurrentIndex(1);
-        removeRow(0);
+        if (currentIndex() > 0) {
+            removeRow(0);
+        }
         return;
     }
     auto self = helper::QWatcher { this };
