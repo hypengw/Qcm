@@ -121,15 +121,12 @@ ApplicationWindow {
 
         Connections {
             target: QA.Action
-            function onPopup_special(str) {
-                if (str === QA.enums.SRQueue) {
+            function onPopup_special(s) {
+                if (s === QA.enums.SRQueue) {
                     queue_popup.open();
-                } else if (str === QA.enums.SRSetting) {
-                    QA.Action.popup_page('qrc:/Qcm/App/qml/page/SettingsPage.qml', {});
-                } else if (str === QA.enums.SRAbout) {
-                    QA.Action.popup_page('qrc:/Qcm/App/qml/page/AboutPage.qml', {});
-                } else if (str === QA.enums.SRStatus) {
-                    QA.Action.popup_page('qrc:/Qcm/App/qml/page/StatusPage.qml', {});
+                } else if (typeof s == 'number') {
+                    const url = QA.Util.special_route_url(s);
+                    if(url) QA.Action.popup_page(url, {});
                 }
             }
 

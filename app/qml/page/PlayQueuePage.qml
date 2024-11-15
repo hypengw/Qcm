@@ -15,7 +15,12 @@ MD.Page {
         QC.Action {
             icon.name: MD.Token.icon.delete
             onTriggered: {
-                QA.App.playqueue.clear();
+                const q = QA.App.playqueue;
+                if (q.canRemove) {
+                    q.clear();
+                } else {
+                    QA.Action.toast(`Not support for ${q.name}`);
+                }
             }
         }
     ]
@@ -51,7 +56,7 @@ MD.Page {
                 if (m.canJump) {
                     QA.Action.play_by_id(model.itemId);
                 } else {
-                    QA.Action.toast(qsTr(`not support for ${m.name}`));
+                    QA.Action.toast(qsTr(`Not support for ${m.name}`));
                 }
             }
 
@@ -81,7 +86,7 @@ MD.Page {
                         if (q.canRemove) {
                             m_view.model.removeRow(model.index);
                         } else {
-                            QA.Action.toast(`not support for ${q.name}`);
+                            QA.Action.toast(`Not support for ${q.name}`);
                         }
                     }
                 }

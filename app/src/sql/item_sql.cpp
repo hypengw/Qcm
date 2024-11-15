@@ -58,7 +58,7 @@ void ItemSql::create_album_table() {
     m_con->transaction();
 
     auto migs = m_con->generate_meta_migration(
-        m_album_table, u"itemId", model::Album::staticMetaObject, {});
+        m_album_table, u"", model::Album::staticMetaObject, { { "itemId"sv } });
 
     QSqlQuery q = m_con->query();
 
@@ -76,7 +76,7 @@ void ItemSql::create_artist_table() {
     m_con->transaction();
 
     auto migs = m_con->generate_meta_migration(
-        m_artist_table, u"itemId", model::Artist::staticMetaObject, {});
+        m_artist_table, u"", model::Artist::staticMetaObject, { { "itemId"sv } });
 
     QSqlQuery q = m_con->query();
 
@@ -94,7 +94,7 @@ void ItemSql::create_song_table() {
     m_con->transaction();
 
     auto migs = m_con->generate_meta_migration(
-        m_song_table, u"itemId", model::Song::staticMetaObject, {}, get_song_ignore());
+        m_song_table, u"", model::Song::staticMetaObject, { { "itemId"sv } }, get_song_ignore());
 
     QSqlQuery q = m_con->query();
 
@@ -111,8 +111,8 @@ void ItemSql::create_song_table() {
 void ItemSql::create_mix_table() {
     m_con->transaction();
 
-    auto migs =
-        m_con->generate_meta_migration(m_mix_table, u"itemId", model::Mix::staticMetaObject, {});
+    auto migs = m_con->generate_meta_migration(
+        m_mix_table, u"", model::Mix::staticMetaObject, { { "itemId"sv } });
 
     QSqlQuery q = m_con->query();
 
@@ -130,7 +130,7 @@ void ItemSql::create_radio_table() {
     m_con->transaction();
 
     auto migs = m_con->generate_meta_migration(
-        m_radio_table, u"itemId", model::Radio::staticMetaObject, {});
+        m_radio_table, u"", model::Radio::staticMetaObject, { { "itemId"sv } });
 
     QSqlQuery q = m_con->query();
 
@@ -148,7 +148,7 @@ void ItemSql::create_program_table() {
     m_con->transaction();
 
     auto migs = m_con->generate_meta_migration(
-        m_program_table, u"itemId", model::Program::staticMetaObject, {});
+        m_program_table, u"", model::Program::staticMetaObject, { { "itemId"sv } });
 
     QSqlQuery q = m_con->query();
 
@@ -172,7 +172,7 @@ void ItemSql::create_album_artist_table() {
             helper::SqlColumn { .name = "artistId", .type = "TEXT", .notnull = 1 },
             m_con->EditTimeColumn,
         },
-        std::array { "UNIQUE(albumId, artistId)"s });
+        { helper::SqlUnique { "albumId"sv, "artistId"sv } });
 
     QSqlQuery q = m_con->query();
 
@@ -195,7 +195,7 @@ void ItemSql::create_song_artist_table() {
             helper::SqlColumn { .name = "artistId", .type = "TEXT", .notnull = 1 },
             m_con->EditTimeColumn,
         },
-        std::array { "UNIQUE(songId, artistId)"s });
+        { { "songId"sv, "artistId"sv } });
 
     QSqlQuery q = m_con->query();
 
@@ -221,7 +221,7 @@ void ItemSql::create_mix_song_table() {
             helper::SqlColumn { .name = "removed", .type = "INTEGER", .dflt_value = "0"s },
             m_con->EditTimeColumn,
         },
-        std::array { "UNIQUE(songId, playlistId)"s });
+        { { "songId"sv, "playlistId"sv } });
 
     QSqlQuery q = m_con->query();
 
@@ -244,7 +244,7 @@ void ItemSql::create_radio_program_table() {
             helper::SqlColumn { .name = "programId", .type = "TEXT", .notnull = 1 },
             m_con->EditTimeColumn,
         },
-        std::array { "UNIQUE(radioId, programId)"s });
+        { { "radioId"sv, "programId"sv } });
 
     QSqlQuery q = m_con->query();
 
@@ -264,13 +264,8 @@ auto ItemSql::con() const -> rc<helper::SqlConnect> { return m_con; }
 auto ItemSql::insert(std::span<const model::Album> items, ListParam columns, ListParam on_update)
     -> task<bool> {
     DEBUG_LOG("start insert album, {}", items.size());
-    auto insert_helper = m_con->generate_insert_helper(m_album_table,
-                                                       { "itemId"s },
-                                                       model::Album::staticMetaObject,
-                                                       items,
-                                                       columns,
-                                                       on_update,
-                                                       { { u"itemId"_s, item_id_converter } });
+    auto insert_helper = m_con->generate_insert_helper(
+        m_album_table, { "itemId"s }, model::Album::staticMetaObject, items, columns, on_update);
 
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
 
@@ -291,13 +286,8 @@ auto ItemSql::insert(std::span<const model::Album> items, ListParam columns, Lis
 auto ItemSql::insert(std::span<const model::Artist> items, ListParam columns,
                      const std::set<std::string>& on_update) -> task<bool> {
     DEBUG_LOG("start insert artist, {}", items.size());
-    auto insert_helper = m_con->generate_insert_helper(m_artist_table,
-                                                       { "itemId"s },
-                                                       model::Artist::staticMetaObject,
-                                                       items,
-                                                       columns,
-                                                       on_update,
-                                                       { { u"itemId"_s, item_id_converter } });
+    auto insert_helper = m_con->generate_insert_helper(
+        m_artist_table, { "itemId"s }, model::Artist::staticMetaObject, items, columns, on_update);
 
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
 
@@ -317,14 +307,12 @@ auto ItemSql::insert(std::span<const model::Artist> items, ListParam columns,
 auto ItemSql::insert(std::span<const model::Song> items, ListParam columns, ListParam on_update)
     -> task<bool> {
     DEBUG_LOG("start insert song, {}", items.size());
-    auto insert_helper = m_con->generate_insert_helper(
-        m_song_table,
-        { "itemId"s },
-        model::Song::staticMetaObject,
-        items,
-        song_ignore(columns),
-        on_update,
-        { { u"itemId"_s, item_id_converter }, { u"albumId"_s, item_id_converter } });
+    auto insert_helper = m_con->generate_insert_helper(m_song_table,
+                                                       { "itemId"s },
+                                                       model::Song::staticMetaObject,
+                                                       items,
+                                                       song_ignore(columns),
+                                                       on_update);
 
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
 
@@ -345,13 +333,7 @@ auto ItemSql::insert(std::span<const model::Mix> items, ListParam columns,
                      const std::set<std::string>& on_update) -> task<bool> {
     DEBUG_LOG("start insert playlist, {}", items.size());
     auto insert_helper = m_con->generate_insert_helper(
-        m_mix_table,
-        { "itemId"s },
-        model::Mix::staticMetaObject,
-        items,
-        columns,
-        on_update,
-        { { u"itemId"_s, item_id_converter }, { u"userId"_s, item_id_converter } });
+        m_mix_table, { "itemId"s }, model::Mix::staticMetaObject, items, columns, on_update);
 
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
 
@@ -371,13 +353,8 @@ auto ItemSql::insert(std::span<const model::Mix> items, ListParam columns,
 auto ItemSql::insert(std::span<const model::Radio> items, ListParam columns,
                      const std::set<std::string>& on_update) -> task<bool> {
     DEBUG_LOG("start insert radio, {}", items.size());
-    auto insert_helper = m_con->generate_insert_helper(m_radio_table,
-                                                       { "itemId"s },
-                                                       model::Radio::staticMetaObject,
-                                                       items,
-                                                       columns,
-                                                       on_update,
-                                                       { { u"itemId"_s, item_id_converter } });
+    auto insert_helper = m_con->generate_insert_helper(
+        m_radio_table, { "itemId"s }, model::Radio::staticMetaObject, items, columns, on_update);
 
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
 
@@ -402,10 +379,7 @@ auto ItemSql::insert(std::span<const model::Program> items, ListParam columns,
                                                        model::Program::staticMetaObject,
                                                        items,
                                                        columns,
-                                                       on_update,
-                                                       { { u"itemId"_s, item_id_converter },
-                                                         { u"songId"_s, item_id_converter },
-                                                         { u"radioId"_s, item_id_converter } });
+                                                       on_update);
 
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
 

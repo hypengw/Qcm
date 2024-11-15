@@ -25,7 +25,7 @@ MD.Control {
     contentItem: QA.GridView {
         id: m_view
         model: qr_pl.data
-        fixedCellWidth: QA.Util.dynCardWidth(widthNoMargin, spacing)
+        fixedCellWidth: QA.Util.dyn_card_width(widthNoMargin, spacing)
 
         delegate: QA.PicCardGridDelegate {
             text: model.name

@@ -21,6 +21,27 @@
 namespace helper
 {
 
+class SqlQuery : public QSqlQuery {
+public:
+    SqlQuery(const QSqlDatabase& db): QSqlQuery(db), m_thread(db.thread()) {
+        _assert_rel_(m_thread == nullptr || m_thread->isCurrentThread());
+    }
+    ~SqlQuery() { _assert_rel_(m_thread == nullptr || m_thread->isCurrentThread()); }
+    SqlQuery(const SqlQuery&)            = delete;
+    SqlQuery& operator=(const SqlQuery&) = delete;
+    SqlQuery(SqlQuery&& o): QSqlQuery(std::move(o)), m_thread(std::exchange(o.m_thread, nullptr)) {}
+    SqlQuery& operator=(SqlQuery&& o) {
+        QSqlQuery::operator=(std::move(o));
+        m_thread = std::exchange(o.m_thread, nullptr);
+        return *this;
+    }
+
+    bool prepare_sv(std::string_view query) { return QSqlQuery::prepare(QString::fromUtf8(query)); }
+
+private:
+    QThread* m_thread;
+};
+
 struct SqlColumn {
     std::string name {};
     std::string type {};
@@ -31,16 +52,114 @@ struct SqlColumn {
     std::strong_ordering operator<=>(const SqlColumn&) const = default;
 
     static auto from(QSqlQuery& query) {
-        int       i = 1;
         SqlColumn c;
-        c.name       = query.value(i++).toString().toStdString();
-        c.type       = query.value(i++).toString().toStdString();
-        c.notnull    = query.value(i++).toBool();
-        c.dflt_value = query.value(i++).toString().toStdString();
-        c.pk         = query.value(i++).toBool();
+        c.name       = query.value("name").toString().toStdString();
+        c.type       = query.value("type").toString().toStdString();
+        c.notnull    = query.value("notnull").toBool();
+        c.dflt_value = query.value("dflt_value").toString().toStdString();
+        c.pk         = query.value("pk").toBool();
         return c;
     }
+
+    static auto query(SqlQuery& q, QAnyStringView name) -> std::vector<SqlColumn> {
+        std::vector<SqlColumn> columns;
+        q.prepare_sv(fmt::format("PRAGMA table_info({});", name));
+        if (q.exec()) {
+            while (q.next()) {
+                columns.emplace_back(SqlColumn::from(q));
+            }
+        }
+        return columns;
+    }
 };
+
+struct SqlIndex {
+    i64         seq { 0 };
+    std::string name {};
+    bool        unique { false };
+    // "u" or "pk"
+    std::string origin {};
+    bool        partial {};
+
+    struct Info {
+        i64         seqno { 0 };
+        i64         cid { 0 };
+        std::string name {};
+
+        std::strong_ordering operator<=>(const Info&) const = default;
+
+        static auto from(QSqlQuery& query) {
+            Info c;
+            c.seqno = query.value("seqno").toInt();
+            c.cid   = query.value("cid").toInt();
+            c.name  = query.value("name").toString().toStdString();
+            return c;
+        }
+
+        static auto query(SqlQuery& q, QAnyStringView name) -> std::vector<Info> {
+            std::vector<Info> out;
+            q.prepare_sv(fmt::format("PRAGMA index_info({});", name));
+            if (q.exec()) {
+                while (q.next()) {
+                    out.emplace_back(Info::from(q));
+                }
+            }
+            return out;
+        }
+    };
+    std::vector<Info> infos;
+
+    std::strong_ordering operator<=>(const SqlIndex&) const = default;
+
+    static auto from(QSqlQuery& query) {
+        SqlIndex c;
+        c.seq     = query.value("seq").toInt();
+        c.name    = query.value("name").toString().toStdString();
+        c.unique  = query.value("unique").toBool();
+        c.origin  = query.value("origin").toString().toStdString();
+        c.partial = query.value("partial").toBool();
+        return c;
+    }
+
+    static auto query(SqlQuery& q, QAnyStringView name) -> std::vector<SqlIndex> {
+        std::vector<SqlIndex> out;
+        q.prepare_sv(fmt::format("PRAGMA index_list({});", name));
+        if (q.exec()) {
+            while (q.next()) {
+                out.emplace_back(SqlIndex::from(q));
+            }
+        }
+
+        for (auto& el : out) {
+            el.infos = Info::query(q, el.name);
+        }
+        return out;
+    }
+};
+
+struct SqlUnique {
+    SqlUnique(std::initializer_list<std::string_view> strs) {
+        columns = fmt::format("{}", fmt::join(strs, ","));
+        single  = strs.size() == 1;
+    }
+    template<std::ranges::range R>
+        requires std::same_as<SqlIndex::Info, std::ranges::range_value_t<R>>
+    SqlUnique(const R& r) {
+        columns = fmt::format("{}",
+                              fmt::join(std::views::transform(r,
+                                                              [](const auto& el) {
+                                                                  return el.name;
+                                                              }),
+                                        ","));
+        single  = columns.find_first_of(',') == std::string::npos;
+    }
+
+    std::string columns {};
+    bool        single { false };
+
+    std::strong_ordering operator<=>(const SqlUnique&) const = default;
+};
+
 } // namespace helper
 
 DEFINE_CONVERT(std::string, helper::SqlColumn) {
@@ -97,29 +216,6 @@ public:
         return ok;
     }
 
-    class Query : public QSqlQuery {
-    public:
-        Query(const QSqlDatabase& db): QSqlQuery(db), m_thread(db.thread()) {
-            _assert_rel_(m_thread == nullptr || m_thread->isCurrentThread());
-        }
-        ~Query() { _assert_rel_(m_thread == nullptr || m_thread->isCurrentThread()); }
-        Query(const Query&)            = delete;
-        Query& operator=(const Query&) = delete;
-        Query(Query&& o): QSqlQuery(std::move(o)), m_thread(std::exchange(o.m_thread, nullptr)) {}
-        Query& operator=(Query&& o) {
-            QSqlQuery::operator=(std::move(o));
-            m_thread = std::exchange(o.m_thread, nullptr);
-            return *this;
-        }
-
-        bool prepare_sv(std::string_view query) {
-            return QSqlQuery::prepare(QString::fromUtf8(query));
-        }
-
-    private:
-        QThread* m_thread;
-    };
-
     using Converter = std::function<QVariant(const QVariant&)>;
     static auto get_from_converter(int id) -> std::optional<Converter>;
     static auto get_to_converter(int id) -> std::optional<Converter>;
@@ -134,21 +230,34 @@ public:
 
     auto is_open() const -> bool { return m_db.isOpen(); }
 
-    auto query() const -> Query { return Query(m_db); }
+    auto query() const -> SqlQuery { return SqlQuery(m_db); }
     auto db() -> QSqlDatabase& { return m_db; }
     auto error_str() -> QString { return m_db.lastError().text(); }
 
     auto generate_column_migration(QStringView table_name, std::span<const SqlColumn> req_columns,
-                                   std::span<const std::string> extra = {}) -> QStringList {
-        QSqlQuery                query(m_db);
-        QString                  pragmaQuery = QString("PRAGMA table_info(%1);").arg(table_name);
+                                   const std::set<SqlUnique, std::less<>>& uniques = {})
+        -> QStringList {
+        SqlQuery                 query(m_db);
         std::vector<std::string> columns;
         std::ranges::copy(std::views::transform(req_columns,
-                                                [](const auto& in) {
-                                                    return convert_from<std::string>(in);
+                                                [&uniques](const auto& in) {
+                                                    std::string out = convert_from<std::string>(in);
+                                                    if (! in.pk && uniques.contains({ in.name })) {
+                                                        out.append(" UNIQUE");
+                                                    }
+                                                    return out;
                                                 }),
                           std::back_inserter(columns));
-        columns.insert(columns.end(), extra.begin(), extra.end());
+
+        // append like UNIQUE(C1,c2)
+        std::ranges::copy(std::views::transform(std::views::filter(uniques,
+                                                                   [](const auto& el) {
+                                                                       return ! el.single;
+                                                                   }),
+                                                [](const auto& el) {
+                                                    return fmt::format("UNIQUE({})", el.columns);
+                                                }),
+                          std::back_inserter(columns));
 
         QString create_sql = QString::fromStdString(fmt::format(R"(
 CREATE TABLE IF NOT EXISTS {} (
@@ -159,21 +268,40 @@ CREATE TABLE IF NOT EXISTS {} (
                                                                 fmt::join(columns, ",\n")));
 
         std::set<SqlColumn, std::less<>> current_columns;
-
-        if (query.exec(pragmaQuery)) {
-            while (query.next()) {
-                current_columns.insert(SqlColumn::from(query));
-            }
-        }
+        std::set<SqlUnique, std::less<>> current_uniques;
+        std::ranges::copy(SqlColumn::query(query, table_name),
+                          std::inserter(current_columns, current_columns.end()));
+        std::ranges::for_each(SqlIndex::query(query, table_name),
+                              [&current_uniques](const SqlIndex& el) {
+                                  current_uniques.insert({ el.infos });
+                              });
 
         if (current_columns.size() > 0) {
-            std::set<std::string> common_columns;
+            auto find_pk = [](const auto& vec) -> std::optional<std::string> {
+                if (auto it = std::find_if(vec.begin(),
+                                           vec.end(),
+                                           [](const auto& el) {
+                                               return el.pk;
+                                           });
+                    it != vec.end()) {
+                    return it->name;
+                }
+                return std::nullopt;
+            };
+
+            std::set<std::string>            common_columns;
+            std::map<std::string, SqlColumn> current_column_map;
+            for (auto& el : current_columns) current_column_map.insert({ el.name, el });
+
             for (auto& el : req_columns) {
-                if (current_columns.contains(el)) {
+                if (auto it = current_column_map.find(el.name);
+                    it != current_column_map.end() && it->second.type == el.type) {
                     common_columns.insert(el.name);
                 }
             }
-            if (common_columns.size() < req_columns.size()) {
+            // check columns, uniques and primary key
+            if (common_columns.size() < req_columns.size() || uniques != current_uniques ||
+                find_pk(current_columns) != find_pk(req_columns)) {
                 auto column_names = QString::fromStdString(fmt::format(
                     "{}",
                     fmt::join(std::views::transform(common_columns,
@@ -195,8 +323,9 @@ CREATE TABLE IF NOT EXISTS {} (
     }
 
     auto generate_meta_migration(QStringView table_name, QStringView primary,
-                                 const QMetaObject& meta, std::span<const std::string> extras,
-                                 std::set<std::string_view> exclude = {}) {
+                                 const QMetaObject&                      meta,
+                                 const std::set<SqlUnique, std::less<>>& uniques,
+                                 std::set<std::string_view>              exclude = {}) {
         std::vector<std::string> column_names;
         std::vector<SqlColumn>   columns;
         for (int i = 0; i < meta.propertyCount(); i++) {
@@ -226,7 +355,7 @@ CREATE TABLE IF NOT EXISTS {} (
         }
 
         columns.emplace_back(EditTimeColumn);
-        return generate_column_migration(table_name, columns, extras);
+        return generate_column_migration(table_name, columns, uniques);
     }
 
     struct InsertHelper {

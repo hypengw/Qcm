@@ -54,6 +54,11 @@ MD.Page {
         function onSwitch_main_page(idx) {
             root.pageIndex = idx;
         }
+        function onRoute_special(s) {
+            if (typeof s == 'number') {
+                QA.Action.route(QA.Util.route_msg(s));
+            }
+        }
 
         target: QA.Action
     }
@@ -171,7 +176,7 @@ MD.Page {
                                 action: QC.Action {
                                     icon.name: MD.Token.icon.search
                                     onTriggered: {
-                                        // QA.Action.route_by_id('qrc:/Qcm/App/qml/page/SearchPage.qml');
+                                        QA.Action.route_special(QA.enums.SRSearch);
                                     }
                                 }
                             }

@@ -238,7 +238,7 @@ MD.Page {
                                 }
                             }
                             QA.GridView {
-                                fixedCellWidth: QA.Util.dynCardWidth(width, spacing)
+                                fixedCellWidth: QA.Util.dyn_card_width(width, spacing)
                                 interactive: m_flick.atYEnd
                                 implicitHeight: contentHeight
                                 model: qr_artist_albums.data

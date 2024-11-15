@@ -46,7 +46,7 @@ MD.Page {
 
                         QA.GridView {
                             Layout.fillWidth: true
-                            fixedCellWidth: QA.Util.dynCardWidth(widthNoMargin, spacing)
+                            fixedCellWidth: QA.Util.dyn_card_width(widthNoMargin, spacing)
                             implicitHeight: maxImplicitCellHeight
                             maxImplicitCellHeight: 200
                             model: m_qr.data
@@ -94,7 +94,7 @@ MD.Page {
 
                         QA.GridView {
                             Layout.fillWidth: true
-                            fixedCellWidth: QA.Util.dynCardWidth(widthNoMargin, spacing)
+                            fixedCellWidth: QA.Util.dyn_card_width(widthNoMargin, spacing)
                             implicitHeight: maxImplicitCellHeight
                             maxImplicitCellHeight: 200
                             model: qr_rmd_res.data
@@ -143,7 +143,7 @@ MD.Page {
                         QA.GridView {
                             Layout.fillWidth: true
 
-                            fixedCellWidth: QA.Util.dynCardWidth(widthNoMargin, spacing)
+                            fixedCellWidth: QA.Util.dyn_card_width(widthNoMargin, spacing)
                             implicitHeight: maxImplicitCellHeight
                             maxImplicitCellHeight: 200
                             flow: GridView.FlowTopToBottom

@@ -41,7 +41,7 @@ void CollectionSql::connect_db() {
                                     .dflt_value = "STRFTIME('%Y-%m-%dT%H:%M:%S.000Z', 'now')" },
                 helper::SqlColumn { .name = "removed", .type = "INTEGER", .dflt_value = "0" },
             },
-            std::array { "UNIQUE(userId, itemId)"s });
+            { { "userId"sv, "itemId"sv } });
 
         for (auto& el : migs) {
             if (! q.exec(el)) {

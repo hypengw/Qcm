@@ -82,6 +82,7 @@ enum class SpecialRoute
     SRLogin,
     SRLoading,
     SRStatus,
+    SRSearch,
 };
 Q_ENUM_NS(SpecialRoute)
 

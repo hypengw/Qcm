@@ -134,8 +134,24 @@ auto Util::collect_ids(QAbstractItemModel* model) const -> std::vector<model::It
     return out;
 }
 
-int Util::dynCardWidth(qint32 containerWidth, qint32 spacing) const {
+int Util::dyn_card_width(qint32 containerWidth, qint32 spacing) const {
     return std::max<qint32>(160, containerWidth / 6.0 - spacing);
+}
+
+QUrl Util::special_route_url(enums::SpecialRoute r) const {
+    using SR = enums::SpecialRoute;
+    switch (r) {
+    case SR::SRSetting: return u"qrc:/Qcm/App/qml/page/SettingsPage.qml"_s;
+    case SR::SRAbout: return u"qrc:/Qcm/App/qml/page/AboutPage.qml"_s;
+    case SR::SRStatus: return u"qrc:/Qcm/App/qml/page/StatusPage.qml"_s;
+    case SR::SRSearch: return u"qrc:/Qcm/App/qml/page/SearchPage.qml"_s;
+    default: return {};
+    }
+}
+model::RouteMsg Util::route_msg(enums::SpecialRoute r) const {
+    model::RouteMsg msg;
+    msg.set_url(special_route_url(r));
+    return msg;
 }
 
 void Util::print(const QJSValue& val) const {
@@ -182,8 +198,8 @@ inline std::string gen_file_name(std::string_view uniq) {
 
 } // namespace qcm
 
-auto qcm::gen_image_cache_entry(const QString& provider, const QUrl& url,
-                                QSize reqSize) -> std::optional<std::filesystem::path> {
+auto qcm::gen_image_cache_entry(const QString& provider, const QUrl& url, QSize reqSize)
+    -> std::optional<std::filesystem::path> {
     return qcm::image_uniq_hash(provider, url, reqSize)
         .transform([](std::string_view id) -> std::filesystem::path {
             std::error_code ec;
@@ -195,8 +211,8 @@ auto qcm::gen_image_cache_entry(const QString& provider, const QUrl& url,
             return path;
         });
 }
-auto qcm::image_uniq_hash(const QString& provider, const QUrl& url,
-                          QSize reqSize) -> std::optional<std::string> {
+auto qcm::image_uniq_hash(const QString& provider, const QUrl& url, QSize reqSize)
+    -> std::optional<std::string> {
     return Global::instance()->plugin(provider).transform(
         [&url, reqSize](std::reference_wrapper<QcmPluginInterface> p) -> std::string {
             QcmPluginInterface* m;

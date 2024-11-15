@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls.Basic as QC
 import Qcm.App as QA
 import Qcm.Service.Ncm as QNCM
 import Qcm.Material as MD
@@ -41,8 +42,25 @@ MD.Page {
         MD.SearchBar {
             id: item_search
             Layout.fillWidth: true
-            Layout.leftMargin: 16
-            Layout.rightMargin: 16
+        }
+
+        RowLayout {
+            MD.FilterChip {
+                action: QC.Action {
+                    text: qsTr('local')
+                    icon.name: MD.Token.icon.arrow_drop_down
+                    onTriggered: {}
+                }
+            }
+            MD.FilterChip {
+                text: qsTr('song')
+            }
+            MD.FilterChip {
+                text: qsTr('album')
+            }
+            MD.FilterChip {
+                text: qsTr('artist')
+            }
         }
 
         ColumnLayout {
