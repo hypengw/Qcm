@@ -70,6 +70,7 @@ cmake --install build
 ### Todo:
 - [ ] jellyfin
 - [ ] subsonic
+- [ ] sql fts
 - [ ] mac/win
 - [ ] offline mode
 - [ ] playing page colorpick
