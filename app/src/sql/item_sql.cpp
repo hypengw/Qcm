@@ -8,7 +8,7 @@
 #include "core/strv_helper.h"
 #include "core/qstr_helper.h"
 #include "qcm_interface/sql/meta_sql.h"
-#include "Qcm/query/query_model.h"
+#include "Qcm/query/query_load.h"
 
 namespace qcm
 {

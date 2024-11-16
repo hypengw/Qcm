@@ -74,7 +74,7 @@ private:
 
 class PlayQueue : public meta_model::QMetaModelBase<QIdentityProxyModel> {
     Q_OBJECT
-    QML_UNCREATABLE("")
+    QML_ANONYMOUS
     Q_PROPERTY(qint32 currentIndex READ currentIndex NOTIFY currentIndexChanged BINDABLE
                    bindableCurrentIndex FINAL)
     Q_PROPERTY(qcm::query::Song currentSong READ currentSong NOTIFY currentSongChanged FINAL)

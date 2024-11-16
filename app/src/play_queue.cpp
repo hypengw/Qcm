@@ -14,7 +14,7 @@
 #include "qcm_interface/sync_api.h"
 #include "Qcm/app.h"
 #include "Qcm/sql/item_sql.h"
-#include "Qcm/query/query_model.h"
+#include "Qcm/query/query_load.h"
 
 namespace qcm
 {

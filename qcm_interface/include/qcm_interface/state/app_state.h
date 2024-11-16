@@ -11,7 +11,7 @@ namespace qcm::state
 {
 class QCM_INTERFACE_API AppState : public QObject {
     Q_OBJECT
-
+    QML_ANONYMOUS
     Q_PROPERTY(QAsyncResult* rescue READ rescue CONSTANT FINAL)
 public:
     AppState(QObject* parent = nullptr);

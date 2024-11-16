@@ -5,7 +5,7 @@
 #include <QQmlEngine>
 
 #include "qcm_interface/query.h"
-#include "Qcm/query/query_model.h"
+#include "Qcm/query/query_load.h"
 #include "Qcm/sql/item_sql.h"
 #include "Qcm/app.h"
 #include "Qcm/sql/collection_sql.h"

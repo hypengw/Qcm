@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <QQmlEngine>
 
 #include "core/core.h"

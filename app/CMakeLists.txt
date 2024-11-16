@@ -27,7 +27,7 @@ set(SOURCES
     include/Qcm/sql/item_sql.h
     include/Qcm/sql/cache_sql.h
     include/Qcm/sql/collection_sql.h
-    include/Qcm/query/query_model.h
+    include/Qcm/query/query_load.h
     include/Qcm/query/album_collection.h
     include/Qcm/query/artist_collection.h
     include/Qcm/query/radio_collection.h
@@ -60,22 +60,6 @@ set(SOURCES
     src/sql/collection_sql.cpp
     src/sql/sql.cpp
     src/query.cpp)
-
-set(QCM_INTERFACE_HEADER
-    include/qcm_interface/enum.h
-    include/qcm_interface/global.h
-    include/qcm_interface/action.h
-    include/qcm_interface/notifier.h
-    include/qcm_interface/model.h
-    include/qcm_interface/item_id.h
-    include/qcm_interface/duration.h
-    include/qcm_interface/model/plugin_model.h
-    include/qcm_interface/model/query_model.h
-    )
-
-list(
-  TRANSFORM QCM_INTERFACE_HEADER
-  PREPEND "${CMAKE_SOURCE_DIR}/qcm_interface/")
 
 set(QML_FILES
     qml/js/util.mjs
@@ -151,6 +135,14 @@ set_source_files_properties(
   qml/Global.qml
   PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
+set(QML_REG_INCLUDE_DIRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm/query"
+    "${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface"
+    "${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface/model"
+    "${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface/state"
+    )
+
 qt_add_qml_module(
   app
   URI
@@ -163,7 +155,6 @@ qt_add_qml_module(
   QML_FILES
   ${QML_FILES}
   SOURCES
-  ${QCM_INTERFACE_HEADER}
   ${SOURCES}
   RESOURCES
   ${RESOURCES}
@@ -173,6 +164,11 @@ target_sources(
   app
   PRIVATE $<$<CONFIG:Debug>:src/util/QmlStackTraceHelper.cpp>)
 
+set_source_files_properties(
+  "${CMAKE_CURRENT_BINARY_DIR}/app_qmltyperegistrations.cpp" TARGET_DIRECTORY
+  app
+  PROPERTIES INCLUDE_DIRECTORIES "${QML_REG_INCLUDE_DIRS}")
+
 target_compile_definitions(
   app
   PUBLIC "$<$<OR:$<BOOL:${QCM_QML_DEBUG}>,$<CONFIG:Debug>>:QT_QML_DEBUG>"
@@ -181,16 +177,14 @@ target_compile_definitions(
 target_include_directories(
   app
   PUBLIC include
-  PRIVATE src/ include/Qcm include/Qcm/util include/Qcm/query
-          ${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface
-          ${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface/model)
+  PRIVATE src/)
 target_link_libraries(
   app
   PUBLIC Qt6::Core
          Qt6::Quick
          Qt6::QuickControls2
          Qt6::Sql
-         Qt6::QuickPrivate
+         $<$<CONFIG:Debug>:Qt6::QuickPrivate>
          asio_qt
          request
          fmt::fmt

@@ -15,6 +15,7 @@ namespace qcm::model
 
 class QCM_INTERFACE_API Session : public Model<Session, QObject> {
     Q_OBJECT
+    QML_ANONYMOUS
     DECLARE_MODEL()
 public:
     Session(QObject* parent = nullptr);

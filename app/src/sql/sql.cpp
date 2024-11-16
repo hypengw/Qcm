@@ -1,6 +1,6 @@
 #include "asio_qt/qt_sql.h"
 #include "json_helper/helper.inl"
-#include "Qcm/query/query_model.h"
+#include "Qcm/query/query_load.h"
 
 #include <QDateTime>
 

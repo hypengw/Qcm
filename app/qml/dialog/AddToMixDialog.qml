@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import Qcm.App as QA
 import Qcm.Material as MD
