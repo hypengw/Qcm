@@ -1,4 +1,5 @@
 include(FetchContent)
+find_package(PkgConfig REQUIRED)
 
 add_subdirectory(qr_code)
 
@@ -9,17 +10,30 @@ add_library(expected INTERFACE)
 target_include_directories(expected INTERFACE expected/include)
 add_library(tl::expected ALIAS expected)
 
-add_library(asio INTERFACE)
-# ASIO_ENABLE_HANDLER_TRACKING ASIO_NO_TYPEID
-target_compile_definitions(asio INTERFACE ASIO_NO_DEPRECATED)
-target_include_directories(asio INTERFACE asio/asio/include)
-
 set(KDSingleApplication_QT6 ON)
 set(KDSingleApplication_STATIC ON)
 set(KDSingleApplication_TESTS OFF)
 set(KDSingleApplication_EXAMPLES OFF)
 set(KDSingleApplication_DOCS OFF)
 add_subdirectory(KDSingleApplication EXCLUDE_FROM_ALL)
+
+# asio
+add_library(asio INTERFACE)
+target_compile_definitions(asio INTERFACE ASIO_NO_DEPRECATED)
+pkg_check_modules(ASIO QUIET asio>=1.30.2)
+if(NOT ASIO_FOUND)
+  message(STATUS "asio not found, fetching it...")
+  FetchContent_Declare(
+    asio
+    GIT_REPOSITORY https://github.com/chriskohlhoff/asio.git
+    GIT_TAG asio-1-30-2
+    GIT_SHALLOW TRUE
+    EXCLUDE_FROM_ALL)
+  FetchContent_MakeAvailable(asio)
+  target_include_directories(asio INTERFACE ${asio_SOURCE_DIR}/asio/include)
+else()
+  target_include_directories(asio INTERFACE ${ASIO_INCLUDE_DIRS})
+endif()
 
 # fmt
 find_package(fmt 11.0.2 QUIET GLOBAL)

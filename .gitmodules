@@ -4,9 +4,6 @@
 [submodule "third_party/expected"]
 	path = third_party/expected
 	url = https://github.com/TartanLlama/expected.git
-[submodule "third_party/asio"]
-	path = third_party/asio
-	url = https://github.com/chriskohlhoff/asio.git
 [submodule "third_party/KDSingleApplication"]
 	path = third_party/KDSingleApplication
 	url = https://github.com/KDAB/KDSingleApplication.git
