@@ -1,17 +1,10 @@
-set(APP_ID
-    io.github.hypengw.Qcm)
-set(APP_NAME
-    ${PROJECT_NAME})
-set(APP_VERSION
-    ${PROJECT_VERSION})
-set(APP_SUMMARY
-    ${PROJECT_DESCRIPTION})
-set(APP_AUTHOR
-    "hypeng")
+set(APP_ID io.github.hypengw.Qcm)
+set(APP_NAME ${PROJECT_NAME})
+set(APP_VERSION ${PROJECT_VERSION})
+set(APP_SUMMARY ${PROJECT_DESCRIPTION})
+set(APP_AUTHOR "hypeng")
 
-find_package(
-  Qt6 REQUIRED
-  COMPONENTS QuickControls2 Sql Widgets)
+find_package(Qt6 REQUIRED COMPONENTS QuickControls2 Sql Widgets)
 
 set(SOURCES
     include/Qcm/app.h
@@ -125,23 +118,18 @@ set(QML_FILES
     qml/menu/RadioMenu.qml
     qml/menu/MixMenu.qml
     qml/menu/ProgramMenu.qml)
-set(RESOURCES
-    assets/Qcm.svg)
+set(RESOURCES assets/Qcm.svg)
 
-set_source_files_properties(
-  qml/Theme.qml
-  PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
-set_source_files_properties(
-  qml/Global.qml
-  PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(qml/Global.qml PROPERTIES QT_QML_SINGLETON_TYPE
+                                                      TRUE)
 
 set(QML_REG_INCLUDE_DIRS
     "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm/query"
     "${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface"
     "${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface/model"
-    "${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface/state"
-    )
+    "${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface/state")
 
 qt_add_qml_module(
   app
@@ -160,19 +148,15 @@ qt_add_qml_module(
   ${RESOURCES}
   NO_PLUGIN_OPTIONAL)
 
-target_sources(
-  app
-  PRIVATE $<$<CONFIG:Debug>:src/util/QmlStackTraceHelper.cpp>)
+target_sources(app PRIVATE $<$<CONFIG:Debug>:src/util/QmlStackTraceHelper.cpp>)
 
 set_source_files_properties(
   "${CMAKE_CURRENT_BINARY_DIR}/app_qmltyperegistrations.cpp" TARGET_DIRECTORY
-  app
-  PROPERTIES INCLUDE_DIRECTORIES "${QML_REG_INCLUDE_DIRS}")
+  app PROPERTIES INCLUDE_DIRECTORIES "${QML_REG_INCLUDE_DIRS}")
 
 target_compile_definitions(
-  app
-  PUBLIC "$<$<OR:$<BOOL:${QCM_QML_DEBUG}>,$<CONFIG:Debug>>:QT_QML_DEBUG>"
-         "$<$<NOT:$<TARGET_EXISTS:mpris>>:NODEBUS>")
+  app PUBLIC "$<$<OR:$<BOOL:${QCM_QML_DEBUG}>,$<CONFIG:Debug>>:QT_QML_DEBUG>"
+             "$<$<NOT:$<TARGET_EXISTS:mpris>>:NODEBUS>")
 
 target_include_directories(
   app
@@ -192,7 +176,7 @@ target_link_libraries(
          qr_code
          meta_model
          media_cache
-         ctre
+         ctre::ctre
          player
          platform
          qcm_interface
@@ -210,16 +194,11 @@ qt_add_qml_module(
   RESOURCE_PREFIX
   /)
 
-target_link_libraries(
-  ${PROJECT_NAME}
-  PRIVATE app appplugin kdsingleapplication)
+target_link_libraries(${PROJECT_NAME} PRIVATE app appplugin kdsingleapplication)
 
-set(APP_DESKTOP
-    assets/Qcm.desktop)
-set(APP_METAINFO
-    assets/Qcm.metainfo.xml)
-set(APP_SVG
-    assets/Qcm.svg)
+set(APP_DESKTOP assets/Qcm.desktop)
+set(APP_METAINFO assets/Qcm.metainfo.xml)
+set(APP_SVG assets/Qcm.svg)
 configure_file(${APP_DESKTOP}.in ${APP_DESKTOP} @ONLY)
 configure_file(${APP_METAINFO}.in ${APP_METAINFO} @ONLY)
 
@@ -229,33 +208,22 @@ install(
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-set(IMPORT_PLUGINS
-    "")
+set(IMPORT_PLUGINS "")
 if(QCM_SERVICE_STATIC_BUILD)
-  get_property(
-    QCM_SERVICES GLOBAL
-    PROPERTY QCM_SERVICES)
-  get_property(
-    QCM_SERVICES_URL GLOBAL
-    PROPERTY QCM_SERVICES_URL)
-  target_link_libraries(
-    ${PROJECT_NAME}
-    PUBLIC ${QCM_SERVICES})
-  foreach(
-    url
-    ${QCM_SERVICES_URL})
+  get_property(QCM_SERVICES GLOBAL PROPERTY QCM_SERVICES)
+  get_property(QCM_SERVICES_URL GLOBAL PROPERTY QCM_SERVICES_URL)
+  target_link_libraries(${PROJECT_NAME} PUBLIC ${QCM_SERVICES})
+  foreach(url ${QCM_SERVICES_URL})
     string(APPEND IMPORT_PLUGINS "Q_IMPORT_QML_PLUGIN(${url}Plugin)\n")
   endforeach()
   string(REPLACE "." "_" IMPORT_PLUGINS "${IMPORT_PLUGINS}")
   configure_file(static.cpp.in static.cpp @ONLY)
-  target_sources(
-    ${PROJECT_NAME}
-    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/static.cpp")
+  target_sources(${PROJECT_NAME}
+                 PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/static.cpp")
 endif()
 
 if(ANDROID)
-  set(dep_dir
-      "${CMAKE_BINARY_DIR}/deps")
+  set(dep_dir "${CMAKE_BINARY_DIR}/deps")
   set(dep_libs
       "${dep_dir}/libssl.so"
       "${dep_dir}/libcrypto.so"

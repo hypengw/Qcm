@@ -21,4 +21,4 @@ target_include_directories(
   PRIVATE . cpp_scanner)
 target_link_libraries(
   qcm_model_generator
-  PRIVATE core pegtl Qt::Core)
+  PRIVATE core taocpp::pegtl Qt::Core)

@@ -20,14 +20,10 @@ add_library(
   curl_multi.h
   curl_error.h
   type.cpp
-  peg.cpp
-  )
+  peg.cpp)
 target_include_directories(
   request
   PUBLIC include
-  PRIVATE include/request .
-  )
-target_link_libraries(request PRIVATE CURL::libcurl asio_helper core
-                                      fmt::fmt
-                                      pegtl
-                                      )
+  PRIVATE include/request .)
+target_link_libraries(request PRIVATE CURL::libcurl asio_helper core fmt::fmt
+                                      taocpp::pegtl)
