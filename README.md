@@ -21,11 +21,11 @@ Music Service:
 <a href='https://flathub.org/apps/details/io.github.hypengw.Qcm'><img width='240' alt='Download on Flathub' src='https://dl.flathub.org/assets/badges/flathub-badge-en.png'/></a>
 
 ### Require:  
-- Qt 6.8 (quick, dbus)
+- Qt 6.8 (quick, dbus, sql)
 - C++ 23
 - Openssl 3
-- Curl
 - FFmpeg 7
+- Curl
 
 ### Build:  
 ```
@@ -95,9 +95,12 @@ cmake --install build
 ### Credits:
 #### Libraries Used
 - [Qt](https://www.qt.io/)
-- [asio](https://github.com/chriskohlhoff/asio)
-- [cubeb](https://github.com/mozilla/cubeb)
 - [ffmpeg](https://www.ffmpeg.org/)
 - [curl](https://curl.se/)
+- [openssl](https://www.openssl.org/)
+- [asio](https://github.com/chriskohlhoff/asio)
+- [cubeb](https://github.com/mozilla/cubeb)
 - [PEGTL](https://github.com/taocpp/PEGTL)
 - [nlohmann/json](https://github.com/nlohmann/json)
+- [fmt](https://github.com/fmtlib/fmt)
+- [ctre](https://github.com/hanickadot/compile-time-regular-expressions)
