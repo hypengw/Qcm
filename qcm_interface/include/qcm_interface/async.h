@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QObjectBindableProperty>
 
 #include "core/core.h"
 #include "core/expected_helper.h"
@@ -21,8 +22,9 @@ namespace qcm
 class QCM_INTERFACE_API QAsyncResult : public QObject {
     Q_OBJECT
 
-    Q_PROPERTY(QString error READ error NOTIFY errorChanged FINAL)
-    Q_PROPERTY(Status status READ status WRITE set_status NOTIFY statusChanged FINAL)
+    Q_PROPERTY(QString error READ error NOTIFY errorChanged BINDABLE bindableError FINAL)
+    Q_PROPERTY(qcm::enums::ApiStatus status READ status WRITE set_status NOTIFY statusChanged BINDABLE
+                   bindableStatus FINAL)
     Q_PROPERTY(QVariant data READ data NOTIFY dataChanged)
     Q_PROPERTY(
         bool forwardError READ forwardError WRITE set_forwardError NOTIFY forwardErrorChanged FINAL)
@@ -37,7 +39,9 @@ public:
     auto qexecutor() const -> QtExecutor&;
     auto pool_executor() const -> asio::thread_pool::executor_type;
     auto status() const -> Status;
+    auto bindableStatus() -> QBindable<Status>;
     auto error() const -> const QString&;
+    auto bindableError() -> QBindable<QString>;
     bool forwardError() const;
     auto get_executor() -> QtExecutor&;
     auto use_queue() const -> bool;
@@ -69,13 +73,13 @@ public:
 
     Q_SLOT void cancel();
     Q_SLOT void set_status(Status);
-    Q_SLOT void set_error(QString);
+    Q_SLOT void set_error(const QString&);
     Q_SLOT void set_forwardError(bool);
     Q_SLOT void hold(QStringView, QObject*);
 
     Q_SIGNAL void dataChanged();
     Q_SIGNAL void statusChanged(Status);
-    Q_SIGNAL void errorChanged();
+    Q_SIGNAL void errorChanged(QString);
     Q_SIGNAL void forwardErrorChanged();
     Q_SIGNAL void finished();
     Q_SIGNAL void errorOccurred(QString);

@@ -58,7 +58,7 @@ void ItemSql::create_album_table() {
     m_con->transaction();
 
     auto migs = m_con->generate_meta_migration(
-        m_album_table, u"", model::Album::staticMetaObject, { { "itemId"sv } });
+        m_album_table, u"", model::Album::staticMetaObject, { { "itemId"sv } }, { "name"s });
 
     QSqlQuery q = m_con->query();
 
@@ -93,8 +93,12 @@ void ItemSql::create_artist_table() {
 void ItemSql::create_song_table() {
     m_con->transaction();
 
-    auto migs = m_con->generate_meta_migration(
-        m_song_table, u"", model::Song::staticMetaObject, { { "itemId"sv } }, get_song_ignore());
+    auto migs = m_con->generate_meta_migration(m_song_table,
+                                               u"",
+                                               model::Song::staticMetaObject,
+                                               { { "itemId"sv } },
+                                               { "name"s },
+                                               get_song_ignore());
 
     QSqlQuery q = m_con->query();
 

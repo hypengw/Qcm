@@ -19,7 +19,7 @@ MD.Dialog {
             width: ListView.view.width
             corners: indexCorners(index, count, 16)
 
-            leader: MD.Image {
+            leader: QA.Image {
                 source: QA.Util.image_url(m_qr.data.info.picUrl)
                 sourceSize.height: 48
                 sourceSize.width: 48

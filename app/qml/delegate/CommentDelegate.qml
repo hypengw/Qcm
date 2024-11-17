@@ -9,7 +9,7 @@ MD.ListItem {
     width: ListView.view.width
     text: model.user.name
     supportText: Qt.formatDateTime(model.time, 'yyyy.M.d')
-    leader: MD.Image {
+    leader: QA.Image {
         radius: 8
         source: QA.Util.image_url(model.user.picUrl)
         sourceSize.height: 48

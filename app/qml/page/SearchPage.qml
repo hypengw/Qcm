@@ -170,7 +170,7 @@ MD.Page {
                             text: model.name
                             maximumLineCount: 2
                             supportText: `${QA.Global.join_name(model.artists, '/')} - ${Qt.formatDateTime(model.publishTime, 'yyyy.M.d')} - ${model.trackCount} tracks`
-                            leader: MD.Image {
+                            leader: QA.Image {
                                 radius: 8
                                 source: QA.Util.image_url(model.picUrl)
                                 sourceSize.height: 48
@@ -191,7 +191,7 @@ MD.Page {
                             text: model.name
                             maximumLineCount: 2
                             supportText: `${model.trackCount} songs`
-                            leader: MD.Image {
+                            leader: QA.Image {
                                 radius: 8
                                 source: QA.Util.image_url(model.picUrl)
                                 sourceSize.height: 48
@@ -212,7 +212,7 @@ MD.Page {
                             text: model.name
                             maximumLineCount: 2
                             supportText: `${model.programCount} programs`
-                            leader: MD.Image {
+                            leader: QA.Image {
                                 radius: 8
                                 source: QA.Util.image_url(model.picUrl)
                                 sourceSize.height: 48

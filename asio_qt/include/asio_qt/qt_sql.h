@@ -234,8 +234,121 @@ public:
     auto db() -> QSqlDatabase& { return m_db; }
     auto error_str() -> QString { return m_db.lastError().text(); }
 
+    auto check_fts_changed(QStringView                               table_name,
+                           const std::set<std::string, std::less<>>& columns) -> bool {
+        SqlQuery query(m_db);
+        auto     current_columns = SqlColumn::query(query, QString("%1_fts").arg(table_name));
+        if (current_columns.size() != columns.size()) {
+            return true;
+        }
+        for (auto& el : current_columns) {
+            if (! columns.contains(el.name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    auto drop_fts_trigger(QStringView table_name) -> QStringList {
+        QStringList out;
+        out << u"DROP TRIGGER IF EXISTS %1_fts_i;"_s.arg(table_name);
+        out << u"DROP TRIGGER IF EXISTS %1_fts_d;"_s.arg(table_name);
+        out << u"DROP TRIGGER IF EXISTS %1_fts_u;"_s.arg(table_name);
+        return out;
+    }
+
+    auto fts_trigger(QStringView table_name, const std::set<std::string, std::less<>>& columns,
+                     QStringView id_column = u"rowid") -> QStringList {
+        QStringList out;
+        auto        column_list = fmt::format("{}", fmt::join(columns, ", "));
+        auto        new_prefix_column_list =
+            fmt::format("{}",
+                        fmt::join(std::views::transform(columns,
+                                                        [](const auto& el) {
+                                                            return fmt::format("new.{}", el);
+                                                        }),
+                                  ", "));
+        auto old_prefix_column_list =
+            fmt::format("{}",
+                        fmt::join(std::views::transform(columns,
+                                                        [](const auto& el) {
+                                                            return fmt::format("old.{}", el);
+                                                        }),
+                                  ", "));
+
+        out << QString::fromStdString(fmt::format(
+            R"(
+CREATE TRIGGER {0}_fts_i AFTER INSERT ON {0}
+BEGIN
+    INSERT INTO {0}_fts(rowid, {2}) VALUES (new.{1}, {3});
+END;
+)",
+            table_name,
+            id_column,
+            column_list,
+            new_prefix_column_list));
+
+        out << QString::fromStdString(fmt::format(
+            R"(
+CREATE TRIGGER {0}_fts_d AFTER DELETE ON {0}
+BEGIN
+    INSERT INTO {0}_fts({0}_fts, rowid, {2}) VALUES('delete', old.{1}, {3});
+END;
+)",
+            table_name,
+            id_column,
+            column_list,
+            old_prefix_column_list));
+
+        out << QString::fromStdString(fmt::format(
+            R"(
+CREATE TRIGGER {0}_fts_u AFTER UPDATE ON {0}
+BEGIN
+    INSERT INTO {0}_fts({0}_fts, rowid, {2}) VALUES('delete', old.{1}, {3});
+    INSERT INTO {0}_fts(rowid, {2}) VALUES (new.{1}, {3});
+END;
+)",
+            table_name,
+            id_column,
+            column_list,
+            old_prefix_column_list,
+            new_prefix_column_list));
+
+        return out;
+    }
+
+    auto create_fts(QStringView table_name, bool drop,
+                    const std::set<std::string, std::less<>>& fts_columns,
+                    QStringView                               id_column = u"rowid") -> QStringList {
+        QStringList out;
+        if (drop) {
+            out << u"DROP TABLE IF EXISTS %1_fts;"_s.arg(table_name);
+        }
+        out << drop_fts_trigger(table_name);
+        out << QString::fromStdString(fmt::format(R"(
+CREATE VIRTUAL TABLE IF NOT EXISTS {0}_fts USING fts5 (
+{2},
+content='{0}',
+content_rowid='{1}'
+);
+)",
+                                                  table_name,
+                                                  id_column,
+                                                  fmt::join(fts_columns, ", ")));
+
+        if (drop) {
+            out << QString::fromStdString(
+                fmt::format("INSERT INTO {0}_fts({1}) SELECT {1} FROM {0};",
+                            table_name,
+                            fmt::join(fts_columns, ", ")));
+        }
+        out << fts_trigger(table_name, fts_columns);
+        return out;
+    }
+
     auto generate_column_migration(QStringView table_name, std::span<const SqlColumn> req_columns,
-                                   const std::set<SqlUnique, std::less<>>& uniques = {})
+                                   const std::set<SqlUnique, std::less<>>&   uniques     = {},
+                                   const std::set<std::string, std::less<>>& fts_columns = {})
         -> QStringList {
         SqlQuery                 query(m_db);
         std::vector<std::string> columns;
@@ -316,16 +429,25 @@ CREATE TABLE IF NOT EXISTS {} (
                 out << u"INSERT INTO %1 (%2) SELECT %2 FROM %1_backup;"_s.arg(table_name,
                                                                               column_names);
                 out << u"DROP TABLE %1_backup;"_s.arg(table_name);
+                if (! fts_columns.empty()) {
+                    out << create_fts(table_name, true, fts_columns);
+                }
                 return out;
             }
         }
-        return { create_sql };
+        QStringList out { create_sql };
+        if (! fts_columns.empty()) {
+            bool changed = check_fts_changed(table_name, fts_columns);
+            out << create_fts(table_name, changed, fts_columns);
+        }
+        return out;
     }
 
     auto generate_meta_migration(QStringView table_name, QStringView primary,
-                                 const QMetaObject&                      meta,
-                                 const std::set<SqlUnique, std::less<>>& uniques,
-                                 std::set<std::string_view>              exclude = {}) {
+                                 const QMetaObject&                        meta,
+                                 const std::set<SqlUnique, std::less<>>&   uniques,
+                                 const std::set<std::string, std::less<>>& fts_columns = {},
+                                 const std::set<std::string_view>& exclude = {}) -> QStringList {
         std::vector<std::string> column_names;
         std::vector<SqlColumn>   columns;
         for (int i = 0; i < meta.propertyCount(); i++) {
@@ -355,7 +477,7 @@ CREATE TABLE IF NOT EXISTS {} (
         }
 
         columns.emplace_back(EditTimeColumn);
-        return generate_column_migration(table_name, columns, uniques);
+        return generate_column_migration(table_name, columns, uniques, fts_columns);
     }
 
     struct InsertHelper {

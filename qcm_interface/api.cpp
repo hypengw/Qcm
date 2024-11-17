@@ -1,6 +1,8 @@
 #include "qcm_interface/api.h"
 #include "qcm_interface/global.h"
 
+#include "core/qobject_bindable_property_p.h"
+
 namespace qcm
 {
 
@@ -8,24 +10,26 @@ class QAsyncResult::Private {
 public:
     Private(QAsyncResult* p)
         : m_p(p),
-          m_status(Status::Uninitialized),
           m_forward_error(true),
           m_data(QVariant::fromValue(nullptr)),
           m_use_queue(false),
-          m_queue_exec_mark(false) {}
+          m_queue_exec_mark(false),
+          m_status(Status::Uninitialized, p),
+          m_error(p) {}
     QAsyncResult*         m_p;
-    Status                m_status;
     bool                  m_forward_error;
     QVariant              m_data;
     std::function<void()> m_cb;
 
     helper::WatchDog                         m_wdog;
-    QString                                  m_error;
     std::map<QString, QObject*, std::less<>> m_hold;
 
     bool                                                                      m_use_queue;
     bool                                                                      m_queue_exec_mark;
     std::deque<std::tuple<std::function<task<void>()>, std::source_location>> m_queue;
+
+    ObjectBindableProperty<QAsyncResult, Status, &QAsyncResult ::statusChanged> m_status;
+    ObjectBindableProperty<QAsyncResult, QString, &QAsyncResult::errorChanged>  m_error;
 
     void try_run() {
         if (m_queue.empty() || m_queue_exec_mark || ! m_use_queue) return;
@@ -78,7 +82,18 @@ public:
     }
 };
 
-QAsyncResult::QAsyncResult(QObject* parent): QObject(parent), d_ptr(make_up<Private>(this)) {}
+QAsyncResult::QAsyncResult(QObject* parent): QObject(parent), d_ptr(make_up<Private>(this)) {
+    connect(this, &QAsyncResult::statusChanged, this, [this](Status s) {
+        if (s == Status::Finished) {
+            finished();
+        } else if (s == Status::Error) {
+            errorOccurred(error());
+        }
+        if (forwardError() && s == Status::Error) {
+            emit Global::instance() -> errorOccurred(error());
+        }
+    });
+}
 QAsyncResult::~QAsyncResult() {}
 
 void QAsyncResult::hold(QStringView name, QObject* o) {
@@ -102,22 +117,16 @@ auto QAsyncResult::pool_executor() const -> asio::thread_pool::executor_type {
 
 auto QAsyncResult::status() const -> Status {
     C_D(const QAsyncResult);
-    return d->m_status;
+    return d->m_status.value();
+}
+auto QAsyncResult::bindableStatus() -> QBindable<Status> {
+    C_D(QAsyncResult);
+    return &(d->m_status);
 }
 
 void QAsyncResult::set_status(Status v) {
     C_D(QAsyncResult);
-    if (ycore::cmp_exchange(d->m_status, v)) {
-        Q_EMIT statusChanged(d->m_status);
-        if (d->m_status == Status::Finished) {
-            Q_EMIT finished();
-        } else if (d->m_status == Status::Error) {
-            Q_EMIT errorOccurred(d->m_error);
-        }
-        if (forwardError() && d->m_status == Status::Error) {
-            emit Global::instance() -> errorOccurred(d->m_error);
-        }
-    }
+    d->m_status = v;
 }
 void QAsyncResult::reload() {
     C_D(const QAsyncResult);
@@ -132,13 +141,15 @@ void QAsyncResult::set_reload_callback(const std::function<void()>& f) {
 
 auto QAsyncResult::error() const -> const QString& {
     C_D(const QAsyncResult);
-    return d->m_error;
+    return d->m_error.value();
 }
-void QAsyncResult::set_error(QString v) {
+auto QAsyncResult::bindableError() -> QBindable<QString> {
     C_D(QAsyncResult);
-    if (ycore::cmp_exchange(d->m_error, v)) {
-        emit errorChanged();
-    }
+    return &(d->m_error);
+}
+void QAsyncResult::set_error(const QString& v) {
+    C_D(QAsyncResult);
+    d->m_error = v;
 }
 
 bool QAsyncResult::forwardError() const {

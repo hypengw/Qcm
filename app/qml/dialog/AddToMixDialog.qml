@@ -41,7 +41,7 @@ MD.Dialog {
             supportText: `${model.trackCount} songs`
             width: ListView.view.width
             maximumLineCount: 2
-            leader: MD.Image {
+            leader: QA.Image {
                 radius: 8
                 source: QA.Util.image_url(model.picUrl)
                 sourceSize.height: 48
