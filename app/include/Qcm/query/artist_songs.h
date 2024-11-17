@@ -43,7 +43,7 @@ class ArtistSongsQuery : public QueryList<ArtistSongs> {
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
+    Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
     Q_PROPERTY(ArtistSongs* data READ tdata NOTIFY itemIdChanged FINAL)
 public:
     ArtistSongsQuery(QObject* parent = nullptr): QueryList<ArtistSongs>(parent) {

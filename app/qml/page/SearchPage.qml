@@ -1,8 +1,8 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls.Basic as QC
 import Qcm.App as QA
-import Qcm.Service.Ncm as QNCM
 import Qcm.Material as MD
 
 MD.Page {
@@ -17,22 +17,25 @@ MD.Page {
 
     component BaseView: MD.ListView {
         implicitHeight: contentHeight
-        model: querier.data
-        busy: querier.status === QA.enums.Querying
+        model: m_query.data
+        busy: m_query.status === QA.enums.Querying
 
         topMargin: 8
-        bottomMargin: MD.MatProp.size.verticalPadding + m_view_pane.bottomMargin
+        bottomMargin: MD.MatProp.size.verticalPadding * 2
 
         leftMargin: 24
         rightMargin: 24
 
-        property alias querier: querier
-        property alias type: querier.type
+        property alias query: m_query
+        property alias type: m_query.type
 
-        QNCM.CloudSearchQuerier {
-            id: querier
-            autoReload: keywords
+        QA.SearchQuery {
+            id: m_query
         }
+    }
+
+    QA.SearchTypeModel {
+        id: m_search_type_model
     }
 
     ColumnLayout {
@@ -52,34 +55,48 @@ MD.Page {
                     onTriggered: {}
                 }
             }
-            MD.FilterChip {
-                text: qsTr('song')
+
+            MD.ButtonGroup {
+                id: m_group
             }
-            MD.FilterChip {
-                text: qsTr('album')
+
+            Repeater {
+                model: m_search_type_model
+                MD.FilterChip {
+                    required property var model
+                    text: model.name
+                    MD.ButtonGroup.group: m_group
+
+                    onClicked: {
+                        m_search_type_model.currentIndex = model.index;
+                    }
+                }
             }
-            MD.FilterChip {
-                text: qsTr('artist')
+
+            Component.onCompleted: {
+                m_group.buttons[m_search_type_model.currentIndex].checked = true;
             }
         }
 
         ColumnLayout {
             spacing: 0
+
+            /*
             MD.TabBar {
                 id: bar
                 Layout.fillWidth: true
                 corners: MD.Util.corner(root.radius, 0)
 
-                function get_querier() {
-                    return m_stack.children[currentIndex]?.querier;
+                function get_query() {
+                    return m_stack.children[currentIndex]?.query;
                 }
 
                 Component.onCompleted: {
                     item_search.accepted.connect(() => {
-                        let querier = get_querier();
-                        if (querier) {
-                            querier.keywords = '';
-                            querier.keywords = item_search.text;
+                        let query = get_query();
+                        if (query) {
+                            query.keywords = '';
+                            query.keywords = item_search.text;
                         }
                     });
                     currentIndexChanged();
@@ -99,42 +116,56 @@ MD.Page {
                 }
 
                 onCurrentIndexChanged: {
-                    let querier = get_querier();
-                    if (querier && querier.keywords != item_search.text) {
-                        querier.keywords = item_search.text;
+                    let query = get_query();
+                    if (query && query.keywords != item_search.text) {
+                        query.keywords = item_search.text;
                     }
                 }
             }
+            */
 
             Item {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 clip: true
 
-                MD.FlickablePane {
-                    id: m_view_pane
-                    view: m_stack.children[m_stack.currentIndex]
-                    corners: MD.Util.corner(0, root.radius)
-                    color: root.MD.MatProp.backgroundColor
-                }
+                //MD.FlickablePane {
+                //    id: m_view_pane
+                //    view: m_stack.children[m_stack.currentIndex]
+                //    corners: MD.Util.corner(0, root.radius)
+                //    color: root.MD.MatProp.backgroundColor
+                //}
 
                 StackLayout {
                     id: m_stack
                     anchors.fill: parent
-                    currentIndex: bar.currentIndex
+                    currentIndex: m_search_type_model.currentIndex
+                    property list<var> delegates: [m_dg_song, m_dg_album, m_dg_mix, m_dg_radio]
 
-                    BaseView {
-                        delegate: QA.SongDelegate {
+                    Repeater {
+                        model: m_search_type_model
+
+                        BaseView {
+                            required property var model
+                            delegate: m_stack.delegates[m_stack.currentIndex]
+                            type: model.type
+                        }
+                    }
+
+                    Component {
+                        id: m_dg_song
+                        QA.SongDelegate {
+                            required property var model
                             width: ListView.view.contentWidth
                             onClicked: {
                                 QA.Action.play_by_id(dgModel.itemId);
                             }
                         }
-                        type: QNCM.CloudSearchQuerier.SongType
                     }
-
-                    BaseView {
-                        delegate: MD.ListItem {
+                    Component {
+                        id: m_dg_album
+                        MD.ListItem {
+                            required property var model
                             width: ListView.view.contentWidth
                             text: model.name
                             maximumLineCount: 2
@@ -150,13 +181,12 @@ MD.Page {
                                 ListView.view.currentIndex = index;
                             }
                         }
-
-                        type: QNCM.CloudSearchQuerier.AlbumType
                     }
 
-                    BaseView {
-                        implicitHeight: contentHeight
-                        delegate: MD.ListItem {
+                    Component {
+                        id: m_dg_mix
+                        MD.ListItem {
+                            required property var model
                             width: ListView.view.contentWidth
                             text: model.name
                             maximumLineCount: 2
@@ -172,10 +202,12 @@ MD.Page {
                                 ListView.view.currentIndex = index;
                             }
                         }
-                        type: QNCM.CloudSearchQuerier.PlaylistType
                     }
-                    BaseView {
-                        delegate: MD.ListItem {
+
+                    Component {
+                        id: m_dg_radio
+                        MD.ListItem {
+                            required property var model
                             width: ListView.view.contentWidth
                             text: model.name
                             maximumLineCount: 2
@@ -191,8 +223,6 @@ MD.Page {
                                 ListView.view.currentIndex = index;
                             }
                         }
-
-                        type: QNCM.CloudSearchQuerier.DjradioType
                     }
                 }
             }

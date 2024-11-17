@@ -25,6 +25,7 @@ private:
 };
 class QCM_INTERFACE_API UserAccount : public Model<UserAccount, QObject> {
     Q_OBJECT
+    QML_ANONYMOUS
     DECLARE_MODEL()
 
     Q_PROPERTY(qcm::model::UserAccountCollection* collection READ collection NOTIFY
@@ -33,7 +34,7 @@ public:
     UserAccount(QObject* parent = nullptr);
     ~UserAccount();
 
-    DECLARE_PROPERTY(ItemId, userId, NOTIFY_NAME(infoChanged))
+    DECLARE_PROPERTY(qcm::model::ItemId, userId, NOTIFY_NAME(infoChanged))
     DECLARE_PROPERTY(QString, token, NOTIFY_NAME(infoChanged))
     DECLARE_PROPERTY(QString, nickname, NOTIFY_NAME(infoChanged))
     DECLARE_PROPERTY(QString, avatarUrl, NOTIFY_NAME(infoChanged))

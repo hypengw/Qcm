@@ -16,5 +16,13 @@ static_assert(false);
 #include <qcm_interface/model/moc_query_model.cpp>
 #include <qcm_interface/model/moc_session.cpp>
 #include <qcm_interface/model/moc_user_model.cpp>
+#include <qcm_interface/model/moc_user_account.cpp>
+#include <qcm_interface/model/moc_album.cpp>
+#include <qcm_interface/model/moc_artist.cpp>
+#include <qcm_interface/model/moc_mix.cpp>
+#include <qcm_interface/model/moc_program.cpp>
+#include <qcm_interface/model/moc_radio.cpp>
+#include <qcm_interface/model/moc_song.cpp>
+#include <qcm_interface/model/moc_third_user.cpp>
 
 #endif

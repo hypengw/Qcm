@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
@@ -124,6 +125,8 @@ MD.Flickable {
             model: QA.Global.session.pages.filter(el => root.standard || !el.primary)
             MD.DrawerItem {
                 Layout.fillWidth: true
+                required property var modelData
+                required property var index
                 visible: root.MD.MatProp.size.isCompact || root.standard
                 checked: root.standard && root.pageIndex == index
                 action: Action {

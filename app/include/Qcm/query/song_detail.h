@@ -23,7 +23,7 @@ class SongDetailQuery : public Query<Song> {
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
+    Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
     Q_PROPERTY(qcm::query::Song data READ tdata NOTIFY dataChanged FINAL)
 public:
     SongDetailQuery(QObject* parent = nullptr): Query<Song>(parent) {

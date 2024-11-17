@@ -51,7 +51,7 @@ class MixDetailQuery : public Query<MixDetail> {
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
+    Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
     Q_PROPERTY(bool querySong READ querySong WRITE setQuerySong NOTIFY querySongChanged)
     Q_PROPERTY(MixDetail* data READ tdata NOTIFY itemIdChanged FINAL)
 public:

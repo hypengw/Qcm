@@ -22,10 +22,9 @@ QA.GlobalWrapper {
         return MD.Token.icon.trending_flat;
     }
 
-    property QtObject main_win: null
+    property Window main_win: null
     property alias category: m_category
     property alias player: m_player
-    property QtObject playlist: QA.App.playqueue
 
     property string song_cover: ''
 
@@ -128,7 +127,7 @@ QA.GlobalWrapper {
     QA.Mpris {
         id: m_mpris
         player: root.player
-        playlist: root.playlist
+        playlist: QA.App.playqueue
     }
 
     QA.QcmPlayer {
@@ -153,7 +152,7 @@ QA.GlobalWrapper {
         target: root
         function onSessionChanged() {
             m_player.stop();
-            root.playlist.clear();
+            QA.App.playqueue.clear();
         }
     }
 
@@ -161,15 +160,16 @@ QA.GlobalWrapper {
         target: m_player
         function onPlaybackStateChanged(old, new_) {
             const p = m_player;
+            const queue = QA.App.playqueue;
             // console.debug(root.category, `state: ${p.playbackState}, ${p.position}, ${p.duration}, ${p.source}`);
 
             if (p.playbackState === QA.enums.StoppedState && p.source) {
                 if (p.position / p.duration > 0.98) {
-                    root.playlist.next(root.playlist.loopMode);
+                    queue.next(queue.loopMode);
                 }
             }
             if (p.playbackState !== QA.enums.StoppedState) {
-                QA.Action.playbackLog(m_player.playbackState, root.cur_song.itemId, root.cur_song.source?.itemId ?? QA.Util.create_itemid());
+                QA.Action.playbackLog(p.playbackState, root.cur_song.itemId, root.cur_song.source?.itemId ?? QA.Util.create_itemid());
             }
         }
     }

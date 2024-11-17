@@ -18,10 +18,11 @@
 
 #include "qcm_interface/metadata.h"
 #include "qcm_interface/client.h"
-#include "qcm_interface/model/user_model.h"
 #include "qcm_interface/model/session.h"
 #include "qcm_interface/model/busy_info.h"
 #include "qcm_interface/state/app_state.h"
+
+Q_MOC_INCLUDE("qcm_interface/model/user_model.h")
 
 namespace request
 {
@@ -32,6 +33,7 @@ namespace qcm
 class App;
 class PluginModel;
 class QcmPluginInterface;
+class UserModel;
 
 namespace db
 {
@@ -103,17 +105,15 @@ public:
 
     Q_INVOKABLE QVariant server_url(const model::ItemId&);
 
-Q_SIGNALS:
-    void errorOccurred(QString error, StopSignal stop = {});
-    void copyActionCompChanged(StopSignal stop = {});
-    void uuidChanged(StopSignal stop = {});
-    void sessionChanged(StopSignal stop = {});
+    Q_SIGNAL void errorOccurred(QString error, StopSignal stop = {});
+    Q_SIGNAL void copyActionCompChanged(StopSignal stop = {});
+    Q_SIGNAL void uuidChanged(StopSignal stop = {});
+    Q_SIGNAL void sessionChanged(StopSignal stop = {});
 
-public Q_SLOTS:
-    void set_copy_action_comp(QQmlComponent*);
-    void switch_user(model::UserAccount*);
-    void load_user();
-    void save_user();
+    Q_SLOT void set_copy_action_comp(QQmlComponent*);
+    Q_SLOT void switch_user(model::UserAccount*);
+    Q_SLOT void load_user();
+    Q_SLOT void save_user();
 
 private:
     using MetadataImpl = std::function<Metadata(const std::filesystem::path&)>;
@@ -143,10 +143,10 @@ class QCM_INTERFACE_API GlobalWrapper : public QObject {
     Q_PROPERTY(QQmlComponent* copy_action_comp READ copy_action_comp WRITE set_copy_action_comp
                    NOTIFY copyActionCompChanged FINAL)
     Q_PROPERTY(QString uuid READ uuid NOTIFY uuidChanged FINAL)
-    Q_PROPERTY(UserModel* userModel READ user_model CONSTANT FINAL)
-    Q_PROPERTY(model::Session* session READ qsession NOTIFY sessionChanged FINAL)
-    Q_PROPERTY(model::BusyInfo* busy READ busy_info CONSTANT FINAL)
-    Q_PROPERTY(state::AppState* appState READ app_state CONSTANT FINAL)
+    Q_PROPERTY(qcm::UserModel* userModel READ user_model CONSTANT FINAL)
+    Q_PROPERTY(qcm::model::Session* session READ qsession NOTIFY sessionChanged FINAL)
+    Q_PROPERTY(qcm::model::BusyInfo* busy READ busy_info CONSTANT FINAL)
+    Q_PROPERTY(qcm::state::AppState* appState READ app_state CONSTANT FINAL)
 
 public:
     GlobalWrapper();
@@ -163,14 +163,12 @@ public:
 
     Q_INVOKABLE QVariant server_url(const model::ItemId&);
 
-Q_SIGNALS:
-    void errorOccurred(QString error, StopSignal stop = {});
-    void copyActionCompChanged(StopSignal stop = {});
-    void uuidChanged(StopSignal stop = {});
-    void sessionChanged(StopSignal stop = {});
+    Q_SIGNAL void errorOccurred(QString error, StopSignal stop = {});
+    Q_SIGNAL void copyActionCompChanged(StopSignal stop = {});
+    Q_SIGNAL void uuidChanged(StopSignal stop = {});
+    Q_SIGNAL void sessionChanged(StopSignal stop = {});
 
-public Q_SLOTS:
-    void set_copy_action_comp(QQmlComponent*);
+    Q_SLOT void set_copy_action_comp(QQmlComponent*);
 
 private:
     template<typename R, typename... ARGS>

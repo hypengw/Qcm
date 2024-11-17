@@ -44,7 +44,7 @@ class ArtistAlbumsQuery : public QueryList<ArtistAlbums> {
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
+    Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
     Q_PROPERTY(ArtistAlbums* data READ tdata NOTIFY itemIdChanged FINAL)
 public:
     ArtistAlbumsQuery(QObject* parent = nullptr): QueryList<ArtistAlbums>(parent) {

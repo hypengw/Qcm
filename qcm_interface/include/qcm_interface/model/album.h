@@ -9,8 +9,9 @@ namespace qcm::model
 {
 struct AlbumRefer {
     Q_GADGET_EXPORT(QCM_INTERFACE_API)
+    QML_ANONYMOUS
 public:
-    GADGET_PROPERTY_DEF(ItemId, itemId, id)
+    GADGET_PROPERTY_DEF(qcm::model::ItemId, itemId, id)
     GADGET_PROPERTY_DEF(QString, name, name)
     GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
 
@@ -21,6 +22,7 @@ public:
 
 struct Album : AlbumRefer {
     Q_GADGET_EXPORT(QCM_INTERFACE_API)
+    QML_ANONYMOUS
 public:
     GADGET_PROPERTY_DEF(QDateTime, publishTime, publishTime)
     GADGET_PROPERTY_DEF(int, trackCount, trackCount)

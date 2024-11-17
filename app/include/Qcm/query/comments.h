@@ -60,7 +60,7 @@ private:
 class CommentsQuery : public QueryList<Comments> {
     Q_OBJECT
     QML_ELEMENT
-    Q_PROPERTY(model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
+    Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
 
 public:
     CommentsQuery(QObject* parent = nullptr): QueryList<Comments>(parent) {

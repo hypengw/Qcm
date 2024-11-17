@@ -18,7 +18,7 @@ class Player : public QObject {
     Q_PROPERTY(int duration READ duration NOTIFY durationChanged FINAL)
     Q_PROPERTY(float volume READ volume WRITE set_volume NOTIFY volumeChanged FINAL)
     Q_PROPERTY(uint fadeTime READ fadeTime WRITE set_fadeTime NOTIFY fadeTimeChanged FINAL)
-    Q_PROPERTY(PlaybackState playbackState READ playback_state NOTIFY playbackStateChanged FINAL)
+    Q_PROPERTY(qcm::enums::PlaybackState playbackState READ playback_state NOTIFY playbackStateChanged FINAL)
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged FINAL)
     Q_PROPERTY(QVector2D cacheProgress READ cache_progress NOTIFY cacheProgressChanged FINAL)
 

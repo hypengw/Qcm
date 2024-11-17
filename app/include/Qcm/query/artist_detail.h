@@ -41,7 +41,7 @@ class ArtistDetailQuery : public Query<ArtistDetail> {
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
+    Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
     Q_PROPERTY(ArtistDetail* data READ tdata NOTIFY itemIdChanged FINAL)
 public:
     ArtistDetailQuery(QObject* parent = nullptr): Query<ArtistDetail>(parent) {

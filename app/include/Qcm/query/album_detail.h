@@ -51,7 +51,7 @@ class AlbumDetailQuery : public Query<AlbumDetail> {
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
+    Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
     Q_PROPERTY(AlbumDetail* data READ tdata NOTIFY itemIdChanged FINAL)
 public:
     AlbumDetailQuery(QObject* parent = nullptr): Query<AlbumDetail>(parent) {

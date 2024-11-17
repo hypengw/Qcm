@@ -117,6 +117,20 @@ enum class ManipulateMixAction
     ManipulateMixDel,
 };
 Q_ENUM_NS(ManipulateMixAction)
+
+enum class SearchLocation
+{
+    SearchLocal = 0,
+    SearchOnline,
+};
+Q_ENUM_NS(SearchLocation)
+
+enum class SearchType
+{
+    SearchSong = 0,
+    SearchAlbum,
+};
+Q_ENUM_NS(SearchType)
 } // namespace enums
 
 } // namespace qcm

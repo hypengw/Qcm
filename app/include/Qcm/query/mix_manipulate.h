@@ -26,7 +26,7 @@ class MixManipulateQuery : public Query<MixManipulate> {
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(model::ItemId mixId READ itemId WRITE setItemId NOTIFY itemIdChanged FINAL)
+    Q_PROPERTY(qcm::model::ItemId mixId READ itemId WRITE setItemId NOTIFY itemIdChanged FINAL)
     Q_PROPERTY(std::vector<model::ItemId> itemIds READ ids WRITE setIds NOTIFY idsChanged FINAL)
     Q_PROPERTY(qint32 oper READ oper WRITE setOper NOTIFY operChanged FINAL)
 public:

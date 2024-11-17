@@ -37,6 +37,7 @@ set(SOURCES
     include/Qcm/query/mix_delete.h
     include/Qcm/query/user_mix.h
     include/Qcm/query/comments.h
+    include/Qcm/query/search.h
     src/action.cpp
     src/app.cpp
     src/image_provider.cpp

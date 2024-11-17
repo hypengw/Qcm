@@ -10,8 +10,9 @@ namespace qcm::model
 
 struct RadioRefer {
     Q_GADGET_EXPORT(QCM_INTERFACE_API)
+    QML_ANONYMOUS
 public:
-    GADGET_PROPERTY_DEF(ItemId, itemId, id)
+    GADGET_PROPERTY_DEF(qcm::model::ItemId, itemId, id)
     GADGET_PROPERTY_DEF(QString, name, name)
     GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
     std::strong_ordering operator<=>(const RadioRefer&) const = default;
@@ -21,6 +22,7 @@ public:
 
 struct Radio : RadioRefer {
     Q_GADGET_EXPORT(QCM_INTERFACE_API)
+    QML_ANONYMOUS
 public:
     GADGET_PROPERTY_DEF(QString, description, description)
     GADGET_PROPERTY_DEF(qint32, programCount, programCount)
