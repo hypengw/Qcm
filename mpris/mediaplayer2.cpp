@@ -8,13 +8,14 @@
 #include <QUrl>
 
 using namespace mpris;
+using namespace Qt::Literals::StringLiterals;
 
 namespace
 {
-static const QString MprisObjectPath { u"/org/mpris/MediaPlayer2"_qs };
-static const QString MprisPlayerObjectPath { u"/org/mpris/MediaPlayer2.Player"_qs };
-static const QString DBusPropertiesInterface { u"org.freedesktop.DBus.Properties"_qs };
-static const QString DBusPropertiesChangedSignal { u"PropertiesChanged"_qs };
+static const QString MprisObjectPath { u"/org/mpris/MediaPlayer2"_s };
+static const QString MprisPlayerObjectPath { u"/org/mpris/MediaPlayer2.Player"_s };
+static const QString DBusPropertiesInterface { u"org.freedesktop.DBus.Properties"_s };
+static const QString DBusPropertiesChangedSignal { u"PropertiesChanged"_s };
 } // namespace
 
 MediaPlayer2::MediaPlayer2(QObject* parent)

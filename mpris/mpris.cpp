@@ -4,10 +4,11 @@
 #include <QDBusConnection>
 
 using namespace mpris;
+using namespace Qt::Literals::StringLiterals;
 
 namespace
 {
-static const QString ServiceNamePrefix { u"org.mpris.MediaPlayer2."_qs };
+static const QString ServiceNamePrefix { u"org.mpris.MediaPlayer2."_s };
 }
 
 Mpris::Mpris(QObject* parent): QObject(parent), m_mp(new MediaPlayer2(this)) {};
