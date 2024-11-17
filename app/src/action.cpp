@@ -142,16 +142,16 @@ void App::connect_actions() {
                 return;
             }
 
-            auto ex = asio::make_strand(Global::instance()->pool_executor());
+            auto ex = qcm::strand_executor();
             if (auto c = Global::instance()->qsession()->client()) {
                 dog->spawn(
                     ex,
                     [c, curId, qu, hash, refresh] -> task<void> {
                         auto res = co_await c->api->media_url(*c->instance, curId.value(), qu);
-                        res.transform([&hash, refresh](QUrl url) -> bool {
+                        res.transform([&hash, refresh](QUrl url) -> std::nullptr_t {
                                url = App::instance()->media_url(url, convert_from<QString>(hash));
                                Action::instance()->play(url, refresh);
-                               return true;
+                               return {};
                            })
                             .transform_error([](auto err) -> std::nullptr_t {
                                 Global::instance()->errorOccurred(
@@ -179,7 +179,7 @@ void App::on_load_session(model::Session* session) {
     if (weak->parent() == nullptr) {
         weak.take_owner();
     }
-    auto ex = asio::make_strand(m_global->pool_executor());
+    auto ex = qcm::strand_executor();
     asio::co_spawn(
         ex,
         [client, weak] -> task<void> {
@@ -263,7 +263,7 @@ void App::on_switch_ids(const std::vector<model::ItemId>& songIds, model::ItemId
 }
 
 void App::on_logout() {
-    auto ex = asio::make_strand(m_global->pool_executor());
+    auto ex = qcm::strand_executor();
     asio::co_spawn(
         ex,
         [] -> task<void> {
@@ -292,7 +292,7 @@ void App::on_switch_user(model::ItemId id) {
 }
 
 void App::on_collect(model::ItemId id, bool act) {
-    auto ex = asio::make_strand(m_global->pool_executor());
+    auto ex = qcm::strand_executor();
     asio::co_spawn(
         ex,
         [id, act] -> task<void> {
@@ -322,7 +322,7 @@ void App::on_collect(model::ItemId id, bool act) {
 }
 
 void App::on_sync_item(const model::ItemId& itemId, bool notify) {
-    auto ex = asio::make_strand(m_global->pool_executor());
+    auto ex = qcm::strand_executor();
     asio::co_spawn(
         ex,
         [itemId, notify] -> task<void> {
@@ -332,7 +332,7 @@ void App::on_sync_item(const model::ItemId& itemId, bool notify) {
 }
 
 void App::on_sync_collecttion(enums::CollectionType ct) {
-    auto ex = asio::make_strand(m_global->pool_executor());
+    auto ex = qcm::strand_executor();
     asio::co_spawn(
         ex,
         [ct] -> task<void> {
@@ -341,16 +341,7 @@ void App::on_sync_collecttion(enums::CollectionType ct) {
         helper::asio_detached_log_t {});
 }
 
-void App::on_record(enums::RecordAction record) {
-    switch (record) {
-    case enums::RecordAction::RecordSwitch: {
-    }
-    case enums::RecordAction::RecordNext: {
-    }
-    case enums::RecordAction::RecordPrev: {
-    }
-    }
-}
+void App::on_record(enums::RecordAction) {}
 void App::on_play_song(const query::Song& s) {
     switchPlayIdQueue();
 

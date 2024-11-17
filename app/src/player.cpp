@@ -8,6 +8,7 @@
 #include "asio_helper/basic.h"
 
 #include "asio_qt/qt_executor.h"
+#include "qcm_interface/ex.h"
 #include "core/math.h"
 
 using namespace qcm;
@@ -50,8 +51,8 @@ private:
 
 Player::Player(QObject* parent)
     : QObject(parent),
-      m_channel(make_rc<NotifyChannel>(make_rc<NotifyChannel::channel_type>(
-          Global::instance()->pool_executor(), MaxChannelSize))),
+      m_channel(make_rc<NotifyChannel>(
+          make_rc<NotifyChannel::channel_type>(qcm::pool_executor(), MaxChannelSize))),
       m_end(false),
       m_position(0),
       m_duration(0),
@@ -62,9 +63,9 @@ Player::Player(QObject* parent)
 
     auto channel = m_channel->channel();
     m_player     = std::make_unique<player::Player>(
-        APP_NAME, player::Notifier(m_channel), Global::instance()->pool_executor());
+        APP_NAME, player::Notifier(m_channel), qcm::pool_executor());
 
-    auto qt_exec = Global::instance()->qexecutor();
+    auto qt_exec = qcm::qexecutor();
     asio::co_spawn(
         asio::strand<NotifyChannel::channel_type::executor_type>(channel->get_executor()),
         [this, channel]() -> asio::awaitable<void> {

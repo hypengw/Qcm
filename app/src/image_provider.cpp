@@ -46,11 +46,16 @@ void header_record_db(const request::HttpHeader& h, media_cache::DataBase::Item&
 namespace qcm
 {
 
+auto image_response_count() -> std::atomic<i32>& {
+    static std::atomic<i32> count { 0 };
+    return count;
+}
+
 QcmAsyncImageResponse::QcmAsyncImageResponse() {}
 QcmAsyncImageResponse::~QcmAsyncImageResponse() { plt::malloc_trim_count(0, 10); }
 
 QQuickTextureFactory* QcmAsyncImageResponse::textureFactory() const {
-    return QQuickTextureFactory::textureFactoryForImage(m_image);
+    return QQuickTextureFactory::textureFactoryForImage(image);
 }
 
 class QcmImageProviderInner : std::enable_shared_from_this<QcmImageProviderInner>, NoCopy {
@@ -64,8 +69,7 @@ public:
           m_session(Global::instance()->session()),
           m_cache_sql(Global::instance()->get_cache_sql()) {}
 
-    asio::awaitable<request::HttpHeader> dl_image(const request::Request& req,
-                                                  std::filesystem::path   p) {
+    task<request::HttpHeader> dl_image(const request::Request& req, std::filesystem::path p) {
         helper::SyncFile file { std::fstream(p, std::ios::out | std::ios::binary) };
         file.handle().exceptions(std::ios_base::failbit | std::ios_base::badbit);
 
@@ -77,8 +81,8 @@ public:
         co_return rsp_http->header();
     }
 
-    asio::awaitable<void> cache_new_image(const request::Request& req, std::string_view key,
-                                          std::filesystem::path cache_file, QSize req_size) {
+    task<void> cache_new_image(const request::Request& req, std::string_view key,
+                               std::filesystem::path cache_file, QSize req_size) {
         media_cache::DataBase::Item db_it;
         db_it.key = key;
 
@@ -91,8 +95,8 @@ public:
         co_await m_cache_sql->insert(db_it);
     }
 
-    asio::awaitable<QImage> request_image(const request::Request& req,
-                                          std::filesystem::path cache_path, QSize req_size) {
+    task<QImage> request_image(const request::Request& req, std::filesystem::path cache_path,
+                               QSize req_size) {
         std::string key = cache_path.filename().native();
         asio::co_spawn(m_cache_sql->get_executor(), m_cache_sql->get(key), asio::detached);
         if (! std::filesystem::exists(cache_path)) {
@@ -107,25 +111,12 @@ public:
         co_return img;
     }
 
-    asio::awaitable<void> handle_request(helper::QWatcher<QcmAsyncImageResponse> rsp,
-                                         request::Request req, std::filesystem::path cache_path,
-                                         QSize req_size) {
-        auto img = co_await request_image(req, cache_path, req_size);
-        QcmImageProviderInner::handle_res(rsp, img);
+    task<void> handle_request(rc<QcmAsyncImageResponse> rsp, request::Request req,
+                              std::filesystem::path cache_path, QSize req_size) {
+        auto img   = co_await request_image(req, cache_path, req_size);
+        rsp->image = img;
         co_return;
     }
-
-    static void handle_res(QcmAsyncImageResponse* rsp, nstd::expected<QImage, QString> res) {
-        if (rsp == nullptr) return;
-
-        if (res.has_value()) {
-            QMetaObject::invokeMethod(
-                rsp, "handle", Qt::QueuedConnection, Q_ARG(QImage, res.value()));
-        } else {
-            QMetaObject::invokeMethod(
-                rsp, "handle_error", Qt::QueuedConnection, Q_ARG(QString, res.error()));
-        }
-    };
 
 private:
     executor_type             m_ex;
@@ -140,7 +131,7 @@ QcmImageProvider::~QcmImageProvider() {}
 
 QQuickImageResponse* QcmImageProvider::requestImageResponse(const QString& id,
                                                             const QSize&   requestedSize) {
-    QcmAsyncImageResponse* rsp = new QcmAsyncImageResponse();
+    auto rsp = QcmAsyncImageResponse::make_rc<QcmAsyncImageResponse>();
 
     do {
         if (id.isEmpty()) break;
@@ -148,7 +139,6 @@ QQuickImageResponse* QcmImageProvider::requestImageResponse(const QString& id,
         auto [url, provider] = parse_image_provider_url(QStringLiteral("image://qcm/%1").arg(id));
         if (url.isEmpty()) break;
 
-        auto             rsp_guard = helper::QWatcher(rsp);
         request::Request req;
         if (auto c = Global::instance()->qsession()->client();
             c && c->api->provider == provider.toStdString()) {
@@ -173,37 +163,34 @@ QQuickImageResponse* QcmImageProvider::requestImageResponse(const QString& id,
         auto ex    = asio::make_strand(m_inner->get_executor());
         rsp->wdog().spawn(
             ex,
-            [rsp_guard, requestedSize, req, file_path, inner = m_inner]() -> asio::awaitable<void> {
-                co_await inner->handle_request(rsp_guard, req, file_path, requestedSize);
+            [rsp, requestedSize, req, file_path, inner = m_inner]() -> task<void> {
+                co_await inner->handle_request(rsp, req, file_path, requestedSize);
                 co_return;
             },
-            asio::bind_allocator(
-                alloc,
-                [rsp_guard, file_path, id, url](std::exception_ptr p) {
-                    if (p) {
-                        try {
-                            if (std::filesystem::exists(file_path)) {
-                                std::filesystem::remove(file_path);
-                            }
-                            std::rethrow_exception(p);
-                        } catch (const std::exception& e) {
-                            QcmImageProviderInner::handle_res(
-                                rsp_guard,
-                                nstd::unexpected(convert_from<QString>(fmt::format(R"(
+            asio::bind_allocator(alloc,
+                                 [rsp, file_path, id, url](std::exception_ptr p) {
+                                     if (p) {
+                                         try {
+                                             if (std::filesystem::exists(file_path)) {
+                                                 std::filesystem::remove(file_path);
+                                             }
+                                             std::rethrow_exception(p);
+                                         } catch (const std::exception& e) {
+                                             rsp->set_error(fmt::format(R"(
 QcmImageProvider
     id: {}
     url: {}
     error: {})",
-                                                                                   id,
-                                                                                   url.toString(),
-                                                                                   e.what()))));
-                        }
-                    }
-                }),
-            asio::chrono::minutes(3),
+                                                                        id,
+                                                                        url.toString(),
+                                                                        e.what()));
+                                         }
+                                     }
+                                 }),
+            asio::chrono::minutes(2),
             alloc);
-        return rsp;
+        return rsp.get();
     } while (false);
-    rsp->finished();
-    return rsp;
+
+    return rsp.get();
 }

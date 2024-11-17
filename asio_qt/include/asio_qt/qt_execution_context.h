@@ -28,6 +28,12 @@ private:
     F m_f;
 };
 
+struct QtExecutionEventRunner : QObject {
+    QtExecutionEventRunner(QEvent::Type t): event_type(t) {}
+    QEvent::Type event_type;
+    auto         event(QEvent* event) -> bool override;
+};
+
 class QtExecutionContext : public asio::execution_context, NoCopy {
 public:
     QtExecutionContext(QObject*, QEvent::Type);
@@ -43,6 +49,5 @@ public:
     auto event_type() const -> QEvent::Type;
 
 private:
-    struct EventRunner;
-    QObject* m_target;
+    QtExecutionEventRunner* m_target;
 };

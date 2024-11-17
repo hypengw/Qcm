@@ -47,6 +47,13 @@ public:
 
     operator T*() const { return get(); }
 
+    auto thread() const -> QThread* {
+        if (*this) {
+            return m_ptr->thread();
+        };
+        return nullptr;
+    }
+
 private:
     struct helper : QObject {
         std::atomic<T*> pointer;

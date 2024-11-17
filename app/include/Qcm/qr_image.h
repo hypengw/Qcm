@@ -4,36 +4,18 @@
 #include <QQuickAsyncImageProvider>
 
 #include "asio_helper/helper.h"
-#include "asio_helper/watch_dog.h"
+#include "Qcm/image_response.h"
 
 namespace qcm
 {
 
-class QrAsyncImageResponse : public QQuickImageResponse {
-    Q_OBJECT
+class QrAsyncImageResponse : public QcmImageResponse {
 public:
-    QrAsyncImageResponse() {}
-    virtual ~QrAsyncImageResponse() {}
-
     QQuickTextureFactory* textureFactory() const override {
-        return QQuickTextureFactory::textureFactoryForImage(m_image);
+        return QQuickTextureFactory::textureFactoryForImage(image);
     }
 
-    QString errorString() const override { return m_error; }
-
-public slots:
-    void handle(QImage img) {
-        m_image = img;
-        emit finished();
-    }
-    void handle_error(QString error) {
-        m_error = error;
-        emit finished();
-    }
-
-private:
-    QImage  m_image;
-    QString m_error;
+    QImage image;
 };
 
 class QrImageProvider : public QQuickAsyncImageProvider {
@@ -42,8 +24,5 @@ public:
 
     QQuickImageResponse* requestImageResponse(const QString& id,
                                               const QSize&   requestedSize) override;
-
-private:
-    asio::any_io_executor m_ex;
 };
 } // namespace qcm

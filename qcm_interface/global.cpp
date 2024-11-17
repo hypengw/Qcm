@@ -34,6 +34,9 @@ auto qcm::qexecutor() -> QtExecutor& { return Global::instance()->qexecutor(); }
 auto qcm::pool_executor() -> asio::thread_pool::executor_type {
     return Global::instance()->pool_executor();
 }
+auto qcm::strand_executor() -> asio::strand<asio::thread_pool::executor_type> {
+    return asio::make_strand(Global::instance()->pool_executor());
+}
 
 auto qcm::get_client() -> std::optional<Client> { return Global::instance()->qsession()->client(); }
 

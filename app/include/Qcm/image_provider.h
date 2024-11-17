@@ -7,6 +7,7 @@
 
 #include "asio_helper/helper.h"
 #include "asio_helper/watch_dog.h"
+#include "Qcm/image_response.h"
 
 #include "request/request.h"
 
@@ -18,35 +19,18 @@ class Client;
 namespace qcm
 {
 
-class QcmAsyncImageResponse : public QQuickImageResponse {
+class QcmAsyncImageResponse : public QcmImageResponse {
     Q_OBJECT
 public:
     QcmAsyncImageResponse();
-    virtual ~QcmAsyncImageResponse();
+    ~QcmAsyncImageResponse() override;
+    auto textureFactory() const -> QQuickTextureFactory* override;
+    void cancel() override { m_wdog.cancel(); }
 
-    QQuickTextureFactory* textureFactory() const override;
-    QString               errorString() const override { return m_error; }
-
-    helper::WatchDog& wdog() { return m_wdog; }
-
-public slots:
-    void handle(QImage img) {
-        m_image = img;
-        emit finished();
-    }
-    void handle_error(QString error) {
-        m_error = error;
-        emit finished();
-    }
-    void cancel() override {
-        m_wdog.cancel();
-        emit finished();
-    }
+    auto&  wdog() { return m_wdog; }
+    QImage image;
 
 private:
-    QImage           m_image_;
-    QImage           m_image;
-    QString          m_error;
     helper::WatchDog m_wdog;
 };
 

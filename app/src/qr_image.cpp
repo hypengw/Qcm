@@ -8,39 +8,27 @@
 #include "qcm_interface/type.h"
 #include "core/expected_helper.h"
 
-using namespace qcm;
-
-QrImageProvider::QrImageProvider()
-    : QQuickAsyncImageProvider(), m_ex(Global::instance()->pool_executor()) {}
+namespace qcm
+{
+QrImageProvider::QrImageProvider(): QQuickAsyncImageProvider() {}
 
 QQuickImageResponse* QrImageProvider::requestImageResponse(const QString& id,
                                                            const QSize&   requestedSize) {
-    QrAsyncImageResponse* rsp = new QrAsyncImageResponse();
+    auto rsp = QrAsyncImageResponse::make_rc<QrAsyncImageResponse>();
 
     if (id.isEmpty()) {
-        rsp->finished();
-        return rsp;
+        return rsp.get();
     }
 
-    auto rsp_guard = QPointer(rsp);
-    auto handle    = [rsp_guard](nstd::expected<QImage, QString> res) {
-        if (res) {
-            QMetaObject::invokeMethod(
-                rsp_guard, "handle", Qt::QueuedConnection, Q_ARG(QImage, res.value()));
-        } else {
-            QMetaObject::invokeMethod(
-                rsp_guard, "handle_error", Qt::QueuedConnection, Q_ARG(QString, res.error()));
-        }
-    };
-
-    asio::post(m_ex, [id, requestedSize, handle]() {
+    auto ex = qcm::pool_executor();
+    asio::post(ex, [id, requestedSize, rsp]() {
         auto                  bs = id.toUtf8();
         up<qrcodegen::QrCode> qr_;
         try {
             qr_ = std::make_unique<qrcodegen::QrCode>(qrcodegen::QrCode::encodeBinary(
                 std::vector<u8> { bs.begin(), bs.end() }, qrcodegen::QrCode::Ecc::MEDIUM));
         } catch (const std::exception& e) {
-            handle(nstd::unexpected(convert_from<QString>(fmt::format("{} ({})", e.what(), id))));
+            rsp->set_error(fmt::format("{} ({})", e.what(), id));
             return;
         }
         auto& qr = *qr_;
@@ -56,8 +44,10 @@ QQuickImageResponse* QrImageProvider::requestImageResponse(const QString& id,
             }
         }
         if (requestedSize.isValid()) qr_img = qr_img.scaled(requestedSize);
-        handle(qr_img);
+        rsp->image = qr_img;
     });
 
-    return rsp;
+    return rsp.get();
 }
+
+} // namespace qcm
