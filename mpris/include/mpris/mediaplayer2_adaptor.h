@@ -17,49 +17,48 @@ public:
     MediaPlayer2Adaptor(MediaPlayer2* parent);
 
 public:
-    Q_PROPERTY(bool CanQuit READ CanQuit)
+    Q_PROPERTY(bool CanQuit READ CanQuit FINAL)
     bool CanQuit() const;
 
-    Q_PROPERTY(bool CanRaise READ CanRaise)
+    Q_PROPERTY(bool CanRaise READ CanRaise FINAL)
     bool CanRaise() const;
 
-    Q_PROPERTY(bool CanSetFullscreen READ CanSetFullscreen)
+    Q_PROPERTY(bool CanSetFullscreen READ CanSetFullscreen FINAL)
     bool CanSetFullscreen() const;
 
-    Q_PROPERTY(QString DesktopEntry READ DesktopEntry)
+    Q_PROPERTY(QString DesktopEntry READ DesktopEntry FINAL)
     QString DesktopEntry() const;
 
-    Q_PROPERTY(bool Fullscreen READ Fullscreen WRITE setFullscreen)
+    Q_PROPERTY(bool Fullscreen READ Fullscreen WRITE setFullscreen FINAL)
     bool Fullscreen() const;
     void setFullscreen(bool value);
 
-    Q_PROPERTY(bool HasTrackList READ HasTrackList)
+    Q_PROPERTY(bool HasTrackList READ HasTrackList FINAL)
     bool HasTrackList() const;
 
-    Q_PROPERTY(QString Identity READ Identity)
+    Q_PROPERTY(QString Identity READ Identity FINAL)
     QString Identity() const;
 
-    Q_PROPERTY(QStringList SupportedMimeTypes READ SupportedMimeTypes)
+    Q_PROPERTY(QStringList SupportedMimeTypes READ SupportedMimeTypes FINAL)
     QStringList SupportedMimeTypes() const;
 
-    Q_PROPERTY(QStringList SupportedUriSchemes READ SupportedUriSchemes)
+    Q_PROPERTY(QStringList SupportedUriSchemes READ SupportedUriSchemes FINAL)
     QStringList SupportedUriSchemes() const;
 
-public slots:
     // Methods
-    void Quit();
-    void Raise();
+    Q_SLOT void Quit();
+    Q_SLOT void Raise();
 
-private slots:
-    void onCanQuitChanged() const;
-    void onCanRaiseChanged() const;
-    void onCanSetFullscreenChanged() const;
-    void onDesktopEntryChanged() const;
-    void onFullscreenChanged() const;
-    void onHasTrackListChanged() const;
-    void onIdentityChanged() const;
-    void onSupportedUriSchemesChanged() const;
-    void onSupportedMimeTypesChanged() const;
+private:
+    Q_SLOT void onCanQuitChanged() const;
+    Q_SLOT void onCanRaiseChanged() const;
+    Q_SLOT void onCanSetFullscreenChanged() const;
+    Q_SLOT void onDesktopEntryChanged() const;
+    Q_SLOT void onFullscreenChanged() const;
+    Q_SLOT void onHasTrackListChanged() const;
+    Q_SLOT void onIdentityChanged() const;
+    Q_SLOT void onSupportedUriSchemesChanged() const;
+    Q_SLOT void onSupportedMimeTypesChanged() const;
 
 private:
     MediaPlayer2* m_realobj;
@@ -71,21 +70,21 @@ class MediaPlayer2PlayerAdaptor : public QDBusAbstractAdaptor {
     // https://specifications.freedesktop.org/mpris-spec/latest/Player_Interface.html
 
     // Properties
-    Q_PROPERTY(QString PlaybackStatus READ PlaybackStatus)
-    Q_PROPERTY(QString LoopStatus READ LoopStatus WRITE setLoopStatus)
-    Q_PROPERTY(double Rate READ Rate WRITE setRate)
-    Q_PROPERTY(bool Shuffle READ Shuffle WRITE setShuffle)
-    Q_PROPERTY(QVariantMap Metadata READ Metadata)
-    Q_PROPERTY(double Volume READ Volume WRITE setVolume)
-    Q_PROPERTY(qlonglong Position READ Position)
-    Q_PROPERTY(double MinimumRate READ MinimumRate)
-    Q_PROPERTY(double MaximumRate READ MaximumRate)
-    Q_PROPERTY(bool CanGoNext READ CanGoNext)
-    Q_PROPERTY(bool CanGoPrevious READ CanGoPrevious)
-    Q_PROPERTY(bool CanPlay READ CanPlay)
-    Q_PROPERTY(bool CanPause READ CanPause)
-    Q_PROPERTY(bool CanSeek READ CanSeek)
-    Q_PROPERTY(bool CanControl READ CanControl)
+    Q_PROPERTY(QString PlaybackStatus READ PlaybackStatus FINAL)
+    Q_PROPERTY(QString LoopStatus READ LoopStatus WRITE setLoopStatus FINAL)
+    Q_PROPERTY(double Rate READ Rate WRITE setRate FINAL)
+    Q_PROPERTY(bool Shuffle READ Shuffle WRITE setShuffle FINAL)
+    Q_PROPERTY(QVariantMap Metadata READ Metadata FINAL)
+    Q_PROPERTY(double Volume READ Volume WRITE setVolume FINAL)
+    Q_PROPERTY(qlonglong Position READ Position FINAL)
+    Q_PROPERTY(double MinimumRate READ MinimumRate FINAL)
+    Q_PROPERTY(double MaximumRate READ MaximumRate FINAL)
+    Q_PROPERTY(bool CanGoNext READ CanGoNext FINAL)
+    Q_PROPERTY(bool CanGoPrevious READ CanGoPrevious FINAL)
+    Q_PROPERTY(bool CanPlay READ CanPlay FINAL)
+    Q_PROPERTY(bool CanPause READ CanPause FINAL)
+    Q_PROPERTY(bool CanSeek READ CanSeek FINAL)
+    Q_PROPERTY(bool CanControl READ CanControl FINAL)
 
 public:
     explicit MediaPlayer2PlayerAdaptor(MediaPlayer2* parent = nullptr);
@@ -111,36 +110,34 @@ public:
     void setShuffle(bool);
     void setVolume(double);
 
-signals:
-    void Seeked(qlonglong Position);
+    Q_SIGNAL void Seeked(qlonglong Position);
 
-public slots:
     // Methods
-    void Next();
-    void Previous();
-    void Pause();
-    void PlayPause();
-    void Stop();
-    void Play();
-    void Seek(qlonglong Offset);
-    void SetPosition(const QDBusObjectPath& trackId, qlonglong pos);
-    void OpenUri(const QString& uri);
+    Q_SLOT void Next();
+    Q_SLOT void Previous();
+    Q_SLOT void Pause();
+    Q_SLOT void PlayPause();
+    Q_SLOT void Stop();
+    Q_SLOT void Play();
+    Q_SLOT void Seek(qlonglong Offset);
+    Q_SLOT void SetPosition(const QDBusObjectPath& trackId, qlonglong pos);
+    Q_SLOT void OpenUri(const QString& uri);
 
-private slots:
-    void onCanControlChanged() const;
-    void onCanGoNextChanged() const;
-    void onCanGoPreviousChanged() const;
-    void onCanPauseChanged() const;
-    void onCanPlayChanged() const;
-    void onCanSeekChanged() const;
-    void onLoopStatusChanged() const;
-    void onMaximumRateChanged() const;
-    void onMetadataChanged() const;
-    void onMinimumRateChanged() const;
-    void onPlaybackStatusChanged() const;
-    void onRateChanged() const;
-    void onShuffleChanged() const;
-    void onVolumeChanged() const;
+private:
+    Q_SLOT void onCanControlChanged() const;
+    Q_SLOT void onCanGoNextChanged() const;
+    Q_SLOT void onCanGoPreviousChanged() const;
+    Q_SLOT void onCanPauseChanged() const;
+    Q_SLOT void onCanPlayChanged() const;
+    Q_SLOT void onCanSeekChanged() const;
+    Q_SLOT void onLoopStatusChanged() const;
+    Q_SLOT void onMaximumRateChanged() const;
+    Q_SLOT void onMetadataChanged() const;
+    Q_SLOT void onMinimumRateChanged() const;
+    Q_SLOT void onPlaybackStatusChanged() const;
+    Q_SLOT void onRateChanged() const;
+    Q_SLOT void onShuffleChanged() const;
+    Q_SLOT void onVolumeChanged() const;
 
 private:
     MediaPlayer2* m_realobj;

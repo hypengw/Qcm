@@ -1,5 +1,6 @@
 #include "mpris/mediaplayer2.h"
 #include "mpris/mediaplayer2_adaptor.h"
+#include "core/core.h"
 
 #include <span>
 
@@ -74,7 +75,7 @@ QString MediaPlayer2::metakey(MetaKey k) const { return MediaPlayer2::static_met
 bool MediaPlayer2::canQuit() const { return m_canQuit; }
 
 void MediaPlayer2::setCanQuit(bool v) {
-    if (std::exchange(m_canQuit, v) != v) {
+    if (ycore::cmp_exchange(m_canQuit, v)) {
         emit canQuitChanged();
     }
 }
@@ -82,7 +83,7 @@ void MediaPlayer2::setCanQuit(bool v) {
 bool MediaPlayer2::canRaise() const { return m_canRaise; }
 
 void MediaPlayer2::setCanRaise(bool v) {
-    if (std::exchange(m_canRaise, v) != v) {
+    if (ycore::cmp_exchange(m_canRaise, v)) {
         emit canRaiseChanged();
     }
 }
@@ -90,7 +91,7 @@ void MediaPlayer2::setCanRaise(bool v) {
 bool MediaPlayer2::canSetFullscreen() const { return m_canSetFullscreen; }
 
 void MediaPlayer2::setCanSetFullscreen(bool v) {
-    if (std::exchange(m_canSetFullscreen, v) != v) {
+    if (ycore::cmp_exchange(m_canSetFullscreen, v)) {
         emit canSetFullscreenChanged();
     }
 }
@@ -98,7 +99,7 @@ void MediaPlayer2::setCanSetFullscreen(bool v) {
 QString MediaPlayer2::desktopEntry() const { return m_desktopEntry; }
 
 void MediaPlayer2::setDesktopEntry(const QString& v) {
-    if (std::exchange(m_desktopEntry, v) != v) {
+    if (ycore::cmp_exchange(m_desktopEntry, v)) {
         emit desktopEntryChanged();
     }
 }
@@ -106,7 +107,7 @@ void MediaPlayer2::setDesktopEntry(const QString& v) {
 bool MediaPlayer2::fullscreen() const { return m_fullscreen; }
 
 void MediaPlayer2::setFullscreen(bool v) {
-    if (std::exchange(m_fullscreen, v) != v) {
+    if (ycore::cmp_exchange(m_fullscreen, v)) {
         emit fullscreenChanged();
     }
 }
@@ -114,7 +115,7 @@ void MediaPlayer2::setFullscreen(bool v) {
 bool MediaPlayer2::hasTrackList() const { return m_hasTrackList; }
 
 void MediaPlayer2::setHasTrackList(bool v) {
-    if (std::exchange(m_hasTrackList, v) != v) {
+    if (ycore::cmp_exchange(m_hasTrackList, v)) {
         emit hasTrackListChanged();
     }
 }
@@ -122,7 +123,7 @@ void MediaPlayer2::setHasTrackList(bool v) {
 QString MediaPlayer2::identity() const { return m_identity; }
 
 void MediaPlayer2::setIdentity(const QString& v) {
-    if (std::exchange(m_identity, v) != v) {
+    if (ycore::cmp_exchange(m_identity, v)) {
         emit identityChanged();
     }
 }
@@ -130,7 +131,7 @@ void MediaPlayer2::setIdentity(const QString& v) {
 QStringList MediaPlayer2::supportedUriSchemes() const { return m_supportedUriSchemes; }
 
 void MediaPlayer2::setSupportedUriSchemes(const QStringList& v) {
-    if (std::exchange(m_supportedUriSchemes, v) != v) {
+    if (ycore::cmp_exchange(m_supportedUriSchemes, v)) {
         emit supportedUriSchemesChanged();
     }
 }
@@ -138,7 +139,7 @@ void MediaPlayer2::setSupportedUriSchemes(const QStringList& v) {
 QStringList MediaPlayer2::supportedMimeTypes() const { return m_supportedMimeTypes; }
 
 void MediaPlayer2::setSupportedMimeTypes(const QStringList& v) {
-    if (std::exchange(m_supportedMimeTypes, v) != v) {
+    if (ycore::cmp_exchange(m_supportedMimeTypes, v)) {
         emit supportedMimeTypesChanged();
     }
 }
@@ -147,7 +148,7 @@ void MediaPlayer2::setSupportedMimeTypes(const QStringList& v) {
 bool MediaPlayer2::canControl() const { return m_canControl; }
 
 void MediaPlayer2::setCanControl(bool v) {
-    if (std::exchange(m_canControl, v) != v) {
+    if (ycore::cmp_exchange(m_canControl, v)) {
         emit canControlChanged();
     }
 }
@@ -155,7 +156,7 @@ void MediaPlayer2::setCanControl(bool v) {
 bool MediaPlayer2::canGoNext() const { return m_canGoNext; }
 
 void MediaPlayer2::setCanGoNext(bool v) {
-    if (std::exchange(m_canGoNext, v) != v) {
+    if (ycore::cmp_exchange(m_canGoNext, v)) {
         emit canGoNextChanged();
     }
 }
@@ -163,7 +164,7 @@ void MediaPlayer2::setCanGoNext(bool v) {
 bool MediaPlayer2::canGoPrevious() const { return m_canGoPrevious; }
 
 void MediaPlayer2::setCanGoPrevious(bool v) {
-    if (std::exchange(m_canGoPrevious, v) != v) {
+    if (ycore::cmp_exchange(m_canGoPrevious, v)) {
         emit canGoPreviousChanged();
     }
 }
@@ -171,7 +172,7 @@ void MediaPlayer2::setCanGoPrevious(bool v) {
 bool MediaPlayer2::canPause() const { return m_canPause; }
 
 void MediaPlayer2::setCanPause(bool v) {
-    if (std::exchange(m_canPause, v) != v) {
+    if (ycore::cmp_exchange(m_canPause, v)) {
         emit canPauseChanged();
     }
 }
@@ -179,7 +180,7 @@ void MediaPlayer2::setCanPause(bool v) {
 bool MediaPlayer2::canPlay() const { return m_canPlay; }
 
 void MediaPlayer2::setCanPlay(bool v) {
-    if (std::exchange(m_canPlay, v) != v) {
+    if (ycore::cmp_exchange(m_canPlay, v)) {
         emit canPlayChanged();
     }
 }
@@ -187,7 +188,7 @@ void MediaPlayer2::setCanPlay(bool v) {
 bool MediaPlayer2::canSeek() const { return m_canSeek; }
 
 void MediaPlayer2::setCanSeek(bool v) {
-    if (std::exchange(m_canSeek, v) != v) {
+    if (ycore::cmp_exchange(m_canSeek, v)) {
         emit canSeekChanged();
     }
 }
@@ -195,7 +196,7 @@ void MediaPlayer2::setCanSeek(bool v) {
 MediaPlayer2::Loop_Status MediaPlayer2::loopStatus() const { return m_loopStatus; }
 
 void MediaPlayer2::setLoopStatus(Loop_Status v) {
-    if (std::exchange(m_loopStatus, v) != v) {
+    if (ycore::cmp_exchange(m_loopStatus, v)) {
         emit loopStatusChanged();
     }
 }
@@ -203,7 +204,7 @@ void MediaPlayer2::setLoopStatus(Loop_Status v) {
 double MediaPlayer2::maximumRate() const { return m_maximumRate; }
 
 void MediaPlayer2::setMaximumRate(double v) {
-    if (std::exchange(m_maximumRate, v) != v) {
+    if (ycore::cmp_exchange(m_maximumRate, v)) {
         emit maximumRateChanged();
     }
 }
@@ -232,8 +233,8 @@ void MediaPlayer2::setMetadata(const QVariantMap& metadata) {
     m_typedMetadata  = m_metadata;
     auto key_trackid = metakey(MetaTrackId);
     if (m_typedMetadata.contains(key_trackid)) {
-        m_typedMetadata[key_trackid] = QVariant::fromValue(
-            QDBusObjectPath(m_metadata[key_trackid].toString()));
+        m_typedMetadata[key_trackid] =
+            QVariant::fromValue(QDBusObjectPath(m_metadata[key_trackid].toString()));
     }
     metadata_type_map(m_typedMetadata,
                       std::array {
@@ -253,7 +254,7 @@ void MediaPlayer2::setMetadata(const QVariantMap& metadata) {
 double MediaPlayer2::minimumRate() const { return m_minimumRate; }
 
 void MediaPlayer2::setMinimumRate(double v) {
-    if (std::exchange(m_minimumRate, v) != v) {
+    if (ycore::cmp_exchange(m_minimumRate, v)) {
         emit minimumRateChanged();
     }
 }
@@ -261,7 +262,7 @@ void MediaPlayer2::setMinimumRate(double v) {
 MediaPlayer2::Playback_Status MediaPlayer2::playbackStatus() const { return m_playbackStatus; }
 
 void MediaPlayer2::setPlaybackStatus(Playback_Status v) {
-    if (std::exchange(m_playbackStatus, v) != v) {
+    if (ycore::cmp_exchange(m_playbackStatus, v)) {
         emit playbackStatusChanged();
     }
 }
@@ -269,7 +270,7 @@ void MediaPlayer2::setPlaybackStatus(Playback_Status v) {
 qlonglong MediaPlayer2::position() const { return m_position; }
 
 void MediaPlayer2::setPosition(qlonglong v) {
-    if (std::exchange(m_position, v) != v) {
+    if (ycore::cmp_exchange(m_position, v)) {
         emit positionChanged();
     }
 }
@@ -277,7 +278,7 @@ void MediaPlayer2::setPosition(qlonglong v) {
 double MediaPlayer2::rate() const { return m_rate; }
 
 void MediaPlayer2::setRate(double v) {
-    if (std::exchange(m_rate, v) != v) {
+    if (ycore::cmp_exchange(m_rate, v)) {
         emit rateChanged();
     }
 }
@@ -285,7 +286,7 @@ void MediaPlayer2::setRate(double v) {
 bool MediaPlayer2::shuffle() const { return m_shuffle; }
 
 void MediaPlayer2::setShuffle(bool v) {
-    if (std::exchange(m_shuffle, v) != v) {
+    if (ycore::cmp_exchange(m_shuffle, v)) {
         emit shuffleChanged();
     }
 }
@@ -293,7 +294,7 @@ void MediaPlayer2::setShuffle(bool v) {
 double MediaPlayer2::volume() const { return m_volume; }
 
 void MediaPlayer2::setVolume(double v) {
-    if (std::exchange(m_volume, v) != v) {
+    if (ycore::cmp_exchange(m_volume, v)) {
         emit volumeChanged();
     }
 }

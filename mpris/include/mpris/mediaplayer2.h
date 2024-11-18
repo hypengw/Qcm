@@ -12,39 +12,43 @@ class MediaPlayer2 : public QObject {
     Q_OBJECT
 
     // Root
-    Q_PROPERTY(bool canQuit READ canQuit WRITE setCanQuit NOTIFY canQuitChanged)
-    Q_PROPERTY(bool canRaise READ canRaise WRITE setCanRaise NOTIFY canRaiseChanged)
+    Q_PROPERTY(bool canQuit READ canQuit WRITE setCanQuit NOTIFY canQuitChanged FINAL)
+    Q_PROPERTY(bool canRaise READ canRaise WRITE setCanRaise NOTIFY canRaiseChanged FINAL)
     Q_PROPERTY(bool canSetFullscreen READ canSetFullscreen WRITE setCanSetFullscreen NOTIFY
-                   canSetFullscreenChanged)
+                   canSetFullscreenChanged FINAL)
 
+    Q_PROPERTY(QString desktopEntry READ desktopEntry WRITE setDesktopEntry NOTIFY
+                   desktopEntryChanged FINAL)
+    Q_PROPERTY(bool fullscreen READ fullscreen WRITE setFullscreen NOTIFY fullscreenChanged FINAL)
     Q_PROPERTY(
-        QString desktopEntry READ desktopEntry WRITE setDesktopEntry NOTIFY desktopEntryChanged)
-    Q_PROPERTY(bool fullscreen READ fullscreen WRITE setFullscreen NOTIFY fullscreenChanged)
-    Q_PROPERTY(bool hasTrackList READ hasTrackList WRITE setHasTrackList NOTIFY hasTrackListChanged)
-    Q_PROPERTY(QString identity READ identity WRITE setIdentity NOTIFY identityChanged)
+        bool hasTrackList READ hasTrackList WRITE setHasTrackList NOTIFY hasTrackListChanged FINAL)
+    Q_PROPERTY(QString identity READ identity WRITE setIdentity NOTIFY identityChanged FINAL)
     Q_PROPERTY(QStringList supportedUriSchemes READ supportedUriSchemes WRITE setSupportedUriSchemes
-                   NOTIFY supportedUriSchemesChanged)
+                   NOTIFY supportedUriSchemesChanged FINAL)
     Q_PROPERTY(QStringList supportedMimeTypes READ supportedMimeTypes WRITE setSupportedMimeTypes
-                   NOTIFY supportedMimeTypesChanged)
+                   NOTIFY supportedMimeTypesChanged FINAL)
 
     // Player
-    Q_PROPERTY(bool canControl READ canControl WRITE setCanControl NOTIFY canControlChanged)
-    Q_PROPERTY(bool canGoNext READ canGoNext WRITE setCanGoNext NOTIFY canGoNextChanged)
+    Q_PROPERTY(bool canControl READ canControl WRITE setCanControl NOTIFY canControlChanged FINAL)
+    Q_PROPERTY(bool canGoNext READ canGoNext WRITE setCanGoNext NOTIFY canGoNextChanged FINAL)
+    Q_PROPERTY(bool canGoPrevious READ canGoPrevious WRITE setCanGoPrevious NOTIFY
+                   canGoPreviousChanged FINAL)
+    Q_PROPERTY(bool canPause READ canPause WRITE setCanPause NOTIFY canPauseChanged FINAL)
+    Q_PROPERTY(bool canPlay READ canPlay WRITE setCanPlay NOTIFY canPlayChanged FINAL)
+    Q_PROPERTY(bool canSeek READ canSeek WRITE setCanSeek NOTIFY canSeekChanged FINAL)
     Q_PROPERTY(
-        bool canGoPrevious READ canGoPrevious WRITE setCanGoPrevious NOTIFY canGoPreviousChanged)
-    Q_PROPERTY(bool canPause READ canPause WRITE setCanPause NOTIFY canPauseChanged)
-    Q_PROPERTY(bool canPlay READ canPlay WRITE setCanPlay NOTIFY canPlayChanged)
-    Q_PROPERTY(bool canSeek READ canSeek WRITE setCanSeek NOTIFY canSeekChanged)
-    Q_PROPERTY(Loop_Status loopStatus READ loopStatus WRITE setLoopStatus NOTIFY loopStatusChanged)
-    Q_PROPERTY(double maximumRate READ maximumRate WRITE setMaximumRate NOTIFY maximumRateChanged)
-    Q_PROPERTY(QVariantMap metadata READ metadata WRITE setMetadata NOTIFY metadataChanged)
-    Q_PROPERTY(double minimumRate READ minimumRate WRITE setMinimumRate NOTIFY minimumRateChanged)
+        Loop_Status loopStatus READ loopStatus WRITE setLoopStatus NOTIFY loopStatusChanged FINAL)
+    Q_PROPERTY(
+        double maximumRate READ maximumRate WRITE setMaximumRate NOTIFY maximumRateChanged FINAL)
+    Q_PROPERTY(QVariantMap metadata READ metadata WRITE setMetadata NOTIFY metadataChanged FINAL)
+    Q_PROPERTY(
+        double minimumRate READ minimumRate WRITE setMinimumRate NOTIFY minimumRateChanged FINAL)
     Q_PROPERTY(Playback_Status playbackStatus READ playbackStatus WRITE setPlaybackStatus NOTIFY
-                   playbackStatusChanged)
-    Q_PROPERTY(qlonglong position READ position WRITE setPosition NOTIFY positionChanged)
-    Q_PROPERTY(double rate READ rate WRITE setRate NOTIFY rateChanged)
-    Q_PROPERTY(bool shuffle READ shuffle WRITE setShuffle NOTIFY shuffleChanged)
-    Q_PROPERTY(double volume READ volume WRITE setVolume NOTIFY volumeChanged)
+                   playbackStatusChanged FINAL)
+    Q_PROPERTY(qlonglong position READ position WRITE setPosition NOTIFY positionChanged FINAL)
+    Q_PROPERTY(double rate READ rate WRITE setRate NOTIFY rateChanged FINAL)
+    Q_PROPERTY(bool shuffle READ shuffle WRITE setShuffle NOTIFY shuffleChanged FINAL)
+    Q_PROPERTY(double volume READ volume WRITE setVolume NOTIFY volumeChanged FINAL)
 
 public:
     enum Playback_Status
@@ -93,7 +97,7 @@ public:
     explicit MediaPlayer2(QObject* parent = nullptr);
     virtual ~MediaPlayer2() override;
 
-    static QString static_metakey(MetaKey); 
+    static QString      static_metakey(MetaKey);
     Q_INVOKABLE QString metakey(MetaKey) const;
     // Mpris2 Root Interface
     bool canQuit() const;
@@ -169,55 +173,54 @@ public:
     double volume() const;
     void   setVolume(double volume);
 
-signals:
-    void serviceNameChanged();
+    Q_SIGNAL void serviceNameChanged();
 
     // Mpris2 Root Interface
-    void canQuitChanged();
-    void canRaiseChanged();
-    void canSetFullscreenChanged();
-    void desktopEntryChanged();
-    void fullscreenChanged();
-    void hasTrackListChanged();
-    void identityChanged();
-    void supportedUriSchemesChanged();
-    void supportedMimeTypesChanged();
-    void fullscreenRequested(bool fullscreen);
-    void quitRequested();
-    void raiseRequested();
+    Q_SIGNAL void canQuitChanged();
+    Q_SIGNAL void canRaiseChanged();
+    Q_SIGNAL void canSetFullscreenChanged();
+    Q_SIGNAL void desktopEntryChanged();
+    Q_SIGNAL void fullscreenChanged();
+    Q_SIGNAL void hasTrackListChanged();
+    Q_SIGNAL void identityChanged();
+    Q_SIGNAL void supportedUriSchemesChanged();
+    Q_SIGNAL void supportedMimeTypesChanged();
+    Q_SIGNAL void fullscreenRequested(bool fullscreen);
+    Q_SIGNAL void quitRequested();
+    Q_SIGNAL void raiseRequested();
 
     // Mpris2 Player Interface
-    void canControlChanged();
-    void canGoNextChanged();
-    void canGoPreviousChanged();
-    void canPauseChanged();
-    void canPlayChanged();
-    void canSeekChanged();
-    void loopStatusChanged();
-    void maximumRateChanged();
-    void metadataChanged();
-    void minimumRateChanged();
-    void playbackStatusChanged();
-    void positionChanged();
-    void rateChanged();
-    void shuffleChanged();
-    void volumeChanged();
+    Q_SIGNAL void canControlChanged();
+    Q_SIGNAL void canGoNextChanged();
+    Q_SIGNAL void canGoPreviousChanged();
+    Q_SIGNAL void canPauseChanged();
+    Q_SIGNAL void canPlayChanged();
+    Q_SIGNAL void canSeekChanged();
+    Q_SIGNAL void loopStatusChanged();
+    Q_SIGNAL void maximumRateChanged();
+    Q_SIGNAL void metadataChanged();
+    Q_SIGNAL void minimumRateChanged();
+    Q_SIGNAL void playbackStatusChanged();
+    Q_SIGNAL void positionChanged();
+    Q_SIGNAL void rateChanged();
+    Q_SIGNAL void shuffleChanged();
+    Q_SIGNAL void volumeChanged();
 
     // request
-    void loopStatusRequested(Loop_Status loopStatus);
-    void rateRequested(double rate);
-    void shuffleRequested(bool shuffle);
-    void volumeRequested(double volume);
-    void nextRequested();
-    void openUriRequested(const QUrl& url);
-    void pauseRequested();
-    void playRequested();
-    void playPauseRequested();
-    void previousRequested();
-    void seekRequested(qlonglong offset);
-    void seeked(qlonglong position);
-    void setPositionRequested(const QDBusObjectPath& trackId, qlonglong position);
-    void stopRequested();
+    Q_SIGNAL void loopStatusRequested(Loop_Status loopStatus);
+    Q_SIGNAL void rateRequested(double rate);
+    Q_SIGNAL void shuffleRequested(bool shuffle);
+    Q_SIGNAL void volumeRequested(double volume);
+    Q_SIGNAL void nextRequested();
+    Q_SIGNAL void openUriRequested(const QUrl& url);
+    Q_SIGNAL void pauseRequested();
+    Q_SIGNAL void playRequested();
+    Q_SIGNAL void playPauseRequested();
+    Q_SIGNAL void previousRequested();
+    Q_SIGNAL void seekRequested(qlonglong offset);
+    Q_SIGNAL void seeked(qlonglong position);
+    Q_SIGNAL void setPositionRequested(const QDBusObjectPath& trackId, qlonglong position);
+    Q_SIGNAL void stopRequested();
 
 private:
     void notifyPropertiesChanged(const QString& interfaceName, const QVariantMap& changedProperties,
