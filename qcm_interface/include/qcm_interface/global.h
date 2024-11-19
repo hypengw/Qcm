@@ -122,7 +122,7 @@ private:
 
     void set_cache_sql(rc<media_cache::DataBase>);
     void set_collection_sql(rc<db::ColletionSqlBase>);
-    void set_album_sql(rc<db::ItemSqlBase>);
+    void set_item_sql(rc<db::ItemSqlBase>);
 
     void set_metadata_impl(const MetadataImpl&);
     auto load_plugin(const std::filesystem::path&) -> bool;

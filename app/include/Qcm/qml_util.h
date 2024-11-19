@@ -43,6 +43,7 @@ public:
     Q_INVOKABLE void print(const QJSValue&) const;
     Q_INVOKABLE QUrl special_route_url(enums::SpecialRoute) const;
     Q_INVOKABLE model::RouteMsg route_msg(enums::SpecialRoute) const;
+    Q_INVOKABLE QString         formatDateTime(const QJSValue&, const QString&) const;
 };
 } // namespace qml
 

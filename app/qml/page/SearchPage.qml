@@ -11,10 +11,6 @@ MD.Page {
     title: qsTr('search')
     topPadding: showHeader ? 0 : MD.MatProp.size.verticalPadding
 
-    function search() {
-        this.keywords = item_search.text;
-    }
-
     component BaseView: MD.ListView {
         implicitHeight: contentHeight
         model: m_query.data
@@ -43,8 +39,15 @@ MD.Page {
         spacing: 16
 
         MD.SearchBar {
-            id: item_search
+            id: m_search_bar
             Layout.fillWidth: true
+            onAccepted: {
+                let query = m_stack.get_query();
+                if (query) {
+                    query.text = m_search_bar.text;
+                    query.reload();
+                }
+            }
         }
 
         RowLayout {
@@ -147,14 +150,27 @@ MD.Page {
 
                         BaseView {
                             required property var model
-                            delegate: m_stack.delegates[m_stack.currentIndex]
+                            delegate: m_stack.delegates[model.index]
                             type: model.type
+                        }
+                    }
+
+                    function get_query() {
+                        return m_stack.children[currentIndex]?.query;
+                    }
+
+                    onCurrentIndexChanged: {
+                        let query = get_query();
+                        if (query && query.text != m_search_bar.text) {
+                            query.text = m_search_bar.text;
+                            query.reload();
                         }
                     }
 
                     Component {
                         id: m_dg_song
                         QA.SongDelegate {
+                            required property int index
                             required property var model
                             width: ListView.view.contentWidth
                             onClicked: {
@@ -165,16 +181,30 @@ MD.Page {
                     Component {
                         id: m_dg_album
                         MD.ListItem {
+                            id: m_item
+                            required property int index
                             required property var model
                             width: ListView.view.contentWidth
+                            rightPadding: 0
                             text: model.name
                             maximumLineCount: 2
-                            supportText: `${QA.Global.join_name(model.artists, '/')} - ${Qt.formatDateTime(model.publishTime, 'yyyy.M.d')} - ${model.trackCount} tracks`
+                            supportText: [model.artists.map(el => el.name).join('/'), Qt.formatDateTime(model.publishTime, 'yyyy')].filter(Boolean).join(' • ')
                             leader: QA.Image {
                                 radius: 8
-                                source: QA.Util.image_url(model.picUrl)
+                                source: QA.Util.image_url(m_item.model.picUrl)
                                 sourceSize.height: 48
                                 sourceSize.width: 48
+                            }
+                            trailing: MD.IconButton {
+                                icon.name: MD.Token.icon.more_vert
+
+                                onClicked: {
+                                    const props = {
+                                        "itemId": m_item.model.itemId,
+                                        "y": height
+                                    };
+                                    MD.Util.show_popup('qrc:/Qcm/App/qml/menu/AlbumMenu.qml', props, this);
+                                }
                             }
                             onClicked: {
                                 QA.Action.route_by_id(model.itemId);

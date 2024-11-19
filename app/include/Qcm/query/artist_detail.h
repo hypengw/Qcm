@@ -59,7 +59,7 @@ public:
 
 public:
     auto query_artist(model::ItemId itemId) -> task<std::optional<Artist>> {
-        auto sql = App::instance()->album_sql();
+        auto sql = App::instance()->item_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
 
         auto query = sql->con()->query();
@@ -89,7 +89,7 @@ WHERE itemId = :itemId AND ({1});
         auto self   = helper::QWatcher { this };
         auto itemId = m_album_id;
         spawn( [self, itemId] -> task<void> {
-            auto                     sql = App::instance()->album_sql();
+            auto                     sql = App::instance()->item_sql();
             std::vector<model::Song> items;
 
             bool                                     synced { 0 };

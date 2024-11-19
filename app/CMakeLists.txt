@@ -53,6 +53,7 @@ set(SOURCES
     src/sql/cache_sql.cpp
     src/sql/collection_sql.cpp
     src/sql/sql.cpp
+    src/query/search.cpp
     src/query.cpp)
 
 set(QML_FILES

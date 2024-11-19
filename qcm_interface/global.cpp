@@ -185,7 +185,7 @@ auto Global::get_collection_sql() const -> rc<db::ColletionSqlBase> {
 
 auto Global::get_item_sql() const -> rc<db::ItemSqlBase> {
     C_D(const Global);
-    return d->album_sql;
+    return d->item_sql;
 }
 
 auto Global::get_metadata(const std::filesystem::path& path) const -> Metadata {
@@ -287,9 +287,9 @@ void Global::set_collection_sql(rc<db::ColletionSqlBase> val) {
     d->collection_sql = val;
 }
 
-void Global::set_album_sql(rc<db::ItemSqlBase> val) {
+void Global::set_item_sql(rc<db::ItemSqlBase> val) {
     C_D(Global);
-    d->album_sql = val;
+    d->item_sql = val;
 }
 
 void Global::set_metadata_impl(const MetadataImpl& impl) {

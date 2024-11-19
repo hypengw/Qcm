@@ -108,7 +108,7 @@ public:
     void        set_player_sender(Sender<Player::NotifyInfo>);
     auto        media_cache_sql() const -> rc<CacheSql>;
     auto        cache_sql() const -> rc<CacheSql>;
-    auto        album_sql() const -> rc<ItemSql>;
+    auto        item_sql() const -> rc<ItemSql>;
     auto        collect_sql() const -> rc<CollectionSql>;
     auto        empty() const -> model::EmptyModel*;
     void        switchPlayIdQueue();

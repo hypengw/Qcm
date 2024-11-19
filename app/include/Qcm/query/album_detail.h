@@ -69,7 +69,7 @@ public:
 
 public:
     auto query_album(model::ItemId itemId) -> task<std::optional<Album>> {
-        auto sql = App::instance()->album_sql();
+        auto sql = App::instance()->item_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
 
         auto query = sql->con()->query();
@@ -98,7 +98,7 @@ GROUP BY album.itemId;
     }
 
     auto query_songs(model::ItemId itemId) -> task<std::optional<std::vector<Song>>> {
-        auto sql = App::instance()->album_sql();
+        auto sql = App::instance()->item_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
         auto query = sql->con()->query();
         query.prepare_sv(fmt::format(R"(
@@ -136,7 +136,7 @@ ORDER BY song.trackNumber ASC;
         auto self   = helper::QWatcher { this };
         auto itemId = m_album_id;
         spawn([self, itemId] -> task<void> {
-            auto                     sql = App::instance()->album_sql();
+            auto                     sql = App::instance()->item_sql();
             std::vector<model::Song> items;
             bool                     needReload = false;
 

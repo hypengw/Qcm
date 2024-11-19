@@ -59,9 +59,16 @@ private:
 template<typename T, typename Base = QueryBase>
 class Query : public QAsyncResultT<T, Base> {
 public:
-    Query(QObject* parent = nullptr)
-        : QAsyncResultT<T, Base>(parent), m_last(QDateTime::fromSecsSinceEpoch(0)) {}
-    ~Query() {}
+    Query(ycore::monostate m, QObject* parent, QAsyncResultT<T, Base>::const_reference_value_type t)
+        : QAsyncResultT<T, Base>(m, parent, t), m_last(QDateTime::fromSecsSinceEpoch(0)) {}
+
+    template<typename... Arg>
+        requires std::is_constructible_v<T, Arg...>
+    Query(QObject* parent, Arg&&... arg)
+        : QAsyncResultT<T, Base>(parent, std::forward<Arg>(arg)...),
+          m_last(QDateTime::fromSecsSinceEpoch(0)) {}
+
+    ~Query() override {}
 
     auto last() const -> const QDateTime& { return m_last; }
     void setLast(const QDateTime& t, const QDateTime& last = QDateTime::currentDateTime()) {

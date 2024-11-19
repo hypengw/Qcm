@@ -90,7 +90,7 @@ public:
         }
 
         spawn([self, itemId, offset, limit, client = client.value()] -> task<void> {
-            auto                     sql = App::instance()->album_sql();
+            auto                     sql = App::instance()->item_sql();
             std::vector<model::Song> items;
             i32                      total { 0 };
             auto out = co_await client.api->comments(client, itemId, offset, limit, total);

@@ -37,6 +37,21 @@ public:
     }
 
     bool prepare_sv(std::string_view query) { return QSqlQuery::prepare(QString::fromUtf8(query)); }
+    bool exec(const QString&             sql,
+              const std::source_location loc = std::source_location::current()) {
+        if (! QSqlQuery::exec(sql)) {
+            qcm::log::log(qcm::LogLevel::ERROR, loc, "{}", lastError().text());
+            return false;
+        }
+        return true;
+    }
+    bool exec(const std::source_location loc = std::source_location::current()) {
+        if (! QSqlQuery::exec()) {
+            qcm::log::log(qcm::LogLevel::ERROR, loc, "{}", lastError().text());
+            return false;
+        }
+        return true;
+    }
 
 private:
     QThread* m_thread;

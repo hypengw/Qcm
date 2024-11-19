@@ -85,7 +85,7 @@ public:
 public:
     auto query_mix(const model::ItemId& itemId, QDateTime& editTime)
         -> task<std::optional<model::Mix>> {
-        auto sql = App::instance()->album_sql();
+        auto sql = App::instance()->item_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
 
         auto query = sql->con()->query();
@@ -113,7 +113,7 @@ WHERE playlist.itemId = :itemId AND ({1});
     }
 
     auto query_songs(model::ItemId itemId) -> task<std::optional<std::vector<Song>>> {
-        auto sql = App::instance()->album_sql();
+        auto sql = App::instance()->item_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
         auto query = sql->con()->query();
         query.prepare_sv(fmt::format(R"(
@@ -153,7 +153,7 @@ ORDER BY playlist_song.orderIdx;
         auto itemId    = m_id;
         auto querySong = m_query_song;
         spawn([self, itemId, querySong] -> task<void> {
-            auto sql = App::instance()->album_sql();
+            auto sql = App::instance()->item_sql();
 
             bool                             synced { 0 };
             std::optional<model::Mix>        mix;

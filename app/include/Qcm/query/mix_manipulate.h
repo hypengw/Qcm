@@ -65,7 +65,7 @@ public:
 public:
     auto mix_manipulate(const model::Mix& pl) -> task<void> {
         {
-            auto sql = App::instance()->album_sql();
+            auto sql = App::instance()->item_sql();
             co_await sql->insert(std::array { pl }, {});
         }
     }

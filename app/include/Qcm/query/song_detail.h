@@ -41,7 +41,7 @@ public:
 
 public:
     auto query_song(model::ItemId itemId) -> task<std::optional<Song>> {
-        auto sql = App::instance()->album_sql();
+        auto sql = App::instance()->item_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
         auto query = sql->con()->query();
         query.prepare_sv(fmt::format(R"(
@@ -80,7 +80,7 @@ GROUP BY song.itemId;
         set_status(Status::Querying);
 
         spawn([self, itemId] -> task<void> {
-            auto                     sql = App::instance()->album_sql();
+            auto                     sql = App::instance()->item_sql();
             std::vector<model::Song> items;
 
             bool                synced { 0 };

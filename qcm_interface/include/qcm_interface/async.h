@@ -23,8 +23,8 @@ class QCM_INTERFACE_API QAsyncResult : public QObject {
     Q_OBJECT
 
     Q_PROPERTY(QString error READ error NOTIFY errorChanged BINDABLE bindableError FINAL)
-    Q_PROPERTY(qcm::enums::ApiStatus status READ status WRITE set_status NOTIFY statusChanged BINDABLE
-                   bindableStatus FINAL)
+    Q_PROPERTY(qcm::enums::ApiStatus status READ status WRITE set_status NOTIFY statusChanged
+                   BINDABLE bindableStatus FINAL)
     Q_PROPERTY(QVariant data READ data NOTIFY dataChanged)
     Q_PROPERTY(
         bool forwardError READ forwardError WRITE set_forwardError NOTIFY forwardErrorChanged FINAL)
@@ -111,19 +111,33 @@ public:
         std::conditional_t<std::is_base_of_v<QObject, T>, std::add_pointer_t<T>,
                            std::add_lvalue_reference_t<std::add_const_t<T>>>;
 
+    QAsyncResultT(ycore::monostate, QObject* parent, const_reference_value_type t): Base(parent) {
+        set_tdata(t);
+    }
+
     template<typename... Arg>
-    QAsyncResultT(QObject* parent, Arg... arg): Base(parent) {
+        requires(std::is_base_of_v<QObject, T> && std::is_constructible_v<T, Arg..., QObject*>) ||
+                (! std::is_base_of_v<QObject, T> && std::is_constructible_v<T, Arg...>)
+    QAsyncResultT(QObject* parent, Arg&&... arg): Base(parent) {
         if constexpr (std::is_base_of_v<QObject, T>) {
-            set_tdata(new T(arg..., this));
+            set_tdata(new T(std::forward<Arg>(arg)..., this));
         } else {
-            set_tdata(T());
+            set_tdata(T(std::forward<Arg>(arg)...));
         }
     }
 
     auto tdata() const { return this->data().template value<value_type>(); }
     auto tdata() { return this->data().template value<value_type>(); }
     void set_tdata(const_reference_value_type val) {
-        QAsyncResult::set_data(QVariant::fromValue(val));
+        if constexpr (std::is_base_of_v<QObject, T>) {
+            auto old = tdata();
+            QAsyncResult::set_data(QVariant::fromValue(val));
+            if (old) {
+                old->deleteLater();
+            }
+        } else {
+            QAsyncResult::set_data(QVariant::fromValue(val));
+        }
     }
 
 private:

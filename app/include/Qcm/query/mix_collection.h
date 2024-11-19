@@ -101,7 +101,7 @@ public:
     }
 
     auto query_item(const model::ItemId& itemId) -> task<std::optional<MixCollectionItem>> {
-        auto sql = App::instance()->album_sql();
+        auto sql = App::instance()->item_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), asio::use_awaitable));
         auto query = sql->con()->query();
         query.prepare_sv(fmt::format(R"(
@@ -131,7 +131,7 @@ GROUP BY playlist.itemId;
 
     auto query_collect(const model::ItemId& userId, const QDateTime& time)
         -> task<std::vector<MixCollectionItem>> {
-        auto                           sql = App::instance()->album_sql();
+        auto                           sql = App::instance()->item_sql();
         std::vector<MixCollectionItem> items;
         co_await asio::post(asio::bind_executor(sql->get_executor(), asio::use_awaitable));
         auto query = sql->con()->query();

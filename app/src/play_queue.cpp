@@ -468,7 +468,7 @@ auto PlayQueue::update(std::span<const query::Song> in) -> void {
 auto PlayQueue::querySongsSql(std::span<const model::ItemId> ids)
     -> task<std::vector<query::Song>> {
     std::vector<query::Song> out;
-    auto                     sql = App::instance()->album_sql();
+    auto                     sql = App::instance()->item_sql();
     QStringList              placeholders;
     for (usize i = 0; i < ids.size(); ++i) {
         placeholders << u":id%1"_s.arg(i);
@@ -506,7 +506,7 @@ ORDER BY song.trackNumber ASC;
 }
 
 auto PlayQueue::querySongs(std::span<const model::ItemId> ids) -> task<void> {
-    auto sql     = App::instance()->album_sql();
+    auto sql     = App::instance()->item_sql();
     auto missing = co_await sql->missing(
         ids, ItemSql::Table::SONG, ItemSql::Table::ALBUM, { "album.picUrl"s });
     if (! missing.empty()) co_await query::SyncAPi::sync_items(missing);

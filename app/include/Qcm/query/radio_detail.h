@@ -115,7 +115,7 @@ public:
 
 public:
     auto query_radio(model::ItemId itemId) -> task<std::optional<Radio>> {
-        auto sql = App::instance()->album_sql();
+        auto sql = App::instance()->item_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
 
         auto query = sql->con()->query();
@@ -142,7 +142,7 @@ GROUP BY radio.itemId;
     }
 
     auto query_programs(model::ItemId itemId) -> task<std::optional<std::vector<Program>>> {
-        auto sql = App::instance()->album_sql();
+        auto sql = App::instance()->item_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
         auto query = sql->con()->query();
         query.prepare_sv(fmt::format(R"(
@@ -176,7 +176,7 @@ ORDER BY program.serialNumber DESC;
         auto self   = helper::QWatcher { this };
         auto itemId = m_radio_id;
         spawn( [self, itemId] -> task<void> {
-            auto sql        = App::instance()->album_sql();
+            auto sql        = App::instance()->item_sql();
             bool needReload = false;
 
             bool                                synced { 0 };

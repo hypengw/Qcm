@@ -181,6 +181,13 @@ json: {}
         DEBUG_LOG("print: {}", val.toString());
     }
 }
+
+QString Util::formatDateTime(const QJSValue& v, const QString& format) const {
+    if (v.isDate()) {
+        return v.toDateTime().toString(format);
+    }
+    return {};
+}
 } // namespace qcm::qml
 
 namespace qcm

@@ -180,7 +180,7 @@ App::App(std::monostate)
         m_global->set_cache_sql(m_cache_sql);
         m_global->set_metadata_impl(player::get_metadata);
         m_global->set_collection_sql(m_collect_sql);
-        m_global->set_album_sql(m_item_sql);
+        m_global->set_item_sql(m_item_sql);
     }
 }
 App::~App() {
@@ -510,7 +510,7 @@ void App::set_player_sender(Sender<Player::NotifyInfo> sender) {
 
 auto App::media_cache_sql() const -> rc<CacheSql> { return m_media_cache_sql; }
 auto App::cache_sql() const -> rc<CacheSql> { return m_cache_sql; }
-auto App::album_sql() const -> rc<ItemSql> { return m_item_sql; }
+auto App::item_sql() const -> rc<ItemSql> { return m_item_sql; }
 auto App::collect_sql() const -> rc<CollectionSql> { return m_collect_sql; }
 auto App::empty() const -> model::EmptyModel* { return m_empty; }
 void App::switchPlayIdQueue() { m_playqueu->setSourceModel(m_play_id_queue); }

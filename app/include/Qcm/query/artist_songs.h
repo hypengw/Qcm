@@ -61,7 +61,7 @@ public:
 
 public:
     auto query_artist_song_count(model::ItemId itemId) -> task<std::optional<i32>> {
-        auto sql = App::instance()->album_sql();
+        auto sql = App::instance()->item_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
 
         auto query = sql->con()->query();
@@ -78,7 +78,7 @@ public:
 
     auto query_songs(model::ItemId itemId, qint32 offset, qint32 limit)
         -> task<std::optional<std::vector<Song>>> {
-        auto sql = App::instance()->album_sql();
+        auto sql = App::instance()->item_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
         auto query = sql->con()->query();
         query.prepare_sv(fmt::format(R"(
@@ -121,7 +121,7 @@ LIMIT :limit OFFSET :offset;
         auto limit  = this->limit();
 
         spawn([self, itemId, offset, limit] -> task<void> {
-            auto                     sql = App::instance()->album_sql();
+            auto                     sql = App::instance()->item_sql();
             std::vector<model::Song> items;
             bool                     needReload = false;
 

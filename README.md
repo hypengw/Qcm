@@ -70,12 +70,13 @@ cmake --install build
 ### Todo:
 - [ ] jellyfin
 - [ ] subsonic
-- [ ] sql fts
 - [ ] mac/win
 - [ ] offline mode
 - [ ] playing page colorpick
 - [ ] playing page blur
 - [ ] android
+- [ ] sql cjk fts
+- [x] sql fts
 - [x] private radio
 - [x] sql api model
 - [x] user session switch

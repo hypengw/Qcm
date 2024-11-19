@@ -53,7 +53,7 @@ public:
 public:
     auto query_mix(const model::ItemId& userId, const QDateTime& time)
         -> task<std::vector<model::Mix>> {
-        auto                    sql = App::instance()->album_sql();
+        auto                    sql = App::instance()->item_sql();
         std::vector<model::Mix> items;
         co_await asio::post(asio::bind_executor(sql->get_executor(), asio::use_awaitable));
         auto query = sql->con()->query();
