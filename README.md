@@ -5,7 +5,6 @@ Music Service:
 - Jellyfin(wip)
 - Netease Cloud Music
 
-
 <table>
   <tr>
   <td><img src="https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main.png?raw=true"></td>
@@ -17,18 +16,34 @@ Music Service:
   </tr>
 </table>
 
-### Download:  
+## Installation
+
+### Flathub
+
 <a href='https://flathub.org/apps/details/io.github.hypengw.Qcm'><img width='240' alt='Download on Flathub' src='https://dl.flathub.org/assets/badges/flathub-badge-en.png'/></a>
 
-### Require:  
+### Arch Linux
+#### AUR
+
+```shell
+[yay/paru] -S qcm
+```
+
+#### [archlinuxcn](http://github.com/archlinuxcn/repo) repository
+
+```shell
+sudo pacman -S qcm
+```
+
+## Dependencies
 - Qt 6.8 (quick, dbus, sql)
 - C++ 23
 - Openssl 3
 - FFmpeg 7
 - Curl
 
-### Build:  
-```
+## Build
+```shell
 git clone https://github.com/hypengw/Qcm.git  
 git submodule update --init
 
@@ -43,7 +58,7 @@ export QML_IMPORT_PATH=$PWD/build/qml_modules
 cmake --install build
 ```
 
-### Faq:
+## FAQ
 - Desktop lyrics
   > use [waylyrics](https://github.com/waylyrics/waylyrics)
 
@@ -65,9 +80,8 @@ cmake --install build
   [📦 io.github.hypengw.Qcm ~]$ gdb Qcm core.save
   ...
   ```
-  
 
-### Todo:
+## TODO
 - [ ] jellyfin
 - [ ] subsonic
 - [ ] mac/win
@@ -94,8 +108,8 @@ cmake --install build
 - [x] json
 - [x] http lib(libcurl)
 
-### Credits:
-#### Libraries Used
+## Credits
+### Libraries Used
 - [Qt](https://www.qt.io/)
 - [ffmpeg](https://www.ffmpeg.org/)
 - [curl](https://curl.se/)
