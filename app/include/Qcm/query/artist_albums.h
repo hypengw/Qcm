@@ -141,7 +141,7 @@ LIMIT :limit OFFSET :offset;
             }
 
             co_await asio::post(
-                asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
+                asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
             if (self) {
                 if (albums) {
                     self->tdata()->setHasMore(albums->size());

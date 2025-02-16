@@ -53,11 +53,10 @@ public:
     void set_id(std::string_view);
     void set_provider(std::string_view);
 
-public Q_SLOTS:
-    void set_type(QStringView);
-    void set_id(QStringView);
-    void set_provider(QStringView);
-    void set_url(const QUrl&);
+    Q_SLOT void set_type(QStringView);
+    Q_SLOT void set_id(QStringView);
+    Q_SLOT void set_provider(QStringView);
+    Q_SLOT void set_url(const QUrl&);
 
 private:
     class Private;

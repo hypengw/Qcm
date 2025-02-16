@@ -78,7 +78,7 @@ public:
         spawn( [self, c = c.value(), id = m_id, ids = m_ids, oper = m_oper] -> task<void> {
             auto out = co_await c.api->manipulate_mix(c, id, (enums::ManipulateMixAction)oper, ids);
             co_await asio::post(
-                asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
+                asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
             if (self) {
                 if (out) {
                     self->set_status(Status::Finished);

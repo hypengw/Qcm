@@ -6,6 +6,7 @@
 #include <asio/bind_executor.hpp>
 #include <asio/use_awaitable.hpp>
 
+#include "platform/platform.h"
 #include "qcm_interface/sql/meta_sql.h"
 #include "qcm_interface/path.h"
 #include "core/str_helper.h"
@@ -19,6 +20,7 @@ namespace qcm
 CollectionSql::CollectionSql(std::string_view table, rc<helper::SqlConnect> con)
     : m_table(convert_from<QString>(table)), m_con(con) {
     asio::dispatch(con->get_executor(), [this]() {
+        plt::set_thread_name("sql_collection");
         connect_db();
     });
 }

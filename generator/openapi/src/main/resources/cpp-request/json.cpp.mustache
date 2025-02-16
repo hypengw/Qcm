@@ -8,6 +8,7 @@ using namespace std::literals::string_view_literals;
 namespace {{namespace}}::model {
 {{#models}}{{#model}}
 {{#oneOf}}{{#-first}}
+// oneOf
 void to_json(json_t& j, const {{classname}}& o) {
 }
 void from_json(const json_t& j, {{classname}}& o) {
@@ -49,13 +50,13 @@ void from_json(const json_t& j, {{classname}}& e) {
 {{#isModel}}
 void to_json(json_t& j, const {{classname}}& o) {
 {{#vars}}
-        j["{{name}}"sv] = o.{{name}};
+       {{#deprecated}}// {{/deprecated}}j["{{name}}"sv] = o.{{name}};
 {{/vars}}
 }
 void from_json(const json_t& j, {{classname}}& o) {
 {{#vars}}
-    {{#isNullable}}if(j.contains("{{name}}"sv)){{/isNullable}}
-    j.at("{{name}}"sv).get_to(o.{{name}});
+    {{#deprecated}}// {{/deprecated}}{{#isNullable}}if(j.contains("{{name}}"sv)){{/isNullable}}
+    {{#deprecated}}// {{/deprecated}}j.at("{{name}}"sv).get_to(o.{{name}});
 {{/vars}}
 }
 {{/isModel}}

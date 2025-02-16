@@ -167,7 +167,10 @@ App::App(std::monostate)
     DEBUG_LOG("thread pool size: {}", get_pool_size());
 
     m_qml_engine->addImportPath(u"qrc:/"_s);
-    // QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
+    #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+        // try curve for better good visual results or where reducing graphics memory consumption
+        QQuickWindow::setTextRenderType(QQuickWindow::CurveTextRendering);
+    #endif
 
     // sql init
     {

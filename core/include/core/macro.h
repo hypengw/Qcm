@@ -1,5 +1,7 @@
 #pragma once
 
+#define YCORE_BREAK_ON(x) if(x) break
+
 #define YCORE_EMPTY_OBJ
 #define YCORE_EMPTY(...)
 #define YCORE_PARENS          ()

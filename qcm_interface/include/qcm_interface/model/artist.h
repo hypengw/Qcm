@@ -15,6 +15,8 @@ public:
     GADGET_PROPERTY_DEF(qcm::model::ItemId, itemId, id)
     GADGET_PROPERTY_DEF(QString, name, name)
     GADGET_PROPERTY_DEF(QString, picUrl, picUrl)
+
+    GADGET_PROPERTY_DEF(qint64, libraryId, libraryId)
     std::strong_ordering operator<=>(const ArtistRefer&) const = default;
 
     QCM_INTERFACE_API static auto sql() -> const ModelSql&;

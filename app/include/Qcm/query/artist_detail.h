@@ -106,7 +106,7 @@ WHERE itemId = :itemId AND ({1});
             }
 
             co_await asio::post(
-                asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
+                asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
             if (self) {
                 self->tdata()->setInfo(artist);
                 self->set_status(Status::Finished);

@@ -70,7 +70,7 @@ public:
             }
 
             co_await asio::post(
-                asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
+                asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
             if (self) {
                 if (out) {
                     self->set_status(Status::Finished);

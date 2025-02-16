@@ -24,9 +24,9 @@ public:
     void             setMode(QClipboard::Mode);
 
     Q_INVOKABLE void clear();
-Q_SIGNALS:
-    void changed();
-    void modeChanged();
+
+    Q_SIGNAL void changed();
+    Q_SIGNAL void modeChanged();
 
 private:
     QClipboard::Mode m_mode;

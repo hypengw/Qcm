@@ -195,7 +195,7 @@ ORDER BY program.serialNumber DESC;
             }
 
             co_await asio::post(
-                asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
+                asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
             if (self) {
                 self->tdata()->setInfo(radio);
                 self->tdata()->resetModel(programes);

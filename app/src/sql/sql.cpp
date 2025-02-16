@@ -1,9 +1,10 @@
 #include "asio_qt/qt_sql.h"
+
+#include <QtCore/QUuid>
+#include <QtCore/QDateTime>
+
 #include "json_helper/helper.inl"
 #include "Qcm/query/query_load.h"
-
-#include <QDateTime>
-
 namespace helper
 {
 namespace detail
@@ -20,6 +21,15 @@ auto get_converter(int id) -> std::optional<Converter> {
     };
     const static Impl impl {
         std::map<int, Converter> {
+            { QMetaType::fromType<QUuid>().id(),
+              {
+                  [](const QVariant& in) -> QVariant {
+                      return QUuid(in.toString());
+                  },
+                  [](const QVariant& in) -> QVariant {
+                      return in.value<QUuid>().toString(QUuid::WithoutBraces);
+                  },
+              } },
             { QMetaType::fromType<std::vector<QString>>().id(),
               {
                   [](const QVariant& in) -> QVariant {

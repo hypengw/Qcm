@@ -95,7 +95,7 @@ public:
             i32                      total { 0 };
             auto out = co_await client.api->comments(client, itemId, offset, limit, total);
             co_await asio::post(
-                asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
+                asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
             if (self) {
                 if (out) {
                     self->tdata()->setHasMore(out->size());

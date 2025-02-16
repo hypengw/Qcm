@@ -18,7 +18,8 @@ class Player : public QObject {
     Q_PROPERTY(int duration READ duration NOTIFY durationChanged FINAL)
     Q_PROPERTY(float volume READ volume WRITE set_volume NOTIFY volumeChanged FINAL)
     Q_PROPERTY(uint fadeTime READ fadeTime WRITE set_fadeTime NOTIFY fadeTimeChanged FINAL)
-    Q_PROPERTY(qcm::enums::PlaybackState playbackState READ playback_state NOTIFY playbackStateChanged FINAL)
+    Q_PROPERTY(qcm::enums::PlaybackState playbackState READ playback_state NOTIFY
+                   playbackStateChanged FINAL)
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged FINAL)
     Q_PROPERTY(QVector2D cacheProgress READ cache_progress NOTIFY cacheProgressChanged FINAL)
 
@@ -53,30 +54,28 @@ private:
     void set_position_raw(int);
     void set_cache_progress(QVector2D);
 
-Q_SIGNALS:
-    void sourceChanged();
-    void positionChanged();
-    void durationChanged();
-    void volumeChanged();
-    void fadeTimeChanged();
-    void busyChanged();
-    void playbackStateChanged(PlaybackState old, PlaybackState new_);
-    void cacheProgressChanged();
-    void seeked(double position);
-    void notify(NotifyInfo);
+    Q_SIGNAL void sourceChanged();
+    Q_SIGNAL void positionChanged();
+    Q_SIGNAL void durationChanged();
+    Q_SIGNAL void volumeChanged();
+    Q_SIGNAL void fadeTimeChanged();
+    Q_SIGNAL void busyChanged();
+    Q_SIGNAL void playbackStateChanged(PlaybackState old, PlaybackState new_);
+    Q_SIGNAL void cacheProgressChanged();
+    Q_SIGNAL void seeked(double position);
+    Q_SIGNAL void notify(NotifyInfo);
 
-public Q_SLOTS:
-    void processNotify(NotifyInfo);
-    void set_source(const QUrl&);
-    void set_position(int);
-    void set_busy(bool);
-    void set_volume(float);
-    void set_fadeTime(u32);
-    void seek(double pos);
+    Q_SLOT void processNotify(NotifyInfo);
+    Q_SLOT void set_source(const QUrl&);
+    Q_SLOT void set_position(int);
+    Q_SLOT void set_busy(bool);
+    Q_SLOT void set_volume(float);
+    Q_SLOT void set_fadeTime(u32);
+    Q_SLOT void seek(double pos);
 
-    void play();
-    void pause();
-    void stop();
+    Q_SLOT void play();
+    Q_SLOT void pause();
+    Q_SLOT void stop();
 
 private:
     up<player::Player> m_player;

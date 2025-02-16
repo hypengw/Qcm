@@ -91,7 +91,7 @@ public:
             [self, id, hash] -> task<void> {
                 auto out = co_await self->query_item(id);
                 co_await asio::post(
-                    asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
+                    asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
                 if (self && out) {
                     auto idx = self->tdata()->idx_at(hash);
                     self->tdata()->update(idx, *out);
@@ -187,7 +187,7 @@ ORDER BY collection.collectTime DESC;
             auto items = co_await self->query_collect(userId, time);
 
             co_await asio::post(
-                asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
+                asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
 
             if (self) {
                 auto t = self->tdata();

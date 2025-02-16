@@ -118,7 +118,7 @@ ORDER BY collection.collectTime DESC;
             auto items = co_await self->query_collect(userId, time);
 
             co_await asio::post(
-                asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
+                asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
 
             if (self) {
                 auto t = self->tdata();

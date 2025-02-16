@@ -10,6 +10,7 @@
 #include <QSqlRecord>
 #include <QDateTime>
 
+#include "platform/platform.h"
 #include "qcm_interface/path.h"
 #include "qcm_interface/type.h"
 #include "asio_qt/qt_sql.h"
@@ -34,6 +35,7 @@ CacheSql::Item query_to_item(const QSqlQuery& q) {
 CacheSql::CacheSql(std::string_view table, i64 limit, rc<helper::SqlConnect> con)
     : m_con(con), m_table(convert_from<QString>(table)), m_limit(limit) {
     asio::dispatch(m_con->get_executor(), [this]() {
+        plt::set_thread_name("sql_cache");
         try_connect();
     });
 }
