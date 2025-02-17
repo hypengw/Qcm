@@ -155,7 +155,7 @@ ORDER BY song.trackNumber ASC;
             }
 
             co_await asio::post(
-                asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
+                asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
             if (self) {
                 self->tdata()->setInfo(album);
                 self->tdata()->resetModel(songs);

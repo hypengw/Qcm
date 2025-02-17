@@ -4,7 +4,7 @@
 
 #include "core/core.h"
 #include "media_cache/server.h"
-#include "request/session.h"
+#include "ncrequest/session.hpp"
 #include "media_cache/database.h"
 
 namespace media_cache
@@ -14,7 +14,7 @@ class MediaCache : NoCopy {
 public:
     using executor_type = asio::thread_pool::executor_type;
 
-    MediaCache(executor_type ex, rc<request::Session>, rc<Fallbacks>);
+    MediaCache(executor_type ex, rc<ncrequest::Session>, rc<Fallbacks>);
     ~MediaCache();
 
     std::string get_url(std::string_view ori, std::string_view id) const;

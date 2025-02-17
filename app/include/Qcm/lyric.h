@@ -32,19 +32,18 @@ public:
     void    setSource(QString);
 
     qlonglong position() const;
-    void setPosition(qlonglong);
+    void      setPosition(qlonglong);
 
     qlonglong currentIndex() const;
 
-signals:
-    void currentIndexChanged();
-    void positionChanged();
-    void sourceChanged();
+    Q_SIGNAL void currentIndexChanged();
+    Q_SIGNAL void positionChanged();
+    Q_SIGNAL void sourceChanged();
 
-private slots:
-    void parseLrc();
-    void refreshIndex();
-    void setCurrentIndex(qlonglong);
+private:
+    Q_SLOT void parseLrc();
+    Q_SLOT void refreshIndex();
+    Q_SLOT void setCurrentIndex(qlonglong);
 
 private:
     qlonglong m_cur_idx;

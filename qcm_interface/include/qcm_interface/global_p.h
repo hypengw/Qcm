@@ -20,7 +20,7 @@ public:
     qt_executor_t     qt_ex;
     asio::thread_pool pool;
 
-    rc<request::Session> session;
+    rc<ncrequest::Session> session;
     model::Session*      qsession;
     model::Session*      qsession_empty;
     model::Session*      loading_session;

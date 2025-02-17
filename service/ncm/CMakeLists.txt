@@ -38,7 +38,7 @@ target_link_libraries(
   PUBLIC core
          asio_helper
          crypto
-         request
+         ncrequest::ncrequest
          json_helper
          error)
 

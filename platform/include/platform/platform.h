@@ -19,4 +19,6 @@ struct MemInfo {
 
 auto mem_info() -> MemInfo;
 
+void set_thread_name(const char* name);
+
 } // namespace plt

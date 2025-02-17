@@ -30,14 +30,12 @@ public:
     auto find_by_url(const QUrl&) const -> model::UserAccount*;
     auto active_user() const -> model::UserAccount*;
 
-public Q_SLOTS:
-    void add_user(model::UserAccount* user);
-    void delete_user(const model::ItemId& user_id);
-    void set_active_user(model::UserAccount* user);
+    Q_SLOT void add_user(model::UserAccount* user);
+    Q_SLOT void delete_user(const model::ItemId& user_id);
+    Q_SLOT void set_active_user(model::UserAccount* user);
 
-Q_SIGNALS:
-    void activeUserChanged();
-    void checkResultChanged();
+    Q_SIGNAL void activeUserChanged();
+    Q_SIGNAL void checkResultChanged();
 
 private:
     class Private;

@@ -99,7 +99,7 @@ ORDER BY collection.collectTime DESC;
             if (! missing.empty()) co_await SyncAPi::sync_items(missing);
             auto items = co_await self->query_mix(userId, time);
             co_await asio::post(
-                asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
+                asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
             if (self) {
                 self->tdata()->resetModel(items);
                 self->set_status(Status::Finished);

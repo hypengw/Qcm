@@ -37,16 +37,34 @@ public:
     }
 
     bool prepare_sv(std::string_view query) { return QSqlQuery::prepare(QString::fromUtf8(query)); }
+
+    bool prepare(const QString& query) { return QSqlQuery::prepare(query); }
+
+    template<typename... T>
+    bool prepare(fmt::format_string<T...> fmt, T&&... args) {
+        return QSqlQuery::prepare(
+            QString::fromUtf8(fmt::vformat(fmt.str, fmt::vargs<T...> { { args... } })));
+    }
+
     bool exec(const QString&             sql,
               const std::source_location loc = std::source_location::current()) {
         if (! QSqlQuery::exec(sql)) {
-            qcm::log::log(qcm::LogLevel::ERROR, loc, "{}", lastError().text());
+            qcm::log::log(qcm::LogLevel::ERROR, loc, "{} [{}]", lastError().text(), sql);
             return false;
         }
         return true;
     }
     bool exec(const std::source_location loc = std::source_location::current()) {
         if (! QSqlQuery::exec()) {
+            qcm::log::log(qcm::LogLevel::ERROR, loc, "{} [{}]", lastError().text(), lastQuery());
+            return false;
+        }
+        return true;
+    }
+
+    bool execBatch(BatchExecutionMode         mode = ValuesAsRows,
+                   const std::source_location loc  = std::source_location::current()) {
+        if (! QSqlQuery::execBatch(mode)) {
             qcm::log::log(qcm::LogLevel::ERROR, loc, "{}", lastError().text());
             return false;
         }
@@ -57,12 +75,48 @@ private:
     QThread* m_thread;
 };
 
+struct SqlForeignKey {
+    std::string from_;
+    std::string table;
+    std::string to;
+    i64         seq { 0 };
+    std::string on_update {};
+    std::string on_delete {};
+    std::string match {};
+
+    std::strong_ordering operator<=>(const SqlForeignKey&) const = default;
+
+    static auto from(QSqlQuery& query) {
+        SqlForeignKey c;
+        c.seq       = query.value("seq").toInt();
+        c.table     = query.value("table").toString().toStdString();
+        c.from_     = query.value("from").toString().toStdString();
+        c.to        = query.value("to").toString().toStdString();
+        c.on_update = query.value("on_update").toString().toStdString();
+        c.on_delete = query.value("on_delete").toString().toStdString();
+        c.match     = query.value("match").toString().toStdString();
+        return c;
+    }
+
+    static auto query(SqlQuery& q, QAnyStringView name) -> std::vector<SqlForeignKey> {
+        std::vector<SqlForeignKey> out;
+        q.prepare("PRAGMA foreign_key_list({});", name);
+        if (q.exec()) {
+            while (q.next()) {
+                out.emplace_back(SqlForeignKey::from(q));
+            }
+        }
+        return out;
+    }
+};
+
 struct SqlColumn {
-    std::string name {};
-    std::string type {};
-    bool        notnull { false };
-    std::string dflt_value {};
-    bool        pk { false };
+    std::string                  name {};
+    std::string                  type {};
+    bool                         notnull { false };
+    std::string                  dflt_value {};
+    bool                         pk { false };
+    std::optional<SqlForeignKey> foreign {};
 
     std::strong_ordering operator<=>(const SqlColumn&) const = default;
 
@@ -77,11 +131,20 @@ struct SqlColumn {
     }
 
     static auto query(SqlQuery& q, QAnyStringView name) -> std::vector<SqlColumn> {
+        std::map<std::string, SqlForeignKey> foreigns;
+        std::ranges::for_each(SqlForeignKey::query(q, name), [&foreigns](const auto& el) {
+            foreigns.insert_or_assign(el.from_, el);
+        });
+
         std::vector<SqlColumn> columns;
         q.prepare_sv(fmt::format("PRAGMA table_info({});", name));
         if (q.exec()) {
             while (q.next()) {
-                columns.emplace_back(SqlColumn::from(q));
+                auto c = SqlColumn::from(q);
+                if (auto it = foreigns.find(c.name); it != foreigns.end()) {
+                    c.foreign = it->second;
+                }
+                columns.emplace_back(c);
             }
         }
         return columns;
@@ -186,8 +249,25 @@ DEFINE_CONVERT(std::string, helper::SqlColumn) {
                       in.pk ? " PRIMARY KEY"sv : ""sv);
 }
 
+DEFINE_CONVERT(std::string, helper::SqlForeignKey) {
+    auto& f = in;
+    out     = fmt::format("FOREIGN KEY ({}) REFERENCES {}({}){}{}{}",
+                      f.from_,
+                      f.table,
+                      f.to,
+                      ! f.on_update.empty() ? fmt::format(" ON UPDATE {}", f.on_update) : ""s,
+                      ! f.on_delete.empty() ? fmt::format(" ON DELETE {}", f.on_delete) : ""s,
+                      ! f.match.empty() ? fmt::format(" MATCH {}", f.match) : ""s);
+}
+
 namespace helper
 {
+
+struct SqlMetaOptions {
+    std::map<std::string, SqlForeignKey, std::less<>> foreigns {};
+    std::set<std::string, std::less<>>                fts_columns {};
+    std::set<std::string_view>                        exclude {};
+};
 
 class SqlConnect : public std::enable_shared_from_this<SqlConnect> {
 public:
@@ -229,6 +309,37 @@ public:
             qcm::log::log(qcm::LogLevel::ERROR, loc, "{}", db().lastError().text());
         }
         return ok;
+    }
+
+    template<typename T>
+    auto exec_with_transaction(const T&                   sqls,
+                               const std::source_location loc = std::source_location::current())
+        -> bool {
+        transaction(loc);
+        auto q = query();
+        for (auto el : sqls) {
+            if (! q.exec(el, loc)) {
+                rollback(loc);
+                return false;
+            }
+        }
+        commit(loc);
+        return true;
+    }
+
+    template<typename T>
+        requires std::is_invocable_r_v<bool, T, SqlQuery&>
+    auto with_transaction(T&&                        func,
+                          const std::source_location loc = std::source_location::current())
+        -> bool {
+        transaction(loc);
+        auto q = query();
+        if (func(q)) {
+            return commit(loc);
+        } else {
+            rollback(loc);
+            return false;
+        }
     }
 
     using Converter = std::function<QVariant(const QVariant&)>;
@@ -362,9 +473,8 @@ content_rowid='{1}'
     }
 
     auto generate_column_migration(QStringView table_name, std::span<const SqlColumn> req_columns,
-                                   const std::set<SqlUnique, std::less<>>&   uniques     = {},
-                                   const std::set<std::string, std::less<>>& fts_columns = {})
-        -> QStringList {
+                                   const std::set<SqlUnique, std::less<>>& uniques = {},
+                                   const SqlMetaOptions& opts = {}) -> QStringList {
         SqlQuery                 query(m_db);
         std::vector<std::string> columns;
         std::ranges::copy(std::views::transform(req_columns,
@@ -374,6 +484,16 @@ content_rowid='{1}'
                                                         out.append(" UNIQUE");
                                                     }
                                                     return out;
+                                                }),
+                          std::back_inserter(columns));
+
+        // append foreign keys
+        std::ranges::copy(std::views::transform(std::views::filter(req_columns,
+                                                                   [](const auto& el) {
+                                                                       return ! ! el.foreign;
+                                                                   }),
+                                                [](const auto& el) {
+                                                    return fmt::format("{}", *el.foreign);
                                                 }),
                           std::back_inserter(columns));
 
@@ -444,31 +564,30 @@ CREATE TABLE IF NOT EXISTS {} (
                 out << u"INSERT INTO %1 (%2) SELECT %2 FROM %1_backup;"_s.arg(table_name,
                                                                               column_names);
                 out << u"DROP TABLE %1_backup;"_s.arg(table_name);
-                if (! fts_columns.empty()) {
-                    out << create_fts(table_name, true, fts_columns);
+                if (! opts.fts_columns.empty()) {
+                    out << create_fts(table_name, true, opts.fts_columns);
                 }
                 return out;
             }
         }
         QStringList out { create_sql };
-        if (! fts_columns.empty()) {
-            bool changed = check_fts_changed(table_name, fts_columns);
-            out << create_fts(table_name, changed, fts_columns);
+        if (! opts.fts_columns.empty()) {
+            bool changed = check_fts_changed(table_name, opts.fts_columns);
+            out << create_fts(table_name, changed, opts.fts_columns);
         }
         return out;
     }
 
     auto generate_meta_migration(QStringView table_name, QStringView primary,
-                                 const QMetaObject&                        meta,
-                                 const std::set<SqlUnique, std::less<>>&   uniques,
-                                 const std::set<std::string, std::less<>>& fts_columns = {},
-                                 const std::set<std::string_view>& exclude = {}) -> QStringList {
+                                 const QMetaObject&                      meta,
+                                 const std::set<SqlUnique, std::less<>>& uniques,
+                                 const SqlMetaOptions&                   opts = {}) -> QStringList {
         std::vector<std::string> column_names;
         std::vector<SqlColumn>   columns;
         for (int i = 0; i < meta.propertyCount(); i++) {
             const auto& p    = meta.property(i);
             auto        name = p.name();
-            if (exclude.contains(name)) {
+            if (opts.exclude.contains(name)) {
                 continue;
             }
 
@@ -489,10 +608,14 @@ CREATE TABLE IF NOT EXISTS {} (
             c.type = type;
             c.name = name;
             c.pk   = name == primary;
+
+            if (auto it = opts.foreigns.find(c.name); it != opts.foreigns.end()) {
+                c.foreign = it->second;
+            }
         }
 
         columns.emplace_back(EditTimeColumn);
-        return generate_column_migration(table_name, columns, uniques, fts_columns);
+        return generate_column_migration(table_name, columns, uniques, opts);
     }
 
     struct InsertHelper {

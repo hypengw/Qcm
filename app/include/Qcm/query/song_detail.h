@@ -96,7 +96,7 @@ GROUP BY song.itemId;
             }
 
             co_await asio::post(
-                asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
+                asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
             if (self) {
                 self->set_tdata(song.value_or(Song {}));
                 self->set_status(Status::Finished);

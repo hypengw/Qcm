@@ -6,7 +6,7 @@
 #include <asio/ip/tcp.hpp>
 
 #include "core/core.h"
-#include "request/http_header.h"
+#include "ncrequest/http_header.hpp"
 
 namespace media_cache
 {
@@ -18,7 +18,7 @@ public:
 
     std::string         header_str;
     std::string         path;
-    request::HttpHeader header;
+    ncrequest::HttpHeader header;
 
     std::optional<std::string> proxy_url;
     std::optional<std::string> proxy_id;

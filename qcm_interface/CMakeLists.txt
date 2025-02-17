@@ -54,6 +54,7 @@ add_library(
   include/qcm_interface/model/query_model.h
   include/qcm_interface/model/id_queue.h
   include/qcm_interface/model/empty_model.h
+  include/qcm_interface/model/library.h
   include/qcm_interface/state/app_state.h
   action.cpp
   notifier.cpp
@@ -128,7 +129,7 @@ target_link_libraries(
          error
          asio_helper
          asio_qt
-         request
+         ncrequest::ncrequest
          json_helper
          meta_model
          Qt::Qml

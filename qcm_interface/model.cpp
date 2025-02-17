@@ -42,7 +42,7 @@ UserAccount::UserAccount(QObject* parent): d_ptr(make_up<Private>(this)) {
             });
     connect(this, &UserAccount::query, this, [this](QString type) {
         asio::co_spawn(
-            Global::instance()->qexecutor(),
+            qcm::qexecutor(),
             [this, type] -> asio::awaitable<void> {
                 C_D(UserAccount);
                 auto sql = Global::instance()->get_collection_sql();
@@ -147,6 +147,12 @@ RouteMsg::~RouteMsg() {}
 
 } // namespace qcm::model
 
+IMPL_JSON_SERIALIZER_FROM(QUuid) {
+    std::string s;
+    j.get_to(s);
+    t = QUuid::fromString(QString::fromStdString(s));
+}
+IMPL_JSON_SERIALIZER_TO(QUuid) { j = t.toString(QUuid::WithoutBraces).toStdString(); }
 IMPL_JSON_SERIALIZER_FROM(QString) {
     std::string s;
     j.get_to(s);

@@ -26,7 +26,7 @@ void StorageInfoQuerier::reload() {
         auto normal_size = co_await cache_sql->total_size();
 
         co_await asio::post(
-            asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
+            asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
 
         auto d = data().value<StorageInfo*>();
         d->setTotal(media_size + normal_size);

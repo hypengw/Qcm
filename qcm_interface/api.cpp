@@ -109,7 +109,7 @@ void QAsyncResult::hold(QStringView name, QObject* o) {
     }
 }
 
-auto QAsyncResult::qexecutor() const -> QtExecutor& { return Global::instance()->qexecutor(); }
+auto QAsyncResult::qexecutor() const -> QtExecutor& { return qcm::qexecutor(); }
 
 auto QAsyncResult::pool_executor() const -> asio::thread_pool::executor_type {
     return Global::instance()->pool_executor();
@@ -168,7 +168,7 @@ void QAsyncResult::cancel() {
 }
 auto QAsyncResult::get_executor() -> QtExecutor& {
     C_D(QAsyncResult);
-    return Global::instance()->qexecutor();
+    return qcm::qexecutor();
 }
 auto QAsyncResult::use_queue() const -> bool {
     C_D(const QAsyncResult);

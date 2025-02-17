@@ -11,8 +11,8 @@
 #include <ctre.hpp>
 
 #include "core/log.h"
-#include "request/type.h"
-#include "request/http_header.h"
+#include "ncrequest/type.hpp"
+#include "ncrequest/http_header.hpp"
 
 using namespace media_cache;
 
@@ -50,12 +50,12 @@ auto GetRequest::read(asio::ip::tcp::socket& s) -> asio::awaitable<GetRequest> {
         }
     }
 
-    if (auto header = request::HttpHeader::parse_header(req.header_str)) {
+    if (auto header = ncrequest::HttpHeader::parse_header(req.header_str)) {
         req.header = header.value();
-        if (auto start = std::get_if<request::HttpHeader::Request>(&req.header.start.value())) {
+        if (auto start = std::get_if<ncrequest::HttpHeader::Request>(&req.header.start.value())) {
             req.path = start->target;
             if (auto [whole, id, url] = ctre::match<UrlPattern>(req.path); whole) {
-                req.proxy_url = request::url_decode(url);
+                req.proxy_url = ncrequest::url_decode(url);
                 req.proxy_id  = id;
             } else {
                 ERROR_LOG("failed get real url: {}", req.path);

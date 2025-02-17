@@ -24,5 +24,6 @@ static_assert(false);
 #include <qcm_interface/model/moc_radio.cpp>
 #include <qcm_interface/model/moc_song.cpp>
 #include <qcm_interface/model/moc_third_user.cpp>
+#include <qcm_interface/model/moc_library.cpp>
 
 #endif

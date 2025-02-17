@@ -122,7 +122,6 @@ add_subdirectory(error)
 add_subdirectory(json_helper)
 add_subdirectory(asio_helper)
 add_subdirectory(asio_qt)
-add_subdirectory(request)
 add_subdirectory(crypto)
 
 add_subdirectory(generator/model)

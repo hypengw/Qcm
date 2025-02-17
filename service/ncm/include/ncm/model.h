@@ -8,6 +8,7 @@
 #include "core/strv_helper.h"
 #include "ncm/type.h"
 #include "core/str_helper.h"
+#include "core/variant_helper.h"
 
 namespace ncm
 {

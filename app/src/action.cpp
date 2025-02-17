@@ -302,7 +302,7 @@ void App::on_collect(model::ItemId id, bool act) {
                 auto ok  = co_await c->api->collect(*(c->instance), id, act);
                 if (ok.value_or(false)) {
                     co_await asio::post(
-                        asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
+                        asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
 
                     auto item = db::ColletionSqlBase::Item::from(user->userId(), id);
                     if (act) {

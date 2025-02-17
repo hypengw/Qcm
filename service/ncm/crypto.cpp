@@ -7,7 +7,7 @@
 #include "core/str_helper.h"
 #include "core/random.h"
 #include "core/log.h"
-#include "request/type.h"
+#include "ncrequest/type.hpp"
 
 using namespace qcm;
 
@@ -52,7 +52,7 @@ std::optional<std::string> ncm::Crypto::weapi(bytes_view in) {
                            .map(convert_from<std::string, bytes_view>);
 
     if (params.has_value() && enc_sec_key.has_value()) {
-        request::UrlParams url_params;
+        ncrequest::UrlParams url_params;
         url_params.set_param("params", params.value()).set_param("encSecKey", enc_sec_key.value());
 
         return url_params.encode();

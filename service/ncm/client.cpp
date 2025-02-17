@@ -2,9 +2,9 @@
 
 #include <ranges>
 
-#include "request/request.h"
-#include "request/response.h"
-#include "request/session_share.h"
+#include "ncrequest/request.hpp"
+#include "ncrequest/response.hpp"
+#include "ncrequest/session_share.hpp"
 #include "core/log.h"
 #include "core/random.h"
 
@@ -14,19 +14,18 @@
 #include "dump.h"
 
 using namespace ncm;
-using namespace request;
 
 class Client::Private {
 public:
-    Private(rc<Session> sess, executor_type ex, std::string device_id)
+    Private(rc<ncrequest::Session> sess, executor_type ex, std::string device_id)
         : session(sess), device_id(device_id), csrf(), crypto(), ex(ex), req_common() {}
-    rc<request::Session> session;
-    SessionShare         session_share;
-    std::string          device_id;
-    std::string          csrf;
-    Crypto               crypto;
-    executor_type        ex;
-    request::Request     req_common;
+    rc<ncrequest::Session>  session;
+    ncrequest::SessionShare session_share;
+    std::string             device_id;
+    std::string             csrf;
+    Crypto                  crypto;
+    executor_type           ex;
+    ncrequest::Request      req_common;
 
     std::map<std::string, std::any, std::less<>> props;
 
@@ -34,16 +33,17 @@ public:
     std::map<std::string, std::string, std::less<>> device_params;
 };
 
-Client::Client(rc<Session> sess, executor_type ex, std::string device_id)
+Client::Client(rc<ncrequest::Session> sess, executor_type ex, std::string device_id)
     : d_ptr(make_rc<Private>(sess, ex, device_id)) {
     C_D(Client);
-    d->req_common.get_opt<request::req_opt::Timeout>().set_connect_timeout(30).set_transfer_timeout(
-        60);
+    d->req_common.get_opt<ncrequest::req_opt::Timeout>()
+        .set_connect_timeout(30)
+        .set_transfer_timeout(60);
     d->req_common.set_header("Referer", "https://music.163.com")
         .set_header("User-Agent",
                     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, "
                     "like Gecko) Version/13.1.2 Safari/605.1.15");
-    d->req_common.set_opt(req_opt::Share { d->session_share });
+    d->req_common.set_opt(ncrequest::req_opt::Share { d->session_share });
 
     auto player_id = std::ranges::transform_view(std::ranges::views::iota(0, 8), [](auto) {
         return qcm::Random::get('0', '9');
@@ -72,10 +72,11 @@ Client::executor_type& Client::get_executor() {
 }
 
 template<>
-auto Client::make_req<api::CryptoType::WEAPI>(
-    std::string_view path, const request::UrlParams& q) const -> request::Request {
+auto Client::make_req<api::CryptoType::WEAPI>(std::string_view            path,
+                                              const ncrequest::UrlParams& q) const
+    -> ncrequest::Request {
     C_D(const Client);
-    Request req { d->req_common };
+    ncrequest::Request req { d->req_common };
 
     auto cookie_item = std::ranges::transform_view(d->web_params, [](auto& el) -> std::string {
         return fmt::format("{}={}", el.first, el.second);
@@ -86,10 +87,11 @@ auto Client::make_req<api::CryptoType::WEAPI>(
     return req;
 }
 template<>
-auto Client::make_req<api::CryptoType::EAPI>(
-    std::string_view path, const request::UrlParams& q) const -> request::Request {
+auto Client::make_req<api::CryptoType::EAPI>(std::string_view            path,
+                                             const ncrequest::UrlParams& q) const
+    -> ncrequest::Request {
     C_D(const Client);
-    Request req { d->req_common };
+    ncrequest::Request req { d->req_common };
 
     auto cookie_item = std::ranges::transform_view(d->device_params, [](auto& el) -> std::string {
         return fmt::format("{}={}", el.first, el.second);
@@ -100,31 +102,32 @@ auto Client::make_req<api::CryptoType::EAPI>(
     return req;
 }
 template<>
-auto Client::make_req<api::CryptoType::NONE>(
-    std::string_view path, const request::UrlParams& q) const -> request::Request {
+auto Client::make_req<api::CryptoType::NONE>(std::string_view            path,
+                                             const ncrequest::UrlParams& q) const
+    -> ncrequest::Request {
     C_D(const Client);
-    return Request { d->req_common }.set_url(api::concat_query(path, q.encode()));
+    return ncrequest::Request { d->req_common }.set_url(api::concat_query(path, q.encode()));
 }
 
 template<>
-auto Client::encrypt<api::CryptoType::WEAPI>(std::string_view,
-                                             const Params& p) -> std::optional<std::string> {
+auto Client::encrypt<api::CryptoType::WEAPI>(std::string_view, const Params& p)
+    -> std::optional<std::string> {
     C_D(Client);
     // p.insert_or_assign(std::string("csrf_token"), *csrf);
     return d->crypto.weapi(convert_from<std::vector<byte>>(to_json_str(p)));
 }
 
 template<>
-auto Client::encrypt<api::CryptoType::EAPI>(std::string_view path,
-                                            const Params&    p) -> std::optional<std::string> {
+auto Client::encrypt<api::CryptoType::EAPI>(std::string_view path, const Params& p)
+    -> std::optional<std::string> {
     C_D(Client);
     std::string path_ = fmt::format("/api{}", path);
     return d->crypto.eapi(path_, convert_from<std::vector<byte>>(to_json_str(p)));
 }
 
 template<>
-auto Client::encrypt<api::CryptoType::NONE>(std::string_view,
-                                            const Params&) -> std::optional<std::string> {
+auto Client::encrypt<api::CryptoType::NONE>(std::string_view, const Params&)
+    -> std::optional<std::string> {
     return std::string {};
 }
 
@@ -140,25 +143,25 @@ auto Client::format_url(std::string_view base, std::string_view path) const -> s
     return std::format("{}{}{}{}", base, prefix, path, suffix);
 }
 
-template auto
-              Client::format_url<api::CryptoType::WEAPI>(std::string_view base,
-                                           std::string_view path) const -> std::string;
+template auto Client::format_url<api::CryptoType::WEAPI>(std::string_view base,
+                                                         std::string_view path) const
+    -> std::string;
 template auto Client::format_url<api::CryptoType::EAPI>(std::string_view base,
                                                         std::string_view path) const -> std::string;
 template auto Client::format_url<api::CryptoType::NONE>(std::string_view base,
                                                         std::string_view path) const -> std::string;
 
-auto Client::rsp(const request::Request& q) const -> awaitable<rc<request::Response>> {
+auto Client::rsp(const ncrequest::Request& q) const -> awaitable<rc<ncrequest::Response>> {
     C_D(const Client);
-    rc<request::Response> rsp = UNWRAP(co_await d->session->get(q));
+    rc<ncrequest::Response> rsp = UNWRAP(co_await d->session->get(q));
     co_return rsp;
 }
 
-auto Client::post(const request::Request& req,
-                  std::string_view        body) const -> awaitable<Result<std::vector<byte>>> {
+auto Client::post(const ncrequest::Request& req, std::string_view body) const
+    -> awaitable<Result<std::vector<byte>>> {
     C_D(const Client);
     // rc<std::string> csrf = m_csrf;
-    rc<Response> rsp;
+    rc<ncrequest::Response> rsp;
     EC_RET_CO(rsp, co_await d->session->post(req, asio::buffer(body)));
 
     _assert_(rsp);
