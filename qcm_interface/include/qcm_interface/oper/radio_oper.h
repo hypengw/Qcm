@@ -18,6 +18,7 @@ struct QCM_INTERFACE_API DjradioOper : Oper<model::Radio> {
     OPER_PROPERTY(ItemId, itemId, id)
     OPER_PROPERTY(QString, name, name)
     OPER_PROPERTY(QString, picUrl, picUrl)
+    OPER_PROPERTY(qint64, libraryId, libraryId)
     OPER_PROPERTY(QString, description, description)
     OPER_PROPERTY(qint32, programCount, programCount)
     OPER_PROPERTY(QDateTime, createTime, createTime)

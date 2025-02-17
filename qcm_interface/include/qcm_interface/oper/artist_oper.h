@@ -18,6 +18,7 @@ struct QCM_INTERFACE_API ArtistReferOper : Oper<model::ArtistRefer> {
     OPER_PROPERTY(ItemId, itemId, id)
     OPER_PROPERTY(QString, name, name)
     OPER_PROPERTY(QString, picUrl, picUrl)
+    OPER_PROPERTY(qint64, libraryId, libraryId)
 };
 
 struct QCM_INTERFACE_API ArtistOper : Oper<model::Artist> {
@@ -26,6 +27,7 @@ struct QCM_INTERFACE_API ArtistOper : Oper<model::Artist> {
     OPER_PROPERTY(ItemId, itemId, id)
     OPER_PROPERTY(QString, name, name)
     OPER_PROPERTY(QString, picUrl, picUrl)
+    OPER_PROPERTY(qint64, libraryId, libraryId)
     OPER_PROPERTY(QString, description, description)
     OPER_PROPERTY(qint32, albumCount, albumCount)
     OPER_PROPERTY(qint32, musicCount, musicCount)

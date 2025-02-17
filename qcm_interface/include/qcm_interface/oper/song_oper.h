@@ -17,7 +17,7 @@ struct QCM_INTERFACE_API SongOper : Oper<model::Song> {
     OPER_PROPERTY(ItemId, itemId, id)
     OPER_PROPERTY(QString, name, name)
     OPER_PROPERTY(ItemId, albumId, albumId)
-    OPER_PROPERTY(qint32, libraryId, libraryId)
+    OPER_PROPERTY(qint64, libraryId, libraryId)
     OPER_PROPERTY(qint32, trackNumber, trackNumber)
     OPER_PROPERTY(QDateTime, duration, duration)
     OPER_PROPERTY(bool, canPlay, canPlay)

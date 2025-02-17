@@ -106,3 +106,4 @@ cmake --install build
 - [nlohmann/json](https://github.com/nlohmann/json)
 - [fmt](https://github.com/fmtlib/fmt)
 - [ctre](https://github.com/hanickadot/compile-time-regular-expressions)
+- [ncrequest](https://github.com/hypengw/ncrequest)

@@ -18,6 +18,7 @@ struct QCM_INTERFACE_API ProgramOper : Oper<model::Program> {
     OPER_PROPERTY(ItemId, itemId, id)
     OPER_PROPERTY(QString, name, name)
     OPER_PROPERTY(QString, description, description)
+    OPER_PROPERTY(qint64, libraryId, libraryId)
     OPER_PROPERTY(QDateTime, duration, duration)
     OPER_PROPERTY(QString, coverUrl, coverUrl)
     OPER_PROPERTY(ItemId, songId, songId)

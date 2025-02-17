@@ -19,7 +19,7 @@ struct QCM_INTERFACE_API AlbumReferOper : Oper<model::AlbumRefer> {
     OPER_PROPERTY(ItemId, itemId, id)
     OPER_PROPERTY(QString, name, name)
     OPER_PROPERTY(QString, picUrl, picUrl)
-    OPER_PROPERTY(qint32, libraryId, libraryId)
+    OPER_PROPERTY(qint64, libraryId, libraryId)
 };
 
 struct QCM_INTERFACE_API AlbumOper : Oper<model::Album> {
@@ -28,7 +28,7 @@ struct QCM_INTERFACE_API AlbumOper : Oper<model::Album> {
     OPER_PROPERTY(ItemId, itemId, id)
     OPER_PROPERTY(QString, name, name)
     OPER_PROPERTY(QString, picUrl, picUrl)
-    OPER_PROPERTY(qint32, libraryId, libraryId)
+    OPER_PROPERTY(qint64, libraryId, libraryId)
     OPER_PROPERTY(QDateTime, publishTime, publishTime)
     OPER_PROPERTY(qint32, trackCount, trackCount)
     OPER_PROPERTY(QString, description, description)

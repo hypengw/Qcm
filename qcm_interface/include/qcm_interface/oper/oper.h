@@ -6,6 +6,9 @@
 
 namespace qcm::oper
 {
+template<typename T>
+using ret_t = std::conditional_t<std::is_trivially_copyable_v<T>, T,
+                                 std::add_lvalue_reference_t<std::add_const_t<T>>>;
 
 QCM_INTERFACE_API void empty_deletor(voidp);
 
@@ -97,16 +100,16 @@ struct QCM_INTERFACE_API Oper {
 
 } // namespace qcm::oper
 
-#define OPER_PROPERTY(type, prop, mem) \
-    auto mem() -> const type&;         \
+#define OPER_PROPERTY(type, prop, mem)    \
+    auto mem() -> qcm::oper::ret_t<type>; \
     void set_##mem(const type&);
 
 #define OPER_PROPERTY_COPY(type, prop, mem) \
     auto mem() -> type;                     \
     void set_##mem(type);
 
-#define IMPL_OPER_PROPERTY(class_, type, prop, mem)                \
-    auto class_::mem() -> const type& { return this->model->mem; } \
+#define IMPL_OPER_PROPERTY(class_, type, prop, mem)                           \
+    auto class_::mem() -> qcm::oper::ret_t<type> { return this->model->mem; } \
     void class_::set_##mem(const type& v) { this->model->mem = v; }
 
 #define IMPL_OPER_PROPERTY_COPY(class_, type, prop, mem)    \

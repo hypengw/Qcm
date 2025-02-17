@@ -14,7 +14,7 @@ struct Song {
     QML_ANONYMOUS
 public:
     GADGET_PROPERTY_DEF(qcm::model::ItemId, itemId, id)
-    GADGET_PROPERTY_DEF(qint32, libraryId, libraryId)
+    GADGET_PROPERTY_DEF(qint64, libraryId, libraryId)
     GADGET_PROPERTY_DEF(QString, name, name)
     GADGET_PROPERTY_DEF(qcm::model::ItemId, albumId, albumId)
     GADGET_PROPERTY_DEF(qint32, trackNumber, trackNumber)
