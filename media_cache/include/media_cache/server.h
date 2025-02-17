@@ -8,8 +8,8 @@
 #include <asio/ip/tcp.hpp>
 #include <asio/awaitable.hpp>
 
-#include "request/session.h"
 #include "core/core.h"
+#include "ncrequest/session.hpp"
 #include "media_cache/database.h"
 #include "media_cache/writer.h"
 
@@ -20,7 +20,7 @@ class Server : public std::enable_shared_from_this<Server>, NoCopy {
 public:
     using executor_type = asio::thread_pool::executor_type;
 
-    Server(executor_type ex, rc<request::Session>, rc<Fallbacks>);
+    Server(executor_type ex, rc<ncrequest::Session>, rc<Fallbacks>);
     ~Server();
 
     void start(std::filesystem::path cache_dir, rc<DataBase>);
@@ -40,7 +40,7 @@ private:
 
     asio::ip::tcp::acceptor m_acceptor;
     i32                     m_port;
-    rc<request::Session>    m_session;
+    rc<ncrequest::Session>    m_session;
     std::filesystem::path   m_cache_dir;
 };
 

@@ -10,7 +10,7 @@
 
 #define EC_RET(_RES_, _R_) ERR_RET(_RES_, error::Error::expected_chain(helper::to_expected(_R_)))
 #define EC_RET_CO(_RES_, _R_) \
-    ERR_RET_CO(_RES_, error::Error::expected_chain(helper::to_expected(_R_)))
+    ERR_RET_CO(_RES_, error::Error::expected_chain(::helper::to_expected(_R_)))
 
 #define OPT_EC_RET(_OPT_)                                             \
     do {                                                              \

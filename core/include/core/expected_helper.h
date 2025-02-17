@@ -21,7 +21,7 @@
     do {                                    \
         auto exp = (_R_);                   \
         if (! exp.has_value())              \
-            return helper::unexpected(exp); \
+            return ::helper::unexpected(exp); \
         else                                \
             _RES_ = std::move(exp).value(); \
     } while (false)
@@ -30,7 +30,7 @@
     do {                                       \
         auto exp = (_R_);                      \
         if (! exp.has_value())                 \
-            co_return helper::unexpected(exp); \
+            co_return ::helper::unexpected(exp); \
         else                                   \
             _RES_ = std::move(exp).value();    \
     } while (false)

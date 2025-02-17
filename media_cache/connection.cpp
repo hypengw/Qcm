@@ -8,8 +8,9 @@
 
 #include <ctre.hpp>
 
-#include "request/request.h"
-#include "request/response.h"
+#include "core/strv_helper.h"
+#include "ncrequest/request.hpp"
+#include "ncrequest/response.hpp"
 
 #include "asio_helper/sync_file.h"
 
@@ -23,7 +24,7 @@ static constexpr usize            WriteBuf { 4096 * 4 };
 
 std::filesystem::path get_dl_path(std::filesystem::path p) { return p.replace_extension(DlSuffix); }
 
-void init_db_item(const request::HttpHeader::Field& f, DataBase::Item& db_item) {
+void init_db_item(const ncrequest::HttpHeader::Field& f, DataBase::Item& db_item) {
     if (helper::case_insensitive_compare(f.name, "content-length") == 0) {
         if (auto whole = ctre::starts_with<DigitPattern>(f.value); whole) {
             auto length = whole.to_number();
@@ -44,7 +45,7 @@ void init_db_item(const request::HttpHeader::Field& f, DataBase::Item& db_item) 
         }
     }
 }
-void init_db_item(const request::HttpHeader& header, DataBase::Item& db_item) {
+void init_db_item(const ncrequest::HttpHeader& header, DataBase::Item& db_item) {
     for (auto& f : header.fields) {
         init_db_item(f, db_item);
     }
@@ -121,8 +122,8 @@ auto Connection::file_source(std::filesystem::path file_path, rc<Fallbacks> fbs,
     co_return;
 }
 
-auto Connection::send_http_header(DataBase::Item& db_item, const request::HttpHeader& header,
-                                  const request::Request& proxy_req) -> asio::awaitable<void> {
+auto Connection::send_http_header(DataBase::Item& db_item, const ncrequest::HttpHeader& header,
+                                  const ncrequest::Request& proxy_req) -> asio::awaitable<void> {
     std::string rsp_header;
 
     bool has_range = header.has_field("content-range");
@@ -145,7 +146,7 @@ auto Connection::send_http_header(DataBase::Item& db_item, const request::HttpHe
         m_s, asio::buffer(rsp_header.c_str(), rsp_header.size()), asio::use_awaitable);
 }
 
-auto Connection::http_source(std::filesystem::path file_path, rc<request::Session> ses,
+auto Connection::http_source(std::filesystem::path file_path, rc<ncrequest::Session> ses,
                              rc<Writer> writer) -> asio::awaitable<void> {
     const auto& req = m_req.value();
 
@@ -153,7 +154,7 @@ auto Connection::http_source(std::filesystem::path file_path, rc<request::Sessio
         std::filesystem::path              file_dl_path;
         rc<Writer::File>                   file;
         DataBase::Item                     db_item;
-        std::shared_ptr<request::Response> rsp;
+        std::shared_ptr<ncrequest::Response> rsp;
     };
     Ctx ctx;
 
@@ -163,15 +164,15 @@ auto Connection::http_source(std::filesystem::path file_path, rc<request::Sessio
     bool need_pre_download { false };
     {
         std::string      proxy_id = req.proxy_id.value();
-        request::Request proxy_req;
+        ncrequest::Request proxy_req;
         {
             proxy_req.set_url(req.proxy_url.value());
             for (auto& f : req.header.fields) {
                 if (helper::case_insensitive_compare(f.name, "host") == 0) continue;
                 proxy_req.set_header(f.name, f.value);
             }
-            proxy_req.get_opt<request::req_opt::Timeout>().set_transfer_timeout(180);
-            proxy_req.get_opt<request::req_opt::Tcp>().set_keepalive(true);
+            proxy_req.get_opt<ncrequest::req_opt::Timeout>().set_transfer_timeout(180);
+            proxy_req.get_opt<ncrequest::req_opt::Tcp>().set_keepalive(true);
         }
 
         if (req.range_start) {
@@ -282,7 +283,7 @@ auto get_proxyid_dir(std::string_view proxy_id) -> std::string {
     return helper::to_upper(out);
 }
 
-auto Connection::run(rc<request::Session> ses, rc<Writer> writer, rc<Fallbacks> fbs,
+auto Connection::run(rc<ncrequest::Session> ses, rc<Writer> writer, rc<Fallbacks> fbs,
                      std::filesystem::path cache_dir) -> asio::awaitable<void> {
     auto req = co_await GetRequest::read(m_s);
     m_req    = req;

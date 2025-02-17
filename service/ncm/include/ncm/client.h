@@ -5,8 +5,8 @@
 #include <asio/strand.hpp>
 
 #include "asio_helper/helper.h"
-#include "request/session.h"
-#include "request/request.h"
+#include "ncrequest/session.hpp"
+#include "ncrequest/request.hpp"
 #include "ncm/type.h"
 #include "ncm/api.h"
 
@@ -21,7 +21,7 @@ class Client {
 public:
     using executor_type = asio::thread_pool::executor_type;
 
-    Client(rc<request::Session> session, executor_type ex, std::string device_id);
+    Client(rc<ncrequest::Session> session, executor_type ex, std::string device_id);
     ~Client();
 
     template<typename TApi>
@@ -38,7 +38,7 @@ public:
 
     template<typename TApi>
         requires api::ApiCP<TApi>
-    auto prepare_body(const TApi& api, request::Request& req) {
+    auto prepare_body(const TApi& api, ncrequest::Request& req) {
         if constexpr (api::ApiCP_Reader<TApi>) {
             req.set_opt(api.body());
             return ""sv;
@@ -59,7 +59,7 @@ public:
         if constexpr (api::ApiCP_Header<TApi>) {
             req.update_header(api.header());
         }
-        req.template get_opt<request::req_opt::Timeout>().set_transfer_timeout(timeout);
+        req.template get_opt<ncrequest::req_opt::Timeout>().set_transfer_timeout(timeout);
 
         auto                      body = prepare_body(api, req);
         Result<std::vector<byte>> res  = co_await post(req, body);
@@ -75,10 +75,10 @@ public:
 
     executor_type& get_executor();
 
-    auto rsp(const request::Request&) const -> awaitable<rc<request::Response>>;
+    auto rsp(const ncrequest::Request&) const -> awaitable<rc<ncrequest::Response>>;
 
     template<api::CryptoType CT>
-    auto make_req(std::string_view url, const UrlParams&) const -> request::Request;
+    auto make_req(std::string_view url, const UrlParams&) const -> ncrequest::Request;
 
     template<api::CryptoType CT>
     auto encrypt(std::string_view path, const Params&) -> std::optional<std::string>;
@@ -93,7 +93,7 @@ public:
     void load(const std::filesystem::path&);
 
 private:
-    auto post(const request::Request&,
+    auto post(const ncrequest::Request&,
               std::string_view) const -> awaitable<Result<std::vector<byte>>>;
 
     class Private;

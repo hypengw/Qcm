@@ -6,7 +6,7 @@
 #include "qcm_interface/model/page.h"
 #include "qcm_interface/client.h"
 
-namespace request
+namespace ncrequest
 {
 class Request;
 };

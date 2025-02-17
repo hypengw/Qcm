@@ -172,7 +172,7 @@ target_link_libraries(
          Qt6::Sql
          $<$<CONFIG:Debug>:Qt6::QuickPrivate>
          asio_qt
-         request
+         ncrequest::ncrequest
          fmt::fmt
          crypto
          qr_code

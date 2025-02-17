@@ -23,7 +23,7 @@
 
 #include "core/qvariant_helper.h"
 #include "crypto/crypto.h"
-#include "request/response.h"
+#include "ncrequest/response.hpp"
 #include "asio_helper/sync_file.h"
 #include "meta_model/qgadget_helper.h"
 #include "platform/platform.h"
@@ -43,7 +43,7 @@
 
 using namespace qcm;
 
-DEFINE_CONVERT(request::req_opt::Proxy::Type, App::ProxyType) {
+DEFINE_CONVERT(ncrequest::req_opt::Proxy::Type, App::ProxyType) {
     out = static_cast<std::decay_t<decltype(out)>>(in);
 }
 
@@ -367,8 +367,8 @@ void App::load_plugins() {
 }
 
 void App::setProxy(ProxyType t, QString content) {
-    m_global->session()->set_proxy(request::req_opt::Proxy {
-        .type = convert_from<request::req_opt::Proxy::Type>(t), .content = content.toStdString() });
+    m_global->session()->set_proxy(ncrequest::req_opt::Proxy {
+        .type = convert_from<ncrequest::req_opt::Proxy::Type>(t), .content = content.toStdString() });
 }
 
 void App::setVerifyCertificate(bool v) { m_global->session()->set_verify_certificate(v); }
@@ -393,7 +393,7 @@ void App::test() {
                                                  std::ios::out | std::ios::binary) };
             file.handle().exceptions(std::ios_base::failbit | std::ios_base::badbit);
 
-            request::Request req;
+            ncrequest::Request req;
             req.set_url("https://mirrors.aliyun.com/ubuntu-releases/jammy/"
                         "ubuntu-22.04.2-desktop-amd64.iso")
                 .set_header("user-agent", "curl/7.87.0");

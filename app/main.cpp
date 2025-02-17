@@ -8,7 +8,7 @@
 #define QCM_LOG_IMPL
 
 #include "Qcm/app.h"
-#include "request/request.h"
+#include "ncrequest/request.hpp"
 #include "core/log.h"
 #include "platform/platform.h"
 
@@ -20,7 +20,7 @@ Q_IMPORT_QML_PLUGIN(Qcm_AppPlugin)
 int main(int argc, char* argv[]) {
     plt::malloc_init();
     auto         logger = qcm::LogManager::instance();
-    request::global_init();
+    ncrequest::global_init();
     QGuiApplication gui_app(argc, argv);
 
     QCoreApplication::setApplicationName(APP_NAME);

@@ -9,7 +9,7 @@
 #include "asio_helper/watch_dog.h"
 #include "Qcm/image_response.h"
 
-#include "request/request.h"
+#include "ncrequest/request.hpp"
 
 namespace ncm
 {
@@ -43,7 +43,7 @@ public:
     QQuickImageResponse* requestImageResponse(const QString& id,
                                               const QSize&   requestedSize) override;
 
-    static request::Request makeReq(const QString& id, const QSize& requestedSize, ncm::Client&);
+    static ncrequest::Request makeReq(const QString& id, const QSize& requestedSize, ncm::Client&);
 
 private:
     rc<QcmImageProviderInner> m_inner;

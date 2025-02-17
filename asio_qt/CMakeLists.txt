@@ -11,4 +11,4 @@ add_library(asio_qt STATIC
 )
 
 target_include_directories(asio_qt PUBLIC include PRIVATE include/asio_qt)
-target_link_libraries(asio_qt PUBLIC core asio_helper Qt6::Core PRIVATE request fmt::fmt)
+target_link_libraries(asio_qt PUBLIC core asio_helper Qt6::Core PRIVATE ncrequest::ncrequest fmt::fmt)

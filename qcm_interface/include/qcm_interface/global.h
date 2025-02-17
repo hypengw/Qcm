@@ -24,7 +24,7 @@
 
 Q_MOC_INCLUDE("qcm_interface/model/user_model.h")
 
-namespace request
+namespace ncrequest
 {
 class Session;
 }
@@ -80,7 +80,7 @@ public:
 
     auto qexecutor() -> qt_executor_t&;
     auto pool_executor() -> pool_executor_t;
-    auto session() -> rc<request::Session>;
+    auto session() -> rc<ncrequest::Session>;
     auto qsession() const -> model::Session*;
     auto busy_info() const -> model::BusyInfo*;
     auto app_state() const -> state::AppState*;

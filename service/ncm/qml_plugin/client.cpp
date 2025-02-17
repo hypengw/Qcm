@@ -412,11 +412,11 @@ void load(ClientBase& cbase, const std::filesystem::path& path) {
     c.load(path);
 }
 
-bool make_request(ClientBase& cbase, request::Request& req, const QUrl& url,
+bool make_request(ClientBase& cbase, ncrequest::Request& req, const QUrl& url,
                   const qcm::Client::ReqInfo& info) {
     auto c = *get_client(cbase);
     std::visit(overloaded { [c, &url, &req](const qcm::Client::ReqInfoImg& info) {
-                   request::UrlParams query;
+                   ncrequest::UrlParams query;
                    if (info.size.isValid()) {
                        auto down_size = get_down_size(info.size);
                        query.set_param("param",

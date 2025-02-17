@@ -129,7 +129,7 @@ target_link_libraries(
          error
          asio_helper
          asio_qt
-         request
+         ncrequest::ncrequest
          json_helper
          meta_model
          Qt::Qml

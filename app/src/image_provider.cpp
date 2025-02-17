@@ -16,8 +16,8 @@
 #include "qcm_interface/global.h"
 
 #include "core/expected_helper.h"
-#include "request/response.h"
-#include "request/session.h"
+#include "ncrequest/response.hpp"
+#include "ncrequest/session.hpp"
 #include "asio_helper/sync_file.h"
 #include "crypto/crypto.h"
 #include "Qcm/app.h"
@@ -28,7 +28,7 @@ using namespace qcm;
 
 namespace
 {
-void header_record_db(const request::HttpHeader& h, media_cache::DataBase::Item& db_it) {
+void header_record_db(const ncrequest::HttpHeader& h, media_cache::DataBase::Item& db_it) {
     static constexpr auto DigitPattern = ctll::fixed_string { "\\d*" };
     for (auto& f : h.fields) {
         if (helper::case_insensitive_compare(f.name, "content-type") == 0)
@@ -69,7 +69,7 @@ public:
           m_session(Global::instance()->session()),
           m_cache_sql(Global::instance()->get_cache_sql()) {}
 
-    task<request::HttpHeader> dl_image(const request::Request& req, std::filesystem::path p) {
+    task<ncrequest::HttpHeader> dl_image(const ncrequest::Request& req, std::filesystem::path p) {
         helper::SyncFile file { std::fstream(p, std::ios::out | std::ios::binary) };
         file.handle().exceptions(std::ios_base::failbit | std::ios_base::badbit);
 
@@ -81,7 +81,7 @@ public:
         co_return rsp_http->header();
     }
 
-    task<void> cache_new_image(const request::Request& req, std::string_view key,
+    task<void> cache_new_image(const ncrequest::Request& req, std::string_view key,
                                std::filesystem::path cache_file, QSize req_size) {
         media_cache::DataBase::Item db_it;
         db_it.key = key;
@@ -95,7 +95,7 @@ public:
         co_await m_cache_sql->insert(db_it);
     }
 
-    task<QImage> request_image(const request::Request& req, std::filesystem::path cache_path,
+    task<QImage> request_image(const ncrequest::Request& req, std::filesystem::path cache_path,
                                QSize req_size) {
         std::string key = cache_path.filename().native();
         asio::co_spawn(m_cache_sql->get_executor(), m_cache_sql->get(key), asio::detached);
@@ -111,7 +111,7 @@ public:
         co_return img;
     }
 
-    task<void> handle_request(rc<QcmAsyncImageResponse> rsp, request::Request req,
+    task<void> handle_request(rc<QcmAsyncImageResponse> rsp, ncrequest::Request req,
                               std::filesystem::path cache_path, QSize req_size) {
         auto img   = co_await request_image(req, cache_path, req_size);
         rsp->image = img;
@@ -120,7 +120,7 @@ public:
 
 private:
     executor_type             m_ex;
-    rc<request::Session>      m_session;
+    rc<ncrequest::Session>      m_session;
     rc<media_cache::DataBase> m_cache_sql;
 };
 } // namespace qcm
@@ -139,7 +139,7 @@ QQuickImageResponse* QcmImageProvider::requestImageResponse(const QString& id,
         auto [url, provider] = parse_image_provider_url(QStringLiteral("image://qcm/%1").arg(id));
         if (url.isEmpty()) break;
 
-        request::Request req;
+        ncrequest::Request req;
         if (auto c = Global::instance()->qsession()->client();
             c && c->api->provider == provider.toStdString()) {
             if (! c->api->make_request(

@@ -10,7 +10,7 @@
 
 using namespace media_cache;
 
-Server::Server(executor_type ex, rc<request::Session> s, rc<Fallbacks> fbs)
+Server::Server(executor_type ex, rc<ncrequest::Session> s, rc<Fallbacks> fbs)
     : m_ex(ex),
       m_strand(ex),
       m_writer(make_rc<Writer>(fbs)),

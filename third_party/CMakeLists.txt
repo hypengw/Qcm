@@ -109,3 +109,17 @@ endif()
 if(NOT TARGET cubeb::cubeb)
   add_library(cubeb::cubeb ALIAS cubeb)
 endif()
+
+
+# ncrequest
+find_package(ncrequest QUIET)
+if(NOT ncrequest_FOUND)
+  message(STATUS "ncrequest not found, fetching it...")
+  FetchContent_Declare(
+    ncrequest
+    GIT_REPOSITORY https://github.com/hypengw/ncrequest.git
+    GIT_TAG        748dd825b84f06d6398298029ea6828cbb44a107
+    GIT_SHALLOW 1
+    EXCLUDE_FROM_ALL)
+  FetchContent_MakeAvailable(ncrequest)
+endif()

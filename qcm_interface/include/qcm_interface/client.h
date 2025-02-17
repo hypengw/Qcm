@@ -12,7 +12,7 @@
 
 #include "error/error.h"
 
-namespace request
+namespace ncrequest
 {
 class Request;
 }
@@ -40,7 +40,7 @@ struct Client {
 
     struct Api {
         auto (*server_url)(ClientBase&, const model::ItemId&) -> std::string;
-        bool (*make_request)(ClientBase&, request::Request&, const QUrl& url, const ReqInfo& info);
+        bool (*make_request)(ClientBase&, ncrequest::Request&, const QUrl& url, const ReqInfo& info);
         void (*play_state)(ClientBase&, enums::PlaybackState state, model::ItemId item,
                            model::ItemId source, i64 played_second, QVariantMap extra);
         auto (*router)(ClientBase&) -> rc<Router>;

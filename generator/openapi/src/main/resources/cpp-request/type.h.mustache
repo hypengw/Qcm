@@ -1,6 +1,6 @@
 #pragma once
 
-#include "request/request.h"
+#include "ncrequest/request.hpp"
 #include "error/error.h"
 #include "json_helper/helper.h"
 
@@ -10,10 +10,10 @@ using json_t = qcm::json::njson;
 
 using Params     = std::map<std::string, std::string, std::less<>>;
 using Error      = error::Error;
-using BodyReader = request::req_opt::Read;
+using BodyReader = ncrequest::req_opt::Read;
 
-using Operation = request::Operation;
-using UrlParams = request::UrlParams;
+using Operation = ncrequest::Operation;
+using UrlParams = ncrequest::UrlParams;
 
 template<typename T>
 using Result = nstd::expected<T, Error>;

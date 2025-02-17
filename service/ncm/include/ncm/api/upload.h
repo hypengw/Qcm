@@ -67,8 +67,8 @@ struct Upload {
         q.set_param("complete", convert_from<std::string>(input.complete));
         return q;
     }
-    auto header() const -> request::Header {
-        request::Header h;
+    auto header() const -> ncrequest::Header {
+        ncrequest::Header h;
         h.insert({ "x-nos-token", input.nos_token });
         h.insert({ "Content-Type", input.content_type });
         h.insert({ "Content-MD5", input.content_md5 });

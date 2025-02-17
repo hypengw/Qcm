@@ -8,7 +8,7 @@
 #include <ctre.hpp>
 
 #include "core/log.h"
-#include "request/session.h"
+#include "ncrequest/session.hpp"
 #include "qcm_interface/path.h"
 #include "qcm_interface/ex.h"
 #include "qcm_interface/plugin.h"
@@ -91,7 +91,7 @@ void GlobalWrapper::connect_to_global(Global* g, R (Global::*g_func)(ARGS...),
 Global::Private::Private(Global* p)
     : qt_ex(std::make_shared<QtExecutionContext>(p, (QEvent::Type)QEvent::registerEventType())),
       pool(get_pool_size()),
-      session(std::make_shared<request::Session>(pool.get_executor())),
+      session(std::make_shared<ncrequest::Session>(pool.get_executor())),
       qsession(nullptr),
       qsession_empty(new model::Session(p)),
       user_model(nullptr),
@@ -153,7 +153,7 @@ auto Global::pool_executor() -> pool_executor_t {
     C_D(Global);
     return d->pool.executor();
 }
-auto Global::session() -> rc<request::Session> {
+auto Global::session() -> rc<ncrequest::Session> {
     C_D(Global);
     return d->session;
 }
