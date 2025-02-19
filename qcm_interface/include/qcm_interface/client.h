@@ -24,7 +24,10 @@ class UserAccount;
 class Session;
 } // namespace model
 
-struct ClientBase : std::enable_shared_from_this<ClientBase>, NoCopy {};
+struct ClientBase : std::enable_shared_from_this<ClientBase>, NoCopy {
+    std::string provider_name;
+    i64         provider_id { -1 };
+};
 
 struct Client {
     template<typename T>
@@ -40,7 +43,8 @@ struct Client {
 
     struct Api {
         auto (*server_url)(ClientBase&, const model::ItemId&) -> std::string;
-        bool (*make_request)(ClientBase&, ncrequest::Request&, const QUrl& url, const ReqInfo& info);
+        bool (*make_request)(ClientBase&, ncrequest::Request&, const QUrl& url,
+                             const ReqInfo& info);
         void (*play_state)(ClientBase&, enums::PlaybackState state, model::ItemId item,
                            model::ItemId source, i64 played_second, QVariantMap extra);
         auto (*router)(ClientBase&) -> rc<Router>;
@@ -49,7 +53,9 @@ struct Client {
         auto (*session_check)(ClientBase&, helper::QWatcher<model::Session>) -> task<Result<bool>>;
         auto (*collect)(ClientBase&, model::ItemId, bool) -> task<Result<bool>>;
         auto (*media_url)(ClientBase&, model::ItemId, enums::AudioQuality) -> task<Result<QUrl>>;
-        auto (*sync_collection)(ClientBase&, enums::CollectionType) -> task<Result<bool>>;
+        auto (*sync_library_list)(ClientBase&) -> task<Result<bool>>;
+        auto (*sync_collection)(ClientBase&, i64 library_id, enums::CollectionType)
+            -> task<Result<bool>>;
         auto (*sync_items)(ClientBase&, std::span<const model::ItemId>) -> task<Result<bool>>;
         auto (*sync_list)(ClientBase&, enums::SyncListType type, model::ItemId itemId, i32 offset,
                           i32 limit) -> task<Result<i32>>;

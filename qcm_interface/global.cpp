@@ -205,6 +205,59 @@ auto Global::user_model() const -> UserModel* {
     return d->user_model;
 }
 
+auto Global::qsession(i64 provider_id) const -> model::Session* {
+    C_D(const Global);
+    std::unique_lock lock { d->mutex };
+    if (auto it = d->provider_sessions.find(provider_id); it != d->provider_sessions.end()) {
+        return it->second;
+    }
+    return nullptr;
+}
+
+void Global::add_qsession(i64 provider_id, model::Session* s) {
+    C_D(Global);
+    {
+        std::unique_lock lock { d->mutex };
+        d->provider_sessions.insert_or_assign(provider_id, s);
+        d->provider_ids.insert(provider_id);
+    }
+    connect(s, &QObject::destroyed, [provider_id, this]() {
+        C_D(Global);
+        std::unique_lock lock { d->mutex };
+        d->provider_sessions.erase(provider_id);
+    });
+}
+
+auto Global::client(i64 provider) const -> std::optional<Client> {
+    if (auto s = qsession(provider)) {
+        return s->client();
+    }
+    return std::nullopt;
+}
+auto Global::generate_provider_id() const -> i64 {
+    C_D(const Global);
+    std::unique_lock lock { d->mutex };
+    for (i32 i = 0; i < std::numeric_limits<i32>::max(); i++) {
+        if (auto it = d->provider_ids.find(i); it == d->provider_ids.end()) {
+            d->provider_ids.insert(i);
+            return i;
+        }
+    }
+    _assert_(false);
+    return -1;
+}
+
+auto Global::provider_id(i64 library_id) -> i64 {
+    C_D(const Global);
+    std::unique_lock lock { d->mutex };
+
+    if (auto it = d->library_to_provider_id_map.find(library_id);
+        it != d->library_to_provider_id_map.end()) {
+        return it->second;
+    }
+    return -1;
+}
+
 auto Global::copy_action_comp() const -> QQmlComponent* {
     C_D(const Global);
     return d->copy_action_comp;

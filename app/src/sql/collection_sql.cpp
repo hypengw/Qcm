@@ -13,6 +13,7 @@
 #include "core/qstr_helper.h"
 #include "core/log.h"
 #include "asio_qt/qt_sql.h"
+#include "qcm_interface/global.h"
 
 namespace qcm
 {
@@ -35,6 +36,12 @@ void CollectionSql::connect_db() {
         auto migs = m_con->generate_column_migration(
             m_table,
             std::array {
+                helper::SqlColumn { .name    = "libraryId",
+                                    .type    = "INTEGER",
+                                    .notnull = 1,
+                                    .foreign = helper::SqlForeignKey { .from_ = "libraryId",
+                                                                       .table = "library",
+                                                                       .to    = "libraryId" } },
                 helper::SqlColumn { .name = "userId", .type = "TEXT", .notnull = 1 },
                 helper::SqlColumn { .name = "type", .type = "TEXT", .notnull = 1 },
                 helper::SqlColumn { .name = "itemId", .type = "TEXT", .notnull = 1 },
@@ -77,8 +84,8 @@ auto CollectionSql::select_id(model::ItemId userId, QString type)
     if (! type.isEmpty()) {
         cond = "AND type = :type";
     }
-    query.prepare(u"SELECT itemId FROM %1 WHERE userId = :userId %2"_s.arg(m_table).arg(cond));
-    query.bindValue(":userId", userId.toUrl());
+    query.prepare("SELECT itemId,type,libraryId FROM {} WHERE userId = :userId {}", m_table, cond);
+    query.bindValue(":userId", userId.id());
     if (! type.isEmpty()) {
         query.bindValue(":type", type);
     }
@@ -86,7 +93,11 @@ auto CollectionSql::select_id(model::ItemId userId, QString type)
     std::vector<model::ItemId> out;
     if (query.exec()) {
         while (query.next()) {
-            out.emplace_back(model::ItemId(query.value("itemId").toString()));
+            model::ItemId id;
+            id.set_id(query.value("itemId").toString());
+            id.set_type(query.value("type").toString());
+            id.set_library_id(query.value("libraryId").toLongLong());
+            out.push_back(id);
         }
     } else {
         ERROR_LOG("{}", query.lastError().text());
@@ -99,9 +110,9 @@ auto CollectionSql::select_removed(model::ItemId user_id, const QString& type,
 
     auto query = m_con->query();
     query.prepare(
-        uR"(SELECT itemId FROM %1 WHERE userId = :userId AND type = :type AND collectTime >= :time AND removed = 1;)"_s
-            .arg(m_table));
-    query.bindValue(":userId", user_id.toUrl());
+        R"(SELECT itemId FROM {} WHERE userId = :userId AND type = :type AND collectTime >= :time AND removed = 1;)",
+        m_table);
+    query.bindValue(":userId", user_id.id());
     query.bindValue(":type", type);
     query.bindValue(":time", time.toUTC().addSecs(-1));
 
@@ -123,7 +134,7 @@ auto CollectionSql::select_missing(const model::ItemId& user_id, std::string_vie
     std::vector<model::ItemId> ids;
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
     auto query = con()->query();
-    query.prepare_sv(fmt::format(
+    query.prepare(
         R"(
 SELECT 
     collection.itemId
@@ -133,8 +144,8 @@ WHERE collection.userId = :userId AND collection.type = '{0}' AND collection.rem
 )",
         type,
         join,
-        db::null<db::OR, db::EQ>(not_null, join)));
-    query.bindValue(":userId", user_id.toUrl());
+        db::null<db::OR, db::EQ>(not_null, join));
+    query.bindValue(":userId", user_id.id());
 
     if (! query.exec()) {
         ERROR_LOG("{}", query.lastError().text());
@@ -146,7 +157,7 @@ WHERE collection.userId = :userId AND collection.type = '{0}' AND collection.rem
     co_return ids;
 }
 
-auto CollectionSql::refresh(model::ItemId userId, QString type,
+auto CollectionSql::refresh(model::ItemId user_id, i64 provider_id, QString type,
                             std::span<const model::ItemId> itemIds,
                             std::span<const QDateTime>     times) -> task<bool> {
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
@@ -154,7 +165,7 @@ auto CollectionSql::refresh(model::ItemId userId, QString type,
         co_return false;
     }
 
-    if (! remove_sync(userId, type) || ! insert_sync(userId, itemIds, times) ||
+    if (! remove_sync(user_id, provider_id, type) || ! insert_sync(user_id, itemIds, times) ||
         ! delete_removed()) {
         m_con->rollback();
         co_return false;
@@ -169,21 +180,25 @@ auto CollectionSql::refresh(model::ItemId userId, QString type,
 
 bool CollectionSql::insert_sync(std::span<const Item> items) {
     auto query = m_con->query();
-    query.prepare(QStringLiteral(R"(
-INSERT INTO %1 (userId, type, itemId, collectTime)
-VALUES (:userId, :type, :itemId, :collectTime)
-ON CONFLICT(userId, itemId) DO UPDATE
+    query.prepare(R"(
+INSERT INTO {0} (libraryId, userId, type, itemId, collectTime)
+VALUES (:libraryId, :userId, :type, :itemId, :collectTime)
+ON CONFLICT(libraryId, userId, itemId) DO UPDATE
 SET 
 type = :type,
 collectTime = :collectTime,
 removed = 0;
-)")
-                      .arg(m_table));
+)",
+                  m_table);
 
+    auto library_id = QVariant::fromValue((i64)0);
+    auto g          = Global::instance();
     for (auto& item : items) {
-        query.bindValue(":userId", item.user_id.toUrl());
+        library_id.setValue(item.item_id.library_id());
+        query.bindValue(":libraryId", library_id);
+        query.bindValue(":userId", item.user_id.id());
         query.bindValue(":type", item.type);
-        query.bindValue(":itemId", item.item_id.toUrl());
+        query.bindValue(":itemId", item.item_id.id());
         query.bindValue(":collectTime",
                         item.collect_time.value_or(QDateTime::currentDateTimeUtc()));
 
@@ -198,20 +213,27 @@ removed = 0;
 bool CollectionSql::insert_sync(model::ItemId userId, std::span<const model::ItemId> ids,
                                 std::span<const QDateTime> times) {
     auto query = m_con->query();
-    query.prepare(QStringLiteral(R"(
-INSERT INTO %1 (userId, itemId, type, collectTime)
-VALUES (:userId, :itemId, :type, :collectTime)
+    query.prepare(R"(
+INSERT INTO {} (libraryId, userId, itemId, type, collectTime)
+VALUES (:libraryId, :userId, :itemId, :type, :collectTime)
 ON CONFLICT(userId, itemId) DO UPDATE
 SET 
 type = :type,
 collectTime = :collectTime,
 removed = 0;
-)")
-                      .arg(m_table));
-    auto cur = QDateTime::currentDateTimeUtc();
+)",
+                  m_table);
+    auto cur         = QDateTime::currentDateTimeUtc();
+    auto library_id  = QVariant::fromValue((i64)0);
+    auto provider_id = QVariant::fromValue((i64)0);
+
+    auto g = Global::instance();
     for (usize i = 0; i < ids.size(); i++) {
-        query.bindValue(":userId", userId.toUrl());
-        query.bindValue(":itemId", ids[i].toUrl());
+        library_id.setValue(ids[i].library_id());
+        query.bindValue(":libraryId", library_id);
+        query.bindValue(":providerId", provider_id);
+        query.bindValue(":userId", userId.id());
+        query.bindValue(":itemId", ids[i].id());
         query.bindValue(":type", ids[i].type());
         if (i < times.size()) {
             query.bindValue(":collectTime", times[i]);
@@ -228,22 +250,26 @@ removed = 0;
 }
 
 bool CollectionSql::remove_sync(model::ItemId user_id, std::span<const model::ItemId> ids) {
+    if (ids.empty()) return true;
     QStringList list;
     for (usize i = 0; i < ids.size(); i++) {
         list << QString(":id%1").arg(i);
     }
     auto query = m_con->query();
-    query.prepare(uR"(
-UPDATE %1
+    query.prepare(R"(
+UPDATE {0}
 SET removed = 1, collectTime = (STRFTIME('%Y-%m-%dT%H:%M:%S.000Z', 'now'))
-WHERE userId = :userId AND itemId IN (%2);
-)"_s.arg(m_table)
-                      .arg(list.join(",")));
+WHERE libraryId = :libraryId AND userId = :userId AND itemId IN ({1});
+)",
+                  m_table,
+                  list.join(","));
 
-    query.bindValue(":userId", user_id.toUrl());
+    auto library_id = QVariant::fromValue(ids[0].library_id());
+    query.bindValue(":libraryId", library_id);
+    query.bindValue(":userId", user_id.id());
 
     for (usize i = 0; i < ids.size(); i++) {
-        query.bindValue(list[i], ids[i].toUrl());
+        query.bindValue(list[i], ids[i].id());
     }
 
     if (! query.exec()) {
@@ -253,14 +279,21 @@ WHERE userId = :userId AND itemId IN (%2);
     return true;
 }
 
-bool CollectionSql::delete_with(model::ItemId userId, QString type) {
+bool CollectionSql::delete_with(model::ItemId userId, i64 provider_id, QString type) {
     auto query = m_con->query();
 
     QStringList cond;
     cond << "userId = :userId";
     if (! type.isEmpty()) cond << "type = :type";
-    query.prepare(QStringLiteral("DELETE FROM %1 WHERE %2").arg(m_table).arg(cond.join(" AND ")));
-    query.bindValue(":userId", userId.toUrl());
+    query.prepare(R"(
+DELETE FROM {0}
+JOIN library ON library.providerId = {2}
+WHERE {1} AND library.libraryId = {0}.libraryId
+)",
+                  m_table,
+                  cond.join(" AND "),
+                  provider_id);
+    query.bindValue(":userId", userId.id());
     if (! type.isEmpty()) query.bindValue(":type", type);
 
     if (! query.exec()) {
@@ -270,22 +303,23 @@ bool CollectionSql::delete_with(model::ItemId userId, QString type) {
     return true;
 }
 
-bool CollectionSql::remove_sync(model::ItemId userId, QString type) {
+bool CollectionSql::remove_sync(model::ItemId userId, i64 provider_id, QString type) {
     auto query = m_con->query();
 
     QStringList cond;
     cond << "userId = :userId";
     if (! type.isEmpty()) cond << "type = :type";
 
-    query.prepare(QStringLiteral(R"(
-UPDATE %1
+    query.prepare(R"(
+UPDATE {0}
 SET removed = 1
-WHERE %2
-)")
-                      .arg(m_table)
-                      .arg(cond.join(" AND ")));
+WHERE {1} AND libraryId IN (SELECT libraryId FROM library WHERE providerId = {2})
+)",
+                  m_table,
+                  cond.join(" AND "),
+                  provider_id);
 
-    query.bindValue(":userId", userId.toUrl());
+    query.bindValue(":userId", userId.id());
     if (! type.isEmpty()) query.bindValue(":type", type);
 
     if (! query.exec()) {
@@ -297,7 +331,7 @@ WHERE %2
 
 bool CollectionSql::delete_removed() {
     auto query = m_con->query();
-    query.prepare(QStringLiteral(R"(DELETE FROM %1 WHERE removed = 1)").arg(m_table));
+    query.prepare(R"(DELETE FROM {} WHERE removed = 1)", m_table);
     if (! query.exec()) {
         ERROR_LOG("{}", query.lastError().text());
         return false;

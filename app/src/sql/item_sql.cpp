@@ -202,8 +202,11 @@ void ItemSql::create_radio_program_table() {
 }
 
 void ItemSql::create_library_table() {
-    auto migs = m_con->generate_meta_migration(
-        m_library_table, u"libraryId", model::Library::staticMetaObject, {});
+    auto migs =
+        m_con->generate_meta_migration(m_library_table,
+                                       u"libraryId",
+                                       model::Library::staticMetaObject,
+                                       { helper::SqlUnique { "providerId"sv, "nativeId"sv } });
 
     m_con->exec_with_transaction(migs);
 }
@@ -211,19 +214,89 @@ void ItemSql::create_library_table() {
 auto ItemSql::get_executor() -> QtExecutor& { return m_con->get_executor(); }
 auto ItemSql::con() const -> rc<helper::SqlConnect> { return m_con; }
 
+auto ItemSql::library_id(i64 provider_id, const QString& native_id) -> task<i64> {
+    co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
+
+    auto query = m_con->query();
+    query.prepare(R"(
+SELECT {1} 
+FROM {0}
+WHERE providerId = {2} AND nativeId = :nativeId
+)",
+                  m_library_table,
+                  LibraryIdColumn.name,
+                  provider_id);
+    query.bindValue(":nativeId", native_id);
+
+    if (query.exec()) {
+        if (query.next()) {
+            co_return query.value(0).toLongLong();
+        }
+    }
+
+    co_return -1;
+}
+auto ItemSql::library_id_list() -> task<std::vector<i64>> {
+    std::vector<i64> out;
+    co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
+
+    auto query = m_con->query();
+    query.prepare(R"(
+SELECT {1} 
+FROM {0} 
+ORDER BY {1};
+)",
+                  m_library_table,
+                  LibraryIdColumn.name);
+
+    if (query.exec()) {
+        while (query.next()) {
+            out.push_back(query.value(0).toLongLong());
+        }
+    }
+
+    co_return out;
+}
+
+auto ItemSql::library_list() -> task<std::vector<model::Library>> {
+    std::vector<model::Library> out;
+    co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
+
+    auto query = m_con->query();
+    query.prepare(R"(
+SELECT {1} 
+FROM {0} 
+ORDER BY {1};
+)",
+                  m_library_table,
+                  LibraryIdColumn.name);
+
+    if (query.exec()) {
+        while (query.next()) {
+        }
+    }
+    co_return out;
+}
+
 auto ItemSql::create_library(model::Library lib) -> task<model::Library> {
+    std::set<std::string> columns;
+    if (lib.libraryId == -1) {
+        // let sql generate
+        columns.insert({ "^libraryId" });
+    }
     auto insert_helper = m_con->generate_insert_helper(m_library_table,
-                                                       {},
+                                                       { "providerId", "nativeId" },
                                                        model::Library::staticMetaObject,
                                                        std::span<const model::Library> { &lib, 1 },
-                                                       { "^libraryId" });
+                                                       columns,
+                                                       columns);
 
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
     m_con->with_transaction([&insert_helper, &lib](auto& query) {
         insert_helper.bind(query);
         bool ok = true;
         do {
-            ok = query.exec();
+            ok = query.execBatch();
             YCORE_BREAK_ON(! ok);
             ok = query.exec("SELECT last_insert_rowid();");
             if (ok) {
@@ -246,8 +319,12 @@ auto ItemSql::delete_library(i64 lib_id) -> task<bool> {
 auto ItemSql::insert(std::span<const model::Album> items, ListParam columns, ListParam on_update)
     -> task<bool> {
     DEBUG_LOG("start insert album, {}", items.size());
-    auto insert_helper = m_con->generate_insert_helper(
-        m_album_table, { "itemId"s }, model::Album::staticMetaObject, items, columns, on_update);
+    auto insert_helper = m_con->generate_insert_helper(m_album_table,
+                                                       { "itemId"s, LibraryIdColumn.name },
+                                                       model::Album::staticMetaObject,
+                                                       items,
+                                                       columns,
+                                                       on_update);
 
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
 
@@ -263,8 +340,12 @@ auto ItemSql::insert(std::span<const model::Album> items, ListParam columns, Lis
 auto ItemSql::insert(std::span<const model::Artist> items, ListParam columns,
                      const std::set<std::string>& on_update) -> task<bool> {
     DEBUG_LOG("start insert artist, {}", items.size());
-    auto insert_helper = m_con->generate_insert_helper(
-        m_artist_table, { "itemId"s }, model::Artist::staticMetaObject, items, columns, on_update);
+    auto insert_helper = m_con->generate_insert_helper(m_artist_table,
+                                                       { "itemId"s, LibraryIdColumn.name },
+                                                       model::Artist::staticMetaObject,
+                                                       items,
+                                                       columns,
+                                                       on_update);
 
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
 
@@ -279,7 +360,7 @@ auto ItemSql::insert(std::span<const model::Song> items, ListParam columns, List
     -> task<bool> {
     DEBUG_LOG("start insert song, {}", items.size());
     auto insert_helper = m_con->generate_insert_helper(m_song_table,
-                                                       { "itemId"s },
+                                                       { "itemId"s, LibraryIdColumn.name },
                                                        model::Song::staticMetaObject,
                                                        items,
                                                        song_ignore(columns),
@@ -296,8 +377,12 @@ auto ItemSql::insert(std::span<const model::Song> items, ListParam columns, List
 auto ItemSql::insert(std::span<const model::Mix> items, ListParam columns,
                      const std::set<std::string>& on_update) -> task<bool> {
     DEBUG_LOG("start insert playlist, {}", items.size());
-    auto insert_helper = m_con->generate_insert_helper(
-        m_mix_table, { "itemId"s }, model::Mix::staticMetaObject, items, columns, on_update);
+    auto insert_helper = m_con->generate_insert_helper(m_mix_table,
+                                                       { "itemId"s, LibraryIdColumn.name },
+                                                       model::Mix::staticMetaObject,
+                                                       items,
+                                                       columns,
+                                                       on_update);
 
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
     m_con->with_transaction([&insert_helper](helper::SqlQuery& q) {
@@ -310,8 +395,12 @@ auto ItemSql::insert(std::span<const model::Mix> items, ListParam columns,
 auto ItemSql::insert(std::span<const model::Radio> items, ListParam columns,
                      const std::set<std::string>& on_update) -> task<bool> {
     DEBUG_LOG("start insert radio, {}", items.size());
-    auto insert_helper = m_con->generate_insert_helper(
-        m_radio_table, { "itemId"s }, model::Radio::staticMetaObject, items, columns, on_update);
+    auto insert_helper = m_con->generate_insert_helper(m_radio_table,
+                                                       { "itemId"s, LibraryIdColumn.name },
+                                                       model::Radio::staticMetaObject,
+                                                       items,
+                                                       columns,
+                                                       on_update);
 
     co_await asio::post(asio::bind_executor(get_executor(), asio::use_awaitable));
 
@@ -326,7 +415,7 @@ auto ItemSql::insert(std::span<const model::Program> items, ListParam columns,
                      const std::set<std::string>& on_update) -> task<bool> {
     DEBUG_LOG("start insert program, {}", items.size());
     auto insert_helper = m_con->generate_insert_helper(m_program_table,
-                                                       { "itemId"s },
+                                                       { "itemId"s, LibraryIdColumn.name },
                                                        model::Program::staticMetaObject,
                                                        items,
                                                        columns,

@@ -89,10 +89,10 @@ auto get_converter(int id) -> std::optional<Converter> {
             { qcm::model::ItemId::staticMetaObject.metaType().id(),
               {
                   [](const QVariant& in) -> QVariant {
-                      return QVariant::fromValue(qcm::model::ItemId(in.toUrl()));
+                      return QVariant::fromValue(in.toString());
                   },
                   [](const QVariant& in) -> QVariant {
-                      return in.value<qcm::model::ItemId>().toUrl();
+                      return in.value<qcm::model::ItemId>().id();
                   },
               } },
         },

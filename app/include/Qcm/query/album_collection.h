@@ -83,12 +83,12 @@ FROM album
 JOIN collection ON album.itemId = collection.itemId
 LEFT JOIN album_artist ON album.itemId = album_artist.albumId
 LEFT JOIN artist ON album_artist.artistId = artist.itemId
-WHERE collection.userId = :userId AND collection.type = "album" AND collection.collectTime > :time AND collection.removed = 0
+WHERE collection.type = "album" AND collection.collectTime > :time AND collection.removed = 0
 GROUP BY album.itemId
 ORDER BY collection.collectTime DESC;
 )",
                                      Album::sql().select));
-        query.bindValue(":userId", userId.toUrl());
+        // query.bindValue(":userId", userId.id());
         query.bindValue(":time", time);
 
         if (! query.exec()) {

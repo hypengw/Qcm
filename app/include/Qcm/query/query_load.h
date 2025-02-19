@@ -9,6 +9,12 @@ auto get_from_converter(int id) -> std::optional<Converter>;
 auto get_to_converter(int id) -> std::optional<Converter>;
 
 template<typename T>
+concept LibraryItemCP = requires(T t) {
+    { t.libraryId } -> std::same_as<i64>;
+    { t.id } -> std::same_as<model::ItemId>;
+};
+
+template<typename T>
 void load_query(QSqlQuery& query, T& gad, int& i) {
     for (auto prop_i : T::sql().idxs) {
         auto val  = query.value(i++);
@@ -17,6 +23,20 @@ void load_query(QSqlQuery& query, T& gad, int& i) {
             val = (*c)(val);
         }
         prop.writeOnGadget(&gad, val);
+
+        if constexpr (LibraryItemCP<T>) {
+            gad.id.set_library_id(gad.libraryId);
+        }
+
+        if constexpr (std::is_base_of_v<model::AlbumRefer, T>) {
+            gad.id.set_type("album");
+        } else if constexpr (std::is_base_of_v<model::ArtistRefer, T>) {
+            gad.id.set_type("artist");
+        } else if constexpr (std::is_base_of_v<model::MixRefer, T>) {
+            gad.id.set_type("mix");
+        } else if constexpr (std::is_base_of_v<model::Song, T>) {
+            gad.id.set_type("song");
+        }
     }
 }
 

@@ -18,6 +18,9 @@ public:
     auto get_executor() -> QtExecutor& override;
     auto con() const -> rc<helper::SqlConnect> override;
 
+    auto library_id(i64 provider_id, const QString& native_id) -> task<i64> override;
+    auto library_id_list() -> task<std::vector<i64>> override;
+    auto library_list() -> task<std::vector<model::Library>> override;
     auto create_library(model::Library) -> task<model::Library> override;
     auto delete_library(i64) -> task<bool> override;
 

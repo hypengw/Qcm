@@ -141,12 +141,12 @@ SELECT
     collection.collectTime 
 FROM playlist 
 JOIN collection ON playlist.itemId = collection.itemId
-WHERE collection.userId = :userId AND collection.type = "playlist" AND collection.collectTime > :time AND collection.removed = 0
+WHERE collection.type = "playlist" AND collection.collectTime > :time AND collection.removed = 0
 GROUP BY playlist.itemId
 ORDER BY collection.collectTime DESC;
 )",
                                      model::Mix::sql().select));
-        query.bindValue(":userId", userId.toUrl());
+        // query.bindValue(":userId", userId.id());
         query.bindValue(":time", time);
 
         if (! query.exec()) {

@@ -12,21 +12,24 @@ public:
     QString id;
     QString provider;
     QString type;
+    i64     library_id { -1 };
 };
 
 ItemId::ItemId(): d_ptr(make_up<Private>()) {}
 ItemId::ItemId(std::nullptr_t): ItemId() {}
 
-ItemId::ItemId(QStringView provider, QStringView type, QStringView id): ItemId() {
+ItemId::ItemId(QStringView provider, QStringView type, QStringView id, i64 library_id): ItemId() {
     set_provider(provider);
     set_type(type);
     set_id(id);
+    set_library_id(library_id);
 }
 
-ItemId::ItemId(std::string_view provider, std::string_view type, std::string_view id): ItemId() {
+ItemId::ItemId(std::string_view provider, std::string_view type, std::string_view id, i64 library_id): ItemId() {
     set_provider(convert_from<QString>(provider));
     set_type(convert_from<QString>(type));
     set_id(convert_from<QString>(id));
+    set_library_id(library_id);
 }
 
 ItemId::ItemId(const QUrl& u): ItemId() { set_url(u); }
@@ -60,6 +63,15 @@ auto ItemId::provider() const -> const QString& {
     C_D(const ItemId);
     return d->provider;
 }
+auto ItemId::library_id_str() const -> QString {
+    C_D(const ItemId);
+    return QString::number(d->library_id);
+}
+auto ItemId::library_id() const -> i64 {
+    C_D(const ItemId);
+    return d->library_id;
+}
+
 auto ItemId::valid() const -> bool {
     C_D(const ItemId);
 
@@ -88,6 +100,14 @@ void ItemId::set_provider(QStringView v) {
     C_D(ItemId);
     std::exchange(d->provider, v.toString());
 }
+void ItemId::set_library_id(QStringView v) {
+    C_D(ItemId);
+    std::exchange(d->library_id, v.toLongLong());
+}
+void ItemId::set_library_id(i64 v) {
+    C_D(ItemId);
+    std::exchange(d->library_id, v);
+}
 
 void ItemId::set_url(const QUrl& u) {
     C_D(ItemId);
@@ -95,15 +115,17 @@ void ItemId::set_url(const QUrl& u) {
     auto p = u.path();
     // remove '/'
     _assert_(p.startsWith('/') || p.isEmpty());
-    d->id       = p.isEmpty() ? p : p.sliced(1);
-    d->provider = u.host();
-    d->type     = u.userName();
+    d->id         = p.isEmpty() ? p : p.sliced(1);
+    d->provider   = u.host();
+    d->type       = u.userName();
+    d->library_id = u.password().toLongLong();
 }
 
 QUrl ItemId::toUrl() const {
     QUrl url;
     url.setScheme("itemid");
     url.setUserName(type());
+    url.setPassword(library_id_str());
     url.setHost(provider());
     url.setPath(convert_from<QString>(fmt::format("/{}", id())));
     return url;
@@ -116,6 +138,7 @@ std::strong_ordering ItemId::operator<=>(const ItemId& o) const noexcept {
         if (cmp = d->provider <=> o.d_func()->provider; cmp != 0) break;
         if (cmp = d->type <=> o.d_func()->type; cmp != 0) break;
         if (cmp = d->id <=> o.d_func()->id; cmp != 0) break;
+        if (cmp = d->library_id <=> o.d_func()->library_id; cmp != 0) break;
     } while (false);
     return cmp;
 }
@@ -144,5 +167,6 @@ std::size_t std::hash<qcm::model::ItemId>::operator()(const qcm::model::ItemId& 
     ycore::hash_combine(s, k.provider());
     ycore::hash_combine(s, k.type());
     ycore::hash_combine(s, k.id());
+    ycore::hash_combine(s, k.library_id());
     return s;
 }

@@ -22,6 +22,10 @@ void App::connect_actions() {
     connect(Action::instance(), &Action::collect, this, &App::on_collect);
     connect(Action::instance(), &Action::sync_item, this, &App::on_sync_item);
     connect(Action::instance(), &Action::sync_collection, this, &App::on_sync_collecttion);
+    connect(Action::instance(),
+            &Action::sync_library_collection,
+            this,
+            &App::on_sync_library_collecttion);
     connect(Action::instance(), &Action::queue_ids, this, &App::on_queue_ids);
     connect(Action::instance(), &Action::switch_ids, this, &App::on_switch_ids);
     connect(Action::instance(), &Action::play_by_id, this, &App::on_play_by_id);
@@ -185,6 +189,17 @@ void App::on_load_session(model::Session* session) {
         [client, weak] -> task<void> {
             auto res = co_await client->api->session_check(*(client->instance), weak);
             auto g   = Global::instance();
+
+            auto provider_id = weak->user()->providerId();
+            if (res && *res) {
+                g->add_qsession(provider_id, weak);
+                asio::co_spawn(
+                    qcm::strand_executor(),
+                    [provider_id] -> task<void> {
+                        co_await query::SyncAPi::sync_library_list(provider_id);
+                    },
+                    helper::asio_detached_log_t {});
+            }
             co_await asio::post(asio::bind_executor(g->qexecutor(), asio::use_awaitable));
 
             res.transform([&weak, g](bool ok) {
@@ -301,8 +316,7 @@ void App::on_collect(model::ItemId id, bool act) {
                 auto sql = Global::instance()->get_collection_sql();
                 auto ok  = co_await c->api->collect(*(c->instance), id, act);
                 if (ok.value_or(false)) {
-                    co_await asio::post(
-                        asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
+                    co_await asio::post(asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
 
                     auto item = db::ColletionSqlBase::Item::from(user->userId(), id);
                     if (act) {
@@ -337,6 +351,15 @@ void App::on_sync_collecttion(enums::CollectionType ct) {
         ex,
         [ct] -> task<void> {
             co_await query::SyncAPi::sync_collection(ct);
+        },
+        helper::asio_detached_log_t {});
+}
+void App::on_sync_library_collecttion(i64 library_id, enums::CollectionType ct) {
+    auto ex = qcm::strand_executor();
+    asio::co_spawn(
+        ex,
+        [ct, library_id] -> task<void> {
+            co_await query::SyncAPi::sync_collection(library_id, ct);
         },
         helper::asio_detached_log_t {});
 }

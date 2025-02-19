@@ -13,6 +13,7 @@
 #include "qcm_interface/notifier.h"
 #include "qcm_interface/sql/meta_sql.h"
 #include "qcm_interface/model/query_model.h"
+#include "qcm_interface/sync_api.h"
 #include "asio_helper/basic.h"
 
 #include "json_helper/helper.inl"
@@ -31,6 +32,7 @@ public:
 
 UserAccount::UserAccount(QObject* parent): d_ptr(make_up<Private>(this)) {
     this->setParent(parent);
+    this->set_providerId(-1);
 
     connect(Notifier::instance(),
             &Notifier::collection_synced,

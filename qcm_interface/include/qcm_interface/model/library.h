@@ -14,7 +14,7 @@ struct Library {
     Q_GADGET_EXPORT(QCM_INTERFACE_API)
     QML_ANONYMOUS
 public:
-    GADGET_PROPERTY_DEF(qint64, libraryId, libraryId)
+    GADGET_PROPERTY(qint64, libraryId, libraryId, -1)
     GADGET_PROPERTY_DEF(QString, name, name)
     GADGET_PROPERTY_DEF(qint64, providerId, providerId)
     GADGET_PROPERTY_DEF(QString, nativeId, nativeId)

@@ -2,13 +2,31 @@
 #include "qcm_interface/global.h"
 #include "qcm_interface/notifier.h"
 
+#include "qcm_interface/action.h"
+#include "qcm_interface/sql/item_sql.h"
+
 namespace qcm::query
 {
+
+auto SyncAPi::sync_library_list(i64 providerId) -> task<Result<bool>> {
+    if (auto c = Global::instance()->client(providerId)) {
+        co_return co_await c->api->sync_library_list(*c);
+    }
+    co_return false;
+}
 auto SyncAPi::sync_collection(enums::CollectionType ct) -> task<Result<bool>> {
+    auto sql = Global::instance()->get_item_sql();
+    auto ids = co_await sql->library_id_list();
+    for (auto id : ids) {
+        Action::instance()->sync_library_collection(id, ct);
+    }
+    co_return true;
+}
+auto SyncAPi::sync_collection(i64 library_id, enums::CollectionType ct) -> task<Result<bool>> {
     auto t      = QDateTime::currentDateTime();
     auto userId = Global::instance()->qsession()->user()->userId();
     if (auto c = Global::instance()->qsession()->client()) {
-        auto out = co_await c->api->sync_collection(*c->instance, ct);
+        auto out = co_await c->api->sync_collection(*c->instance, library_id, ct);
         Notifier::instance()->collection_synced(ct, userId, t);
         co_return out;
     }

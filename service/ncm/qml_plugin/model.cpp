@@ -28,10 +28,10 @@ using namespace qcm;
 namespace ncm
 {
 
-auto to_ncm_id(model::IdType t, i64 id) -> qcm::model::ItemId {
-    return to_ncm_id(t, std::to_string(id));
+auto to_item_id(model::IdType t, i64 id, i64 library_id) -> qcm::model::ItemId {
+    return to_item_id(t, std::to_string(id), library_id);
 }
-auto to_ncm_id(model::IdType t, std::string_view id) -> qcm::model::ItemId {
+auto to_item_id(model::IdType t, std::string_view id, i64 library_id) -> qcm::model::ItemId {
     auto type_str = convert_from<std::string>(t);
 
     if (type_str.empty()) {
@@ -39,7 +39,7 @@ auto to_ncm_id(model::IdType t, std::string_view id) -> qcm::model::ItemId {
         return {};
     }
 
-    ItemId out { provider, type_str, id };
+    ItemId out { provider, type_str, id, library_id };
     return out;
 }
 

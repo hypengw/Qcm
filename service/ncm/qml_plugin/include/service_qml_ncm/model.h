@@ -58,8 +58,8 @@ namespace ncm
 {
 using ItemId = qcm::model::ItemId;
 
-auto to_ncm_id(model::IdType, std::string_view) -> qcm::model::ItemId;
-auto to_ncm_id(model::IdType, i64) -> qcm::model::ItemId;
+auto to_item_id(model::IdType, std::string_view, i64 library_id) -> qcm::model::ItemId;
+auto to_item_id(model::IdType, i64, i64 library_id) -> qcm::model::ItemId;
 auto to_ncm_id(const ItemId&) -> model::IdTypes::append<std::monostate>::to<std::variant>;
 auto ncm_id_type(const ItemId&) -> std::optional<model::IdType>;
 
@@ -70,7 +70,7 @@ template<typename T>
 struct Convert<ncm::ItemId, T> {
     static void from(ncm::ItemId& out, const T& in) {
         using namespace ncm::model;
-        out = ncm::to_ncm_id(in.id_type, in.as_str());
+        out = ncm::to_item_id(in.id_type, in.as_str(), -1);
     }
 };
 

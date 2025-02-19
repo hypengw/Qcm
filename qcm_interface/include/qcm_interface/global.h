@@ -90,6 +90,11 @@ public:
     auto get_item_sql() const -> rc<db::ItemSqlBase>;
 
     auto user_model() const -> UserModel*;
+    auto qsession(i64 provider_id) const -> model::Session*;
+    auto client(i64 provider_id) const -> std::optional<Client>;
+    auto generate_provider_id() const -> i64;
+    void add_qsession(i64 provider_id, model::Session*);
+    auto provider_id(i64 library_id) -> i64;
 
     auto copy_action_comp() const -> QQmlComponent*;
     auto uuid() const -> const QUuid&;

@@ -60,6 +60,8 @@ namespace ncm::impl
 {
 using ClientBase = qcm::ClientBase;
 
+auto sync_library_list(ClientBase& cbase) -> qcm::task<Result<bool>>;
+
 struct Client : public ClientBase {
     Client(ncm::Client ncm): ncm(ncm), user_fav_mix_id() {}
     ncm::Client           ncm;
@@ -109,8 +111,12 @@ inline QSize get_down_size(const QSize& req) {
     return req.scaled(size, size, Qt::AspectRatioMode::KeepAspectRatioByExpanding);
 }
 
-auto prepare_session(ncm::Client c, qcm::model::ItemId userId) -> qcm::task<void> {
+auto prepare_session(rc<qcm::ClientBase> cbase, ncm::Client c, qcm::model::ItemId userId) -> qcm::task<void> {
     auto sql = qcm::Global::instance()->get_collection_sql();
+    auto item_sql = qcm::Global::instance()->get_item_sql();
+
+    co_await ncm::impl::sync_library_list(*cbase);
+    auto library_id = co_await item_sql->library_id(cbase->provider_id, {});
 
     ncm::api::SongLike api;
     api.input.uid                       = convert_from<ncm::model::UserId>(userId);
@@ -118,11 +124,11 @@ auto prepare_session(ncm::Client c, qcm::model::ItemId userId) -> qcm::task<void
     std::vector<qcm::model::ItemId> ids;
     if (res) {
         for (auto& id : res.value().ids) {
-            auto item_id = ncm::to_ncm_id(ncm::model::IdType::Song, id);
+            auto item_id = ncm::to_item_id(ncm::model::IdType::Song, id, library_id);
             ids.push_back(item_id);
         }
 
-        co_await sql->refresh(userId, "song", ids);
+        co_await sql->refresh(userId, cbase->provider_id, "song", ids);
 
         qcm::Global::instance()->qsession()->user()->query();
     }
@@ -130,25 +136,27 @@ auto prepare_session(ncm::Client c, qcm::model::ItemId userId) -> qcm::task<void
 }
 
 template<typename T>
-auto insert_artist(const T& in_list, rc<qcm::db::ItemSqlBase> sql, std::set<std::string> on_update)
-    -> qcm::task<void> {
+auto insert_artist(i64 library_id, const T& in_list, rc<qcm::db::ItemSqlBase> sql,
+                   std::set<std::string> on_update) -> qcm::task<void> {
     auto list = qcm::oper::ArtistOper::create_list(0);
     for (auto& ar : in_list) {
         auto oper = qcm::oper::ArtistOper(list.emplace_back());
         convert(oper, ar);
+        oper.set_libraryId(library_id);
     }
     co_await sql->insert(list, on_update);
 }
 
 template<typename T, typename Func>
-auto insert_album(const T& in_list, Func&& get_artists, rc<qcm::db::ItemSqlBase> sql,
-                  const std::set<std::string>& columns, const std::set<std::string>& artist_columns)
-    -> qcm::task<void> {
+auto insert_album(i64 library_id, const T& in_list, Func&& get_artists,
+                  rc<qcm::db::ItemSqlBase> sql, const std::set<std::string>& columns,
+                  const std::set<std::string>& artist_columns) -> qcm::task<void> {
     auto                                                list = qcm::oper::AlbumOper::create_list(0);
     std::vector<qcm::db::ItemSqlBase::RelationInsertId> album_artist_ids;
     for (auto& el : in_list) {
         auto oper = qcm::oper::AlbumOper(list.emplace_back());
         convert(oper, el);
+        oper.set_libraryId(library_id);
         for (auto& ar : get_artists(el)) {
             album_artist_ids.emplace_back(oper.libraryId(),
                                           convert_from<ncm::ItemId>(el.id),
@@ -158,6 +166,7 @@ auto insert_album(const T& in_list, Func&& get_artists, rc<qcm::db::ItemSqlBase>
     co_await sql->insert(list, columns);
 
     co_await insert_artist(
+        library_id,
         std::ranges::join_view(std::ranges::transform_view(in_list, get_artists)),
         sql,
         artist_columns);
@@ -178,7 +187,7 @@ auto insert_song(const T& in_list, rc<qcm::db::ItemSqlBase> sql,
 }
 
 template<typename T, typename Func>
-auto insert_song(const T& in_list, Func&& get_artists, rc<qcm::db::ItemSqlBase> sql,
+auto insert_song(i64 library_id, const T& in_list, Func&& get_artists, rc<qcm::db::ItemSqlBase> sql,
                  const std::set<std::string>& on_update,
                  const std::set<std::string>& on_artist_update) -> qcm::task<void> {
     auto                                                list = qcm::oper::SongOper::create_list(0);
@@ -186,6 +195,7 @@ auto insert_song(const T& in_list, Func&& get_artists, rc<qcm::db::ItemSqlBase> 
     for (const auto& el : in_list) {
         auto oper = qcm::oper::SongOper(list.emplace_back());
         convert(oper, el);
+        oper.set_libraryId(library_id);
         for (auto& ar : get_artists(el)) {
             song_artist_ids.emplace_back(oper.libraryId(),
                                          convert_from<ncm::ItemId>(el.id),
@@ -195,6 +205,7 @@ auto insert_song(const T& in_list, Func&& get_artists, rc<qcm::db::ItemSqlBase> 
     co_await sql->insert(list, on_update);
 
     co_await insert_artist(
+        library_id,
         std::ranges::join_view(std::ranges::transform_view(in_list, get_artists)),
         sql,
         on_artist_update);
@@ -203,8 +214,9 @@ auto insert_song(const T& in_list, Func&& get_artists, rc<qcm::db::ItemSqlBase> 
 }
 
 template<typename T, typename FuncAlbum, typename FuncArtist>
-auto insert_song_album(const T& in_list, FuncAlbum&& get_album, FuncArtist&& get_artists,
-                       rc<qcm::db::ItemSqlBase> sql, const std::set<std::string>& on_update,
+auto insert_song_album(i64 library_id, const T& in_list, FuncAlbum&& get_album,
+                       FuncArtist&& get_artists, rc<qcm::db::ItemSqlBase> sql,
+                       const std::set<std::string>& on_update,
                        const std::set<std::string>& on_album_update,
                        const std::set<std::string>& on_artist_update) -> qcm::task<void> {
     auto list       = qcm::oper::SongOper::create_list(0);
@@ -213,6 +225,7 @@ auto insert_song_album(const T& in_list, FuncAlbum&& get_album, FuncArtist&& get
     for (const auto& el : in_list) {
         auto oper = qcm::oper::SongOper(list.emplace_back());
         convert(oper, el);
+        oper.set_libraryId(library_id);
         for (const auto& ar : get_artists(el)) {
             song_artist_ids.emplace_back(oper.libraryId(),
                                          convert_from<ncm::ItemId>(el.id),
@@ -222,11 +235,13 @@ auto insert_song_album(const T& in_list, FuncAlbum&& get_album, FuncArtist&& get
         const auto& al      = get_album(el);
         auto        al_oper = qcm::oper::AlbumOper(album_list.emplace_back());
         convert(al_oper, al);
+        oper.set_libraryId(library_id);
     }
     co_await sql->insert(list, on_update);
     co_await sql->insert(album_list, on_album_update);
 
     co_await insert_artist(
+        library_id,
         std::ranges::join_view(std::ranges::transform_view(in_list, get_artists)),
         sql,
         on_artist_update);
@@ -392,12 +407,19 @@ static auto session_check(ClientBase& cbase, helper::QWatcher<qcm::model::Sessio
     co_return out.transform([user, ex, &session, c, &cbase](const auto& out) -> bool {
         if (out.profile) {
             session->set_provider(convert_from<QString>(ncm::provider));
+            if (user->providerId() == -1) {
+                auto provider_id = qcm::Global::instance()->generate_provider_id();
+                user->set_providerId(provider_id);
+                cbase.provider_id = provider_id;
+            } else {
+                cbase.provider_id = user->providerId();
+            }
             user->set_userId(convert_from<ItemId>(out.profile->userId));
             set_user_id(cbase, user->userId());
             user->set_nickname(convert_from<QString>(out.profile->nickname));
             user->set_avatarUrl(convert_from<QString>(out.profile->avatarUrl));
             user->query();
-            asio::co_spawn(ex, prepare_session(c, user->userId()), helper::asio_detached_log_t {});
+            asio::co_spawn(ex, prepare_session(cbase.shared_from_this(), c, user->userId()), helper::asio_detached_log_t {});
             return true;
         }
         return false;
@@ -480,9 +502,8 @@ auto collect(ClientBase& cbase, qcm::model::ItemId item_id, bool act) -> qcm::ta
                          co_return ok.transform([&cbase, &item_id, act](const auto& out) {
                              auto ok = out.code == 200;
                              if (ok) {
-                                 // TODO: lib_id
                                  // notify user fav playlist changed
-                                 refresh_fav_mix(get_client_rc(cbase), 0, item_id, act);
+                                 refresh_fav_mix(get_client_rc(cbase), item_id.library_id(), item_id, act);
                              }
                              return ok;
                          });
@@ -509,7 +530,18 @@ auto media_url(ClientBase& cbase, qcm::model::ItemId id, qcm::enums::AudioQualit
     });
 }
 
-auto sync_collection(ClientBase& cbase, qcm::enums::CollectionType collection_type)
+auto sync_library_list(ClientBase& cbase) -> qcm::task<Result<bool>> {
+    auto c        = *get_client(cbase);
+    auto item_sql = qcm::Global::instance()->get_item_sql();
+
+    qcm::model::Library library;
+    library.providerId = cbase.provider_id;
+    library.name       = "ncm";
+    library            = co_await item_sql->create_library(library);
+    co_return true;
+}
+
+auto sync_collection(ClientBase& cbase, i64 library_id, qcm::enums::CollectionType collection_type)
     -> qcm::task<Result<bool>> {
     auto c       = *get_client(cbase);
     auto user_id = get_user_id(cbase);
@@ -539,6 +571,7 @@ auto sync_collection(ClientBase& cbase, qcm::enums::CollectionType collection_ty
                     }
 
                     co_await insert_album(
+                        library_id,
                         out->data,
                         [](const auto& el) -> const decltype(out->data[0].artists)& {
                             return el.artists;
@@ -551,7 +584,7 @@ auto sync_collection(ClientBase& cbase, qcm::enums::CollectionType collection_ty
                 co_return nstd::unexpected(out.error());
             }
         } while (has_more || api.input.offset >= std::numeric_limits<i32>::max());
-        co_await collect_sql->refresh(user_id, type, collects, collect_times);
+        co_await collect_sql->refresh(user_id, cbase.provider_id, type, collects, collect_times);
         break;
     }
     case qcm::enums::CollectionType::CTArtist: {
@@ -575,6 +608,7 @@ auto sync_collection(ClientBase& cbase, qcm::enums::CollectionType collection_ty
                         collect_times.push_back(cur);
                         auto oper = qcm::oper::ArtistOper(list[i]);
                         convert(oper, el);
+                        oper.set_libraryId(library_id);
 
                         cur = cur.addSecs(-5);
                     }
@@ -584,7 +618,7 @@ auto sync_collection(ClientBase& cbase, qcm::enums::CollectionType collection_ty
                 co_return nstd::unexpected(out.error());
             }
         } while (has_more || api.input.offset >= std::numeric_limits<i32>::max());
-        co_await collect_sql->refresh(user_id, type, collects, collect_times);
+        co_await collect_sql->refresh(user_id, cbase.provider_id, type, collects, collect_times);
         break;
     }
     case qcm::enums::CollectionType::CTPlaylist: {
@@ -609,6 +643,7 @@ auto sync_collection(ClientBase& cbase, qcm::enums::CollectionType collection_ty
                         collect_times.push_back(cur);
                         auto oper = qcm::oper::MixOper(list[i]);
                         convert(oper, el);
+                        oper.set_libraryId(library_id);
                         cur = cur.addSecs(-5);
                     }
                     co_await item_sql->insert(list, {});
@@ -617,7 +652,7 @@ auto sync_collection(ClientBase& cbase, qcm::enums::CollectionType collection_ty
                 co_return nstd::unexpected(out.error());
             }
         } while (has_more || api.input.offset >= std::numeric_limits<i32>::max());
-        co_await collect_sql->refresh(user_id, type, collects, collect_times);
+        co_await collect_sql->refresh(user_id, cbase.provider_id, type, collects, collect_times);
         break;
     }
     case qcm::enums::CollectionType::CTRadio: {
@@ -641,6 +676,7 @@ auto sync_collection(ClientBase& cbase, qcm::enums::CollectionType collection_ty
                         collect_times.push_back(convert_from<QDateTime>(el.createTime));
                         auto oper = qcm::oper::DjradioOper(list[i]);
                         convert(oper, el);
+                        oper.set_libraryId(library_id);
                     }
                     co_await item_sql->insert(list, {});
                 }
@@ -648,7 +684,7 @@ auto sync_collection(ClientBase& cbase, qcm::enums::CollectionType collection_ty
                 co_return nstd::unexpected(out.error());
             }
         } while (has_more || api.input.offset >= std::numeric_limits<i32>::max());
-        co_await collect_sql->refresh(user_id, type, collects, collect_times);
+        co_await collect_sql->refresh(user_id, cbase.provider_id, type, collects, collect_times);
     }
     }
     co_return true;
@@ -677,14 +713,17 @@ auto sync_items(ClientBase& cbase, std::span<const qcm::model::ItemId> itemIds)
                 co_return nstd::unexpected(out.error());
             }
         }
-        co_await insert_album(albums,
+        auto library_id = itemIds.front().library_id();
+        co_await insert_album(library_id,
+                              albums,
                               [](const auto& el) -> const decltype(albums[0].artists)& {
                                   return el.artists;
                               },
                               sql,
                               {},
                               { "name", "picUrl" });
-        co_await insert_song(songs,
+        co_await insert_song(library_id,
+                             songs,
                              [](const auto& el) -> const decltype(songs[0].ar)& {
                                  return el.ar;
                              },
@@ -703,6 +742,7 @@ auto sync_items(ClientBase& cbase, std::span<const qcm::model::ItemId> itemIds)
                 auto                  list = qcm::oper::ArtistOper::create_list(1);
                 qcm::oper::ArtistOper oper(list.at(0));
                 convert(oper, out->artist);
+                oper.set_libraryId(el.library_id());
                 co_await sql->insert(list, {});
             }
             if (! out) {
@@ -721,6 +761,7 @@ auto sync_items(ClientBase& cbase, std::span<const qcm::model::ItemId> itemIds)
                 auto               list = qcm::oper::MixOper::create_list(1);
                 qcm::oper::MixOper oper(list.at(0));
                 convert(oper, out->playlist);
+                oper.set_libraryId(el.library_id());
                 co_await sql->insert(list, {});
 
                 std::vector<model::Song> songs;
@@ -732,6 +773,7 @@ auto sync_items(ClientBase& cbase, std::span<const qcm::model::ItemId> itemIds)
                 }
 
                 co_await insert_song_album(
+                    el.library_id(),
                     songs,
                     [](const auto& el) -> const decltype(songs[0].al)& {
                         return el.al;
@@ -771,8 +813,7 @@ auto sync_items(ClientBase& cbase, std::span<const qcm::model::ItemId> itemIds)
                     std::ranges::copy(ids_view, std::back_inserter(ids));
                 }
 
-                // TODO: lib_id
-                co_await sql->refresh_mix_song(0, -1, oper.id(), ids);
+                co_await sql->refresh_mix_song(0, el.library_id(), oper.id(), ids);
             } else {
                 co_return nstd::unexpected(out.error());
             }
@@ -830,6 +871,7 @@ auto sync_items(ClientBase& cbase, std::span<const qcm::model::ItemId> itemIds)
         auto out = co_await c.perform(api);
         if (out) {
             co_await insert_song_album(
+                itemIds.front().library_id(),
                 out->songs,
                 [](const auto& el) -> const decltype(out->songs[0].al)& {
                     return el.al;
@@ -864,7 +906,8 @@ auto sync_list(ClientBase& cbase, qcm::enums::SyncListType type, qcm::model::Ite
         api.input.limit  = limit;
         auto out         = co_await c.perform(api);
         if (out) {
-            co_await insert_album(out->hotAlbums,
+            co_await insert_album(-1,
+                                  out->hotAlbums,
                                   [](const auto& el) -> const decltype(out->hotAlbums[0].artists)& {
                                       return el.artists;
                                   },
@@ -885,6 +928,7 @@ auto sync_list(ClientBase& cbase, qcm::enums::SyncListType type, qcm::model::Ite
         auto out         = co_await c.perform(api);
         if (out) {
             co_await insert_song_album(
+                itemId.library_id(),
                 out->songs,
                 [](const auto& el) -> const decltype(out->songs[0].al)& {
                     return el.al;
@@ -1020,25 +1064,26 @@ auto qml::create_client() -> qcm::Client {
     auto api      = make_rc<qcm::Global::Client::Api>();
     auto instance = make_rc<ncm::impl::Client>(c);
 
-    api->provider        = ncm::qml::provider;
-    api->server_url      = ncm::impl::server_url;
-    api->make_request    = ncm::impl::make_request;
-    api->play_state      = ncm::impl::play_state;
-    api->router          = ncm::impl::router;
-    api->logout          = ncm::impl::logout;
-    api->session_check   = ncm::impl::session_check;
-    api->collect         = ncm::impl::collect;
-    api->media_url       = ncm::impl::media_url;
-    api->sync_collection = ncm::impl::sync_collection;
-    api->sync_items      = ncm::impl::sync_items;
-    api->sync_list       = ncm::impl::sync_list;
-    api->save            = ncm::impl::save;
-    api->load            = ncm::impl::load;
-    api->comments        = ncm::impl::comments;
-    api->create_mix      = ncm::impl::create_mix;
-    api->delete_mix      = ncm::impl::delete_mix;
-    api->rename_mix      = ncm::impl::rename_mix;
-    api->manipulate_mix  = ncm::impl::manipulate_mix;
+    api->provider          = ncm::qml::provider;
+    api->server_url        = ncm::impl::server_url;
+    api->make_request      = ncm::impl::make_request;
+    api->play_state        = ncm::impl::play_state;
+    api->router            = ncm::impl::router;
+    api->logout            = ncm::impl::logout;
+    api->session_check     = ncm::impl::session_check;
+    api->collect           = ncm::impl::collect;
+    api->media_url         = ncm::impl::media_url;
+    api->sync_library_list = ncm::impl::sync_library_list;
+    api->sync_collection   = ncm::impl::sync_collection;
+    api->sync_items        = ncm::impl::sync_items;
+    api->sync_list         = ncm::impl::sync_list;
+    api->save              = ncm::impl::save;
+    api->load              = ncm::impl::load;
+    api->comments          = ncm::impl::comments;
+    api->create_mix        = ncm::impl::create_mix;
+    api->delete_mix        = ncm::impl::delete_mix;
+    api->rename_mix        = ncm::impl::rename_mix;
+    api->manipulate_mix    = ncm::impl::manipulate_mix;
 
     return { .api = api, .instance = instance };
 }

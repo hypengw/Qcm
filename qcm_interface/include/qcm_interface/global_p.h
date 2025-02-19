@@ -21,9 +21,9 @@ public:
     asio::thread_pool pool;
 
     rc<ncrequest::Session> session;
-    model::Session*      qsession;
-    model::Session*      qsession_empty;
-    model::Session*      loading_session;
+    model::Session*        qsession;
+    model::Session*        qsession_empty;
+    model::Session*        loading_session;
 
     QUuid                     uuid;
     rc<media_cache::DataBase> cache_sql;
@@ -40,6 +40,9 @@ public:
     QQmlComponent*   copy_action_comp;
     state::AppState* app_state;
 
-    std::mutex mutex;
+    mutable std::map<i64, model::Session*> provider_sessions;
+    mutable std::set<i64>                  provider_ids;
+    mutable std::map<i64, i64>             library_to_provider_id_map;
+    mutable std::mutex                     mutex;
 };
 } // namespace qcm

@@ -56,6 +56,7 @@ Q_SIGNALS:
     void play(const QUrl& url, bool refresh = false);
     void sync_item(const model::ItemId& itemId, bool notify = false);
     void sync_collection(enums::CollectionType);
+    void sync_library_collection(i64 library_id, enums::CollectionType);
     void record(enums::RecordAction);
     void playbackLog(enums::PlaybackState state, model::ItemId item, model::ItemId souce,
                      QVariantMap extra = {});

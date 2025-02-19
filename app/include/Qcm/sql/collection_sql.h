@@ -35,15 +35,15 @@ public:
     auto select_missing(const model::ItemId& user_id, std::string_view type, std::string_view join,
                         const QMetaObject& meta) -> task<std::vector<model::ItemId>>;
 
-    auto refresh(model::ItemId user_id, QString type, std::span<const model::ItemId>,
+    auto refresh(model::ItemId user_id, i64 provider_id, QString type, std::span<const model::ItemId>,
                  std::span<const QDateTime> = {}) -> task<bool> override;
 
     bool insert_sync(std::span<const Item>);
     bool insert_sync(model::ItemId user_id, std::span<const model::ItemId>,
                      std::span<const QDateTime> = {});
     bool remove_sync(model::ItemId user_id, std::span<const model::ItemId> ids);
-    bool remove_sync(model::ItemId user_id, QString type = {});
-    bool delete_with(model::ItemId user_id, QString type = {});
+    bool remove_sync(model::ItemId user_id, i64 provider_id, QString type = {});
+    bool delete_with(model::ItemId user_id, i64 provider_id, QString type = {});
     bool delete_removed();
 
 private:

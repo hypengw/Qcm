@@ -76,6 +76,8 @@ cmake --install build
 - [ ] playing page blur
 - [ ] android
 - [ ] sql cjk fts
+- [ ] separate front/backend to processes
+- [ ] drop qsql
 - [x] sql fts
 - [x] private radio
 - [x] sql api model

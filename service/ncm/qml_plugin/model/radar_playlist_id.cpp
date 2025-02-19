@@ -24,7 +24,7 @@ QVariant RadarPlaylistIdModel::data(const QModelIndex& index, int role) const {
     if (row < rowCount()) {
         switch (role) {
         case Qt::UserRole: {
-            return QVariant::fromValue(ncm::to_ncm_id(ncm::model::IdType::Playlist, ids.at(row)));
+            return QVariant::fromValue(ncm::to_item_id(ncm::model::IdType::Playlist, ids.at(row), -1));
         }
         }
     }

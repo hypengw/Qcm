@@ -158,6 +158,7 @@ public:
     Q_SLOT void on_collect(model::ItemId, bool);
     Q_SLOT void on_sync_item(const model::ItemId& itemId, bool notify);
     Q_SLOT void on_sync_collecttion(enums::CollectionType);
+    Q_SLOT void on_sync_library_collecttion(i64 library_id, enums::CollectionType);
     Q_SLOT void on_record(enums::RecordAction);
     Q_SLOT void on_play_song(const query::Song&);
     Q_SLOT void on_queue(const std::vector<query::Song>&);

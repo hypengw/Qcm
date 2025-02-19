@@ -19,9 +19,10 @@ Q_IMPORT_QML_PLUGIN(Qcm_AppPlugin)
 
 int main(int argc, char* argv[]) {
     plt::malloc_init();
-    auto         logger = qcm::LogManager::instance();
+    auto logger = qcm::LogManager::instance();
     ncrequest::global_init();
     QGuiApplication gui_app(argc, argv);
+    auto            main_qthread = gui_app.thread();
 
     QCoreApplication::setApplicationName(APP_NAME);
     QCoreApplication::setApplicationVersion(APP_VERSION);
@@ -55,6 +56,7 @@ int main(int argc, char* argv[]) {
         app.init();
 
         re = gui_app.exec();
+        main_qthread->setProperty("exec", false);
     }
 
     return re;

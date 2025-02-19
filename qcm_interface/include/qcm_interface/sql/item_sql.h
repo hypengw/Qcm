@@ -32,6 +32,10 @@ public:
     virtual auto con() const -> rc<helper::SqlConnect> = 0;
     virtual auto get_executor() -> QtExecutor&         = 0;
 
+    virtual auto library_id(i64 provider_id, const QString& native_id) -> task<i64> = 0;
+    virtual auto library_id_list() -> task<std::vector<i64>>                        = 0;
+    virtual auto library_list() -> task<std::vector<model::Library>>                = 0;
+
     virtual auto create_library(model::Library) -> task<model::Library> = 0;
     virtual auto delete_library(i64) -> task<bool>                      = 0;
 

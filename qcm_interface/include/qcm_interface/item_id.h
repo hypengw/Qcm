@@ -14,7 +14,7 @@ namespace model
 {
 
 // itemid url
-// itemid://{id_type}@{provider}/{id}
+// itemid://{id_type}:{library_id}@{provider}/{id}
 class QCM_INTERFACE_API ItemId {
     Q_GADGET
     QML_VALUE_TYPE(t_id)
@@ -22,11 +22,12 @@ public:
     Q_PROPERTY(QString type READ type)
     Q_PROPERTY(QString sid READ id)
     Q_PROPERTY(QString provider READ provider)
+    Q_PROPERTY(QString libraryId READ library_id_str)
 
     ItemId();
     ItemId(std::nullptr_t);
-    ItemId(QStringView provider, QStringView type, QStringView id);
-    ItemId(std::string_view provider, std::string_view type, std::string_view id);
+    ItemId(QStringView provider, QStringView type, QStringView id, i64 library_id);
+    ItemId(std::string_view provider, std::string_view type, std::string_view id, i64 library_id);
     explicit ItemId(const QUrl&);
     ~ItemId();
     ItemId(const ItemId&);
@@ -39,6 +40,8 @@ public:
     auto type() const -> const QString&;
     auto id() const -> const QString&;
     auto provider() const -> const QString&;
+    auto library_id_str() const -> QString;
+    auto library_id() const -> i64;
 
     std::strong_ordering operator<=>(const ItemId&) const noexcept;
     bool                 operator==(const ItemId&) const noexcept;
@@ -57,6 +60,8 @@ public:
     Q_SLOT void set_id(QStringView);
     Q_SLOT void set_provider(QStringView);
     Q_SLOT void set_url(const QUrl&);
+    Q_SLOT void set_library_id(QStringView);
+    void        set_library_id(i64);
 
 private:
     class Private;

@@ -1,6 +1,8 @@
 #pragma once
 
-#include <QPointer>
+#include <QtCore/QPointer>
+#include <QtCore/QThread>
+#include <QtCore/QVariant>
 
 #include <asio/post.hpp>
 
@@ -15,10 +17,19 @@ public:
     QWatcher(): m_ptr(nullptr) {}
     QWatcher(T* t): QWatcher() {
         if (t != nullptr) {
-            m_ptr = rc<helper>(new helper(t), [](helper* h) {
+            auto thread = t->thread();
+            m_ptr       = rc<helper>(new helper(t, thread), [](helper* h) {
+                if (QThread::isMainThread() && QThread::currentThread() == h->thread) {
+                    auto exec = QThread::currentThread()->property("exec");
+                    if (! exec.isNull() && ! exec.value<bool>()) {
+                        // thread is not in exec, delete directly
+                        delete h;
+                        return;
+                    }
+                }
                 h->deleteLater();
             });
-            m_ptr->moveToThread(t->thread());
+            m_ptr->moveToThread(thread);
         }
     }
     // QWatcher(QPointer<T> t): m_ptr(make_rc<QPointer<T>>(t)) {}
@@ -57,7 +68,8 @@ public:
 private:
     struct helper : QObject {
         std::atomic<T*> pointer;
-        helper(T* p): pointer(p) {
+        QThread*        thread;
+        helper(T* p, QThread* t): pointer(p), thread(t) {
             connect(
                 p,
                 &QObject::destroyed,
