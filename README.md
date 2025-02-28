@@ -1,9 +1,18 @@
 # Qcm
 Material You cloud music player.  
 
-Music Service:  
-- Jellyfin
-- Netease Cloud Music
+This repository contains the frontend application only. To use Qcm, you'll need to run it with a compatible local backend.  
+
+The backend process is managed by this front, you can use `--backend <path>` to set the backend executable path.  
+
+### Backend Support
+
+A backend implementation can be found at [QcmBackend](https://github.com/hypengw/QcmBackend), which supports the following music services:
+
+- **Jellyfin**
+- **Netease Cloud Music**
+
+### Screenshots
 
 <table>
   <tr>
@@ -37,7 +46,7 @@ cmake --build build
 
 # run without install
 export QML_IMPORT_PATH=$PWD/build/qml_modules
-./build/app/Qcm --backend <QcmBackend executable>
+./build/app/Qcm --backend <backend executable>
 
 # install
 cmake --install build
