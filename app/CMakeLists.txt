@@ -151,10 +151,13 @@ qt_add_qml_module(
   NO_PLUGIN_OPTIONAL)
 
 target_sources(app PRIVATE $<$<CONFIG:Debug>:src/util/QmlStackTraceHelper.cpp>)
+target_sources(app PRIVATE FILE_SET CXX_MODULES FILES src/backend.cppm)
 
 set_source_files_properties(
   "${CMAKE_CURRENT_BINARY_DIR}/app_qmltyperegistrations.cpp" TARGET_DIRECTORY
   app PROPERTIES INCLUDE_DIRECTORIES "${QML_REG_INCLUDE_DIRS}")
+
+set_target_properties(app PROPERTIES CXX_SCAN_FOR_MODULES ON)
 
 target_compile_definitions(
   app PUBLIC "$<$<OR:$<BOOL:${QCM_QML_DEBUG}>,$<CONFIG:Debug>>:QT_QML_DEBUG>"
@@ -185,6 +188,7 @@ target_link_libraries(
          "$<$<TARGET_EXISTS:mpris>:mpris>")
 
 qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cpp)
+set_target_properties(${PROJECT_NAME} PROPERTIES CXX_SCAN_FOR_MODULES ON)
 
 qt_add_qml_module(
   ${PROJECT_NAME}

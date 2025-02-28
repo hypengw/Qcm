@@ -302,3 +302,5 @@ void ApiQueryBase::fetch_more(qint32) {}
 void ApiQueryBase::query() { reload(); }
 
 } // namespace qcm
+
+#include <qcm_interface/moc_api.cpp>

@@ -9,9 +9,10 @@
 #include <asio/awaitable.hpp>
 
 #include "core/core.h"
-#include "ncrequest/session.hpp"
 #include "media_cache/database.h"
 #include "media_cache/writer.h"
+
+import ncrequest;
 
 namespace media_cache
 {

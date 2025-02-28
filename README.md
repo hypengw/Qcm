@@ -2,9 +2,8 @@
 Material You cloud music player.  
 
 Music Service:  
-- Jellyfin(wip)
+- Jellyfin
 - Netease Cloud Music
-
 
 <table>
   <tr>
@@ -21,11 +20,12 @@ Music Service:
 <a href='https://flathub.org/apps/details/io.github.hypengw.Qcm'><img width='240' alt='Download on Flathub' src='https://dl.flathub.org/assets/badges/flathub-badge-en.png'/></a>
 
 ### Require:  
-- Qt 6.8 (quick, dbus, sql)
+- Qt 6.8 (quick, dbus)
 - C++ 23
 - Openssl 3
 - FFmpeg 7
 - Curl
+- QcmBackend (rust)
 
 ### Build:  
 ```
@@ -37,7 +37,7 @@ cmake --build build
 
 # run without install
 export QML_IMPORT_PATH=$PWD/build/qml_modules
-./build/app/Qcm
+./build/app/Qcm --backend <QcmBackend executable>
 
 # install
 cmake --install build
@@ -68,7 +68,6 @@ cmake --install build
   
 
 ### Todo:
-- [ ] jellyfin
 - [ ] subsonic
 - [ ] mac/win
 - [ ] offline mode
@@ -76,8 +75,9 @@ cmake --install build
 - [ ] playing page blur
 - [ ] android
 - [ ] sql cjk fts
-- [ ] separate front/backend to processes
 - [ ] drop qsql
+- [x] jellyfin
+- [x] separate front/backend to processes
 - [x] sql fts
 - [x] private radio
 - [x] sql api model

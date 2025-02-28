@@ -25,7 +25,7 @@ public:
     GADGET_PROPERTY_DEF(qcm::model::ItemId, radioId, radioId)
     QCM_INTERFACE_API static auto sql() -> const ModelSql&;
 
-    std::strong_ordering operator<=>(const Program&) const = default;
+    std::weak_ordering operator<=>(const Program&) const = default;
 };
 
 } // namespace qcm::model

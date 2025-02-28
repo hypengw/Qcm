@@ -18,6 +18,8 @@ enum class LogLevel
     ERROR,
 };
 
+auto level_from(std::string_view) -> LogLevel;
+
 constexpr const char* past_last_slash(const char* const path, const int pos = 0,
                                       const int last_slash = 0) {
     if (path[pos] == '\0') return path + last_slash;

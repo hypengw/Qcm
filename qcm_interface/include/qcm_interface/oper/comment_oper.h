@@ -6,7 +6,7 @@
 
 namespace qcm::model
 {
-struct Comment;
+class Comment;
 }
 
 namespace qcm::oper

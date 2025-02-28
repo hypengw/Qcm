@@ -12,10 +12,8 @@
 
 #include "error/error.h"
 
-namespace ncrequest
-{
-class Request;
-}
+import ncrequest;
+
 namespace qcm
 {
 namespace model

@@ -8,12 +8,13 @@
 #include <ctre.hpp>
 
 #include "core/log.h"
-#include "ncrequest/session.hpp"
 #include "qcm_interface/path.h"
 #include "qcm_interface/ex.h"
 #include "qcm_interface/plugin.h"
 #include "qcm_interface/global_static.h"
 #include "qcm_interface/action.h"
+
+import ncrequest;
 
 namespace
 {
@@ -498,3 +499,5 @@ auto create_item(QQmlEngine* engine, const QJSValue& url_or_comp, const QVariant
 }
 
 } // namespace qcm
+
+#include <qcm_interface/moc_global.cpp>

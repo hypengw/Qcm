@@ -6,7 +6,8 @@
 #include <asio/ip/tcp.hpp>
 
 #include "core/core.h"
-#include "ncrequest/http_header.hpp"
+
+import ncrequest;
 
 namespace media_cache
 {

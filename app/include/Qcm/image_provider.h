@@ -9,7 +9,7 @@
 #include "asio_helper/watch_dog.h"
 #include "Qcm/image_response.h"
 
-#include "ncrequest/request.hpp"
+import ncrequest;
 
 namespace ncm
 {

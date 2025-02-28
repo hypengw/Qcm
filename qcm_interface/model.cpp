@@ -329,3 +329,28 @@ IMPL_SQL_MODEL(query::Album, album)
 IMPL_SQL_MODEL(query::Song, song)
 
 } // namespace qcm
+
+#include <qcm_interface/model/moc_library.cpp>
+#include <qcm_interface/model/moc_album.cpp>
+#include <qcm_interface/model/moc_session.cpp>
+#include <qcm_interface/model/moc_artist.cpp>
+#include <qcm_interface/model/moc_comment.cpp>
+#include <qcm_interface/model/moc_mix.cpp>
+#include <qcm_interface/model/moc_program.cpp>
+#include <qcm_interface/model/moc_provider.cpp>
+#include <qcm_interface/model/moc_radio.cpp>
+#include <qcm_interface/model/moc_song.cpp>
+
+#include <qcm_interface/model/moc_plugin_info.cpp>
+#include <qcm_interface/model/moc_plugin_model.cpp>
+#include <qcm_interface/model/moc_query_model.cpp>
+#include <qcm_interface/model/moc_page.cpp>
+#include <qcm_interface/model/moc_router_msg.cpp>
+#include <qcm_interface/model/moc_third_user.cpp>
+#include <qcm_interface/model/moc_user_account.cpp>
+#include <qcm_interface/model/moc_user_model.cpp>
+
+#include <qcm_interface/model/moc_empty_model.cpp>
+#include <qcm_interface/model/moc_id_queue.cpp>
+#include <qcm_interface/model/moc_app_info.cpp>
+#include <qcm_interface/model/moc_busy_info.cpp>

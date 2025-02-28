@@ -2,8 +2,6 @@
 
 #include "core/log.h"
 
-#include "ncrequest/type.hpp"
-
 using namespace media_cache;
 
 MediaCache::MediaCache(executor_type ex, rc<ncrequest::Session> s, rc<Fallbacks> fbs)

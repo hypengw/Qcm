@@ -4,7 +4,6 @@
 
 #include "core/core.h"
 #include "media_cache/server.h"
-#include "ncrequest/session.hpp"
 #include "media_cache/database.h"
 
 namespace media_cache

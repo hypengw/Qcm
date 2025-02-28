@@ -110,7 +110,13 @@ auto CollectionSql::select_removed(model::ItemId user_id, const QString& type,
 
     auto query = m_con->query();
     query.prepare(
-        R"(SELECT itemId FROM {} WHERE userId = :userId AND type = :type AND collectTime >= :time AND removed = 1;)",
+        R"(
+SELECT 
+    itemId,
+    libraryId 
+FROM {} 
+WHERE userId = :userId AND type = :type AND collectTime >= :time AND removed = 1;
+)",
         m_table);
     query.bindValue(":userId", user_id.id());
     query.bindValue(":type", type);
@@ -119,7 +125,8 @@ auto CollectionSql::select_removed(model::ItemId user_id, const QString& type,
     std::vector<model::ItemId> out;
     if (query.exec()) {
         while (query.next()) {
-            auto id = model::ItemId(query.value("itemId").toString());
+            auto id = model::ItemId(query.value(0).toString());
+            id.set_library_id(query.value(1).toLongLong());
             out.emplace_back(id);
         }
     } else {
@@ -137,7 +144,8 @@ auto CollectionSql::select_missing(const model::ItemId& user_id, std::string_vie
     query.prepare(
         R"(
 SELECT 
-    collection.itemId
+    collection.itemId,
+    collection.libraryId
 FROM collection
 LEFT JOIN {1} ON {1}.itemId = collection.itemId  
 WHERE collection.userId = :userId AND collection.type = '{0}' AND collection.removed = 0 AND ({2});
@@ -152,7 +160,10 @@ WHERE collection.userId = :userId AND collection.type = '{0}' AND collection.rem
     }
     auto x = query.lastQuery();
     while (query.next()) {
-        ids.emplace_back(query.value(0).toUrl());
+        model::ItemId id;
+        id.set_id(query.value(0).toString());
+        id.set_library_id(query.value(1).toLongLong());
+        ids.emplace_back(id);
     }
     co_return ids;
 }
@@ -192,7 +203,6 @@ removed = 0;
                   m_table);
 
     auto library_id = QVariant::fromValue((i64)0);
-    auto g          = Global::instance();
     for (auto& item : items) {
         library_id.setValue(item.item_id.library_id());
         query.bindValue(":libraryId", library_id);
@@ -227,7 +237,6 @@ removed = 0;
     auto library_id  = QVariant::fromValue((i64)0);
     auto provider_id = QVariant::fromValue((i64)0);
 
-    auto g = Global::instance();
     for (usize i = 0; i < ids.size(); i++) {
         library_id.setValue(ids[i].library_id());
         query.bindValue(":libraryId", library_id);

@@ -52,3 +52,5 @@ Q_SLOT void QueryListBase::setLimit(qint32 v) {
 }
 
 } // namespace qcm::query
+
+#include <qcm_interface/moc_query.cpp>

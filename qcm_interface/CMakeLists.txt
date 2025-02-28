@@ -1,17 +1,10 @@
-set(APP_ID
-    io.github.hypengw.Qcm)
-set(APP_NAME
-    ${PROJECT_NAME})
-set(APP_VERSION
-    ${PROJECT_VERSION})
-set(APP_SUMMARY
-    ${PROJECT_DESCRIPTION})
-set(APP_AUTHOR
-    "hypeng")
+set(APP_ID io.github.hypengw.Qcm)
+set(APP_NAME ${PROJECT_NAME})
+set(APP_VERSION ${PROJECT_VERSION})
+set(APP_SUMMARY ${PROJECT_DESCRIPTION})
+set(APP_AUTHOR "hypeng")
 
-find_package(
-  Qt6 REQUIRED
-  COMPONENTS Qml)
+find_package(Qt6 REQUIRED COMPONENTS Qml)
 
 set(MODEL_SOURCES
     include/qcm_interface/model/user_account.h
@@ -23,7 +16,7 @@ set(MODEL_SOURCES
     include/qcm_interface/model/router_msg.h)
 
 add_library(
-  qcm_interface SHARED
+  qcm_interface STATIC
   include/qcm_interface/async.h
   include/qcm_interface/action.h
   include/qcm_interface/notifier.h
@@ -77,33 +70,27 @@ add_library(
   model/user_model.cpp
   ${MODEL_SOURCES})
 
-foreach(
-  src
-  ${MODEL_SOURCES})
+target_sources(qcm_interface PUBLIC FILE_SET all TYPE CXX_MODULES FILES
+                                    mod.cppm)
+
+foreach(src ${MODEL_SOURCES})
 
   cmake_path(ABSOLUTE_PATH src BASE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
   cmake_path(GET src STEM LAST_ONLY src_name)
-  set(gen_dir
-      "${CMAKE_CURRENT_BINARY_DIR}/gen")
-  set(gen
-      "${gen_dir}/${src_name}.cpp")
+  set(gen_dir "${CMAKE_CURRENT_BINARY_DIR}/gen")
+  set(gen "${gen_dir}/${src_name}.cpp")
 
-  set(model_generator
-      "$<TARGET_FILE:qcm_model_generator>")
-  set(model_generator_native
-      "${model_generator}")
+  set(model_generator "$<TARGET_FILE:qcm_model_generator>")
+  set(model_generator_native "${model_generator}")
   if(ANDROID)
-    set(model_generator
-        "${QCM_MODEL_GENERATOR}")
+    set(model_generator "${QCM_MODEL_GENERATOR}")
   endif()
   add_custom_command(
     OUTPUT ${gen}
     COMMAND "${CMAKE_COMMAND}" -E make_directory "${gen_dir}"
     COMMAND "${model_generator}" "${src}" "${gen}"
     DEPENDS "${model_generator}" "${model_generator_native}" ${src})
-  target_sources(
-    qcm_interface
-    PRIVATE ${gen})
+  target_sources(qcm_interface PRIVATE ${gen})
 endforeach()
 
 target_include_directories(
@@ -118,10 +105,8 @@ target_compile_definitions(
          APP_SUMMARY="${APP_SUMMARY}"
   PRIVATE QCM_INTERFACE_EXPORT QT_NO_SIGNALS_SLOTS_KEYWORDS)
 
-set_target_properties(
-  qcm_interface
-  PROPERTIES AUTOMOC ON
-             CXX_VISIBILITY_PRESET hidden)
+set_target_properties(qcm_interface PROPERTIES AUTOMOC ON CXX_VISIBILITY_PRESET
+                                                          hidden)
 
 target_link_libraries(
   qcm_interface

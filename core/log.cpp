@@ -144,4 +144,17 @@ auto log::format_assert(std::string_view expr_str, const std::source_location& l
                        msg.empty() ? "" : "\n",
                        msg);
 }
+
+auto log::level_from(std::string_view in) -> LogLevel {
+    if (in == "debug")
+        return LogLevel::DEBUG;
+    else if (in == "info")
+        return LogLevel::INFO;
+    else if (in == "warn")
+        return LogLevel::WARN;
+    else if (in == "error")
+        return LogLevel::ERROR;
+    else
+        return LogLevel::WARN;
+}
 } // namespace qcm

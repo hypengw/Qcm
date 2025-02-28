@@ -69,7 +69,7 @@ if(NOT ctre_FOUND)
     ctre
     GIT_REPOSITORY
       https://github.com/hanickadot/compile-time-regular-expressions.git
-    GIT_TAG v3.9.0
+    GIT_TAG e0f36500bc941fe447718ab625490728790c933f
     GIT_SHALLOW 1
     EXCLUDE_FROM_ALL)
   FetchContent_MakeAvailable(ctre)
@@ -118,8 +118,9 @@ if(NOT ncrequest_FOUND)
   FetchContent_Declare(
     ncrequest
     GIT_REPOSITORY https://github.com/hypengw/ncrequest.git
-    GIT_TAG        748dd825b84f06d6398298029ea6828cbb44a107
+    GIT_TAG        d1eb95d809b2e8f4c22e16077aee7a267d35dc08
     GIT_SHALLOW 1
     EXCLUDE_FROM_ALL)
   FetchContent_MakeAvailable(ncrequest)
 endif()
+

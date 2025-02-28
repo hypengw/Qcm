@@ -5,7 +5,7 @@
 
 namespace qcm::model
 {
-struct ThirdUser;
+class ThirdUser;
 }
 
 namespace qcm::oper

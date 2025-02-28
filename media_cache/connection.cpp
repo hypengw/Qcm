@@ -1,6 +1,9 @@
 #include "connection.h"
 
 #include <asio/write.hpp>
+#include <asio/use_awaitable.hpp>
+#include <asio/as_tuple.hpp>
+#include <asio/read.hpp>
 #include <array>
 #include <fstream>
 #include <algorithm>
@@ -9,8 +12,6 @@
 #include <ctre.hpp>
 
 #include "core/strv_helper.h"
-#include "ncrequest/request.hpp"
-#include "ncrequest/response.hpp"
 
 #include "asio_helper/sync_file.h"
 

@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Qcm.App as QA
-import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 import "../js/util.mjs" as Util
 
@@ -46,16 +45,16 @@ MD.Page {
         m_small.switch_pane();
     }
 
-    QNcm.SongLyricQuerier {
-        id: querier_lyric
+    // QNcm.SongLyricQuerier {
+    //     id: querier_lyric
 
-        readonly property string combined_lrc: {
-            return data.lrc + data.transLrc;
-        }
+    //     readonly property string combined_lrc: {
+    //         return data.lrc + data.transLrc;
+    //     }
 
-        autoReload: songId.valid()
-        songId: root.song.itemId
-    }
+    //     autoReload: songId.valid()
+    //     songId: root.song.itemId
+    // }
 
     Item {
         visible: false
@@ -238,7 +237,7 @@ MD.Page {
                     value: QA.Global.player.position + 50
                     restoreMode: Binding.RestoreNone
                 }
-                source: querier_lyric.combined_lrc
+                // source: querier_lyric.combined_lrc
 
                 onCurrentIndexChanged: {
                     lyric_view.posTo(currentIndex);

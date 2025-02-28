@@ -11,8 +11,6 @@
 #include <ctre.hpp>
 
 #include "core/log.h"
-#include "ncrequest/type.hpp"
-#include "ncrequest/http_header.hpp"
 
 using namespace media_cache;
 

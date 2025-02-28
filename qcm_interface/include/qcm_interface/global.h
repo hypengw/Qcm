@@ -24,10 +24,6 @@
 
 Q_MOC_INCLUDE("qcm_interface/model/user_model.h")
 
-namespace ncrequest
-{
-class Session;
-}
 namespace qcm
 {
 class App;

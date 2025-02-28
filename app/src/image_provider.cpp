@@ -16,8 +16,6 @@
 #include "qcm_interface/global.h"
 
 #include "core/expected_helper.h"
-#include "ncrequest/response.hpp"
-#include "ncrequest/session.hpp"
 #include "asio_helper/sync_file.h"
 #include "crypto/crypto.h"
 #include "Qcm/app.h"
@@ -194,3 +192,6 @@ QcmImageProvider
 
     return rsp.get();
 }
+
+
+#include <Qcm/moc_image_provider.cpp>

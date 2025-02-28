@@ -90,7 +90,7 @@ public:
     };
     Q_ENUMS(ProxyType)
 
-    App(std::monostate);
+    App(QStringView backend_exe, std::monostate);
     virtual ~App();
     static App* create(QQmlEngine* qmlEngine, QJSEngine* jsEngine);
 

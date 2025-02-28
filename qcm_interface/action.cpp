@@ -23,3 +23,6 @@ Action* Action::create(QQmlEngine*, QJSEngine*) {
     return act;
 }
 } // namespace qcm
+
+
+#include <qcm_interface/moc_action.cpp>

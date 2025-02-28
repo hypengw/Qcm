@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.28)
 
 project(
   Qcm
@@ -130,9 +130,6 @@ add_subdirectory(qcm_interface)
 if(ANDROID)
   set(QCM_SERVICE_STATIC_BUILD ON)
 endif()
-add_subdirectory(service/jellyfin)
-add_subdirectory(service/jellyfin/qml_plugin)
-add_subdirectory(service/ncm)
 
 add_subdirectory(mpris)
 add_subdirectory(meta_model)

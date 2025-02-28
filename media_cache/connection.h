@@ -4,12 +4,12 @@
 #include <asio/awaitable.hpp>
 
 #include "core/core.h"
-#include "ncrequest/session.hpp"
-#include "ncrequest/http_header.hpp"
 
 #include "get_request.h"
 #include "media_cache/database.h"
 #include "media_cache/writer.h"
+
+import ncrequest;
 
 namespace media_cache
 {

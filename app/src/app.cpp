@@ -23,7 +23,6 @@
 
 #include "core/qvariant_helper.h"
 #include "crypto/crypto.h"
-#include "ncrequest/response.hpp"
 #include "asio_helper/sync_file.h"
 #include "meta_model/qgadget_helper.h"
 #include "platform/platform.h"
@@ -138,7 +137,7 @@ App* App::create(QQmlEngine*, QJSEngine*) {
 
 App* App::instance() { return app_instance(); }
 
-App::App(std::monostate)
+App::App(QStringView backend_exe, std::monostate)
     : QObject(nullptr),
       m_global(make_rc<Global>()),
       m_util(make_rc<qml::Util>(std::monostate {})),
@@ -549,3 +548,5 @@ void App::save_settings() {
 #include "Qcm/query/mix_detail.h"
 
 void qcm::register_meta_type() { qRegisterMetaType<query::MixDetailQuery>(); }
+
+#include <Qcm/moc_app.cpp>
