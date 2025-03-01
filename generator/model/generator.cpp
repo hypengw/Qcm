@@ -10,15 +10,13 @@
 
 #include <QtCore>
 
-#define QCM_LOG_IMPL
-
 #include "peg_cpp.hpp"
 
-#include "core/core.h"
+import qcm.core;
+import qcm.helper;
 #include "core/fmt.h"
 #include "core/log.h"
 #include "core/type.h"
-#include "core/str_helper.h"
 #include "core/variant_helper.h"
 
 using namespace std::literals::string_view_literals;

@@ -130,3 +130,6 @@ void LrcLyric::refreshIndex() {
         emit currentIndexChanged();
     }
 }
+
+
+#include <Qcm/moc_lyric.cpp>

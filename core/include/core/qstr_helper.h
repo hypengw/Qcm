@@ -96,6 +96,48 @@ struct fmt::formatter<QAnyStringView> : fmt::formatter<std::string_view> {
     }
 };
 
+
+template<>
+struct std::formatter<QString> : std::formatter<std::string_view> {
+    auto format(const QString& qs, std::format_context& ctx) const
+        -> std::format_context::iterator {
+        return std::formatter<std::string_view>::format(qs.toStdString(), ctx);
+    }
+};
+
+template<>
+struct std::formatter<QStringView> : std::formatter<std::string_view> {
+    auto format(QStringView qs, std::format_context& ctx) const -> std::format_context::iterator {
+        return std::formatter<std::string_view>::format(qs.toString().toStdString(), ctx);
+    }
+};
+
+template<>
+struct std::formatter<QLatin1String> : std::formatter<std::string_view> {
+    auto format(QLatin1String qs, std::format_context& ctx) const -> std::format_context::iterator {
+        return std::formatter<std::string_view>::format(qs.toString().toStdString(), ctx);
+    }
+};
+
+template<>
+struct std::formatter<QUtf8StringView> : std::formatter<std::string_view> {
+    auto format(QUtf8StringView qs, std::format_context& ctx) const
+        -> std::format_context::iterator {
+        return std::formatter<std::string_view>::format({ qs.data(), (usize)qs.size() }, ctx);
+    }
+};
+
+template<>
+struct std::formatter<QAnyStringView> : std::formatter<std::string_view> {
+    auto format(QAnyStringView qs, std::format_context& ctx) const
+        -> std::format_context::iterator {
+        std::string out;
+        Convert<std::string, QAnyStringView>::from(out, qs);
+        return std::formatter<std::string_view>::format(out, ctx);
+    }
+};
+
+
 #if (QT_VERSION < QT_VERSION_CHECK(6, 8, 0))
 inline std::strong_ordering operator<=>(const QString& a, const QString& b) {
     return a < b ? std::strong_ordering::less

@@ -6,9 +6,10 @@
 #include <QtQml/qqmlregistration.h>
 #include <QDateTime>
 
-#include "core/core.h"
+import qcm.core;
+#include "core/helper.h"
+#include "core/macro.h"
 #include "core/qstr_helper.h"
-#include "core/vec_helper.h"
 #include "json_helper/helper.h"
 
 #include "qcm_interface/type.h"

@@ -225,3 +225,6 @@ void Player::processNotify(NotifyInfo info) {
                             } },
                info);
 }
+
+
+#include <Qcm/moc_player.cpp>

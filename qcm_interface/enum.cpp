@@ -1,5 +1,5 @@
 #include "qcm_interface/enum.h"
-#include "core/strv_helper.h"
+#include "core/helper.h"
 #include "core/log.h"
 
 namespace qcm
@@ -29,3 +29,5 @@ IMPL_CONVERT(std::string_view, qcm::enums::CollectionType) {
     }
     }
 }
+
+#include <qcm_interface/moc_enum.cpp>

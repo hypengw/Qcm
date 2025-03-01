@@ -13,7 +13,7 @@
 #include <asio/steady_timer.hpp>
 
 #include "core/core.h"
-#include "core/str_helper.h"
+#include "core/helper.h"
 #include "core/log.h"
 #include "asio_qt/qt_executor.h"
 

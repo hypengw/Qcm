@@ -1,9 +1,9 @@
-#pragma once
-
+module;
 #include <cstdint>
 #include <cstddef>
+export module platform;
 
-namespace plt
+export namespace plt
 {
 
 void        malloc_init();
@@ -20,5 +20,7 @@ struct MemInfo {
 auto mem_info() -> MemInfo;
 
 void set_thread_name(const char* name);
+
+auto is_terminal() -> bool;
 
 } // namespace plt

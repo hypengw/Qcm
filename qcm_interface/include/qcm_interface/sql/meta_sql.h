@@ -4,7 +4,7 @@
 #include <QtCore/QMetaObject>
 #include <QtCore/QMetaProperty>
 
-#include "core/str_helper.h"
+#include "core/helper.h"
 
 namespace qcm::db
 {

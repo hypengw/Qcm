@@ -37,3 +37,5 @@ void AppState::set_state(const State& v) {
     }
 }
 }; // namespace qcm::state
+
+#include <qcm_interface/state/moc_app_state.cpp>

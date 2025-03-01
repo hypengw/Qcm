@@ -9,9 +9,10 @@
 #include <openssl/decoder.h>
 
 #include <string_view>
+#include <memory>
 
+import qcm.helper;
 #include "core/expected_helper.h"
-#include "core/str_helper.h"
 
 using namespace qcm;
 

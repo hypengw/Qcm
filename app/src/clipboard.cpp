@@ -1,9 +1,8 @@
 #include "Qcm/clipboard.h"
-
 #include <QGuiApplication>
 
-using namespace qcm;
-
+namespace qcm
+{
 Clipboard::Clipboard(QObject* parent): QObject(parent), m_mode(QClipboard::Mode::Clipboard) {}
 
 QString Clipboard::text() const { return QGuiApplication::clipboard()->text(m_mode); }
@@ -19,3 +18,6 @@ void             Clipboard::setMode(QClipboard::Mode m) {
 }
 
 void Clipboard::clear() { QGuiApplication::clipboard()->clear(m_mode); }
+} // namespace qcm
+
+#include <Qcm/moc_clipboard.cpp>

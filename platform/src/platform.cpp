@@ -1,4 +1,4 @@
-#include "platform/platform.h"
+module;
 #include <cstdio>
 #include <atomic>
 #include <cstdlib>
@@ -7,8 +7,7 @@
 #    include <malloc.h>
 #endif
 
-#include "core/core.h"
-#include "core/fmt.h"
+module platform;
 
 namespace plt
 {

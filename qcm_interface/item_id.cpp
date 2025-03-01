@@ -170,3 +170,5 @@ std::size_t std::hash<qcm::model::ItemId>::operator()(const qcm::model::ItemId& 
     ycore::hash_combine(s, k.library_id());
     return s;
 }
+
+#include <qcm_interface/moc_item_id.cpp>

@@ -5,11 +5,9 @@
 #include <QLoggingCategory>
 #include <QThread>
 
-#define QCM_LOG_IMPL
-
 #include "Qcm/app.h"
 #include "core/log.h"
-#include "platform/platform.h"
+import platform;
 
 #include <QtQml/QQmlExtensionPlugin>
 Q_IMPORT_QML_PLUGIN(Qcm_AppPlugin)

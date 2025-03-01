@@ -65,6 +65,7 @@ add_library(
   query.cpp
   sync_api.cpp
   meta_name.cpp
+  duration.cpp
   model/plugin.cpp
   model/id_queue.cpp
   model/user_model.cpp
@@ -105,8 +106,11 @@ target_compile_definitions(
          APP_SUMMARY="${APP_SUMMARY}"
   PRIVATE QCM_INTERFACE_EXPORT QT_NO_SIGNALS_SLOTS_KEYWORDS)
 
-set_target_properties(qcm_interface PROPERTIES AUTOMOC ON CXX_VISIBILITY_PRESET
-                                                          hidden)
+set_target_properties(
+  qcm_interface
+  PROPERTIES AUTOMOC ON
+             CXX_VISIBILITY_PRESET hidden
+             CXX_SCAN_FOR_MODULES ON)
 
 target_link_libraries(
   qcm_interface

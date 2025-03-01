@@ -10,7 +10,7 @@
 #include <QSqlRecord>
 #include <QDateTime>
 
-#include "platform/platform.h"
+import platform;
 #include "qcm_interface/path.h"
 #include "qcm_interface/type.h"
 #include "asio_qt/qt_sql.h"

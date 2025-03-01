@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <ranges>
+import qcm.core;
 #include "qcm_interface/export.h"
 
 namespace qcm::oper
@@ -15,7 +16,7 @@ QCM_INTERFACE_API void empty_deletor(voidp);
 template<typename T>
 class OperList {
 public:
-    using Holder      = std::unique_ptr<void, void (*)(voidp)>;
+    using Holder      = up<void, void (*)(voidp)>;
     using DataOp      = T* (*)(voidp);
     using SizeOp      = usize (*)(voidp);
     using Advance     = T* (*)(T*, usize);

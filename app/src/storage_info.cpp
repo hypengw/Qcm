@@ -34,3 +34,5 @@ void StorageInfoQuerier::reload() {
     });
 }
 } // namespace qcm::qml
+
+#include <Qcm/moc_storage_info.cpp>

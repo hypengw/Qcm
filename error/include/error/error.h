@@ -61,6 +61,7 @@ struct Msg {
 };
 
 class Error {
+    friend struct std::formatter<Error>;
     friend struct fmt::formatter<Error>;
 
 public:
@@ -169,6 +170,46 @@ struct fmt::formatter<error::Error> : fmt::formatter<std::string> {
             }
         }
         return fmt::formatter<std::string>::format(out, ctx);
+    }
+};
+
+template<>
+struct std::formatter<error::Msg> : std::formatter<std::string> {
+    template<typename FormatContext>
+    auto format(const error::Msg& msg, FormatContext& ctx) const {
+        auto out = (std::format("{} at {} {}({}:{})",
+                                msg.what,
+                                msg.loc.function_name(),
+                                msg.loc.file_name(),
+                                msg.loc.line(),
+                                msg.loc.column()));
+        return std::formatter<std::string>::format(out, ctx);
+    }
+};
+
+template<>
+struct std::formatter<std::error_code> : std::formatter<std::string> {
+    template<typename FormatContext>
+    auto format(const std::error_code& e, FormatContext& ctx) const {
+        return std::formatter<std::string>::format(
+            std::format("{}({}:{})", e.message(), e.value(), e.category().name()), ctx);
+    }
+};
+
+template<>
+struct std::formatter<error::Error> : std::formatter<std::string> {
+    template<typename FormatContext>
+    auto format(const error::Error& e, FormatContext& ctx) const {
+        std::string out { "err stack:\n" };
+        if (e.m_msg_stack.empty()) {
+            out.append("    error stack empty");
+        } else {
+            std::size_t i { 0 };
+            for (auto& msg : e.m_msg_stack) {
+                out.append(std::format("   {}# {}\n", i++, msg));
+            }
+        }
+        return std::formatter<std::string>::format(out, ctx);
     }
 };
 

@@ -617,3 +617,6 @@ void PlayQueue::checkCanMove() {
 }
 
 } // namespace qcm
+
+
+#include <Qcm/moc_play_queue.cpp>

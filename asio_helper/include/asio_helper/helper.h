@@ -11,7 +11,7 @@
 
 #include "core/core.h"
 #include "core/expected_helper.h"
-#include "core/str_helper.h"
+#include "core/helper.h"
 
 DEFINE_CONVERT(std::vector<byte>, asio::streambuf) {
     out.clear();

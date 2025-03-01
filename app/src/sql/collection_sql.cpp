@@ -6,10 +6,10 @@
 #include <asio/bind_executor.hpp>
 #include <asio/use_awaitable.hpp>
 
-#include "platform/platform.h"
+import platform;
 #include "qcm_interface/sql/meta_sql.h"
 #include "qcm_interface/path.h"
-#include "core/str_helper.h"
+#include "core/helper.h"
 #include "core/qstr_helper.h"
 #include "core/log.h"
 #include "asio_qt/qt_sql.h"

@@ -242,3 +242,6 @@ auto qcm::media_cache_path_of(std::string_view id) -> std::filesystem::path {
     auto file            = media_cache_dir / gen_prefix(id) / id;
     return file;
 }
+
+
+#include <Qcm/moc_qml_util.cpp>

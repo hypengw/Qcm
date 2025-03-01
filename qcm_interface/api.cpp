@@ -303,4 +303,5 @@ void ApiQueryBase::query() { reload(); }
 
 } // namespace qcm
 
+#include <qcm_interface/moc_async.cpp>
 #include <qcm_interface/moc_api.cpp>

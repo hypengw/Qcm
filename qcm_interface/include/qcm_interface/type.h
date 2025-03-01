@@ -3,8 +3,9 @@
 #include <QString>
 #include <QVariant>
 
-#include "core/core.h"
-#include "core/str_helper.h"
+import qcm.core;
+#include "core/helper.h"
+#include "core/macro.h"
 #include "core/qstr_helper.h"
 
 template<typename T>

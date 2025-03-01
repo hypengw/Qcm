@@ -1,0 +1,1 @@
+#include <qcm_interface/moc_duration.cpp>

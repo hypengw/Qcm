@@ -25,7 +25,7 @@
 #include "crypto/crypto.h"
 #include "asio_helper/sync_file.h"
 #include "meta_model/qgadget_helper.h"
-#include "platform/platform.h"
+import platform;
 #include "asio_qt/qt_sql.h"
 
 #include "qcm_interface/plugin.h"

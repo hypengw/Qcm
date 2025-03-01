@@ -4,12 +4,12 @@
 #include <asio/bind_executor.hpp>
 #include <asio/use_awaitable.hpp>
 #include "asio_qt/qt_sql.h"
-#include "core/str_helper.h"
-#include "core/strv_helper.h"
+#include "core/helper.h"
+#include "core/helper.h"
 #include "core/qstr_helper.h"
 #include "qcm_interface/sql/meta_sql.h"
 #include "Qcm/query/query_load.h"
-#include "platform/platform.h"
+import platform;
 
 namespace qcm
 {

@@ -6,7 +6,7 @@ set(APP_AUTHOR "hypeng")
 
 find_package(Qt6 REQUIRED COMPONENTS QuickControls2 Sql Widgets)
 
-set(SOURCES
+set(HEADERS
     include/Qcm/app.h
     include/Qcm/info.h
     include/Qcm/image_provider.h
@@ -37,7 +37,10 @@ set(SOURCES
     include/Qcm/query/mix_delete.h
     include/Qcm/query/user_mix.h
     include/Qcm/query/comments.h
-    include/Qcm/query/search.h
+    include/Qcm/query/search.h)
+
+set(SOURCES
+    src/log.cpp
     src/action.cpp
     src/app.cpp
     src/image_provider.cpp
@@ -55,6 +58,8 @@ set(SOURCES
     src/sql/sql.cpp
     src/query/search.cpp
     src/query.cpp)
+
+set(MODULES src/backend.cppm src/mod.cppm)
 
 set(QML_FILES
     qml/js/util.mjs
@@ -151,7 +156,7 @@ qt_add_qml_module(
   NO_PLUGIN_OPTIONAL)
 
 target_sources(app PRIVATE $<$<CONFIG:Debug>:src/util/QmlStackTraceHelper.cpp>)
-target_sources(app PRIVATE FILE_SET CXX_MODULES FILES src/backend.cppm)
+target_sources(app PRIVATE FILE_SET CXX_MODULES FILES ${MODULES})
 
 set_source_files_properties(
   "${CMAKE_CURRENT_BINARY_DIR}/app_qmltyperegistrations.cpp" TARGET_DIRECTORY

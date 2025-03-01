@@ -1,6 +1,7 @@
 #pragma once
 
-#include "core/strv_helper.h"
+#include "core/helper.h"
+#include <string_view>
 #include "qcm_interface/export.h"
 
 namespace qcm

@@ -3,8 +3,8 @@
 #include <set>
 #include <ranges>
 
+#include "core/helper.h"
 #include "core/log.h"
-#include "core/strv_helper.h"
 #include "core/qstr_helper.h"
 #include "core/qvariant_helper.h"
 #include "qcm_interface/model/page.h"
@@ -138,3 +138,5 @@ void Router::add_main_page(const model::Page& p) {
 }
 
 } // namespace qcm
+
+#include <qcm_interface/moc_router.cpp>

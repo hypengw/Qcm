@@ -1,9 +1,11 @@
+set(CMAKE_AUTOMOC ON)
 add_library(
   meta_model STATIC
   include/meta_model/qgadgetlistmodel.h 
   include/meta_model/qobjectlistmodel.h 
   include/meta_model/qmetaobjectmodel.h
-  qmetaobjectmodel.cpp)
+  qmetaobjectmodel.cpp
+  moc.cpp)
 
 target_include_directories(meta_model PUBLIC include)
 

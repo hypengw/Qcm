@@ -1,13 +1,44 @@
-#include "core/core.h"
-#include "core/log.h"
-#include "core/strv_helper.h"
+module;
 #include <fmt/chrono.h>
 
 #include <cassert>
 #include <cstdio>
+#include <source_location>
+
+module qcm.log;
+import qcm.helper;
+import platform;
 
 namespace
 {
+
+constexpr const char* past_last_slash(const char* const path, const int pos = 0,
+                                      const int last_slash = 0) {
+    if (path[pos] == '\0') return path + last_slash;
+    if (path[pos] == '/' || path[pos] == '\\')
+        return past_last_slash(path, pos + 1, pos + 1);
+    else
+        return past_last_slash(path, pos + 1, last_slash);
+}
+
+constexpr auto extract_last(std::string_view path, std::size_t count) -> std::string_view {
+    auto size = path.size();
+    while (size != 0) {
+        if (path[size - 1] == '/' || path[size - 1] == '\\') {
+            --count;
+        }
+        if (count != 0) {
+            --size;
+        } else {
+            break;
+        }
+    }
+    return std::string_view { path.begin() + size, path.end() };
+}
+
+constexpr auto extract_basename(std::string_view path) -> std::string_view {
+    return extract_last(path, 1);
+}
 
 using LogLevel = qcm::LogLevel;
 
@@ -77,7 +108,7 @@ auto supports_color() -> bool {
 
 auto supports_color() -> bool {
     // Check if the standard output is a terminal
-    if (! isatty(STDOUT_FILENO)) {
+    if (! plt::is_terminal()) {
         return false;
     }
 

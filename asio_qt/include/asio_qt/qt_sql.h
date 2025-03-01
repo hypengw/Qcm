@@ -12,8 +12,8 @@
 #include <asio/dispatch.hpp>
 
 #include "core/log.h"
-#include "core/strv_helper.h"
-#include "core/str_helper.h"
+#include "core/helper.h"
+#include "core/helper.h"
 #include "core/qstr_helper.h"
 #include "core/qmeta_helper.h"
 #include "asio_qt/qt_executor.h"

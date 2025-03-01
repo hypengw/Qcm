@@ -5,7 +5,7 @@
 
 #include "Qcm/app.h"
 #include "qcm_interface/query.h"
-#include "core/strv_helper.h"
+#include "core/helper.h"
 
 #include "asio_helper/basic.h"
 #include "asio_qt/qt_watcher.h"

@@ -115,24 +115,23 @@ function(register_qcm_service url_ target_)
   set_property(GLOBAL APPEND PROPERTY QCM_SERVICES ${target_})
 endfunction()
 
-add_subdirectory(core)
-add_subdirectory(binder)
-add_subdirectory(platform)
-add_subdirectory(error)
-add_subdirectory(json_helper)
-add_subdirectory(asio_helper)
-add_subdirectory(asio_qt)
-add_subdirectory(crypto)
-
-add_subdirectory(generator/model)
-add_subdirectory(qcm_interface)
-
 if(ANDROID)
   set(QCM_SERVICE_STATIC_BUILD ON)
 endif()
 
-add_subdirectory(mpris)
+add_subdirectory(platform)
+add_subdirectory(core)
+add_subdirectory(error)
+add_subdirectory(json_helper)
+add_subdirectory(asio_helper)
+add_subdirectory(crypto)
+
+add_subdirectory(asio_qt)
 add_subdirectory(meta_model)
+add_subdirectory(generator/model)
+add_subdirectory(qcm_interface)
+
+add_subdirectory(mpris)
 add_subdirectory(media_cache)
 add_subdirectory(player)
 

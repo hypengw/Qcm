@@ -20,7 +20,7 @@
 #include "crypto/crypto.h"
 #include "Qcm/app.h"
 
-#include "platform/platform.h"
+import platform;
 
 using namespace qcm;
 
@@ -195,3 +195,6 @@ QcmImageProvider
 
 
 #include <Qcm/moc_image_provider.cpp>
+void test() {
+QtPrivate::checkTypeIsSuitableForMetaType<QString>();
+}

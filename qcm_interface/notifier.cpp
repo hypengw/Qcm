@@ -23,3 +23,6 @@ Notifier* Notifier::create(QQmlEngine*, QJSEngine*) {
     return act;
 }
 } // namespace qcm
+
+
+#include <qcm_interface/moc_notifier.cpp>
