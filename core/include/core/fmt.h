@@ -46,7 +46,7 @@ template<typename It, typename Sentinel, typename Char>
 struct std::formatter<helper::join_view<It, Sentinel, Char>, Char> {
 private:
     using value_type = typename std::iterator_traits<It>::value_type;
-    formatter<remove_cvref_t<value_type>, Char> value_formatter_;
+    std::formatter<remove_cvref_t<value_type>, Char> value_formatter_;
 
     using view = std::conditional_t<std::is_copy_constructible<It>::value,
                                const helper::join_view<It, Sentinel, Char>, helper::join_view<It, Sentinel, Char>>;
@@ -54,7 +54,7 @@ private:
 public:
     using nonlocking = void;
 
-    FMT_CONSTEXPR auto parse(std::basic_format_parse_context<Char>& ctx) -> const Char* {
+    constexpr auto parse(std::basic_format_parse_context<Char>& ctx) -> const Char* {
         return value_formatter_.parse(ctx);
     }
 

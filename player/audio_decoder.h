@@ -8,7 +8,7 @@ extern "C" {
 }
 
 #include "core/core.h"
-#include "core/platform.h"
+import platform;
 #include "ffmpeg_frame.h"
 #include "stream_reader.h"
 #include "audio_frame_queue.h"
@@ -92,7 +92,7 @@ private:
     }
 
     void audio_thread(AVCodecContext* ctx, PacketQueue& pkt_queue, AudioFrameQueue& queue) {
-        qcm::set_thread_name("qcm decoder");
+        plt::set_thread_name("qcm decoder");
         FFmpegFrame   frame;
         FFmpegError   err       = AVERROR(EAGAIN);
         up<Resampler> resampler = make_up<Resampler>();
