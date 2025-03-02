@@ -3,7 +3,8 @@ module;
 #include <cstddef>
 #include <memory>
 #include <variant>
-export module qcm.core;
+#include <iterator>
+export module qcm.core:basic;
 
 export using i8  = std::int8_t;
 export using i16 = std::int16_t;
@@ -69,7 +70,7 @@ typename Wrapper::element_type* GetPtrHelper(const Wrapper& p) {
 }
 
 export template<class T>
- void hash_combine(std::size_t& seed, const T& v) {
+void hash_combine(std::size_t& seed, const T& v) {
     std::hash<T> hasher;
     seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
@@ -138,6 +139,34 @@ concept MapConcept = requires(T t) {
     typename T::mapped_type;
 };
 
+namespace detail
+{
+template<typename T>
+class is_tuple_like_ {
+    template<typename U, typename V = typename std::remove_cv<U>::type>
+    static auto check(U* p) -> decltype(std::tuple_size<V>::value, 0);
+    template<typename>
+    static void check(...);
+
+public:
+    static constexpr const bool value = ! std::is_void<decltype(check<T>(nullptr))>::value;
+};
+} // namespace detail
+export template<typename T>
+using range_value_t = std::iter_value_t<T>;
+
+export template<typename T>
+concept range = requires(T& t) {
+    std::begin(t);
+    std::end(t);
+};
+
+export template<class T>
+concept sized_range = ycore::range<T> && requires(T& t) { std::size(t); };
+
+export template<typename T>
+concept tuple_like = detail::is_tuple_like_<T>::value && ! range<T>;
+
 } // namespace ycore
 
 export template<typename Tout, typename Tin>
@@ -185,11 +214,9 @@ struct Convert<ycore::monostate, T> {
     static void from(ycore::monostate&, const T&) {};
 };
 
-
 export template<typename IMPL>
 struct CRTP {
 protected:
     IMPL&       crtp_impl() { return *static_cast<IMPL*>(this); }
     const IMPL& crtp_impl() const { return *static_cast<const IMPL*>(this); }
 };
-

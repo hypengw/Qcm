@@ -4,7 +4,7 @@
 #include <nlohmann/json.hpp>
 
 #include "helper.h"
-#include "core/variant_helper.h"
+#include "core/helper.h"
 
 #define JSON_FROM_OPTIONAL(v1) from_json_opt(nlohmann_json_t.v1, nlohmann_json_j, #v1);
 

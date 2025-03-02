@@ -27,6 +27,8 @@ struct literal_string_bytes {
         });
     }
 };
+template<typename T>
+concept ByteRangeCP = ycore::range<T> && std::same_as<std::decay_t<ycore::range_value_t<T>>, byte>;
 
 } // namespace helper
 
@@ -162,4 +164,28 @@ export template<typename T, typename F>
              convertable<std::string, typename F::element_type>
 struct Convert<T, F> {
     static void from(std::string& out, const F& in) { convert(out, *in); }
+};
+
+export template<typename T, typename F>
+    requires std::same_as<T, std::string_view> && ycore::sized_range<T> &&
+             (std::convertible_to<ycore::range_value_t<T>, char> ||
+              std::convertible_to<ycore::range_value_t<T>, byte>) &&
+             (sizeof(ycore::range_value_t<T>) == sizeof(byte))
+struct Convert<T, F> {
+    static void from(std::string_view& out, const F& in) {
+        out = std::string_view { (const char*)in.data(), (std::size_t)in.size() };
+    }
+};
+
+export template<typename T, helper::ByteRangeCP Bytes>
+    requires std::same_as<T, std::string>
+struct Convert<T, Bytes> {
+    // already defined by fmt
+    constexpr static bool AsFormat { false };
+    static void           from(std::string& out, const Bytes& in) {
+        out.resize(in.size());
+        for (usize i = 0; i < in.size(); i++) {
+            out[i] = std::to_integer<char>(in[i]);
+        }
+    }
 };

@@ -2,7 +2,7 @@
 
 #include <variant>
 #include "meta_model/qmetaobjectmodel.h"
-#include "core/variant_helper.h"
+#include "core/helper.h"
 
 namespace meta_model
 {

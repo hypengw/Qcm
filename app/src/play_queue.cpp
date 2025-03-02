@@ -4,7 +4,7 @@
 #include <variant>
 #include <unordered_set>
 
-#include "core/random.h"
+import qcm.core;
 #include "core/log.h"
 #include "core/optional_helper.h"
 #include "asio_helper/basic.h"

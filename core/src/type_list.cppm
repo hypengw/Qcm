@@ -1,15 +1,15 @@
-#pragma once
-
+module;
 #include <numeric>
 #include <utility>
 #include <type_traits>
-#include "core/core.h"
+export module qcm.core:type_list;
+import :basic;
 
 namespace ycore
 {
 
 // forward
-template<typename... TS>
+export template<typename... TS>
 struct type_list;
 
 namespace detail
@@ -23,7 +23,7 @@ auto runtime_select(usize i, Func&& func) {
                       : runtime_select<Func, I + 1, Ts...>(i, std::forward<Func>(func));
     } else {
         return i == I ? func.template operator()<I, T>()
-                      : func.template operator()<I, std::monostate>();
+                      : func.template operator()<I, ycore::monostate>();
     }
 }
 
@@ -126,7 +126,7 @@ struct index_sequence_helper<std::integer_sequence<std::size_t, IS...>> {
 
 } // namespace detail
 
-template<std::size_t N>
+export template<std::size_t N>
 using make_index_sequence_helper = detail::index_sequence_helper<std::make_index_sequence<N>>;
 
 template<typename _Tp, typename... _Types>

@@ -1,6 +1,6 @@
-#pragma once
-
+module;
 #include <utility>
+export module qcm.core:lambda;
 
 namespace ycore
 {
@@ -17,10 +17,10 @@ struct y_combinator {
     }
 };
 
-template<class F>
+export template<class F>
 y_combinator(F) -> y_combinator<F>;
 
-template<typename R, typename... Args>
+export template<typename R, typename... Args>
 struct function_traits_base {
     using ret_type                         = R;
     using arg_types                        = std::tuple<Args...>;
@@ -29,10 +29,10 @@ struct function_traits_base {
     using nth_arg = std::tuple_element_t<N, arg_types>;
 };
 
-template<typename F>
+export template<typename F>
 struct function_traits;
 
-template<typename R, typename... Args>
+export template<typename R, typename... Args>
 struct function_traits<R (*)(Args...)> : function_traits_base<R, Args...> {
     using pointer = R (*)(Args...);
 };

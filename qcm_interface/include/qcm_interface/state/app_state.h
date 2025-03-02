@@ -3,7 +3,7 @@
 #include <variant>
 #include <QObject>
 
-#include "core/type_list.h"
+import qcm.core;
 #include "qcm_interface/export.h"
 #include "qcm_interface/async.h"
 

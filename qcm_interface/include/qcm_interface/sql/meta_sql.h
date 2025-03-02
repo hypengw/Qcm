@@ -3,6 +3,7 @@
 #include <ranges>
 #include <QtCore/QMetaObject>
 #include <QtCore/QMetaProperty>
+#include "core/fmt.h"
 
 #include "core/helper.h"
 
@@ -24,7 +25,7 @@ using enum Logical;
 using enum Eq;
 
 constexpr auto suffix(bool v, std::string_view in, std::string_view suffix_) -> std::string {
-    return v ? std::string(in) : fmt::format("{}{}", in, suffix_);
+    return v ? std::string(in) : std::format("{}{}", in, suffix_);
 }
 constexpr auto suffix(std::string_view in, std::string_view suffix_) -> std::string {
     return suffix(in.empty(), in, suffix_);

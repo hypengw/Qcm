@@ -9,17 +9,21 @@ target_sources(
          BASE_DIRS
          src
          FILES
+         src/mod.cppm
+         src/random.cppm
+         src/type_list.cppm
          src/log.cppm
          src/core.cppm
-         src/helper.cppm
-         src/container_helper.cppm
-         src/str_helper.cppm)
+         src/lambda.cppm
+         src/helper/mod.cppm
+         src/helper/str.cppm
+         src/helper/container.cppm
+         )
 target_sources(
   core
   PRIVATE include/core/core.h
           include/core/callable.h
           include/core/expected_helper.h
-          include/core/variant_helper.h
           include/core/log.h
           src/log.cpp)
 
