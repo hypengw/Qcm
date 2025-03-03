@@ -25,6 +25,7 @@ target_sources(
           include/core/callable.h
           include/core/expected_helper.h
           include/core/log.h
+          include/core/clangd.h
           src/log.cpp)
 
 target_include_directories(core PUBLIC include)

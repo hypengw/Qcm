@@ -2,12 +2,13 @@
 
 #include <asio/execution.hpp>
 
-#include "qt_execution_context.h"
+#include "asio_qt/qt_execution_context.h"
 #include "core/core.h"
 
 class QtExecutor {
 public:
-    QtExecutor(rc<QtExecutionContext> ctx): m_ctx(ctx) {}
+    explicit QtExecutor(Arc<QtExecutionContext> ctx): m_ctx(ctx.get()) {}
+    explicit QtExecutor(QtExecutionContext* ctx): m_ctx(ctx) {}
 
     QtExecutionContext& query(asio::execution::context_t) const noexcept { return *m_ctx; }
 
@@ -34,7 +35,7 @@ public:
     bool operator!=(QtExecutor const& o) const noexcept { return ! (*this == o); }
 
 private:
-    rc<QtExecutionContext> m_ctx;
+    QtExecutionContext* m_ctx;
 };
 
 static_assert(asio::execution::is_executor_v<QtExecutor>);

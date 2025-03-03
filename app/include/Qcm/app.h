@@ -17,8 +17,6 @@
 #include "core/log.h"
 #include "asio_qt/qt_executor.h"
 
-// #include "service_qml_ncm/model/user_account.h"
-
 #ifndef NODEBUS
 #    include "mpris/mpris.h"
 #    include "mpris/mediaplayer2.h"
@@ -28,6 +26,7 @@
 #include "qcm_interface/model/user_account.h"
 #include "Qcm/player.h"
 #include "Qcm/play_queue.h"
+#include "Qcm/backend.h"
 
 #include "qcm_interface/global.h"
 #include "qcm_interface/model/empty_model.h"
@@ -169,25 +168,27 @@ private:
     void load_plugins();
     void connect_actions();
 
-    rc<Global>    m_global;
-    rc<qml::Util> m_util;
+    Arc<Global>    m_global;
+    Arc<qml::Util> m_util;
 
     PlayIdQueue*       m_play_id_queue;
     PlayQueue*         m_playqueu;
     model::EmptyModel* m_empty;
 #ifndef NODEBUS
-    up<mpris::Mpris> m_mpris;
+    Box<mpris::Mpris> m_mpris;
 #endif
 
-    rc<media_cache::MediaCache> m_media_cache;
+    Arc<media_cache::MediaCache> m_media_cache;
 
-    rc<CacheSql>      m_media_cache_sql;
-    rc<CacheSql>      m_cache_sql;
-    rc<CollectionSql> m_collect_sql;
-    rc<ItemSql>       m_item_sql;
+    Arc<CacheSql>      m_media_cache_sql;
+    Arc<CacheSql>      m_cache_sql;
+    Arc<CollectionSql> m_collect_sql;
+    Arc<ItemSql>       m_item_sql;
+
+    Box<Backend> m_backend;
 
     std::optional<Sender<Player::NotifyInfo>> m_player_sender;
     QPointer<QQuickWindow>                    m_main_win;
-    up<QQmlApplicationEngine>                 m_qml_engine;
+    Box<QQmlApplicationEngine>                m_qml_engine;
 };
 } // namespace qcm

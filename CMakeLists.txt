@@ -80,15 +80,19 @@ set(WARN_OPTS
     "$<$<COMPILE_LANG_AND_ID:CXX,GNU>:-Wno-dangling-reference>")
 
 add_compile_options(
-  $<$<CONFIG:Debug>:-fno-omit-frame-pointer>
-  $<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=address>
-  $<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=undefined>
-  $<$<BOOL:${QCM_USE_ASAN}>:-fsanitize-recover=address>)
+  "$<$<CONFIG:Debug>:-fno-omit-frame-pointer>"
+  # fix for clangd
+  # "$<$<CONFIG:Debug>:-fretain-comments-from-system-headers>"
+  # asan
+  "$<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=address>"
+  "$<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=undefined>"
+  "$<$<BOOL:${QCM_USE_ASAN}>:-fsanitize-recover=address>")
 
 add_link_options(
-  $<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=address>
-  $<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=undefined>
-  $<$<BOOL:${QCM_USE_ASAN}>:-fsanitize-recover=address>)
+  # asan
+  "$<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=address>"
+  "$<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=undefined>"
+  "$<$<BOOL:${QCM_USE_ASAN}>:-fsanitize-recover=address>")
 
 add_subdirectory(third_party)
 

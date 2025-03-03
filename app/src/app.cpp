@@ -164,12 +164,17 @@ App::App(QStringView backend_exe, std::monostate)
     }
 
     DEBUG_LOG("thread pool size: {}", get_pool_size());
+    {
+        m_backend = make_box<Backend>();
+        auto data_dir = convert_from<QString>(data_path().string());
+        m_backend->start(backend_exe, data_dir);
+    }
 
     m_qml_engine->addImportPath(u"qrc:/"_s);
-    #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-        // try curve for better good visual results or where reducing graphics memory consumption
-        QQuickWindow::setTextRenderType(QQuickWindow::CurveTextRendering);
-    #endif
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+    // try curve for better good visual results or where reducing graphics memory consumption
+    QQuickWindow::setTextRenderType(QQuickWindow::CurveTextRendering);
+#endif
 
     // sql init
     {
@@ -366,8 +371,9 @@ void App::load_plugins() {
 }
 
 void App::setProxy(ProxyType t, QString content) {
-    m_global->session()->set_proxy(ncrequest::req_opt::Proxy {
-        .type = convert_from<ncrequest::req_opt::Proxy::Type>(t), .content = content.toStdString() });
+    m_global->session()->set_proxy(
+        ncrequest::req_opt::Proxy { .type    = convert_from<ncrequest::req_opt::Proxy::Type>(t),
+                                    .content = content.toStdString() });
 }
 
 void App::setVerifyCertificate(bool v) { m_global->session()->set_verify_certificate(v); }

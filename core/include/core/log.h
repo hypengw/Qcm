@@ -6,6 +6,11 @@
 #include "core/fmt.h"
 #include "core/macro.h"
 
+
+#ifdef __clangd__
+#include "core/clangd.h"
+#endif
+
 import qcm.log;
 
 // clang-format off

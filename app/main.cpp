@@ -3,6 +3,7 @@
 #include <QCommandLineParser>
 #include <QSurfaceFormat>
 #include <QLoggingCategory>
+#include <QDir>
 #include <QThread>
 
 #include "Qcm/app.h"
@@ -38,9 +39,15 @@ int main(int argc, char* argv[]) {
         parser.addOption(log_level_opt);
         parser.addOption(backend_opt);
         parser.process(gui_app);
-
         logger->set_level(qcm::log::level_from(parser.value(log_level_opt).toStdString()));
+
         backend_exe = parser.value(backend_opt);
+        {
+            auto path = QDir(backend_exe);
+            if (! path.isAbsolute()) {
+                backend_exe = QDir(QCoreApplication::applicationDirPath()).filePath(backend_exe);
+            }
+        }
         QLoggingCategory::setFilterRules(
             QLatin1String(fmt::format("qcm.debug={}", logger->level() == qcm::LogLevel::DEBUG)));
     }

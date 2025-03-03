@@ -6,7 +6,7 @@
 #include <QtQml/qqmlregistration.h>
 #include <QDateTime>
 
-import qcm.core;
+#include "core/core.h"
 #include "core/helper.h"
 #include "core/macro.h"
 #include "core/qstr_helper.h"

@@ -57,9 +57,10 @@ set(SOURCES
     src/sql/collection_sql.cpp
     src/sql/sql.cpp
     src/query/search.cpp
-    src/query.cpp)
+    src/query.cpp
+    src/backend.cpp)
 
-set(MODULES src/backend.cppm src/mod.cppm)
+set(MODULES src/mod.cppm)
 
 set(QML_FILES
     qml/js/util.mjs

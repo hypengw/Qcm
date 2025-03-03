@@ -5,6 +5,7 @@
 #include <unordered_set>
 
 import qcm.core;
+import qcm.random;
 #include "core/log.h"
 #include "core/optional_helper.h"
 #include "asio_helper/basic.h"

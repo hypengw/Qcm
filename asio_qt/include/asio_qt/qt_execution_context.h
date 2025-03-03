@@ -34,11 +34,18 @@ struct QtExecutionEventRunner : QObject {
     auto         event(QEvent* event) -> bool override;
 };
 
+class QtExecutor;
+
 class QtExecutionContext : public asio::execution_context, NoCopy {
 public:
     QtExecutionContext(QObject*, QEvent::Type);
     QtExecutionContext(QThread*, QEvent::Type);
     virtual ~QtExecutionContext();
+
+    QtExecutionContext(const QtExecutionContext&) = delete;
+    QtExecutionContext(QtExecutionContext&&)      = delete;
+
+    auto get_executor() -> QtExecutor&;
 
     template<class F>
     void post(F&& f) {
@@ -50,4 +57,8 @@ public:
 
 private:
     QtExecutionEventRunner* m_target;
+    Box<QtExecutor>         m_ex;
 };
+
+
+#include "asio_qt/qt_executor.h"

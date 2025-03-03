@@ -1,6 +1,6 @@
 module;
 #include "effolkronium/random.hpp"
-export module qcm.core:random;
+export module qcm.random;
 
 namespace qcm {
 
