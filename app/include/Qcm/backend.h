@@ -24,7 +24,7 @@ public:
 
 private:
     Q_SLOT void on_started(i32 port);
-
+    
     Box<QThread>                    m_thread;
     Box<QtExecutionContext>         m_context;
     QProcess*                       m_process;

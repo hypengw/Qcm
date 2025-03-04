@@ -8,6 +8,7 @@
 
 #include "core/log.h"
 #include "core/qstr_helper.h"
+#include "Qcm/message/message.qpb.h"
 
 import ncrequest.event;
 import rstd.rc;
@@ -23,6 +24,11 @@ Backend::Backend()
           ncrequest::event::create<asio::posix::basic_stream_descriptor>(
               m_context->get_executor()))) {
     m_process->setProcessChannelMode(QProcess::ProcessChannelMode::ForwardedErrorChannel);
+    m_client->set_on_error_callback([](std::string_view err) {
+        ERROR_LOG("{}", err);
+    });
+    m_client->set_on_message_callback([](std::span<const std::byte> bytes, bool last) {
+    });
     // start thread
     {
         bool ok = m_process->moveToThread(m_thread.get());

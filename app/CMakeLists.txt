@@ -191,6 +191,7 @@ target_link_libraries(
          player
          platform
          qcm_interface
+         "message"
          "$<$<TARGET_EXISTS:mpris>:mpris>")
 
 qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cpp)

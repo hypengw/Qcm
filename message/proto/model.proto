@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+package qcm.msg.model;
+
+import "google/protobuf/timestamp.proto";
+
+message Song {
+  int64 id = 1;
+  string item_id = 2;
+  int32 library_id = 3;
+  string name = 4;
+  string album_id = 5;
+  int32 track_number = 6;
+  google.protobuf.Timestamp duration = 7;
+  int32 can_play = 8;
+  string cover_url = 9;
+  string tags = 10;
+  double popularity = 11;
+  google.protobuf.Timestamp edit_time = 12;
+}
+
+message Radio {
+  int64 id = 1;
+  string item_id = 2;
+  int32 library_id = 3;
+  string name = 4;
+  string pic_url = 5;
+  string description = 6;
+  int32 program_count = 7;
+  google.protobuf.Timestamp create_time = 8;
+  google.protobuf.Timestamp edit_time = 9;
+}
+
+message Program {
+  int64 id = 1;
+  string item_id = 2;
+  int32 library_id = 3;
+  string name = 4;
+  string description = 5;
+  google.protobuf.Timestamp duration = 6;
+  string cover_url = 7;
+  string song_id = 8;
+  google.protobuf.Timestamp create_time = 9;
+  int32 serial_number = 10;
+  string radio_id = 11;
+  google.protobuf.Timestamp edit_time = 12;
+}
+
+message Mix {
+  int64 id = 1;
+  string item_id = 2;
+  int32 library_id = 3;
+  string name = 4;
+  string pic_url = 5;
+  int32 track_count = 6;
+  int32 special_type = 7;
+  string description = 8;
+  google.protobuf.Timestamp create_time = 9;
+  google.protobuf.Timestamp update_time = 10;
+  int32 play_count = 11;
+  string user_id = 12;
+  string tags = 13;
+  google.protobuf.Timestamp edit_time = 14;
+}
+
+message Library {
+  int64 library_id = 1;
+  string name = 2;
+  int64 provider_id = 3;
+  string native_id = 4;
+  google.protobuf.Timestamp edit_time = 5;
+}
+
+message Artist {
+  int64 id = 1;
+  string item_id = 2;
+  string name = 3;
+  string pic_url = 4;
+  int32 library_id = 5;
+  string description = 6;
+  int32 album_count = 7;
+  int32 music_count = 8;
+  string alias = 9;
+  google.protobuf.Timestamp edit_time = 10;
+}
+
+message Album {
+  int64 id = 1;
+  string item_id = 2;
+  int32 library_id = 3;
+  string name = 4;
+  string pic_url = 5;
+  google.protobuf.Timestamp publish_time = 6;
+  int32 track_count = 7;
+  string description = 8;
+  string company = 9;
+  string type = 10;
+  google.protobuf.Timestamp edit_time = 11;
+}
