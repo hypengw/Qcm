@@ -12,6 +12,8 @@
 #include "qcm_interface/plugin.h"
 #include "asio_helper/watch_dog.h"
 
+#include "Qcm/play_queue.h"
+
 namespace qcm
 {
 
@@ -61,8 +63,9 @@ void App::connect_actions() {
                                                         *old_id,
                                                         old_source_id.value_or(model::ItemId {}));
                     }
-                    old_id             = m_playqueu->currentId();
-                    auto source_id_var = m_playqueu->currentData(m_playqueu->roleOf("sourceId"));
+                    old_id = this->playqueue()->currentId();
+                    auto source_id_var =
+                        this->playqueue()->currentData(this->playqueue()->roleOf("sourceId"));
                     if (auto source_id_p = get_if<model::ItemId>(&source_id_var)) {
                         old_source_id = *source_id_p;
                     } else {
@@ -396,7 +399,7 @@ void App::on_switch_queue(model::IdQueue* queue) {
     if (queue == nullptr) {
         INFO_LOG("queue is null");
     } else {
-        m_playqueu->setSourceModel(queue);
+        this->playqueue()->setSourceModel(queue);
         if (queue->rowCount()) {
             queue->setCurrentIndex(0);
         }

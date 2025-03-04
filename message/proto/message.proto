@@ -44,7 +44,7 @@ message TestResponse {
   bool success = 2;
 }
 
-message MusicMessage {
+message QcmMessage {
   MessageType type = 1;
   string request_id = 2;
   

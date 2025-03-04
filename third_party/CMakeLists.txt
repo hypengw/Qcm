@@ -118,7 +118,7 @@ if(NOT ncrequest_FOUND)
   FetchContent_Declare(
     ncrequest
     GIT_REPOSITORY https://github.com/hypengw/ncrequest.git
-    GIT_TAG        4c292d33e7022eaeb07be7ec5ce0b9c557b56bde
+    GIT_TAG        f6a6b989c8a4fa5d0e5caa81eff714513b344feb
     GIT_SHALLOW 1
     EXCLUDE_FROM_ALL)
   FetchContent_MakeAvailable(ncrequest)

@@ -13,23 +13,12 @@
 #include <asio/steady_timer.hpp>
 
 #include "core/core.h"
-#include "core/helper.h"
-#include "core/log.h"
+
 #include "asio_qt/qt_executor.h"
-
-#ifndef NODEBUS
-#    include "mpris/mpris.h"
-#    include "mpris/mediaplayer2.h"
-#endif
-
-#include "media_cache/media_cache.h"
-#include "qcm_interface/model/user_account.h"
-#include "Qcm/player.h"
-#include "Qcm/play_queue.h"
-#include "Qcm/backend.h"
 
 #include "qcm_interface/global.h"
 #include "qcm_interface/model/empty_model.h"
+#include "player/notify.h"
 
 namespace qcm
 {
@@ -37,9 +26,15 @@ namespace qml
 {
 class Util;
 }
+namespace model
+{
+class IdQueue;
+}
 class CacheSql;
 class CollectionSql;
 class ItemSql;
+class PlayIdQueue;
+class PlayQueue;
 
 void register_meta_type();
 auto gen_image_cache_entry(const QString& provider, const QUrl& url, QSize reqSize)
@@ -104,7 +99,7 @@ public:
     auto        util() const -> qml::Util*;
     auto        playqueue() const -> PlayQueue*;
     auto        play_id_queue() const -> PlayIdQueue*;
-    void        set_player_sender(Sender<Player::NotifyInfo>);
+    void        set_player_sender(player::Notifier);
     auto        media_cache_sql() const -> rc<CacheSql>;
     auto        cache_sql() const -> rc<CacheSql>;
     auto        item_sql() const -> rc<ItemSql>;
@@ -167,28 +162,7 @@ public:
 private:
     void load_plugins();
     void connect_actions();
-
-    Arc<Global>    m_global;
-    Arc<qml::Util> m_util;
-
-    PlayIdQueue*       m_play_id_queue;
-    PlayQueue*         m_playqueu;
-    model::EmptyModel* m_empty;
-#ifndef NODEBUS
-    Box<mpris::Mpris> m_mpris;
-#endif
-
-    Arc<media_cache::MediaCache> m_media_cache;
-
-    Arc<CacheSql>      m_media_cache_sql;
-    Arc<CacheSql>      m_cache_sql;
-    Arc<CollectionSql> m_collect_sql;
-    Arc<ItemSql>       m_item_sql;
-
-    Box<Backend> m_backend;
-
-    std::optional<Sender<Player::NotifyInfo>> m_player_sender;
-    QPointer<QQuickWindow>                    m_main_win;
-    Box<QQmlApplicationEngine>                m_qml_engine;
+    class Private;
+    C_DECLARE_PRIVATE(App, d_ptr);
 };
 } // namespace qcm

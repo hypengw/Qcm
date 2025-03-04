@@ -20,8 +20,10 @@
 #include <QQmlContext>
 
 #include "asio_helper/basic.h"
-
+#include "core/helper.h"
+#include "core/log.h"
 #include "core/qvariant_helper.h"
+
 #include "crypto/crypto.h"
 #include "asio_helper/sync_file.h"
 #include "meta_model/qgadget_helper.h"
@@ -39,6 +41,17 @@ import platform;
 #include "Qcm/sql/cache_sql.h"
 #include "Qcm/sql/item_sql.h"
 #include "Qcm/info.h"
+
+#include "media_cache/media_cache.h"
+#include "qcm_interface/model/user_account.h"
+#include "Qcm/play_queue.h"
+#include "Qcm/backend.h"
+#include "Qcm/player.h"
+
+#ifndef NODEBUS
+#    include "mpris/mpris.h"
+#    include "mpris/mediaplayer2.h"
+#endif
 
 using namespace qcm;
 
@@ -128,6 +141,60 @@ auto app_instance(App* in = nullptr) -> App* {
 
 } // namespace
 
+namespace qcm
+{
+
+class App::Private {
+public:
+    Private(App* self)
+        : m_p(self),
+          m_global(make_rc<Global>()),
+          m_util(make_rc<qml::Util>(std::monostate {})),
+          m_play_id_queue(new PlayIdQueue(self)),
+          m_playqueu(new qcm::PlayQueue(self)),
+          m_empty(new qcm::model::EmptyModel(self)),
+#ifndef NODEBUS
+          m_mpris(make_up<mpris::Mpris>()),
+#endif
+          m_media_cache(),
+          m_main_win(nullptr),
+          m_qml_engine(make_up<QQmlApplicationEngine>()) {
+    }
+    ~Private() {
+        m_qml_engine = nullptr;
+
+        m_p->save_settings();
+        m_media_cache->stop();
+        m_global->session()->about_to_stop();
+        m_global->join();
+    }
+
+    App* m_p;
+
+    Arc<Global>    m_global;
+    Arc<qml::Util> m_util;
+
+    PlayIdQueue*       m_play_id_queue;
+    PlayQueue*         m_playqueu;
+    model::EmptyModel* m_empty;
+#ifndef NODEBUS
+    Box<mpris::Mpris> m_mpris;
+#endif
+
+    Arc<media_cache::MediaCache> m_media_cache;
+
+    Arc<CacheSql>      m_media_cache_sql;
+    Arc<CacheSql>      m_cache_sql;
+    Arc<CollectionSql> m_collect_sql;
+    Arc<ItemSql>       m_item_sql;
+
+    Box<Backend> m_backend;
+
+    std::optional<Sender<Player::NotifyInfo>> m_player_sender;
+    QPointer<QQuickWindow>                    m_main_win;
+    Box<QQmlApplicationEngine>                m_qml_engine;
+};
+
 App* App::create(QQmlEngine*, QJSEngine*) {
     auto app = app_instance();
     // not delete on qml
@@ -137,40 +204,29 @@ App* App::create(QQmlEngine*, QJSEngine*) {
 
 App* App::instance() { return app_instance(); }
 
-App::App(QStringView backend_exe, std::monostate)
-    : QObject(nullptr),
-      m_global(make_rc<Global>()),
-      m_util(make_rc<qml::Util>(std::monostate {})),
-      m_play_id_queue(new PlayIdQueue(this)),
-      m_playqueu(new qcm::PlayQueue(this)),
-      m_empty(new qcm::model::EmptyModel(this)),
-#ifndef NODEBUS
-      m_mpris(make_up<mpris::Mpris>()),
-#endif
-      m_media_cache(),
-      m_main_win(nullptr),
-      m_qml_engine(make_up<QQmlApplicationEngine>()) {
+App::App(QStringView backend_exe, std::monostate): QObject(nullptr), d_ptr(make_box<Private>(this)) {
+    C_D(App);
     app_instance(this);
     register_meta_type();
     connect_actions();
     {
         QGuiApplication::setDesktopFileName(APP_ID);
     }
-    m_playqueu->setSourceModel(m_play_id_queue);
+    d->m_playqueu->setSourceModel(d->m_play_id_queue);
     {
-        auto fbs = make_rc<media_cache::Fallbacks>();
-        m_media_cache =
-            make_rc<media_cache::MediaCache>(m_global->pool_executor(), m_global->session(), fbs);
+        auto fbs         = make_rc<media_cache::Fallbacks>();
+        d->m_media_cache = make_rc<media_cache::MediaCache>(
+            d->m_global->pool_executor(), d->m_global->session(), fbs);
     }
 
     DEBUG_LOG("thread pool size: {}", get_pool_size());
     {
-        m_backend = make_box<Backend>();
+        d->m_backend  = make_box<Backend>();
         auto data_dir = convert_from<QString>(data_path().string());
-        m_backend->start(backend_exe, data_dir);
+        d->m_backend->start(backend_exe, data_dir);
     }
 
-    m_qml_engine->addImportPath(u"qrc:/"_s);
+    d->m_qml_engine->addImportPath(u"qrc:/"_s);
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
     // try curve for better good visual results or where reducing graphics memory consumption
     QQuickWindow::setTextRenderType(QQuickWindow::CurveTextRendering);
@@ -178,28 +234,22 @@ App::App(QStringView backend_exe, std::monostate)
 
     // sql init
     {
-        auto cache_db     = make_rc<helper::SqlConnect>(data_path() / "cache.db", u"cache");
-        auto data_db      = make_rc<helper::SqlConnect>(data_path() / "data.db", u"data");
-        m_media_cache_sql = make_rc<CacheSql>("media_cache", 0, cache_db);
-        m_cache_sql       = make_rc<CacheSql>("cache", 0, cache_db);
-        m_item_sql        = make_rc<ItemSql>(data_db);
-        m_collect_sql     = make_rc<CollectionSql>("collection", data_db);
-        m_global->set_cache_sql(m_cache_sql);
-        m_global->set_metadata_impl(player::get_metadata);
-        m_global->set_collection_sql(m_collect_sql);
-        m_global->set_item_sql(m_item_sql);
+        auto cache_db        = make_rc<helper::SqlConnect>(data_path() / "cache.db", u"cache");
+        auto data_db         = make_rc<helper::SqlConnect>(data_path() / "data.db", u"data");
+        d->m_media_cache_sql = make_rc<CacheSql>("media_cache", 0, cache_db);
+        d->m_cache_sql       = make_rc<CacheSql>("cache", 0, cache_db);
+        d->m_item_sql        = make_rc<ItemSql>(data_db);
+        d->m_collect_sql     = make_rc<CollectionSql>("collection", data_db);
+        d->m_global->set_cache_sql(d->m_cache_sql);
+        d->m_global->set_metadata_impl(player::get_metadata);
+        d->m_global->set_collection_sql(d->m_collect_sql);
+        d->m_global->set_item_sql(d->m_item_sql);
     }
 }
-App::~App() {
-    m_qml_engine = nullptr;
-
-    save_settings();
-    m_media_cache->stop();
-    m_global->session()->about_to_stop();
-    m_global->join();
-}
+App::~App() {}
 
 void App::init() {
+    C_D(App);
     auto engine = this->engine();
 
     // qmlRegisterSingletonInstance("Qcm.App", 1, 0, "App", this);
@@ -223,8 +273,8 @@ void App::init() {
     // mpris
 #ifndef NODEBUS
     {
-        m_mpris->registerService("Qcm");
-        auto m = m_mpris->mediaplayer2();
+        d->m_mpris->registerService("Qcm");
+        auto m = d->m_mpris->mediaplayer2();
         m->setIdentity("Qcm");
         m->setDesktopEntry(APP_ID); // no ".desktop"
         m->setCanQuit(true);
@@ -236,23 +286,24 @@ void App::init() {
     // cache
     {
         auto cache_dir = cache_path() / "cache";
-        m_cache_sql->set_clean_cb([cache_dir](std::string_view key) {
+        d->m_cache_sql->set_clean_cb([cache_dir](std::string_view key) {
             cache_clean_cb(cache_dir, key);
         });
-        asio::co_spawn(
-            m_cache_sql->get_executor(), scan_media_cache(m_cache_sql, cache_dir), asio::detached);
+        asio::co_spawn(d->m_cache_sql->get_executor(),
+                       scan_media_cache(d->m_cache_sql, cache_dir),
+                       asio::detached);
     }
 
     // media cache
     {
         auto media_cache_dir = cache_path() / "media";
-        m_media_cache_sql->set_clean_cb([media_cache_dir](std::string_view key) {
+        d->m_media_cache_sql->set_clean_cb([media_cache_dir](std::string_view key) {
             cache_clean_cb(media_cache_dir, key);
         });
 
-        m_media_cache->start(media_cache_dir, m_media_cache_sql);
-        asio::co_spawn(m_media_cache_sql->get_executor(),
-                       scan_media_cache(m_media_cache_sql, media_cache_dir),
+        d->m_media_cache->start(media_cache_dir, d->m_media_cache_sql);
+        asio::co_spawn(d->m_media_cache_sql->get_executor(),
+                       scan_media_cache(d->m_media_cache_sql, media_cache_dir),
                        asio::detached);
     }
     triggerCacheLimit();
@@ -280,12 +331,12 @@ void App::init() {
 
     for (auto el : engine->rootObjects()) {
         if (auto win = qobject_cast<QQuickWindow*>(el)) {
-            m_main_win = win;
+            d->m_main_win = win;
         }
     }
 
-    _assert_msg_rel_(m_main_win, "main window must exist");
-    _assert_msg_rel_(m_player_sender, "player must init");
+    _assert_msg_rel_(d->m_main_win, "main window must exist");
+    _assert_msg_rel_(d->m_player_sender, "player must init");
 
     global()->load_user();
 
@@ -298,8 +349,9 @@ void App::init() {
 }
 
 QString App::media_url(const QUrl& ori, const QString& id) const {
-    return convert_from<QString>(m_media_cache->get_url(convert_from<std::string>(ori.toString()),
-                                                        convert_from<std::string>(id)));
+    C_D(const App);
+    return convert_from<QString>(d->m_media_cache->get_url(
+        convert_from<std::string>(ori.toString()), convert_from<std::string>(id)));
 }
 
 QString App::md5(QString txt) const {
@@ -312,6 +364,7 @@ QString App::md5(QString txt) const {
 }
 
 void App::triggerCacheLimit() {
+    C_D(App);
     QSettings                  s;
     constexpr double           def_total_cache_limit { 3.0 * 1024 * 1024 * 1024 };
     constexpr double           def_medie_cache_limit { 2.0 * 1024 * 1024 * 1024 };
@@ -325,13 +378,14 @@ void App::triggerCacheLimit() {
     }
 
     auto media_cache_limit = s.value(media_cache_key).toDouble() / 1024;
-    m_media_cache_sql->set_limit(media_cache_limit);
+    d->m_media_cache_sql->set_limit(media_cache_limit);
 
     auto limit = s.value(total_cache_key).toDouble() / 1024 - media_cache_limit;
-    m_cache_sql->set_limit(limit);
+    d->m_cache_sql->set_limit(limit);
 }
 
 void App::load_plugins() {
+    C_D(App);
     // init all static plugins
     QPluginLoader::staticInstances();
 
@@ -371,12 +425,16 @@ void App::load_plugins() {
 }
 
 void App::setProxy(ProxyType t, QString content) {
-    m_global->session()->set_proxy(
+    C_D(App);
+    d->m_global->session()->set_proxy(
         ncrequest::req_opt::Proxy { .type    = convert_from<ncrequest::req_opt::Proxy::Type>(t),
                                     .content = content.toStdString() });
 }
 
-void App::setVerifyCertificate(bool v) { m_global->session()->set_verify_certificate(v); }
+void App::setVerifyCertificate(bool v) {
+    C_D(App);
+    d->m_global->session()->set_verify_certificate(v);
+}
 
 bool App::isItemId(const QJSValue& v) const {
     auto var = v.toVariant();
@@ -387,12 +445,15 @@ bool App::isItemId(const QJSValue& v) const {
     return false;
 }
 
-QVariant App::import_path_list() { return m_qml_engine->importPathList(); }
+QVariant App::import_path_list() {
+    C_D(App);
+    return d->m_qml_engine->importPathList();
+}
 
 void App::test() {
     /*
     asio::co_spawn(
-        m_session->get_strand(),
+        d->m_session->get_strand(),
         [this]() -> asio::awaitable<void> {
             helper::SyncFile file { std::fstream("/var/tmp/test.iso",
                                                  std::ios::out | std::ios::binary) };
@@ -402,7 +463,7 @@ void App::test() {
             req.set_url("https://mirrors.aliyun.com/ubuntu-releases/jammy/"
                         "ubuntu-22.04.2-desktop-amd64.iso")
                 .set_header("user-agent", "curl/7.87.0");
-            auto rsp = co_await m_session->get(req);
+            auto rsp = co_await d->m_session->get(req);
             co_await rsp.value()->read_to_stream(file);
             co_return;
         },
@@ -411,8 +472,9 @@ void App::test() {
 }
 
 auto App::mpris() const -> QObject* {
+    C_D(const App);
 #ifndef NODEBUS
-    return m_mpris->mediaplayer2();
+    return d->m_mpris->mediaplayer2();
 #else
     return nullptr;
 #endif
@@ -441,18 +503,34 @@ QString App::itemIdPageUrl(const QJSValue& js) const {
     return {};
 }
 
-auto App::engine() const -> QQmlApplicationEngine* { return m_qml_engine.get(); }
-auto App::global() const -> Global* { return m_global.get(); }
-auto App::util() const -> qml::Util* { return m_util.get(); }
-auto App::playqueue() const -> PlayQueue* { return m_playqueu; }
-auto App::play_id_queue() const -> PlayIdQueue* { return m_play_id_queue; }
+auto App::engine() const -> QQmlApplicationEngine* {
+    C_D(const App);
+    return d->m_qml_engine.get();
+}
+auto App::global() const -> Global* {
+    C_D(const App);
+    return d->m_global.get();
+}
+auto App::util() const -> qml::Util* {
+    C_D(const App);
+    return d->m_util.get();
+}
+auto App::playqueue() const -> PlayQueue* {
+    C_D(const App);
+    return d->m_playqueu;
+}
+auto App::play_id_queue() const -> PlayIdQueue* {
+    C_D(const App);
+    return d->m_play_id_queue;
+}
 
 // #include <private/qquickpixmapcache_p.h>
 void App::releaseResources(QQuickWindow*) {
+    C_D(const App);
     INFO_LOG("gc");
     // win->releaseResources();
-    m_qml_engine->trimComponentCache();
-    m_qml_engine->collectGarbage();
+    d->m_qml_engine->trimComponentCache();
+    d->m_qml_engine->collectGarbage();
     // QQuickPixmap::purgeCache();
     plt::malloc_trim(0);
     auto as_mb = [](usize n) {
@@ -475,10 +553,12 @@ img rsp: {}
 }
 
 qreal App::devicePixelRatio() const {
-    return m_main_win ? m_main_win->effectiveDevicePixelRatio() : qApp->devicePixelRatio();
+    C_D(const App);
+    return d->m_main_win ? d->m_main_win->effectiveDevicePixelRatio() : qApp->devicePixelRatio();
 }
 
 QSizeF App::image_size(QSizeF display, int quality, QQuickItem* item) const {
+    C_D(const App);
     QSizeF out { -1, -1 };
     auto   dpr =
         (item && item->window() ? item->window()->effectiveDevicePixelRatio() : devicePixelRatio());
@@ -506,24 +586,45 @@ auto App::bound_image_size(QSizeF displaySize) const -> QSizeF {
 }
 
 void App::set_player_sender(Sender<Player::NotifyInfo> sender) {
-    m_player_sender                      = sender;
-    m_media_cache->fallbacks()->fragment = [sender](usize begin, usize end, usize totle) mutable {
-        if (totle >= end && totle >= begin) {
-            float db = begin / (double)totle;
-            float de = end / (double)totle;
-            sender.try_send(player::notify::cache { db, de });
-        }
-    };
+    C_D(App);
+    d->m_player_sender = sender;
+    d->m_media_cache->fallbacks()->fragment =
+        [sender](usize begin, usize end, usize totle) mutable {
+            if (totle >= end && totle >= begin) {
+                float db = begin / (double)totle;
+                float de = end / (double)totle;
+                sender.try_send(player::notify::cache { db, de });
+            }
+        };
 }
 
-auto App::media_cache_sql() const -> rc<CacheSql> { return m_media_cache_sql; }
-auto App::cache_sql() const -> rc<CacheSql> { return m_cache_sql; }
-auto App::item_sql() const -> rc<ItemSql> { return m_item_sql; }
-auto App::collect_sql() const -> rc<CollectionSql> { return m_collect_sql; }
-auto App::empty() const -> model::EmptyModel* { return m_empty; }
-void App::switchPlayIdQueue() { m_playqueu->setSourceModel(m_play_id_queue); }
+auto App::media_cache_sql() const -> rc<CacheSql> {
+    C_D(const App);
+    return d->m_media_cache_sql;
+}
+auto App::cache_sql() const -> rc<CacheSql> {
+    C_D(const App);
+    return d->m_cache_sql;
+}
+auto App::item_sql() const -> rc<ItemSql> {
+    C_D(const App);
+    return d->m_item_sql;
+}
+auto App::collect_sql() const -> rc<CollectionSql> {
+    C_D(const App);
+    return d->m_collect_sql;
+}
+auto App::empty() const -> model::EmptyModel* {
+    C_D(const App);
+    return d->m_empty;
+}
+void App::switchPlayIdQueue() {
+    C_D(App);
+    d->m_playqueu->setSourceModel(d->m_play_id_queue);
+}
 
 void App::load_settings() {
+    C_D(App);
     QSettings s;
     playqueue()->setLoopMode(s.value("play/loop").value<enums::LoopMode>());
     connect(playqueue(), &PlayQueue::loopModeChanged, this, [](enums::LoopMode v) {
@@ -550,6 +651,7 @@ void App::save_settings() {
     QSettings s;
     s.setValue("play/loop", (int)playqueue()->loopMode());
 }
+} // namespace qcm
 
 #include "Qcm/query/mix_detail.h"
 

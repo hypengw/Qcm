@@ -45,7 +45,7 @@
     }
 
 #define C_DECLARE_PRIVATE(Class, DName) \
-    up<Private> DName;                  \
+    Box<Private> DName;                  \
     C_DECLARE_PRIVATE_FUNC(Class, DName)
 
 #define C_D(Class)       Class::Private* const d = d_func()

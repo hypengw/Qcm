@@ -8,7 +8,6 @@
 
 #include "core/log.h"
 #include "core/qstr_helper.h"
-#include "Qcm/message/message.qpb.h"
 
 import ncrequest.event;
 import rstd.rc;
@@ -22,12 +21,21 @@ Backend::Backend()
       m_process(new QProcess()),
       m_client(make_box<ncrequest::WebSocketClient>(
           ncrequest::event::create<asio::posix::basic_stream_descriptor>(
-              m_context->get_executor()))) {
+              m_context->get_executor()))),
+      m_serializer(make_box<QProtobufSerializer>()),
+      m_port(0) {
     m_process->setProcessChannelMode(QProcess::ProcessChannelMode::ForwardedErrorChannel);
     m_client->set_on_error_callback([](std::string_view err) {
         ERROR_LOG("{}", err);
     });
-    m_client->set_on_message_callback([](std::span<const std::byte> bytes, bool last) {
+    m_client->set_on_connected_callback([this]() {
+        Q_EMIT this->connected(m_port);
+    });
+    m_client->set_on_message_callback([this](std::span<const std::byte> bytes, bool last) {
+        Q_UNUSED(last);
+        msg::QcmMessage msg;
+        msg.deserialize(m_serializer.get(), bytes);
+        INFO_LOG("get response: {}", msg.hasTestResponse());
     });
     // start thread
     {
@@ -46,18 +54,25 @@ Backend::Backend()
 
             m_process->setReadChannel(QProcess::ProcessChannel::StandardOutput);
             if (m_process->canReadLine()) {
-                state->port_readed = true;
-                auto line          = m_process->readLine();
-                auto doc           = QJsonDocument::fromJson(line);
-                if (auto jport = doc.object().value("port"); ! jport.isUndefined()) {
-                    auto port = jport.toVariant().value<i32>();
-                    INFO_LOG("backend port: {}", port);
-                    Q_EMIT this->started(port);
+                auto line = m_process->readLine();
+                if (! state->port_readed) {
+                    state->port_readed = true;
+                    auto doc           = QJsonDocument::fromJson(line);
+                    if (auto jport = doc.object().value("port"); ! jport.isUndefined()) {
+                        auto port = jport.toVariant().value<i32>();
+                        INFO_LOG("backend port: {}", port);
+                        Q_EMIT this->started(port);
+                    } else {
+                        ERROR_LOG("read port from backend failed");
+                    }
                 } else {
-                    ERROR_LOG("read port from backend failed");
+                    INFO_LOG("{}", QString(line));
                 }
             }
         });
+
+        connect(this, &Backend::started, this, &Backend::on_started);
+        connect(this, &Backend::connected, this, &Backend::on_connected);
     }
 }
 
@@ -85,7 +100,18 @@ auto Backend::start(QStringView exe_, QStringView data_dir_) -> bool {
     return true;
 }
 
-void Backend::on_started(i32 port) { m_client->connect(std::format("127.0.0.1:{}", port)); }
+void Backend::on_started(i32 port) {
+    m_port = port;
+    m_client->connect(std::format("ws://127.0.0.1:{}", port));
+}
+
+void Backend::on_connected(i32) {
+    auto msg = msg::QcmMessage();
+    msg.setType(msg::MessageTypeGadget::MessageType::TEST_REQUEST);
+    msg.setTestRequest({});
+    auto bytes = msg.serialize(m_serializer.get());
+    m_client->send({bytes.constData(), (std::size_t)bytes.size()});
+}
 } // namespace qcm
 
 #include <Qcm/moc_backend.cpp>

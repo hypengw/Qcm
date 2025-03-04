@@ -89,7 +89,7 @@ QUrl Util::image_cache_of(const QString& provider, const QUrl& url, QSize reqSiz
 
 QUrl Util::media_cache_of(const QString& id_) const {
     auto id        = convert_from<std::string>(id_);
-    auto sql_cache = App::instance()->m_media_cache_sql;
+    auto sql_cache = App::instance()->media_cache_sql();
 
     // for lru
     asio::co_spawn(sql_cache->get_executor(), sql_cache->get(id), asio::detached);
