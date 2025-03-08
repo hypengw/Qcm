@@ -14,6 +14,31 @@ import rstd.rc;
 
 namespace qcm
 {
+
+namespace detail
+{
+class BackendHelper {
+public:
+    template<typename CompletionToken>
+    static auto async_send(Backend& backend, msg::QcmMessage&& msg, CompletionToken&& token) {
+        using ret = void(asio::error_code, msg::QcmMessage);
+        return asio::async_initiate<CompletionToken, ret>(
+            [&](auto&& handler) {
+                std::move_only_function<ret> handler_wrapper { std::move(handler) };
+                asio::dispatch(
+                    backend.m_context->get_executor(),
+                    [&backend, msg = std::move(msg), handler = std::move(handler_wrapper)] mutable {
+                        msg.setId_proto(backend.serial());
+                        backend.m_handlers.insert_or_assign(msg.id_proto(), std::move(handler));
+                        auto bytes = msg.serialize(backend.m_serializer.get());
+                        backend.m_client->send({ bytes.constData(), (std::size_t)bytes.size() });
+                    });
+            },
+            token);
+    }
+};
+} // namespace detail
+
 Backend::Backend()
     : m_thread(make_box<QThread>(new QThread())),
       m_context(
@@ -23,6 +48,7 @@ Backend::Backend()
           ncrequest::event::create<asio::posix::basic_stream_descriptor>(
               m_context->get_executor()))),
       m_serializer(make_box<QProtobufSerializer>()),
+      m_serial(0),
       m_port(0) {
     m_process->setProcessChannelMode(QProcess::ProcessChannelMode::ForwardedErrorChannel);
     m_client->set_on_error_callback([](std::string_view err) {
@@ -35,7 +61,12 @@ Backend::Backend()
         Q_UNUSED(last);
         msg::QcmMessage msg;
         msg.deserialize(m_serializer.get(), bytes);
-        INFO_LOG("get response: {}", msg.hasTestResponse());
+        INFO_LOG("get response: {}", msg.hasTestRsp());
+
+        if (auto it = m_handlers.find(msg.id_proto()); it != m_handlers.end()) {
+            it->second(asio::error_code {}, std::move(msg));
+            m_handlers.erase(it);
+        }
     });
     // start thread
     {
@@ -107,10 +138,31 @@ void Backend::on_started(i32 port) {
 
 void Backend::on_connected(i32) {
     auto msg = msg::QcmMessage();
-    msg.setType(msg::MessageTypeGadget::MessageType::TEST_REQUEST);
-    msg.setTestRequest({});
+    msg.setType(msg::MessageTypeGadget::MessageType::TEST_REQ);
+    msg.setTestReq({});
+    send_immediate(std::move(msg));
+}
+
+void Backend::send_immediate(msg::QcmMessage&& msg) {
+    msg.setId_proto(serial());
     auto bytes = msg.serialize(m_serializer.get());
-    m_client->send({bytes.constData(), (std::size_t)bytes.size()});
+    m_client->send({ bytes.constData(), (std::size_t)bytes.size() });
+}
+
+auto Backend::send(msg::QcmMessage&& msg) -> task<msg::QcmMessage> {
+    auto var = co_await detail::BackendHelper::async_send(*this, std::move(msg), use_task);
+    co_return var;
+}
+
+auto Backend::serial() -> i32 {
+    i32 cur = m_serial.load();
+    for (;;) {
+        const i32 to = (cur + 1) % std::numeric_limits<i32>::max();
+        if (m_serial.compare_exchange_strong(cur, to)) {
+            break;
+        }
+    }
+    return cur;
 }
 } // namespace qcm
 

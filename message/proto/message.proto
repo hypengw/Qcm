@@ -6,12 +6,15 @@ import "model.proto";
 
 enum MessageType {
   UNKNOWN = 0;
-  TEST_REQUEST = 1;
-  TEST_RESPONSE = 2;
-  GET_ALL_ALBUMS_REQUEST = 3;
-  GET_ALL_ALBUMS_RESPONSE = 4;
-  GET_SONGS_BY_ALBUM_REQUEST = 5;
-  GET_SONGS_BY_ALBUM_RESPONSE = 6;
+  TEST_REQ = 1;
+  TEST_RSP = 2;
+  GET_PROVIDER_METAS_REQ = 3;
+  GET_PROVIDER_METAS_RSP = 4;
+  ADD_PROVIDER_REQ = 5;
+  //  GET_ALL_ALBUMS_REQUEST = 3;
+  //  GET_ALL_ALBUMS_RESPONSE = 4;
+  //  GET_SONGS_BY_ALBUM_REQUEST = 5;
+  //  GET_SONGS_BY_ALBUM_RESPONSE = 6;
 }
 
 message GetAllAlbumsRequest {
@@ -35,25 +38,44 @@ message GetSongsByAlbumResponse {
   qcm.msg.model.Album album = 2;
 }
 
-message TestRequest {
-  string test_data = 1;
+enum ErrorCode {
+  OK = 0;
 }
 
-message TestResponse {
-  string test_data = 1;
-  bool success = 2;
+message Rsp {
+  ErrorCode code = 1;
+  string message = 2;
 }
+
+message TestReq { string test_data = 1; }
+
+message TestRsp {
+  Rsp base = 1;
+  string test_data = 2;
+}
+
+message GetProviderMetasReq {}
+message GetProviderMetasRsp {
+  Rsp base = 1;
+  repeated qcm.msg.model.ProviderMeta metas = 2;
+}
+
+message AddProviderReq { qcm.msg.model.Provider provider = 1; }
 
 message QcmMessage {
   MessageType type = 1;
-  string request_id = 2;
-  
+  int32 id = 2;
+
   oneof payload {
-    TestRequest test_request = 101;
-    TestResponse test_response = 102;
-    GetAllAlbumsRequest get_all_albums_request = 103;
-    GetAllAlbumsResponse get_all_albums_response = 104;
-    GetSongsByAlbumRequest get_songs_by_album_request = 105;
-    GetSongsByAlbumResponse get_songs_by_album_response = 106;
+    Rsp rsp = 100;
+    TestReq test_req = 101;
+    TestRsp test_rsp = 102;
+    GetProviderMetasReq get_provider_metas_req = 103;
+    GetProviderMetasRsp get_provider_metas_rsp = 104;
+    AddProviderReq add_provider_req = 105;
+    //    GetAllAlbumsRequest get_all_albums_request = 103;
+    //    GetAllAlbumsResponse get_all_albums_response = 104;
+    //    GetSongsByAlbumRequest get_songs_by_album_request = 105;
+    //    GetSongsByAlbumResponse get_songs_by_album_response = 106;
   }
 }
