@@ -17,18 +17,18 @@ public:
     Private(Global* p);
     ~Private();
 
-    qt_executor_t     qt_ex;
-    asio::thread_pool pool;
+    Arc<QtExecutionContext> qt_ctx;
+    asio::thread_pool  pool;
 
-    rc<ncrequest::Session> session;
+    Arc<ncrequest::Session> session;
     model::Session*        qsession;
     model::Session*        qsession_empty;
     model::Session*        loading_session;
 
     QUuid                     uuid;
-    rc<media_cache::DataBase> cache_sql;
-    rc<db::ColletionSqlBase>  collection_sql;
-    rc<db::ItemSqlBase>       item_sql;
+    Arc<media_cache::DataBase> cache_sql;
+    Arc<db::ColletionSqlBase>  collection_sql;
+    Arc<db::ItemSqlBase>       item_sql;
 
     MetadataImpl metadata_impl;
 

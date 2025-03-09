@@ -35,6 +35,7 @@ class CollectionSql;
 class ItemSql;
 class PlayIdQueue;
 class PlayQueue;
+class Backend;
 
 void register_meta_type();
 auto gen_image_cache_entry(const QString& provider, const QUrl& url, QSize reqSize)
@@ -96,6 +97,7 @@ public:
     static auto instance() -> App*;
     auto        engine() const -> QQmlApplicationEngine*;
     auto        global() const -> Global*;
+    auto        backend() const -> Backend*;
     auto        util() const -> qml::Util*;
     auto        playqueue() const -> PlayQueue*;
     auto        play_id_queue() const -> PlayIdQueue*;

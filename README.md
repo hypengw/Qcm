@@ -29,12 +29,11 @@ A backend implementation can be found at [QcmBackend](https://github.com/hypengw
 <a href='https://flathub.org/apps/details/io.github.hypengw.Qcm'><img width='240' alt='Download on Flathub' src='https://dl.flathub.org/assets/badges/flathub-badge-en.png'/></a>
 
 ### Require:  
-- Qt 6.8 (quick, dbus)
+- Qt 6.8 (quick, protobuf, dbus)
 - C++ 23
 - Openssl 3
 - FFmpeg 7
 - Curl
-- QcmBackend (rust)
 
 ### Build:  
 ```
@@ -83,8 +82,6 @@ cmake --install build
 - [ ] playing page colorpick
 - [ ] playing page blur
 - [ ] android
-- [ ] sql cjk fts
-- [ ] drop qsql
 - [x] jellyfin
 - [x] separate front/backend to processes
 - [x] sql fts

@@ -11,6 +11,7 @@
 
 import ncrequest.event;
 import rstd.rc;
+import platform;
 
 namespace qcm
 {
@@ -24,12 +25,12 @@ public:
         using ret = void(asio::error_code, msg::QcmMessage);
         return asio::async_initiate<CompletionToken, ret>(
             [&](auto&& handler) {
-                std::move_only_function<ret> handler_wrapper { std::move(handler) };
                 asio::dispatch(
                     backend.m_context->get_executor(),
-                    [&backend, msg = std::move(msg), handler = std::move(handler_wrapper)] mutable {
+                    [&backend, msg = std::move(msg), handler = std::move(handler)] mutable {
                         msg.setId_proto(backend.serial());
-                        backend.m_handlers.insert_or_assign(msg.id_proto(), std::move(handler));
+                        backend.m_handlers.insert_or_assign(
+                            msg.id_proto(), std::move_only_function<ret> { std::move(handler) });
                         auto bytes = msg.serialize(backend.m_serializer.get());
                         backend.m_client->send({ bytes.constData(), (std::size_t)bytes.size() });
                     });
@@ -104,6 +105,11 @@ Backend::Backend()
 
         connect(this, &Backend::started, this, &Backend::on_started);
         connect(this, &Backend::connected, this, &Backend::on_connected);
+    }
+    {
+        asio::post(m_context->get_executor(), [] {
+            plt::set_thread_name("ws");
+        });
     }
 }
 

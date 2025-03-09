@@ -204,7 +204,8 @@ App* App::create(QQmlEngine*, QJSEngine*) {
 
 App* App::instance() { return app_instance(); }
 
-App::App(QStringView backend_exe, std::monostate): QObject(nullptr), d_ptr(make_box<Private>(this)) {
+App::App(QStringView backend_exe, std::monostate)
+    : QObject(nullptr), d_ptr(make_box<Private>(this)) {
     C_D(App);
     app_instance(this);
     register_meta_type();
@@ -510,6 +511,10 @@ auto App::engine() const -> QQmlApplicationEngine* {
 auto App::global() const -> Global* {
     C_D(const App);
     return d->m_global.get();
+}
+auto App::backend() const -> Backend* {
+    C_D(const App);
+    return d->m_backend.get();
 }
 auto App::util() const -> qml::Util* {
     C_D(const App);

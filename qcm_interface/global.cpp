@@ -7,6 +7,8 @@
 #include <QtQuick/QQuickItem>
 #include <ctre.hpp>
 
+#include <asio/bind_executor.hpp>
+
 #include "core/log.h"
 #include "qcm_interface/path.h"
 #include "qcm_interface/ex.h"
@@ -32,6 +34,9 @@ auto get_session_path(const qcm::model::ItemId& id) {
 } // namespace
 
 auto qcm::qexecutor() -> QtExecutor& { return Global::instance()->qexecutor(); }
+auto qcm::qexecutor_switch() -> task<void> {
+    return asio::post(asio::bind_executor(Global::instance()->qexecutor(), asio::use_awaitable));
+}
 auto qcm::pool_executor() -> asio::thread_pool::executor_type {
     return Global::instance()->pool_executor();
 }
@@ -45,7 +50,7 @@ namespace qcm
 {
 
 auto get_pool_size() -> std::size_t {
-    return std::clamp<u32>(std::thread::hardware_concurrency(), 4, 12);
+    return std::clamp<u32>(std::thread::hardware_concurrency(), 4, 8);
 }
 
 namespace
@@ -90,9 +95,9 @@ void GlobalWrapper::connect_to_global(Global* g, R (Global::*g_func)(ARGS...),
 }
 
 Global::Private::Private(Global* p)
-    : qt_ex(std::make_shared<QtExecutionContext>(p, (QEvent::Type)QEvent::registerEventType())),
+    : qt_ctx(make_arc<QtExecutionContext>(p, (QEvent::Type)QEvent::registerEventType())),
       pool(get_pool_size()),
-      session(std::make_shared<ncrequest::Session>(pool.get_executor())),
+      session(ncrequest::Session::make(pool.get_executor())),
       qsession(nullptr),
       qsession_empty(new model::Session(p)),
       user_model(nullptr),
@@ -148,7 +153,7 @@ auto Global::app_state() const -> state::AppState* {
 
 auto Global::qexecutor() -> qt_executor_t& {
     C_D(Global);
-    return d->qt_ex;
+    return d->qt_ctx->get_executor();
 }
 auto Global::pool_executor() -> pool_executor_t {
     C_D(Global);

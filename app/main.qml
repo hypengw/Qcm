@@ -115,6 +115,10 @@ ApplicationWindow {
         }
     }
 
+    QA.ProviderMetasQuery {
+        Component.onCompleted: reload()
+    }
+
     QA.PagePopup {
         id: queue_popup
         source: 'qrc:/Qcm/App/qml/page/PlayQueuePage.qml'

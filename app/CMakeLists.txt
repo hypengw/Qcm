@@ -57,6 +57,7 @@ set(SOURCES
     src/sql/collection_sql.cpp
     src/sql/sql.cpp
     src/query/search.cpp
+    src/query/provider_meta.cpp
     src/query.cpp
     src/backend.cpp)
 
