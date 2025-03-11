@@ -3,19 +3,51 @@ find_package(PkgConfig REQUIRED)
 
 add_subdirectory(qr_code)
 
-add_library(random INTERFACE)
-target_include_directories(random INTERFACE random/include)
+FetchContent_Declare(
+  qml_material
+  GIT_REPOSITORY https://github.com/hypengw/QmlMaterial.git
+  GIT_TAG b800e6893363c290882c82b49551e2634126ff61
+  GIT_SHALLOW 1
+  GIT_PROGRESS 1)
+FetchContent_MakeAvailable(qml_material)
 
-add_library(expected INTERFACE)
-target_include_directories(expected INTERFACE expected/include)
-add_library(tl::expected ALIAS expected)
+set(Random_BuildTests OFF)
+FetchContent_Declare(
+  random
+  GIT_REPOSITORY https://github.com/ilqvya/random.git
+  GIT_TAG 041302cdb6668c1f6b09e803b6c9bda8e3820fdc
+  GIT_SHALLOW 1
+  GIT_PROGRESS 1
+  EXCLUDE_FROM_ALL)
+FetchContent_MakeAvailable(random)
+add_library(random ALIAS effolkronium_random)
 
+set(EXPECTED_BUILD_PACKAGE OFF)
+set(EXPECTED_BUILD_TESTS OFF)
+set(EXPECTED_BUILD_PACKAGE_DEB OFF)
+FetchContent_Declare(
+  expected
+  GIT_REPOSITORY https://github.com/TartanLlama/expected.git
+  GIT_TAG 41d3e1f48d682992a2230b2a715bca38b848b269
+  GIT_SHALLOW 1
+  GIT_PROGRESS 1
+  EXCLUDE_FROM_ALL)
+FetchContent_MakeAvailable(expected)
+
+# KDSingleApplication
 set(KDSingleApplication_QT6 ON)
 set(KDSingleApplication_STATIC ON)
 set(KDSingleApplication_TESTS OFF)
 set(KDSingleApplication_EXAMPLES OFF)
 set(KDSingleApplication_DOCS OFF)
-add_subdirectory(KDSingleApplication EXCLUDE_FROM_ALL)
+FetchContent_Declare(
+  KDSingleApplication
+  GIT_REPOSITORY https://github.com/KDAB/KDSingleApplication.git
+  GIT_TAG 631237acd4e20251c7f702db5e5434c83f0e336d
+  GIT_SHALLOW 1
+  GIT_PROGRESS 1
+  SYSTEM EXCLUDE_FROM_ALL FIND_PACKAGE_ARGS QUIET GLOBAL)
+FetchContent_MakeAvailable(KDSingleApplication)
 
 # asio
 add_library(asio INTERFACE)
@@ -53,10 +85,10 @@ FetchContent_Declare(
   GIT_TAG 3.2.8
   GIT_SHALLOW 1
   GIT_PROGRESS 1
-  EXCLUDE_FROM_ALL FIND_PACKAGE_ARGS 3.2.7 QUIET GLOBAL)
+  SYSTEM EXCLUDE_FROM_ALL FIND_PACKAGE_ARGS 3.2.7 QUIET GLOBAL)
 FetchContent_MakeAvailable(pegtl)
 
-# ctre find_package(ctre 3.9.0 QUIET GLOBAL)
+# ctre
 FetchContent_Declare(
   ctre
   GIT_REPOSITORY
@@ -74,7 +106,7 @@ FetchContent_Declare(
   GIT_TAG v3.11.3
   GIT_SHALLOW 1
   GIT_PROGRESS 1
-  EXCLUDE_FROM_ALL FIND_PACKAGE_ARGS 3.11.0 GLOBAL)
+  SYSTEM EXCLUDE_FROM_ALL FIND_PACKAGE_ARGS 3.11.0 GLOBAL)
 FetchContent_MakeAvailable(nlohmann_json)
 
 # cubeb
@@ -90,12 +122,21 @@ FetchContent_Declare(
   GIT_COMMIT 78b2bce70e0d1c21d3c175b72f322c50801b2e94
   GIT_SHALLOW 1
   GIT_PROGRESS 1
-  EXCLUDE_FROM_ALL FIND_PACKAGE_ARGS GLOBAL)
+  SYSTEM EXCLUDE_FROM_ALL FIND_PACKAGE_ARGS GLOBAL)
 FetchContent_MakeAvailable(cubeb)
-
 if(NOT TARGET cubeb::cubeb)
   add_library(cubeb::cubeb ALIAS cubeb)
 endif()
+
+# trait
+FetchContent_Declare(
+  trait
+  GIT_REPOSITORY https://github.com/hypengw/trait.git
+  GIT_TAG 86d8384ceffe61f6167be87c5aeb16257d818fd3
+  GIT_SHALLOW 1
+  GIT_PROGRESS 1
+  EXCLUDE_FROM_ALL)
+FetchContent_MakeAvailable(trait)
 
 # ncrequest
 FetchContent_Declare(
@@ -104,5 +145,5 @@ FetchContent_Declare(
   GIT_TAG 7824860fb0054e9d26f1214b7cb93d8dffd2420a
   GIT_SHALLOW 1
   GIT_PROGRESS 1
-  EXCLUDE_FROM_ALL FIND_PACKAGE_ARGS GLOBAL)
+  EXCLUDE_FROM_ALL)
 FetchContent_MakeAvailable(ncrequest)

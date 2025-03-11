@@ -5,6 +5,34 @@
     "type" : "inline"
   },
   {
+    "commit" : "b800e6893363c290882c82b49551e2634126ff61",
+    "dest" : "build/_flatpak_deps/qml_material-src",
+    "disable-shallow-clone" : false,
+    "type" : "git",
+    "url" : "https://github.com/hypengw/QmlMaterial.git"
+  },
+  {
+    "commit" : "041302cdb6668c1f6b09e803b6c9bda8e3820fdc",
+    "dest" : "build/_flatpak_deps/random-src",
+    "disable-shallow-clone" : false,
+    "type" : "git",
+    "url" : "https://github.com/ilqvya/random.git"
+  },
+  {
+    "commit" : "41d3e1f48d682992a2230b2a715bca38b848b269",
+    "dest" : "build/_flatpak_deps/expected-src",
+    "disable-shallow-clone" : false,
+    "type" : "git",
+    "url" : "https://github.com/TartanLlama/expected.git"
+  },
+  {
+    "commit" : "631237acd4e20251c7f702db5e5434c83f0e336d",
+    "dest" : "build/_flatpak_deps/KDSingleApplication-src",
+    "disable-shallow-clone" : false,
+    "type" : "git",
+    "url" : "https://github.com/KDAB/KDSingleApplication.git"
+  },
+  {
     "dest" : "build/_flatpak_deps/fmt-src",
     "disable-shallow-clone" : false,
     "tag" : "11.0.2",
@@ -37,6 +65,13 @@
     "disable-shallow-clone" : false,
     "type" : "git",
     "url" : "https://github.com/mozilla/cubeb.git"
+  },
+  {
+    "commit" : "86d8384ceffe61f6167be87c5aeb16257d818fd3",
+    "dest" : "build/_flatpak_deps/trait-src",
+    "disable-shallow-clone" : false,
+    "type" : "git",
+    "url" : "https://github.com/hypengw/trait.git"
   },
   {
     "commit" : "7824860fb0054e9d26f1214b7cb93d8dffd2420a",

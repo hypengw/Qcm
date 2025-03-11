@@ -33,7 +33,7 @@ concept ByteRangeCP = ycore::range<T> && std::same_as<std::decay_t<ycore::range_
 } // namespace helper
 
 export template<helper::literal_string_bytes s>
-constexpr auto operator"" _sb() {
+constexpr auto operator""_sb() {
     return s.arr;
 }
 
