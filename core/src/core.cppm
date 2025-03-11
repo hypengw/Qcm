@@ -4,6 +4,8 @@ module;
 #include <memory>
 #include <variant>
 #include <iterator>
+#include <expected>
+
 export module qcm.core:basic;
 
 export using i8  = std::int8_t;
@@ -37,6 +39,9 @@ using Arc = std::shared_ptr<T>;
 
 export template<typename T, typename D = std::default_delete<T>>
 using Box = std::unique_ptr<T, D>;
+
+template<class T, class E>
+using Result = std::expected<T, E>;
 
 export template<typename T, typename... Args>
 auto make_up(Args&&... args) {

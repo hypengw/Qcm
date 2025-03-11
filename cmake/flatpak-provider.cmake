@@ -14,7 +14,7 @@ function(init_flatpak_source_file)
       "[{
         \"type\": \"inline\",
         \"dest-filename\": \"flatpak-provider.cmake\",
-        \"source\": \"${flatpak_provider_content}\"
+        \"content\": \"${flatpak_provider_content}\"
     }]")
   file(WRITE "${FLATPAK_SOURCE_OUTPUT}" "${flatpak_source}")
 endfunction()

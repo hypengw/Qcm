@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <cstdint>
 #include <cstddef>
 #include <memory>
@@ -10,6 +9,7 @@
 #include <string>
 #include <source_location>
 #include <format>
+#include <expected>
 
 using i8  = std::int8_t;
 using i16 = std::int16_t;
@@ -42,6 +42,9 @@ using Arc = std::shared_ptr<T>;
 
 template<typename T, typename D = std::default_delete<T>>
 using Box = std::unique_ptr<T, D>;
+
+template<class T, class E>
+using Result = std::expected<T, E>;
 
 template<typename T, typename... Args>
 auto make_up(Args&&... args) {
@@ -238,7 +241,8 @@ struct Convert<ycore::monostate, T> {
 namespace qcm
 {
 
-enum class LogLevel {
+enum class LogLevel
+{
     DEBUG = 0,
     INFO,
     WARN,
@@ -290,7 +294,7 @@ constexpr auto enable_debug {
 };
 
 std::string format_assert(std::string_view expr_str, const std::source_location& loc,
-                                 std::string_view msg);
+                          std::string_view msg);
 
 template<bool Enabled, typename Expr, typename Msg>
     requires Enabled
@@ -310,10 +314,8 @@ void handle_assert(Expr&&, std::string_view, Msg&&,
 
 } // namespace qcm
 
-
 using namespace std::literals::string_literals;
 using namespace std::literals::string_view_literals;
-
 
 namespace helper
 {
@@ -351,6 +353,5 @@ constexpr bool starts_with_i(std::string_view str, std::string_view start) noexc
     return str.size() >= start.size() &&
            case_insensitive_compare({ str.begin(), str.begin() + start.size() }, start) == 0;
 }
-
 
 } // namespace helper

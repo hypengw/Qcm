@@ -12,7 +12,7 @@
 #include "asio_qt/qt_execution_context.h"
 #include "asio_helper/task.h"
 
-#include "Qcm/message/message.qpb.h"
+#include "Qcm/backend_msg.h"
 
 import qcm.core;
 import ncrequest;
@@ -24,7 +24,7 @@ namespace qcm
 namespace detail
 {
 class BackendHelper;
-}
+} // namespace detail
 class Backend : public QObject {
     Q_OBJECT
 
@@ -38,7 +38,14 @@ public:
 
     void send_immediate(msg::QcmMessage&& msg);
 
-    auto send(msg::QcmMessage&& msg) -> task<msg::QcmMessage>;
+    auto send(msg::QcmMessage&& msg) -> task<Result<msg::QcmMessage, >>;
+
+    template<typename Req>
+        requires detail::HasReqTraits<Req>
+    auto send(Req&& msg) -> task<typename detail::ReqTraits<Req>::Rsp> {
+        using Rsp = typename detail::ReqTraits<Req>::Rsp;
+        co_return Rsp();
+    }
 
     Q_SIGNAL void started(i32 port);
     Q_SIGNAL void connected(i32 port);
