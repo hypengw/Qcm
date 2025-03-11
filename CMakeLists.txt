@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
 
-set(FLATPAK_SOURCE_OUTPUT "${CMAKE_SOURCE_DIR}/flaptak-source.json")
-list(APPEND CMAKE_PROJECT_TOP_LEVEL_INCLUDES cmake/flatpak-provider.cmake)
 project(
   Qcm
   VERSION 1.2.0
