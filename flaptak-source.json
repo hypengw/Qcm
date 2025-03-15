@@ -5,7 +5,7 @@
     "type" : "inline"
   },
   {
-    "commit" : "514d815893803cce40cb267c71020a106094d82e",
+    "commit" : "d913bfd6141f2a9fd4faf2f69c02a6006cb25198",
     "dest" : "build/_flatpak_deps/rstd-src",
     "disable-shallow-clone" : false,
     "type" : "git",
@@ -88,7 +88,7 @@
     "url" : "https://github.com/taocpp/PEGTL.git"
   },
   {
-    "commit" : "514d815893803cce40cb267c71020a106094d82e",
+    "commit" : "d913bfd6141f2a9fd4faf2f69c02a6006cb25198",
     "dest" : "build/_flatpak_deps/rstd-src",
     "disable-shallow-clone" : false,
     "type" : "git",

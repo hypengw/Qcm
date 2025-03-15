@@ -7,6 +7,7 @@ module;
 #include <expected>
 
 export module qcm.core:basic;
+export import rstd.core;
 
 export using i8  = std::int8_t;
 export using i16 = std::int16_t;
@@ -40,8 +41,19 @@ using Arc = std::shared_ptr<T>;
 export template<typename T, typename D = std::default_delete<T>>
 using Box = std::unique_ptr<T, D>;
 
-export template<class T, class E>
-using Result = std::expected<T, E>;
+export template<typename T, typename E>
+using Result = rstd::Result<T, E>;
+
+export template<typename T>
+using Option = rstd::Option<T>;
+
+export template<typename T>
+using Ok = rstd::Ok<T>;
+export template<typename T>
+using Err = rstd::Err<T>;
+export template<typename T>
+using Some = rstd::Some<T>;
+using None = rstd::None;
 
 export template<typename T, typename... Args>
 auto make_up(Args&&... args) {

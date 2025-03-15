@@ -5,6 +5,7 @@ set(APP_SUMMARY ${PROJECT_DESCRIPTION})
 set(APP_AUTHOR "hypeng")
 
 find_package(Qt6 REQUIRED COMPONENTS QuickControls2 Sql Widgets)
+qt_standard_project_setup()
 
 set(HEADERS
     include/Qcm/app.h

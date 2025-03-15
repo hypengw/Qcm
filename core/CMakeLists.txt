@@ -17,19 +17,15 @@ target_sources(
          src/lambda.cppm
          src/helper/mod.cppm
          src/helper/str.cppm
-         src/helper/container.cppm
-         )
+         src/helper/container.cppm)
 target_sources(
   core
-  PRIVATE include/core/core.h
-          include/core/callable.h
-          include/core/expected_helper.h
-          include/core/log.h
-          include/core/clangd.h
-          src/log.cpp)
+  PRIVATE include/core/core.h include/core/callable.h
+          include/core/expected_helper.h include/core/log.h
+          include/core/clangd.h src/log.cpp)
 
 target_include_directories(core PUBLIC include)
 target_link_libraries(
   core
-  PUBLIC expected random fmt::fmt
+  PUBLIC expected random fmt::fmt rstd::rstd
   PRIVATE platform)

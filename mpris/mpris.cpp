@@ -31,3 +31,5 @@ void Mpris::unregisterService() {
         QDBusConnection::sessionBus().unregisterService(ServiceNamePrefix + m_serviceName);
     }
 }
+
+#include <mpris/moc_mpris.cpp>

@@ -37,7 +37,6 @@ include(GNUInstallDirs)
 
 find_package(PkgConfig REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Core Quick ShaderTools)
-qt_standard_project_setup()
 
 if(QT_KNOWN_POLICY_QTP0002)
   qt_policy(SET QTP0002 NEW)
