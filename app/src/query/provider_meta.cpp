@@ -19,7 +19,9 @@ void ProviderMetasQuery::reload() {
         msg.setGetProviderMetasReq(msg::GetProviderMetasReq {});
         auto rsp = co_await backend->send(std::move(msg));
         co_await qcm::qexecutor_switch();
-        WARN_LOG("rsp id: {}", rsp.id_proto().t);
+        if (rsp) {
+            WARN_LOG("rsp id: {}", rsp->id_proto().t);
+        }
         co_return;
     });
 }

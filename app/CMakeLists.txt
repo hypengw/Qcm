@@ -180,9 +180,10 @@ target_link_libraries(
          Qt6::Quick
          Qt6::QuickControls2
          Qt6::Sql
-         $<$<CONFIG:Debug>:Qt6::QuickPrivate>
+         "$<$<CONFIG:Debug>:Qt6::QuickPrivate>"
          asio_qt
          ncrequest::ncrequest
+         rstd::rstd
          fmt::fmt
          crypto
          qr_code

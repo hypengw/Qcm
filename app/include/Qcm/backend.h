@@ -38,12 +38,12 @@ public:
 
     void send_immediate(msg::QcmMessage&& msg);
 
-    auto send(msg::QcmMessage&& msg) -> task<Result<msg::QcmMessage, >>;
+    auto send(msg::QcmMessage&& msg) -> task<Result<msg::QcmMessage, msg::Error>>;
 
     template<typename Req>
-        requires detail::HasReqTraits<Req>
-    auto send(Req&& msg) -> task<typename detail::ReqTraits<Req>::Rsp> {
-        using Rsp = typename detail::ReqTraits<Req>::Rsp;
+        requires msg::ReqMsgCP<Req>
+    auto send(Req&& msg) -> task<typename msg::MsgTraits<Req>::Rsp> {
+        using Rsp = typename msg::MsgTraits<Req>::Rsp;
         co_return Rsp();
     }
 

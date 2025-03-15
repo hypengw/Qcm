@@ -1,6 +1,16 @@
 include(FetchContent)
 find_package(PkgConfig REQUIRED)
 
+# rstd
+FetchContent_Declare(
+  rstd
+  GIT_REPOSITORY https://github.com/hypengw/rstd.git
+  GIT_TAG 514d815893803cce40cb267c71020a106094d82e
+  GIT_SHALLOW 1
+  GIT_PROGRESS 1
+  EXCLUDE_FROM_ALL)
+FetchContent_MakeAvailable(rstd)
+
 add_subdirectory(qr_code)
 
 FetchContent_Declare(
@@ -128,21 +138,11 @@ if(NOT TARGET cubeb::cubeb)
   add_library(cubeb::cubeb ALIAS cubeb)
 endif()
 
-# trait
-FetchContent_Declare(
-  trait
-  GIT_REPOSITORY https://github.com/hypengw/trait.git
-  GIT_TAG 86d8384ceffe61f6167be87c5aeb16257d818fd3
-  GIT_SHALLOW 1
-  GIT_PROGRESS 1
-  EXCLUDE_FROM_ALL)
-FetchContent_MakeAvailable(trait)
-
 # ncrequest
 FetchContent_Declare(
   ncrequest
   GIT_REPOSITORY https://github.com/hypengw/ncrequest.git
-  GIT_TAG 7824860fb0054e9d26f1214b7cb93d8dffd2420a
+  GIT_TAG 2907aa66c13b01b71931f984a422cc4f9d036934
   GIT_SHALLOW 1
   GIT_PROGRESS 1
   EXCLUDE_FROM_ALL)

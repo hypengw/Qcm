@@ -5,6 +5,13 @@
     "type" : "inline"
   },
   {
+    "commit" : "514d815893803cce40cb267c71020a106094d82e",
+    "dest" : "build/_flatpak_deps/rstd-src",
+    "disable-shallow-clone" : false,
+    "type" : "git",
+    "url" : "https://github.com/hypengw/rstd.git"
+  },
+  {
     "commit" : "b800e6893363c290882c82b49551e2634126ff61",
     "dest" : "build/_flatpak_deps/qml_material-src",
     "disable-shallow-clone" : false,
@@ -67,24 +74,24 @@
     "url" : "https://github.com/mozilla/cubeb.git"
   },
   {
-    "commit" : "86d8384ceffe61f6167be87c5aeb16257d818fd3",
-    "dest" : "build/_flatpak_deps/trait-src",
-    "disable-shallow-clone" : false,
-    "type" : "git",
-    "url" : "https://github.com/hypengw/trait.git"
-  },
-  {
-    "commit" : "7824860fb0054e9d26f1214b7cb93d8dffd2420a",
+    "commit" : "2907aa66c13b01b71931f984a422cc4f9d036934",
     "dest" : "build/_flatpak_deps/ncrequest-src",
     "disable-shallow-clone" : false,
     "type" : "git",
     "url" : "https://github.com/hypengw/ncrequest.git"
   },
   {
-    "commit" : "6f20a1f00c29187c3907a596edd74990482aac7e",
-    "dest" : "build/_flatpak_deps/rc-src",
+    "dest" : "build/_flatpak_deps/pegtl-src",
+    "disable-shallow-clone" : false,
+    "tag" : "3.2.8",
+    "type" : "git",
+    "url" : "https://github.com/taocpp/PEGTL.git"
+  },
+  {
+    "commit" : "514d815893803cce40cb267c71020a106094d82e",
+    "dest" : "build/_flatpak_deps/rstd-src",
     "disable-shallow-clone" : false,
     "type" : "git",
-    "url" : "https://github.com/hypengw/rc.git"
+    "url" : "https://github.com/hypengw/rstd.git"
   }
 ]

@@ -40,7 +40,7 @@ using Arc = std::shared_ptr<T>;
 export template<typename T, typename D = std::default_delete<T>>
 using Box = std::unique_ptr<T, D>;
 
-template<class T, class E>
+export template<class T, class E>
 using Result = std::expected<T, E>;
 
 export template<typename T, typename... Args>

@@ -155,8 +155,8 @@ void Backend::send_immediate(msg::QcmMessage&& msg) {
     m_client->send({ bytes.constData(), (std::size_t)bytes.size() });
 }
 
-auto Backend::send(msg::QcmMessage&& msg) -> task<msg::QcmMessage> {
-    auto var = co_await detail::BackendHelper::async_send(*this, std::move(msg), use_task);
+auto Backend::send(msg::QcmMessage&& msg) -> task<Result<msg::QcmMessage, msg::Error>> {
+    auto [ec, var] = co_await detail::BackendHelper::async_send(*this, std::move(msg), qcm::as_tuple(use_task));
     co_return var;
 }
 
