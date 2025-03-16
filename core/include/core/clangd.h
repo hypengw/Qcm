@@ -9,7 +9,8 @@
 #include <string>
 #include <source_location>
 #include <format>
-#include <expected>
+
+import rstd.core;
 
 using i8  = std::int8_t;
 using i16 = std::int16_t;
@@ -44,7 +45,21 @@ template<typename T, typename D = std::default_delete<T>>
 using Box = std::unique_ptr<T, D>;
 
 template<class T, class E>
-using Result = std::expected<T, E>;
+using Result = rstd::Result<T, E>;
+
+template<typename T>
+using Ok = rstd::Ok<T>;
+template<typename T>
+using Err = rstd::Err<T>;
+
+template<typename U = void, typename T>
+constexpr auto Some(T&& t) {
+    return rstd::Some<U>(std::forward<T>(t));
+}
+template<typename U = void, typename T = rstd::option::Unknown>
+constexpr auto None(T&& t = {}) {
+    return rstd::None<U>(std::forward<T>(t));
+}
 
 template<typename T, typename... Args>
 auto make_up(Args&&... args) {

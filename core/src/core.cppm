@@ -51,9 +51,15 @@ export template<typename T>
 using Ok = rstd::Ok<T>;
 export template<typename T>
 using Err = rstd::Err<T>;
-export template<typename T>
-using Some = rstd::Some<T>;
-using None = rstd::None;
+
+export template<typename U = void, typename T>
+constexpr auto Some(T&& t) {
+    return rstd::Some<U>(std::forward<T>(t));
+}
+export template<typename U = void, typename T = rstd::option::Unknown>
+constexpr auto None(T&& t = {}) {
+    return rstd::None<U>(std::forward<T>(t));
+}
 
 export template<typename T, typename... Args>
 auto make_up(Args&&... args) {
