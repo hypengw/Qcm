@@ -341,7 +341,7 @@ void App::init() {
 
     global()->load_user();
 
-    if (global()->user_model()->active_user() != nullptr) {
+    if (false && global()->user_model()->active_user() != nullptr) {
         auto user = global()->user_model()->active_user();
         global()->switch_user(user);
     } else {

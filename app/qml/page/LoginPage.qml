@@ -52,13 +52,14 @@ MD.Page {
                         anchors.centerIn: parent
                         spacing: 12
 
-                        QA.PluginModel {
-                            id: m_plugin_model
+                        QA.ProviderMetasQuery {
+                            id: m_meta_query
+                            Component.onCompleted: reload()
                         }
 
                         MD.ListView {
                             id: m_view
-                            model: m_plugin_model
+                            model: m_meta_query.data.metasData
                             expand: true
                             interactive: false
                             implicitWidth: Math.min(400, m_stack.width)
@@ -72,11 +73,11 @@ MD.Page {
 
                                 corners: indexCorners(index, count, 16)
                                 leader: MD.IconSvg {
-                                    source: model.info.icon
+                                    source: "data:image/svg+xml;utf8," + model.svg
                                     size: 24
                                 }
                                 action: QC.Action {
-                                    text: model.info.fullname
+                                    text: model.typeName
                                     onTriggered: {
                                         const url = model.router.basic_page(QA.enums.BPageLogin);
                                         m_stack.push_page(model.router.route_url(url));

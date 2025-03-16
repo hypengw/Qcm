@@ -140,6 +140,16 @@ public:
         }
     }
 
+    template<typename U, typename E = typename std::remove_reference_t<U>::error_type>
+        requires(std::convertible_to<U, Result<T, E>> || std::convertible_to<U, Result<T&, E>>)
+    void set(U&& res) {
+        if (res) {
+            set_tdata(*res);
+        } else {
+            this->set_error(convert_from<QString>(std::format("{}", res.unwrap_err_unchecked())));
+        }
+    }
+
 private:
     void set_data(const QVariant&) override { _assert_rel_(false); }
 };

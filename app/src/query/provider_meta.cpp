@@ -14,14 +14,9 @@ void ProviderMetasQuery::reload() {
     auto backend = App::instance()->backend();
     auto self    = helper::QWatcher { this };
     spawn([self, backend] -> task<void> {
-        msg::QcmMessage msg;
-        msg.setType(msg::MessageTypeGadget::MessageType::GET_PROVIDER_METAS_REQ);
-        msg.setGetProviderMetasReq(msg::GetProviderMetasReq {});
-        auto rsp = co_await backend->send(std::move(msg));
+        auto rsp = co_await backend->send(msg::GetProviderMetasReq {});
         co_await qcm::qexecutor_switch();
-        if (rsp) {
-            WARN_LOG("rsp id: {}", rsp->id_proto().t);
-        }
+        self->set(std::move(rsp));
         co_return;
     });
 }

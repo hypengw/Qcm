@@ -42,9 +42,12 @@ public:
 
     template<typename Req>
         requires msg::ReqMsgCP<Req>
-    auto send(Req&& msg) -> task<typename msg::MsgTraits<Req>::Rsp> {
-        using Rsp = typename msg::MsgTraits<Req>::Rsp;
-        co_return Rsp();
+    auto send(Req&& req) -> task<Result<typename msg::MsgTraits<Req>::Rsp, msg::Error>> {
+        auto msg = msg::QcmMessage();
+        msg::MsgTraits<Req>::set(msg, std::forward<Req>(req));
+        co_return (co_await send(std::move(msg))).and_then([](auto m) {
+            return msg::get_rsp<Req>(m).ok_or(msg::Error {});
+        });
     }
 
     Q_SIGNAL void started(i32 port);
