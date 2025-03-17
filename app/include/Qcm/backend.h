@@ -43,9 +43,16 @@ public:
     template<typename Req>
         requires msg::ReqMsgCP<Req>
     auto send(Req&& req) -> task<Result<typename msg::MsgTraits<Req>::Rsp, msg::Error>> {
-        auto msg = msg::QcmMessage();
+        using Rsp = typename msg::MsgTraits<Req>::Rsp;
+        auto msg  = msg::QcmMessage();
         msg::MsgTraits<Req>::set(msg, std::forward<Req>(req));
-        co_return (co_await send(std::move(msg))).and_then([](auto m) {
+        co_return (co_await send(std::move(msg))).and_then([](auto m) -> Result<Rsp, msg::Error> {
+            if (m.hasRsp()) {
+                if (m.rsp().code() != msg::ErrorCodeGadget::ErrorCode::OK) {
+                    return Err(msg::Error { .code    = (i32)m.rsp().code(),
+                                            .message = m.rsp().message().toStdString() });
+                }
+            }
             return msg::get_rsp<Req>(m).ok_or(msg::Error {});
         });
     }

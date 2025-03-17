@@ -9,7 +9,8 @@ namespace qcm::msg
 {
 
 struct Error {
-    int code { 0 };
+    int         code { 0 };
+    std::string message;
 };
 
 template<typename T>
@@ -23,7 +24,7 @@ concept MsgCP = requires {
 template<typename T>
 concept ReqMsgCP = MsgCP<T> && requires { typename MsgTraits<T>::Rsp; };
 template<typename T>
-concept RspMsgCP = MsgCP<T> && requires { typename MsgTraits<T>::Req; };
+concept RspMsgCP = MsgCP<T>;
 
 template<typename T>
     requires ReqMsgCP<T> && MsgCP<typename MsgTraits<T>::Rsp>
@@ -63,12 +64,32 @@ struct MsgTraits<msg::GetProviderMetasRsp> {
     static constexpr auto GetFn = &msg::QcmMessage::getProviderMetasRsp;
 };
 
+template<>
+struct MsgTraits<msg::AddProviderReq> {
+    using Rsp                   = msg::Rsp;
+    static constexpr auto HasFn = &msg::QcmMessage::hasAddProviderReq;
+    static constexpr auto GetFn = &msg::QcmMessage::addProviderReq;
+
+    template<typename T>
+    static auto set(msg::QcmMessage& m, T&& r) {
+        m.setType(MessageTypeGadget::MessageType::ADD_PROVIDER_REQ);
+        m.setAddProviderReq(std::forward<T>(r));
+    }
+};
+
+template<>
+struct MsgTraits<msg::Rsp> {
+    static constexpr auto HasFn = &msg::QcmMessage::hasRsp;
+    static constexpr auto GetFn = &msg::QcmMessage::rsp;
+};
+
 } // namespace qcm::msg
 
 template<>
 struct std::formatter<qcm::msg::Error> : std::formatter<std::string_view> {
     template<typename Ctx>
     auto format(qcm::msg::Error err, Ctx& ctx) const -> typename Ctx::iterator {
-        return std::formatter<std::string_view>::format(std::to_string(err.code), ctx);
+        return std::formatter<std::string_view>::format(
+            std::format("{}({})", err.message, err.code), ctx);
     }
 };

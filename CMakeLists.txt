@@ -82,8 +82,7 @@ set(WARN_OPTS
 
 add_compile_options(
   "$<$<CONFIG:Debug>:-fno-omit-frame-pointer>"
-  # fix for clangd
-  # "$<$<CONFIG:Debug>:-fretain-comments-from-system-headers>"
+  # fix for clangd "$<$<CONFIG:Debug>:-fretain-comments-from-system-headers>"
   # asan
   "$<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=address>"
   "$<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=undefined>"

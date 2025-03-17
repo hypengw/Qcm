@@ -58,7 +58,7 @@ set(SOURCES
     src/sql/collection_sql.cpp
     src/sql/sql.cpp
     src/query/search.cpp
-    src/query/provider_meta.cpp
+    src/query/provider.cpp
     src/query.cpp
     src/backend.cpp)
 
@@ -76,6 +76,7 @@ set(QML_FILES
     qml/page/CommentPage.qml
     qml/page/DescriptionPage.qml
     qml/page/RadioDetailPage.qml
+    qml/page/ProviderMetaPage.qml
     qml/page/LoginPage.qml
     qml/page/MixDetailPage.qml
     qml/page/RetryPage.qml

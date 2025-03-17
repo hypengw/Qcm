@@ -87,3 +87,4 @@ compile_commands.json
 /env.sh
 .gradle
 /qml_material
+/third_party/qml_material

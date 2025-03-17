@@ -12,13 +12,6 @@
     "url" : "https://github.com/hypengw/rstd.git"
   },
   {
-    "commit" : "b800e6893363c290882c82b49551e2634126ff61",
-    "dest" : "build/_flatpak_deps/qml_material-src",
-    "disable-shallow-clone" : false,
-    "type" : "git",
-    "url" : "https://github.com/hypengw/QmlMaterial.git"
-  },
-  {
     "commit" : "041302cdb6668c1f6b09e803b6c9bda8e3820fdc",
     "dest" : "build/_flatpak_deps/random-src",
     "disable-shallow-clone" : false,

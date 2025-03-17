@@ -79,8 +79,9 @@ MD.Page {
                                 action: QC.Action {
                                     text: model.typeName
                                     onTriggered: {
-                                        const url = model.router.basic_page(QA.enums.BPageLogin);
-                                        m_stack.push_page(model.router.route_url(url));
+                                        m_stack.push_page("qrc:/Qcm/App/qml/page/ProviderMetaPage.qml", {
+                                            meta: model
+                                        });
                                     }
                                 }
                                 mdState: MD.StateListItem {

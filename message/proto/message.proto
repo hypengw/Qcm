@@ -6,11 +6,12 @@ import "model.proto";
 
 enum MessageType {
   UNKNOWN = 0;
-  TEST_REQ = 1;
-  TEST_RSP = 2;
-  GET_PROVIDER_METAS_REQ = 3;
-  GET_PROVIDER_METAS_RSP = 4;
-  ADD_PROVIDER_REQ = 5;
+  RSP = 1;
+  TEST_REQ = 2;
+  TEST_RSP = 3;
+  GET_PROVIDER_METAS_REQ = 4;
+  GET_PROVIDER_METAS_RSP = 5;
+  ADD_PROVIDER_REQ = 6;
   //  GET_ALL_ALBUMS_REQUEST = 3;
   //  GET_ALL_ALBUMS_RESPONSE = 4;
   //  GET_SONGS_BY_ALBUM_REQUEST = 5;
@@ -40,6 +41,11 @@ message GetSongsByAlbumResponse {
 
 enum ErrorCode {
   OK = 0;
+  INTERNAL = 1;
+  DECODE = 2;
+  UNKNOWN_MESSAGE_TYPE = 3;
+  UNEXPECTED_PAYLOAD = 4;
+  MISSING_FIELDS = 5;
 }
 
 message Rsp {
@@ -49,16 +55,10 @@ message Rsp {
 
 message TestReq { string test_data = 1; }
 
-message TestRsp {
-  Rsp base = 1;
-  string test_data = 2;
-}
+message TestRsp { string test_data = 2; }
 
 message GetProviderMetasReq {}
-message GetProviderMetasRsp {
-  Rsp base = 1;
-  repeated qcm.msg.model.ProviderMeta metas = 2;
-}
+message GetProviderMetasRsp { repeated qcm.msg.model.ProviderMeta metas = 2; }
 
 message AddProviderReq { qcm.msg.model.Provider provider = 1; }
 

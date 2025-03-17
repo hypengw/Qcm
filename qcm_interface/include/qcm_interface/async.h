@@ -145,8 +145,10 @@ public:
     void set(U&& res) {
         if (res) {
             set_tdata(*res);
+            this->set_status(QAsyncResult::Status::Finished);
         } else {
             this->set_error(convert_from<QString>(std::format("{}", res.unwrap_err_unchecked())));
+            this->set_status(QAsyncResult::Status::Error);
         }
     }
 

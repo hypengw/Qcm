@@ -13,13 +13,17 @@ FetchContent_MakeAvailable(rstd)
 
 add_subdirectory(qr_code)
 
-FetchContent_Declare(
-  qml_material
-  GIT_REPOSITORY https://github.com/hypengw/QmlMaterial.git
-  GIT_TAG b800e6893363c290882c82b49551e2634126ff61
-  GIT_SHALLOW 1
-  GIT_PROGRESS 1)
-FetchContent_MakeAvailable(qml_material)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/qml_material")
+  add_subdirectory(qml_material)
+else()
+  FetchContent_Declare(
+    qml_material
+    GIT_REPOSITORY https://github.com/hypengw/QmlMaterial.git
+    GIT_TAG b800e6893363c290882c82b49551e2634126ff61
+    GIT_SHALLOW 1
+    GIT_PROGRESS 1)
+  FetchContent_MakeAvailable(qml_material)
+endif()
 
 set(Random_BuildTests OFF)
 FetchContent_Declare(
