@@ -1,8 +1,9 @@
 #include "Qcm/backend.h"
 
 #include <filesystem>
-#include <QJsonDocument>
-#include <QJsonObject>
+#include <QtCore/QJsonDocument>
+#include <QtCore/QJsonObject>
+#include <QtCore/QMetaEnum>
 
 #include <asio/posix/stream_descriptor.hpp>
 
@@ -49,7 +50,7 @@ Backend::Backend()
           ncrequest::event::create<asio::posix::basic_stream_descriptor>(
               m_context->get_executor()))),
       m_serializer(make_box<QProtobufSerializer>()),
-      m_serial(0),
+      m_serial(1), // start from 1, as 0 is none
       m_port(0) {
     m_process->setProcessChannelMode(QProcess::ProcessChannelMode::ForwardedErrorChannel);
     m_client->set_on_error_callback([](std::string_view err) {
@@ -62,11 +63,12 @@ Backend::Backend()
         Q_UNUSED(last);
         msg::QcmMessage msg;
         msg.deserialize(m_serializer.get(), bytes);
-        INFO_LOG("get response: {}", msg.hasTestRsp());
+        log::info("ws recv: {}", msg.type());
 
         if (auto it = m_handlers.find(msg.id_proto()); it != m_handlers.end()) {
             it->second(asio::error_code {}, std::move(msg));
             m_handlers.erase(it);
+        } else {
         }
     });
     // start thread

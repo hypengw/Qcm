@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Controls.Basic as QC
 import QtQuick.Layouts
 
 import Qcm.App as QA
@@ -91,9 +90,9 @@ MD.Page {
                     root.authInfo.serverUrl = m_tf_server.text;
                     root.authInfo.username = root.usernameAuth;
                     const req = m_add_query.req;
-                    req.provider.authInfo = root.authInfo;
-                    req.provider.name = m_tf_name.text;
-                    req.provider.typeName = root.meta.typeName;
+                    req.authInfo = root.authInfo;
+                    req.name = m_tf_name.text;
+                    req.typeName = root.meta.typeName;
                     m_add_query.reload();
                 }
             }

@@ -15,7 +15,6 @@ void AddProviderQuery::reload() {
     auto backend = App::instance()->backend();
     auto self    = helper::QWatcher { this };
     spawn([self, backend, req = m_req] mutable -> task<void> {
-        log::warn("p: {}", req.provider().name());
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
         self->set(std::move(rsp));

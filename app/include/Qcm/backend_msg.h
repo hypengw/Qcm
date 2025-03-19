@@ -93,3 +93,13 @@ struct std::formatter<qcm::msg::Error> : std::formatter<std::string_view> {
             std::format("{}({})", err.message, err.code), ctx);
     }
 };
+
+template<>
+struct std::formatter<qcm::msg::MessageTypeGadget::MessageType> : std::formatter<std::string_view> {
+    using MessageType = qcm::msg::MessageTypeGadget::MessageType;
+    template<typename Ctx>
+    auto format(MessageType type, Ctx& ctx) const -> typename Ctx::iterator {
+        return std::formatter<std::string_view>::format(
+            std::string_view { QMetaEnum::fromType<MessageType>().valueToKey((int)type) }, ctx);
+    }
+};

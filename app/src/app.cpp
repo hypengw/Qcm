@@ -47,6 +47,7 @@ import platform;
 #include "Qcm/play_queue.h"
 #include "Qcm/backend.h"
 #include "Qcm/player.h"
+#include "Qcm/status/provider_status.hpp"
 
 #ifndef NODEBUS
 #    include "mpris/mpris.h"
@@ -66,7 +67,7 @@ void cache_clean_cb(const std::filesystem::path& cache_dir, std::string_view key
     std::error_code ec;
     auto            file = cache_dir / (key.size() >= 2 ? key.substr(0, 2) : "no"sv) / key;
     std::filesystem::remove(file, ec);
-    DEBUG_LOG("cache remove {}", file.native());
+    log::debug("cache remove {}", file.native());
 }
 
 asio::awaitable<void> scan_media_cache(rc<CacheSql> cache_sql, std::filesystem::path cache_dir) {
@@ -116,7 +117,7 @@ asio::awaitable<void> scan_media_cache(rc<CacheSql> cache_sql, std::filesystem::
 
     co_await cache_sql->try_clean();
 
-    DEBUG_LOG(R"(
+    log::debug(R"(
 cache cleaned:
     path: {}
     entry removed: {}
@@ -153,6 +154,7 @@ public:
           m_play_id_queue(new PlayIdQueue(self)),
           m_playqueu(new qcm::PlayQueue(self)),
           m_empty(new qcm::model::EmptyModel(self)),
+          provider_status(new ProviderStatusModel(self)),
 #ifndef NODEBUS
           m_mpris(make_up<mpris::Mpris>()),
 #endif
@@ -174,9 +176,10 @@ public:
     Arc<Global>    m_global;
     Arc<qml::Util> m_util;
 
-    PlayIdQueue*       m_play_id_queue;
-    PlayQueue*         m_playqueu;
-    model::EmptyModel* m_empty;
+    PlayIdQueue*         m_play_id_queue;
+    PlayQueue*           m_playqueu;
+    model::EmptyModel*   m_empty;
+    ProviderStatusModel* provider_status;
 #ifndef NODEBUS
     Box<mpris::Mpris> m_mpris;
 #endif
@@ -220,7 +223,7 @@ App::App(QStringView backend_exe, std::monostate)
             d->m_global->pool_executor(), d->m_global->session(), fbs);
     }
 
-    DEBUG_LOG("thread pool size: {}", get_pool_size());
+    log::debug("thread pool size: {}", get_pool_size());
     {
         d->m_backend  = make_box<Backend>();
         auto data_dir = convert_from<QString>(data_path().string());
@@ -389,40 +392,6 @@ void App::load_plugins() {
     C_D(App);
     // init all static plugins
     QPluginLoader::staticInstances();
-
-    // try load shared plugins
-    std::optional<QDir> plugin_path;
-    for (auto& el : this->engine()->importPathList()) {
-        auto dir = QDir(el + QDir::separator() + "Qcm" + QDir::separator() + "Service");
-        if (dir.exists()) {
-            plugin_path = dir;
-            break;
-        }
-    }
-
-    if (plugin_path) {
-        for (auto& dir_name : plugin_path->entryList(QDir::AllDirs | QDir::NoDotAndDotDot)) {
-            auto p = PluginManager::instance();
-            if (PluginManager::instance()->plugin(dir_name.toLower().toStdString())) {
-                continue;
-            }
-            auto dir   = QDir(plugin_path->filePath(dir_name));
-            auto files = dir.entryList(QDir::Filter::Files);
-            if (auto it = std::find_if(files.begin(),
-                                       files.end(),
-                                       [](const QString& f) {
-                                           return QLibrary::isLibrary(f);
-                                       });
-                it != files.end()) {
-                auto plugin_so = dir.filePath(*it);
-                if (this->global()->load_plugin(plugin_so.toStdString())) {
-                    INFO_LOG("load plugin: {}", plugin_so);
-                } else {
-                    ERROR_LOG("load plugin failed: {}", plugin_so);
-                }
-            }
-        }
-    }
 }
 
 void App::setProxy(ProxyType t, QString content) {
@@ -532,7 +501,7 @@ auto App::play_id_queue() const -> PlayIdQueue* {
 // #include <private/qquickpixmapcache_p.h>
 void App::releaseResources(QQuickWindow*) {
     C_D(const App);
-    INFO_LOG("gc");
+    log::info("gc");
     // win->releaseResources();
     d->m_qml_engine->trimComponentCache();
     d->m_qml_engine->collectGarbage();
@@ -542,7 +511,7 @@ void App::releaseResources(QQuickWindow*) {
         return fmt::format("{:.2f} MB", n / (1024.0 * 1024.0));
     };
     auto info = plt::mem_info();
-    DEBUG_LOG(R"(
+    log::debug(R"(
 heap: {}
 mmap({}): {}
 in use: {}
@@ -622,6 +591,10 @@ auto App::collect_sql() const -> rc<CollectionSql> {
 auto App::empty() const -> model::EmptyModel* {
     C_D(const App);
     return d->m_empty;
+}
+auto App::provider_status() const -> ProviderStatusModel* {
+    C_D(const App);
+    return d->provider_status;
 }
 void App::switchPlayIdQueue() {
     C_D(App);

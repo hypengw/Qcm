@@ -1,10 +1,10 @@
 #pragma once
 
-#include <QObject>
-#include <QGuiApplication>
-#include <QQmlApplicationEngine>
-#include <QQuickItem>
-#include <QQuickWindow>
+#include <QtCore/QObject>
+#include <QtGui/QGuiApplication>
+#include <QtQml/QQmlApplicationEngine>
+#include <QtQuick/QQuickItem>
+#include <QtQuick/QQuickWindow>
 
 #include <iostream>
 #include <vector>
@@ -36,6 +36,7 @@ class ItemSql;
 class PlayIdQueue;
 class PlayQueue;
 class Backend;
+class ProviderStatusModel;
 
 void register_meta_type();
 auto gen_image_cache_entry(const QString& provider, const QUrl& url, QSize reqSize)
@@ -57,6 +58,7 @@ class App : public QObject {
     Q_PROPERTY(qcm::Global* global READ global CONSTANT FINAL)
     Q_PROPERTY(qcm::PlayQueue* playqueue READ playqueue CONSTANT FINAL)
     Q_PROPERTY(qcm::model::EmptyModel* empty READ empty CONSTANT FINAL)
+    Q_PROPERTY(qcm::ProviderStatusModel* providerStatus READ provider_status CONSTANT FINAL)
 
     friend class qml::Util;
 
@@ -107,6 +109,7 @@ public:
     auto        item_sql() const -> rc<ItemSql>;
     auto        collect_sql() const -> rc<CollectionSql>;
     auto        empty() const -> model::EmptyModel*;
+    auto        provider_status() const -> ProviderStatusModel*;
     void        switchPlayIdQueue();
 
     QObject* mpris() const;
@@ -144,6 +147,7 @@ public:
     Q_SLOT void load_settings();
     Q_SLOT void save_settings();
 
+    // process action
     Q_SLOT void on_play_by_id(model::ItemId songId, model::ItemId sourceId);
     Q_SLOT void on_queue_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId);
     Q_SLOT void on_switch_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId);

@@ -122,16 +122,19 @@ message AuthInfo {
   }
 }
 
-message Provider {
-  string name = 1;
-  string type_name = 2;
-  AuthInfo auth_info = 3;
-}
-
 message ProviderMeta {
   string type_name = 1;
   string svg = 2;
   bool mutable = 3;
   bool is_script = 4;
   bool has_server_url = 5;
+}
+
+message ProviderStatus {
+  string id = 1;
+  string name = 2;
+  bool syncing = 3;
+  int64 finished = 4;
+  int64 total = 5;
+  ProviderMeta meta = 6; // optional
 }
