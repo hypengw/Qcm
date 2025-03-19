@@ -60,7 +60,10 @@ set(SOURCES
     src/query/search.cpp
     src/query/provider.cpp
     src/query.cpp
-    src/backend.cpp)
+    src/backend.cpp
+    src/status/provider.cpp
+    src/status/process.cpp
+    )
 
 set(MODULES src/mod.cppm)
 
@@ -138,6 +141,7 @@ set_source_files_properties(qml/Global.qml PROPERTIES QT_QML_SINGLETON_TYPE
 set(QML_REG_INCLUDE_DIRS
     "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm/query"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm/status"
     "${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface"
     "${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface/model"
     "${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface/state")

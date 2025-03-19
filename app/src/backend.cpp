@@ -9,6 +9,7 @@
 
 #include "core/log.h"
 #include "core/qstr_helper.h"
+#include "Qcm/status/process.hpp"
 
 import ncrequest.event;
 import rstd.rc;
@@ -69,6 +70,7 @@ Backend::Backend()
             it->second(asio::error_code {}, std::move(msg));
             m_handlers.erase(it);
         } else {
+            qcm::process_msg(std::move(msg));
         }
     });
     // start thread

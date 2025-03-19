@@ -262,7 +262,7 @@ struct allocator_helper {
 };
 template<typename T>
 struct allocator_helper<T, QMetaListStore::Map> {
-    using value_type = std::pair<usize, T>;
+    using value_type = std::pair<const usize, T>;
 };
 
 template<typename T, QMetaListStore S>

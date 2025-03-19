@@ -1,4 +1,4 @@
-#include "Qcm/query/provider.h"
+#include "Qcm/query/provider.hpp"
 
 #include "qcm_interface/async.inl"
 

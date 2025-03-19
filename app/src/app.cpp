@@ -123,9 +123,9 @@ cache cleaned:
     entry removed: {}
     file  removed: {}
     )",
-              cache_dir.string(),
-              entry_removed,
-              file_removed);
+               cache_dir.string(),
+               entry_removed,
+               file_removed);
     co_return;
 }
 
@@ -200,7 +200,7 @@ public:
 
 App* App::create(QQmlEngine*, QJSEngine*) {
     auto app = app_instance();
-    // not delete on qml
+    // not delete by qml
     QJSEngine::setObjectOwnership(app, QJSEngine::CppOwnership);
     return app;
 }
@@ -518,12 +518,12 @@ in use: {}
 dyn create: {}
 img rsp: {}
 )",
-              as_mb(info.heap),
-              info.mmap_num,
-              as_mb(info.mmap),
-              as_mb(info.totle_in_use),
-              qml_dyn_count().load(),
-              image_response_count().load());
+               as_mb(info.heap),
+               info.mmap_num,
+               as_mb(info.mmap),
+               as_mb(info.totle_in_use),
+               qml_dyn_count().load(),
+               image_response_count().load());
 }
 
 qreal App::devicePixelRatio() const {

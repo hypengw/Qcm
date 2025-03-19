@@ -19,6 +19,8 @@ int main(int argc, char* argv[]) {
     plt::malloc_init();
     auto logger = qcm::LogManager::instance();
     ncrequest::global_init();
+    // qputenv("QSGCURVEGLYPHATLAS_FONT_SIZE", "64");
+
     QGuiApplication gui_app(argc, argv);
     auto            main_qthread = gui_app.thread();
     QString         backend_exe;
