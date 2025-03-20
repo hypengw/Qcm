@@ -15,7 +15,7 @@ class ProviderMetaStatusModel
     using Base  = meta_model::QGadgetListModel<Model, meta_model::QMetaListStore::Map>;
 
 public:
-    ProviderMetaStatusModel(QObject* parent);
+    ProviderMetaStatusModel(QObject* parent = nullptr);
     ~ProviderMetaStatusModel();
 
     auto hash(const Model& t) const noexcept -> usize override {
@@ -31,7 +31,7 @@ class ProviderStatusModel : public meta_model::QGadgetListModel<msg::model::Prov
         meta_model::QGadgetListModel<msg::model::ProviderStatus, meta_model::QMetaListStore::Map>;
 
 public:
-    ProviderStatusModel(QObject* parent);
+    ProviderStatusModel(QObject* parent = nullptr);
     ~ProviderStatusModel();
 
     auto hash(const msg::model::ProviderStatus& t) const noexcept -> usize override {

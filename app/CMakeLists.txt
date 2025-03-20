@@ -62,8 +62,7 @@ set(SOURCES
     src/query.cpp
     src/backend.cpp
     src/status/provider.cpp
-    src/status/process.cpp
-    )
+    src/status/process.cpp)
 
 set(MODULES src/mod.cppm)
 
@@ -73,15 +72,15 @@ set(QML_FILES
     qml/Drawer.qml
     qml/DrawerContent.qml
     qml/Global.qml
+    qml/page/detail/AlbumDetailPage.qml
+    qml/page/detail/ArtistDetailPage.qml
+    qml/page/detail/RadioDetailPage.qml
+    qml/page/detail/MixDetailPage.qml
     qml/page/AboutPage.qml
-    qml/page/AlbumDetailPage.qml
-    qml/page/ArtistDetailPage.qml
     qml/page/CommentPage.qml
     qml/page/DescriptionPage.qml
-    qml/page/RadioDetailPage.qml
     qml/page/ProviderMetaPage.qml
     qml/page/LoginPage.qml
-    qml/page/MixDetailPage.qml
     qml/page/RetryPage.qml
     qml/page/SettingsPage.qml
     qml/page/SearchPage.qml
