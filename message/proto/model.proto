@@ -136,5 +136,4 @@ message ProviderStatus {
   bool syncing = 3;
   int64 finished = 4;
   int64 total = 5;
-  ProviderMeta meta = 6; // optional
 }

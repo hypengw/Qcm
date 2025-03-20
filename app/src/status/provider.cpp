@@ -2,6 +2,8 @@
 
 namespace qcm
 {
+ProviderMetaStatusModel::ProviderMetaStatusModel(QObject* parent): Base(parent) {}
+ProviderMetaStatusModel::~ProviderMetaStatusModel() {}
 ProviderStatusModel::ProviderStatusModel(QObject* parent): Base(parent) {}
 ProviderStatusModel::~ProviderStatusModel() {}
 } // namespace qcm

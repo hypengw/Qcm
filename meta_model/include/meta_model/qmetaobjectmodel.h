@@ -265,7 +265,7 @@ public:
 
     template<typename T, typename IdFn>
         requires std::ranges::sized_range<T> &&
-                 std::same_as<std::decay_t<typename T::value_type>, TItem> &&
+                 std::same_as<std::remove_cvref_t<std::ranges::range_value_t<T>>, TItem> &&
                  std::convertible_to<std::invoke_result_t<IdFn, TItem>, std::string>
     void sync(const T& items, IdFn&& id_fn) {
         std::set<std::string, std::less<>, rebind_alloc<std::string>> id_set(get_allocator());
@@ -370,7 +370,7 @@ public:
 
     template<typename T>
         requires std::ranges::sized_range<T> &&
-                 std::same_as<std::decay_t<typename T::value_type>, TItem>
+                 std::same_as<std::remove_cvref_t<std::ranges::range_value_t<T>>, TItem>
     void sync(T&& items) {
         idx_hash_type hash_ids(get_allocator());
         hash_ids.reserve(items.size());
@@ -382,7 +382,7 @@ public:
             auto self_map = m_map;
             for (auto& el : self_map) {
                 if (auto it = hash_ids.find(el.first); it != hash_ids.end()) {
-                    at(el.second) = std::forward<T>(items)[*it];
+                    at(el.second) = std::forward<T>(items)[it->second];
                     hash_ids.erase(it);
                 } else {
                     this->remove(el.second);
@@ -486,11 +486,14 @@ public:
 
     template<typename T>
         requires std::ranges::sized_range<T> &&
-                 std::same_as<std::decay_t<typename T::value_type>, TItem>
+                 std::same_as<std::remove_cvref_t<std::ranges::range_value_t<T>>, TItem>
     void sync(T&& items) {
-        std::
-            unordered_map<usize, usize, std::hash<usize>, std::equal_to<usize>, rebind_alloc<usize>>
-                hash_ids(get_allocator());
+        std::unordered_map<usize,
+                           usize,
+                           std::hash<usize>,
+                           std::equal_to<usize>,
+                           rebind_alloc<std::pair<const usize, usize>>>
+            hash_ids(get_allocator());
         hash_ids.reserve(items.size());
         for (usize i = 0; i < items.size(); ++i) {
             auto h = hash(items[i]);
@@ -499,7 +502,7 @@ public:
         for (usize i = 0; i < size();) {
             auto h = hash_at(i);
             if (auto it = hash_ids.find(h); it != hash_ids.end()) {
-                at(i) = std::forward<T>(items)[*it];
+                at(i) = std::forward<T>(items)[it->second];
                 hash_ids.erase(it);
                 ++i;
             } else {
@@ -507,7 +510,6 @@ public:
             }
         }
         std::set<usize, std::less<>, rebind_alloc<usize>> ids(get_allocator());
-        ids.reserve(hash_ids.size());
         for (auto& el : hash_ids) {
             ids.insert(el.second);
         }

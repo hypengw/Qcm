@@ -5,6 +5,23 @@
 
 namespace qcm
 {
+class ProviderMetaStatusModel
+    : public meta_model::QGadgetListModel<msg::model::ProviderMeta,
+                                          meta_model::QMetaListStore::Map> {
+    Q_OBJECT
+    QML_ELEMENT
+
+    using Model = msg::model::ProviderMeta;
+    using Base  = meta_model::QGadgetListModel<Model, meta_model::QMetaListStore::Map>;
+
+public:
+    ProviderMetaStatusModel(QObject* parent);
+    ~ProviderMetaStatusModel();
+
+    auto hash(const Model& t) const noexcept -> usize override {
+        return std::hash<QStringView> {}(t.typeName());
+    }
+};
 
 class ProviderStatusModel : public meta_model::QGadgetListModel<msg::model::ProviderStatus,
                                                                 meta_model::QMetaListStore::Map> {

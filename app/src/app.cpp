@@ -154,6 +154,7 @@ public:
           m_play_id_queue(new PlayIdQueue(self)),
           m_playqueu(new qcm::PlayQueue(self)),
           m_empty(new qcm::model::EmptyModel(self)),
+          provider_meta_status(new ProviderMetaStatusModel(self)),
           provider_status(new ProviderStatusModel(self)),
 #ifndef NODEBUS
           m_mpris(make_up<mpris::Mpris>()),
@@ -176,10 +177,11 @@ public:
     Arc<Global>    m_global;
     Arc<qml::Util> m_util;
 
-    PlayIdQueue*         m_play_id_queue;
-    PlayQueue*           m_playqueu;
-    model::EmptyModel*   m_empty;
-    ProviderStatusModel* provider_status;
+    PlayIdQueue*             m_play_id_queue;
+    PlayQueue*               m_playqueu;
+    model::EmptyModel*       m_empty;
+    ProviderMetaStatusModel* provider_meta_status;
+    ProviderStatusModel*     provider_status;
 #ifndef NODEBUS
     Box<mpris::Mpris> m_mpris;
 #endif
@@ -591,6 +593,10 @@ auto App::collect_sql() const -> rc<CollectionSql> {
 auto App::empty() const -> model::EmptyModel* {
     C_D(const App);
     return d->m_empty;
+}
+auto App::provider_meta_status() const -> ProviderMetaStatusModel* {
+    C_D(const App);
+    return d->provider_meta_status;
 }
 auto App::provider_status() const -> ProviderStatusModel* {
     C_D(const App);
