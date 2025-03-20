@@ -94,7 +94,7 @@ public:
                     asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
                 if (self && out) {
                     auto idx = self->tdata()->idx_at(hash);
-                    self->tdata()->update(idx, *out);
+                    self->tdata()->replace(idx, *out);
                 }
             },
             helper::asio_detached_log_t {});
@@ -204,7 +204,7 @@ ORDER BY collection.collectTime DESC;
                         });
 
                         if (it != t->end()) {
-                            t->update(std::distance(t->begin(), it), el);
+                            t->replace(std::distance(t->begin(), it), el);
                             continue;
                         }
                     }

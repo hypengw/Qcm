@@ -13,6 +13,9 @@ namespace detail
 template<typename T>
     requires std::is_base_of_v<QObject, T>
 class QObjectListModel : public QMetaListModel<T*, QObjectListModel<T>> {
+    template<typename, QMetaListStore, typename, typename>
+    friend class meta_model::QMetaListModelPre;
+
 public:
     using base_type    = QMetaListModel<T*, QObjectListModel<T>>;
     QObjectListModel() = delete;
@@ -31,6 +34,14 @@ public:
     }
     virtual ~QObjectListModel() {}
 
+    virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override {
+        if (auto prop = this->propertyOfRole(role); prop) {
+            return prop.value().read(this->at(index.row()));
+        }
+        return {};
+    };
+
+private:
     template<typename Tin>
         requires std::convertible_to<typename std::iterator_traits<Tin>::value_type, T*>
     void insert_impl(std::size_t pos, Tin beg, Tin end) {
@@ -43,14 +54,6 @@ public:
         base_type::insert_impl(pos, beg, end);
     }
 
-    virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override {
-        if (auto prop = this->propertyOfRole(role); prop) {
-            return prop.value().read(this->at(index.row()));
-        }
-        return {};
-    };
-
-private:
     bool m_is_owner;
 };
 } // namespace detail

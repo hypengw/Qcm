@@ -142,7 +142,7 @@ ORDER BY collection.collectTime DESC;
                         });
 
                         if (it != t->end()) {
-                            t->update(std::distance(t->begin(), it), el);
+                            t->replace(std::distance(t->begin(), it), el);
                             continue;
                         }
                     }
