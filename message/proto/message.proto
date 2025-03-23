@@ -14,21 +14,11 @@ enum MessageType {
   ADD_PROVIDER_REQ = 6;
   PROVIDER_META_STATUS_MSG = 7;
   PROVIDER_STATUS_MSG = 8;
-  //  GET_ALL_ALBUMS_REQUEST = 3;
+  GET_ALBUMS_REQ = 9;
+  GET_ALBUMS_RSP = 10;
   //  GET_ALL_ALBUMS_RESPONSE = 4;
   //  GET_SONGS_BY_ALBUM_REQUEST = 5;
   //  GET_SONGS_BY_ALBUM_RESPONSE = 6;
-}
-
-message GetAllAlbumsRequest {
-  int32 library_id = 1;
-  int32 page = 2;
-  int32 page_size = 3;
-}
-
-message GetAllAlbumsResponse {
-  repeated qcm.msg.model.Album albums = 1;
-  int32 total = 2;
 }
 
 message GetSongsByAlbumRequest {
@@ -45,11 +35,12 @@ enum ErrorCode {
   OK = 0;
   INTERNAL = 1;
   DECODE = 2;
-  UNKNOWN_MESSAGE_TYPE = 3;
-  UNEXPECTED_PAYLOAD = 4;
-  MISSING_FIELDS = 5;
-  NO_SUCH_PROVIDER_TYPE = 6;
-  DB = 7;
+  UNSUPPORTED_MESSAGE_TYPE = 3;
+  UNKNOWN_MESSAGE_TYPE = 4;
+  UNEXPECTED_PAYLOAD = 5;
+  MISSING_FIELDS = 6;
+  NO_SUCH_PROVIDER_TYPE = 7;
+  DB = 8;
 }
 
 message Rsp {
@@ -80,6 +71,20 @@ message ProviderStatusMsg {
   bool full = 2;
 }
 
+message GetAlbumsReq {
+  repeated string library_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  // sort
+  // filter
+}
+
+message GetAlbumsRsp {
+  repeated qcm.msg.model.Album albums = 1;
+  int32 total = 2;
+  bool has_more = 3;
+}
+
 message QcmMessage {
   MessageType type = 1;
   int32 id = 2;
@@ -93,6 +98,8 @@ message QcmMessage {
     AddProviderReq add_provider_req = 105;
     ProviderMetaStatusMsg provider_meta_status_msg = 106;
     ProviderStatusMsg provider_status_msg = 107;
+    GetAlbumsReq get_albums_req = 108;
+    GetAlbumsRsp get_albums_rsp = 109;
     //    GetAllAlbumsRequest get_all_albums_request = 103;
     //    GetAllAlbumsResponse get_all_albums_response = 104;
     //    GetSongsByAlbumRequest get_songs_by_album_request = 105;

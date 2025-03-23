@@ -1,4 +1,4 @@
-#include "Qcm/query/provider.hpp"
+#include "Qcm/query/provider_query.hpp"
 
 #include "qcm_interface/async.inl"
 
@@ -46,4 +46,4 @@ void ProviderMetasQuery::reload() {
 
 } // namespace qcm::query
 
-#include <Qcm/query/moc_provider.cpp>
+#include <Qcm/query/moc_provider_query.cpp>

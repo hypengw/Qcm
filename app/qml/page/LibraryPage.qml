@@ -1,6 +1,6 @@
 import QtQml.Models
 import QtQuick
-import QtQuick.Controls.Basic
+// import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Qcm.App as QA
 import Qcm.Material as MD
@@ -65,6 +65,24 @@ MD.Page {
                     currentIndex: bar.currentIndex
 
                     BaseView {
+                        id: view_albumlist
+                        busy: qr_albumlist.status === QA.enums.Querying
+                        delegate: dg_albumlist
+                        model: qr_albumlist.data
+                        refresh: function () {
+                            root.refresh_list(qr_albumlist);
+                        }
+                        Connections {
+                            function onAlbumLiked() {
+                                view_albumlist.dirty = true;
+                            }
+
+                            target: QA.App
+                        }
+                    }
+                    /*
+
+                    BaseView {
                         id: m_view_mix
                         busy: qr_playlist.status === QA.enums.Querying
                         delegate: dg_playlist
@@ -102,22 +120,7 @@ MD.Page {
                             }
                         }
                     }
-                    BaseView {
-                        id: view_albumlist
-                        busy: qr_albumlist.status === QA.enums.Querying
-                        delegate: dg_albumlist
-                        model: qr_albumlist.data
-                        refresh: function () {
-                            root.refresh_list(qr_albumlist);
-                        }
-                        Connections {
-                            function onAlbumLiked() {
-                                view_albumlist.dirty = true;
-                            }
 
-                            target: QA.App
-                        }
-                    }
                     BaseView {
                         id: view_artistlist
                         delegate: dg_artistlist
@@ -150,11 +153,13 @@ MD.Page {
                             target: QA.App
                         }
                     }
+                    */
                 }
-                QA.AlbumCollectionQuery {
+                QA.AlbumsQuery {
                     id: qr_albumlist
                     Component.onCompleted: reload()
                 }
+                /*
                 QA.ArtistCollectionQuery {
                     id: qr_artistlist
                     Component.onCompleted: reload()
@@ -167,6 +172,7 @@ MD.Page {
                     id: qr_djradiolist
                     Component.onCompleted: reload()
                 }
+                */
                 Component {
                     id: dg_albumlist
                     BaseItem {

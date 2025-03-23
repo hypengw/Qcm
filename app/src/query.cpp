@@ -1,4 +1,3 @@
-#include "Qcm/query/album_collection.h"
 #include "Qcm/query/artist_collection.h"
 
 namespace qcm::query
@@ -6,7 +5,6 @@ namespace qcm::query
 
 } // namespace qcm::query
 
-#include <Qcm/query/moc_album_collection.cpp>
 #include <Qcm/query/moc_album_detail.cpp>
 #include <Qcm/query/moc_artist_albums.cpp>
 #include <Qcm/query/moc_artist_collection.cpp>

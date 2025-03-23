@@ -78,6 +78,25 @@ struct MsgTraits<msg::AddProviderReq> {
 };
 
 template<>
+struct MsgTraits<msg::GetAlbumsReq> {
+    using Rsp                   = msg::GetAlbumsRsp;
+    static constexpr auto HasFn = &msg::QcmMessage::hasGetAlbumsReq;
+    static constexpr auto GetFn = &msg::QcmMessage::getAlbumsReq;
+
+    template<typename T>
+    static auto set(msg::QcmMessage& m, T&& r) {
+        m.setType(MessageTypeGadget::MessageType::GET_ALBUMS_REQ);
+        m.setGetAlbumsReq(std::forward<T>(r));
+    }
+};
+
+template<>
+struct MsgTraits<msg::GetAlbumsRsp> {
+    static constexpr auto HasFn = &msg::QcmMessage::hasGetAlbumsRsp;
+    static constexpr auto GetFn = &msg::QcmMessage::getAlbumsRsp;
+};
+
+template<>
 struct MsgTraits<msg::Rsp> {
     static constexpr auto HasFn = &msg::QcmMessage::hasRsp;
     static constexpr auto GetFn = &msg::QcmMessage::rsp;

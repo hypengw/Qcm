@@ -20,7 +20,14 @@ MD.Page {
     backgroundColor: MD.MatProp.backgroundColor
 
     property var model: {
-        const p = [...QA.Global.session.pages];
+        const p = [];
+        {
+            const page = QA.Util.create_page();
+            page.name = qsTr('library');
+            page.icon = 'library_music';
+            page.source = 'qrc:/Qcm/App/qml/page/LibraryPage.qml';
+            p.push(page);
+        }
         if (QA.App.debug) {
             const page = QA.Util.create_page();
             page.name = qsTr('test');

@@ -57,8 +57,9 @@ set(SOURCES
     src/sql/cache_sql.cpp
     src/sql/collection_sql.cpp
     src/sql/sql.cpp
+    src/query/album_query.cpp
+    src/query/provider_query.cpp
     src/query/search.cpp
-    src/query/provider.cpp
     src/query.cpp
     src/backend.cpp
     src/status/provider.cpp
@@ -87,7 +88,7 @@ set(QML_FILES
     qml/page/PlayingPage.qml
     qml/page/PlayQueuePage.qml
     qml/page/MainPage.qml
-    qml/page/MinePage.qml
+    qml/page/LibraryPage.qml
     qml/page/StatusPage.qml
     qml/delegate/CommentDelegate.qml
     qml/delegate/SongDelegate.qml
