@@ -9,7 +9,7 @@ MD.Menu {
     property QA.t_id itemId
     property QA.t_id sourceId
     property bool canDelete: false
-    property var song: qr_detail.data
+    property var song//: qr_detail.data
     readonly property QA.t_id itemId_: itemId.valid() ? itemId : song.itemId
 
     dim: false
@@ -44,9 +44,9 @@ MD.Menu {
         icon.name: MD.Token.icon.delete
         text: qsTr('delete')
         onTriggered: {
-            m_qr_manipulate.mixId = root.sourceId;
-            m_qr_manipulate.itemIds = [root.itemId_];
-            m_qr_manipulate.reload();
+             //m_qr_manipulate.mixId = root.sourceId;
+             //m_qr_manipulate.itemIds = [root.itemId_];
+             //m_qr_manipulate.reload();
         }
     }
 
@@ -75,13 +75,13 @@ MD.Menu {
         }
     }
 
-    QA.SongDetailQuery {
-        id: qr_detail
-        itemId: root.itemId
-    }
+    // QA.SongDetailQuery {
+    //     id: qr_detail
+    //     itemId: root.itemId
+    // }
 
-    QA.MixManipulateQuery {
-        id: m_qr_manipulate
-        oper: QA.enums.ManipulateMixDel
-    }
+    // QA.MixManipulateQuery {
+    //     id: m_qr_manipulate
+    //     oper: QA.enums.ManipulateMixDel
+    // }
 }

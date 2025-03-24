@@ -2,7 +2,7 @@ set(APP_ID io.github.hypengw.Qcm)
 set(APP_NAME ${PROJECT_NAME})
 set(APP_VERSION ${PROJECT_VERSION})
 set(APP_SUMMARY ${PROJECT_DESCRIPTION})
-set(APP_AUTHOR "hypeng")
+set(APP_AUTHOR "hypengw")
 
 find_package(Qt6 REQUIRED COMPONENTS QuickControls2 Sql Widgets)
 qt_standard_project_setup()

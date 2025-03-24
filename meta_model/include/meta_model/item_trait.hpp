@@ -36,14 +36,14 @@ struct ItemTrait;
 ///
 /// @brief Item that defined hash in ItemTrait
 template<typename T>
-concept hashable_item = requires(T t) {
+concept hashable_item = std::semiregular<ItemTrait<T>> && requires(T t) {
     { ItemTrait<T>::hash(t) } -> std::same_as<usize>;
 };
 
 ///
 /// @brief Item that defined compare_lt in ItemTrait
 template<typename T>
-concept comparable_item = requires(T t) {
+concept comparable_item = std::semiregular<ItemTrait<T>> && requires(T t) {
     { ItemTrait<T>::compare_lt(t, t) } -> std::same_as<bool>;
 };
 
