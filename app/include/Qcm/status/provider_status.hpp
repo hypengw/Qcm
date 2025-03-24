@@ -1,6 +1,6 @@
 #pragma once
 
-#include "meta_model/qgadgetlistmodel.h"
+#include "meta_model/qgadget_list_model.hpp"
 #include "Qcm/backend_msg.h"
 
 namespace qcm
@@ -17,10 +17,6 @@ class ProviderMetaStatusModel
 public:
     ProviderMetaStatusModel(QObject* parent = nullptr);
     ~ProviderMetaStatusModel();
-
-    auto hash(const Model& t) const noexcept -> usize override {
-        return std::hash<QStringView> {}(t.typeName());
-    }
 };
 
 class ProviderStatusModel : public meta_model::QGadgetListModel<msg::model::ProviderStatus,
@@ -33,10 +29,6 @@ class ProviderStatusModel : public meta_model::QGadgetListModel<msg::model::Prov
 public:
     ProviderStatusModel(QObject* parent = nullptr);
     ~ProviderStatusModel();
-
-    auto hash(const msg::model::ProviderStatus& t) const noexcept -> usize override {
-        return std::hash<QStringView> {}(t.id_proto());
-    }
 };
 
 } // namespace qcm

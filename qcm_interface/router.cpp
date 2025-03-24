@@ -8,7 +8,7 @@
 #include "core/qstr_helper.h"
 #include "core/qvariant_helper.h"
 #include "qcm_interface/model/page.h"
-#include "meta_model/qgadgetlistmodel.h"
+#include "meta_model/qgadget_list_model.hpp"
 
 namespace qcm
 {

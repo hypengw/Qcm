@@ -59,8 +59,6 @@ set(SOURCES
     src/sql/sql.cpp
     src/query/album_query.cpp
     src/query/provider_query.cpp
-    src/query/search.cpp
-    src/query.cpp
     src/backend.cpp
     src/status/provider.cpp
     src/status/process.cpp)

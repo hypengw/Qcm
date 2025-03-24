@@ -5,7 +5,7 @@
 
 #include "asio_qt/qt_sql.h"
 #include "asio_helper/detached_log.h"
-#include "meta_model/qgadgetlistmodel.h"
+#include "meta_model/qgadget_list_model.hpp"
 
 #include "qcm_interface/global.h"
 #include "qcm_interface/macro.h"

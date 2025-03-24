@@ -49,17 +49,17 @@ MD.Page {
                     }
 
                     MD.TabButton {
-                        text: qsTr("Mix")
-                    }
-                    MD.TabButton {
                         text: qsTr("Album")
                     }
-                    MD.TabButton {
-                        text: qsTr("Artist")
-                    }
-                    MD.TabButton {
-                        text: qsTr("Radio")
-                    }
+                    // MD.TabButton {
+                    //     text: qsTr("Mix")
+                    // }
+                    // MD.TabButton {
+                    //     text: qsTr("Artist")
+                    // }
+                    // MD.TabButton {
+                    //     text: qsTr("Radio")
+                    // }
                 }
                 StackLayout {
                     currentIndex: bar.currentIndex

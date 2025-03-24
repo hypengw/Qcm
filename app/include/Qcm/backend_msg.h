@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Qcm/message/message.qpb.h"
 #include <string>
+#include "Qcm/message/message.qpb.h"
+#include "meta_model/item_trait.hpp"
 
 import qcm.core;
 
@@ -120,5 +121,26 @@ struct std::formatter<qcm::msg::MessageTypeGadget::MessageType> : std::formatter
     auto format(MessageType type, Ctx& ctx) const -> typename Ctx::iterator {
         return std::formatter<std::string_view>::format(
             std::string_view { QMetaEnum::fromType<MessageType>().valueToKey((int)type) }, ctx);
+    }
+};
+
+template<>
+struct meta_model::ItemTrait<qcm::msg::model::Album> {
+    static auto hash(const qcm::msg::model::Album& el) noexcept -> usize {
+        return std::hash<QString> {}(el.id_proto());
+    }
+};
+
+template<>
+struct meta_model::ItemTrait<qcm::msg::model::ProviderMeta> {
+    static auto hash(const qcm::msg::model::ProviderMeta& el) noexcept -> usize {
+        return std::hash<QStringView> {}(el.typeName());
+    }
+};
+
+template<>
+struct meta_model::ItemTrait<qcm::msg::model::ProviderStatus> {
+    static auto hash(const qcm::msg::model::ProviderStatus& el) noexcept -> usize {
+        return std::hash<QStringView> {}(el.id_proto());
     }
 };

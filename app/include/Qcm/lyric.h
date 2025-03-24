@@ -2,7 +2,7 @@
 
 #include <QQmlEngine>
 #include "core/core.h"
-#include "meta_model/qgadgetlistmodel.h"
+#include "meta_model/qgadget_list_model.hpp"
 
 namespace qcm
 {

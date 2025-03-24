@@ -1,7 +1,7 @@
 #pragma once
 
 #include "qcm_interface/query.h"
-#include "meta_model/qgadgetlistmodel.h"
+#include "meta_model/qgadget_list_model.hpp"
 
 namespace qcm::query
 {

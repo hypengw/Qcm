@@ -39,7 +39,6 @@ class Backend;
 class ProviderStatusModel;
 class ProviderMetaStatusModel;
 
-void register_meta_type();
 auto gen_image_cache_entry(const QString& provider, const QUrl& url, QSize reqSize)
     -> std::optional<std::filesystem::path>;
 

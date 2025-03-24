@@ -6,7 +6,7 @@
 #include <QtCore/QSortFilterProxyModel>
 
 #include "core/core.h"
-#include "meta_model/qmetaobjectmodel.h"
+#include "meta_model/qmeta_list_model.hpp"
 #include "qcm_interface/model/query_model.h"
 #include "qcm_interface/model/id_queue.h"
 #include "qcm_interface/enum.h"

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <variant>
-#include "meta_model/qmetaobjectmodel.h"
+#include "meta_model/qmeta_list_model.hpp"
 #include "core/helper.h"
 
 namespace meta_model

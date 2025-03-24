@@ -3,7 +3,7 @@
 #include <QtCore/QJsonDocument>
 #include <QtQml/QJSValueIterator>
 
-#include "meta_model/qgadget_helper.h"
+#include "meta_model/qgadget_helper.hpp"
 #include "qcm_interface/global.h"
 #include "qcm_interface/plugin.h"
 #include "Qcm/app.h"

@@ -152,6 +152,17 @@ public:
         }
     }
 
+    template<typename U, typename F>
+    void inspect_set(U&& res, F&& f) {
+        if (res) {
+            res.inspect(std::forward<F>(f));
+            this->set_status(QAsyncResult::Status::Finished);
+        } else {
+            this->set_error(convert_from<QString>(std::format("{}", res.unwrap_err_unchecked())));
+            this->set_status(QAsyncResult::Status::Error);
+        }
+    }
+
 private:
     void set_data(const QVariant&) override { _assert_rel_(false); }
 };

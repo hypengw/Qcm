@@ -4,7 +4,7 @@
 #include "core/core.h"
 #include "qcm_interface/export.h"
 #include "qcm_interface/async.h"
-#include "meta_model/qobjectlistmodel.h"
+#include "meta_model/qobject_list_model.hpp"
 #include "json_helper/helper.h"
 #include "qcm_interface/model/user_account.h"
 

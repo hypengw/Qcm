@@ -2,8 +2,8 @@
 
 #include <type_traits>
 
-#include "meta_model/qgadget_helper.h"
-#include "meta_model/qmetaobjectmodel.h"
+#include "meta_model/qgadget_helper.hpp"
+#include "meta_model/qmeta_list_model.hpp"
 
 namespace meta_model
 {

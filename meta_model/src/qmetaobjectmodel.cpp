@@ -1,14 +1,18 @@
-#include "meta_model/qmetaobjectmodel.h"
+#include "meta_model/qmeta_list_model.hpp"
 
 #include <QMetaProperty>
 
-using namespace meta_model;
+namespace meta_model
+{
 
+namespace detail
+{
 QMetaListModelBase::QMetaListModelBase(QObject* parent)
     : QMetaModelBase<QAbstractListModel>(parent) {}
 QMetaListModelBase::~QMetaListModelBase() {}
+} // namespace detail
 
-void meta_model::update_role_names(QHash<int, QByteArray>& role_names, const QMetaObject& meta) {
+void detail::update_role_names(QHash<int, QByteArray>& role_names, const QMetaObject& meta) {
     role_names.clear();
 
     auto roleIndex = Qt::UserRole + 1;
@@ -18,8 +22,6 @@ void meta_model::update_role_names(QHash<int, QByteArray>& role_names, const QMe
     }
 }
 
-namespace meta_model
-{
 auto readOnGadget(const QVariant& obj, const char* name) -> QVariant {
     if (auto meta = obj.metaType().metaObject()) {
         if (auto p = meta->property(meta->indexOfProperty(name)); p.isValid()) {

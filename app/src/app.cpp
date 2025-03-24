@@ -26,7 +26,7 @@
 
 #include "crypto/crypto.h"
 #include "asio_helper/sync_file.h"
-#include "meta_model/qgadget_helper.h"
+#include "meta_model/qgadget_helper.hpp"
 import platform;
 #include "asio_qt/qt_sql.h"
 
@@ -213,7 +213,7 @@ App::App(QStringView backend_exe, std::monostate)
     : QObject(nullptr), d_ptr(make_box<Private>(this)) {
     C_D(App);
     app_instance(this);
-    register_meta_type();
+    // register_meta_type();
     connect_actions();
     {
         QGuiApplication::setDesktopFileName(APP_ID);
@@ -636,9 +636,5 @@ void App::save_settings() {
     s.setValue("play/loop", (int)playqueue()->loopMode());
 }
 } // namespace qcm
-
-#include "Qcm/query/mix_detail.h"
-
-void qcm::register_meta_type() { qRegisterMetaType<query::MixDetailQuery>(); }
 
 #include <Qcm/moc_app.cpp>
