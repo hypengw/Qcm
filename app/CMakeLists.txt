@@ -4,55 +4,22 @@ set(APP_VERSION ${PROJECT_VERSION})
 set(APP_SUMMARY ${PROJECT_DESCRIPTION})
 set(APP_AUTHOR "hypengw")
 
-find_package(Qt6 REQUIRED COMPONENTS QuickControls2 Sql Widgets)
+find_package(Qt6 REQUIRED COMPONENTS QuickControls2 Sql Widgets Protobuf
+                                     ProtobufWellKnownTypes ProtobufQuick)
 qt_standard_project_setup()
-
-set(HEADERS
-    include/Qcm/app.h
-    include/Qcm/info.h
-    include/Qcm/image_provider.h
-    include/Qcm/play_queue.h
-    include/Qcm/qr_image.h
-    include/Qcm/lyric.h
-    include/Qcm/clipboard.h
-    include/Qcm/player.h
-    include/Qcm/qml_util.h
-    include/Qcm/storage_info.h
-    include/Qcm/sql/item_sql.h
-    include/Qcm/sql/cache_sql.h
-    include/Qcm/sql/collection_sql.h
-    include/Qcm/query/query_load.h
-    include/Qcm/query/album_collection.h
-    include/Qcm/query/artist_collection.h
-    include/Qcm/query/radio_collection.h
-    include/Qcm/query/mix_collection.h
-    include/Qcm/query/album_detail.h
-    include/Qcm/query/mix_detail.h
-    include/Qcm/query/radio_detail.h
-    include/Qcm/query/artist_detail.h
-    include/Qcm/query/artist_albums.h
-    include/Qcm/query/artist_songs.h
-    include/Qcm/query/song_detail.h
-    include/Qcm/query/mix_create.h
-    include/Qcm/query/mix_manipulate.h
-    include/Qcm/query/mix_delete.h
-    include/Qcm/query/user_mix.h
-    include/Qcm/query/comments.h
-    include/Qcm/query/search.h)
 
 set(SOURCES
     src/log.cpp
     src/action.cpp
     src/app.cpp
-    src/image_provider.cpp
     src/play_queue.cpp
-    src/qr_image.cpp
     src/lyric.cpp
     src/clipboard.cpp
     src/player.cpp
     src/fake_moc.cpp
     src/qml_util.cpp
     src/storage_info.cpp
+    src/backend.cpp
     src/sql/item_sql.cpp
     src/sql/cache_sql.cpp
     src/sql/collection_sql.cpp
@@ -60,7 +27,9 @@ set(SOURCES
     src/query/album_query.cpp
     src/query/provider_query.cpp
     src/query/query.cpp
-    src/backend.cpp
+    src/image_provider/response.cpp
+    src/image_provider/http.cpp
+    src/image_provider/qr.cpp
     src/status/provider.cpp
     src/status/process.cpp)
 

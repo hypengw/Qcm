@@ -34,8 +34,8 @@ import platform;
 #include "qcm_interface/type.h"
 #include "qcm_interface/path.h"
 
-#include "Qcm/qr_image.h"
-#include "Qcm/image_provider.h"
+#include "Qcm/image_provider/http.hpp"
+#include "Qcm/image_provider/qr.hpp"
 #include "Qcm/qml_util.h"
 #include "Qcm/sql/collection_sql.h"
 #include "Qcm/sql/cache_sql.h"

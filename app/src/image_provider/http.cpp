@@ -1,4 +1,4 @@
-#include "Qcm/image_provider.h"
+#include "Qcm/image_provider/http.hpp"
 
 #include <filesystem>
 #include <cstdio>
@@ -42,11 +42,6 @@ void header_record_db(const ncrequest::HttpHeader& h, media_cache::DataBase::Ite
 
 namespace qcm
 {
-
-auto image_response_count() -> std::atomic<i32>& {
-    static std::atomic<i32> count { 0 };
-    return count;
-}
 
 QcmAsyncImageResponse::QcmAsyncImageResponse() {}
 QcmAsyncImageResponse::~QcmAsyncImageResponse() { plt::malloc_trim_count(0, 10); }
@@ -117,7 +112,7 @@ public:
 
 private:
     executor_type             m_ex;
-    rc<ncrequest::Session>      m_session;
+    rc<ncrequest::Session>    m_session;
     rc<media_cache::DataBase> m_cache_sql;
 };
 } // namespace qcm
@@ -192,8 +187,5 @@ QcmImageProvider
     return rsp.get();
 }
 
-
-#include <Qcm/moc_image_provider.cpp>
-void test() {
-QtPrivate::checkTypeIsSuitableForMetaType<QString>();
-}
+#include <Qcm/image_provider/moc_http.cpp>
+void test() { QtPrivate::checkTypeIsSuitableForMetaType<QString>(); }

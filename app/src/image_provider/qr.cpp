@@ -1,4 +1,4 @@
-#include "Qcm/qr_image.h"
+#include "Qcm/image_provider/qr.hpp"
 
 #include <QPointer>
 

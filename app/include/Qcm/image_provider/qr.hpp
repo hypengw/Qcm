@@ -4,7 +4,7 @@
 #include <QQuickAsyncImageProvider>
 
 #include "core/asio/helper.h"
-#include "Qcm/image_response.h"
+#include "Qcm/image_provider/response.hpp"
 
 namespace qcm
 {
