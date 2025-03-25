@@ -14,7 +14,7 @@
 #include "qcm_interface/model/program.h"
 #include "qcm_interface/model/library.h"
 #include "asio_qt/qt_executor.h"
-#include "asio_helper/task.h"
+#include "core/asio/task.h"
 
 namespace helper
 {

@@ -2,7 +2,7 @@
 
 #include "media_cache/database.h"
 #include "core/core.h"
-#include "asio_helper/task.h"
+#include "core/asio/task.h"
 
 #include <functional>
 #include "asio_qt/qt_executor.h"

@@ -14,5 +14,5 @@ target_include_directories(media_cache PUBLIC include)
 
 target_link_libraries(
   media_cache
-  PUBLIC core asio_helper ncrequest::ncrequest
+  PUBLIC core core.asio ncrequest::ncrequest
   PRIVATE ctre::ctre)

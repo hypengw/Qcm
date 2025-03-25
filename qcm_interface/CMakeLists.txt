@@ -114,7 +114,7 @@ target_link_libraries(
   qcm_interface
   PUBLIC core
          error
-         asio_helper
+         core.asio
          asio_qt
          ncrequest::ncrequest
          json_helper

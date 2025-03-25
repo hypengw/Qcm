@@ -19,13 +19,13 @@
 #include <QQuickStyle>
 #include <QQmlContext>
 
-#include "asio_helper/basic.h"
+#include "core/asio/basic.h"
 #include "core/helper.h"
 #include "core/log.h"
 #include "core/qvariant_helper.h"
 
 #include "crypto/crypto.h"
-#include "asio_helper/sync_file.h"
+#include "core/asio/sync_file.h"
 #include "meta_model/qgadget_helper.hpp"
 import platform;
 #include "asio_qt/qt_sql.h"

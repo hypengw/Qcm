@@ -31,5 +31,5 @@ target_include_directories(
 
 target_link_libraries(
   player
-  PUBLIC core error asio_helper ${FFMPEG_TARGETS}
+  PUBLIC core error core.asio ${FFMPEG_TARGETS}
   PRIVATE ctre::ctre cubeb::cubeb)

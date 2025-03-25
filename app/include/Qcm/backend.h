@@ -10,7 +10,7 @@
 
 #include <asio/thread_pool.hpp>
 #include "asio_qt/qt_execution_context.h"
-#include "asio_helper/task.h"
+#include "core/asio/task.h"
 
 #include "Qcm/backend_msg.h"
 

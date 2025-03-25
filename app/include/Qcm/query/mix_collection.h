@@ -4,7 +4,7 @@
 #include <QQmlEngine>
 
 #include "asio_qt/qt_sql.h"
-#include "asio_helper/detached_log.h"
+#include "core/asio/detached_log.h"
 #include "meta_model/qgadget_list_model.hpp"
 
 #include "qcm_interface/global.h"

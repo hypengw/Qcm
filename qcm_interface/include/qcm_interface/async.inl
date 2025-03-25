@@ -5,8 +5,8 @@
 #include <asio/strand.hpp>
 
 #include "qcm_interface/async.h"
-#include "asio_helper/watch_dog.h"
-#include "asio_helper/error.h"
+#include "core/asio/watch_dog.h"
+#include "core/asio/error.h"
 #include "asio_qt/qt_watcher.h"
 
 namespace qcm

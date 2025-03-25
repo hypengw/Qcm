@@ -7,10 +7,10 @@
 #include "Qcm/query/query.hpp"
 #include "core/helper.h"
 
-#include "asio_helper/basic.h"
+#include "core/asio/basic.h"
 #include "asio_qt/qt_watcher.h"
 #include "qcm_interface/plugin.h"
-#include "asio_helper/watch_dog.h"
+#include "core/asio/watch_dog.h"
 
 #include "Qcm/play_queue.h"
 

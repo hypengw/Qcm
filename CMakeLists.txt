@@ -127,7 +127,6 @@ add_subdirectory(platform)
 add_subdirectory(core)
 add_subdirectory(error)
 add_subdirectory(json_helper)
-add_subdirectory(asio_helper)
 add_subdirectory(crypto)
 
 add_subdirectory(message)

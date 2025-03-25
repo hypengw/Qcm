@@ -3,7 +3,7 @@
 #include <QQuickImageProvider>
 #include <QQuickAsyncImageProvider>
 
-#include "asio_helper/helper.h"
+#include "core/asio/helper.h"
 #include "Qcm/image_response.h"
 
 namespace qcm

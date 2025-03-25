@@ -3,7 +3,7 @@
 #include <QQmlEngine>
 #include <QAbstractListModel>
 
-#include "asio_helper/basic.h"
+#include "core/asio/basic.h"
 #include "qcm_interface/query.h"
 #include "qcm_interface/model/comment.h"
 #include "meta_model/qgadget_list_model.hpp"

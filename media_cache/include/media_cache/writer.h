@@ -10,7 +10,7 @@
 
 #include "media_cache/fragment.h"
 #include "media_cache/fallbacks.h"
-#include "asio_helper/sync_file.h"
+#include "core/asio/sync_file.h"
 
 namespace media_cache
 {

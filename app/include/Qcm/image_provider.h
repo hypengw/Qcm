@@ -5,8 +5,8 @@
 #include <QQuickImageProvider>
 #include <QQuickAsyncImageProvider>
 
-#include "asio_helper/helper.h"
-#include "asio_helper/watch_dog.h"
+#include "core/asio/helper.h"
+#include "core/asio/watch_dog.h"
 #include "Qcm/image_response.h"
 
 import ncrequest;

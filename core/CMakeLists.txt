@@ -29,3 +29,16 @@ target_link_libraries(
   core
   PUBLIC expected random fmt::fmt rstd::rstd
   PRIVATE platform)
+
+
+# core.asio
+add_library(core.asio SHARED src/asio/asio.cpp)
+target_include_directories(core.asio PUBLIC include)
+target_compile_definitions(
+  core.asio
+  PUBLIC ASIO_DYN_LINK ASIO_DISABLE_VISIBILITY
+  PRIVATE QCM_ASIO_EXPORT)
+target_link_libraries(core.asio PUBLIC core asio)
+set_target_properties(core.asio PROPERTIES CXX_VISIBILITY_PRESET hidden
+                                           OUTPUT_NAME qcm_asio)
+install(TARGETS core.asio)
