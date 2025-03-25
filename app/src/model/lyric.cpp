@@ -1,4 +1,4 @@
-#include "Qcm/lyric.h"
+#include "Qcm/model/lyric.hpp"
 
 #include <limits>
 #include <ctre.hpp>
@@ -132,4 +132,4 @@ void LrcLyric::refreshIndex() {
 }
 
 
-#include <Qcm/moc_lyric.cpp>
+#include <Qcm/model/moc_lyric.cpp>

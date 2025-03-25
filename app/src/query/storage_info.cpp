@@ -1,4 +1,4 @@
-#include "Qcm/storage_info.h"
+#include "Qcm/query/storage_info.hpp"
 #include "qcm_interface/async.inl"
 #include "qcm_interface/global.h"
 #include "Qcm/app.h"
@@ -35,4 +35,4 @@ void StorageInfoQuerier::reload() {
 }
 } // namespace qcm::qml
 
-#include <Qcm/moc_storage_info.cpp>
+#include <Qcm/query/moc_storage_info.cpp>
