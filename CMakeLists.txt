@@ -21,6 +21,9 @@ if(NOT ANDROID)
 endif()
 set(QT_QML_GENERATE_QMLLS_INI ON)
 
+# options
+option(QCM_BUILD_TESTS "Build tests" ${PROJECT_IS_TOP_LEVEL})
+
 # check lto
 include(CheckIPOSupported)
 check_ipo_supported(RESULT is_ipo_supported OUTPUT lto_error)
@@ -142,3 +145,9 @@ if(ANDROID)
   set(QM_BUILD_EXAMPLE OFF)
 endif()
 add_subdirectory(app)
+
+if(QCM_BUILD_TESTS)
+  include(CTest)
+  enable_testing()
+  add_subdirectory(test)
+endif()
