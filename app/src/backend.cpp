@@ -60,19 +60,29 @@ Backend::Backend()
     m_client->set_on_connected_callback([this]() {
         Q_EMIT this->connected(m_port);
     });
-    m_client->set_on_message_callback([this](std::span<const std::byte> bytes, bool last) {
-        Q_UNUSED(last);
-        msg::QcmMessage msg;
-        msg.deserialize(m_serializer.get(), bytes);
-        log::info("ws recv: {}", msg.type());
+    m_client->set_on_message_callback(
+        [this, cache = make_rc<std::vector<byte>>()](std::span<const std::byte> bytes, bool last) {
+            if (! last) {
+                std::ranges::copy(bytes, std::back_inserter(*cache));
+            } else {
+                msg::QcmMessage msg;
+                if (cache->empty()) {
+                    msg.deserialize(m_serializer.get(), bytes);
+                } else {
+                    std::ranges::copy(bytes, std::back_inserter(*cache));
+                    msg.deserialize(m_serializer.get(), *cache);
+                    cache->clear();
+                }
+                log::info("ws recv: {}", msg.type());
 
-        if (auto it = m_handlers.find(msg.id_proto()); it != m_handlers.end()) {
-            it->second(asio::error_code {}, std::move(msg));
-            m_handlers.erase(it);
-        } else {
-            qcm::process_msg(std::move(msg));
-        }
-    });
+                if (auto it = m_handlers.find(msg.id_proto()); it != m_handlers.end()) {
+                    it->second(asio::error_code {}, std::move(msg));
+                    m_handlers.erase(it);
+                } else {
+                    qcm::process_msg(std::move(msg));
+                }
+            }
+        });
     // start thread
     {
         bool ok = m_process->moveToThread(m_thread.get());

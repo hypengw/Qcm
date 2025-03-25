@@ -158,7 +158,7 @@ endif()
 FetchContent_Declare(
   ncrequest
   GIT_REPOSITORY https://github.com/hypengw/ncrequest.git
-  GIT_TAG 2907aa66c13b01b71931f984a422cc4f9d036934
+  GIT_TAG e0073e029be919f2c109b4781923049b11ede387
   GIT_SHALLOW 1
   GIT_PROGRESS 1
   EXCLUDE_FROM_ALL)

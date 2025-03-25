@@ -67,7 +67,7 @@
     "url" : "https://github.com/mozilla/cubeb.git"
   },
   {
-    "commit" : "2907aa66c13b01b71931f984a422cc4f9d036934",
+    "commit" : "e0073e029be919f2c109b4781923049b11ede387",
     "dest" : "build/_flatpak_deps/ncrequest-src",
     "disable-shallow-clone" : false,
     "type" : "git",

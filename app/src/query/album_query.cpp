@@ -17,22 +17,38 @@ void AlbumsQuery::reload() {
     set_status(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::GetAlbumsReq {};
-    req.setPage(offset());
-    req.setPageSize(limit());
+    req.setPage(0);
+    req.setPageSize((offset() + 1) * limit());
     auto self = helper::QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
         self->inspect_set(rsp, [self](msg::GetAlbumsRsp& el) {
-            auto& al = el.albums();
-            log::warn("alsize: {}", al.size());
-            self->tdata()->resetModel(al);
+            self->tdata()->resetModel(el.albums());
+            self->tdata()->setHasMore(el.hasMore());
         });
         co_return;
     });
 }
 
 void AlbumsQuery::fetchMore(qint32) {
+    set_status(Status::Querying);
+    auto backend = App::instance()->backend();
+    auto req     = msg::GetAlbumsReq {};
+    req.setPage(offset() + 1);
+    req.setPageSize(limit());
+    auto self = helper::QWatcher { this };
+    spawn([self, backend, req] mutable -> task<void> {
+        auto offset = req.page();
+        auto rsp    = co_await backend->send(std::move(req));
+        co_await qcm::qexecutor_switch();
+        self->inspect_set(rsp, [self, offset](msg::GetAlbumsRsp& el) {
+            self->tdata()->extend(el.albums());
+            self->setOffset(offset + 1);
+            self->tdata()->setHasMore(el.hasMore());
+        });
+        co_return;
+    });
 }
 
 } // namespace qcm

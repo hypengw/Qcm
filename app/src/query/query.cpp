@@ -32,9 +32,9 @@ void QueryBase::setDelay(bool v) {
     }
 }
 
-QueryListBase::QueryListBase(QObject* parent): QueryBase(parent), m_offset(0), m_limit(50) {
-    connect_requet_reload(&QueryListBase::offsetChanged);
-    connect_requet_reload(&QueryListBase::limitChanged);
+QueryListBase::QueryListBase(QObject* parent): QueryBase(parent), m_offset(0), m_limit(200) {
+    // connect_requet_reload(&QueryListBase::offsetChanged);
+    // connect_requet_reload(&QueryListBase::limitChanged);
 }
 QueryListBase::~QueryListBase() {}
 auto QueryListBase::offset() const -> qint32 { return m_offset; }
@@ -59,7 +59,7 @@ void detail::try_connect_fetch_more(QObject* query, QObject* model) {
     auto signalIdx = model->metaObject()->indexOfSignal(signal);
     auto slotIdx   = query->metaObject()->indexOfSlot(slot);
     if (signalIdx != -1 && slotIdx != -1) {
-        QObject::connect(model, signal, query, slot);
+        QObject::connect(model, SIGNAL(reqFetchMore(qint32)), query, SLOT(fetchMore(qint32)));
     } else if (signalIdx != -1 || slotIdx != -1) {
         log::warn("reqFetchMore not connected");
     }
