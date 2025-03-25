@@ -1,8 +1,0 @@
-PROJECT_NAME           = "meta_model"
-HIDE_UNDOC_CLASSES     = YES
-HIDE_UNDOC_MEMBERS     = YES
-HIDE_UNDOC_NAMESPACES  = YES
-PROJECT_NUMBER         = 0.1.0
-OUTPUT_DIRECTORY       = doxy
-RECURSIVE              = YES
-INPUT                  = ../src ../include

@@ -132,7 +132,6 @@ add_subdirectory(crypto)
 
 add_subdirectory(message)
 add_subdirectory(asio_qt)
-add_subdirectory(meta_model)
 add_subdirectory(generator/model)
 add_subdirectory(qcm_interface)
 
