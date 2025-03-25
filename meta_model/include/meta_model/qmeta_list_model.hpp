@@ -43,6 +43,13 @@ using allocator_value_type = allocator_helper<T, S>::value_type;
 template<typename Allocator, typename T>
 using rebind_alloc = typename std::allocator_traits<Allocator>::template rebind_alloc<T>;
 
+template<typename T, typename Allocator>
+using Set = std::set<T, std::less<>, rebind_alloc<Allocator, T>>;
+
+template<typename K, typename V, typename Allocator>
+using HashMap = std::unordered_map<K, V, std::hash<K>, std::equal_to<K>,
+                                   rebind_alloc<Allocator, std::pair<const K, V>>>;
+
 template<typename T, typename Allocator, QMetaListStore Store>
 class ListImpl;
 
@@ -425,15 +432,14 @@ public:
         : base_type(parent), base_impl_type(allc) {}
     virtual ~QMetaListModel() {}
 
+    ///
+    /// @brief sync items without reset
+    /// if mostly changed, use reset
     template<detail::syncable_list<TItem> U>
     void sync(U&& items) {
         using key_type     = ItemTrait<TItem>::key_type;
-        using idx_set_type = std::set<usize, std::less<>, rebind_alloc<usize>>;
-        using idx_map_type = std::unordered_map<key_type,
-                                                usize,
-                                                std::hash<key_type>,
-                                                std::equal_to<key_type>,
-                                                rebind_alloc<std::pair<const key_type, usize>>>;
+        using idx_set_type = detail::Set<usize, allocator_type>;
+        using idx_map_type = detail::HashMap<key_type, usize, allocator_type>;
 
         // get key to idx map
         idx_map_type key_to_idx(this->get_allocator());
@@ -485,6 +491,59 @@ public:
             this->insert(id, std::forward<U>(items)[id]);
         }
     }
-};
 
+    ///
+    /// @brief sync items without reset
+    /// if mostly changed, use reset
+    /// @return increased size
+    template<detail::syncable_list<TItem> U>
+    auto extend(U&& items) -> usize {
+        using key_type     = ItemTrait<TItem>::key_type;
+        using idx_set_type = detail::Set<usize, allocator_type>;
+        using idx_map_type = detail::HashMap<key_type, usize, allocator_type>;
+
+        // get key to idx map
+        idx_map_type key_to_idx(this->get_allocator());
+        key_to_idx.reserve(items.size());
+        for (decltype(items.size()) i = 0; i < items.size(); ++i) {
+            key_to_idx.insert({ ItemTrait<TItem>::key(items[i]), i });
+        }
+
+        // update
+        if constexpr (Store == QMetaListStore::Vector) {
+            for (usize i = 0; i < this->size(); ++i) {
+                auto key = ItemTrait<TItem>::key(this->at(i));
+                if (auto it = key_to_idx.find(key); it != key_to_idx.end()) {
+                    this->at(i) = std::forward<U>(items)[it->second];
+                    key_to_idx.erase(it);
+                }
+            }
+        } else if constexpr (Store == QMetaListStore::VectorWithMap) {
+            for (auto& el : this->_maps()) {
+                if (auto it = key_to_idx.find(el.first); it != key_to_idx.end()) {
+                    at(el.second) = std::forward<U>(items)[it->second];
+                    key_to_idx.erase(it);
+                }
+            }
+        } else if constexpr (Store == QMetaListStore::Map) {
+            for (usize i = 0; i < this->size(); ++i) {
+                auto h = this->key_at(i);
+                if (auto it = key_to_idx.find(h); it != key_to_idx.end()) {
+                    this->at(i) = std::forward<U>(items)[it->second];
+                    key_to_idx.erase(it);
+                }
+            }
+        }
+
+        // insert new
+        idx_set_type ids(this->get_allocator());
+        for (auto& el : key_to_idx) {
+            ids.insert(el.second);
+        }
+        for (auto id : ids) {
+            this->insert(id, std::forward<U>(items)[id]);
+        }
+        return ids.size();
+    }
+};
 } // namespace meta_model

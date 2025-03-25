@@ -26,6 +26,7 @@ inline constexpr bool is_specialization_of_v = is_specialization_of<T, Primary>:
 /// @brief Trait for Item behavior
 /// @code {.cpp}
 /// // T: T or const T&
+/// // key_type requires std::hash<> and operator==
 /// using key_type = ...;
 /// auto key(T) noexcept -> key_type;
 /// auto compare_lt(T, T) noexcept -> usize;
@@ -34,13 +35,22 @@ inline constexpr bool is_specialization_of_v = is_specialization_of<T, Primary>:
 template<typename T>
 struct ItemTrait;
 
+namespace detail
+{
+template<typename T>
+concept hashable = requires(T k) {
+    { std::hash<T> {}(k) } -> std::same_as<usize>;
+    { std::equal_to<T> {}(k, k) } -> std::same_as<bool>;
+};
+} // namespace detail
+
 ///
 /// @brief Item that defined hash in ItemTrait
 template<typename T>
 concept hashable_item = std::semiregular<ItemTrait<T>> && requires(T t) {
     typename ItemTrait<T>::key_type;
     { ItemTrait<T>::key(t) } -> std::convertible_to<typename ItemTrait<T>::key_type>;
-};
+} && detail::hashable<typename ItemTrait<T>::key_type>;
 
 ///
 /// @brief Item that defined compare_lt in ItemTrait
