@@ -6,7 +6,6 @@
 
 #include "Qcm/app.h"
 #include "qcm_interface/type.h"
-#include "core/expected_helper.h"
 
 namespace qcm
 {

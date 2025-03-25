@@ -4,7 +4,6 @@
 #include <QObjectBindableProperty>
 
 #include "core/core.h"
-#include "core/expected_helper.h"
 #include "core/qasio/qt_executor.h"
 #include "qcm_interface/enum.h"
 #include "qcm_interface/ex.h"
@@ -57,7 +56,7 @@ public:
     void spawn(Fn&& f, const std::source_location loc = std::source_location::current());
 
     template<typename T, typename TE>
-    void from(const nstd::expected<T, TE>& exp) {
+    void from(const Result<T, TE>& exp) {
         if (exp) {
             if constexpr (std::is_base_of_v<QObject, std::decay_t<std::remove_pointer_t<T>>> &&
                           std::is_pointer_v<T>) {
@@ -89,7 +88,7 @@ public:
     Q_SIGNAL void errorOccurred(QString);
 
     template<typename T, typename Err>
-    void check(const nstd::expected<T, Err>& res) {
+    void check(const Result<T, Err>& res) {
         if (! res) {
             set_error(QString::fromStdString(res.error().what()));
             set_status(Status::Error);

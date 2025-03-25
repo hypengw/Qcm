@@ -15,7 +15,6 @@
 #include "qcm_interface/sql/cache_sql.h"
 #include "qcm_interface/global.h"
 
-#include "core/expected_helper.h"
 #include "core/asio/sync_file.h"
 #include "crypto/crypto.h"
 #include "Qcm/app.h"

@@ -366,7 +366,7 @@ QString App::md5(QString txt) const {
                        return convert_from<QString>(crypto::hex::encode_low(in));
                    });
     _assert_(opt);
-    return std::move(opt).value();
+    return *opt;
 }
 
 void App::triggerCacheLimit() {

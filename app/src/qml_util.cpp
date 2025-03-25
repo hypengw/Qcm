@@ -198,9 +198,10 @@ auto gen_prefix(std::string_view in) -> std::string {
 }
 
 inline std::string gen_file_name(std::string_view uniq) {
-    return UNWRAP(crypto::digest(crypto::md5(), convert_from<std::vector<byte>>(uniq))
-                      .map(crypto::hex::encode_up)
-                      .map(convert_from<std::string, crypto::bytes_view>));
+    return crypto::digest(crypto::md5(), convert_from<std::vector<byte>>(uniq))
+        .map(crypto::hex::encode_up)
+        .map(convert_from<std::string, crypto::bytes_view>)
+        .unwrap();
 }
 
 } // namespace qcm
@@ -242,6 +243,5 @@ auto qcm::media_cache_path_of(std::string_view id) -> std::filesystem::path {
     auto file            = media_cache_dir / gen_prefix(id) / id;
     return file;
 }
-
 
 #include <Qcm/moc_qml_util.cpp>
