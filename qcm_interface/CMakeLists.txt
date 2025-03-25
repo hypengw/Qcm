@@ -115,7 +115,7 @@ target_link_libraries(
   PUBLIC core
          error
          core.asio
-         asio_qt
+         core.qasio
          ncrequest::ncrequest
          json_helper
          meta_model

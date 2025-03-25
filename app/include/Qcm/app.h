@@ -14,7 +14,7 @@
 
 #include "core/core.h"
 
-#include "asio_qt/qt_executor.h"
+#include "core/qasio/qt_executor.h"
 
 #include "qcm_interface/global.h"
 #include "qcm_interface/model/empty_model.h"

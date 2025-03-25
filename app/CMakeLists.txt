@@ -186,7 +186,7 @@ target_link_libraries(
          Qt6::QuickControls2
          Qt6::Sql
          "$<$<CONFIG:Debug>:Qt6::QuickPrivate>"
-         asio_qt
+         core.qasio
          ncrequest::ncrequest
          rstd::rstd
          fmt::fmt

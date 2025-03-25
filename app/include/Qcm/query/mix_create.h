@@ -9,7 +9,7 @@
 #include "Qcm/sql/item_sql.h"
 #include "Qcm/app.h"
 #include "Qcm/sql/collection_sql.h"
-#include "asio_qt/qt_sql.h"
+#include "core/qasio/qt_sql.h"
 #include "qcm_interface/global.h"
 #include "qcm_interface/macro.h"
 #include "qcm_interface/async.inl"

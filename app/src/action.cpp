@@ -8,7 +8,7 @@
 #include "core/helper.h"
 
 #include "core/asio/basic.h"
-#include "asio_qt/qt_watcher.h"
+#include "core/qasio/qt_watcher.h"
 #include "qcm_interface/plugin.h"
 #include "core/asio/watch_dog.h"
 

@@ -7,7 +7,7 @@
 #include <asio/post.hpp>
 
 #include "core/core.h"
-#include "asio_qt/qt_executor.h"
+#include "core/qasio/qt_executor.h"
 
 namespace helper
 {

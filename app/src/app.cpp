@@ -28,7 +28,7 @@
 #include "core/asio/sync_file.h"
 #include "meta_model/qgadget_helper.hpp"
 import platform;
-#include "asio_qt/qt_sql.h"
+#include "core/qasio/qt_sql.h"
 
 #include "qcm_interface/plugin.h"
 #include "qcm_interface/type.h"

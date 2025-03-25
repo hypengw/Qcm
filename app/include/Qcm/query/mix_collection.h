@@ -3,7 +3,7 @@
 #include <ranges>
 #include <QQmlEngine>
 
-#include "asio_qt/qt_sql.h"
+#include "core/qasio/qt_sql.h"
 #include "core/asio/detached_log.h"
 #include "meta_model/qgadget_list_model.hpp"
 

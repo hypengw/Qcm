@@ -16,7 +16,7 @@
 #include "core/helper.h"
 #include "core/qstr_helper.h"
 #include "core/qmeta_helper.h"
-#include "asio_qt/qt_executor.h"
+#include "core/qasio/qt_executor.h"
 
 namespace helper
 {

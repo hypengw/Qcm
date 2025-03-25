@@ -7,7 +7,7 @@
 #include <QDateTime>
 
 #include "qcm_interface/item_id.h"
-#include "asio_qt/qt_executor.h"
+#include "core/qasio/qt_executor.h"
 
 namespace qcm::db
 {

@@ -12,7 +12,7 @@ import platform;
 #include "core/helper.h"
 #include "core/qstr_helper.h"
 #include "core/log.h"
-#include "asio_qt/qt_sql.h"
+#include "core/qasio/qt_sql.h"
 #include "qcm_interface/global.h"
 
 namespace qcm

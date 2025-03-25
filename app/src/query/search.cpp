@@ -1,6 +1,6 @@
 #include "Qcm/query/search.h"
 
-#include "asio_qt/qt_sql.h"
+#include "core/qasio/qt_sql.h"
 
 #include "qcm_interface/async.inl"
 

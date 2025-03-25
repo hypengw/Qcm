@@ -13,7 +13,7 @@
 import platform;
 #include "qcm_interface/path.h"
 #include "qcm_interface/type.h"
-#include "asio_qt/qt_sql.h"
+#include "core/qasio/qt_sql.h"
 #include "core/log.h"
 
 using namespace qcm;

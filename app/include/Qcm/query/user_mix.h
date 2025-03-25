@@ -8,7 +8,7 @@
 #include "Qcm/sql/item_sql.h"
 #include "Qcm/sql/collection_sql.h"
 #include "Qcm/app.h"
-#include "asio_qt/qt_sql.h"
+#include "core/qasio/qt_sql.h"
 #include "qcm_interface/global.h"
 #include "meta_model/qgadget_list_model.hpp"
 #include "qcm_interface/macro.h"

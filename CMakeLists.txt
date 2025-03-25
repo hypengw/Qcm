@@ -130,7 +130,6 @@ add_subdirectory(json_helper)
 add_subdirectory(crypto)
 
 add_subdirectory(message)
-add_subdirectory(asio_qt)
 add_subdirectory(generator/model)
 add_subdirectory(qcm_interface)
 

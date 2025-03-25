@@ -8,7 +8,7 @@
 #include <asio/steady_timer.hpp>
 
 #include "core/core.h"
-#include "asio_qt/qt_executor.h"
+#include "core/qasio/qt_executor.h"
 #include "qcm_interface/export.h"
 #include "qcm_interface/model/app_info.h"
 #include "qcm_interface/enum.h"

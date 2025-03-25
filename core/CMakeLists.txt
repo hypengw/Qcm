@@ -30,10 +30,8 @@ target_link_libraries(
   PUBLIC expected random fmt::fmt rstd::rstd
   PRIVATE platform)
 
-
 # core.asio
 add_library(core.asio SHARED src/asio/asio.cpp)
-target_include_directories(core.asio PUBLIC include)
 target_compile_definitions(
   core.asio
   PUBLIC ASIO_DYN_LINK ASIO_DISABLE_VISIBILITY
@@ -42,3 +40,14 @@ target_link_libraries(core.asio PUBLIC core asio)
 set_target_properties(core.asio PROPERTIES CXX_VISIBILITY_PRESET hidden
                                            OUTPUT_NAME qcm_asio)
 install(TARGETS core.asio)
+
+# core.qasio
+find_package(Qt6 REQUIRED COMPONENTS Core)
+add_library(core.qasio STATIC src/qasio/qt_execution_context.cpp
+                              src/qasio/qt_executor.cpp)
+
+target_include_directories(core.qasio PRIVATE include/core/qasio)
+target_link_libraries(
+  core.qasio
+  PUBLIC core.asio Qt6::Core
+  PRIVATE ncrequest::ncrequest fmt::fmt)
