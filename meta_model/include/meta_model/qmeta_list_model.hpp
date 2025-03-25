@@ -438,9 +438,8 @@ public:
         // get key to idx map
         idx_map_type key_to_idx(this->get_allocator());
         key_to_idx.reserve(items.size());
-        for (usize i = 0; i < items.size(); ++i) {
-            auto h = ItemTrait<TItem>::key(items[i]);
-            key_to_idx.insert({ h, i });
+        for (decltype(items.size()) i = 0; i < items.size(); ++i) {
+            key_to_idx.insert({ ItemTrait<TItem>::key(items[i]), i });
         }
 
         // update and remove
