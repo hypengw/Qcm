@@ -29,11 +29,27 @@ A backend implementation can be found at [QcmBackend](https://github.com/hypengw
 <a href='https://flathub.org/apps/details/io.github.hypengw.Qcm'><img width='240' alt='Download on Flathub' src='https://dl.flathub.org/assets/badges/flathub-badge-en.png'/></a>
 
 ### Require:  
-- Qt 6.8 (quick, protobuf, dbus)
-- C++ 23
-- Openssl 3
-- FFmpeg 7
-- Curl
+- Compiler: clang 19+
+- OS: linux
+
+#### Separated Libraries
+The following libraries were extracted and modularized during Qcm's development.  
+- [QmlMaterial](https://github.com/hypengw/QmlMaterial.git)
+- [MetaModel](https://github.com/hypengw/MetaModel.git)
+- [ncrequest](https://github.com/hypengw/ncrequest.git)
+- [rstd](https://github.com/hypengw/rstd.git)
+
+#### Third Libraries
+- [Qt](https://www.qt.io/)
+- [ffmpeg](https://www.ffmpeg.org/)
+- [curl](https://curl.se/)
+- [openssl](https://www.openssl.org/)
+- [asio](https://github.com/chriskohlhoff/asio)
+- [cubeb](https://github.com/mozilla/cubeb)
+- [PEGTL](https://github.com/taocpp/PEGTL)
+- [nlohmann/json](https://github.com/nlohmann/json)
+- [fmt](https://github.com/fmtlib/fmt)
+- [ctre](https://github.com/hanickadot/compile-time-regular-expressions)
 
 ### Build:  
 ```
@@ -101,17 +117,3 @@ cmake --install build
 - [x] api
 - [x] json
 - [x] http lib(libcurl)
-
-### Credits:
-#### Libraries Used
-- [Qt](https://www.qt.io/)
-- [ffmpeg](https://www.ffmpeg.org/)
-- [curl](https://curl.se/)
-- [openssl](https://www.openssl.org/)
-- [asio](https://github.com/chriskohlhoff/asio)
-- [cubeb](https://github.com/mozilla/cubeb)
-- [PEGTL](https://github.com/taocpp/PEGTL)
-- [nlohmann/json](https://github.com/nlohmann/json)
-- [fmt](https://github.com/fmtlib/fmt)
-- [ctre](https://github.com/hanickadot/compile-time-regular-expressions)
-- [ncrequest](https://github.com/hypengw/ncrequest)
