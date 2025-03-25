@@ -27,6 +27,7 @@ class AlbumsQuery : public query::QueryList<AlbumListModel> {
 public:
     AlbumsQuery(QObject* parent = nullptr);
     void reload() override;
+    void fetchMore(qint32) override;
 };
 
 } // namespace qcm

@@ -31,6 +31,10 @@ void AlbumsQuery::reload() {
         co_return;
     });
 }
+
+void AlbumsQuery::fetchMore(qint32) {
+}
+
 } // namespace qcm
 
 #include <Qcm/query/moc_album_query.cpp>
