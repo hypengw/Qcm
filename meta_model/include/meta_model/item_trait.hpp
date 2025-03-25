@@ -26,7 +26,8 @@ inline constexpr bool is_specialization_of_v = is_specialization_of<T, Primary>:
 /// @brief Trait for Item behavior
 /// @code {.cpp}
 /// // T: T or const T&
-/// auto hash(T) noexcept -> usize;
+/// using key_type = ...;
+/// auto key(T) noexcept -> key_type;
 /// auto compare_lt(T, T) noexcept -> usize;
 /// @endcode
 /// @tparam Item type
@@ -37,7 +38,8 @@ struct ItemTrait;
 /// @brief Item that defined hash in ItemTrait
 template<typename T>
 concept hashable_item = std::semiregular<ItemTrait<T>> && requires(T t) {
-    { ItemTrait<T>::hash(t) } -> std::same_as<usize>;
+    typename ItemTrait<T>::key_type;
+    { ItemTrait<T>::key(t) } -> std::convertible_to<typename ItemTrait<T>::key_type>;
 };
 
 ///
@@ -50,7 +52,7 @@ concept comparable_item = std::semiregular<ItemTrait<T>> && requires(T t) {
 template<typename T>
     requires std::is_arithmetic_v<T>
 struct ItemTrait<T> {
-    static auto hash(T v) noexcept -> usize { return std::hash<T> {}(v); }
+    static auto key(T v) noexcept -> usize { return v; }
     static auto compare_lt(T a, T b) noexcept -> usize { return a < b; }
 };
 

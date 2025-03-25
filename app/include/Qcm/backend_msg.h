@@ -126,21 +126,24 @@ struct std::formatter<qcm::msg::MessageTypeGadget::MessageType> : std::formatter
 
 template<>
 struct meta_model::ItemTrait<qcm::msg::model::Album> {
-    static auto hash(const qcm::msg::model::Album& el) noexcept -> usize {
-        return std::hash<QString> {}(el.id_proto());
+    using key_type = i64;
+    static auto key(const qcm::msg::model::Album& el) noexcept -> i64 {
+        return el.id_proto().toLongLong();
     }
 };
 
 template<>
 struct meta_model::ItemTrait<qcm::msg::model::ProviderMeta> {
-    static auto hash(const qcm::msg::model::ProviderMeta& el) noexcept -> usize {
-        return std::hash<QStringView> {}(el.typeName());
+    using key_type = QString;
+    static auto key(const qcm::msg::model::ProviderMeta& el) noexcept -> const key_type& {
+        return el.typeName();
     }
 };
 
 template<>
 struct meta_model::ItemTrait<qcm::msg::model::ProviderStatus> {
-    static auto hash(const qcm::msg::model::ProviderStatus& el) noexcept -> usize {
-        return std::hash<QStringView> {}(el.id_proto());
+    using key_type = i64;
+    static auto key(const qcm::msg::model::ProviderStatus& el) noexcept -> i64 {
+        return el.id_proto().toLongLong();
     }
 };

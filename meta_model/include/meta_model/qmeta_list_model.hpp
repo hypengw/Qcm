@@ -60,7 +60,6 @@ template<typename TItem, QMetaListStore Store, typename Allocator, typename IMPL
 class QMetaListModelPre : public QMetaListModelBase {
 public:
     using value_type = TItem;
-    using param_type = std::conditional_t<std::is_pointer_v<TItem>, TItem, const TItem&>;
     template<typename T>
     using rebind_alloc = typename std::allocator_traits<Allocator>::template rebind_alloc<T>;
 
@@ -112,7 +111,7 @@ public:
             removeRow(i);
         }
     }
-    void replace(int row, param_type val) {
+    void replace(int row, param_type<TItem> val) {
         auto& item = crtp_impl().at(row);
         item       = val;
         auto idx   = index(row);
@@ -252,6 +251,7 @@ class ListImpl<T, Allocator, QMetaListStore::VectorWithMap> {
 public:
     using allocator_type = Allocator;
     using container_type = std::vector<T, Allocator>;
+    using key_type       = ItemTrait<T>::key_type;
     using iterator       = container_type::iterator;
 
     ListImpl(Allocator allc = Allocator()): m_map(allc), m_items(allc) {}
@@ -269,9 +269,8 @@ public:
 
     // hash
     auto        contains(param_type<T> t) const { return m_map.contains(hash(t)); }
-    auto        contains_hash(usize hash) const { return m_map.contains(hash); }
-    const auto& value_at(usize hash) const { return m_items.at(m_map.at(hash)); };
-    auto&       value_at(usize hash) { return m_items.at(m_map.at(hash)); };
+    const auto& value_at(param_type<key_type> key) const { return m_items.at(m_map.at(key)); };
+    auto&       value_at(param_type<key_type> key) { return m_items.at(m_map.at(key)); };
     auto        idx_at(usize hash) const -> usize { return m_map.at(hash); };
 
 protected:
@@ -280,7 +279,7 @@ protected:
         auto size = m_items.size();
         m_items.insert(begin() + idx, beg, end);
         for (auto i = idx; i < m_items.size(); i++) {
-            m_map.insert_or_assign(ItemTrait<T>::hash(m_items.at(i)), i);
+            m_map.insert_or_assign(ItemTrait<T>::key(m_items.at(i)), i);
         }
     }
 
@@ -288,14 +287,14 @@ protected:
     void _insert_impl(usize idx, U&& range) {
         std::ranges::copy(std::forward<U>(range), std::insert_iterator(m_items, begin() + idx));
         for (auto i = idx; i < m_items.size(); i++) {
-            m_map.insert_or_assign(hash(m_items.at(i)), i);
+            m_map.insert_or_assign(ItemTrait<T>::key(m_items.at(i)), i);
         }
     }
 
     void _erase_impl(usize idx, usize last) {
         auto it = m_items.begin();
         for (auto i = idx; i < last; i++) {
-            m_map.erase(ItemTrait<T>::hash(m_items.at(i)));
+            m_map.erase(ItemTrait<T>::key(m_items.at(i)));
         }
         m_items.erase(it + idx, it + last);
     }
@@ -316,8 +315,8 @@ protected:
 
 private:
     using idx_hash_type =
-        std::unordered_map<usize, usize, std::hash<usize>, std::equal_to<usize>,
-                           detail::rebind_alloc<allocator_type, std::pair<const usize, usize>>>;
+        std::unordered_map<key_type, usize, std::hash<key_type>, std::equal_to<key_type>,
+                           detail::rebind_alloc<allocator_type, std::pair<const key_type, usize>>>;
     // indexed cache with hash
     idx_hash_type  m_map;
     container_type m_items;
@@ -326,8 +325,10 @@ template<typename T, typename Allocator>
 class ListImpl<T, Allocator, QMetaListStore::Map> {
 public:
     using allocator_type = Allocator;
+    using key_type       = ItemTrait<T>::key_type;
     using container_type =
-        std::unordered_map<usize, T, std::hash<usize>, std::equal_to<usize>, Allocator>;
+        std::unordered_map<key_type, T, std::hash<key_type>, std::equal_to<key_type>,
+                           detail::rebind_alloc<Allocator, std::pair<const key_type, T>>>;
     using iterator = container_type::iterator;
 
     ListImpl(Allocator allc = Allocator()): m_order(allc), m_items(allc) {}
@@ -345,17 +346,17 @@ public:
 
     // hash
     auto        contains(param_type<T> t) const { return m_items.contains(hash(t)); }
-    auto        contains_hash(usize hash) const { return m_items.contains(hash); }
-    auto        hash_at(usize idx) const { return m_order.at(idx); }
-    const auto& value_at(usize hash) const { return m_items.at(hash); };
-    auto&       value_at(usize hash) { return m_items.at(hash); };
+    auto        key_at(usize idx) const { return m_order.at(idx); }
+    const auto& value_at(param_type<key_type> key) const { return m_items.at(key); };
+    auto&       value_at(param_type<key_type> key) { return m_items.at(key); };
 
 protected:
     template<typename Tin>
     void _insert_impl(usize it, Tin beg, Tin end) {
-        std::vector<usize, detail::rebind_alloc<allocator_type, usize>> order(get_allocator());
+        std::vector<key_type, detail::rebind_alloc<allocator_type, key_type>> order(
+            get_allocator());
         for (auto it = beg; it != end; it++) {
-            auto k = ItemTrait<T>::hash(*it);
+            auto k = ItemTrait<T>::key(*it);
             order.emplace_back(k);
             m_items.insert_or_assign(k, *it);
         }
@@ -364,7 +365,8 @@ protected:
 
     template<std::ranges::range U>
     void _insert_impl(usize it, U&& range) {
-        std::vector<usize, detail::rebind_alloc<allocator_type, usize>> order(get_allocator());
+        std::vector<key_type, detail::rebind_alloc<allocator_type, key_type>> order(
+            get_allocator());
         for (auto&& el : std::forward<U>(range)) {
             auto k = hash(el);
             order.emplace_back(k);
@@ -396,7 +398,7 @@ protected:
     }
 
 private:
-    std::vector<usize, detail::rebind_alloc<allocator_type, usize>> m_order;
+    std::vector<key_type, detail::rebind_alloc<allocator_type, key_type>> m_order;
 
     container_type m_items;
 };
@@ -425,88 +427,63 @@ public:
 
     template<detail::syncable_list<TItem> U>
     void sync(U&& items) {
-        using id_set_type   = std::set<usize, std::less<>, rebind_alloc<usize>>;
-        using idx_hash_type = std::unordered_map<usize,
-                                                 usize,
-                                                 std::hash<usize>,
-                                                 std::equal_to<usize>,
-                                                 rebind_alloc<std::pair<const usize, usize>>>;
+        using key_type     = ItemTrait<TItem>::key_type;
+        using idx_set_type = std::set<usize, std::less<>, rebind_alloc<usize>>;
+        using idx_map_type = std::unordered_map<key_type,
+                                                usize,
+                                                std::hash<key_type>,
+                                                std::equal_to<key_type>,
+                                                rebind_alloc<std::pair<const key_type, usize>>>;
+
+        // get key to idx map
+        idx_map_type key_to_idx(this->get_allocator());
+        key_to_idx.reserve(items.size());
+        for (usize i = 0; i < items.size(); ++i) {
+            auto h = ItemTrait<TItem>::key(items[i]);
+            key_to_idx.insert({ h, i });
+        }
+
+        // update and remove
         if constexpr (Store == QMetaListStore::Vector) {
-            id_set_type id_set(this->get_allocator());
-
-            for (auto&& el : items) {
-                id_set.insert(ItemTrait<TItem>::hash(el));
-            }
-
-            // remove
             for (usize i = 0; i < this->size();) {
-                auto id = ItemTrait<TItem>::hash(this->at(i));
-                if (id_set.contains(id))
-                    i++;
-                else
-                    this->remove(i);
-            }
-
-            // insert and replace
-            for (usize i = 0; i < items.size(); i++) {
-                auto in = items[i];
-                if ((usize)this->rowCount() == i) {
-                    this->insert(i, in);
+                auto key = ItemTrait<TItem>::key(this->at(i));
+                if (auto it = key_to_idx.find(key); it != key_to_idx.end()) {
+                    this->at(i) = std::forward<U>(items)[it->second];
+                    key_to_idx.erase(it);
+                    ++i;
                 } else {
-                    auto& out = this->at(i);
-                    if (ItemTrait<TItem>::hash(in) != ItemTrait<TItem>::hash(out))
-                        this->insert(i, in);
-                    else if (in != out)
-                        this->replace(i, in);
+                    this->remove(i);
                 }
             }
+        } else if constexpr (Store == QMetaListStore::VectorWithMap) {
+            for (auto& el : this->_maps()) {
+                if (auto it = key_to_idx.find(el.first); it != key_to_idx.end()) {
+                    at(el.second) = std::forward<U>(items)[it->second];
+                    key_to_idx.erase(it);
+                } else {
+                    this->remove(el.second);
+                }
+            }
+        } else if constexpr (Store == QMetaListStore::Map) {
+            for (usize i = 0; i < this->size();) {
+                auto h = this->key_at(i);
+                if (auto it = key_to_idx.find(h); it != key_to_idx.end()) {
+                    this->at(i) = std::forward<U>(items)[it->second];
+                    key_to_idx.erase(it);
+                    ++i;
+                } else {
+                    this->remove(i);
+                }
+            }
+        }
 
-            // remove last
-            for (usize i = items.size(); i < this->size(); i++) {
-                this->remove(i);
-            }
-        } else {
-            idx_hash_type hash_ids(this->get_allocator());
-            if constexpr (Store == QMetaListStore::VectorWithMap) {
-                hash_ids.reserve(items.size());
-                for (usize i = 0; i < items.size(); ++i) {
-                    auto h = hash(items[i]);
-                    hash_ids.insert({ h, i });
-                }
-                {
-                    for (auto& el : this->_maps()) {
-                        if (auto it = hash_ids.find(el.first); it != hash_ids.end()) {
-                            at(el.second) = std::forward<U>(items)[it->second];
-                            hash_ids.erase(it);
-                        } else {
-                            this->remove(el.second);
-                        }
-                    }
-                }
-            } else if constexpr (Store == QMetaListStore::Map) {
-                hash_ids.reserve(items.size());
-                for (usize i = 0; i < items.size(); ++i) {
-                    auto h = ItemTrait<TItem>::hash(items[i]);
-                    hash_ids.insert({ h, i });
-                }
-                for (usize i = 0; i < this->size();) {
-                    auto h = this->hash_at(i);
-                    if (auto it = hash_ids.find(h); it != hash_ids.end()) {
-                        this->at(i) = std::forward<U>(items)[it->second];
-                        hash_ids.erase(it);
-                        ++i;
-                    } else {
-                        this->remove(i);
-                    }
-                }
-            }
-            id_set_type ids(this->get_allocator());
-            for (auto& el : hash_ids) {
-                ids.insert(el.second);
-            }
-            for (auto id : ids) {
-                this->insert(id, std::forward<U>(items)[id]);
-            }
+        // insert new
+        idx_set_type ids(this->get_allocator());
+        for (auto& el : key_to_idx) {
+            ids.insert(el.second);
+        }
+        for (auto id : ids) {
+            this->insert(id, std::forward<U>(items)[id]);
         }
     }
 };
