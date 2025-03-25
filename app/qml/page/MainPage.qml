@@ -28,6 +28,13 @@ MD.Page {
             page.source = 'qrc:/Qcm/App/qml/page/LibraryPage.qml';
             p.push(page);
         }
+        {
+            const page = QA.Util.create_page();
+            page.name = qsTr('search');
+            page.icon = 'search';
+            page.source = 'qrc:/Qcm/App/qml/page/SearchPage.qml';
+            p.push(page);
+        }
         if (QA.App.debug) {
             const page = QA.Util.create_page();
             page.name = qsTr('test');

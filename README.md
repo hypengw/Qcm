@@ -92,28 +92,8 @@ cmake --install build
   
 
 ### Todo:
-- [ ] subsonic
 - [ ] mac/win
 - [ ] offline mode
 - [ ] playing page colorpick
 - [ ] playing page blur
 - [ ] android
-- [x] jellyfin
-- [x] separate front/backend to processes
-- [x] sql fts
-- [x] private radio
-- [x] sql api model
-- [x] user session switch
-- [x] feedback
-- [x] upload
-- [x] fade in/out
-- [x] sidebar popup
-- [x] search page
-- [x] lyric
-- [x] audio cache using http proxy(AndroidVideoCache)
-- [x] cache limit
-- [x] sql cache
-- [x] mpris
-- [x] api
-- [x] json
-- [x] http lib(libcurl)

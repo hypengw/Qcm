@@ -1,4 +1,4 @@
-#include "qcm_interface/query.h"
+#include "Qcm/query/query.hpp"
 
 namespace qcm::query
 {
@@ -40,17 +40,31 @@ QueryListBase::~QueryListBase() {}
 auto QueryListBase::offset() const -> qint32 { return m_offset; }
 auto QueryListBase::limit() const -> qint32 { return m_limit; }
 
-Q_SLOT void QueryListBase::setOffset(qint32 v) {
+void QueryListBase::setOffset(qint32 v) {
     if (ycore::cmp_exchange(m_offset, v)) {
         offsetChanged();
     }
 }
-Q_SLOT void QueryListBase::setLimit(qint32 v) {
+void QueryListBase::setLimit(qint32 v) {
     if (ycore::cmp_exchange(m_offset, v)) {
         limitChanged();
     }
 }
 
+void QueryListBase::fetchMore(qint32) { log::warn("fetchMore not impl"); }
+
+void detail::try_connect_fetch_more(QObject* query, QObject* model) {
+    auto signal    = QMetaObject::normalizedSignature("reqFetchMore(qint32)");
+    auto slot      = QMetaObject::normalizedSignature("fetchMore(qint32)");
+    auto signalIdx = model->metaObject()->indexOfSignal(signal);
+    auto slotIdx   = query->metaObject()->indexOfSlot(slot);
+    if (signalIdx != -1 && slotIdx != -1) {
+        QObject::connect(model, signal, query, slot);
+    } else if (signalIdx != -1 || slotIdx != -1) {
+        log::warn("reqFetchMore not connected");
+    }
+}
+
 } // namespace qcm::query
 
-#include <qcm_interface/moc_query.cpp>
+#include <Qcm/query/moc_query.cpp>

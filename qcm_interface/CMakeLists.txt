@@ -33,7 +33,6 @@ add_library(
   include/qcm_interface/router.h
   include/qcm_interface/plugin.h
   include/qcm_interface/duration.h
-  include/qcm_interface/query.h
   include/qcm_interface/model/plugin_model.h
   include/qcm_interface/model/user_model.h
   include/qcm_interface/model/artist.h
@@ -62,7 +61,6 @@ add_library(
   global_static.cpp
   plugin.cpp
   oper.cpp
-  query.cpp
   sync_api.cpp
   meta_name.cpp
   duration.cpp

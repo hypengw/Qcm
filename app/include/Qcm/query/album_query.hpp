@@ -4,7 +4,7 @@
 
 #include "meta_model/qgadget_list_model.hpp"
 #include "Qcm/backend_msg.h"
-#include "qcm_interface/query.h"
+#include "Qcm/query/query.hpp"
 
 namespace qcm
 {
@@ -19,17 +19,6 @@ class AlbumListModel
 
 public:
     AlbumListModel(QObject* parent = nullptr);
-
-    bool canFetchMore(const QModelIndex&) const override { return m_has_more; }
-    void fetchMore(const QModelIndex&) override {
-        m_has_more = false;
-        emit fetchMoreReq(rowCount());
-    }
-
-    Q_SIGNAL void fetchMoreReq(qint32);
-
-private:
-    bool m_has_more;
 };
 
 class AlbumsQuery : public query::QueryList<AlbumListModel> {

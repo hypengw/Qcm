@@ -51,22 +51,37 @@ public:
     Q_SIGNAL void offsetChanged();
     Q_SIGNAL void limitChanged();
 
+    Q_SLOT virtual void fetchMore(qint32);
+
 private:
     qint32 m_offset;
     qint32 m_limit;
 };
 
+namespace detail
+{
+void try_connect_fetch_more(QObject* query, QObject* model);
+}
+
 template<typename T, typename Base = QueryBase>
 class Query : public QAsyncResultT<T, Base> {
 public:
     Query(ycore::monostate m, QObject* parent, QAsyncResultT<T, Base>::const_reference_value_type t)
-        : QAsyncResultT<T, Base>(m, parent, t), m_last(QDateTime::fromSecsSinceEpoch(0)) {}
+        : QAsyncResultT<T, Base>(m, parent, t), m_last(QDateTime::fromSecsSinceEpoch(0)) {
+        if constexpr (std::is_base_of_v<QObject, T>) {
+            detail::try_connect_fetch_more(this, this->tdata());
+        }
+    }
 
     template<typename... Arg>
         requires std::is_constructible_v<T, Arg...>
     Query(QObject* parent, Arg&&... arg)
         : QAsyncResultT<T, Base>(parent, std::forward<Arg>(arg)...),
-          m_last(QDateTime::fromSecsSinceEpoch(0)) {}
+          m_last(QDateTime::fromSecsSinceEpoch(0)) {
+        if constexpr (std::is_base_of_v<QObject, T>) {
+            detail::try_connect_fetch_more(this, this->tdata());
+        }
+    }
 
     ~Query() override {}
 

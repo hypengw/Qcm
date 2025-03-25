@@ -66,18 +66,11 @@ MD.Page {
 
                     BaseView {
                         id: view_albumlist
-                        busy: qr_albumlist.status === QA.enums.Querying
+                        busy: qr_albumlist.querying
                         delegate: dg_albumlist
                         model: qr_albumlist.data
                         refresh: function () {
                             root.refresh_list(qr_albumlist);
-                        }
-                        Connections {
-                            function onAlbumLiked() {
-                                view_albumlist.dirty = true;
-                            }
-
-                            target: QA.App
                         }
                     }
                     /*

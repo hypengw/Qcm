@@ -4,7 +4,7 @@
 #include <QVariant>
 
 #include "Qcm/app.h"
-#include "qcm_interface/query.h"
+#include "Qcm/query/query.hpp"
 #include "core/helper.h"
 
 #include "asio_helper/basic.h"

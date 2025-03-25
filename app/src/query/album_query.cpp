@@ -8,7 +8,7 @@
 namespace qcm
 {
 
-AlbumListModel::AlbumListModel(QObject* parent): base_type(parent), m_has_more(true) {}
+AlbumListModel::AlbumListModel(QObject* parent): base_type(parent) {}
 
 AlbumsQuery::AlbumsQuery(QObject* parent): query::QueryList<AlbumListModel>(parent) {
     // set_use_queue(true);

@@ -14,6 +14,7 @@ public:
           m_data(QVariant::fromValue(nullptr)),
           m_use_queue(false),
           m_queue_exec_mark(false),
+          m_querying(false, p),
           m_status(Status::Uninitialized, p),
           m_error(p) {}
     QAsyncResult*         m_p;
@@ -28,6 +29,7 @@ public:
     bool                                                                      m_queue_exec_mark;
     std::deque<std::tuple<std::function<task<void>()>, std::source_location>> m_queue;
 
+    ObjectBindableProperty<QAsyncResult, bool, &QAsyncResult ::queryingChanged> m_querying;
     ObjectBindableProperty<QAsyncResult, Status, &QAsyncResult ::statusChanged> m_status;
     ObjectBindableProperty<QAsyncResult, QString, &QAsyncResult::errorChanged>  m_error;
 
@@ -83,6 +85,7 @@ public:
 };
 
 QAsyncResult::QAsyncResult(QObject* parent): QObject(parent), d_ptr(make_up<Private>(this)) {
+    C_D(QAsyncResult);
     connect(this, &QAsyncResult::statusChanged, this, [this](Status s) {
         if (s == Status::Finished) {
             finished();
@@ -93,7 +96,12 @@ QAsyncResult::QAsyncResult(QObject* parent): QObject(parent), d_ptr(make_up<Priv
             emit Global::instance() -> errorOccurred(error());
         }
     });
+
+    d->m_querying.setBinding([d] {
+        return d->m_status.value() == Status::Querying;
+    });
 }
+
 QAsyncResult::~QAsyncResult() {}
 
 void QAsyncResult::hold(QStringView name, QObject* o) {
@@ -122,6 +130,14 @@ auto QAsyncResult::status() const -> Status {
 auto QAsyncResult::bindableStatus() -> QBindable<Status> {
     C_D(QAsyncResult);
     return &(d->m_status);
+}
+auto QAsyncResult::querying() const -> bool {
+    C_D(const QAsyncResult);
+    return d->m_querying.value();
+}
+auto QAsyncResult::bindableQuerying() -> QBindable<bool> {
+    C_D(QAsyncResult);
+    return &(d->m_querying);
 }
 
 void QAsyncResult::set_status(Status v) {

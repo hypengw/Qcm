@@ -25,6 +25,7 @@ class QCM_INTERFACE_API QAsyncResult : public QObject {
     Q_PROPERTY(QString error READ error NOTIFY errorChanged BINDABLE bindableError FINAL)
     Q_PROPERTY(qcm::enums::ApiStatus status READ status WRITE set_status NOTIFY statusChanged
                    BINDABLE bindableStatus FINAL)
+    Q_PROPERTY(bool querying READ querying NOTIFY queryingChanged BINDABLE bindableQuerying FINAL)
     Q_PROPERTY(QVariant data READ data NOTIFY dataChanged)
     Q_PROPERTY(
         bool forwardError READ forwardError WRITE set_forwardError NOTIFY forwardErrorChanged FINAL)
@@ -40,6 +41,8 @@ public:
     auto pool_executor() const -> asio::thread_pool::executor_type;
     auto status() const -> Status;
     auto bindableStatus() -> QBindable<Status>;
+    auto querying() const -> bool;
+    auto bindableQuerying() -> QBindable<bool>;
     auto error() const -> const QString&;
     auto bindableError() -> QBindable<QString>;
     bool forwardError() const;
@@ -79,6 +82,7 @@ public:
 
     Q_SIGNAL void dataChanged();
     Q_SIGNAL void statusChanged(Status);
+    Q_SIGNAL void queryingChanged(bool);
     Q_SIGNAL void errorChanged(QString);
     Q_SIGNAL void forwardErrorChanged();
     Q_SIGNAL void finished();
