@@ -1,4 +1,4 @@
-#include "Qcm/backend.h"
+#include "Qcm/backend.hpp"
 
 #include <filesystem>
 #include <QtCore/QJsonDocument>
@@ -42,7 +42,7 @@ public:
 };
 } // namespace detail
 
-Backend::Backend()
+Backend::Backend(Arc<ncrequest::Session> session)
     : m_thread(make_box<QThread>(new QThread())),
       m_context(
           make_box<QtExecutionContext>(m_thread.get(), (QEvent::Type)QEvent::registerEventType())),
@@ -51,6 +51,7 @@ Backend::Backend()
           ncrequest::event::create<asio::posix::basic_stream_descriptor>(
               m_context->get_executor()))),
       m_serializer(make_box<QProtobufSerializer>()),
+      m_session(session),
       m_serial(1), // start from 1, as 0 is none
       m_port(0) {
     m_process->setProcessChannelMode(QProcess::ProcessChannelMode::ForwardedErrorChannel);
@@ -85,9 +86,10 @@ Backend::Backend()
         });
     // start thread
     {
+        QObject::connect(m_thread.get(), &QThread::finished, m_process, &QObject::deleteLater);
+        m_thread->start();
         bool ok = m_process->moveToThread(m_thread.get());
         _assert_(ok);
-        m_thread->start();
     }
     // connect signal
     {
@@ -128,6 +130,9 @@ Backend::Backend()
 }
 
 Backend::~Backend() {
+    QMetaObject::invokeMethod(m_process, [self = m_process] {
+        self->terminate();
+    });
     m_thread->quit();
     m_thread->wait();
 }
@@ -173,6 +178,16 @@ auto Backend::send(msg::QcmMessage&& msg) -> task<Result<msg::QcmMessage, msg::E
     auto [ec, var] =
         co_await detail::BackendHelper::async_send(*this, std::move(msg), qcm::as_tuple(use_task));
     co_return Ok(var);
+}
+
+auto Backend::base() const -> std::string { return std::format("http://127.0.0.1:{}", m_port); }
+
+auto Backend::image(QStringView library_id, QStringView item_id, QStringView image_id)
+    -> task<Arc<ncrequest::Response>> {
+    auto url = std::format("{0}/image/{1}/{2}/{3}", this->base(), library_id, item_id, image_id);
+    auto req = ncrequest::Request { url };
+
+    co_return (co_await m_session->get(req)).unwrap();
 }
 
 auto Backend::serial() -> i32 {

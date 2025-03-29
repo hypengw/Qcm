@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QtQml/QQmlEngine>
-#include "Qcm/backend.h"
+#include "Qcm/backend.hpp"
 #include "qcm_interface/async.h"
 
 namespace qcm::query

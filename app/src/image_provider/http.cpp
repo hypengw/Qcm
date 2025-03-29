@@ -65,12 +65,12 @@ public:
         helper::SyncFile file { std::fstream(p, std::ios::out | std::ios::binary) };
         file.handle().exceptions(std::ios_base::failbit | std::ios_base::badbit);
 
-        auto rsp_http = (co_await m_session->get(req)).value();
+        auto rsp_http = (co_await m_session->get(req)).unwrap();
 
         co_await rsp_http->read_to_stream(file);
 
         file.handle().close();
-        co_return rsp_http->header();
+        co_return rsp_http->header().clone();
     }
 
     task<void> cache_new_image(const ncrequest::Request& req, std::string_view key,
@@ -155,8 +155,8 @@ QQuickImageResponse* QcmImageProvider::requestImageResponse(const QString& id,
         auto ex    = asio::make_strand(m_inner->get_executor());
         rsp->wdog().spawn(
             ex,
-            [rsp, requestedSize, req, file_path, inner = m_inner]() -> task<void> {
-                co_await inner->handle_request(rsp, req, file_path, requestedSize);
+            [rsp, requestedSize, req = std::move(req), file_path, inner = m_inner]() -> task<void> {
+                co_await inner->handle_request(rsp, req.clone(), file_path, requestedSize);
                 co_return;
             },
             asio::bind_allocator(alloc,

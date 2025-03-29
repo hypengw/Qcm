@@ -1,7 +1,7 @@
 #pragma once
 
 #include "meta_model/qgadget_list_model.hpp"
-#include "Qcm/backend_msg.h"
+#include "Qcm/backend_msg.hpp"
 
 namespace qcm
 {

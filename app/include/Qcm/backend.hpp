@@ -12,7 +12,7 @@
 #include "core/qasio/qt_execution_context.h"
 #include "core/asio/task.h"
 
-#include "Qcm/backend_msg.h"
+#include "Qcm/backend_msg.hpp"
 
 import qcm.core;
 import ncrequest;
@@ -31,7 +31,7 @@ class Backend : public QObject {
     friend class detail::BackendHelper;
 
 public:
-    Backend();
+    Backend(Arc<ncrequest::Session>);
     ~Backend();
 
     auto start(QStringView exe, QStringView data_dir) -> bool;
@@ -39,6 +39,9 @@ public:
     void send_immediate(msg::QcmMessage&& msg);
 
     auto send(msg::QcmMessage&& msg) -> task<Result<msg::QcmMessage, msg::Error>>;
+
+    auto image(QStringView library_id, QStringView item_id, QStringView image_id)
+        -> task<Arc<ncrequest::Response>>;
 
     template<typename Req>
         requires msg::ReqMsgCP<Req>
@@ -64,6 +67,7 @@ private:
     Q_SLOT void on_started(i32 port);
     Q_SLOT void on_connected(i32 port);
 
+    auto base() const -> std::string;
     auto serial() -> i32;
 
     Box<QThread>                    m_thread;
@@ -71,6 +75,8 @@ private:
     QProcess*                       m_process;
     Box<ncrequest::WebSocketClient> m_client;
     Box<QProtobufSerializer>        m_serializer;
+
+    Arc<ncrequest::Session> m_session;
 
     std::map<i32, std::move_only_function<void(asio::error_code, msg::QcmMessage)>> m_handlers;
 

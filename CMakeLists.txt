@@ -137,7 +137,6 @@ add_subdirectory(generator/model)
 add_subdirectory(qcm_interface)
 
 add_subdirectory(mpris)
-add_subdirectory(media_cache)
 add_subdirectory(player)
 
 set(QM_BUILD_STATIC ON)

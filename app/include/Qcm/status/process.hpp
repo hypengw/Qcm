@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Qcm/backend_msg.h"
+#include "Qcm/backend_msg.hpp"
 
 namespace qcm
 {

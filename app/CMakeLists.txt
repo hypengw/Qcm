@@ -163,7 +163,6 @@ target_link_libraries(
          crypto
          qr_code
          meta_model
-         media_cache
          ctre::ctre
          player
          platform

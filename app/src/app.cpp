@@ -42,10 +42,9 @@ import platform;
 #include "Qcm/sql/item_sql.h"
 #include "Qcm/info.h"
 
-#include "media_cache/media_cache.h"
 #include "qcm_interface/model/user_account.h"
 #include "Qcm/play_queue.h"
-#include "Qcm/backend.h"
+#include "Qcm/backend.hpp"
 #include "Qcm/player.h"
 #include "Qcm/status/provider_status.hpp"
 
@@ -159,7 +158,6 @@ public:
 #ifndef NODEBUS
           m_mpris(make_up<mpris::Mpris>()),
 #endif
-          m_media_cache(),
           m_main_win(nullptr),
           m_qml_engine(make_up<QQmlApplicationEngine>()) {
     }
@@ -167,7 +165,6 @@ public:
         m_qml_engine = nullptr;
 
         m_p->save_settings();
-        m_media_cache->stop();
         m_global->session()->about_to_stop();
         m_global->join();
     }
@@ -185,8 +182,6 @@ public:
 #ifndef NODEBUS
     Box<mpris::Mpris> m_mpris;
 #endif
-
-    Arc<media_cache::MediaCache> m_media_cache;
 
     Arc<CacheSql>      m_media_cache_sql;
     Arc<CacheSql>      m_cache_sql;
@@ -220,14 +215,11 @@ App::App(QStringView backend_exe, std::monostate)
     }
     d->m_playqueu->setSourceModel(d->m_play_id_queue);
     {
-        auto fbs         = make_rc<media_cache::Fallbacks>();
-        d->m_media_cache = make_rc<media_cache::MediaCache>(
-            d->m_global->pool_executor(), d->m_global->session(), fbs);
     }
 
     log::debug("thread pool size: {}", get_pool_size());
     {
-        d->m_backend  = make_box<Backend>();
+        d->m_backend  = ::make_box<Backend>(d->m_global->session());
         auto data_dir = convert_from<QString>(data_path().string());
         d->m_backend->start(backend_exe, data_dir);
     }
@@ -302,15 +294,6 @@ void App::init() {
 
     // media cache
     {
-        auto media_cache_dir = cache_path() / "media";
-        d->m_media_cache_sql->set_clean_cb([media_cache_dir](std::string_view key) {
-            cache_clean_cb(media_cache_dir, key);
-        });
-
-        d->m_media_cache->start(media_cache_dir, d->m_media_cache_sql);
-        asio::co_spawn(d->m_media_cache_sql->get_executor(),
-                       scan_media_cache(d->m_media_cache_sql, media_cache_dir),
-                       asio::detached);
     }
     triggerCacheLimit();
 
@@ -356,8 +339,7 @@ void App::init() {
 
 QString App::media_url(const QUrl& ori, const QString& id) const {
     C_D(const App);
-    return convert_from<QString>(d->m_media_cache->get_url(
-        convert_from<std::string>(ori.toString()), convert_from<std::string>(id)));
+    return "";
 }
 
 QString App::md5(QString txt) const {
@@ -564,6 +546,7 @@ auto App::bound_image_size(QSizeF displaySize) const -> QSizeF {
 void App::set_player_sender(Sender<Player::NotifyInfo> sender) {
     C_D(App);
     d->m_player_sender = sender;
+    /*
     d->m_media_cache->fallbacks()->fragment =
         [sender](usize begin, usize end, usize totle) mutable {
             if (totle >= end && totle >= begin) {
@@ -572,6 +555,7 @@ void App::set_player_sender(Sender<Player::NotifyInfo> sender) {
                 sender.try_send(player::notify::cache { db, de });
             }
         };
+        */
 }
 
 auto App::media_cache_sql() const -> rc<CacheSql> {
