@@ -1,4 +1,4 @@
-#include "Qcm/qml_util.h"
+#include "Qcm/qml/qml_util.hpp"
 
 #include <QtCore/QJsonDocument>
 #include <QtQml/QJSValueIterator>
@@ -244,4 +244,4 @@ auto qcm::media_cache_path_of(std::string_view id) -> std::filesystem::path {
     return file;
 }
 
-#include <Qcm/moc_qml_util.cpp>
+#include <Qcm/qml/moc_qml_util.cpp>

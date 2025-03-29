@@ -36,14 +36,13 @@ import platform;
 
 #include "Qcm/image_provider/http.hpp"
 #include "Qcm/image_provider/qr.hpp"
-#include "Qcm/qml_util.h"
+#include "Qcm/qml/qml_util.hpp"
 #include "Qcm/sql/collection_sql.h"
 #include "Qcm/sql/cache_sql.h"
 #include "Qcm/sql/item_sql.h"
-#include "Qcm/info.h"
 
 #include "qcm_interface/model/user_account.h"
-#include "Qcm/play_queue.h"
+#include "Qcm/model/play_queue.hpp"
 #include "Qcm/backend.hpp"
 #include "Qcm/player.h"
 #include "Qcm/status/provider_status.hpp"

@@ -1,4 +1,4 @@
-#include "Qcm/clipboard.h"
+#include "Qcm/qml/clipboard.hpp"
 #include <QGuiApplication>
 
 namespace qcm
@@ -20,4 +20,4 @@ void             Clipboard::setMode(QClipboard::Mode m) {
 void Clipboard::clear() { QGuiApplication::clipboard()->clear(m_mode); }
 } // namespace qcm
 
-#include <Qcm/moc_clipboard.cpp>
+#include <Qcm/qml/moc_clipboard.cpp>

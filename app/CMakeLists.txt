@@ -12,17 +12,17 @@ set(SOURCES
     src/log.cpp
     src/action.cpp
     src/app.cpp
-    src/play_queue.cpp
-    src/clipboard.cpp
     src/player.cpp
-    src/fake_moc.cpp
-    src/qml_util.cpp
     src/backend.cpp
+    src/qml/clipboard.cpp
+    src/qml/fake_moc.cpp
+    src/qml/qml_util.cpp
     src/sql/item_sql.cpp
     src/sql/cache_sql.cpp
     src/sql/collection_sql.cpp
     src/sql/sql.cpp
     src/model/lyric.cpp
+    src/model/play_queue.cpp
     src/query/album_query.cpp
     src/query/provider_query.cpp
     src/query/query.cpp
@@ -108,6 +108,7 @@ set_source_files_properties(qml/Global.qml PROPERTIES QT_QML_SINGLETON_TYPE
 
 set(QML_REG_INCLUDE_DIRS
     "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm/qml"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm/model"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm/query"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm/status"

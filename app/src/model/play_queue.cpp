@@ -1,4 +1,4 @@
-#include "Qcm/play_queue.h"
+#include "Qcm/model/play_queue.hpp"
 
 #include <ranges>
 #include <variant>
@@ -620,4 +620,4 @@ void PlayQueue::checkCanMove() {
 } // namespace qcm
 
 
-#include <Qcm/moc_play_queue.cpp>
+#include <Qcm/model/moc_play_queue.cpp>

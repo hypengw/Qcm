@@ -12,7 +12,7 @@
 #include "qcm_interface/plugin.h"
 #include "core/asio/watch_dog.h"
 
-#include "Qcm/play_queue.h"
+#include "Qcm/model/play_queue.hpp"
 
 namespace qcm
 {
