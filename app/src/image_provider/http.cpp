@@ -12,12 +12,12 @@
 #include <QtCore/QPointer>
 
 #include "qcm_interface/path.h"
-#include "qcm_interface/sql/cache_sql.h"
 #include "qcm_interface/global.h"
 
 #include "core/asio/sync_file.h"
 #include "crypto/crypto.h"
 #include "Qcm/app.h"
+#include "Qcm/backend.hpp"
 
 import platform;
 
@@ -35,6 +35,25 @@ void header_record_db(const ncrequest::HttpHeader& h, media_cache::DataBase::Ite
                 db_it.content_length = whole.to_number();
             }
         }
+    }
+}
+
+struct ImageParam {
+    QString library_id;
+    QString item_id;
+    QString image_id;
+};
+
+auto parse_image_url(QUrl url) -> ImageParam {
+    constexpr auto ImageProviderRe = ctll::fixed_string { "image://qcm/([^/]+?)/([^/]+?)/(.*)" };
+
+    auto input = url.toString(QUrl::FullyEncoded).toStdString();
+    if (auto match = ctre::match<ImageProviderRe>(input)) {
+        return { rstd::into(match.get<1>().to_string()),
+                 rstd::into(match.get<2>().to_string()),
+                 rstd::into(match.get<3>().to_string()) };
+    } else {
+        return {};
     }
 }
 
@@ -57,9 +76,7 @@ public:
     executor_type& get_executor() { return m_ex; }
 
     QcmImageProviderInner()
-        : m_ex(Global::instance()->pool_executor()),
-          m_session(Global::instance()->session()),
-          m_cache_sql(Global::instance()->get_cache_sql()) {}
+        : m_ex(Global::instance()->pool_executor()), m_session(Global::instance()->session()) {}
 
     task<ncrequest::HttpHeader> dl_image(const ncrequest::Request& req, std::filesystem::path p) {
         helper::SyncFile file { std::fstream(p, std::ios::out | std::ios::binary) };
@@ -84,36 +101,39 @@ public:
         auto header = co_await dl_image(req, file_dl);
         std::filesystem::rename(file_dl, cache_file);
         header_record_db(header, db_it);
-        co_await m_cache_sql->insert(db_it);
+        co_return;
     }
 
-    task<QImage> request_image(const ncrequest::Request& req, std::filesystem::path cache_path,
-                               QSize req_size) {
-        std::string key = cache_path.filename().native();
-        asio::co_spawn(m_cache_sql->get_executor(), m_cache_sql->get(key), asio::detached);
-        if (! std::filesystem::exists(cache_path)) {
-            co_await cache_new_image(req, key, cache_path, req_size);
-        }
-        auto img = QImage(cache_path.c_str());
-        if (req_size.isValid() && ! img.isNull()) {
-            img = img.scaled(req_size,
-                             Qt::AspectRatioMode::KeepAspectRatioByExpanding,
-                             Qt::TransformationMode::SmoothTransformation);
+    task<QImage> request_image(ImageParam p, QSize req_size) {
+        // std::string key = cache_path.filename().native();
+        // if (! std::filesystem::exists(cache_path)) {
+        //     co_await cache_new_image(req, key, cache_path, req_size);
+        // }
+        auto b        = App::instance()->backend();
+        auto rsp_http = co_await b->image(p.library_id, p.item_id, p.image_id);
+        auto bytes    = co_await rsp_http->bytes();
+
+        QImage img;
+        if (bytes) {
+            img.loadFromData((uchar*)bytes->data(), (int)bytes->size());
+            if (req_size.isValid() && ! img.isNull()) {
+                img = img.scaled(req_size,
+                                 Qt::AspectRatioMode::KeepAspectRatioByExpanding,
+                                 Qt::TransformationMode::SmoothTransformation);
+            }
         }
         co_return img;
     }
 
-    task<void> handle_request(rc<QcmAsyncImageResponse> rsp, ncrequest::Request req,
-                              std::filesystem::path cache_path, QSize req_size) {
-        auto img   = co_await request_image(req, cache_path, req_size);
+    task<void> handle_request(rc<QcmAsyncImageResponse> rsp, ImageParam p, QSize req_size) {
+        auto img   = co_await request_image(p, req_size);
         rsp->image = img;
         co_return;
     }
 
 private:
-    executor_type             m_ex;
-    rc<ncrequest::Session>    m_session;
-    rc<media_cache::DataBase> m_cache_sql;
+    executor_type          m_ex;
+    rc<ncrequest::Session> m_session;
 };
 } // namespace qcm
 
@@ -128,53 +148,46 @@ QQuickImageResponse* QcmImageProvider::requestImageResponse(const QString& id,
     do {
         if (id.isEmpty()) break;
 
-        auto [url, provider] = parse_image_provider_url(QStringLiteral("image://qcm/%1").arg(id));
-        if (url.isEmpty()) break;
-
-        ncrequest::Request req;
-        if (auto c = Global::instance()->qsession()->client();
-            c && c->api->provider == provider.toStdString()) {
-            if (! c->api->make_request(
-                    *(c->instance), req, url, Client::ReqInfoImg { requestedSize })) {
-                ERROR_LOG("make image req failed");
-                break;
-            }
-        } else {
-            ERROR_LOG("client not found");
-            break;
-        }
-        std::filesystem::path file_path;
-        if (auto opt = gen_image_cache_entry(provider, url, requestedSize)) {
-            file_path = opt.value();
-        } else {
-            ERROR_LOG("gen cache entry failed");
-            break;
-        }
+        ImageParam p = parse_image_url(rstd::into(fmt::format("image://qcm/{}", id)));
+        // ncrequest::Request req;
+        // if (auto c = Global::instance()->qsession()->client();
+        //     c && c->api->provider == provider.toStdString()) {
+        //     if (! c->api->make_request(
+        //             *(c->instance), req, url, Client::ReqInfoImg { requestedSize })) {
+        //         ERROR_LOG("make image req failed");
+        //         break;
+        //     }
+        // } else {
+        //     ERROR_LOG("client not found");
+        //     break;
+        // }
+        // std::filesystem::path file_path;
+        // if (auto opt = gen_image_cache_entry(provider, url, requestedSize)) {
+        //     file_path = opt.value();
+        // } else {
+        //     ERROR_LOG("gen cache entry failed");
+        //     break;
+        // }
 
         auto alloc = asio::recycling_allocator<void>();
         auto ex    = asio::make_strand(m_inner->get_executor());
         rsp->wdog().spawn(
             ex,
-            [rsp, requestedSize, req = std::move(req), file_path, inner = m_inner]() -> task<void> {
-                co_await inner->handle_request(rsp, req.clone(), file_path, requestedSize);
+            [rsp, requestedSize, p, inner = m_inner]() -> task<void> {
+                co_await inner->handle_request(rsp, p, requestedSize);
                 co_return;
             },
             asio::bind_allocator(alloc,
-                                 [rsp, file_path, id, url](std::exception_ptr p) {
+                                 [rsp, id](std::exception_ptr p) {
                                      if (p) {
                                          try {
-                                             if (std::filesystem::exists(file_path)) {
-                                                 std::filesystem::remove(file_path);
-                                             }
                                              std::rethrow_exception(p);
                                          } catch (const std::exception& e) {
                                              rsp->set_error(fmt::format(R"(
 QcmImageProvider
     id: {}
-    url: {}
     error: {})",
                                                                         id,
-                                                                        url.toString(),
                                                                         e.what()));
                                          }
                                      }
@@ -188,4 +201,3 @@ QcmImageProvider
 }
 
 #include <Qcm/image_provider/moc_http.cpp>
-void test() { QtPrivate::checkTypeIsSuitableForMetaType<QString>(); }

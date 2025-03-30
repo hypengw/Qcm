@@ -63,15 +63,10 @@ auto Util::create_program(const QJSValue& js) const -> model::Program {
     return meta_model::toGadget<model::Program>(js);
 }
 
-auto Util::image_url(const QUrl& in) const -> QUrl {
-    if (in.scheme() == "image") return in;
-
-    auto provider = Global::instance()->qsession()->provider();
-    if (provider.isEmpty()) {
-        return {};
-    }
-
-    return image_provider_url(in, provider);
+auto Util::image_url(const QString& library_id, const QString& item_id,
+                     const QString& image_id) const -> QUrl {
+    return rstd::into(fmt::format(
+        "image://qcm/{}/{}/{}", library_id, item_id, image_id.isEmpty() ? "_" : image_id));
 }
 QUrl Util::image_cache_of(const QString& provider, const QUrl& url, QSize reqSize) const {
     auto out = qcm::image_uniq_hash(provider, url, reqSize).transform([](std::string_view id) {

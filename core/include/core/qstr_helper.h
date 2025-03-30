@@ -2,6 +2,7 @@
 #include <QString>
 #include <QStringView>
 #include <QVariant>
+#include <QUrl>
 
 #include "core/core.h"
 #include "core/fmt.h"
@@ -96,7 +97,6 @@ struct fmt::formatter<QAnyStringView> : fmt::formatter<std::string_view> {
     }
 };
 
-
 template<>
 struct std::formatter<QString> : std::formatter<std::string_view> {
     auto format(const QString& qs, std::format_context& ctx) const
@@ -137,6 +137,14 @@ struct std::formatter<QAnyStringView> : std::formatter<std::string_view> {
     }
 };
 
+template<>
+struct rstd::Impl<rstd::convert::From<std::string>, QString> {
+    static auto from(std::string str) { return QString::fromStdString(std::move(str)); }
+};
+template<>
+struct rstd::Impl<rstd::convert::From<std::string>, QUrl> {
+    static auto from(std::string str) { return QString::fromStdString(std::move(str)); }
+};
 
 #if (QT_VERSION < QT_VERSION_CHECK(6, 8, 0))
 inline std::strong_ordering operator<=>(const QString& a, const QString& b) {

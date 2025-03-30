@@ -4,6 +4,7 @@
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
 #include <QtCore/QMetaEnum>
+#include <QtCore/QTextStream>
 
 #include <asio/posix/stream_descriptor.hpp>
 
@@ -56,7 +57,7 @@ Backend::Backend(Arc<ncrequest::Session> session)
       m_port(0) {
     m_process->setProcessChannelMode(QProcess::ProcessChannelMode::ForwardedErrorChannel);
     m_client->set_on_error_callback([](std::string_view err) {
-        ERROR_LOG("{}", err);
+        log::error("{}", err);
     });
     m_client->set_on_connected_callback([this]() {
         Q_EMIT this->connected(m_port);
@@ -94,30 +95,37 @@ Backend::Backend(Arc<ncrequest::Session> session)
     // connect signal
     {
         struct State {
-            bool port_readed { false };
+            QTextStream                           out { stdout, QIODevice::WriteOnly };
+            rstd::Option<QMetaObject::Connection> cnn;
         };
         auto state = rstd::rc::make_rc<State>();
-        connect(m_process, &QProcess::readyReadStandardOutput, m_process, [this, state] mutable {
-            if (state->port_readed) return;
-
-            m_process->setReadChannel(QProcess::ProcessChannel::StandardOutput);
-            if (m_process->canReadLine()) {
-                auto line = m_process->readLine();
-                if (! state->port_readed) {
-                    state->port_readed = true;
-                    auto doc           = QJsonDocument::fromJson(line);
+        state->cnn = Some(connect(
+            m_process, &QProcess::readyReadStandardOutput, m_process, [this, state] mutable {
+                m_process->setReadChannel(QProcess::ProcessChannel::StandardOutput);
+                if (m_process->canReadLine()) {
+                    auto line = m_process->readLine();
+                    auto doc  = QJsonDocument::fromJson(line);
                     if (auto jport = doc.object().value("port"); ! jport.isUndefined()) {
                         auto port = jport.toVariant().value<i32>();
-                        INFO_LOG("backend port: {}", port);
+                        log::info("backend port: {}", port);
                         Q_EMIT this->started(port);
                     } else {
-                        ERROR_LOG("read port from backend failed");
+                        log::error("read port from backend failed");
                     }
-                } else {
-                    INFO_LOG("{}", QString(line));
+                    QObject::disconnect(*(state->cnn));
+                    state->cnn = rstd::None();
+                    QObject::connect(m_process,
+                                     &QProcess::readyReadStandardOutput,
+                                     m_process,
+                                     [p = m_process, state] mutable {
+                                         p->setReadChannel(
+                                             QProcess::ProcessChannel::StandardOutput);
+                                         bool flush = p->canReadLine();
+                                         state->out << p->readAllStandardOutput();
+                                         if (flush) state->out.flush();
+                                     });
                 }
-            }
-        });
+            }));
 
         connect(this, &Backend::started, this, &Backend::on_started);
         connect(this, &Backend::connected, this, &Backend::on_connected);
@@ -144,13 +152,13 @@ auto Backend::start(QStringView exe_, QStringView data_dir_) -> bool {
         std::error_code ec;
         auto            path = std::filesystem::path(exe.toStdString());
         if (! std::filesystem::exists(path, ec)) {
-            ERROR_LOG("{}", ec.message());
+            log::error("{}", ec.message());
             return false;
         }
     }
 
     m_context->post([this, exe, data_dir] {
-        INFO_LOG("starting backend: {}", exe);
+        log::info("starting backend: {}", exe);
         m_process->start(exe, { u"--data"_s, data_dir });
     });
     return true;

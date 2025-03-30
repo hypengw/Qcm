@@ -366,7 +366,7 @@ auto Global::load_plugin(const std::filesystem::path& path) -> bool {
             return false;
         }
     } else {
-        ERROR_LOG("{}", loader->errorString());
+        log::error("{}", loader->errorString());
     }
     return loader->isLoaded();
 }
@@ -465,7 +465,7 @@ auto create_item(QQmlEngine* engine, const QJSValue& url_or_comp, const QVariant
             delete q;
         });
     } else {
-        ERROR_LOG("url not valid");
+        log::error("url not valid");
         return nullptr;
     }
 
@@ -485,17 +485,17 @@ auto create_item(QQmlEngine* engine, const QJSValue& url_or_comp, const QVariant
                 qml_dyn_count()--;
             });
         } else {
-            ERROR_LOG("{}", comp->errorString());
+            log::error("{}", comp->errorString());
         }
         return obj;
         break;
     }
     case QQmlComponent::Status::Error: {
-        ERROR_LOG("{}", comp->errorString());
+        log::error("{}", comp->errorString());
         break;
     }
     case QQmlComponent::Status::Loading: {
-        ERROR_LOG("use before loading");
+        log::error("use before loading");
         break;
     }
     default: break;

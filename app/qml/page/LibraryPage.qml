@@ -169,7 +169,7 @@ MD.Page {
                 Component {
                     id: dg_albumlist
                     BaseItem {
-                        image: QA.Util.image_url(model.picUrl)
+                        image: QA.Util.image_url(model.libraryId, model.itemId, model.picId)
                         text: model.name
                         supportText: `${QA.Global.join_name(model.artists, '/')} - ${model.trackCount} tracks`
                         function showMenu(parent) {
