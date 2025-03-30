@@ -25,7 +25,6 @@ Util* Util::create(QQmlEngine*, QJSEngine*) {
     return util;
 }
 
-auto Util::create_page() const -> model::Page { return {}; }
 auto Util::create_itemid() const -> model::ItemId { return {}; }
 
 auto Util::mpris_trackid(model::ItemId id) const -> QString {

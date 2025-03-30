@@ -6,7 +6,6 @@
 #include "core/asio/task.h"
 #include "qcm_interface/item_id.h"
 #include "qcm_interface/enum.h"
-#include "qcm_interface/router.h"
 #include "core/qasio/qt_watcher.h"
 #include "qcm_interface/oper/comment_oper.h"
 
@@ -45,7 +44,6 @@ struct Client {
                              const ReqInfo& info);
         void (*play_state)(ClientBase&, enums::PlaybackState state, model::ItemId item,
                            model::ItemId source, i64 played_second, QVariantMap extra);
-        auto (*router)(ClientBase&) -> rc<Router>;
 
         auto (*logout)(ClientBase&) -> task<void>;
         auto (*session_check)(ClientBase&, helper::QWatcher<model::Session>) -> task<Result<bool>>;

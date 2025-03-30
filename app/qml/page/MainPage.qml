@@ -19,38 +19,14 @@ MD.Page {
 
     backgroundColor: MD.MatProp.backgroundColor
 
-    property var model: {
-        const p = [];
-        {
-            const page = QA.Util.create_page();
-            page.name = qsTr('library');
-            page.icon = 'library_music';
-            page.source = 'qrc:/Qcm/App/qml/page/LibraryPage.qml';
-            p.push(page);
-        }
-        {
-            const page = QA.Util.create_page();
-            page.name = qsTr('search');
-            page.icon = 'search';
-            page.source = 'qrc:/Qcm/App/qml/page/SearchPage.qml';
-            p.push(page);
-        }
-        if (QA.App.debug) {
-            const page = QA.Util.create_page();
-            page.name = qsTr('test');
-            page.icon = 'queue_music';
-            page.source = 'qrc:/Qcm/Material/Example/Example.qml';
-            p.push(page);
-        }
-        return p;
-    }
+    property var model: QA.App.pages
 
     function back() {
         m_page_stack.back();
     }
 
     onPageIndexChanged: {
-        const m = model[pageIndex];
+        const m = model.item(pageIndex);
         if (m?.source) {
             page_container.switchTo(m.source, m.props ?? {}, m.cache);
         }
@@ -231,7 +207,7 @@ MD.Page {
                 RowLayout {
                     anchors.fill: parent
                     Repeater {
-                        model: QA.Global.session.pages.filter(el => el.primary)
+                        model: root.model
                         Item {
                             Layout.fillWidth: true
                             implicitHeight: 12 + children[0].implicitHeight + 16
@@ -239,15 +215,11 @@ MD.Page {
                                 anchors.fill: parent
                                 anchors.topMargin: 12
                                 anchors.bottomMargin: 16
-                                icon.name: modelData.icon
-                                text: modelData.name
+                                icon.name: model.icon
+                                text: model.name
                                 checked: root.pageIndex == index
                                 onClicked: {
-                                    if (modelData.action) {
-                                        modelData.action.do();
-                                    } else {
-                                        QA.Action.switch_main_page(index);
-                                    }
+                                    QA.Action.switch_main_page(index);
                                 }
                             }
                         }

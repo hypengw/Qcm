@@ -3,7 +3,6 @@
 #include <QtCore/QUuid>
 #include "qcm_interface/model.h"
 #include "qcm_interface/model/user_model.h"
-#include "qcm_interface/model/page.h"
 #include "qcm_interface/client.h"
 
 import ncrequest;
@@ -21,7 +20,6 @@ public:
 
     DECLARE_PROPERTY(qint32, sessionId, NOTIFY_NAME(userChanged))
     DECLARE_PROPERTY(qcm::model::UserAccount*, user, NOTIFY_NAME(userChanged))
-    DECLARE_PROPERTY(std::vector<Page>, pages, NOTIFY_NAME(infoChanged))
     DECLARE_PROPERTY(bool, valid, NOTIFY_NAME(infoChanged))
     DECLARE_PROPERTY(QString, provider, NOTIFY_NAME(infoChanged))
     DECLARE_PROPERTY(bool, supportComment, NOTIFY_NAME(infoChanged))

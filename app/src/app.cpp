@@ -43,6 +43,7 @@ import platform;
 
 #include "qcm_interface/model/user_account.h"
 #include "Qcm/model/play_queue.hpp"
+#include "Qcm/model/page_model.hpp"
 #include "Qcm/backend.hpp"
 #include "Qcm/player.h"
 #include "Qcm/status/provider_status.hpp"
@@ -154,6 +155,7 @@ public:
           m_empty(new qcm::model::EmptyModel(self)),
           provider_meta_status(new ProviderMetaStatusModel(self)),
           provider_status(new ProviderStatusModel(self)),
+          page_model(new PageModel(self)),
 #ifndef NODEBUS
           m_mpris(make_up<mpris::Mpris>()),
 #endif
@@ -178,6 +180,7 @@ public:
     model::EmptyModel*       m_empty;
     ProviderMetaStatusModel* provider_meta_status;
     ProviderStatusModel*     provider_status;
+    PageModel*               page_model;
 #ifndef NODEBUS
     Box<mpris::Mpris> m_mpris;
 #endif
@@ -211,6 +214,7 @@ App::App(QStringView backend_exe, std::monostate)
     connect_actions();
     {
         QGuiApplication::setDesktopFileName(APP_ID);
+        PageModel::init_main_pages(d->page_model);
     }
     d->m_playqueu->setSourceModel(d->m_play_id_queue);
     {
@@ -584,6 +588,11 @@ auto App::provider_meta_status() const -> ProviderMetaStatusModel* {
 auto App::provider_status() const -> ProviderStatusModel* {
     C_D(const App);
     return d->provider_status;
+}
+
+auto App::pages() const -> PageModel* {
+    C_D(const App);
+    return d->page_model;
 }
 void App::switchPlayIdQueue() {
     C_D(App);

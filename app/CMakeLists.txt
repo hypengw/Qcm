@@ -22,6 +22,7 @@ set(SOURCES
     src/sql/collection_sql.cpp
     src/sql/sql.cpp
     src/model/lyric.cpp
+    src/model/page_model.cpp
     src/model/play_queue.cpp
     src/query/album_query.cpp
     src/query/artist_query.cpp

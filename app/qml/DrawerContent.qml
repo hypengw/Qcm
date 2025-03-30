@@ -29,105 +29,19 @@ MD.Flickable {
             Layout.rightMargin: 16
             spacing: 16
 
-            RowLayout {
-                QA.Image {
-                    property int size: 48
-                    Layout.preferredWidth: size
-                    Layout.preferredHeight: size
-                    radius: size / 2
-                    source: QA.Util.image_url(QA.Global.session.user.avatarUrl)
-                }
-                Item {
-                    Layout.fillWidth: true
-                }
-                MD.IconButton {
-                    visible: action
-                    action: root.rightTopAction
-                }
-            }
-
-            RowLayout {
-                MD.Text {
-                    Layout.alignment: Qt.AlignVCenter
-                    typescale: {
-                        const s = MD.Token.typescale.label_large.fresh();
-                        s.weight = Font.Bold;
-                        return s;
-                    }
-                    text: QA.Global.session.user.nickname
-                }
-
-                Item {
-                    Layout.fillWidth: true
-                }
-
-                MD.IconButton {
-                    id: m_expand
-                    checkable: true
-                    action: Action {
-                        icon.name: MD.Token.icon.keyboard_arrow_down
-                        onTriggered: {}
-                    }
-                }
-
-                MD.IconButton {
-                    action: Action {
-                        icon.name: MD.Token.icon.logout
-                        onTriggered: {
-                            root.close();
-                            QA.Action.logout();
-                        }
-                    }
-                }
+            Item {
+                implicitHeight: 40
             }
         }
         Divider {}
 
-        MD.ListView {
-            Layout.fillWidth: true
-            Layout.preferredHeight: contentHeight
-            interactive: false
-            model: QA.Global.userModel
-            visible: m_expand.checked
-            delegate: MD.ListItem {
-                required property var model
-                required property int index
-                width: ListView.view.contentWidth
-                text: model.nickname
-                mdState.backgroundColor: root.MD.MatProp.backgroundColor
-                onClicked: {
-                    QA.Action.switch_user(model.userId);
-                    root.close();
-                }
-            }
-            footer: MD.ListItem {
-                width: ListView.view.contentWidth
-                height: implicitHeight
-                text: qsTr('add account')
-                font.capitalization: Font.Capitalize
-                mdState.backgroundColor: root.MD.MatProp.backgroundColor
-
-                leader: MD.Icon {
-                    name: MD.Token.icon.add_circle
-                }
-
-                onClicked: {
-                    QA.Action.route_special(QA.enums.SRLogin);
-                    root.close();
-                }
-            }
-        }
-        Divider {
-            visible: m_expand.checked
-        }
-
         Repeater {
-            model: QA.Global.session.pages.filter(el => root.standard || !el.primary)
+            model: QA.App.pages
             MD.DrawerItem {
                 Layout.fillWidth: true
                 required property var modelData
                 required property var index
-                visible: root.MD.MatProp.size.isCompact || root.standard
+                visible: true //root.MD.MatProp.size.isCompact || root.standard
                 checked: root.standard && root.pageIndex == index
                 action: Action {
                     icon.name: MD.Token.icon[modelData.icon]

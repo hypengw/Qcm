@@ -3,7 +3,6 @@
 #include <QQmlEngine>
 #include <QAbstractItemModel>
 
-#include "qcm_interface/model/page.h"
 #include "qcm_interface/model/router_msg.h"
 #include "qcm_interface/model/album.h"
 #include "qcm_interface/enum.h"
@@ -24,7 +23,6 @@ public:
     ~Util() override;
     static Util* create(QQmlEngine* qmlEngine, QJSEngine* jsEngine);
 
-    Q_INVOKABLE model::Page create_page() const;
     Q_INVOKABLE model::ItemId create_itemid() const;
     Q_INVOKABLE QString       mpris_trackid(model::ItemId) const;
     Q_INVOKABLE model::RouteMsg create_route_msg(QVariantMap) const;

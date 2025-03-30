@@ -11,7 +11,6 @@ set(MODEL_SOURCES
     include/qcm_interface/model/app_info.h
     include/qcm_interface/model/busy_info.h
     include/qcm_interface/model/plugin_info.h
-    include/qcm_interface/model/page.h
     include/qcm_interface/model/session.h
     include/qcm_interface/model/router_msg.h)
 
@@ -30,7 +29,6 @@ add_library(
   include/qcm_interface/item_id.h
   include/qcm_interface/export.h
   include/qcm_interface/path.h
-  include/qcm_interface/router.h
   include/qcm_interface/plugin.h
   include/qcm_interface/duration.h
   include/qcm_interface/model/plugin_model.h
@@ -55,7 +53,6 @@ add_library(
   item_id.cpp
   enum.cpp
   path.cpp
-  router.cpp
   state.cpp
   global.cpp
   global_static.cpp

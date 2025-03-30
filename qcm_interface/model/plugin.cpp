@@ -34,9 +34,6 @@ QVariant PluginModel::data(const QModelIndex& index, int role) const {
     case Qt::UserRole + 1: {
         return QVariant::fromValue(p.second->info());
     }
-    case Qt::UserRole + 2: {
-        return QVariant::fromValue(p.second->router());
-    }
     }
     return {};
 }

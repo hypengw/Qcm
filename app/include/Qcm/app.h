@@ -38,6 +38,7 @@ class PlayQueue;
 class Backend;
 class ProviderStatusModel;
 class ProviderMetaStatusModel;
+class PageModel;
 
 auto gen_image_cache_entry(const QString& provider, const QUrl& url, QSize reqSize)
     -> std::optional<std::filesystem::path>;
@@ -61,6 +62,7 @@ class App : public QObject {
     Q_PROPERTY(
         qcm::ProviderMetaStatusModel* providerMetaStatus READ provider_meta_status CONSTANT FINAL)
     Q_PROPERTY(qcm::ProviderStatusModel* providerStatus READ provider_status CONSTANT FINAL)
+    Q_PROPERTY(qcm::PageModel* pages READ pages CONSTANT FINAL)
 
     friend class qml::Util;
 
@@ -113,6 +115,7 @@ public:
     auto        empty() const -> model::EmptyModel*;
     auto        provider_meta_status() const -> ProviderMetaStatusModel*;
     auto        provider_status() const -> ProviderStatusModel*;
+    auto        pages() const -> PageModel*;
     void        switchPlayIdQueue();
 
     QObject* mpris() const;

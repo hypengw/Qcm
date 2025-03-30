@@ -6,7 +6,6 @@
 #include "qcm_interface/model/busy_info.h"
 #include "qcm_interface/model/plugin_info.h"
 #include "qcm_interface/model/user_model.h"
-#include "qcm_interface/model/page.h"
 #include "qcm_interface/model/session.h"
 #include "qcm_interface/model/router_msg.h"
 #include "qcm_interface/global.h"
@@ -126,12 +125,6 @@ BusyInfo::~BusyInfo() {}
 
 PluginInfo::PluginInfo() {}
 PluginInfo::~PluginInfo() {}
-
-Page::Page() {
-    set_cache(false);
-    set_primary(false);
-}
-Page::~Page() {}
 
 Session::Session(QObject* parent) {
     this->setParent(parent);
@@ -344,7 +337,6 @@ IMPL_SQL_MODEL(query::Song, song)
 #include <qcm_interface/model/moc_plugin_info.cpp>
 #include <qcm_interface/model/moc_plugin_model.cpp>
 #include <qcm_interface/model/moc_query_model.cpp>
-#include <qcm_interface/model/moc_page.cpp>
 #include <qcm_interface/model/moc_router_msg.cpp>
 #include <qcm_interface/model/moc_third_user.cpp>
 #include <qcm_interface/model/moc_user_account.cpp>
