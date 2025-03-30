@@ -24,6 +24,7 @@ set(SOURCES
     src/model/lyric.cpp
     src/model/play_queue.cpp
     src/query/album_query.cpp
+    src/query/artist_query.cpp
     src/query/provider_query.cpp
     src/query/query.cpp
     src/query/storage_info.cpp

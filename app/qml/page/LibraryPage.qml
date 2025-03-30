@@ -51,12 +51,13 @@ MD.Page {
                     MD.TabButton {
                         text: qsTr("Album")
                     }
+                    MD.TabButton {
+                        text: qsTr("Artist")
+                    }
                     // MD.TabButton {
                     //     text: qsTr("Mix")
                     // }
-                    // MD.TabButton {
-                    //     text: qsTr("Artist")
-                    // }
+
                     // MD.TabButton {
                     //     text: qsTr("Radio")
                     // }
@@ -71,6 +72,16 @@ MD.Page {
                         model: qr_albumlist.data
                         refresh: function () {
                             root.refresh_list(qr_albumlist);
+                        }
+                    }
+
+                    BaseView {
+                        id: view_artistlist
+                        delegate: dg_artistlist
+                        busy: qr_artistlist.querying
+                        model: qr_artistlist.data
+                        refresh: function () {
+                            root.refresh_list(qr_artistlist);
                         }
                     }
                     /*
@@ -114,22 +125,7 @@ MD.Page {
                         }
                     }
 
-                    BaseView {
-                        id: view_artistlist
-                        delegate: dg_artistlist
-                        busy: qr_artistlist.status === QA.enums.Querying
-                        model: qr_artistlist.data
-                        refresh: function () {
-                            root.refresh_list(qr_artistlist);
-                        }
-                        Connections {
-                            function onArtistLiked() {
-                                view_artistlist.dirty = true;
-                            }
 
-                            target: QA.App
-                        }
-                    }
                     BaseView {
                         id: view_djradiolist
                         busy: qr_djradiolist.status === QA.enums.Querying
@@ -152,11 +148,11 @@ MD.Page {
                     id: qr_albumlist
                     Component.onCompleted: reload()
                 }
-                /*
-                QA.ArtistCollectionQuery {
+                QA.ArtistsQuery {
                     id: qr_artistlist
                     Component.onCompleted: reload()
                 }
+                /*
                 QA.MixCollectionQuery {
                     id: qr_playlist
                     Component.onCompleted: reload()
@@ -183,9 +179,9 @@ MD.Page {
                 Component {
                     id: dg_artistlist
                     BaseItem {
-                        image: QA.Util.image_url(model.picUrl)
+                        image: QA.Util.image_url(model.libraryId, model.itemId, model.picId)
                         text: model.name
-                        supportText: `${model.albumCount} albums`
+                        // supportText: `${model.albumCount} albums`
                         function showMenu(parent) {
                             MD.Util.show_popup('qrc:/Qcm/App/qml/menu/ArtistMenu.qml', {
                                 "itemId": model.itemId,

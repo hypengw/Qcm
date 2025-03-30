@@ -24,7 +24,6 @@ message Radio {
   string item_id = 2;
   string library_id = 3;
   string name = 4;
-  string pic_url = 5;
   string description = 6;
   int32 program_count = 7;
   google.protobuf.Timestamp create_time = 8;
@@ -51,7 +50,6 @@ message Mix {
   string item_id = 2;
   string library_id = 3;
   string name = 4;
-  string pic_url = 5;
   int32 track_count = 6;
   int32 special_type = 7;
   string description = 8;
@@ -75,12 +73,10 @@ message Artist {
   string id = 1;
   string item_id = 2;
   string name = 3;
-  string pic_url = 4;
   string library_id = 5;
   string description = 6;
   int32 album_count = 7;
   int32 music_count = 8;
-  string alias = 9;
   google.protobuf.Timestamp edit_time = 10;
 }
 
@@ -89,12 +85,10 @@ message Album {
   string item_id = 2;
   string library_id = 3;
   string name = 4;
-  string pic_url = 5;
   google.protobuf.Timestamp publish_time = 6;
   int32 track_count = 7;
   string description = 8;
   string company = 9;
-  string type = 10;
   google.protobuf.Timestamp edit_time = 11;
 }
 

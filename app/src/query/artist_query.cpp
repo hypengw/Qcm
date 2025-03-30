@@ -1,4 +1,4 @@
-#include "Qcm/query/album_query.hpp"
+#include "Qcm/query/artist_query.hpp"
 
 #include "Qcm/backend.hpp"
 #include "Qcm/app.h"
@@ -8,22 +8,22 @@
 namespace qcm
 {
 
-AlbumListModel::AlbumListModel(QObject* parent): base_type(parent) {}
+ArtistListModel::ArtistListModel(QObject* parent): base_type(parent) {}
 
-AlbumsQuery::AlbumsQuery(QObject* parent): query::QueryList<AlbumListModel>(parent) {
+ArtistsQuery::ArtistsQuery(QObject* parent): query::QueryList<ArtistListModel>(parent) {
     // set_use_queue(true);
 }
-void AlbumsQuery::reload() {
+void ArtistsQuery::reload() {
     set_status(Status::Querying);
     auto backend = App::instance()->backend();
-    auto req     = msg::GetAlbumsReq {};
+    auto req     = msg::GetArtistsReq {};
     req.setPage(0);
     req.setPageSize((offset() + 1) * limit());
     auto self = helper::QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
-        self->inspect_set(rsp, [self](msg::GetAlbumsRsp& el) {
+        self->inspect_set(rsp, [self](msg::GetArtistsRsp& el) {
             self->tdata()->resetModel(el.items());
             self->tdata()->setHasMore(el.hasMore());
         });
@@ -31,10 +31,10 @@ void AlbumsQuery::reload() {
     });
 }
 
-void AlbumsQuery::fetchMore(qint32) {
+void ArtistsQuery::fetchMore(qint32) {
     set_status(Status::Querying);
     auto backend = App::instance()->backend();
-    auto req     = msg::GetAlbumsReq {};
+    auto req     = msg::GetArtistsReq {};
     req.setPage(offset() + 1);
     req.setPageSize(limit());
     auto self = helper::QWatcher { this };
@@ -42,7 +42,7 @@ void AlbumsQuery::fetchMore(qint32) {
         auto offset = req.page();
         auto rsp    = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
-        self->inspect_set(rsp, [self, offset](msg::GetAlbumsRsp& el) {
+        self->inspect_set(rsp, [self, offset](msg::GetArtistsRsp& el) {
             self->tdata()->extend(el.items());
             self->setOffset(offset + 1);
             self->tdata()->setHasMore(el.hasMore());
@@ -53,4 +53,4 @@ void AlbumsQuery::fetchMore(qint32) {
 
 } // namespace qcm
 
-#include <Qcm/query/moc_album_query.cpp>
+#include <Qcm/query/moc_artist_query.cpp>

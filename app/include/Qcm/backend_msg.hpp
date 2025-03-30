@@ -92,9 +92,28 @@ struct MsgTraits<msg::GetAlbumsReq> {
 };
 
 template<>
+struct MsgTraits<msg::GetArtistsReq> {
+    using Rsp                   = msg::GetArtistsRsp;
+    static constexpr auto HasFn = &msg::QcmMessage::hasGetArtistsReq;
+    static constexpr auto GetFn = &msg::QcmMessage::getArtistsReq;
+
+    template<typename T>
+    static auto set(msg::QcmMessage& m, T&& r) {
+        m.setType(MessageTypeGadget::MessageType::GET_ARTISTS_REQ);
+        m.setGetArtistsReq(std::forward<T>(r));
+    }
+};
+
+template<>
 struct MsgTraits<msg::GetAlbumsRsp> {
     static constexpr auto HasFn = &msg::QcmMessage::hasGetAlbumsRsp;
     static constexpr auto GetFn = &msg::QcmMessage::getAlbumsRsp;
+};
+
+template<>
+struct MsgTraits<msg::GetArtistsRsp> {
+    static constexpr auto HasFn = &msg::QcmMessage::hasGetArtistsRsp;
+    static constexpr auto GetFn = &msg::QcmMessage::getArtistsRsp;
 };
 
 template<>
@@ -128,6 +147,14 @@ template<>
 struct meta_model::ItemTrait<qcm::msg::model::Album> {
     using key_type = i64;
     static auto key(const qcm::msg::model::Album& el) noexcept -> i64 {
+        return el.id_proto().toLongLong();
+    }
+};
+
+template<>
+struct meta_model::ItemTrait<qcm::msg::model::Artist> {
+    using key_type = i64;
+    static auto key(const qcm::msg::model::Artist& el) noexcept -> i64 {
         return el.id_proto().toLongLong();
     }
 };
