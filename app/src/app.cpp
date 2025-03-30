@@ -45,7 +45,7 @@ import platform;
 #include "Qcm/model/play_queue.hpp"
 #include "Qcm/model/page_model.hpp"
 #include "Qcm/backend.hpp"
-#include "Qcm/player.h"
+#include "Qcm/player.hpp"
 #include "Qcm/status/provider_status.hpp"
 
 #ifndef NODEBUS

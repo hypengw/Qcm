@@ -56,7 +56,7 @@ MD.Pane {
                     const cover = root.currentSong.coverUrl;
                     return cover ? cover : root.currentSong.album.picUrl;
                 }
-                source: QA.Util.image_url(picUrl)
+                // source: QA.Util.image_url(picUrl)
                 sourceSize.height: 48
                 sourceSize.width: 48
                 radius: 8

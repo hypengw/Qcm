@@ -126,7 +126,7 @@ QA.GlobalWrapper {
 
     QA.Mpris {
         id: m_mpris
-        player: root.player
+        player: m_player
         playlist: QA.App.playqueue
     }
 

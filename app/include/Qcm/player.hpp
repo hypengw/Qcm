@@ -48,12 +48,6 @@ public:
 
     auto sender() const -> Sender<NotifyInfo>;
 
-private:
-    void set_playback_state(PlaybackState);
-    void set_duration(int);
-    void set_position_raw(int);
-    void set_cache_progress(QVector2D);
-
     Q_SIGNAL void sourceChanged();
     Q_SIGNAL void positionChanged();
     Q_SIGNAL void durationChanged();
@@ -76,6 +70,12 @@ private:
     Q_SLOT void play();
     Q_SLOT void pause();
     Q_SLOT void stop();
+
+private:
+    void set_playback_state(PlaybackState);
+    void set_duration(int);
+    void set_position_raw(int);
+    void set_cache_progress(QVector2D);
 
 private:
     up<player::Player> m_player;
