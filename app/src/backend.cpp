@@ -208,6 +208,63 @@ auto Backend::serial() -> i32 {
     }
     return cur;
 }
+
+void msg::merge_extra(QQmlPropertyMap& extra, const google::protobuf::Struct& in,
+                      const std::set<QStringView>& is_json_field) {
+    auto it  = in.fields().cbegin();
+    auto end = in.fields().cend();
+    for (; it != end; it++) {
+        auto     key = it.key();
+        QVariant val;
+        if (is_json_field.contains(key)) {
+            if (it.value().hasStringValue()) {
+                auto json = QJsonDocument::fromJson(it.value().stringValue().toUtf8());
+                val       = json.toVariant();
+            } else {
+                log::warn("wrong field");
+            }
+        } else {
+            val = rstd::into(it.value());
+        }
+        extra.insert(key, std::move(val));
+    }
+}
 } // namespace qcm
+
+auto rstd::Impl<rstd::convert::From<google::protobuf::Value>, QVariant>::from(
+    google::protobuf::Value val) -> QVariant {
+    using KindFields = google::protobuf::Value::KindFields;
+    switch (val.kindField()) {
+    case KindFields::ListValue: {
+        QVariantList list;
+        for (auto& el : val.listValue().values()) {
+            list.push_back(rstd::into(el));
+        }
+        return list;
+    }
+    case KindFields::StructValue: {
+        QVariantMap map;
+        auto        it  = val.structValue().fields().cbegin();
+        auto        end = val.structValue().fields().cend();
+        for (; it != end; it++) {
+            map.insert(it.key(), rstd::into(it.value()));
+        }
+        return map;
+    }
+    case KindFields::NumberValue: {
+        return val.numberValue();
+    }
+    case KindFields::StringValue: {
+        return val.stringValue();
+    }
+    case KindFields::BoolValue: {
+        return val.boolValue();
+    }
+    case KindFields::NullValue:
+    default: {
+        return {};
+    }
+    }
+}
 
 #include <Qcm/moc_backend.cpp>

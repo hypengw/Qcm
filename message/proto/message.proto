@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package qcm.msg;
 
+import "google/protobuf/struct.proto";
 import "model.proto";
 
 enum MessageType {
@@ -87,8 +88,9 @@ message GetAlbumsReq {
 
 message GetAlbumsRsp {
   repeated qcm.msg.model.Album items = 1;
-  int32 total = 2;
-  bool has_more = 3;
+  repeated google.protobuf.Struct extras = 2;
+  int32 total = 3;
+  bool has_more = 4;
 }
 
 message GetArtistsReq {
@@ -101,8 +103,9 @@ message GetArtistsReq {
 
 message GetArtistsRsp {
   repeated qcm.msg.model.Artist items = 1;
-  int32 total = 2;
-  bool has_more = 3;
+  repeated google.protobuf.Struct extras = 2;
+  int32 total = 3;
+  bool has_more = 4;
 }
 
 message QcmMessage {

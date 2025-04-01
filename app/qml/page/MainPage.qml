@@ -164,7 +164,7 @@ MD.Page {
                             MD.IconButton {
                                 Layout.alignment: Qt.AlignHCenter
                                 action: QC.Action {
-                                    icon.name: MD.Token.icon.search
+                                    icon.name: MD.Token.icon.hard_drive
                                     onTriggered: {
                                         QA.Action.route_special(QA.enums.SRSearch);
                                     }

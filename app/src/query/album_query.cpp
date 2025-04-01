@@ -2,6 +2,7 @@
 
 #include "Qcm/backend.hpp"
 #include "Qcm/app.h"
+#include "Qcm/model/app_store.hpp"
 
 #include "qcm_interface/async.inl"
 
@@ -9,10 +10,21 @@ namespace qcm
 {
 
 AlbumListModel::AlbumListModel(QObject* parent): base_type(parent) {}
+QQmlPropertyMap* AlbumListModel::extra(i32 idx) const {
+    if (auto extend = App::instance()->app_store()->albums.query_extend(this->key_at(idx));
+        extend) {
+        return extend->extra.get();
+    }
+    return nullptr;
+}
 
 AlbumsQuery::AlbumsQuery(QObject* parent): query::QueryList<AlbumListModel>(parent) {
     // set_use_queue(true);
+    this->tdata()->set_store(App::instance()->app_store()->albums);
 }
+
+static const std::set<QStringView> json_fields { u"artists" };
+
 void AlbumsQuery::reload() {
     set_status(Status::Querying);
     auto backend = App::instance()->backend();
@@ -25,6 +37,12 @@ void AlbumsQuery::reload() {
         co_await qcm::qexecutor_switch();
         self->inspect_set(rsp, [self](msg::GetAlbumsRsp& el) {
             self->tdata()->resetModel(el.items());
+            for (qsizetype i = 0; i < el.extras().size(); i++) {
+                auto id = el.items().at(i).id_proto().toLongLong();
+                if (auto extend = App::instance()->app_store()->albums.query_extend(id); extend) {
+                    msg::merge_extra(*(extend->extra), el.extras().at(i), json_fields);
+                }
+            }
             self->tdata()->setHasMore(el.hasMore());
         });
         co_return;
@@ -44,6 +62,13 @@ void AlbumsQuery::fetchMore(qint32) {
         co_await qcm::qexecutor_switch();
         self->inspect_set(rsp, [self, offset](msg::GetAlbumsRsp& el) {
             self->tdata()->extend(el.items());
+
+            for (qsizetype i = 0; i < el.extras().size(); i++) {
+                auto id = el.items().at(i).id_proto().toLongLong();
+                if (auto extend = App::instance()->app_store()->albums.query_extend(id); extend) {
+                    msg::merge_extra(*(extend->extra), el.extras().at(i), json_fields);
+                }
+            }
             self->setOffset(offset + 1);
             self->tdata()->setHasMore(el.hasMore());
         });

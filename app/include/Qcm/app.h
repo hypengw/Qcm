@@ -39,6 +39,7 @@ class Backend;
 class ProviderStatusModel;
 class ProviderMetaStatusModel;
 class PageModel;
+class AppStore;
 
 auto gen_image_cache_entry(const QString& provider, const QUrl& url, QSize reqSize)
     -> std::optional<std::filesystem::path>;
@@ -116,6 +117,7 @@ public:
     auto        provider_meta_status() const -> ProviderMetaStatusModel*;
     auto        provider_status() const -> ProviderStatusModel*;
     auto        pages() const -> PageModel*;
+    auto        app_store() const -> AppStore*;
     void        switchPlayIdQueue();
 
     QObject* mpris() const;

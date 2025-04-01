@@ -1,13 +1,20 @@
 #pragma once
 
 #include <string>
+#include <set>
+
+#include <QtQml/QQmlPropertyMap>
+
 #include "Qcm/message/message.qpb.h"
+#include "Qcm/model/share_store.hpp"
 #include "meta_model/item_trait.hpp"
 
 import qcm.core;
 
 namespace qcm::msg
 {
+
+void merge_extra(QQmlPropertyMap&, const google::protobuf::Struct&, const std::set<QStringView>& is_json_field);
 
 struct Error {
     int         code { 0 };
@@ -145,10 +152,11 @@ struct std::formatter<qcm::msg::MessageTypeGadget::MessageType> : std::formatter
 
 template<>
 struct meta_model::ItemTrait<qcm::msg::model::Album> {
-    using key_type = i64;
-    static auto key(const qcm::msg::model::Album& el) noexcept -> i64 {
-        return el.id_proto().toLongLong();
-    }
+    using Self       = qcm::msg::model::Album;
+    using key_type   = i64;
+    using store_type = ShareStore<qcm::msg::model::Album, std::pmr::polymorphic_allocator<Self>,
+                                  qcm::ShareStoreExt>;
+    static auto key(const Self& el) noexcept -> i64 { return el.id_proto().toLongLong(); }
 };
 
 template<>
@@ -173,4 +181,9 @@ struct meta_model::ItemTrait<qcm::msg::model::ProviderStatus> {
     static auto key(const qcm::msg::model::ProviderStatus& el) noexcept -> i64 {
         return el.id_proto().toLongLong();
     }
+};
+
+template<>
+struct rstd::Impl<rstd::convert::From<google::protobuf::Value>, QVariant> {
+    static auto from(google::protobuf::Value) -> QVariant;
 };

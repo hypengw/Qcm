@@ -9,16 +9,17 @@
 namespace qcm
 {
 class AlbumListModel
-    : public meta_model::QGadgetListModel<msg::model::Album,
-                                          meta_model::QMetaListStore::VectorWithMap> {
+    : public meta_model::QGadgetListModel<msg::model::Album, meta_model::QMetaListStore::Share> {
     Q_OBJECT
     using base_type =
-        meta_model::QGadgetListModel<msg::model::Album, meta_model::QMetaListStore::VectorWithMap>;
+        meta_model::QGadgetListModel<msg::model::Album, meta_model::QMetaListStore::Share>;
 
     using value_type = msg::model::Album;
 
 public:
     AlbumListModel(QObject* parent = nullptr);
+
+    Q_INVOKABLE QQmlPropertyMap* extra(i32 idx) const;
 };
 
 class AlbumsQuery : public query::QueryList<AlbumListModel> {

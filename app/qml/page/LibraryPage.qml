@@ -167,12 +167,13 @@ MD.Page {
                     BaseItem {
                         image: QA.Util.image_url(model.libraryId, model.itemId, model.picId)
                         text: model.name
-                        // supportText: `${QA.Global.join_name(model.artists, '/')} - ${model.trackCount} tracks`
+                        supportText: `${QA.Global.join_name(ListView.view.model.extra(index).artists, '/')} - ${model.trackCount} tracks`
                         function showMenu(parent) {
-                            MD.Util.show_popup('qrc:/Qcm/App/qml/menu/AlbumMenu.qml', {
-                                "itemId": model.itemId,
-                                "y": parent.height
-                            }, parent);
+                            console.error(ListView.view.model.extra(index).artists);
+                            // MD.Util.show_popup('qrc:/Qcm/App/qml/menu/AlbumMenu.qml', {
+                            //     "itemId": model.itemId,
+                            //     "y": parent.height
+                            // }, parent);
                         }
                     }
                 }

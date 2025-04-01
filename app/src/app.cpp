@@ -44,6 +44,7 @@ import platform;
 #include "qcm_interface/model/user_account.h"
 #include "Qcm/model/play_queue.hpp"
 #include "Qcm/model/page_model.hpp"
+#include "Qcm/model/app_store.hpp"
 #include "Qcm/backend.hpp"
 #include "Qcm/player.hpp"
 #include "Qcm/status/provider_status.hpp"
@@ -156,6 +157,7 @@ public:
           provider_meta_status(new ProviderMetaStatusModel(self)),
           provider_status(new ProviderStatusModel(self)),
           page_model(new PageModel(self)),
+          app_store(new AppStore(self)),
 #ifndef NODEBUS
           m_mpris(make_up<mpris::Mpris>()),
 #endif
@@ -181,6 +183,7 @@ public:
     ProviderMetaStatusModel* provider_meta_status;
     ProviderStatusModel*     provider_status;
     PageModel*               page_model;
+    AppStore*                app_store;
 #ifndef NODEBUS
     Box<mpris::Mpris> m_mpris;
 #endif
@@ -228,10 +231,14 @@ App::App(QStringView backend_exe, std::monostate)
     }
 
     d->m_qml_engine->addImportPath(u"qrc:/"_s);
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-    // try curve for better good visual results or where reducing graphics memory consumption
-    QQuickWindow::setTextRenderType(QQuickWindow::CurveTextRendering);
-#endif
+    // curve text only suitable for 4K
+    // QQuickWindow::setTextRenderType(QQuickWindow::CurveTextRendering);
+    if (0) {
+        // MSAA
+        auto format = QSurfaceFormat {};
+        format.setSamples(4);
+        QSurfaceFormat::setDefaultFormat(format);
+    }
 
     // sql init
     {
@@ -593,6 +600,10 @@ auto App::provider_status() const -> ProviderStatusModel* {
 auto App::pages() const -> PageModel* {
     C_D(const App);
     return d->page_model;
+}
+auto App::app_store() const -> AppStore* {
+    C_D(const App);
+    return d->app_store;
 }
 void App::switchPlayIdQueue() {
     C_D(App);
