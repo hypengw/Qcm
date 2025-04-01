@@ -112,7 +112,7 @@ MD.Page {
                     Layout.fillWidth: true
                     typescale: MD.Token.typescale.body_medium
                     horizontalAlignment: Text.AlignHCenter
-                    text: QA.Global.join_name(root.song.artists, '/')
+                    text: QA.Util.joinName(root.song.artists, '/')
                 }
                 RowLayout {
                     id: row_control

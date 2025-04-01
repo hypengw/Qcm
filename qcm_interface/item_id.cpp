@@ -24,8 +24,14 @@ ItemId::ItemId(QStringView provider, QStringView type, QStringView id, i64 libra
     set_id(id);
     set_library_id(library_id);
 }
+ItemId::ItemId(QStringView type, QStringView id): ItemId() {
+    set_type(type);
+    set_id(id);
+}
 
-ItemId::ItemId(std::string_view provider, std::string_view type, std::string_view id, i64 library_id): ItemId() {
+ItemId::ItemId(std::string_view provider, std::string_view type, std::string_view id,
+               i64 library_id)
+    : ItemId() {
     set_provider(convert_from<QString>(provider));
     set_type(convert_from<QString>(type));
     set_id(convert_from<QString>(id));
@@ -75,12 +81,12 @@ auto ItemId::library_id() const -> i64 {
 auto ItemId::valid() const -> bool {
     C_D(const ItemId);
 
-    if (id().isEmpty() || provider().isEmpty() || id() == "invalid" || id() == "empty") {
+    if (id().isEmpty() || id() == "invalid" || id() == "empty") {
         return false;
     }
-    if (auto p = PluginManager::instance()->plugin(provider().toStdString())) {
-        return p->get().valid_id(*this);
-    }
+    // if (auto p = PluginManager::instance()->plugin(provider().toStdString())) {
+    //     return p->get().valid_id(*this);
+    // }
     return true;
 }
 

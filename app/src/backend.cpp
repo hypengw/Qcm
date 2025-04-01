@@ -190,12 +190,16 @@ auto Backend::send(msg::QcmMessage&& msg) -> task<Result<msg::QcmMessage, msg::E
 
 auto Backend::base() const -> std::string { return std::format("http://127.0.0.1:{}", m_port); }
 
-auto Backend::image(QStringView library_id, QStringView item_id, QStringView image_id)
+auto Backend::image(QStringView item_type, QStringView item_id, QStringView image_type)
     -> task<Arc<ncrequest::Response>> {
-    auto url = std::format("{0}/image/{1}/{2}/{3}", this->base(), library_id, item_id, image_id);
+    auto url = std::format("{0}/image/{1}/{2}/{3}", this->base(), item_type, item_id, image_type);
     auto req = ncrequest::Request { url };
 
     co_return (co_await m_session->get(req)).unwrap();
+}
+
+auto Backend::audio_url(QStringView item_type, QStringView item_id) -> QUrl {
+    return rstd::into(std::format("{0}/audio/{1}/{2}", this->base(), item_type, item_id));
 }
 
 auto Backend::serial() -> i32 {

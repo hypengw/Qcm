@@ -11,6 +11,7 @@
 #include "crypto/crypto.h"
 #include "core/asio/basic.h"
 #include "Qcm/sql/cache_sql.h"
+#include "Qcm/backend.hpp"
 
 namespace qcm::qml
 {
@@ -26,6 +27,9 @@ Util* Util::create(QQmlEngine*, QJSEngine*) {
 }
 
 auto Util::create_itemid() const -> model::ItemId { return {}; }
+auto Util::create_itemid(QString type, QString id) const -> model::ItemId {
+    return model::ItemId {type, id};
+}
 
 auto Util::mpris_trackid(model::ItemId id) const -> QString {
     static const auto dbus_path = QStringLiteral(APP_ID).replace('.', '/');
@@ -62,11 +66,15 @@ auto Util::create_program(const QJSValue& js) const -> model::Program {
     return meta_model::toGadget<model::Program>(js);
 }
 
-auto Util::image_url(const QString& library_id, const QString& item_id,
-                     const QString& image_id) const -> QUrl {
-    return rstd::into(fmt::format(
-        "image://qcm/{}/{}/{}", library_id, item_id, image_id.isEmpty() ? "_" : image_id));
+auto Util::image_url(const QString& item_type, const QString& item_id,
+                     const QString& image_type) const -> QUrl {
+    return rstd::into(fmt::format("image://qcm/{}/{}/{}", item_type, item_id, image_type));
 }
+
+auto Util::audio_url(const QString& item_type, const QString& item_id) const -> QUrl {
+    return App::instance()->backend()->audio_url(item_type, item_id);
+}
+
 QUrl Util::image_cache_of(const QString& provider, const QUrl& url, QSize reqSize) const {
     auto out = qcm::image_uniq_hash(provider, url, reqSize).transform([](std::string_view id) {
         auto            p = qcm::cache_path_of(id);
@@ -176,10 +184,62 @@ json: {}
     }
 }
 
-QString Util::formatDateTime(const QJSValue& v, const QString& format) const {
-    if (v.isDate()) {
-        return v.toDateTime().toString(format);
+QString Util::joinName(const QJSValue& v, const QString& sp) const {
+    auto to_name = [](const QJSValue& v) {
+        if (v.hasProperty("name")) {
+            return v.property("name").toString();
+        }
+        return v.toString();
+    };
+
+    QStringList list;
+
+    if (v.isArray()) {
+        const int length = v.property("length").toInt();
+        for (int i = 0; i < length; ++i) {
+            auto a = v.property(i);
+            list.push_back(to_name(a));
+        }
+        return list.join(sp);
+    } else if (v.isQObject()) {
+        return to_name(v);
+    } else if (v.isObject()) {
+        auto var = v.toVariant();
+        if (var.canConvert<QVariantList>()) {
+            for (auto& a : var.toList()) {
+                auto js = App::instance()->engine()->toScriptValue(a);
+                list.push_back(to_name(js));
+            }
+            return list.join(sp);
+        }
+    } else if (v.isNull() || v.isUndefined()) {
+        return {};
     }
+    log::error("{}", v.toString());
+    return {};
+}
+
+QString Util::formatDateTime(const QJSValue& v, const QString& format) const {
+    do {
+        if (v.isDate()) {
+            return v.toDateTime().toString(format);
+        } else if (v.isQObject()) {
+            log::error("{}", v.toString());
+            break;
+        } else if (v.isNumber()) {
+            auto d = QDateTime::fromMSecsSinceEpoch(v.toNumber() / 1e3);
+            return d.toString(format);
+        } else if (v.isObject()) {
+            auto var = v.toVariant();
+            if (auto t = get_if<google::protobuf::Timestamp>(&var)) {
+                return t->toDateTime().toString(format);
+            }
+            log::error("{}", v.toString());
+            break;
+        } else {
+            log::error("{}", v.toString());
+        }
+    } while (0);
     return {};
 }
 } // namespace qcm::qml

@@ -11,6 +11,7 @@
 #include "qcm_interface/model/id_queue.h"
 #include "qcm_interface/enum.h"
 #include "core/asio/task.h"
+#include "Qcm/backend_msg.hpp"
 
 namespace qcm
 {
@@ -92,6 +93,7 @@ class PlayQueue : public meta_model::QMetaModelBase<QIdentityProxyModel> {
 public:
     using LoopMode = enums::LoopMode;
     using Option   = model::IdQueue::Option;
+    using Song     = query::Song;
 
     PlayQueue(QObject* parent = nullptr);
     ~PlayQueue();
@@ -158,11 +160,11 @@ private:
 
 private:
     PlayIdProxyQueue*                                m_proxy;
-    std::optional<query::Song>                       m_current_song;
-    query::Song                                      m_placeholder;
+    std::optional<Song>                              m_current_song;
+    Song                                             m_placeholder;
     enums::LoopMode                                  m_loop_mode;
     model::IdQueue::Options                          m_options;
-    mutable std::unordered_map<usize, query::Song>   m_songs;
+    mutable std::unordered_map<usize, Song>          m_songs;
     mutable std::unordered_map<usize, model::ItemId> m_source_ids;
 
     bool    m_can_next;

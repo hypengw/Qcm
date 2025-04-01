@@ -118,7 +118,7 @@ MD.Pane {
                         MD.MatProp.textColor: ma_subtitle.containsMouse ? MD.Token.color.primary : MD.Token.color.on_background
                         typescale: MD.Token.typescale.body_medium
                         opacity: 0.6
-                        text: QA.Global.join_name(root.currentSong.artists, '/')
+                        text: QA.Util.joinName(root.currentSong.artists, '/')
                         verticalAlignment: Qt.AlignVCenter
 
                         MouseArea {

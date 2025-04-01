@@ -27,6 +27,7 @@ public:
     ItemId();
     ItemId(std::nullptr_t);
     ItemId(QStringView provider, QStringView type, QStringView id, i64 library_id);
+    ItemId(QStringView type, QStringView id);
     ItemId(std::string_view provider, std::string_view type, std::string_view id, i64 library_id);
     explicit ItemId(const QUrl&);
     ~ItemId();

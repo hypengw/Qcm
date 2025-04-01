@@ -2,7 +2,7 @@
 
 #include "Qcm/backend.hpp"
 #include "Qcm/app.h"
-#include "Qcm/model/app_store.hpp"
+#include "Qcm/store.hpp"
 
 #include "qcm_interface/async.inl"
 
@@ -11,8 +11,7 @@ namespace qcm
 
 AlbumListModel::AlbumListModel(QObject* parent): base_type(parent) {}
 QQmlPropertyMap* AlbumListModel::extra(i32 idx) const {
-    if (auto extend = App::instance()->app_store()->albums.query_extend(this->key_at(idx));
-        extend) {
+    if (auto extend = App::instance()->store()->albums.query_extend(this->key_at(idx)); extend) {
         return extend->extra.get();
     }
     return nullptr;
@@ -20,10 +19,11 @@ QQmlPropertyMap* AlbumListModel::extra(i32 idx) const {
 
 AlbumsQuery::AlbumsQuery(QObject* parent): query::QueryList<AlbumListModel>(parent) {
     // set_use_queue(true);
-    this->tdata()->set_store(this->tdata(), App::instance()->app_store()->albums);
+    this->tdata()->set_store(this->tdata(), App::instance()->store()->albums);
 }
 
-static const std::set<QStringView> json_fields { u"artists" };
+static const std::set<QStringView> album_json_fields { u"artists" };
+static const std::set<QStringView> song_json_fields { u"artists", u"album" };
 
 void AlbumsQuery::reload() {
     set_status(Status::Querying);
@@ -39,8 +39,8 @@ void AlbumsQuery::reload() {
             self->tdata()->resetModel(el.items());
             for (qsizetype i = 0; i < el.extras().size(); i++) {
                 auto id = el.items().at(i).id_proto().toLongLong();
-                if (auto extend = App::instance()->app_store()->albums.query_extend(id); extend) {
-                    msg::merge_extra(*(extend->extra), el.extras().at(i), json_fields);
+                if (auto extend = App::instance()->store()->albums.query_extend(id); extend) {
+                    msg::merge_extra(*(extend->extra), el.extras().at(i), album_json_fields);
                 }
             }
             self->tdata()->setHasMore(el.hasMore());
@@ -65,8 +65,8 @@ void AlbumsQuery::fetchMore(qint32) {
 
             for (qsizetype i = 0; i < el.extras().size(); i++) {
                 auto id = el.items().at(i).id_proto().toLongLong();
-                if (auto extend = App::instance()->app_store()->albums.query_extend(id); extend) {
-                    msg::merge_extra(*(extend->extra), el.extras().at(i), json_fields);
+                if (auto extend = App::instance()->store()->albums.query_extend(id); extend) {
+                    msg::merge_extra(*(extend->extra), el.extras().at(i), album_json_fields);
                 }
             }
             self->setOffset(offset + 1);
@@ -76,16 +76,45 @@ void AlbumsQuery::fetchMore(qint32) {
     });
 }
 
-AlbumSongListModel::AlbumSongListModel(QObject* parent): base_type(parent) {}
-auto AlbumSongListModel::album() -> const album_type& { return m_item; }
-void AlbumSongListModel::setAlbum(const album_type& v) {
-    if (ycore::cmp_exchange(m_item, v)) {
-        albumChanged();
+AlbumSongListModel::AlbumSongListModel(QObject* parent): base_type(parent), m_key(0) {}
+AlbumSongListModel::~AlbumSongListModel() {
+    auto store = App::instance()->store();
+    store->albums.store_remove(m_key);
+}
+auto AlbumSongListModel::album() const -> album_type {
+    if (auto item = App::instance()->store()->albums.store_query(m_key); item) {
+        return *item;
     }
+    return {};
+}
+void AlbumSongListModel::setAlbum(const album_type& album) {
+    auto store = App::instance()->store();
+    auto key   = album.id_proto().toLongLong();
+
+    auto old = m_key;
+    if (ycore::cmp_exchange(m_key, key)) {
+        store->albums.store_remove(old);
+        store->albums.store_insert(album, true, 0);
+        albumChanged();
+    } else {
+        store->albums.store_insert(album, false, 0);
+    }
+}
+auto AlbumSongListModel::extra() const -> QQmlPropertyMap* {
+    if (auto extend = App::instance()->store()->albums.query_extend(m_key); extend) {
+        return extend->extra.get();
+    }
+    return nullptr;
+}
+auto AlbumSongListModel::songExtra(qint32 idx) const -> QQmlPropertyMap* {
+    if (auto extend = App::instance()->store()->songs.query_extend(this->key_at(idx)); extend) {
+        return extend->extra.get();
+    }
+    return nullptr;
 }
 
 AlbumQuery::AlbumQuery(QObject* parent): query::QueryList<AlbumSongListModel>(parent) {
-    this->tdata()->set_store(this->tdata(), App::instance()->app_store()->songs);
+    this->tdata()->set_store(this->tdata(), App::instance()->store()->songs);
 }
 auto AlbumQuery::itemId() const -> QString { return m_item_id; }
 void AlbumQuery::setItemId(QStringView in) {
@@ -104,8 +133,21 @@ void AlbumQuery::reload() {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
         self->inspect_set(rsp, [self](msg::GetAlbumRsp& el) {
+            auto store = App::instance()->store();
             self->tdata()->setAlbum(el.item());
             self->tdata()->resetModel(el.songs());
+
+            if (auto extend = store->albums.query_extend(el.item().id_proto().toLongLong());
+                extend) {
+                msg::merge_extra(*(extend->extra), el.extra(), album_json_fields);
+            }
+
+            for (qsizetype i = 0; i < el.songExtras().size(); i++) {
+                auto id = el.songs().at(i).id_proto().toLongLong();
+                if (auto extend = store->songs.query_extend(id); extend) {
+                    msg::merge_extra(*(extend->extra), el.songExtras().at(i), song_json_fields);
+                }
+            }
         });
         co_return;
     });

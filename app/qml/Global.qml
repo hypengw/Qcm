@@ -46,12 +46,6 @@ QA.GlobalWrapper {
         }
     }
 
-    function join_name(objs, split) {
-        const names = objs.map(o => {
-            return o.name;
-        });
-        return names.join(split);
-    }
     function route(dest, props = {}) {
         let url = dest;
         if (QA.App.isItemId(dest)) {

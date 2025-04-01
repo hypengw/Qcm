@@ -46,7 +46,7 @@ MD.Page {
 
                 displaySize: Qt.size(240, 240)
                 elevation: MD.Token.elevation.level2
-                // source: QA.Util.image_url(root.albumInfo.picUrl)
+                source: QA.Util.image_url("album", root.album.id_proto)
                 radius: 16
             }
             MD.Text {
@@ -64,13 +64,13 @@ MD.Page {
                 }
                 MD.Text {
                     typescale: MD.Token.typescale.body_medium
-                    text: Qt.formatDateTime(root.album.publishTime, 'yyyy.MM')
+                    text: QA.Util.formatDateTime(root.album.publishTime, 'yyyy.MM')
                 }
             }
             MD.Text {
                 id: m_artist
                 typescale: MD.Token.typescale.body_medium
-                // text: QA.Global.join_name(root.album.artists, '/')
+                text: QA.Util.joinName(m_view.model.extra?.artists, '/')
                 /*
                         onClicked: {
                             const artists = root.albumInfo.artists;
@@ -216,10 +216,11 @@ MD.Page {
             leftMargin: 16
             rightMargin: 16
 
-            subtitle: QA.Global.join_name(dgModel.artists, '/')
+            subtitle: QA.Util.joinName(ListView.view.model.songExtra(index).artists, '/')
 
             onClicked: {
-                QA.Action.play_by_id(dgModel.itemId);
+                const id = QA.Util.create_itemid("song", dgModel.id_proto);
+                QA.Action.play_by_id(id);
             }
         }
 

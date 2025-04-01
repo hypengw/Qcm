@@ -44,7 +44,7 @@ import platform;
 #include "qcm_interface/model/user_account.h"
 #include "Qcm/model/play_queue.hpp"
 #include "Qcm/model/page_model.hpp"
-#include "Qcm/model/app_store.hpp"
+#include "Qcm/store.hpp"
 #include "Qcm/backend.hpp"
 #include "Qcm/player.hpp"
 #include "Qcm/status/provider_status.hpp"
@@ -157,7 +157,6 @@ public:
           provider_meta_status(new ProviderMetaStatusModel(self)),
           provider_status(new ProviderStatusModel(self)),
           page_model(new PageModel(self)),
-          app_store(new AppStore(self)),
 #ifndef NODEBUS
           m_mpris(make_up<mpris::Mpris>()),
 #endif
@@ -183,7 +182,6 @@ public:
     ProviderMetaStatusModel* provider_meta_status;
     ProviderStatusModel*     provider_status;
     PageModel*               page_model;
-    AppStore*                app_store;
 #ifndef NODEBUS
     Box<mpris::Mpris> m_mpris;
 #endif
@@ -504,8 +502,20 @@ void App::releaseResources(QQuickWindow*) {
     auto as_mb = [](usize n) {
         return fmt::format("{:.2f} MB", n / (1024.0 * 1024.0));
     };
+
+    auto store = AppStore::instance();
+
+    log::debug(R"(
+--- store ---
+albums: {}
+songs: {}
+)",
+               store->albums.size(),
+               store->songs.size());
+
     auto info = plt::mem_info();
     log::debug(R"(
+--- memory ---
 heap: {}
 mmap({}): {}
 in use: {}
@@ -601,9 +611,9 @@ auto App::pages() const -> PageModel* {
     C_D(const App);
     return d->page_model;
 }
-auto App::app_store() const -> AppStore* {
+auto App::store() const -> AppStore* {
     C_D(const App);
-    return d->app_store;
+    return AppStore::instance();
 }
 void App::switchPlayIdQueue() {
     C_D(App);

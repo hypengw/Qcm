@@ -13,6 +13,7 @@
 #include "core/asio/watch_dog.h"
 
 #include "Qcm/model/play_queue.hpp"
+#include "Qcm/backend.hpp"
 
 namespace qcm
 {
@@ -137,6 +138,9 @@ void App::connect_actions() {
             dog->cancel();
             auto curId = playqueue()->currentId();
             if (! curId || ! curId->valid()) return;
+            auto b = this->backend();
+            Action::instance()->play(b->audio_url(u"song", curId->id()), true);
+            /*
             QSettings s;
             auto      qu = s.value("play/play_quality").value<enums::AudioQuality>();
 
@@ -169,6 +173,7 @@ void App::connect_actions() {
                     },
                     helper::asio_detached_log_t {});
             }
+                    */
         });
     }
 }

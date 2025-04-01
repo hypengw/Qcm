@@ -6,7 +6,7 @@ import Qcm.Material as MD
 
 Action {
     id: root
-    property bool liked: QA.Global.session.user.collection.contains(itemId)
+    property bool liked: false// QA.Global.session.user.collection.contains(itemId)
     property var itemId: null
 
     icon.name: liked ? MD.Token.icon.done : MD.Token.icon.add

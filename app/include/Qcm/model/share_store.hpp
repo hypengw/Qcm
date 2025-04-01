@@ -6,13 +6,12 @@
 #include <QtQml/QJSEngine>
 
 #include "meta_model/share_store.hpp"
+#include "core/core.h"
 
 namespace qcm
 {
 
 struct ShareStoreExt {
-
-
     using ptr = std::unique_ptr<QQmlPropertyMap, void (*)(QQmlPropertyMap*)>;
     ShareStoreExt()
         : extra(ptr(new QQmlPropertyMap(), [](QQmlPropertyMap* p) {

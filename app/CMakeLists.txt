@@ -12,6 +12,7 @@ set(SOURCES
     src/log.cpp
     src/action.cpp
     src/app.cpp
+    src/store.cpp
     src/player.cpp
     src/backend.cpp
     src/qml/clipboard.cpp
@@ -24,7 +25,6 @@ set(SOURCES
     src/model/lyric.cpp
     src/model/page_model.cpp
     src/model/play_queue.cpp
-    src/model/app_store.cpp
     src/query/album_query.cpp
     src/query/artist_query.cpp
     src/query/provider_query.cpp

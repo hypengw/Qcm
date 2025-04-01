@@ -6,7 +6,7 @@ import "google/protobuf/timestamp.proto";
 
 message Song {
   string id = 1;
-  string item_id = 2;
+  string native_id = 2;
   string library_id = 3;
   string name = 4;
   string album_id = 5;
@@ -22,7 +22,7 @@ message Song {
 
 message Radio {
   string id = 1;
-  string item_id = 2;
+  string native_id = 2;
   string library_id = 3;
   string name = 4;
   string description = 6;
@@ -33,7 +33,7 @@ message Radio {
 
 message Program {
   string id = 1;
-  string item_id = 2;
+  string native_id = 2;
   string library_id = 3;
   string name = 4;
   string description = 5;
@@ -48,7 +48,7 @@ message Program {
 
 message Mix {
   string id = 1;
-  string item_id = 2;
+  string native_id = 2;
   string library_id = 3;
   string name = 4;
   int32 track_count = 6;
@@ -72,7 +72,7 @@ message Library {
 
 message Artist {
   string id = 1;
-  string item_id = 2;
+  string native_id = 2;
   string name = 3;
   string library_id = 5;
   string description = 6;
@@ -83,7 +83,7 @@ message Artist {
 
 message Album {
   string id = 1;
-  string item_id = 2;
+  string native_id = 2;
   string library_id = 3;
   string name = 4;
   google.protobuf.Timestamp publish_time = 6;
@@ -91,6 +91,11 @@ message Album {
   string description = 8;
   string company = 9;
   google.protobuf.Timestamp edit_time = 11;
+}
+
+message LyricLine {
+  string text = 1;
+  int64 start = 2;
 }
 
 message UsernameAuth {

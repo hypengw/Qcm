@@ -167,9 +167,14 @@ MD.Page {
                 Component {
                     id: dg_albumlist
                     BaseItem {
-                        image: QA.Util.image_url(model.libraryId, model.itemId, model.picId)
+                        image: QA.Util.image_url("album", model.id_proto)
                         text: model.name
-                        supportText: `${QA.Global.join_name(ListView.view.model.extra(index).artists, '/')} - ${model.trackCount} tracks`
+                        supportText: {
+                            const ex = QA.Store.albumExtra(model.id_proto);
+                            const tc = model.trackCount;
+                            const trackInfo = tc > 0 ? qsTr(`${tc} tracks`) : qsTr('no track');
+                            return [QA.Util.joinName(ex?.artists, '/'), trackInfo].filter(e => !!e).join(' - ');
+                        }
                         function showMenu(parent) {
                             console.error(ListView.view.model.extra(index).artists);
                         // MD.Util.show_popup('qrc:/Qcm/App/qml/menu/AlbumMenu.qml', {
@@ -182,7 +187,7 @@ MD.Page {
                 Component {
                     id: dg_artistlist
                     BaseItem {
-                        image: QA.Util.image_url(model.libraryId, model.itemId, model.picId)
+                        image: QA.Util.image_url("artist", model.id_proto)
                         text: model.name
                         // supportText: `${model.albumCount} albums`
                         function showMenu(parent) {
@@ -196,7 +201,7 @@ MD.Page {
                 Component {
                     id: dg_playlist
                     BaseItem {
-                        image: QA.Util.image_url(model.picUrl)
+                        image: QA.Util.image_url("mix", model.id_proto)
                         text: model.name
                         supportText: `${model.trackCount} songs`
                         function showMenu(parent) {
@@ -211,7 +216,7 @@ MD.Page {
                 Component {
                     id: dg_djradiolist
                     BaseItem {
-                        image: QA.Util.image_url(model.picUrl)
+                        image: QA.Util.image_url("radio", model.id_proto)
                         text: model.name
                         supportText: `${model.programCount} programs`
                         function showMenu(parent) {
@@ -271,7 +276,7 @@ MD.Page {
 
         function checkCur() {
             if (currentItem) {
-                if (currentItem.itemId !== m_content.currentItemId)
+                if (currentItem.id_proto !== m_content.currentItemId)
                     currentIndex = -1;
             }
         }
@@ -302,6 +307,8 @@ MD.Page {
     }
 
     component BaseItem: MD.ListItem {
+        required property int index
+        required property var model
         property var itemId: model.id_proto
         property string image
 

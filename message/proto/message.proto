@@ -21,9 +21,8 @@ enum MessageType {
   GET_ARTISTS_RSP = 12;
   GET_ALBUM_REQ = 13;
   GET_ALBUM_RSP = 14;
-  //  GET_ALL_ALBUMS_RESPONSE = 4;
-  //  GET_SONGS_BY_ALBUM_REQUEST = 5;
-  //  GET_SONGS_BY_ALBUM_RESPONSE = 6;
+  GET_LYRIC_REQ = 15;
+  GET_LYRIC_RSP = 16;
 }
 
 message GetSongsByAlbumRequest {
@@ -47,10 +46,17 @@ enum ErrorCode {
   MISSING_FIELDS = 7;
   NO_SUCH_PROVIDER_TYPE = 8;
   DB = 9;
-  NO_SUCH_LIBRARY = 10;
-  NO_SUCH_PROVIDER = 11;
-  NO_SUCH_ALBUM = 12;
-  HYPER_BODY = 13;
+  HYPER_BODY = 10;
+  WRONG_ID = 11;
+
+  NO_SUCH_LIBRARY = 100;
+  NO_SUCH_PROVIDER = 101;
+  NO_SUCH_ALBUM = 102;
+  NO_SUCH_SONG = 103;
+  NO_SUCH_ITEM_TYPE = 104;
+  NO_SUCH_IMAGE_TYPE = 105;
+
+  UNSUPPORTED_ITEM_TYPE = 200;
 }
 
 message Rsp {
@@ -120,6 +126,12 @@ message GetArtistsRsp {
   bool has_more = 4;
 }
 
+message GetLyricReq { string id = 1; }
+
+message GetLyricRsp {
+  repeated qcm.msg.model.LyricLine lines = 1;
+}
+
 message QcmMessage {
   MessageType type = 1;
   int32 id = 2;
@@ -139,9 +151,7 @@ message QcmMessage {
     GetArtistsRsp get_artists_rsp = 111;
     GetAlbumReq get_album_req = 112;
     GetAlbumRsp get_album_rsp = 113;
-    //    GetAllAlbumsRequest get_all_albums_request = 103;
-    //    GetAllAlbumsResponse get_all_albums_response = 104;
-    //    GetSongsByAlbumRequest get_songs_by_album_request = 105;
-    //    GetSongsByAlbumResponse get_songs_by_album_response = 106;
+    GetLyricReq get_lyric_req = 114;
+    GetLyricRsp get_lyric_rsp = 115;
   }
 }

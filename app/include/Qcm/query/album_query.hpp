@@ -36,22 +36,28 @@ class AlbumSongListModel
     Q_OBJECT
 
     Q_PROPERTY(qcm::msg::model::Album album READ album NOTIFY albumChanged)
+    Q_PROPERTY(QQmlPropertyMap* extra READ extra NOTIFY albumChanged)
     using base_type =
         meta_model::QGadgetListModel<msg::model::Song, meta_model::QMetaListStore::Share>;
 
-    using album_type  = msg::model::Album;
+    using album_type = msg::model::Album;
     using value_type = msg::model::Song;
 
 public:
     AlbumSongListModel(QObject* parent = nullptr);
+    ~AlbumSongListModel();
 
-    auto album() -> const album_type&;
+    auto album() const -> album_type;
+    auto extra() const -> QQmlPropertyMap*;
+
     void setAlbum(const album_type&);
+
+    Q_INVOKABLE QQmlPropertyMap* songExtra(qint32) const;
 
     Q_SIGNAL void albumChanged();
 
 private:
-    album_type m_item;
+    i64 m_key;
 };
 
 class AlbumQuery : public query::QueryList<AlbumSongListModel> {

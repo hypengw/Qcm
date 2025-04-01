@@ -39,9 +39,9 @@ void header_record_db(const ncrequest::HttpHeader& h, media_cache::DataBase::Ite
 }
 
 struct ImageParam {
-    QString library_id;
+    QString item_type;
     QString item_id;
-    QString image_id;
+    QString image_type;
 };
 
 auto parse_image_url(QUrl url) -> ImageParam {
@@ -110,7 +110,7 @@ public:
         //     co_await cache_new_image(req, key, cache_path, req_size);
         // }
         auto b        = App::instance()->backend();
-        auto rsp_http = co_await b->image(p.library_id, p.item_id, p.image_id);
+        auto rsp_http = co_await b->image(p.item_type, p.item_id, p.image_type);
         auto bytes    = co_await rsp_http->bytes();
 
         QImage img;

@@ -24,6 +24,7 @@ public:
     static Util* create(QQmlEngine* qmlEngine, QJSEngine* jsEngine);
 
     Q_INVOKABLE model::ItemId create_itemid() const;
+    Q_INVOKABLE model::ItemId create_itemid(QString type, QString id) const;
     Q_INVOKABLE QString       mpris_trackid(model::ItemId) const;
     Q_INVOKABLE model::RouteMsg create_route_msg(QVariantMap) const;
     Q_INVOKABLE model::Mix create_playlist(const QJSValue& = {}) const;
@@ -32,8 +33,7 @@ public:
     Q_INVOKABLE model::Artist create_artist(const QJSValue& = {}) const;
     Q_INVOKABLE model::Radio create_djradio(const QJSValue& = {}) const;
     Q_INVOKABLE model::Program create_program(const QJSValue& = {}) const;
-    Q_INVOKABLE QUrl           image_url(const QString& library_id, const QString& item_id,
-                                         const QString& image_idconst) const;
+
     Q_INVOKABLE QUrl image_cache_of(const QString& provider, const QUrl& url, QSize reqSize) const;
     Q_INVOKABLE QUrl media_cache_of(const QString& id) const;
 
@@ -42,7 +42,13 @@ public:
     Q_INVOKABLE void print(const QJSValue&) const;
     Q_INVOKABLE QUrl special_route_url(enums::SpecialRoute) const;
     Q_INVOKABLE model::RouteMsg route_msg(enums::SpecialRoute) const;
-    Q_INVOKABLE QString         formatDateTime(const QJSValue&, const QString&) const;
+
+    Q_INVOKABLE QUrl image_url(const QString& item_type, const QString& item_id,
+                               const QString& image_type = "Primary") const;
+    Q_INVOKABLE QUrl audio_url(const QString& item_type, const QString& item_id) const;
+
+    Q_INVOKABLE QString joinName(const QJSValue&, const QString& = "/") const;
+    Q_INVOKABLE QString formatDateTime(const QJSValue&, const QString&) const;
 };
 } // namespace qml
 

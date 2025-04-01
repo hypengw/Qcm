@@ -117,7 +117,7 @@ public:
     auto        provider_meta_status() const -> ProviderMetaStatusModel*;
     auto        provider_status() const -> ProviderStatusModel*;
     auto        pages() const -> PageModel*;
-    auto        app_store() const -> AppStore*;
+    auto        store() const -> AppStore*;
     void        switchPlayIdQueue();
 
     QObject* mpris() const;
