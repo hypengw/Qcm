@@ -19,6 +19,8 @@ enum MessageType {
   GET_ALBUMS_RSP = 10;
   GET_ARTISTS_REQ = 11;
   GET_ARTISTS_RSP = 12;
+  GET_ALBUM_REQ = 13;
+  GET_ALBUM_RSP = 14;
   //  GET_ALL_ALBUMS_RESPONSE = 4;
   //  GET_SONGS_BY_ALBUM_REQUEST = 5;
   //  GET_SONGS_BY_ALBUM_RESPONSE = 6;
@@ -47,7 +49,8 @@ enum ErrorCode {
   DB = 9;
   NO_SUCH_LIBRARY = 10;
   NO_SUCH_PROVIDER = 11;
-  HYPER_BODY = 12;
+  NO_SUCH_ALBUM = 12;
+  HYPER_BODY = 13;
 }
 
 message Rsp {
@@ -93,6 +96,15 @@ message GetAlbumsRsp {
   bool has_more = 4;
 }
 
+message GetAlbumReq { string id = 1; }
+
+message GetAlbumRsp {
+  qcm.msg.model.Album item = 1;
+  google.protobuf.Struct extra = 2;
+  repeated qcm.msg.model.Song songs = 3;
+  repeated google.protobuf.Struct song_extras = 4;
+}
+
 message GetArtistsReq {
   repeated string library_id = 1;
   int32 page = 2;
@@ -125,6 +137,8 @@ message QcmMessage {
     GetAlbumsRsp get_albums_rsp = 109;
     GetArtistsReq get_artists_req = 110;
     GetArtistsRsp get_artists_rsp = 111;
+    GetAlbumReq get_album_req = 112;
+    GetAlbumRsp get_album_rsp = 113;
     //    GetAllAlbumsRequest get_all_albums_request = 103;
     //    GetAllAlbumsResponse get_all_albums_response = 104;
     //    GetSongsByAlbumRequest get_songs_by_album_request = 105;

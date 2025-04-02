@@ -70,6 +70,7 @@ MD.Page {
                         busy: qr_albumlist.querying
                         delegate: dg_albumlist
                         model: qr_albumlist.data
+                        type: 'album'
                         refresh: function () {
                             root.refresh_list(qr_albumlist);
                         }
@@ -80,6 +81,7 @@ MD.Page {
                         delegate: dg_artistlist
                         busy: qr_artistlist.querying
                         model: qr_artistlist.data
+                        type: 'artist'
                         refresh: function () {
                             root.refresh_list(qr_artistlist);
                         }
@@ -170,10 +172,10 @@ MD.Page {
                         supportText: `${QA.Global.join_name(ListView.view.model.extra(index).artists, '/')} - ${model.trackCount} tracks`
                         function showMenu(parent) {
                             console.error(ListView.view.model.extra(index).artists);
-                            // MD.Util.show_popup('qrc:/Qcm/App/qml/menu/AlbumMenu.qml', {
-                            //     "itemId": model.itemId,
-                            //     "y": parent.height
-                            // }, parent);
+                        // MD.Util.show_popup('qrc:/Qcm/App/qml/menu/AlbumMenu.qml', {
+                        //     "itemId": model.itemId,
+                        //     "y": parent.height
+                        // }, parent);
                         }
                     }
                 }
@@ -240,9 +242,14 @@ MD.Page {
                 else
                     m_content.replace(m_content.currentItem, item, params, oper);
             }
-            function route(itemId) {
+            function route(itemId, type) {
                 currentItemId = itemId;
-                push_page(QA.App.itemIdPageUrl(itemId), {
+                let url = null;
+                switch (type) {
+                case 'album':
+                    url = 'qrc:/Qcm/App/qml/page/detail/AlbumDetailPage.qml';
+                }
+                push_page(url, {
                     "itemId": itemId
                 });
             }
@@ -259,6 +266,7 @@ MD.Page {
         bottomMargin: root.vpadding
 
         property bool dirty: false
+        property string type
         property var refresh: function () {}
 
         function checkCur() {
@@ -294,7 +302,7 @@ MD.Page {
     }
 
     component BaseItem: MD.ListItem {
-        property var itemId: model.itemId
+        property var itemId: model.id_proto
         property string image
 
         width: ListView.view.width
@@ -324,7 +332,8 @@ MD.Page {
             leftMargin: 48 + 16 * 2
         }
         onClicked: {
-            m_content.route(itemId);
+            m_content.route(itemId, ListView.view.type);
+
             ListView.view.currentIndex = index;
         }
     }

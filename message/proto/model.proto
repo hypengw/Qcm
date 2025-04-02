@@ -11,12 +11,13 @@ message Song {
   string name = 4;
   string album_id = 5;
   int32 track_number = 6;
-  google.protobuf.Timestamp duration = 7;
-  int32 can_play = 8;
-  string cover_url = 9;
-  string tags = 10;
+  int32 disc_number = 7;
+  double duration = 8;
+  bool can_play = 9;
+  google.protobuf.Timestamp publish_time = 10;
   double popularity = 11;
   google.protobuf.Timestamp edit_time = 12;
+  repeated string tags = 13;
 }
 
 message Radio {

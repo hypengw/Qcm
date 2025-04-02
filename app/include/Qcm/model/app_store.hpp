@@ -12,6 +12,7 @@ class AppStore : public QObject {
 public:
     AppStore(QObject* parent = nullptr);
     meta_model::ItemTrait<qcm::msg::model::Album>::store_type albums;
+    meta_model::ItemTrait<qcm::msg::model::Song>::store_type  songs;
 };
 
 } // namespace qcm

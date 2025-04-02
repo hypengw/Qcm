@@ -8,7 +8,7 @@ import Qcm.Material as MD
 MD.Page {
     id: root
 
-    property var albumInfo: qr_al.data.info
+    readonly property var album: qr_al.data.album
     property alias itemId: qr_al.itemId
     title: qsTr("album")
 
@@ -46,13 +46,13 @@ MD.Page {
 
                 displaySize: Qt.size(240, 240)
                 elevation: MD.Token.elevation.level2
-                source: QA.Util.image_url(root.albumInfo.picUrl)
+                // source: QA.Util.image_url(root.albumInfo.picUrl)
                 radius: 16
             }
             MD.Text {
                 id: m_title
                 maximumLineCount: 2
-                text: root.albumInfo.name
+                text: root.album.name
                 typescale: m_view.single ? MD.Token.typescale.headline_medium : MD.Token.typescale.headline_large
             }
             RowLayout {
@@ -60,17 +60,17 @@ MD.Page {
                 spacing: 12
                 MD.Text {
                     typescale: MD.Token.typescale.body_medium
-                    text: `${root.albumInfo.trackCount} tracks`
+                    text: `${root.album.trackCount} tracks`
                 }
                 MD.Text {
                     typescale: MD.Token.typescale.body_medium
-                    text: Qt.formatDateTime(root.albumInfo.publishTime, 'yyyy.MM')
+                    text: Qt.formatDateTime(root.album.publishTime, 'yyyy.MM')
                 }
             }
             MD.Text {
                 id: m_artist
                 typescale: MD.Token.typescale.body_medium
-                text: QA.Global.join_name(root.albumInfo.artists, '/')
+                // text: QA.Global.join_name(root.album.artists, '/')
                 /*
                         onClicked: {
                             const artists = root.albumInfo.artists;
@@ -86,7 +86,7 @@ MD.Page {
 
             QA.ListDescription {
                 id: m_desc
-                description: root.albumInfo.description.trim()
+                description: root.album.description.trim()
             }
             RowLayout {
                 id: m_control_pane
@@ -242,7 +242,8 @@ MD.Page {
         }
     }
 
-    QA.AlbumDetailQuery {
+    QA.AlbumQuery {
         id: qr_al
+        Component.onCompleted: reload()
     }
 }

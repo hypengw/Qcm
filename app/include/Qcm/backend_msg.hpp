@@ -14,7 +14,8 @@ import qcm.core;
 namespace qcm::msg
 {
 
-void merge_extra(QQmlPropertyMap&, const google::protobuf::Struct&, const std::set<QStringView>& is_json_field);
+void merge_extra(QQmlPropertyMap&, const google::protobuf::Struct&,
+                 const std::set<QStringView>& is_json_field);
 
 struct Error {
     int         code { 0 };
@@ -99,6 +100,19 @@ struct MsgTraits<msg::GetAlbumsReq> {
 };
 
 template<>
+struct MsgTraits<msg::GetAlbumReq> {
+    using Rsp                   = msg::GetAlbumRsp;
+    static constexpr auto HasFn = &msg::QcmMessage::hasGetAlbumReq;
+    static constexpr auto GetFn = &msg::QcmMessage::getAlbumReq;
+
+    template<typename T>
+    static auto set(msg::QcmMessage& m, T&& r) {
+        m.setType(MessageTypeGadget::MessageType::GET_ALBUM_REQ);
+        m.setGetAlbumReq(std::forward<T>(r));
+    }
+};
+
+template<>
 struct MsgTraits<msg::GetArtistsReq> {
     using Rsp                   = msg::GetArtistsRsp;
     static constexpr auto HasFn = &msg::QcmMessage::hasGetArtistsReq;
@@ -115,6 +129,12 @@ template<>
 struct MsgTraits<msg::GetAlbumsRsp> {
     static constexpr auto HasFn = &msg::QcmMessage::hasGetAlbumsRsp;
     static constexpr auto GetFn = &msg::QcmMessage::getAlbumsRsp;
+};
+
+template<>
+struct MsgTraits<msg::GetAlbumRsp> {
+    static constexpr auto HasFn = &msg::QcmMessage::hasGetAlbumRsp;
+    static constexpr auto GetFn = &msg::QcmMessage::getAlbumRsp;
 };
 
 template<>
@@ -154,8 +174,7 @@ template<>
 struct meta_model::ItemTrait<qcm::msg::model::Album> {
     using Self       = qcm::msg::model::Album;
     using key_type   = i64;
-    using store_type = ShareStore<qcm::msg::model::Album, std::pmr::polymorphic_allocator<Self>,
-                                  qcm::ShareStoreExt>;
+    using store_type = ShareStore<Self, std::pmr::polymorphic_allocator<Self>, qcm::ShareStoreExt>;
     static auto key(const Self& el) noexcept -> i64 { return el.id_proto().toLongLong(); }
 };
 
@@ -165,6 +184,14 @@ struct meta_model::ItemTrait<qcm::msg::model::Artist> {
     static auto key(const qcm::msg::model::Artist& el) noexcept -> i64 {
         return el.id_proto().toLongLong();
     }
+};
+
+template<>
+struct meta_model::ItemTrait<qcm::msg::model::Song> {
+    using Self       = qcm::msg::model::Song;
+    using key_type   = i64;
+    using store_type = ShareStore<Self, std::pmr::polymorphic_allocator<Self>, qcm::ShareStoreExt>;
+    static auto key(const Self& el) noexcept -> i64 { return el.id_proto().toLongLong(); }
 };
 
 template<>
