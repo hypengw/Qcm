@@ -25,8 +25,24 @@ A backend implementation can be found at [QcmBackend](https://github.com/hypengw
   </tr>
 </table>
 
-### Download:  
+## Installation
+
+### Flathub
+
 <a href='https://flathub.org/apps/details/io.github.hypengw.Qcm'><img width='240' alt='Download on Flathub' src='https://dl.flathub.org/assets/badges/flathub-badge-en.png'/></a>
+
+### Arch Linux
+#### AUR
+
+```shell
+[yay/paru] -S qcm
+```
+
+#### [archlinuxcn](http://github.com/archlinuxcn/repo) repository
+
+```shell
+sudo pacman -S qcm
+```
 
 ### Require:  
 - Compiler: clang 19+
@@ -51,8 +67,8 @@ The following libraries were extracted and modularized during Qcm's development.
 - [fmt](https://github.com/fmtlib/fmt)
 - [ctre](https://github.com/hanickadot/compile-time-regular-expressions)
 
-### Build:  
-```
+## Build
+```shell
 git clone https://github.com/hypengw/Qcm.git  
 git submodule update --init
 
@@ -67,7 +83,7 @@ export QML_IMPORT_PATH=$PWD/build/qml_modules
 cmake --install build
 ```
 
-### Faq:
+## FAQ
 - Desktop lyrics
   > use [waylyrics](https://github.com/waylyrics/waylyrics)
 
@@ -89,7 +105,6 @@ cmake --install build
   [📦 io.github.hypengw.Qcm ~]$ gdb Qcm core.save
   ...
   ```
-  
 
 ### Todo:
 - [ ] mac/win
