@@ -30,7 +30,6 @@
 import platform;
 #include "core/qasio/qt_sql.h"
 
-#include "qcm_interface/plugin.h"
 #include "qcm_interface/type.h"
 #include "qcm_interface/path.h"
 
@@ -39,9 +38,7 @@ import platform;
 #include "Qcm/qml/qml_util.hpp"
 #include "Qcm/sql/collection_sql.h"
 #include "Qcm/sql/cache_sql.h"
-#include "Qcm/sql/item_sql.h"
 
-#include "qcm_interface/model/user_account.h"
 #include "Qcm/model/play_queue.hpp"
 #include "Qcm/model/page_model.hpp"
 #include "Qcm/store.hpp"
@@ -189,7 +186,6 @@ public:
     Arc<CacheSql>      m_media_cache_sql;
     Arc<CacheSql>      m_cache_sql;
     Arc<CollectionSql> m_collect_sql;
-    Arc<ItemSql>       m_item_sql;
 
     Box<Backend> m_backend;
 
@@ -244,12 +240,10 @@ App::App(QStringView backend_exe, std::monostate)
         auto data_db         = make_rc<helper::SqlConnect>(data_path() / "data.db", u"data");
         d->m_media_cache_sql = make_rc<CacheSql>("media_cache", 0, cache_db);
         d->m_cache_sql       = make_rc<CacheSql>("cache", 0, cache_db);
-        d->m_item_sql        = make_rc<ItemSql>(data_db);
         d->m_collect_sql     = make_rc<CollectionSql>("collection", data_db);
         d->m_global->set_cache_sql(d->m_cache_sql);
         d->m_global->set_metadata_impl(player::get_metadata);
         d->m_global->set_collection_sql(d->m_collect_sql);
-        d->m_global->set_item_sql(d->m_item_sql);
     }
 }
 App::~App() {}
@@ -335,14 +329,7 @@ void App::init() {
     _assert_msg_rel_(d->m_main_win, "main window must exist");
     _assert_msg_rel_(d->m_player_sender, "player must init");
 
-    global()->load_user();
-
-    if (false && global()->user_model()->active_user() != nullptr) {
-        auto user = global()->user_model()->active_user();
-        global()->switch_user(user);
-    } else {
-        global()->app_state()->set_state(state::AppState::Start {});
-    }
+    global()->app_state()->set_state(state::AppState::Start {});
 }
 
 QString App::media_url(const QUrl& ori, const QString& id) const {
@@ -585,10 +572,6 @@ auto App::media_cache_sql() const -> rc<CacheSql> {
 auto App::cache_sql() const -> rc<CacheSql> {
     C_D(const App);
     return d->m_cache_sql;
-}
-auto App::item_sql() const -> rc<ItemSql> {
-    C_D(const App);
-    return d->m_item_sql;
 }
 auto App::collect_sql() const -> rc<CollectionSql> {
     C_D(const App);

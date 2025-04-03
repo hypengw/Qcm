@@ -12,10 +12,7 @@ import qcm.random;
 #include "core/qasio/qt_sql.h"
 #include "qcm_interface/ex.h"
 #include "qcm_interface/action.h"
-#include "qcm_interface/sync_api.h"
 #include "Qcm/app.h"
-#include "Qcm/sql/item_sql.h"
-#include "Qcm/query/query_load.h"
 
 namespace qcm
 {
@@ -190,7 +187,7 @@ PlayQueue::PlayQueue(QObject* parent)
       m_can_jump(true),
       m_can_user_remove(true),
       m_random_mode(false) {
-    updateRoleNames(query::Song::staticMetaObject);
+    updateRoleNames(model::Song::staticMetaObject);
     connect(this, &PlayQueue::currentIndexChanged, this, [this](qint32 idx) {
         setCurrentSong(idx);
     });
@@ -214,7 +211,7 @@ auto PlayQueue::data(const QModelIndex& index, int role) const -> QVariant {
 
         if (auto prop = this->propertyOfRole(role); prop) {
             if (it_ok) {
-                const query::Song& song = it->second;
+                const model::Song& song = it->second;
                 return prop.value().readOnGadget(&song);
             } else if (prop->name() == "itemId"sv) {
                 return QVariant::fromValue(*id);
@@ -278,31 +275,33 @@ void PlayQueue::setSourceModel(QAbstractItemModel* source_model) {
     setCanRemove(m_options & Option::SupportUserRemove);
 }
 
-auto PlayQueue::currentSong() const -> query::Song {
+auto PlayQueue::currentSong() const -> model::Song {
     if (m_current_song) return *m_current_song;
-    query::Song s {};
+    model::Song s {};
     if (auto id = currentId()) {
-        s.id = *id;
+        // TODO
+        // s.id = *id;
 
-        if (auto it = m_source_ids.find(std::hash<model::ItemId>()(*id));
-            it != m_source_ids.end()) {
-            s.sourceId = it->second;
-        }
+        // if (auto it = m_source_ids.find(std::hash<model::ItemId>()(*id));
+        //     it != m_source_ids.end()) {
+        //     s.sourceId = it->second;
+        // }
     }
     return s;
 }
 
-void PlayQueue::setCurrentSong(const std::optional<query::Song>& s) {
-    auto get_id = [](const auto& el) {
-        return el.id;
-    };
-    if (m_current_song.transform(get_id) != s.transform(get_id)) {
-        m_current_song = s;
-        currentSongChanged();
-    }
+void PlayQueue::setCurrentSong(const std::optional<model::Song>& s) {
+    // TODO
+    // auto get_id = [](const auto& el) {
+    //     return el.id;
+    // };
+    // if (m_current_song.transform(get_id) != s.transform(get_id)) {
+    //     m_current_song = s;
+    //     currentSongChanged();
+    // }
 }
 void PlayQueue::setCurrentSong(qint32 idx) {
-    setCurrentSong(getId(idx).and_then([this](const auto& id) -> std::optional<query::Song> {
+    setCurrentSong(getId(idx).and_then([this](const auto& id) -> std::optional<model::Song> {
         auto hash = std::hash<model::ItemId>()(id);
         if (auto it = m_songs.find(hash); it != m_songs.end()) {
             return it->second;
@@ -459,96 +458,21 @@ void PlayQueue::startIfNoCurrent() {
 
 void PlayQueue::clear() { removeRows(0, rowCount()); }
 
-auto PlayQueue::update(std::span<const query::Song> in) -> void {
-    for (auto& el : in) {
-        auto hash = std::hash<model::ItemId>()(el.id);
-        m_songs.insert_or_assign(hash, el);
-    }
+auto PlayQueue::update(std::span<const model::Song> in) -> void {
+    // for (auto& el : in) {
+    //     auto hash = std::hash<model::ItemId>()(el.id);
+    //     m_songs.insert_or_assign(hash, el);
+    // }
 }
 
-auto PlayQueue::querySongsSql(std::span<const model::ItemId> ids)
-    -> task<std::vector<query::Song>> {
-    std::vector<query::Song> out;
-    auto                     sql = App::instance()->item_sql();
-    QStringList              placeholders;
-    for (usize i = 0; i < ids.size(); ++i) {
-        placeholders << u":id%1"_s.arg(i);
-    }
-    co_await asio::post(asio::bind_executor(sql->get_executor(), asio::use_awaitable));
-    auto query = sql->con()->query();
-    query.prepare_sv(fmt::format(R"(
-SELECT 
-    {0}
-FROM song
-JOIN album ON song.albumId = album.itemId
-LEFT JOIN song_artist ON song.itemId = song_artist.songId
-LEFT JOIN artist ON song_artist.artistId = artist.itemId
-WHERE song.itemId IN ({1})
-GROUP BY song.itemId
-ORDER BY song.trackNumber ASC;
-)",
-                                 query::Song::sql().select,
-                                 placeholders.join(",")));
-
-    for (usize i = 0; i < ids.size(); ++i) {
-        query.bindValue(placeholders[i], ids[i].toUrl());
-    }
-    if (! query.exec()) {
-        ERROR_LOG("{}", query.lastError().text());
-    } else {
-        while (query.next()) {
-            auto& s = out.emplace_back();
-            int   i = 0;
-            query::load_query(query, s, i);
-        }
-    }
-
-    co_return out;
-}
-
-auto PlayQueue::querySongs(std::span<const model::ItemId> ids) -> task<void> {
-    auto sql     = App::instance()->item_sql();
-    auto missing = co_await sql->missing(
-        ids, ItemSql::Table::SONG, ItemSql::Table::ALBUM, { "album.picUrl"s });
-    if (! missing.empty()) co_await query::SyncAPi::sync_items(missing);
-    auto songs = co_await querySongsSql(ids);
-    co_await asio::post(asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
-    std::unordered_set<usize> hashes;
-    for (auto& s : songs) {
-        auto  hash      = get_hash(s.id);
-        auto& source_id = s.sourceId;
-
-        if (auto it = m_source_ids.find(hash); it != m_source_ids.end()) {
-            source_id = it->second;
-            m_source_ids.erase(it);
-        } else if (auto it = m_songs.find(hash); it != m_songs.end()) {
-            source_id = it->second.sourceId;
-        }
-
-        hashes.insert(hash);
-        m_songs.insert_or_assign(hash, s);
-    }
-
-    for (int i = 0; i < rowCount(); i++) {
-        auto hash = getId(i).transform(get_hash).value_or(0);
-        if (hashes.contains(hash)) {
-            auto idx = index(i, 0);
-            dataChanged(idx, idx);
-        }
-    }
-
-    if (currentIndex() != -1 && ! m_current_song) {
-        setCurrentSong(currentIndex());
-    }
-    co_return;
-}
 
 void PlayQueue::updateSourceId(std::span<const model::ItemId> songIds,
                                const model::ItemId&           sourceId) {
     for (auto& el : songIds) {
         auto hash = std::hash<model::ItemId> {}(el);
         if (auto it = m_songs.find(hash); it != m_songs.end()) {
-            it->second.sourceId = sourceId;
+            // TODO
+            // it->second.sourceId = sourceId;
         } else {
             m_source_ids.insert_or_assign(hash, sourceId);
         }
@@ -565,13 +489,14 @@ void PlayQueue::onSourceRowsInserted(const QModelIndex&, int first, int last) {
     }
 
     auto ex = asio::make_strand(qcm::pool_executor());
-    asio::co_spawn(
-        ex,
-        [ids, this] -> task<void> {
-            co_await querySongs(ids);
-            co_return;
-        },
-        helper::asio_detached_log_t {});
+    // TODO
+    // asio::co_spawn(
+    //     ex,
+    //     [ids, this] -> task<void> {
+    //         co_await querySongs(ids);
+    //         co_return;
+    //     },
+    //     helper::asio_detached_log_t {});
 
     checkCanMove();
 }

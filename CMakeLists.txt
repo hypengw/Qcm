@@ -58,11 +58,6 @@ set(QML_IMPORT_PATH
 
 option(QCM_USE_ASAN "use asan" OFF)
 option(QCM_QML_DEBUG "qml debug" OFF)
-if(ANDROID)
-  set(QCM_MODEL_GENERATOR
-      ""
-      CACHE STRING "")
-endif()
 
 if("${QT_INSTALL_QML}" STREQUAL "")
   set(QT_INSTALL_QML "${CMAKE_INSTALL_LIBDIR}/qt6/qml")
@@ -133,8 +128,6 @@ add_subdirectory(json_helper)
 add_subdirectory(crypto)
 
 add_subdirectory(message)
-add_subdirectory(generator/model)
-add_subdirectory(qcm_interface)
 
 add_subdirectory(mpris)
 add_subdirectory(player)

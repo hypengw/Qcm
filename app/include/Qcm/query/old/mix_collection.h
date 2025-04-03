@@ -9,8 +9,8 @@
 
 #include "qcm_interface/global.h"
 #include "qcm_interface/macro.h"
-#include "qcm_interface/model/album.h"
-#include "qcm_interface/model/artist.h"
+#include "Qcm/model/album.hpp"
+#include "Qcm/model/artist.hpp"
 #include "qcm_interface/async.inl"
 #include "qcm_interface/sql/meta_sql.h"
 

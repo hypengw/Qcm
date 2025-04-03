@@ -16,15 +16,14 @@ set(SOURCES
     src/player.cpp
     src/backend.cpp
     src/qml/clipboard.cpp
-    src/qml/fake_moc.cpp
     src/qml/qml_util.cpp
-    src/sql/item_sql.cpp
     src/sql/cache_sql.cpp
     src/sql/collection_sql.cpp
-    src/sql/sql.cpp
     src/model/lyric.cpp
     src/model/page_model.cpp
     src/model/play_queue.cpp
+    src/model/id_queue.cpp
+    src/model/router_msg.cpp
     src/query/album_query.cpp
     src/query/artist_query.cpp
     src/query/provider_query.cpp
@@ -34,7 +33,18 @@ set(SOURCES
     src/image_provider/http.cpp
     src/image_provider/qr.cpp
     src/status/provider.cpp
-    src/status/process.cpp)
+    src/status/process.cpp
+    src/common/action.cpp
+    src/common/notifier.cpp
+    src/common/api.cpp
+    src/common/item_id.cpp
+    src/common/enum.cpp
+    src/common/path.cpp
+    src/common/state.cpp
+    src/common/global.cpp
+    src/common/global_static.cpp
+    src/common/meta_name.cpp
+    src/common/duration.cpp)
 
 set(MODULES src/mod.cppm)
 
@@ -115,9 +125,7 @@ set(QML_REG_INCLUDE_DIRS
     "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm/model"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm/query"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm/status"
-    "${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface"
-    "${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface/model"
-    "${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface/state")
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/qcm_interface")
 
 qt_add_qml_module(
   app
@@ -149,6 +157,12 @@ target_compile_definitions(
   app PUBLIC "$<$<OR:$<BOOL:${QCM_QML_DEBUG}>,$<CONFIG:Debug>>:QT_QML_DEBUG>"
              "$<$<NOT:$<TARGET_EXISTS:mpris>>:NODEBUS>")
 
+target_compile_definitions(
+  app
+  PUBLIC APP_ID="${APP_ID}" APP_VERSION="${APP_VERSION}"
+         APP_AUTHOR="${APP_AUTHOR}" APP_NAME="${APP_NAME}"
+         APP_SUMMARY="${APP_SUMMARY}")
+
 target_include_directories(
   app
   PUBLIC include
@@ -170,7 +184,7 @@ target_link_libraries(
          ctre::ctre
          player
          platform
-         qcm_interface
+         json_helper
          "message"
          "$<$<TARGET_EXISTS:mpris>:mpris>")
 

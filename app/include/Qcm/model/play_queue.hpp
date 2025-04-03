@@ -7,8 +7,7 @@
 
 #include "core/core.h"
 #include "meta_model/qmeta_list_model.hpp"
-#include "qcm_interface/model/query_model.h"
-#include "qcm_interface/model/id_queue.h"
+#include "Qcm/model/id_queue.hpp"
 #include "qcm_interface/enum.h"
 #include "core/asio/task.h"
 #include "Qcm/backend_msg.hpp"
@@ -78,7 +77,7 @@ class PlayQueue : public meta_model::QMetaModelBase<QIdentityProxyModel> {
     QML_ANONYMOUS
     Q_PROPERTY(qint32 currentIndex READ currentIndex NOTIFY currentIndexChanged BINDABLE
                    bindableCurrentIndex FINAL)
-    Q_PROPERTY(qcm::query::Song currentSong READ currentSong NOTIFY currentSongChanged FINAL)
+    Q_PROPERTY(qcm::model::Song currentSong READ currentSong NOTIFY currentSongChanged FINAL)
     Q_PROPERTY(
         qcm::enums::LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged FINAL)
     Q_PROPERTY(bool randomMode READ randomMode WRITE setRandomMode NOTIFY randomModeChanged FINAL)
@@ -93,7 +92,7 @@ class PlayQueue : public meta_model::QMetaModelBase<QIdentityProxyModel> {
 public:
     using LoopMode = enums::LoopMode;
     using Option   = model::IdQueue::Option;
-    using Song     = query::Song;
+    using Song     = model::Song;
 
     PlayQueue(QObject* parent = nullptr);
     ~PlayQueue();
@@ -109,8 +108,8 @@ public:
     Q_SIGNAL void currentIndexChanged(qint32);
     auto          currentData(int role) const -> QVariant;
 
-    auto          currentSong() const -> query::Song;
-    void          setCurrentSong(const std::optional<query::Song>&);
+    auto          currentSong() const -> Song;
+    void          setCurrentSong(const std::optional<Song>&);
     Q_SLOT void   setCurrentSong(qint32 idx);
     Q_SIGNAL void currentSongChanged();
 
@@ -146,10 +145,7 @@ public:
     Q_SLOT void   clear();
     Q_SIGNAL void requestNext();
 
-    auto update(std::span<const query::Song>) -> void;
-
-    auto querySongsSql(std::span<const model::ItemId>) -> task<std::vector<query::Song>>;
-    auto querySongs(std::span<const model::ItemId>) -> task<void>;
+    auto update(std::span<const model::Song>) -> void;
     void updateSourceId(std::span<const model::ItemId> songIds, const model::ItemId& sourceId);
 
 private:

@@ -1,11 +1,11 @@
 #include "Qcm/qml/qml_util.hpp"
 
 #include <QtCore/QJsonDocument>
+#include <QtCore/QJsonObject>
 #include <QtQml/QJSValueIterator>
 
 #include "meta_model/qgadget_helper.hpp"
 #include "qcm_interface/global.h"
-#include "qcm_interface/plugin.h"
 #include "Qcm/app.h"
 #include "qcm_interface/path.h"
 #include "crypto/crypto.h"
@@ -43,29 +43,10 @@ auto Util::mpris_trackid(model::ItemId id) const -> QString {
 
 auto Util::create_route_msg(QVariantMap props) const -> model::RouteMsg {
     model::RouteMsg msg;
-    msg.set_url(props.value("url").toUrl());
-    msg.set_props(props.value("props").toMap());
+    msg.url = (props.value("url").toUrl());
+    msg.props = (props.value("props").toMap());
     return msg;
 }
-auto Util::create_playlist(const QJSValue& js) const -> model::Mix {
-    return meta_model::toGadget<model::Mix>(js);
-}
-auto Util::create_album(const QJSValue& js) const -> model::Album {
-    return meta_model::toGadget<model::Album>(js);
-}
-auto Util::create_song(const QJSValue& js) const -> model::Song {
-    return meta_model::toGadget<model::Song>(js);
-}
-auto Util::create_artist(const QJSValue& js) const -> model::Artist {
-    return meta_model::toGadget<model::Artist>(js);
-}
-auto Util::create_djradio(const QJSValue& js) const -> model::Radio {
-    return meta_model::toGadget<model::Radio>(js);
-}
-auto Util::create_program(const QJSValue& js) const -> model::Program {
-    return meta_model::toGadget<model::Program>(js);
-}
-
 auto Util::image_url(const QString& item_type, const QString& item_id,
                      const QString& image_type) const -> QUrl {
     return rstd::into(fmt::format("image://qcm/{}/{}/{}", item_type, item_id, image_type));
@@ -152,7 +133,7 @@ QUrl Util::special_route_url(enums::SpecialRoute r) const {
 }
 model::RouteMsg Util::route_msg(enums::SpecialRoute r) const {
     model::RouteMsg msg;
-    msg.set_url(special_route_url(r));
+    msg.url = (special_route_url(r));
     return msg;
 }
 
@@ -273,15 +254,7 @@ auto qcm::gen_image_cache_entry(const QString& provider, const QUrl& url, QSize 
             return path;
         });
 }
-auto qcm::image_uniq_hash(const QString& provider, const QUrl& url, QSize reqSize)
-    -> std::optional<std::string> {
-    return Global::instance()->plugin(provider).transform(
-        [&url, reqSize](std::reference_wrapper<QcmPluginInterface> p) -> std::string {
-            QcmPluginInterface* m;
-            auto                uniq = p.get().uniq(url, reqSize);
-            return gen_file_name(uniq.toStdString());
-        });
-}
+
 auto qcm::song_uniq_hash(const model::ItemId& id, enums::AudioQuality quality) -> std::string {
     auto key = fmt::format("{}, quality: {}", id.toUrl().toString(), (i32)quality);
     return gen_file_name(key);

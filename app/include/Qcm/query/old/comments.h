@@ -5,7 +5,7 @@
 
 #include "core/asio/basic.h"
 #include "qcm_interface/query.h"
-#include "qcm_interface/model/comment.h"
+#include "Qcm/model/comment.hpp"
 #include "meta_model/qgadget_list_model.hpp"
 #include "core/log.h"
 #include "Qcm/app.h"

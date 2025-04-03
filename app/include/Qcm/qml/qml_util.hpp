@@ -3,8 +3,7 @@
 #include <QQmlEngine>
 #include <QAbstractItemModel>
 
-#include "qcm_interface/model/router_msg.h"
-#include "qcm_interface/model/album.h"
+#include "Qcm/model/router_msg.hpp"
 #include "qcm_interface/enum.h"
 
 namespace qcm
@@ -27,12 +26,6 @@ public:
     Q_INVOKABLE model::ItemId create_itemid(QString type, QString id) const;
     Q_INVOKABLE QString       mpris_trackid(model::ItemId) const;
     Q_INVOKABLE model::RouteMsg create_route_msg(QVariantMap) const;
-    Q_INVOKABLE model::Mix create_playlist(const QJSValue& = {}) const;
-    Q_INVOKABLE model::Album create_album(const QJSValue& = {}) const;
-    Q_INVOKABLE model::Song create_song(const QJSValue& = {}) const;
-    Q_INVOKABLE model::Artist create_artist(const QJSValue& = {}) const;
-    Q_INVOKABLE model::Radio create_djradio(const QJSValue& = {}) const;
-    Q_INVOKABLE model::Program create_program(const QJSValue& = {}) const;
 
     Q_INVOKABLE QUrl image_cache_of(const QString& provider, const QUrl& url, QSize reqSize) const;
     Q_INVOKABLE QUrl media_cache_of(const QString& id) const;

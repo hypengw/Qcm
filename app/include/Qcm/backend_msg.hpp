@@ -170,6 +170,22 @@ struct std::formatter<qcm::msg::MessageTypeGadget::MessageType> : std::formatter
     }
 };
 
+// -----------------------------------------
+
+namespace qcm::model
+{
+class Album : public msg::model::Album {
+    Q_GADGET
+public:
+};
+class Song : public msg::model::Song {
+    Q_GADGET
+public:
+};
+} // namespace qcm::model
+
+// -----------------------------------------
+
 template<>
 struct meta_model::ItemTrait<qcm::msg::model::Album> {
     using Self       = qcm::msg::model::Album;

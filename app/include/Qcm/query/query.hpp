@@ -1,7 +1,6 @@
 #pragma once
 #include <deque>
 #include <QTimer>
-#include "qcm_interface/sync_api.h"
 #include "qcm_interface/async.h"
 #include "qcm_interface/action.h"
 #include "qcm_interface/notifier.h"

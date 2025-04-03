@@ -17,7 +17,7 @@
 #include "core/qasio/qt_executor.h"
 
 #include "qcm_interface/global.h"
-#include "qcm_interface/model/empty_model.h"
+#include "Qcm/model/empty_model.hpp"
 #include "player/notify.h"
 
 namespace qcm
@@ -111,7 +111,6 @@ public:
     void        set_player_sender(player::Notifier);
     auto        media_cache_sql() const -> rc<CacheSql>;
     auto        cache_sql() const -> rc<CacheSql>;
-    auto        item_sql() const -> rc<ItemSql>;
     auto        collect_sql() const -> rc<CollectionSql>;
     auto        empty() const -> model::EmptyModel*;
     auto        provider_meta_status() const -> ProviderMetaStatusModel*;
@@ -161,16 +160,13 @@ public:
     Q_SLOT void on_switch_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId);
     Q_SLOT void on_switch_queue(model::IdQueue*);
     Q_SLOT void on_logout();
-    Q_SLOT void on_load_session(model::Session*);
     Q_SLOT void on_switch_user(model::ItemId);
     Q_SLOT void on_collect(model::ItemId, bool);
     Q_SLOT void on_sync_item(const model::ItemId& itemId, bool notify);
     Q_SLOT void on_sync_collecttion(enums::CollectionType);
     Q_SLOT void on_sync_library_collecttion(i64 library_id, enums::CollectionType);
     Q_SLOT void on_record(enums::RecordAction);
-    Q_SLOT void on_play_song(const query::Song&);
-    Q_SLOT void on_queue(const std::vector<query::Song>&);
-    Q_SLOT void on_switch_to(const std::vector<query::Song>&);
+
     Q_SLOT void on_route_by_id(const model::ItemId&, const QVariantMap&);
 
 private:
