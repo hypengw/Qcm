@@ -181,7 +181,6 @@ target_link_libraries(
          ctre::ctre
          player
          platform
-         json_helper
          "message"
          "$<$<TARGET_EXISTS:mpris>:mpris>")
 

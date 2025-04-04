@@ -115,16 +115,6 @@ FetchContent_Declare(
   EXCLUDE_FROM_ALL FIND_PACKAGE_ARGS 3.9.0 GLOBAL)
 FetchContent_MakeAvailable(ctre)
 
-# nlohmann json
-FetchContent_Declare(
-  nlohmann_json
-  GIT_REPOSITORY https://github.com/nlohmann/json.git
-  GIT_TAG v3.11.3
-  GIT_SHALLOW 1
-  GIT_PROGRESS 1
-  SYSTEM EXCLUDE_FROM_ALL FIND_PACKAGE_ARGS 3.11.0 GLOBAL)
-FetchContent_MakeAvailable(nlohmann_json)
-
 # cubeb
 set(BUILD_TESTS OFF)
 set(BUILD_TOOLS OFF)

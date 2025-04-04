@@ -63,8 +63,6 @@ The following libraries were extracted and modularized during Qcm's development.
 - [asio](https://github.com/chriskohlhoff/asio)
 - [cubeb](https://github.com/mozilla/cubeb)
 - [PEGTL](https://github.com/taocpp/PEGTL)
-- [nlohmann/json](https://github.com/nlohmann/json)
-- [fmt](https://github.com/fmtlib/fmt)
 - [ctre](https://github.com/hanickadot/compile-time-regular-expressions)
 
 ## Build

@@ -47,13 +47,6 @@
     "url" : "https://github.com/hanickadot/compile-time-regular-expressions.git"
   },
   {
-    "dest" : "build/_flatpak_deps/nlohmann_json-src",
-    "disable-shallow-clone" : false,
-    "tag" : "v3.11.3",
-    "type" : "git",
-    "url" : "https://github.com/nlohmann/json.git"
-  },
-  {
     "dest" : "build/_flatpak_deps/cubeb-src",
     "disable-shallow-clone" : false,
     "type" : "git",

@@ -219,8 +219,7 @@ MD.Page {
             subtitle: QA.Util.joinName(ListView.view.model.songExtra(index).artists, '/')
 
             onClicked: {
-                const id = QA.Util.create_itemid("song", dgModel.id_proto);
-                QA.Action.play_by_id(id);
+                QA.Action.play_by_id(dgModel.itemId);
             }
         }
 
