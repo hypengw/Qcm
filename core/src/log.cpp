@@ -1,6 +1,7 @@
 module;
+#include <chrono>
 #include <format>
-
+#include <iterator>
 #include <cassert>
 #include <cstdio>
 #include <source_location>
@@ -63,7 +64,7 @@ auto get_log_color(LogLevel level) -> std::string_view {
 
 std::string_view to_sv(qcm::LogLevel lv) {
 #define X(E) \
-    case E: return "[" #E "]"
+    case E: return #E
 
     switch (lv) {
         using enum qcm::LogLevel;
@@ -126,6 +127,25 @@ auto supports_color() -> bool {
 }
 #endif
 
+struct file_iterator {
+    FILE* file;
+
+    using iterator_category = std::output_iterator_tag;
+    using value_type        = void;
+    using difference_type   = std::ptrdiff_t;
+    using pointer           = void;
+    using reference         = void;
+
+    file_iterator& operator=(char c) {
+        fputc(c, file);
+        return *this;
+    }
+
+    file_iterator& operator*() { return *this; }
+    file_iterator& operator++() { return *this; }
+    file_iterator  operator++(int) { return *this; }
+};
+
 } // namespace
 
 namespace qcm
@@ -147,23 +167,26 @@ void        log::log_raw(LogLevel level, std::string_view content) {
     }
     if (out == nullptr) return;
 
+    file_iterator out_iter(out);
     if (supports_color()) {
-        // std::print(out, "{}{}{}", get_log_color(level), content, COLOR_RESET);
+        std::format_to(out_iter, "{}{}{}", get_log_color(level), content, COLOR_RESET);
     } else {
-        // std::print(out, "{}", content);
+        std::format_to(out_iter, "{}", content);
     }
     std::fflush(out);
 };
 void log::log_loc_raw(LogLevel level, const std::source_location loc, std::string_view content) {
-    std::time_t t = std::time(nullptr);
-    // log_raw(level,
-    //         std::format("{:<7} [{:%H:%M:%S}] {} [{}:{},{}] \n",
-    //                     to_sv(level),
-    //                     "time", // fmt::localtime(t),
-    //                     content,
-    //                     extract_last(loc.file_name(), 2),
-    //                     loc.line(),
-    //                     loc.column()));
+    using namespace std::chrono;
+    auto now_utc   = system_clock::now();
+    auto now_local = current_zone()->to_local(now_utc);
+    log_raw(level,
+            std::format("{:.26s}Z {:>5} {}({},{}): {}  \n",
+                        std::format("{:%Y-%m-%dT%H:%M:%S}", now_local),
+                        to_sv(level),
+                        extract_last(loc.file_name(), 2),
+                        loc.line(),
+                        loc.column(),
+                        content));
 }
 
 auto log::format_assert(std::string_view expr_str, const std::source_location& loc,
