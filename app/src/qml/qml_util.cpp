@@ -27,47 +27,31 @@ Util* Util::create(QQmlEngine*, QJSEngine*) {
 }
 
 auto Util::create_itemid() const -> model::ItemId { return {}; }
-auto Util::create_itemid(QString type, QString id) const -> model::ItemId {
-    return model::ItemId {type, id};
-}
 
 auto Util::mpris_trackid(model::ItemId id) const -> QString {
-    static const auto dbus_path = QStringLiteral(APP_ID).replace('.', '/');
-    auto              provider  = id.provider();
-    auto              sid       = id.id();
-    return QStringLiteral("/%1/TrackId/%2/%3")
-        .arg(dbus_path)
-        .arg(provider.isEmpty() ? u"unknown"_s : provider)
-        .arg(sid.isEmpty() ? u"0"_s : sid);
+    return "";
+    // TODO
+    // static const auto dbus_path = QStringLiteral(APP_ID).replace('.', '/');
+    // auto              provider  = id.provider();
+    // auto              sid       = id.id();
+    // return QStringLiteral("/%1/TrackId/%2/%3")
+    //    .arg(dbus_path)
+    //    .arg(provider.isEmpty() ? u"unknown"_s : provider)
+    //    .arg(sid.isEmpty() ? u"0"_s : sid);
 }
 
 auto Util::create_route_msg(QVariantMap props) const -> model::RouteMsg {
     model::RouteMsg msg;
-    msg.url = (props.value("url").toUrl());
+    msg.url   = (props.value("url").toUrl());
     msg.props = (props.value("props").toMap());
     return msg;
 }
-auto Util::image_url(const QString& item_type, const QString& item_id,
-                     const QString& image_type) const -> QUrl {
-    return rstd::into(fmt::format("image://qcm/{}/{}/{}", item_type, item_id, image_type));
+auto Util::image_url(model::ItemId id, enums::ImageType image_type) const -> QUrl {
+    return rstd::into(std::format("image://qcm/{}/{}/{}", id.type(), id.id(), image_type));
 }
 
-auto Util::audio_url(const QString& item_type, const QString& item_id) const -> QUrl {
-    return App::instance()->backend()->audio_url(item_type, item_id);
-}
-
-QUrl Util::image_cache_of(const QString& provider, const QUrl& url, QSize reqSize) const {
-    auto out = qcm::image_uniq_hash(provider, url, reqSize).transform([](std::string_view id) {
-        auto            p = qcm::cache_path_of(id);
-        std::error_code ec;
-        if (std::filesystem::exists(p, ec)) {
-            return QUrl::fromLocalFile(QString::fromStdString(p.native()));
-        } else {
-            return QUrl {};
-        }
-    });
-    if (out) return out.value();
-    return {};
+auto Util::audio_url(model::ItemId id) const -> QUrl {
+    return App::instance()->backend()->audio_url(id);
 }
 
 QUrl Util::media_cache_of(const QString& id_) const {
@@ -241,22 +225,8 @@ inline std::string gen_file_name(std::string_view uniq) {
 
 } // namespace qcm
 
-auto qcm::gen_image_cache_entry(const QString& provider, const QUrl& url, QSize reqSize)
-    -> std::optional<std::filesystem::path> {
-    return qcm::image_uniq_hash(provider, url, reqSize)
-        .transform([](std::string_view id) -> std::filesystem::path {
-            std::error_code ec;
-            auto            path = cache_path_of(id);
-            std::filesystem::create_directories(path.parent_path(), ec);
-            if (ec) {
-                ERROR_LOG("{}", ec);
-            }
-            return path;
-        });
-}
-
 auto qcm::song_uniq_hash(const model::ItemId& id, enums::AudioQuality quality) -> std::string {
-    auto key = fmt::format("{}, quality: {}", id.toUrl().toString(), (i32)quality);
+    auto key = std::format("{}, quality: {}", id.toUrl().toString(), (i32)quality);
     return gen_file_name(key);
 }
 

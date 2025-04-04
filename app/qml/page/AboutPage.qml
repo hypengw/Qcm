@@ -91,7 +91,7 @@ MD.Page {
             //    font.capitalization: Font.Capitalize
             //    text: qsTr('status')
             //    onClicked: {
-            //        QA.Action.popup_special(QA.enums.SRStatus);
+            //        QA.Action.popup_special(QA.Enum.SRStatus);
             //    }
             //}
         }

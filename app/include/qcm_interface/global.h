@@ -11,10 +11,9 @@
 #include "core/qasio/qt_executor.h"
 #include "qcm_interface/export.h"
 #include "Qcm/model/app_info.hpp"
-#include "qcm_interface/enum.h"
+#include "Qcm/qml/enum.hpp"
 
 #include "qcm_interface/sql/cache_sql.h"
-#include "qcm_interface/sql/collection_sql.h"
 
 #include "qcm_interface/metadata.h"
 #include "qcm_interface/client.h"
@@ -36,15 +35,15 @@ struct StopSignal {
     bool val { false };
 };
 
-QCM_INTERFACE_API auto qml_dyn_count() -> std::atomic<i32>&;
-QCM_INTERFACE_API auto create_item(QQmlEngine* engine, const QJSValue& url_or_comp,
+auto qml_dyn_count() -> std::atomic<i32>&;
+auto create_item(QQmlEngine* engine, const QJSValue& url_or_comp,
                                    const QVariantMap& props, QObject* parent) -> QObject*;
 
-QCM_INTERFACE_API auto image_provider_url(const QUrl& url, const QString& provider) -> QUrl;
-QCM_INTERFACE_API auto parse_image_provider_url(const QUrl& url) -> std::tuple<QUrl, QString>;
+auto image_provider_url(const QUrl& url, const QString& provider) -> QUrl;
+auto parse_image_provider_url(const QUrl& url) -> std::tuple<QUrl, QString>;
 
 class GlobalWrapper;
-class QCM_INTERFACE_API Global : public QObject {
+class Global : public QObject {
     Q_OBJECT
     Q_PROPERTY(qcm::model::AppInfo info READ info CONSTANT FINAL)
     Q_PROPERTY(QQmlComponent* copy_action_comp READ copy_action_comp WRITE set_copy_action_comp
@@ -72,7 +71,6 @@ public:
     auto app_state() const -> state::AppState*;
 
     auto get_cache_sql() const -> rc<media_cache::DataBase>;
-    auto get_collection_sql() const -> rc<db::ColletionSqlBase>;
 
     auto client(i64 provider_id) const -> std::optional<Client>;
 
@@ -99,7 +97,6 @@ private:
     void set_uuid(const QUuid&);
 
     void set_cache_sql(rc<media_cache::DataBase>);
-    void set_collection_sql(rc<db::ColletionSqlBase>);
 
     void set_metadata_impl(const MetadataImpl&);
 
@@ -109,7 +106,7 @@ private:
     C_DECLARE_PRIVATE(Global, d_ptr);
 };
 
-class QCM_INTERFACE_API GlobalWrapper : public QObject {
+class GlobalWrapper : public QObject {
     Q_OBJECT
     Q_CLASSINFO("DefaultProperty", "datas")
     QML_ELEMENT
@@ -130,8 +127,6 @@ public:
     auto copy_action_comp() const -> QQmlComponent*;
     auto uuid() const -> QString;
     auto app_state() const -> state::AppState*;
-
-    Q_INVOKABLE QVariant server_url(const model::ItemId&);
 
     Q_SIGNAL void errorOccurred(QString error, StopSignal stop = {});
     Q_SIGNAL void copyActionCompChanged(StopSignal stop = {});

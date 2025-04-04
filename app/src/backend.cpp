@@ -190,16 +190,23 @@ auto Backend::send(msg::QcmMessage&& msg) -> task<Result<msg::QcmMessage, msg::E
 
 auto Backend::base() const -> std::string { return std::format("http://127.0.0.1:{}", m_port); }
 
-auto Backend::image(QStringView item_type, QStringView item_id, QStringView image_type)
+auto Backend::image(QStringView item_type, QStringView id, QStringView image_type)
     -> task<Arc<ncrequest::Response>> {
-    auto url = std::format("{0}/image/{1}/{2}/{3}", this->base(), item_type, item_id, image_type);
+    auto url = std::format("{0}/image/{1}/{2}/{3}", this->base(), item_type, id, image_type);
+    auto req = ncrequest::Request { url };
+
+    co_return (co_await m_session->get(req)).unwrap();
+}
+auto Backend::image(model::ItemId id, enums::ImageType image_type)
+    -> task<Arc<ncrequest::Response>> {
+    auto url = std::format("{0}/image/{1}/{2}/{3}", this->base(), id.type(), id.id(), image_type);
     auto req = ncrequest::Request { url };
 
     co_return (co_await m_session->get(req)).unwrap();
 }
 
-auto Backend::audio_url(QStringView item_type, QStringView item_id) -> QUrl {
-    return rstd::into(std::format("{0}/audio/{1}/{2}", this->base(), item_type, item_id));
+auto Backend::audio_url(model::ItemId id) -> QUrl {
+    return rstd::into(std::format("{0}/audio/{1}/{2}", this->base(), id.type(), id.id()));
 }
 
 auto Backend::serial() -> i32 {
@@ -271,4 +278,5 @@ auto rstd::Impl<rstd::convert::From<google::protobuf::Value>, QVariant>::from(
     }
 }
 
+#include <Qcm/moc_backend_msg.cpp>
 #include <Qcm/moc_backend.cpp>

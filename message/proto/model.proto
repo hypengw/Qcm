@@ -5,9 +5,9 @@ package qcm.msg.model;
 import "google/protobuf/timestamp.proto";
 
 message Song {
-  string id = 1;
+  int64 id = 1;
   string native_id = 2;
-  string library_id = 3;
+  int64 library_id = 3;
   string name = 4;
   string album_id = 5;
   int32 track_number = 6;
@@ -21,9 +21,9 @@ message Song {
 }
 
 message Radio {
-  string id = 1;
+  int64 id = 1;
   string native_id = 2;
-  string library_id = 3;
+  int64 library_id = 3;
   string name = 4;
   string description = 6;
   int32 program_count = 7;
@@ -32,9 +32,9 @@ message Radio {
 }
 
 message Program {
-  string id = 1;
+  int64 id = 1;
   string native_id = 2;
-  string library_id = 3;
+  int64 library_id = 3;
   string name = 4;
   string description = 5;
   google.protobuf.Timestamp duration = 6;
@@ -47,9 +47,9 @@ message Program {
 }
 
 message Mix {
-  string id = 1;
+  int64 id = 1;
   string native_id = 2;
-  string library_id = 3;
+  int64 library_id = 3;
   string name = 4;
   int32 track_count = 6;
   int32 special_type = 7;
@@ -63,7 +63,7 @@ message Mix {
 }
 
 message Library {
-  string library_id = 1;
+  int64 library_id = 1;
   string name = 2;
   string provider_id = 3;
   string native_id = 4;
@@ -71,10 +71,10 @@ message Library {
 }
 
 message Artist {
-  string id = 1;
+  int64 id = 1;
   string native_id = 2;
   string name = 3;
-  string library_id = 5;
+  int64 library_id = 5;
   string description = 6;
   int32 album_count = 7;
   int32 music_count = 8;
@@ -82,9 +82,9 @@ message Artist {
 }
 
 message Album {
-  string id = 1;
+  int64 id = 1;
   string native_id = 2;
-  string library_id = 3;
+  int64 library_id = 3;
   string name = 4;
   google.protobuf.Timestamp publish_time = 6;
   int32 track_count = 7;

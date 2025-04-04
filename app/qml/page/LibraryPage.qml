@@ -90,7 +90,7 @@ MD.Page {
 
                     BaseView {
                         id: m_view_mix
-                        busy: qr_playlist.status === QA.enums.Querying
+                        busy: qr_playlist.status === QA.Enum.Querying
                         delegate: dg_playlist
                         model: qr_playlist.data
                         refresh: function () {
@@ -130,7 +130,7 @@ MD.Page {
 
                     BaseView {
                         id: view_djradiolist
-                        busy: qr_djradiolist.status === QA.enums.Querying
+                        busy: qr_djradiolist.status === QA.Enum.Querying
                         delegate: dg_djradiolist
                         model: qr_djradiolist.data
                         refresh: function () {
@@ -167,7 +167,7 @@ MD.Page {
                 Component {
                     id: dg_albumlist
                     BaseItem {
-                        image: QA.Util.image_url("album", model.id_proto)
+                        image: QA.Util.image_url(model.itemId)
                         text: model.name
                         supportText: {
                             const ex = QA.Store.albumExtra(model.id_proto);
@@ -187,7 +187,7 @@ MD.Page {
                 Component {
                     id: dg_artistlist
                     BaseItem {
-                        image: QA.Util.image_url("artist", model.id_proto)
+                        image: QA.Util.image_url(model.itemId)
                         text: model.name
                         // supportText: `${model.albumCount} albums`
                         function showMenu(parent) {
@@ -201,7 +201,7 @@ MD.Page {
                 Component {
                     id: dg_playlist
                     BaseItem {
-                        image: QA.Util.image_url("mix", model.id_proto)
+                        image: QA.Util.image_url(model.itemId)
                         text: model.name
                         supportText: `${model.trackCount} songs`
                         function showMenu(parent) {
@@ -216,7 +216,7 @@ MD.Page {
                 Component {
                     id: dg_djradiolist
                     BaseItem {
-                        image: QA.Util.image_url("radio", model.id_proto)
+                        image: QA.Util.image_url(model.itemId)
                         text: model.name
                         supportText: `${model.programCount} programs`
                         function showMenu(parent) {

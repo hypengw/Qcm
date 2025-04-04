@@ -20,7 +20,6 @@ namespace qcm
 void App::connect_actions() {
     connect(Action::instance(), &Action::switch_user, this, &App::on_switch_user);
     connect(Action::instance(), &Action::logout, this, &App::on_logout);
-    connect(Action::instance(), &Action::collect, this, &App::on_collect);
     connect(Action::instance(), &Action::sync_item, this, &App::on_sync_item);
     connect(Action::instance(), &Action::sync_collection, this, &App::on_sync_collecttion);
     connect(Action::instance(),
@@ -129,7 +128,7 @@ void App::connect_actions() {
             auto curId = playqueue()->currentId();
             if (! curId || ! curId->valid()) return;
             auto b = this->backend();
-            Action::instance()->play(b->audio_url(u"song", curId->id()), true);
+            Action::instance()->play(b->audio_url(*curId), true);
             /*
             QSettings s;
             auto      qu = s.value("play/play_quality").value<enums::AudioQuality>();
@@ -210,8 +209,6 @@ void App::on_logout() {}
 
 void App::on_switch_user(model::ItemId id) {}
 
-void App::on_collect(model::ItemId id, bool act) {}
-
 void App::on_sync_item(const model::ItemId& itemId, bool notify) {}
 
 void App::on_sync_collecttion(enums::CollectionType ct) {}
@@ -235,33 +232,33 @@ void App::on_switch_queue(model::IdQueue* queue) {
 }
 
 void App::on_route_by_id(const model::ItemId& id, const QVariantMap& in_props) {
-    model::RouteMsg msg;
-    QUrl            url;
-    auto&           type = id.type();
-    if (type == "album") {
-        url = u"qrc:/Qcm/App/qml/page/AlbumDetailPage.qml"_s;
-    } else if (type == "artist") {
-        url = u"qrc:/Qcm/App/qml/page/ArtistDetailPage.qml"_s;
-    } else if (type == "playlist") {
-        url = u"qrc:/Qcm/App/qml/page/MixDetailPage.qml"_s;
-    } else if (type == "radio") {
-        url = u"qrc:/Qcm/App/qml/page/RadioDetailPage.qml"_s;
-    } else {
-        INFO_LOG("no page url for item type: {}", type);
-        return;
-    }
+    // model::RouteMsg msg;
+    // QUrl            url;
+    // auto&           type = id.type();
+    // if (type == "album") {
+    //     url = u"qrc:/Qcm/App/qml/page/AlbumDetailPage.qml"_s;
+    // } else if (type == "artist") {
+    //     url = u"qrc:/Qcm/App/qml/page/ArtistDetailPage.qml"_s;
+    // } else if (type == "playlist") {
+    //     url = u"qrc:/Qcm/App/qml/page/MixDetailPage.qml"_s;
+    // } else if (type == "radio") {
+    //     url = u"qrc:/Qcm/App/qml/page/RadioDetailPage.qml"_s;
+    // } else {
+    //     INFO_LOG("no page url for item type: {}", type);
+    //     return;
+    // }
 
-    Action::instance()->route_special(u"main"_s);
+    // Action::instance()->route_special(u"main"_s);
 
-    auto props      = in_props;
-    msg.url         = url;
-    props["itemId"] = QVariant::fromValue(id);
-    msg.props       = std::move(props);
+    // auto props      = in_props;
+    // msg.url         = url;
+    // props["itemId"] = QVariant::fromValue(id);
+    // msg.props       = std::move(props);
 
-    if (debug()) {
-        INFO_LOG("route to: {}", url.toString());
-    }
-    Action::instance()->route(msg);
+    // if (debug()) {
+    //     INFO_LOG("route to: {}", url.toString());
+    // }
+    // Action::instance()->route(msg);
 }
 
 } // namespace qcm

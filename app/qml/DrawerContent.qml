@@ -78,7 +78,7 @@ MD.Flickable {
                 text: qsTr('about')
 
                 onTriggered: {
-                    QA.Action.popup_special(QA.enums.SRAbout);
+                    QA.Action.popup_special(QA.Enum.SRAbout);
                     root.close();
                 }
             }

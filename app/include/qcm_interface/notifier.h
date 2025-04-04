@@ -2,13 +2,13 @@
 
 #include <QQmlEngine>
 #include "qcm_interface/export.h"
-#include "qcm_interface/item_id.h"
-#include "qcm_interface/enum.h"
+#include "Qcm/model/item_id.hpp"
+#include "Qcm/qml/enum.hpp"
 
 namespace qcm
 {
 
-class QCM_INTERFACE_API Notifier : public QObject {
+class Notifier : public QObject {
     Q_OBJECT
     QML_ELEMENT
     QML_SINGLETON

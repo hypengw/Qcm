@@ -3,7 +3,7 @@
 #include <QPointer>
 #include <QQmlEngine>
 #include "qcm_interface/export.h"
-#include "qcm_interface/enum.h"
+#include "Qcm/qml/enum.hpp"
 #include "Qcm/model/router_msg.hpp"
 
 Q_MOC_INCLUDE("Qcm/model/id_queue.hpp")
@@ -14,7 +14,7 @@ namespace model
 {
 class IdQueue;
 }
-class QCM_INTERFACE_API Action : public QObject {
+class Action : public QObject {
     Q_OBJECT
     QML_ELEMENT
     QML_SINGLETON

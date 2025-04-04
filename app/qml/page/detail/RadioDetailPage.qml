@@ -199,7 +199,7 @@ MD.Page {
             }
         }
         footer: MD.ListBusyFooter {
-            running: qr_dj.status === QA.enums.Querying
+            running: qr_dj.status === QA.Enum.Querying
             width: ListView.view.width
         }
     }

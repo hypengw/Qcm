@@ -4,7 +4,7 @@
 #include <QQmlEngine>
 #include "player/player.h"
 #include "player/notify.h"
-#include "qcm_interface/enum.h"
+#include "Qcm/qml/enum.hpp"
 
 namespace qcm
 {

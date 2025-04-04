@@ -82,6 +82,6 @@ MD.Menu {
 
     // QA.MixManipulateQuery {
     //     id: m_qr_manipulate
-    //     oper: QA.enums.ManipulateMixDel
+    //     oper: QA.Enum.ManipulateMixDel
     // }
 }

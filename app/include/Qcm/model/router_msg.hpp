@@ -8,7 +8,7 @@ namespace qcm
 namespace model
 {
 
-class QCM_INTERFACE_API RouteMsg {
+class RouteMsg {
     Q_GADGET
 public:
     RouteMsg() {}

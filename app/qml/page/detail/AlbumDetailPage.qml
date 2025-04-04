@@ -46,7 +46,7 @@ MD.Page {
 
                 displaySize: Qt.size(240, 240)
                 elevation: MD.Token.elevation.level2
-                source: QA.Util.image_url("album", root.album.id_proto)
+                source: QA.Util.image_url(root.album.itemId)
                 radius: 16
             }
             MD.Text {
@@ -225,7 +225,7 @@ MD.Page {
         }
 
         footer: MD.ListBusyFooter {
-            running: qr_al.status === QA.enums.Querying
+            running: qr_al.status === QA.Enum.Querying
             width: ListView.view.contentWidth
         }
     }

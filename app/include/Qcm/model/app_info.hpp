@@ -8,7 +8,7 @@ namespace qcm
 namespace model
 {
 
-class QCM_INTERFACE_API AppInfo {
+class AppInfo {
     Q_GADGET
 public:
     AppInfo() {}

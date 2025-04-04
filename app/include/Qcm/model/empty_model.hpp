@@ -5,7 +5,7 @@
 
 namespace qcm::model
 {
-class QCM_INTERFACE_API EmptyModel : public QObject {
+class EmptyModel : public QObject {
     Q_OBJECT
     // Q_PROPERTY(qcm::query::Song song READ song CONSTANT FINAL)
 public:

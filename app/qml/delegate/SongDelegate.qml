@@ -77,7 +77,7 @@ MD.ListItem {
                     id: m_comp_song_image
                     QA.Image {
                         radius: 8
-                        source: QA.Util.image_url("song", root.dgModel.id_proto)
+                        source: QA.Util.image_url(root.dgModel.itemId)
                         displaySize: Qt.size(48, 48)
                     }
                 }

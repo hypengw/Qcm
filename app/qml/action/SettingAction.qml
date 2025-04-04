@@ -9,6 +9,6 @@ Action {
     text: qsTr('settings')
 
     onTriggered: {
-        QA.Action.popup_special(QA.enums.SRSetting);
+        QA.Action.popup_special(QA.Enum.SRSetting);
     }
 }

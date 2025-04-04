@@ -210,7 +210,7 @@ MD.Page {
                             MD.ListView {
                                 interactive: m_flick.atYEnd
                                 expand: true
-                                model: qr_artist_songs.data
+                                model: qr_artissongs.data
                                 topMargin: 8
                                 bottomMargin: 8
                                 leftMargin: 24
@@ -233,7 +233,7 @@ MD.Page {
                                     }
                                 }
                                 footer: MD.ListBusyFooter {
-                                    running: qr_artist.status === QA.enums.Querying
+                                    running: qr_artist.status === QA.Enum.Querying
                                     width: ListView.view.width
                                 }
                             }
@@ -268,7 +268,7 @@ MD.Page {
         id: qr_artist
     }
     QA.ArtistSongsQuery {
-        id: qr_artist_songs
+        id: qr_artissongs
         itemId: qr_artist.itemId
     }
     QA.ArtistAlbumsQuery {

@@ -36,7 +36,6 @@ import platform;
 #include "Qcm/image_provider/http.hpp"
 #include "Qcm/image_provider/qr.hpp"
 #include "Qcm/qml/qml_util.hpp"
-#include "Qcm/sql/collection_sql.h"
 #include "Qcm/sql/cache_sql.h"
 
 #include "Qcm/model/play_queue.hpp"
@@ -185,7 +184,6 @@ public:
 
     Arc<CacheSql>      m_media_cache_sql;
     Arc<CacheSql>      m_cache_sql;
-    Arc<CollectionSql> m_collect_sql;
 
     Box<Backend> m_backend;
 
@@ -240,10 +238,8 @@ App::App(QStringView backend_exe, std::monostate)
         auto data_db         = make_rc<helper::SqlConnect>(data_path() / "data.db", u"data");
         d->m_media_cache_sql = make_rc<CacheSql>("media_cache", 0, cache_db);
         d->m_cache_sql       = make_rc<CacheSql>("cache", 0, cache_db);
-        d->m_collect_sql     = make_rc<CollectionSql>("collection", data_db);
         d->m_global->set_cache_sql(d->m_cache_sql);
         d->m_global->set_metadata_impl(player::get_metadata);
-        d->m_global->set_collection_sql(d->m_collect_sql);
     }
 }
 App::~App() {}
@@ -438,17 +434,17 @@ bool App::debug() const {
 }
 
 QString App::itemIdPageUrl(const QJSValue& js) const {
-    auto  itemId = js.toVariant().value<model::ItemId>();
-    auto& type   = itemId.type();
-    if (type == "album") {
-        return "qrc:/Qcm/App/qml/page/AlbumDetailPage.qml";
-    } else if (type == "artist") {
-        return "qrc:/Qcm/App/qml/page/ArtistDetailPage.qml";
-    } else if (type == "playlist") {
-        return "qrc:/Qcm/App/qml/page/MixDetailPage.qml";
-    } else if (type == "radio") {
-        return "qrc:/Qcm/App/qml/page/RadioDetailPage.qml";
-    }
+    // auto  itemId = js.toVariant().value<model::ItemId>();
+    // auto& type   = itemId.type();
+    // if (type == "album") {
+    //     return "qrc:/Qcm/App/qml/page/AlbumDetailPage.qml";
+    // } else if (type == "artist") {
+    //     return "qrc:/Qcm/App/qml/page/ArtistDetailPage.qml";
+    // } else if (type == "playlist") {
+    //     return "qrc:/Qcm/App/qml/page/MixDetailPage.qml";
+    // } else if (type == "radio") {
+    //     return "qrc:/Qcm/App/qml/page/RadioDetailPage.qml";
+    // }
     return {};
 }
 
@@ -572,10 +568,6 @@ auto App::media_cache_sql() const -> rc<CacheSql> {
 auto App::cache_sql() const -> rc<CacheSql> {
     C_D(const App);
     return d->m_cache_sql;
-}
-auto App::collect_sql() const -> rc<CollectionSql> {
-    C_D(const App);
-    return d->m_collect_sql;
 }
 auto App::empty() const -> model::EmptyModel* {
     C_D(const App);

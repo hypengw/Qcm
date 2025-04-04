@@ -197,7 +197,7 @@ MD.Page {
                         icon.name: MD.Token.icon.playlist_play
 
                         onClicked: {
-                            QA.Action.popup_special(QA.enums.SRQueue);
+                            QA.Action.popup_special(QA.Enum.SRQueue);
                         }
                     }
                     MD.IconButton {

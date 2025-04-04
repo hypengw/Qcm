@@ -26,10 +26,6 @@ auto static_global(qcm::Global* set = nullptr) -> qcm::Global* {
     return theGlobal;
 }
 
-auto get_session_path(const qcm::model::ItemId& id) {
-    auto filename = fmt::format("{}-{}", id.provider(), id.id());
-    return qcm::config_path() / "session" / filename;
-}
 } // namespace
 
 auto qcm::qexecutor() -> QtExecutor& { return Global::instance()->qexecutor(); }
@@ -150,10 +146,6 @@ auto Global::get_cache_sql() const -> rc<media_cache::DataBase> {
     C_D(const Global);
     return d->cache_sql;
 }
-auto Global::get_collection_sql() const -> rc<db::ColletionSqlBase> {
-    C_D(const Global);
-    return d->collection_sql;
-}
 
 auto Global::get_metadata(const std::filesystem::path& path) const -> Metadata {
     C_D(const Global);
@@ -188,11 +180,6 @@ void Global::set_uuid(const QUuid& val) {
 void Global::set_cache_sql(rc<media_cache::DataBase> val) {
     C_D(Global);
     d->cache_sql = val;
-}
-
-void Global::set_collection_sql(rc<db::ColletionSqlBase> val) {
-    C_D(Global);
-    d->collection_sql = val;
 }
 
 void Global::set_metadata_impl(const MetadataImpl& impl) {

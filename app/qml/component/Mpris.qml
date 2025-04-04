@@ -16,28 +16,28 @@ Item {
         mpris.canControl = true;
         mpris.playbackStatus = Qt.binding(() => {
             switch (player.playbackState) {
-            case QA.enums.PlayingState:
+            case QA.Enum.PlayingState:
                 return QA.MprisMediaPlayer.Playing;
-            case QA.enums.PausedState:
+            case QA.Enum.PausedState:
                 return QA.MprisMediaPlayer.Paused;
-            case QA.enums.StoppedState:
+            case QA.Enum.StoppedState:
             default:
                 return QA.MprisMediaPlayer.Stopped;
             }
         });
         mpris.loopStatus = Qt.binding(() => {
             switch (playlist.loopMode) {
-            case QA.enums.NoneLoop:
+            case QA.Enum.NoneLoop:
                 return QA.MprisMediaPlayer.None;
-            case QA.enums.SingleLoop:
+            case QA.Enum.SingleLoop:
                 return QA.MprisMediaPlayer.Track;
-            case QA.enums.ListLoop:
-            case QA.enums.ShuffleLoop:
+            case QA.Enum.ListLoop:
+            case QA.Enum.ShuffleLoop:
                 return QA.MprisMediaPlayer.Playlist;
             }
         });
         mpris.shuffle = Qt.binding(() => {
-            return playlist.loopMode === QA.enums.ShuffleLoop;
+            return playlist.loopMode === QA.Enum.ShuffleLoop;
         });
         mpris.volume = Qt.binding(() => {
             return 1.0;
@@ -78,7 +78,7 @@ Item {
         mpris.pauseRequested.connect(player.pause);
         mpris.stopRequested.connect(player.stop);
         mpris.playPauseRequested.connect(() => {
-            if (player.playbackState === QA.enums.PlayingState)
+            if (player.playbackState === QA.Enum.PlayingState)
                 player.pause();
             else
                 player.play();
@@ -88,21 +88,21 @@ Item {
         mpris.loopStatusRequested.connect(s => {
             switch (s) {
             case QA.MprisMediaPlayer.None:
-                playlist.loopMode = QA.enums.NoneLoop;
+                playlist.loopMode = QA.Enum.NoneLoop;
                 break;
             case QA.MprisMediaPlayer.Track:
-                playlist.loopMode = QA.enums.SingleLoop;
+                playlist.loopMode = QA.Enum.SingleLoop;
                 break;
             case QA.MprisMediaPlayer.Playlist:
-                playlist.loopMode = QA.enums.ListLoop;
+                playlist.loopMode = QA.Enum.ListLoop;
                 break;
             }
         });
         mpris.shuffleRequested.connect(shuffle => {
             if (shuffle)
-                playlist.loopMode = QA.enums.ShuffleLoop;
+                playlist.loopMode = QA.Enum.ShuffleLoop;
             else
-                playlist.loopMode = QA.enums.ListLoop;
+                playlist.loopMode = QA.Enum.ListLoop;
         });
         mpris.setPositionRequested.connect((_, pos) => {
             player.position = pos / 1000;

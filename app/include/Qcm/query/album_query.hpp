@@ -9,12 +9,12 @@
 namespace qcm
 {
 class AlbumListModel
-    : public meta_model::QGadgetListModel<msg::model::Album, meta_model::QMetaListStore::Share> {
+    : public meta_model::QGadgetListModel<model::Album, meta_model::QMetaListStore::Share> {
     Q_OBJECT
     using base_type =
-        meta_model::QGadgetListModel<msg::model::Album, meta_model::QMetaListStore::Share>;
+        meta_model::QGadgetListModel<model::Album, meta_model::QMetaListStore::Share>;
 
-    using value_type = msg::model::Album;
+    using value_type = model::Album;
 
 public:
     AlbumListModel(QObject* parent = nullptr);
@@ -32,16 +32,16 @@ public:
 };
 
 class AlbumSongListModel
-    : public meta_model::QGadgetListModel<msg::model::Song, meta_model::QMetaListStore::Share> {
+    : public meta_model::QGadgetListModel<model::Song, meta_model::QMetaListStore::Share> {
     Q_OBJECT
 
-    Q_PROPERTY(qcm::msg::model::Album album READ album NOTIFY albumChanged)
+    Q_PROPERTY(qcm::model::Album album READ album NOTIFY albumChanged)
     Q_PROPERTY(QQmlPropertyMap* extra READ extra NOTIFY albumChanged)
     using base_type =
-        meta_model::QGadgetListModel<msg::model::Song, meta_model::QMetaListStore::Share>;
+        meta_model::QGadgetListModel<model::Song, meta_model::QMetaListStore::Share>;
 
-    using album_type = msg::model::Album;
-    using value_type = msg::model::Song;
+    using album_type = model::Album;
+    using value_type = model::Song;
 
 public:
     AlbumSongListModel(QObject* parent = nullptr);

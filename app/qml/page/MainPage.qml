@@ -166,7 +166,7 @@ MD.Page {
                                 action: QC.Action {
                                     icon.name: MD.Token.icon.hard_drive
                                     onTriggered: {
-                                        QA.Action.route_special(QA.enums.SRSearch);
+                                        QA.Action.route_special(QA.Enum.SRSearch);
                                     }
                                 }
                             }

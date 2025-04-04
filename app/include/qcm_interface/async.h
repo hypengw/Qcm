@@ -5,7 +5,7 @@
 
 #include "core/core.h"
 #include "core/qasio/qt_executor.h"
-#include "qcm_interface/enum.h"
+#include "Qcm/qml/enum.hpp"
 #include "qcm_interface/ex.h"
 #include "core/qasio/qt_watcher.h"
 #include "core/asio/task.h"
@@ -18,7 +18,7 @@ class WatchDog;
 namespace qcm
 {
 
-class QCM_INTERFACE_API QAsyncResult : public QObject {
+class QAsyncResult : public QObject {
     Q_OBJECT
 
     Q_PROPERTY(QString error READ error NOTIFY errorChanged BINDABLE bindableError FINAL)

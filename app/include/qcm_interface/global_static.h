@@ -12,9 +12,9 @@ class GlobalStatic {
     friend class Global;
 
 public:
-    QCM_INTERFACE_API GlobalStatic();
-    QCM_INTERFACE_API ~GlobalStatic();
-    QCM_INTERFACE_API static auto instance() -> GlobalStatic*;
+    GlobalStatic();
+    ~GlobalStatic();
+    static auto instance() -> GlobalStatic*;
 
     struct HolderImpl;
 
@@ -37,9 +37,9 @@ public:
     }
 
 private:
-    QCM_INTERFACE_API auto        add_impl(std::string_view name, voidp instance,
+    auto        add_impl(std::string_view name, voidp instance,
                                            std::function<void(voidp)> deleter) -> rc<HolderImpl>;
-    QCM_INTERFACE_API static auto data(HolderImpl&) -> voidp;
+    static auto data(HolderImpl&) -> voidp;
 
     void reset();
 

@@ -185,7 +185,7 @@ MD.Pane {
                         icon.name: MD.Token.icon.playlist_play
 
                         onClicked: {
-                            QA.Action.popup_special(QA.enums.SRQueue);
+                            QA.Action.popup_special(QA.Enum.SRQueue);
                         }
                     }
                     QA.VolumeButton {
@@ -256,7 +256,7 @@ MD.Pane {
                         icon.name: MD.Token.icon.playlist_play
 
                         onClicked: {
-                            QA.Action.popup_special(QA.enums.SRQueue);
+                            QA.Action.popup_special(QA.Enum.SRQueue);
                         }
                     }
                 }

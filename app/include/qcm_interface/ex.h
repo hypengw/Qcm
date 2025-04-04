@@ -9,9 +9,9 @@
 namespace qcm
 {
 
-QCM_INTERFACE_API auto qexecutor_switch() -> task<void>;
-QCM_INTERFACE_API auto qexecutor() -> QtExecutor&;
-QCM_INTERFACE_API auto pool_executor() -> asio::thread_pool::executor_type;
-QCM_INTERFACE_API auto strand_executor() -> asio::strand<asio::thread_pool::executor_type>;
+auto qexecutor_switch() -> task<void>;
+auto qexecutor() -> QtExecutor&;
+auto pool_executor() -> asio::thread_pool::executor_type;
+auto strand_executor() -> asio::strand<asio::thread_pool::executor_type>;
 
 } // namespace qcm

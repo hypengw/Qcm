@@ -14,7 +14,7 @@ MD.Page {
     component BaseView: MD.ListView {
         implicitHeight: contentHeight
         model: m_query.data
-        busy: m_query.status === QA.enums.Querying
+        busy: m_query.status === QA.Enum.Querying
 
         topMargin: 8
         bottomMargin: MD.MatProp.size.verticalPadding * 2

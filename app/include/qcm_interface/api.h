@@ -6,7 +6,7 @@
 
 #include "qcm_interface/async.inl"
 #include "qcm_interface/macro.h"
-#include "qcm_interface/enum.h"
+#include "Qcm/qml/enum.hpp"
 #include "qcm_interface/export.h"
 
 namespace qcm
@@ -25,7 +25,7 @@ concept modelable =
     detail::modelable<M, A> && (! std::derived_from<M, QAbstractItemModel> ||
                                 requires(M t, qint32 offset) { t.fetchMoreReq(offset); });
 
-class QCM_INTERFACE_API ApiQueryBase : public QAsyncResult, public QQmlParserStatus {
+class ApiQueryBase : public QAsyncResult, public QQmlParserStatus {
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)
 

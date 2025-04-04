@@ -5,7 +5,7 @@ find_package(PkgConfig REQUIRED)
 FetchContent_Declare(
   rstd
   GIT_REPOSITORY https://github.com/hypengw/rstd.git
-  GIT_TAG 86f87858cf0290687a26de2592d7cacdac3cfc39
+  GIT_TAG 38adb63de8e67a4e929b61a2e48e52b01cf75495
   GIT_SHALLOW 1
   GIT_PROGRESS 1
   EXCLUDE_FROM_ALL)
@@ -158,7 +158,7 @@ endif()
 FetchContent_Declare(
   ncrequest
   GIT_REPOSITORY https://github.com/hypengw/ncrequest.git
-  GIT_TAG 3e6c3b11e85de28d9a1991b749c72ac2ff45158d
+  GIT_TAG 63fc742909d67651967f373184bdc414efff713a
   GIT_SHALLOW 1
   GIT_PROGRESS 1
   EXCLUDE_FROM_ALL)

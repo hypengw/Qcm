@@ -21,7 +21,6 @@ public:
 
     QUuid                     uuid;
     Arc<media_cache::DataBase> cache_sql;
-    Arc<db::ColletionSqlBase>  collection_sql;
 
     MetadataImpl metadata_impl;
 

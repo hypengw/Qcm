@@ -7,7 +7,7 @@ import Qcm.Material as MD
 Action {
     id: root
     property QA.t_id songId: song.itemId
-    property QA.t_song song
+    property QA.song song
 
     enabled: root.itemId !== QA.App.playqueue.currentSong.itemId
     icon.name: MD.Token.icon.play_arrow

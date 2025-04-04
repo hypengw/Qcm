@@ -4,8 +4,8 @@
 #include <QSize>
 
 #include "core/asio/task.h"
-#include "qcm_interface/item_id.h"
-#include "qcm_interface/enum.h"
+#include "Qcm/model/item_id.hpp"
+#include "Qcm/qml/enum.hpp"
 #include "core/qasio/qt_watcher.h"
 
 #include "error/error.h"
@@ -73,6 +73,6 @@ struct Client {
     rc<ClientBase> instance;
 };
 
-QCM_INTERFACE_API auto get_client() -> std::optional<Client>;
+auto get_client() -> std::optional<Client>;
 
 } // namespace qcm

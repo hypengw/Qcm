@@ -8,7 +8,7 @@
 namespace qcm::query
 {
 
-class QCM_INTERFACE_API QueryBase : public QAsyncResult {
+class QueryBase : public QAsyncResult {
     Q_OBJECT
 
     Q_PROPERTY(bool delay READ delay WRITE setDelay NOTIFY delayChanged FINAL)
@@ -36,7 +36,7 @@ private:
     std::deque<std::function<task<void>()>> m_queue;
 };
 
-class QCM_INTERFACE_API QueryListBase : public QueryBase {
+class QueryListBase : public QueryBase {
     Q_OBJECT
     Q_PROPERTY(qint32 offset READ offset WRITE setOffset NOTIFY offsetChanged)
     Q_PROPERTY(qint32 limit READ limit WRITE setLimit NOTIFY limitChanged)

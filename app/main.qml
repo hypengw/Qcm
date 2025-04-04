@@ -91,7 +91,7 @@ ApplicationWindow {
         }
         Connections {
             function onRoute_special(name) {
-                if (name === QA.enums.SRLogin) {
+                if (name === QA.Enum.SRLogin) {
                     win_stack.push(comp_login);
                 }
             }
@@ -122,7 +122,7 @@ ApplicationWindow {
         Connections {
             target: QA.Action
             function onPopup_special(s) {
-                if (s === QA.enums.SRQueue) {
+                if (s === QA.Enum.SRQueue) {
                     queue_popup.open();
                 } else if (typeof s == 'number') {
                     const url = QA.Util.special_route_url(s);

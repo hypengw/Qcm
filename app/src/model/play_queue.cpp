@@ -187,7 +187,7 @@ PlayQueue::PlayQueue(QObject* parent)
       m_can_jump(true),
       m_can_user_remove(true),
       m_random_mode(false) {
-    updateRoleNames(model::Song::staticMetaObject);
+    updateRoleNames(msg::model::Song::staticMetaObject);
     connect(this, &PlayQueue::currentIndexChanged, this, [this](qint32 idx) {
         setCurrentSong(idx);
     });

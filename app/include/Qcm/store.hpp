@@ -22,8 +22,8 @@ public:
     Q_INVOKABLE QQmlPropertyMap* albumExtra(QString key) const;
     Q_INVOKABLE QQmlPropertyMap* songExtra(QString key) const;
 
-    using album_store = meta_model::ItemTrait<qcm::msg::model::Album>::store_type;
-    using song_store  = meta_model::ItemTrait<qcm::msg::model::Song>::store_type;
+    using album_store = meta_model::ItemTrait<qcm::model::Album>::store_type;
+    using song_store  = meta_model::ItemTrait<qcm::model::Song>::store_type;
 
     using album_item = album_store::store_item_type;
     using song_item  = song_store::store_item_type;

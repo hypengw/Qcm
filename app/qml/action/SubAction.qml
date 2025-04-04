@@ -19,6 +19,6 @@ Action {
     }
     Binding on liked {
         value: root.querier.sub
-        when: root.querier.status === QA.enums.Finished
+        when: root.querier.status === QA.Enum.Finished
     }
 }

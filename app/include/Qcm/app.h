@@ -31,7 +31,6 @@ namespace model
 class IdQueue;
 }
 class CacheSql;
-class CollectionSql;
 class ItemSql;
 class PlayIdQueue;
 class PlayQueue;
@@ -40,14 +39,8 @@ class ProviderStatusModel;
 class ProviderMetaStatusModel;
 class PageModel;
 class AppStore;
-
-auto gen_image_cache_entry(const QString& provider, const QUrl& url, QSize reqSize)
-    -> std::optional<std::filesystem::path>;
-
 auto cache_path_of(std::string_view id) -> std::filesystem::path;
 auto media_cache_path_of(std::string_view id) -> std::filesystem::path;
-auto image_uniq_hash(const QString& provider, const QUrl& url, QSize reqSize)
-    -> std::optional<std::string>;
 auto song_uniq_hash(const model::ItemId& id, enums::AudioQuality quality) -> std::string;
 
 class App : public QObject {
@@ -111,7 +104,6 @@ public:
     void        set_player_sender(player::Notifier);
     auto        media_cache_sql() const -> rc<CacheSql>;
     auto        cache_sql() const -> rc<CacheSql>;
-    auto        collect_sql() const -> rc<CollectionSql>;
     auto        empty() const -> model::EmptyModel*;
     auto        provider_meta_status() const -> ProviderMetaStatusModel*;
     auto        provider_status() const -> ProviderStatusModel*;
@@ -161,7 +153,6 @@ public:
     Q_SLOT void on_switch_queue(model::IdQueue*);
     Q_SLOT void on_logout();
     Q_SLOT void on_switch_user(model::ItemId);
-    Q_SLOT void on_collect(model::ItemId, bool);
     Q_SLOT void on_sync_item(const model::ItemId& itemId, bool notify);
     Q_SLOT void on_sync_collecttion(enums::CollectionType);
     Q_SLOT void on_sync_library_collecttion(i64 library_id, enums::CollectionType);

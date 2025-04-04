@@ -4,7 +4,7 @@
 #include <QAbstractItemModel>
 
 #include "Qcm/model/router_msg.hpp"
-#include "qcm_interface/enum.h"
+#include "Qcm/qml/enum.hpp"
 
 namespace qcm
 {
@@ -23,11 +23,9 @@ public:
     static Util* create(QQmlEngine* qmlEngine, QJSEngine* jsEngine);
 
     Q_INVOKABLE model::ItemId create_itemid() const;
-    Q_INVOKABLE model::ItemId create_itemid(QString type, QString id) const;
     Q_INVOKABLE QString       mpris_trackid(model::ItemId) const;
     Q_INVOKABLE model::RouteMsg create_route_msg(QVariantMap) const;
 
-    Q_INVOKABLE QUrl image_cache_of(const QString& provider, const QUrl& url, QSize reqSize) const;
     Q_INVOKABLE QUrl media_cache_of(const QString& id) const;
 
     Q_INVOKABLE std::vector<model::ItemId> collect_ids(QAbstractItemModel* model) const;
@@ -36,9 +34,9 @@ public:
     Q_INVOKABLE QUrl special_route_url(enums::SpecialRoute) const;
     Q_INVOKABLE model::RouteMsg route_msg(enums::SpecialRoute) const;
 
-    Q_INVOKABLE QUrl image_url(const QString& item_type, const QString& item_id,
-                               const QString& image_type = "Primary") const;
-    Q_INVOKABLE QUrl audio_url(const QString& item_type, const QString& item_id) const;
+    Q_INVOKABLE QUrl image_url(model::ItemId    id,
+                               enums::ImageType image_type = enums::ImageType::ImagePrimary) const;
+    Q_INVOKABLE QUrl audio_url(model::ItemId id) const;
 
     Q_INVOKABLE QString joinName(const QJSValue&, const QString& = "/") const;
     Q_INVOKABLE QString formatDateTime(const QJSValue&, const QString&) const;

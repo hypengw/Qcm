@@ -74,7 +74,7 @@ MD.Page {
 
             MD.Button {
                 Layout.fillWidth: true
-                // enabled: qr_login.status !== QA.enums.Querying
+                // enabled: qr_login.status !== QA.Enum.Querying
                 type: MD.Enum.BtFilled
                 font.capitalization: Font.Capitalize
                 highlighted: true

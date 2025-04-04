@@ -17,13 +17,17 @@ set(SOURCES
     src/backend.cpp
     src/qml/clipboard.cpp
     src/qml/qml_util.cpp
+    src/qml/enum.cpp
+    src/qml/duration.cpp
     src/sql/cache_sql.cpp
-    src/sql/collection_sql.cpp
     src/model/lyric.cpp
     src/model/page_model.cpp
     src/model/play_queue.cpp
     src/model/id_queue.cpp
     src/model/router_msg.cpp
+    src/model/app_info.cpp
+    src/model/empty_model.cpp
+    src/model/item_id.cpp
     src/query/album_query.cpp
     src/query/artist_query.cpp
     src/query/provider_query.cpp
@@ -37,14 +41,11 @@ set(SOURCES
     src/common/action.cpp
     src/common/notifier.cpp
     src/common/api.cpp
-    src/common/item_id.cpp
-    src/common/enum.cpp
     src/common/path.cpp
     src/common/state.cpp
     src/common/global.cpp
     src/common/global_static.cpp
-    src/common/meta_name.cpp
-    src/common/duration.cpp)
+    src/common/meta_name.cpp)
 
 set(MODULES src/mod.cppm)
 

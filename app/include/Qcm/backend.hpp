@@ -40,10 +40,10 @@ public:
 
     auto send(msg::QcmMessage&& msg) -> task<Result<msg::QcmMessage, msg::Error>>;
 
-    auto image(QStringView item_type, QStringView item_id, QStringView image_type)
+    auto image(QStringView item_type, QStringView id, QStringView image_type)
         -> task<Arc<ncrequest::Response>>;
-
-    auto audio_url(QStringView item_type, QStringView item_id) -> QUrl;
+    auto image(model::ItemId id, enums::ImageType image_type) -> task<Arc<ncrequest::Response>>;
+    auto audio_url(model::ItemId id) -> QUrl;
 
     template<typename Req>
         requires msg::ReqMsgCP<Req>

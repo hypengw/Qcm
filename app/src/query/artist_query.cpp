@@ -43,7 +43,10 @@ void ArtistsQuery::fetchMore(qint32) {
         auto rsp    = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
         self->inspect_set(rsp, [self, offset](msg::GetArtistsRsp& el) {
-            self->tdata()->extend(el.items());
+            auto view = std::views::transform(el.items(), [](auto&& el) {
+                return model::Artist(el);
+            });
+            self->tdata()->extend(view);
             self->setOffset(offset + 1);
             self->tdata()->setHasMore(el.hasMore());
         });

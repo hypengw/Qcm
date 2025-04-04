@@ -38,7 +38,7 @@ void AlbumsQuery::reload() {
         self->inspect_set(rsp, [self](msg::GetAlbumsRsp& el) {
             self->tdata()->resetModel(el.items());
             for (qsizetype i = 0; i < el.extras().size(); i++) {
-                auto id = el.items().at(i).id_proto().toLongLong();
+                auto id = el.items().at(i).id_proto();
                 if (auto extend = App::instance()->store()->albums.query_extend(id); extend) {
                     msg::merge_extra(*(extend->extra), el.extras().at(i), album_json_fields);
                 }
@@ -61,10 +61,14 @@ void AlbumsQuery::fetchMore(qint32) {
         auto rsp    = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
         self->inspect_set(rsp, [self, offset](msg::GetAlbumsRsp& el) {
-            self->tdata()->extend(el.items());
+            auto view = std::views::transform(el.items(), [](auto&& el) {
+                return model::Album(el);
+            });
+
+            self->tdata()->extend(view);
 
             for (qsizetype i = 0; i < el.extras().size(); i++) {
-                auto id = el.items().at(i).id_proto().toLongLong();
+                auto id = el.items().at(i).id_proto();
                 if (auto extend = App::instance()->store()->albums.query_extend(id); extend) {
                     msg::merge_extra(*(extend->extra), el.extras().at(i), album_json_fields);
                 }
@@ -89,7 +93,7 @@ auto AlbumSongListModel::album() const -> album_type {
 }
 void AlbumSongListModel::setAlbum(const album_type& album) {
     auto store = App::instance()->store();
-    auto key   = album.id_proto().toLongLong();
+    auto key   = album.id_proto();
 
     auto old = m_key;
     if (ycore::cmp_exchange(m_key, key)) {
@@ -137,13 +141,12 @@ void AlbumQuery::reload() {
             self->tdata()->setAlbum(el.item());
             self->tdata()->resetModel(el.songs());
 
-            if (auto extend = store->albums.query_extend(el.item().id_proto().toLongLong());
-                extend) {
+            if (auto extend = store->albums.query_extend(el.item().id_proto()); extend) {
                 msg::merge_extra(*(extend->extra), el.extra(), album_json_fields);
             }
 
             for (qsizetype i = 0; i < el.songExtras().size(); i++) {
-                auto id = el.songs().at(i).id_proto().toLongLong();
+                auto id = el.songs().at(i).id_proto();
                 if (auto extend = store->songs.query_extend(id); extend) {
                     msg::merge_extra(*(extend->extra), el.songExtras().at(i), song_json_fields);
                 }

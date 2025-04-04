@@ -9,13 +9,13 @@
 namespace qcm
 {
 class ArtistListModel
-    : public meta_model::QGadgetListModel<msg::model::Artist,
+    : public meta_model::QGadgetListModel<model::Artist,
                                           meta_model::QMetaListStore::VectorWithMap> {
     Q_OBJECT
     using base_type =
-        meta_model::QGadgetListModel<msg::model::Artist, meta_model::QMetaListStore::VectorWithMap>;
+        meta_model::QGadgetListModel<model::Artist, meta_model::QMetaListStore::VectorWithMap>;
 
-    using value_type = msg::model::Artist;
+    using value_type = model::Artist;
 
 public:
     ArtistListModel(QObject* parent = nullptr);

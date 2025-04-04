@@ -8,7 +8,7 @@
 #include "core/core.h"
 #include "meta_model/qmeta_list_model.hpp"
 #include "Qcm/model/id_queue.hpp"
-#include "qcm_interface/enum.h"
+#include "Qcm/qml/enum.hpp"
 #include "core/asio/task.h"
 #include "Qcm/backend_msg.hpp"
 
@@ -77,7 +77,7 @@ class PlayQueue : public meta_model::QMetaModelBase<QIdentityProxyModel> {
     QML_ANONYMOUS
     Q_PROPERTY(qint32 currentIndex READ currentIndex NOTIFY currentIndexChanged BINDABLE
                    bindableCurrentIndex FINAL)
-    Q_PROPERTY(qcm::model::Song currentSong READ currentSong NOTIFY currentSongChanged FINAL)
+    Q_PROPERTY(qcm::msg::model::Song currentSong READ currentSong NOTIFY currentSongChanged FINAL)
     Q_PROPERTY(
         qcm::enums::LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged FINAL)
     Q_PROPERTY(bool randomMode READ randomMode WRITE setRandomMode NOTIFY randomModeChanged FINAL)

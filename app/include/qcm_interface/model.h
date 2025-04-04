@@ -15,7 +15,7 @@
 #include "qcm_interface/type.h"
 #include "qcm_interface/macro.h"
 #include "qcm_interface/export.h"
-#include "qcm_interface/item_id.h"
+#include "Qcm/model/item_id.hpp"
 
 namespace qcm::model
 {
@@ -27,14 +27,14 @@ using to_param =
 
 } // namespace qcm::model
 
-DECLARE_CONVERT(std::string, qcm::model::ItemId, QCM_INTERFACE_API);
+DECLARE_CONVERT(std::string, qcm::model::ItemId);
 
-DECLARE_JSON_SERIALIZER(QUuid, QCM_INTERFACE_API);
-DECLARE_JSON_SERIALIZER(QString, QCM_INTERFACE_API);
-DECLARE_JSON_SERIALIZER(QUrl, QCM_INTERFACE_API);
-DECLARE_JSON_SERIALIZER(QVariantMap, QCM_INTERFACE_API);
-DECLARE_JSON_SERIALIZER(QDateTime, QCM_INTERFACE_API);
-DECLARE_JSON_SERIALIZER(qcm::model::ItemId, QCM_INTERFACE_API);
+DECLARE_JSON_SERIALIZER(QUuid);
+DECLARE_JSON_SERIALIZER(QString);
+DECLARE_JSON_SERIALIZER(QUrl);
+DECLARE_JSON_SERIALIZER(QVariantMap);
+DECLARE_JSON_SERIALIZER(QDateTime);
+DECLARE_JSON_SERIALIZER(qcm::model::ItemId);
 
 JSON_SERIALIZER_NAMESPACE_BEGIN
 template<typename T>

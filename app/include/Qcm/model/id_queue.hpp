@@ -3,12 +3,12 @@
 #include <unordered_set>
 #include <QAbstractListModel>
 #include <QObjectBindableProperty>
-#include "qcm_interface/item_id.h"
+#include "Qcm/model/item_id.hpp"
 
 namespace qcm::model
 {
 
-class QCM_INTERFACE_API IdQueue : public QAbstractListModel {
+class IdQueue : public QAbstractListModel {
     Q_OBJECT
     Q_PROPERTY(qint32 currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY
                    currentIndexChanged BINDABLE bindableCurrentIndex FINAL)

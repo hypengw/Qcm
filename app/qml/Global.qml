@@ -8,16 +8,16 @@ import Qcm.Material as MD
 QA.GlobalWrapper {
     id: root
 
-    readonly property QA.t_song cur_song: QA.App.playqueue.currentSong
+    readonly property QA.song cur_song: QA.App.playqueue.currentSong
 
     readonly property string loop_icon: switch (QA.App.playqueue.loopMode) {
-    case QA.enums.SingleLoop:
+    case QA.Enum.SingleLoop:
         return MD.Token.icon.repeat_one;
-    case QA.enums.ListLoop:
+    case QA.Enum.ListLoop:
         return MD.Token.icon.loop;
-    case QA.enums.ShuffleLoop:
+    case QA.Enum.ShuffleLoop:
         return MD.Token.icon.shuffle;
-    case QA.enums.NoneLoop:
+    case QA.Enum.NoneLoop:
     default:
         return MD.Token.icon.trending_flat;
     }
@@ -157,12 +157,12 @@ QA.GlobalWrapper {
             const queue = QA.App.playqueue;
             // console.debug(root.category, `state: ${p.playbackState}, ${p.position}, ${p.duration}, ${p.source}`);
 
-            if (p.playbackState === QA.enums.StoppedState && p.source) {
+            if (p.playbackState === QA.Enum.StoppedState && p.source) {
                 if (p.position / p.duration > 0.98) {
                     queue.next(queue.loopMode);
                 }
             }
-            if (p.playbackState !== QA.enums.StoppedState) {
+            if (p.playbackState !== QA.Enum.StoppedState) {
                 QA.Action.playbackLog(p.playbackState, root.cur_song.itemId, root.cur_song.source?.itemId ?? QA.Util.create_itemid());
             }
         }

@@ -7,7 +7,7 @@ module;
 #include <expected>
 
 export module qcm.core:basic;
-export import rstd.core;
+export import rstd;
 
 export using i8  = std::int8_t;
 export using i16 = std::int16_t;
@@ -51,6 +51,8 @@ export template<typename T>
 using Ok = rstd::Ok<T>;
 export template<typename T>
 using Err = rstd::Err<T>;
+
+export using ref_str = rstd::ref_str;
 
 export template<typename U = void, typename T>
 constexpr auto Some(T&& t) {
