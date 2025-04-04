@@ -4,10 +4,10 @@
 #include <QQmlParserStatus>
 #include <QAbstractItemModel>
 
-#include "qcm_interface/async.inl"
-#include "qcm_interface/macro.h"
+#include "Qcm/util/async.inl"
+#include "Qcm/macro.hpp"
 #include "Qcm/qml/enum.hpp"
-#include "qcm_interface/export.h"
+#include "core/core.h"
 
 namespace qcm
 {

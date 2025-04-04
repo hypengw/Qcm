@@ -1,9 +1,9 @@
-#include "qcm_interface/action.h"
+#include "Qcm/action.hpp"
 
 #include <QSettings>
 #include <QVariant>
 
-#include "Qcm/app.h"
+#include "Qcm/app.hpp"
 #include "Qcm/query/query.hpp"
 #include "core/helper.h"
 
@@ -13,9 +13,29 @@
 
 #include "Qcm/model/play_queue.hpp"
 #include "Qcm/backend.hpp"
+#include "Qcm/global.hpp"
+#include "Qcm/util/global_static.hpp"
 
 namespace qcm
 {
+auto Action::instance() -> Action* {
+    static auto the =
+        GlobalStatic::instance()->add<Action>("action", new Action(nullptr), [](Action* p) {
+            delete p;
+        });
+    return the;
+};
+
+Action::Action(QObject* parent): QObject(parent) {}
+Action::~Action() {}
+
+Action* Action::create(QQmlEngine*, QJSEngine*) {
+    auto act = instance();
+    // not delete on qml
+    QJSEngine::setObjectOwnership(act, QJSEngine::CppOwnership);
+    return act;
+}
+
 
 void App::connect_actions() {
     connect(Action::instance(), &Action::switch_user, this, &App::on_switch_user);
@@ -262,3 +282,5 @@ void App::on_route_by_id(const model::ItemId& id, const QVariantMap& in_props) {
 }
 
 } // namespace qcm
+
+#include <Qcm/moc_action.cpp>

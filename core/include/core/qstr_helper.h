@@ -59,8 +59,8 @@ struct Convert<std::string, QAnyStringView> {
 
 template<>
 struct fmt::formatter<QString> : fmt::formatter<std::string_view> {
-    auto format(const QString& qs, fmt::format_context& ctx) const
-        -> fmt::format_context::iterator {
+    template<typename CTX>
+    auto format(const QString& qs, CTX& ctx) const -> CTX::iterator {
         return fmt::formatter<std::string_view>::format(qs.toStdString(), ctx);
     }
 };
@@ -99,8 +99,8 @@ struct fmt::formatter<QAnyStringView> : fmt::formatter<std::string_view> {
 
 template<>
 struct std::formatter<QString> : std::formatter<std::string_view> {
-    auto format(const QString& qs, std::format_context& ctx) const
-        -> std::format_context::iterator {
+    template<typename CTX>
+    auto format(const QString& qs, CTX& ctx) const -> CTX::iterator {
         return std::formatter<std::string_view>::format(qs.toStdString(), ctx);
     }
 };

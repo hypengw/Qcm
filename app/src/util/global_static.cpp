@@ -1,4 +1,4 @@
-#include "qcm_interface/global_static.h"
+#include "Qcm/util/global_static.hpp"
 
 #include <map>
 #include <atomic>

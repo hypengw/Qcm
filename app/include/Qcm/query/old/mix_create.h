@@ -7,12 +7,12 @@
 #include "qcm_interface/query.h"
 #include "Qcm/query/query_load.h"
 #include "Qcm/sql/item_sql.h"
-#include "Qcm/app.h"
+#include "Qcm/app.hpp"
 #include "Qcm/sql/collection_sql.h"
 #include "core/qasio/qt_sql.h"
-#include "qcm_interface/global.h"
-#include "qcm_interface/macro.h"
-#include "qcm_interface/async.inl"
+#include "Qcm/global.hpp"
+#include "Qcm/macro.hpp"
+#include "Qcm/util/async.inl"
 
 namespace qcm::query
 {

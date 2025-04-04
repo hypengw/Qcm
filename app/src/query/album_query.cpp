@@ -1,10 +1,10 @@
 #include "Qcm/query/album_query.hpp"
 
 #include "Qcm/backend.hpp"
-#include "Qcm/app.h"
+#include "Qcm/app.hpp"
 #include "Qcm/store.hpp"
 
-#include "qcm_interface/async.inl"
+#include "Qcm/util/async.inl"
 
 namespace qcm
 {

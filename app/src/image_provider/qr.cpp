@@ -4,8 +4,7 @@
 
 #include "qr_code/qrcodegen.hpp"
 
-#include "Qcm/app.h"
-#include "qcm_interface/type.h"
+#include "Qcm/app.hpp"
 
 namespace qcm
 {

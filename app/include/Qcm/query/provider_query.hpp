@@ -2,7 +2,7 @@
 
 #include <QtQml/QQmlEngine>
 #include "Qcm/backend.hpp"
-#include "qcm_interface/async.h"
+#include "Qcm/util/async.hpp"
 
 namespace qcm::query
 {

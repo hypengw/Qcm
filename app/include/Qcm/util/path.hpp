@@ -3,7 +3,7 @@
 #include <filesystem>
 #include <span>
 
-#include "qcm_interface/export.h"
+#include "core/core.h"
 
 namespace qcm
 {

@@ -3,8 +3,10 @@
 #include <limits>
 #include <ctre.hpp>
 
-#include "qcm_interface/type.h"
+#include "core/core.h"
 #include "core/log.h"
+
+import qcm.helper;
 
 using namespace qcm;
 

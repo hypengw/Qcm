@@ -8,7 +8,7 @@
 #include "Qcm/model/comment.hpp"
 #include "meta_model/qgadget_list_model.hpp"
 #include "core/log.h"
-#include "Qcm/app.h"
+#include "Qcm/app.hpp"
 
 namespace qcm::query
 {

@@ -1,8 +1,7 @@
 #include "Qcm/query/storage_info.hpp"
-#include "qcm_interface/async.inl"
-#include "qcm_interface/global.h"
-#include "Qcm/app.h"
-#include "Qcm/sql/cache_sql.h"
+#include "Qcm/util/async.inl"
+#include "Qcm/global.hpp"
+#include "Qcm/app.hpp"
 
 #include "core/asio/basic.h"
 
@@ -18,20 +17,20 @@ void StorageInfo::setTotal(double v) {
 }
 StorageInfoQuerier::StorageInfoQuerier(QObject* parent): QAsyncResultT<StorageInfo>(parent) {}
 void StorageInfoQuerier::reload() {
-    set_status(Status::Querying);
-    auto media_cache_sql = App::instance()->media_cache_sql();
-    auto cache_sql       = App::instance()->cache_sql();
-    this->spawn([media_cache_sql, cache_sql, this]() -> asio::awaitable<void> {
-        auto media_size  = co_await media_cache_sql->total_size();
-        auto normal_size = co_await cache_sql->total_size();
+    // set_status(Status::Querying);
+    // auto media_cache_sql = App::instance()->media_cache_sql();
+    // auto cache_sql       = App::instance()->cache_sql();
+    // this->spawn([media_cache_sql, cache_sql, this]() -> asio::awaitable<void> {
+    //     auto media_size  = co_await media_cache_sql->total_size();
+    //     auto normal_size = co_await cache_sql->total_size();
 
-        co_await asio::post(
-            asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
+    //     co_await asio::post(
+    //         asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
 
-        auto d = data().value<StorageInfo*>();
-        d->setTotal(media_size + normal_size);
-        set_status(Status::Finished);
-    });
+    //     auto d = data().value<StorageInfo*>();
+    //     d->setTotal(media_size + normal_size);
+    //     set_status(Status::Finished);
+    // });
 }
 } // namespace qcm::qml
 

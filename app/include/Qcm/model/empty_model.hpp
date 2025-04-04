@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QQmlEngine>
-#include "qcm_interface/export.h"
+#include "core/core.h"
 
 namespace qcm::model
 {

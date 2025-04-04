@@ -1,8 +1,8 @@
 #include "Qcm/query/provider_query.hpp"
 
-#include "qcm_interface/async.inl"
+#include "Qcm/util/async.inl"
 
-#include "Qcm/app.h"
+#include "Qcm/app.hpp"
 
 namespace qcm::query
 {

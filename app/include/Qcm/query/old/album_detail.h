@@ -5,16 +5,16 @@
 #include "core/qasio/qt_sql.h"
 #include "meta_model/qgadget_list_model.hpp"
 
-#include "qcm_interface/global.h"
-#include "qcm_interface/macro.h"
+#include "Qcm/global.hpp"
+#include "Qcm/macro.hpp"
 #include "Qcm/model/album.hpp"
 #include "Qcm/model/artist.hpp"
-#include "qcm_interface/async.inl"
+#include "Qcm/util/async.inl"
 
 #include "qcm_interface/query.h"
 #include "Qcm/query/query_load.h"
 #include "Qcm/sql/item_sql.h"
-#include "Qcm/app.h"
+#include "Qcm/app.hpp"
 
 namespace qcm::query
 {

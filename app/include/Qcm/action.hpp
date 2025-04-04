@@ -2,9 +2,10 @@
 
 #include <QPointer>
 #include <QQmlEngine>
-#include "qcm_interface/export.h"
+#include "core/core.h"
 #include "Qcm/qml/enum.hpp"
 #include "Qcm/model/router_msg.hpp"
+#include "Qcm/model/item_id.hpp"
 
 Q_MOC_INCLUDE("Qcm/model/id_queue.hpp")
 namespace qcm

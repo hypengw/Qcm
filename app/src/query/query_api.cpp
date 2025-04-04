@@ -1,5 +1,5 @@
-#include "qcm_interface/api.h"
-#include "qcm_interface/global.h"
+#include "Qcm/query/query_api.hpp"
+#include "Qcm/global.hpp"
 
 #include "core/qobject_bindable_property_p.h"
 
@@ -304,5 +304,5 @@ void ApiQueryBase::query() { reload(); }
 
 } // namespace qcm
 
-#include <qcm_interface/moc_async.cpp>
-#include <qcm_interface/moc_api.cpp>
+#include <Qcm/util/moc_async.cpp>
+#include <Qcm/query/moc_query_api.cpp>

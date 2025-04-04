@@ -16,8 +16,9 @@
 
 #include "core/qasio/qt_executor.h"
 
-#include "qcm_interface/global.h"
+#include "Qcm/global.hpp"
 #include "Qcm/model/empty_model.hpp"
+#include "Qcm/model/item_id.hpp"
 #include "player/notify.h"
 
 namespace qcm
@@ -39,9 +40,6 @@ class ProviderStatusModel;
 class ProviderMetaStatusModel;
 class PageModel;
 class AppStore;
-auto cache_path_of(std::string_view id) -> std::filesystem::path;
-auto media_cache_path_of(std::string_view id) -> std::filesystem::path;
-auto song_uniq_hash(const model::ItemId& id, enums::AudioQuality quality) -> std::string;
 
 class App : public QObject {
     Q_OBJECT
@@ -102,8 +100,6 @@ public:
     auto        playqueue() const -> PlayQueue*;
     auto        play_id_queue() const -> PlayIdQueue*;
     void        set_player_sender(player::Notifier);
-    auto        media_cache_sql() const -> rc<CacheSql>;
-    auto        cache_sql() const -> rc<CacheSql>;
     auto        empty() const -> model::EmptyModel*;
     auto        provider_meta_status() const -> ProviderMetaStatusModel*;
     auto        provider_status() const -> ProviderStatusModel*;

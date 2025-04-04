@@ -4,8 +4,8 @@
 #include <QObject>
 
 import qcm.core;
-#include "qcm_interface/export.h"
-#include "qcm_interface/async.h"
+#include "core/core.h"
+#include "Qcm/util/async.hpp"
 
 namespace qcm::state
 {

@@ -6,7 +6,7 @@
 #include <QDir>
 #include <QThread>
 
-#include "Qcm/app.h"
+#include "Qcm/app.hpp"
 #include "core/log.h"
 import platform;
 

@@ -1,4 +1,4 @@
-#include "Qcm/app.h"
+#include "Qcm/app.hpp"
 
 #include <cmath>
 #include <array>
@@ -30,13 +30,11 @@
 import platform;
 #include "core/qasio/qt_sql.h"
 
-#include "qcm_interface/type.h"
-#include "qcm_interface/path.h"
+#include "Qcm/util/path.hpp"
 
 #include "Qcm/image_provider/http.hpp"
 #include "Qcm/image_provider/qr.hpp"
 #include "Qcm/qml/qml_util.hpp"
-#include "Qcm/sql/cache_sql.h"
 
 #include "Qcm/model/play_queue.hpp"
 #include "Qcm/model/page_model.hpp"
@@ -64,65 +62,6 @@ void cache_clean_cb(const std::filesystem::path& cache_dir, std::string_view key
     auto            file = cache_dir / (key.size() >= 2 ? key.substr(0, 2) : "no"sv) / key;
     std::filesystem::remove(file, ec);
     log::debug("cache remove {}", file.native());
-}
-
-asio::awaitable<void> scan_media_cache(rc<CacheSql> cache_sql, std::filesystem::path cache_dir) {
-    auto                  cache_entries = co_await cache_sql->get_all();
-    std::set<std::string> keys;
-    // name,dirname
-    std::map<std::string, std::string> files;
-    std::vector<std::filesystem::path> useless_files;
-    std::error_code                    ec;
-    for (auto& el : cache_entries) keys.insert(el.key);
-    for (auto& el : std::filesystem::directory_iterator(cache_dir)) {
-        if (el.is_regular_file()) {
-            useless_files.push_back(el);
-        } else if (el.is_directory()) {
-            auto dir = el.path();
-            for (auto& el : std::filesystem::directory_iterator(el)) {
-                if (el.is_regular_file()) {
-                    files.insert({ el.path().filename(), dir.filename() });
-                }
-            }
-        }
-    }
-
-    usize entry_removed { 0 }, file_removed { 0 };
-
-    {
-        std::vector<std::string> delete_keys;
-        for (auto& k : keys) {
-            if (! files.contains(k)) {
-                delete_keys.push_back(k);
-            }
-        }
-        co_await cache_sql->remove(delete_keys);
-        entry_removed = delete_keys.size();
-    }
-
-    for (auto& f : files) {
-        if (! keys.contains(f.first)) {
-            std::filesystem::remove(cache_dir / f.second / f.first, ec);
-            file_removed++;
-        }
-    }
-    for (auto& f : useless_files) {
-        std::filesystem::remove(f, ec);
-    }
-    file_removed += useless_files.size();
-
-    co_await cache_sql->try_clean();
-
-    log::debug(R"(
-cache cleaned:
-    path: {}
-    entry removed: {}
-    file  removed: {}
-    )",
-               cache_dir.string(),
-               entry_removed,
-               file_removed);
-    co_return;
 }
 
 auto get_pool_size() -> std::size_t {
@@ -182,9 +121,6 @@ public:
     Box<mpris::Mpris> m_mpris;
 #endif
 
-    Arc<CacheSql>      m_media_cache_sql;
-    Arc<CacheSql>      m_cache_sql;
-
     Box<Backend> m_backend;
 
     std::optional<Sender<Player::NotifyInfo>> m_player_sender;
@@ -234,11 +170,6 @@ App::App(QStringView backend_exe, std::monostate)
 
     // sql init
     {
-        auto cache_db        = make_rc<helper::SqlConnect>(data_path() / "cache.db", u"cache");
-        auto data_db         = make_rc<helper::SqlConnect>(data_path() / "data.db", u"data");
-        d->m_media_cache_sql = make_rc<CacheSql>("media_cache", 0, cache_db);
-        d->m_cache_sql       = make_rc<CacheSql>("cache", 0, cache_db);
-        d->m_global->set_cache_sql(d->m_cache_sql);
         d->m_global->set_metadata_impl(player::get_metadata);
     }
 }
@@ -278,22 +209,6 @@ void App::init() {
             "Qcm.App", 1, 0, "MprisMediaPlayer", "uncreatable");
     }
 #endif
-
-    // cache
-    {
-        auto cache_dir = cache_path() / "cache";
-        d->m_cache_sql->set_clean_cb([cache_dir](std::string_view key) {
-            cache_clean_cb(cache_dir, key);
-        });
-        asio::co_spawn(d->m_cache_sql->get_executor(),
-                       scan_media_cache(d->m_cache_sql, cache_dir),
-                       asio::detached);
-    }
-
-    // media cache
-    {
-    }
-    triggerCacheLimit();
 
     load_settings();
 
@@ -355,12 +270,6 @@ void App::triggerCacheLimit() {
     if (! s.contains(media_cache_key)) {
         s.setValue(media_cache_key, def_medie_cache_limit);
     }
-
-    auto media_cache_limit = s.value(media_cache_key).toDouble() / 1024;
-    d->m_media_cache_sql->set_limit(media_cache_limit);
-
-    auto limit = s.value(total_cache_key).toDouble() / 1024 - media_cache_limit;
-    d->m_cache_sql->set_limit(limit);
 }
 
 void App::load_plugins() {
@@ -561,14 +470,6 @@ void App::set_player_sender(Sender<Player::NotifyInfo> sender) {
         */
 }
 
-auto App::media_cache_sql() const -> rc<CacheSql> {
-    C_D(const App);
-    return d->m_media_cache_sql;
-}
-auto App::cache_sql() const -> rc<CacheSql> {
-    C_D(const App);
-    return d->m_cache_sql;
-}
 auto App::empty() const -> model::EmptyModel* {
     C_D(const App);
     return d->m_empty;

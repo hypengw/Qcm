@@ -3,7 +3,7 @@
 #include <QQmlEngine>
 
 #include "core/core.h"
-#include "qcm_interface/export.h"
+#include "core/core.h"
 
 namespace qcm
 {

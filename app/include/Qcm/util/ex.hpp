@@ -4,7 +4,7 @@
 #include <asio/strand.hpp>
 #include "core/asio/task.h"
 #include "core/qasio/qt_executor.h"
-#include "qcm_interface/export.h"
+#include "core/core.h"
 
 namespace qcm
 {

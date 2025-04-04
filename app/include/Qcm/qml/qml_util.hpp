@@ -4,6 +4,7 @@
 #include <QAbstractItemModel>
 
 #include "Qcm/model/router_msg.hpp"
+#include "Qcm/model/item_id.hpp"
 #include "Qcm/qml/enum.hpp"
 
 namespace qcm
@@ -25,8 +26,6 @@ public:
     Q_INVOKABLE model::ItemId create_itemid() const;
     Q_INVOKABLE QString       mpris_trackid(model::ItemId) const;
     Q_INVOKABLE model::RouteMsg create_route_msg(QVariantMap) const;
-
-    Q_INVOKABLE QUrl media_cache_of(const QString& id) const;
 
     Q_INVOKABLE std::vector<model::ItemId> collect_ids(QAbstractItemModel* model) const;
     Q_INVOKABLE int  dyn_card_width(qint32 containerWidth, qint32 spacing = 0) const;

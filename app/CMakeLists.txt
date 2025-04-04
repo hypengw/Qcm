@@ -15,11 +15,12 @@ set(SOURCES
     src/store.cpp
     src/player.cpp
     src/backend.cpp
+    src/notifier.cpp
+    src/global.cpp
     src/qml/clipboard.cpp
     src/qml/qml_util.cpp
     src/qml/enum.cpp
     src/qml/duration.cpp
-    src/sql/cache_sql.cpp
     src/model/lyric.cpp
     src/model/page_model.cpp
     src/model/play_queue.cpp
@@ -28,24 +29,20 @@ set(SOURCES
     src/model/app_info.cpp
     src/model/empty_model.cpp
     src/model/item_id.cpp
+    src/util/global_static.cpp
+    src/util/path.cpp
     src/query/album_query.cpp
     src/query/artist_query.cpp
     src/query/provider_query.cpp
     src/query/query.cpp
     src/query/storage_info.cpp
+    src/query/query_api.cpp
     src/image_provider/response.cpp
     src/image_provider/http.cpp
     src/image_provider/qr.cpp
     src/status/provider.cpp
     src/status/process.cpp
-    src/common/action.cpp
-    src/common/notifier.cpp
-    src/common/api.cpp
-    src/common/path.cpp
-    src/common/state.cpp
-    src/common/global.cpp
-    src/common/global_static.cpp
-    src/common/meta_name.cpp)
+    src/status/app_state.cpp)
 
 set(MODULES src/mod.cppm)
 

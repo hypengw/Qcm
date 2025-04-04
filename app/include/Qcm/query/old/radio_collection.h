@@ -5,11 +5,11 @@
 #include "core/qasio/qt_sql.h"
 #include "meta_model/qgadget_list_model.hpp"
 
-#include "qcm_interface/global.h"
-#include "qcm_interface/macro.h"
-#include "qcm_interface/async.inl"
+#include "Qcm/global.hpp"
+#include "Qcm/macro.hpp"
+#include "Qcm/util/async.inl"
 
-#include "Qcm/app.h"
+#include "Qcm/app.hpp"
 #include "qcm_interface/query.h"
 #include "Qcm/query/query_load.h"
 #include "Qcm/sql/item_sql.h"

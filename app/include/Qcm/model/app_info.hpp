@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QObject>
-#include "qcm_interface/model.h"
+#include "Qcm/macro.hpp"
 
 namespace qcm
 {

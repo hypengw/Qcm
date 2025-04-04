@@ -1,8 +1,8 @@
 #include "Qcm/status/process.hpp"
 #include "core/asio/basic.h"
-#include "qcm_interface/ex.h"
-#include "qcm_interface/global.h"
-#include "Qcm/app.h"
+#include "Qcm/util/ex.hpp"
+#include "Qcm/global.hpp"
+#include "Qcm/app.hpp"
 #include "Qcm/status/provider_status.hpp"
 
 void qcm::process_msg(msg::QcmMessage&& msg) {

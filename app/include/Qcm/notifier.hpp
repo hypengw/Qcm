@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QQmlEngine>
-#include "qcm_interface/export.h"
+#include "core/core.h"
 #include "Qcm/model/item_id.hpp"
 #include "Qcm/qml/enum.hpp"
 

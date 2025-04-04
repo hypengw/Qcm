@@ -6,9 +6,10 @@
 #include "core/core.h"
 #include "core/qasio/qt_executor.h"
 #include "Qcm/qml/enum.hpp"
-#include "qcm_interface/ex.h"
+#include "Qcm/util/ex.hpp"
 #include "core/qasio/qt_watcher.h"
 #include "core/asio/task.h"
+#include "core/qstr_helper.h"
 
 namespace helper
 {
@@ -150,7 +151,7 @@ public:
             set_tdata(*res);
             this->set_status(QAsyncResult::Status::Finished);
         } else {
-            this->set_error(convert_from<QString>(std::format("{}", res.unwrap_err_unchecked())));
+            this->set_error(rstd::into(std::format("{}", res.unwrap_err_unchecked())));
             this->set_status(QAsyncResult::Status::Error);
         }
     }
@@ -161,7 +162,7 @@ public:
             res.inspect(std::forward<F>(f));
             this->set_status(QAsyncResult::Status::Finished);
         } else {
-            this->set_error(convert_from<QString>(std::format("{}", res.unwrap_err_unchecked())));
+            this->set_error(rstd::into(std::format("{}", res.unwrap_err_unchecked())));
             this->set_status(QAsyncResult::Status::Error);
         }
     }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <filesystem>
+
 #include <QtCore/QObject>
 #include <QtQml/QQmlListProperty>
 #include <QtQml/QQmlComponent>
@@ -9,15 +11,15 @@
 
 #include "core/core.h"
 #include "core/qasio/qt_executor.h"
-#include "qcm_interface/export.h"
+#include "core/core.h"
 #include "Qcm/model/app_info.hpp"
 #include "Qcm/qml/enum.hpp"
 
-#include "qcm_interface/sql/cache_sql.h"
 
-#include "qcm_interface/metadata.h"
-#include "qcm_interface/client.h"
-#include "qcm_interface/state/app_state.h"
+#include "player/metadata.h"
+#include "Qcm/status/app_state.hpp"
+
+import ncrequest;
 
 namespace qcm
 {
@@ -58,7 +60,6 @@ public:
     using pool_executor_t = asio::thread_pool::executor_type;
     using qt_executor_t   = QtExecutor;
     using Metadata        = player::Metadata;
-    using Client          = qcm::Client;
 
     static auto instance() -> Global*;
 
@@ -70,9 +71,6 @@ public:
     auto session() -> rc<ncrequest::Session>;
     auto app_state() const -> state::AppState*;
 
-    auto get_cache_sql() const -> rc<media_cache::DataBase>;
-
-    auto client(i64 provider_id) const -> std::optional<Client>;
 
     auto copy_action_comp() const -> QQmlComponent*;
     auto uuid() const -> const QUuid&;
@@ -80,8 +78,6 @@ public:
     auto info() const -> const model::AppInfo&;
 
     auto get_metadata(const std::filesystem::path&) const -> Metadata;
-
-    auto user_agent() const -> std::string_view;
 
     void join();
 
@@ -96,7 +92,6 @@ private:
     using MetadataImpl = std::function<Metadata(const std::filesystem::path&)>;
     void set_uuid(const QUuid&);
 
-    void set_cache_sql(rc<media_cache::DataBase>);
 
     void set_metadata_impl(const MetadataImpl&);
 

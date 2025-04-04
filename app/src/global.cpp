@@ -1,5 +1,5 @@
-#include "qcm_interface/global.h"
-#include "qcm_interface/global_p.h"
+#include "Qcm/global.hpp"
+#include "Qcm/global_p.hpp"
 
 #include <thread>
 #include <QPluginLoader>
@@ -10,10 +10,10 @@
 #include <asio/bind_executor.hpp>
 
 #include "core/log.h"
-#include "qcm_interface/path.h"
-#include "qcm_interface/ex.h"
-#include "qcm_interface/global_static.h"
-#include "qcm_interface/action.h"
+#include "Qcm/util/path.hpp"
+#include "Qcm/util/ex.hpp"
+#include "Qcm/util/global_static.hpp"
+#include "Qcm/action.hpp"
 
 import ncrequest;
 
@@ -142,11 +142,6 @@ auto Global::uuid() const -> const QUuid& {
     return d->uuid;
 }
 
-auto Global::get_cache_sql() const -> rc<media_cache::DataBase> {
-    C_D(const Global);
-    return d->cache_sql;
-}
-
 auto Global::get_metadata(const std::filesystem::path& path) const -> Metadata {
     C_D(const Global);
     if (d->metadata_impl) {
@@ -154,11 +149,6 @@ auto Global::get_metadata(const std::filesystem::path& path) const -> Metadata {
     }
     return {};
 }
-auto Global::user_agent() const -> std::string_view {
-    return "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, "
-           "like Gecko) Version/13.1.2 Safari/605.1.15"sv;
-}
-
 
 auto Global::copy_action_comp() const -> QQmlComponent* {
     C_D(const Global);
@@ -176,12 +166,6 @@ void Global::set_uuid(const QUuid& val) {
         uuidChanged();
     }
 }
-
-void Global::set_cache_sql(rc<media_cache::DataBase> val) {
-    C_D(Global);
-    d->cache_sql = val;
-}
-
 void Global::set_metadata_impl(const MetadataImpl& impl) {
     C_D(Global);
     d->metadata_impl = impl;
@@ -307,4 +291,4 @@ auto create_item(QQmlEngine* engine, const QJSValue& url_or_comp, const QVariant
 
 } // namespace qcm
 
-#include <qcm_interface/moc_global.cpp>
+#include <Qcm/moc_global.cpp>

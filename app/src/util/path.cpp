@@ -1,28 +1,29 @@
-#include "qcm_interface/path.h"
-#include "qcm_interface/type.h"
+#include "Qcm/util/path.hpp"
 #include "core/log.h"
+#include "core/qstr_helper.h"
 
 #include <cstdlib>
 #include <QStandardPaths>
+#include <QString>
 
 using path = std::filesystem::path;
 
 std::filesystem::path qcm::config_path() {
     auto locs = QStandardPaths::standardLocations(QStandardPaths::AppConfigLocation);
     _assert_(locs.size() > 0);
-    return std::filesystem::path(convert_from<std::string>(locs[0]));
+    return std::filesystem::path(rstd::to_string(locs[0]));
 }
 
 std::filesystem::path qcm::data_path() {
     auto locs = QStandardPaths::standardLocations(QStandardPaths::AppDataLocation);
     _assert_(locs.size() > 0);
-    return std::filesystem::path(convert_from<std::string>(locs[0]));
+    return std::filesystem::path(rstd::to_string(locs[0]));
 }
 
 std::filesystem::path qcm::cache_path() {
     auto locs = QStandardPaths::standardLocations(QStandardPaths::CacheLocation);
     _assert_(locs.size() > 0);
-    return std::filesystem::path(convert_from<std::string>(locs[0]));
+    return std::filesystem::path(rstd::to_string(locs[0]));
 }
 
 bool qcm::init_path(std::span<const std::filesystem::path> pathes) {

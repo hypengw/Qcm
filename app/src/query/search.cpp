@@ -2,11 +2,11 @@
 
 #include "core/qasio/qt_sql.h"
 
-#include "qcm_interface/async.inl"
+#include "Qcm/util/async.inl"
 
 #include "Qcm/sql/item_sql.h"
 #include "Qcm/query/query_load.h"
-#include "Qcm/app.h"
+#include "Qcm/app.hpp"
 
 namespace qcm::query
 {

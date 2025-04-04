@@ -1,5 +1,5 @@
 #pragma once
-#include "qcm_interface/global.h"
+#include "Qcm/global.hpp"
 
 #include <mutex>
 #include <QUuid>
@@ -20,11 +20,8 @@ public:
     Arc<ncrequest::Session> session;
 
     QUuid                     uuid;
-    Arc<media_cache::DataBase> cache_sql;
 
     MetadataImpl metadata_impl;
-
-    std::map<std::string, Client, std::less<>> clients;
 
     model::AppInfo   info;
     QQmlComponent*   copy_action_comp;

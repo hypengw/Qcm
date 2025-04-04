@@ -11,12 +11,12 @@
 #include <ctre.hpp>
 #include <QtCore/QPointer>
 
-#include "qcm_interface/path.h"
-#include "qcm_interface/global.h"
+#include "Qcm/util/path.hpp"
+#include "Qcm/global.hpp"
 
 #include "core/asio/sync_file.h"
 #include "crypto/crypto.h"
-#include "Qcm/app.h"
+#include "Qcm/app.hpp"
 #include "Qcm/backend.hpp"
 
 import platform;
@@ -25,18 +25,6 @@ using namespace qcm;
 
 namespace
 {
-void header_record_db(const ncrequest::HttpHeader& h, media_cache::DataBase::Item& db_it) {
-    static constexpr auto DigitPattern = ctll::fixed_string { "\\d*" };
-    for (auto& f : h.fields) {
-        if (helper::case_insensitive_compare(f.name, "content-type") == 0)
-            db_it.content_type = f.value;
-        else if (helper::case_insensitive_compare(f.name, "content-length") == 0) {
-            if (auto whole = ctre::starts_with<DigitPattern>(f.value); whole) {
-                db_it.content_length = whole.to_number();
-            }
-        }
-    }
-}
 
 struct ImageParam {
     QString item_type;
@@ -90,19 +78,7 @@ public:
         co_return rsp_http->header().clone();
     }
 
-    task<void> cache_new_image(const ncrequest::Request& req, std::string_view key,
-                               std::filesystem::path cache_file, QSize req_size) {
-        media_cache::DataBase::Item db_it;
-        db_it.key = key;
 
-        auto file_dl = cache_file;
-        file_dl.replace_extension(fmt::format("dl{}x{}", req_size.width(), req_size.height()));
-
-        auto header = co_await dl_image(req, file_dl);
-        std::filesystem::rename(file_dl, cache_file);
-        header_record_db(header, db_it);
-        co_return;
-    }
 
     task<QImage> request_image(ImageParam p, QSize req_size) {
         // std::string key = cache_path.filename().native();

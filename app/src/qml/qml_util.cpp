@@ -4,13 +4,15 @@
 #include <QtCore/QJsonObject>
 #include <QtQml/QJSValueIterator>
 
-#include "meta_model/qgadget_helper.hpp"
-#include "qcm_interface/global.h"
-#include "Qcm/app.h"
-#include "qcm_interface/path.h"
+#include "core/core.h"
+#include "core/qstr_helper.h"
 #include "crypto/crypto.h"
 #include "core/asio/basic.h"
-#include "Qcm/sql/cache_sql.h"
+
+#include "meta_model/qgadget_helper.hpp"
+#include "Qcm/global.hpp"
+#include "Qcm/app.hpp"
+#include "Qcm/util/path.hpp"
 #include "Qcm/backend.hpp"
 
 namespace qcm::qml
@@ -52,20 +54,6 @@ auto Util::image_url(model::ItemId id, enums::ImageType image_type) const -> QUr
 
 auto Util::audio_url(model::ItemId id) const -> QUrl {
     return App::instance()->backend()->audio_url(id);
-}
-
-QUrl Util::media_cache_of(const QString& id_) const {
-    auto id        = convert_from<std::string>(id_);
-    auto sql_cache = App::instance()->media_cache_sql();
-
-    // for lru
-    asio::co_spawn(sql_cache->get_executor(), sql_cache->get(id), asio::detached);
-
-    auto path = qcm::media_cache_path_of(id);
-    if (std::filesystem::exists(path)) {
-        return QUrl::fromLocalFile(convert_from<QString>(path.native()));
-    }
-    return {};
 }
 
 auto Util::collect_ids(QAbstractItemModel* model) const -> std::vector<model::ItemId> {
@@ -224,21 +212,5 @@ inline std::string gen_file_name(std::string_view uniq) {
 }
 
 } // namespace qcm
-
-auto qcm::song_uniq_hash(const model::ItemId& id, enums::AudioQuality quality) -> std::string {
-    auto key = std::format("{}, quality: {}", id.toUrl().toString(), (i32)quality);
-    return gen_file_name(key);
-}
-
-auto qcm::cache_path_of(std::string_view id) -> std::filesystem::path {
-    auto cache_dir = cache_path() / "cache";
-    auto file      = cache_dir / gen_prefix(id) / id;
-    return file;
-}
-auto qcm::media_cache_path_of(std::string_view id) -> std::filesystem::path {
-    auto media_cache_dir = cache_path() / "media";
-    auto file            = media_cache_dir / gen_prefix(id) / id;
-    return file;
-}
 
 #include <Qcm/qml/moc_qml_util.cpp>

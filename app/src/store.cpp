@@ -1,5 +1,5 @@
 #include "Qcm/store.hpp"
-#include "qcm_interface/global_static.h"
+#include "Qcm/util/global_static.hpp"
 namespace qcm
 {
 AppStore::AppStore(QObject* parent): QObject(parent) {}

@@ -1,7 +1,7 @@
-#include "qcm_interface/notifier.h"
-#include "qcm_interface/global.h"
+#include "Qcm/notifier.hpp"
+#include "Qcm/global.hpp"
 
-#include "qcm_interface/global_static.h"
+#include "Qcm/util/global_static.hpp"
 namespace qcm
 {
 
@@ -25,4 +25,4 @@ Notifier* Notifier::create(QQmlEngine*, QJSEngine*) {
 } // namespace qcm
 
 
-#include <qcm_interface/moc_notifier.cpp>
+#include <Qcm/moc_notifier.cpp>

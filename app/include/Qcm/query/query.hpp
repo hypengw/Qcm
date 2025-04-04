@@ -1,9 +1,9 @@
 #pragma once
 #include <deque>
 #include <QTimer>
-#include "qcm_interface/async.h"
-#include "qcm_interface/action.h"
-#include "qcm_interface/notifier.h"
+#include "Qcm/util/async.hpp"
+#include "Qcm/action.hpp"
+#include "Qcm/notifier.hpp"
 
 namespace qcm::query
 {

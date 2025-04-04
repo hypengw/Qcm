@@ -10,9 +10,9 @@ import qcm.random;
 #include "core/optional_helper.h"
 #include "core/asio/basic.h"
 #include "core/qasio/qt_sql.h"
-#include "qcm_interface/ex.h"
-#include "qcm_interface/action.h"
-#include "Qcm/app.h"
+#include "Qcm/util/ex.hpp"
+#include "Qcm/action.hpp"
+#include "Qcm/app.hpp"
 
 namespace qcm
 {

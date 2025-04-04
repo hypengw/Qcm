@@ -1,4 +1,4 @@
-#include "qcm_interface/state/app_state.h"
+#include "Qcm/status/app_state.hpp"
 #include "core/core.h"
 #include "core/helper.h"
 
@@ -38,4 +38,4 @@ void AppState::set_state(const State& v) {
 }
 }; // namespace qcm::state
 
-#include <qcm_interface/state/moc_app_state.cpp>
+#include <Qcm/status/moc_app_state.cpp>
