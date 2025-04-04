@@ -9,7 +9,6 @@ import qcm.random;
 #include "core/log.h"
 #include "core/optional_helper.h"
 #include "core/asio/basic.h"
-#include "core/qasio/qt_sql.h"
 #include "Qcm/util/ex.hpp"
 #include "Qcm/action.hpp"
 #include "Qcm/app.hpp"

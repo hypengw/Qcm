@@ -143,14 +143,14 @@ auto unwrap(T&& opt, std::string_view expr = {},
                          opt.has_value(),
                          loc,
                          "unwrap{}faild: {}",
-                         expr.empty() ? " " : fmt::format(" `{}` ", expr),
+                         expr.empty() ? " " : std::format(" `{}` ", expr),
                          opt.error());
     } else {
         _tpl_assert_msg_(true,
                          opt.has_value(),
                          loc,
                          "unwrap{}faild",
-                         expr.empty() ? " " : fmt::format(" `{}` ", expr));
+                         expr.empty() ? " " : std::format(" `{}` ", expr));
     }
     return std::forward<T>(opt).value();
 }

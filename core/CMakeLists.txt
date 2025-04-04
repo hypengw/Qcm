@@ -15,6 +15,7 @@ target_sources(
          src/log.cppm
          src/core.cppm
          src/lambda.cppm
+         src/fmt.cppm
          src/helper/mod.cppm
          src/helper/str.cppm
          src/helper/container.cppm)
@@ -24,10 +25,11 @@ target_sources(
           include/core/expected_helper.h include/core/log.h
           include/core/clangd.h src/log.cpp)
 
+target_compile_features(core PUBLIC cxx_std_23)
 target_include_directories(core PUBLIC include)
 target_link_libraries(
   core
-  PUBLIC expected random fmt::fmt rstd::rstd
+  PUBLIC expected random rstd::rstd
   PRIVATE platform)
 
 # core.asio
@@ -50,4 +52,4 @@ target_include_directories(core.qasio PRIVATE include/core/qasio)
 target_link_libraries(
   core.qasio
   PUBLIC core.asio Qt6::Core
-  PRIVATE ncrequest::ncrequest fmt::fmt)
+  PRIVATE ncrequest::ncrequest)

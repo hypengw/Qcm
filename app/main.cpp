@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
             }
         }
         QLoggingCategory::setFilterRules(
-            QLatin1String(fmt::format("qcm.debug={}", logger->level() == qcm::LogLevel::DEBUG)));
+            QLatin1String(std::format("qcm.debug={}", logger->level() == qcm::LogLevel::DEBUG)));
     }
 
     KDSingleApplication single;

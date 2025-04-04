@@ -33,13 +33,6 @@
     "url" : "https://github.com/KDAB/KDSingleApplication.git"
   },
   {
-    "dest" : "build/_flatpak_deps/fmt-src",
-    "disable-shallow-clone" : false,
-    "tag" : "11.0.2",
-    "type" : "git",
-    "url" : "https://github.com/fmtlib/fmt.git"
-  },
-  {
     "dest" : "build/_flatpak_deps/pegtl-src",
     "disable-shallow-clone" : false,
     "tag" : "3.2.8",

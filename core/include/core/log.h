@@ -38,7 +38,7 @@ import qcm.log;
         },                                        \
         #EXPR,                                    \
         [&]() -> std::string {                    \
-            return fmt::format(__VA_ARGS__);      \
+            return std::format(__VA_ARGS__);      \
         },                                        \
         LOC)
 

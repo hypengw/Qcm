@@ -63,7 +63,7 @@ public:
         co_await asio::post(asio::bind_executor(sql->get_executor(), use_task));
 
         auto query = sql->con()->query();
-        query.prepare_sv(fmt::format(R"(
+        query.prepare_sv(std::format(R"(
 SELECT 
     {0}
 FROM artist 

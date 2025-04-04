@@ -210,7 +210,7 @@ void App::on_queue_ids(const std::vector<model::ItemId>& songIds, model::ItemId 
         q->startIfNoCurrent();
     }
     Action::instance()->toast(QString::fromStdString(
-        inserted > 0 ? fmt::format("Add {} songs to queue", inserted) : "Already added"s));
+        inserted > 0 ? std::format("Add {} songs to queue", inserted) : "Already added"s));
 }
 void App::on_switch_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId) {
     switchPlayIdQueue();

@@ -5,6 +5,8 @@ module;
 #include <cctype>
 #include <array>
 #include <concepts>
+#include <span>
+#include <format>
 
 #include "core/fmt.h"
 
@@ -128,9 +130,9 @@ concept convert_formatable = (! requires() {
 export template<typename T>
     requires convertable<std::string, T> && ycore::extra_cvt<std::string, T> &&
              helper::convert_formatable<T>
-struct fmt::formatter<T> : fmt::formatter<std::string> {
+struct std::formatter<T> : std::formatter<std::string> {
     auto format(const T& t, format_context& ctx) const -> format_context::iterator {
-        return fmt::formatter<std::string>::format(convert_from<std::string>(t), ctx);
+        return std::formatter<std::string>::format(convert_from<std::string>(t), ctx);
     }
 };
 

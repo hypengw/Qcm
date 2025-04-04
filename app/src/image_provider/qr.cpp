@@ -26,7 +26,7 @@ QQuickImageResponse* QrImageProvider::requestImageResponse(const QString& id,
             qr_ = std::make_unique<qrcodegen::QrCode>(qrcodegen::QrCode::encodeBinary(
                 std::vector<u8> { bs.begin(), bs.end() }, qrcodegen::QrCode::Ecc::MEDIUM));
         } catch (const std::exception& e) {
-            rsp->set_error(fmt::format("{} ({})", e.what(), id));
+            rsp->set_error(std::format("{} ({})", e.what(), id));
             return;
         }
         auto& qr = *qr_;

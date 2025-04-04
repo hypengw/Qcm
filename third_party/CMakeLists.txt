@@ -94,16 +94,6 @@ else()
   target_include_directories(asio INTERFACE ${ASIO_INCLUDE_DIRS})
 endif()
 
-# fmt
-FetchContent_Declare(
-  fmt
-  GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-  GIT_TAG 11.0.2
-  GIT_SHALLOW 1
-  GIT_PROGRESS 1
-  EXCLUDE_FROM_ALL FIND_PACKAGE_ARGS 11.0.2 QUIET GLOBAL)
-FetchContent_MakeAvailable(fmt)
-
 # pegtl
 FetchContent_Declare(
   pegtl

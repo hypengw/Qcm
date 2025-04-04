@@ -175,7 +175,6 @@ target_link_libraries(
          core.qasio
          ncrequest::ncrequest
          rstd::rstd
-         fmt::fmt
          crypto
          qr_code
          meta_model

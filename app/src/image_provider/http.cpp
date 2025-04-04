@@ -124,7 +124,7 @@ QQuickImageResponse* QcmImageProvider::requestImageResponse(const QString& id,
     do {
         if (id.isEmpty()) break;
 
-        ImageParam p = parse_image_url(rstd::into(fmt::format("image://qcm/{}", id)));
+        ImageParam p = parse_image_url(rstd::into(std::format("image://qcm/{}", id)));
         // ncrequest::Request req;
         // if (auto c = Global::instance()->qsession()->client();
         //     c && c->api->provider == provider.toStdString()) {
@@ -159,7 +159,7 @@ QQuickImageResponse* QcmImageProvider::requestImageResponse(const QString& id,
                                          try {
                                              std::rethrow_exception(p);
                                          } catch (const std::exception& e) {
-                                             rsp->set_error(fmt::format(R"(
+                                             rsp->set_error(std::format(R"(
 QcmImageProvider
     id: {}
     error: {})",

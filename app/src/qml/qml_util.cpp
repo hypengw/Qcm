@@ -30,7 +30,7 @@ Util* Util::create(QQmlEngine*, QJSEngine*) {
 
 auto Util::create_itemid() const -> model::ItemId { return {}; }
 
-auto Util::mpris_trackid(model::ItemId id) const -> QString {
+auto Util::mprisTrackid(model::ItemId id) const -> QString {
     return "";
     // TODO
     // static const auto dbus_path = QStringLiteral(APP_ID).replace('.', '/');

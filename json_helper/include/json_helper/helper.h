@@ -184,10 +184,10 @@ auto parse(std::string_view source) -> Result<up_njson>;
 DECLARE_CONVERT(std::string, qcm::json::njson)
 
 template<>
-struct fmt::formatter<qcm::json::Error> : fmt::formatter<std::string> {
+struct std::formatter<qcm::json::Error> : std::formatter<std::string> {
     template<typename FormatContext>
     auto format(const qcm::json::Error& e, FormatContext& ctx) const {
-        auto s = fmt::format("{}({})", e.what, (int)e.id);
-        return fmt::formatter<std::string>::format(s, ctx);
+        auto s = std::format("{}({})", e.what, (int)e.id);
+        return std::formatter<std::string>::format(s, ctx);
     }
 };

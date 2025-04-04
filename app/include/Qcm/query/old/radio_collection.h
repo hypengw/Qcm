@@ -72,7 +72,7 @@ public:
         std::vector<RadioCollectionItem> items;
         co_await asio::post(asio::bind_executor(sql->get_executor(), asio::use_awaitable));
         auto query = sql->con()->query();
-        query.prepare_sv(fmt::format(R"(
+        query.prepare_sv(std::format(R"(
 SELECT 
     {},
     collection.collectTime 

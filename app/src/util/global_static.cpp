@@ -2,6 +2,8 @@
 
 #include <map>
 #include <atomic>
+#include <string>
+#include <string_view>
 
 #include "core/log.h"
 

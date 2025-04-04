@@ -104,7 +104,7 @@ public:
         auto sql = App::instance()->item_sql();
         co_await asio::post(asio::bind_executor(sql->get_executor(), asio::use_awaitable));
         auto query = sql->con()->query();
-        query.prepare_sv(fmt::format(R"(
+        query.prepare_sv(std::format(R"(
 SELECT 
     {0},
     collection.collectTime 
@@ -135,7 +135,7 @@ GROUP BY playlist.itemId;
         std::vector<MixCollectionItem> items;
         co_await asio::post(asio::bind_executor(sql->get_executor(), asio::use_awaitable));
         auto query = sql->con()->query();
-        query.prepare_sv(fmt::format(R"(
+        query.prepare_sv(std::format(R"(
 SELECT 
     {0},
     collection.collectTime 

@@ -24,7 +24,6 @@ public:
     static Util* create(QQmlEngine* qmlEngine, QJSEngine* jsEngine);
 
     Q_INVOKABLE model::ItemId create_itemid() const;
-    Q_INVOKABLE QString       mpris_trackid(model::ItemId) const;
     Q_INVOKABLE model::RouteMsg create_route_msg(QVariantMap) const;
 
     Q_INVOKABLE std::vector<model::ItemId> collect_ids(QAbstractItemModel* model) const;
@@ -37,6 +36,7 @@ public:
                                enums::ImageType image_type = enums::ImageType::ImagePrimary) const;
     Q_INVOKABLE QUrl audio_url(model::ItemId id) const;
 
+    Q_INVOKABLE QString mprisTrackid(model::ItemId) const;
     Q_INVOKABLE QString joinName(const QJSValue&, const QString& = "/") const;
     Q_INVOKABLE QString formatDateTime(const QJSValue&, const QString&) const;
 };

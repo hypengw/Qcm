@@ -28,7 +28,6 @@
 #include "core/asio/sync_file.h"
 #include "meta_model/qgadget_helper.hpp"
 import platform;
-#include "core/qasio/qt_sql.h"
 
 #include "Qcm/util/path.hpp"
 
@@ -392,7 +391,7 @@ void App::releaseResources(QQuickWindow*) {
     // QQuickPixmap::purgeCache();
     plt::malloc_trim(0);
     auto as_mb = [](usize n) {
-        return fmt::format("{:.2f} MB", n / (1024.0 * 1024.0));
+        return std::format("{:.2f} MB", n / (1024.0 * 1024.0));
     };
 
     auto store = AppStore::instance();

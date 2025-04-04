@@ -111,7 +111,7 @@ struct adl_serializer<std::variant<Ts...>> {
                 return ! x.empty();
             })) {
             throw nlohmann::json::type_error::create(
-                302, fmt::format("{}", fmt::join(res, "\n")), nullptr);
+                302, std::format("{}", helper::join(res, "\n")), nullptr);
         }
     }
 };

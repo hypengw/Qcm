@@ -1,5 +1,5 @@
 module;
-#include <fmt/chrono.h>
+#include <format>
 
 #include <cassert>
 #include <cstdio>
@@ -146,28 +146,29 @@ void        log::log_raw(LogLevel level, std::string_view content) {
     case ERROR: out = stderr; break;
     }
     if (out == nullptr) return;
+
     if (supports_color()) {
-        fmt::print(out, "{}{}{}", get_log_color(level), content, COLOR_RESET);
+        // std::print(out, "{}{}{}", get_log_color(level), content, COLOR_RESET);
     } else {
-        fmt::print(out, "{}", content);
+        // std::print(out, "{}", content);
     }
     std::fflush(out);
 };
 void log::log_loc_raw(LogLevel level, const std::source_location loc, std::string_view content) {
     std::time_t t = std::time(nullptr);
-    log_raw(level,
-            fmt::format("{:<7} [{:%H:%M:%S}] {} [{}:{},{}] \n",
-                        to_sv(level),
-                        fmt::localtime(t),
-                        content,
-                        extract_last(loc.file_name(), 2),
-                        loc.line(),
-                        loc.column()));
+    // log_raw(level,
+    //         std::format("{:<7} [{:%H:%M:%S}] {} [{}:{},{}] \n",
+    //                     to_sv(level),
+    //                     "time", // fmt::localtime(t),
+    //                     content,
+    //                     extract_last(loc.file_name(), 2),
+    //                     loc.line(),
+    //                     loc.column()));
 }
 
 auto log::format_assert(std::string_view expr_str, const std::source_location& loc,
                         std::string_view msg) -> std::string {
-    return fmt::format("{}:{}: {}: Assertion `{}` failed.{}{}\n",
+    return std::format("{}:{}: {}: Assertion `{}` failed.{}{}\n",
                        extract_last(loc.file_name(), 2),
                        loc.line(),
                        loc.function_name(),
