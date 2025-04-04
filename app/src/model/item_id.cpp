@@ -92,6 +92,33 @@ bool ItemId::operator==(QStringView b) const {
     return *this == url;
 }
 
+QUrl ItemId::toPageUrl() const {
+    QUrl url;
+    using ItemType = enums::ItemType;
+    switch (type()) {
+    case ItemType::ItemAlbum: {
+        url = u"qrc:/Qcm/App/qml/page/detail/AlbumDetailPage.qml"_s;
+        break;
+    }
+    case ItemType::ItemArtist: {
+        url = u"qrc:/Qcm/App/qml/page/detail/ArtistDetailPage.qml"_s;
+        break;
+    }
+    case ItemType::ItemMix: {
+        url = u"qrc:/Qcm/App/qml/page/detail/MixDetailPage.qml"_s;
+        break;
+    }
+    case ItemType::ItemRadio: {
+        url = u"qrc:/Qcm/App/qml/page/detail/RadioDetailPage.qml"_s;
+        break;
+    }
+    default: {
+        log::warn("no page url for item type: {}", type());
+    }
+    }
+    return url;
+}
+
 } // namespace qcm::model
 
 std::size_t std::hash<qcm::model::ItemId>::operator()(const qcm::model::ItemId& k) const {

@@ -12,6 +12,10 @@ MD.Page {
     backgroundColor: MD.MatProp.color.surface
 
     readonly property var song: QA.App.playqueue.currentSong
+    readonly property list<var> artists: {
+        const ex = QA.Store.extra(song.itemId);
+        return ex?.artists ?? [];
+    }
 
     header: MD.Pane {
         clip: false
@@ -81,7 +85,7 @@ MD.Page {
                 QA.Image {
                     Layout.alignment: Qt.AlignHCenter
                     elevation: MD.Token.elevation.level2
-                    // source: QA.Util.image_url(root.song.coverUrl ? root.song.coverUrl : root.song.album.picUrl)
+                    source: QA.Util.image_url(root.song.itemId)
                     radius: 16
 
                     Layout.preferredWidth: displaySize.width
@@ -105,21 +109,21 @@ MD.Page {
                     Layout.fillWidth: true
                     typescale: MD.Token.typescale.body_medium
                     horizontalAlignment: Text.AlignHCenter
-                    text: root.song.album.name
+                    text: root.song.albumName
                 }
                 MD.Text {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.fillWidth: true
                     typescale: MD.Token.typescale.body_medium
                     horizontalAlignment: Text.AlignHCenter
-                    text: QA.Util.joinName(root.song.artists, '/')
+                    text: QA.Util.joinName(root.artists, '/')
                 }
                 RowLayout {
                     id: row_control
                     Layout.alignment: Qt.AlignHCenter
 
                     MD.IconButton {
-                        checked: QA.Global.session.user.collection.contains(root.song.itemId)
+                        checked: false
                         enabled: root.song.itemId.valid()
                         icon.name: checked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
 

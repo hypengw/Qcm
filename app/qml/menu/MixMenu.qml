@@ -6,8 +6,8 @@ import Qcm.Material as MD
 MD.Menu {
     id: root
 
-    required property QA.t_id itemId
-    required property QA.t_id userId
+    required property QA.item_id itemId
+    required property QA.item_id userId
     readonly property bool isUserPlaylist: QA.Global.session.user.userId === root.userId
 
     dim: false

@@ -261,3 +261,17 @@ protected:
     IMPL&       crtp_impl() { return *static_cast<IMPL*>(this); }
     const IMPL& crtp_impl() const { return *static_cast<const IMPL*>(this); }
 };
+
+export template<rstd::meta::special_of<rstd::convert::From> T, rstd::meta::special_of<rstd::option::Option> A>
+    requires rstd::meta::special_of<typename T::from_t, std::optional> &&
+             std::same_as<typename T::from_t::value_type, typename A::value_type>
+struct rstd::Impl<T, A> {
+    using Self = A;
+    static auto from(typename T::from_t value) -> Self {
+        if (value) {
+            return Some(*value);
+        } else {
+            return None();
+        }
+    }
+};

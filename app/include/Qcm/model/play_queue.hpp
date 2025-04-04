@@ -9,8 +9,7 @@
 #include "meta_model/qmeta_list_model.hpp"
 #include "Qcm/model/id_queue.hpp"
 #include "Qcm/qml/enum.hpp"
-#include "core/asio/task.h"
-#include "Qcm/backend_msg.hpp"
+#include "Qcm/store.hpp"
 
 namespace qcm
 {
@@ -77,7 +76,7 @@ class PlayQueue : public meta_model::QMetaModelBase<QIdentityProxyModel> {
     QML_ANONYMOUS
     Q_PROPERTY(qint32 currentIndex READ currentIndex NOTIFY currentIndexChanged BINDABLE
                    bindableCurrentIndex FINAL)
-    Q_PROPERTY(qcm::msg::model::Song currentSong READ currentSong NOTIFY currentSongChanged FINAL)
+    Q_PROPERTY(qcm::model::Song currentSong READ currentSong NOTIFY currentSongChanged FINAL)
     Q_PROPERTY(
         qcm::enums::LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged FINAL)
     Q_PROPERTY(bool randomMode READ randomMode WRITE setRandomMode NOTIFY randomModeChanged FINAL)
@@ -93,6 +92,7 @@ public:
     using LoopMode = enums::LoopMode;
     using Option   = model::IdQueue::Option;
     using Song     = model::Song;
+    using SongItem = AppStore::song_item;
 
     PlayQueue(QObject* parent = nullptr);
     ~PlayQueue();
@@ -101,15 +101,15 @@ public:
     void setSourceModel(QAbstractItemModel* sourceModel) override;
 
     auto          name() const -> const QString&;
-    auto          currentId() const -> std::optional<model::ItemId>;
-    auto          getId(qint32 idx) const -> std::optional<model::ItemId>;
+    auto          currentId() const -> rstd::Option<model::ItemId>;
+    auto          getId(qint32 idx) const -> rstd::Option<model::ItemId>;
     auto          currentIndex() const -> qint32;
     auto          bindableCurrentIndex() -> const QBindable<qint32>;
     Q_SIGNAL void currentIndexChanged(qint32);
     auto          currentData(int role) const -> QVariant;
 
     auto          currentSong() const -> Song;
-    void          setCurrentSong(const std::optional<Song>&);
+    void          setCurrentSong(rstd::Option<SongItem>);
     Q_SLOT void   setCurrentSong(qint32 idx);
     Q_SIGNAL void currentSongChanged();
 
@@ -155,13 +155,14 @@ private:
     Q_SLOT void checkCanMove();
 
 private:
-    PlayIdProxyQueue*                                m_proxy;
-    std::optional<Song>                              m_current_song;
-    Song                                             m_placeholder;
-    enums::LoopMode                                  m_loop_mode;
-    model::IdQueue::Options                          m_options;
-    mutable std::unordered_map<usize, Song>          m_songs;
-    mutable std::unordered_map<usize, model::ItemId> m_source_ids;
+    PlayIdProxyQueue*       m_proxy;
+    rstd::Option<SongItem>  m_current_song;
+    Song                    m_placeholder;
+    enums::LoopMode         m_loop_mode;
+    model::IdQueue::Options m_options;
+
+    mutable std::unordered_map<model::ItemId, SongItem>      m_songs;
+    mutable std::unordered_map<model::ItemId, model::ItemId> m_source_map;
 
     bool    m_can_next;
     bool    m_can_prev;

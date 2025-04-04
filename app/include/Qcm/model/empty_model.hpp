@@ -2,21 +2,20 @@
 
 #include <QQmlEngine>
 #include "core/core.h"
+#include "Qcm/backend_msg.hpp"
 
 namespace qcm::model
 {
 class EmptyModel : public QObject {
     Q_OBJECT
-    // Q_PROPERTY(qcm::query::Song song READ song CONSTANT FINAL)
+    Q_PROPERTY(qcm::model::Song song READ song CONSTANT FINAL)
 public:
-    EmptyModel(QObject* parent = nullptr): QObject(parent) { 
-        // m_song.id.set_id("empty"); 
-    }
+    EmptyModel(QObject* parent = nullptr): QObject(parent) {}
     ~EmptyModel() {}
 
-    // auto song() const { return m_song; }
+    auto song() const { return m_song; }
 
 private:
-    // query::Song m_song;
+    model::Song m_song;
 };
 } // namespace qcm::model

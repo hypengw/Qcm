@@ -15,14 +15,26 @@ enum MessageType {
   ADD_PROVIDER_REQ = 6;
   PROVIDER_META_STATUS_MSG = 7;
   PROVIDER_STATUS_MSG = 8;
-  GET_ALBUMS_REQ = 9;
-  GET_ALBUMS_RSP = 10;
-  GET_ARTISTS_REQ = 11;
-  GET_ARTISTS_RSP = 12;
-  GET_ALBUM_REQ = 13;
-  GET_ALBUM_RSP = 14;
-  GET_LYRIC_REQ = 15;
-  GET_LYRIC_RSP = 16;
+
+  GET_ALBUMS_REQ = 10;
+  GET_ALBUMS_RSP = 11;
+  GET_ALBUM_REQ = 12;
+  GET_ALBUM_RSP = 13;
+
+  GET_ARTISTS_REQ = 20;
+  GET_ARTISTS_RSP = 21;
+  GET_ARTIST_REQ = 22;
+  GET_ARTIST_RSP = 23;
+  GET_ARTIST_ALBUM_REQ = 24;
+  GET_ARTIST_ALBUM_RSP = 25;
+
+  GET_MIXS_REQ = 30;
+  GET_MIXS_RSP = 31;
+  GET_MIX_REQ = 32;
+  GET_MIX_RSP = 33;
+
+  GET_LYRIC_REQ = 40;
+  GET_LYRIC_RSP = 41;
 }
 
 message GetSongsByAlbumRequest {
@@ -53,8 +65,9 @@ enum ErrorCode {
   NO_SUCH_PROVIDER = 101;
   NO_SUCH_ALBUM = 102;
   NO_SUCH_SONG = 103;
-  NO_SUCH_ITEM_TYPE = 104;
-  NO_SUCH_IMAGE_TYPE = 105;
+  NO_SUCH_ARTIST = 104;
+  NO_SUCH_ITEM_TYPE = 105;
+  NO_SUCH_IMAGE_TYPE = 106;
 
   UNSUPPORTED_ITEM_TYPE = 200;
 }
@@ -126,11 +139,51 @@ message GetArtistsRsp {
   bool has_more = 4;
 }
 
+message GetArtistReq { string id = 1; }
+
+message GetArtistRsp {
+  qcm.msg.model.Artist item = 1;
+  google.protobuf.Struct extra = 2;
+}
+
+message GetArtistAlbumReq {
+  string id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message GetArtistAlbumRsp {
+  repeated qcm.msg.model.Album items = 1;
+  repeated google.protobuf.Struct extras = 2;
+  int32 total = 3;
+  bool has_more = 4;
+}
+
+message GetMixsReq {
+  repeated string library_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  // sort
+  // filter
+}
+
+message GetMixsRsp {
+  repeated qcm.msg.model.Mix items = 1;
+  repeated google.protobuf.Struct extras = 2;
+  int32 total = 3;
+  bool has_more = 4;
+}
+
+message GetMixReq { string id = 1; }
+
+message GetMixRsp {
+  qcm.msg.model.Mix item = 1;
+  google.protobuf.Struct extra = 2;
+}
+
 message GetLyricReq { string id = 1; }
 
-message GetLyricRsp {
-  repeated qcm.msg.model.LyricLine lines = 1;
-}
+message GetLyricRsp { repeated qcm.msg.model.LyricLine lines = 1; }
 
 message QcmMessage {
   MessageType type = 1;
@@ -145,13 +198,25 @@ message QcmMessage {
     AddProviderReq add_provider_req = 105;
     ProviderMetaStatusMsg provider_meta_status_msg = 106;
     ProviderStatusMsg provider_status_msg = 107;
-    GetAlbumsReq get_albums_req = 108;
-    GetAlbumsRsp get_albums_rsp = 109;
-    GetArtistsReq get_artists_req = 110;
-    GetArtistsRsp get_artists_rsp = 111;
+
+    GetAlbumsReq get_albums_req = 110;
+    GetAlbumsRsp get_albums_rsp = 111;
     GetAlbumReq get_album_req = 112;
     GetAlbumRsp get_album_rsp = 113;
-    GetLyricReq get_lyric_req = 114;
-    GetLyricRsp get_lyric_rsp = 115;
+
+    GetArtistsReq get_artists_req = 120;
+    GetArtistsRsp get_artists_rsp = 121;
+    GetArtistReq get_artist_req = 122;
+    GetArtistRsp get_artist_rsp = 123;
+    GetArtistAlbumReq get_artist_album_req = 124;
+    GetArtistAlbumRsp get_artist_album_rsp = 125;
+
+    GetMixsReq get_mixs_req = 130;
+    GetMixsRsp get_mixs_rsp = 131;
+    GetMixReq get_mix_req = 132;
+    GetMixRsp get_mix_rsp = 133;
+
+    GetLyricReq get_lyric_req = 140;
+    GetLyricRsp get_lyric_rsp = 141;
   }
 }

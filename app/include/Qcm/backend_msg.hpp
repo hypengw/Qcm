@@ -195,8 +195,17 @@ class Album : public msg::model::Album {
 class Song : public msg::model::Song {
     Q_GADGET
     QML_VALUE_TYPE(song)
-
+    Q_PROPERTY(qcm::model::ItemId albumId READ albumId WRITE setAlbumId FINAL)
+    Q_PROPERTY(QString albumName READ albumName FINAL)
     QCM_MODEL_COMMON(Song)
+public:
+    auto albumId() const {
+        return ItemId { enums::ItemType::ItemAlbum,
+                        msg::model::Song::albumId(),
+                        this->libraryId() };
+    }
+    void setAlbumId(ItemId id) { msg::model::Song::setAlbumId(id.id()); }
+    auto albumName() const -> QString;
 };
 
 class Artist : public msg::model::Artist {

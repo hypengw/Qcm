@@ -5,7 +5,7 @@ import Qcm.Material as MD
 MD.Menu {
     id: root
 
-    required property QA.t_id itemId
+    required property QA.item_id itemId
     required property QA.song song
 
     dim: false

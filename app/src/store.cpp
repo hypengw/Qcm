@@ -18,19 +18,31 @@ AppStore* AppStore::create(QQmlEngine*, QJSEngine*) {
     return self;
 }
 
-auto AppStore::albumExtra(QString key) const -> QQmlPropertyMap* {
-    auto key_id = key.toLongLong();
-
-    if (auto extend = albums.query_extend(key_id)) {
-        return extend->extra.get();
+auto AppStore::extra(model::ItemId item_id) const -> QQmlPropertyMap* {
+    using ItemType = enums::ItemType;
+    auto id        = item_id.id();
+    switch (item_id.type()) {
+    case ItemType::ItemAlbum: {
+        if (auto extend = albums.query_extend(id)) {
+            return extend->extra.get();
+        }
+        break;
     }
-
-    return nullptr;
-}
-auto AppStore::songExtra(QString key) const -> QQmlPropertyMap* {
-    auto key_id = key.toLongLong();
-    if (auto extend = songs.query_extend(key_id)) {
-        return extend->extra.get();
+    case ItemType::ItemSong: {
+        if (auto extend = songs.query_extend(id)) {
+            return extend->extra.get();
+        }
+        break;
+    }
+    case ItemType::ItemArtist: {
+        if (auto extend = artists.query_extend(id)) {
+            return extend->extra.get();
+        }
+        break;
+    }
+    default: {
+        break;
+    }
     }
     return nullptr;
 }

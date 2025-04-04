@@ -110,12 +110,6 @@ auto AlbumSongListModel::extra() const -> QQmlPropertyMap* {
     }
     return nullptr;
 }
-auto AlbumSongListModel::songExtra(qint32 idx) const -> QQmlPropertyMap* {
-    if (auto extend = App::instance()->store()->songs.query_extend(this->key_at(idx)); extend) {
-        return extend->extra.get();
-    }
-    return nullptr;
-}
 
 AlbumQuery::AlbumQuery(QObject* parent): query::QueryList<AlbumSongListModel>(parent) {
     this->tdata()->set_store(this->tdata(), App::instance()->store()->songs);

@@ -189,6 +189,14 @@ PlayQueue::PlayQueue(QObject* parent)
     updateRoleNames(msg::model::Song::staticMetaObject);
     connect(this, &PlayQueue::currentIndexChanged, this, [this](qint32 idx) {
         setCurrentSong(idx);
+
+        log::debug("queue: current index changed to {}, id {}",
+                   idx,
+                   m_current_song.as_ref()
+                       .and_then([](auto& el) -> rstd::Option<i64> {
+                           return rstd::into(el.key());
+                       })
+                       .unwrap_or(-1));
     });
     connect(m_proxy, &PlayIdProxyQueue::currentIndexChanged, this, &PlayQueue::checkCanMove);
     connect(this, &PlayQueue::loopModeChanged, m_proxy, [this] {
@@ -204,22 +212,25 @@ auto PlayQueue::data(const QModelIndex& index, int role) const -> QVariant {
     auto id  = getId(row);
     do {
         if (! id) break;
-        auto hash  = std::hash<model::ItemId> {}(id.value());
-        auto it    = m_songs.find(hash);
+        auto it    = m_songs.find(*id);
         bool it_ok = it != m_songs.end();
 
         if (auto prop = this->propertyOfRole(role); prop) {
             if (it_ok) {
-                const model::Song& song = it->second;
-                return prop.value().readOnGadget(&song);
-            } else if (prop->name() == "itemId"sv) {
-                return QVariant::fromValue(*id);
-            } else if (prop->name() == "sourceId"sv) {
-                if (auto it = m_source_ids.find(hash); it != m_source_ids.end()) {
-                    return QVariant::fromValue(it->second);
+                auto* song = it->second.item();
+                if (song) {
+                    return prop.value().readOnGadget(song);
                 } else {
                     return prop.value().readOnGadget(&m_placeholder);
                 }
+            } else if (prop->name() == "itemId"sv) {
+                return QVariant::fromValue(*id);
+            } else if (prop->name() == "sourceId"sv) {
+                // if (auto it = m_source_map.find(hash); it != m_source_map.end()) {
+                //     return QVariant::fromValue(it->second);
+                // } else {
+                //     return prop.value().readOnGadget(&m_placeholder);
+                // }
             } else {
                 return prop.value().readOnGadget(&m_placeholder);
             }
@@ -275,51 +286,50 @@ void PlayQueue::setSourceModel(QAbstractItemModel* source_model) {
 }
 
 auto PlayQueue::currentSong() const -> model::Song {
-    if (m_current_song) return *m_current_song;
+    if (m_current_song) {
+        if (auto ptr = m_current_song->item()) {
+            return *ptr;
+        } else {
+            log::error("no such song: {}", m_current_song->key().value_or(-1));
+        }
+    }
+
     model::Song s {};
     if (auto id = currentId()) {
-        // TODO
-        // s.id = *id;
-
-        // if (auto it = m_source_ids.find(std::hash<model::ItemId>()(*id));
-        //     it != m_source_ids.end()) {
-        //     s.sourceId = it->second;
-        // }
+        s.setItemId(*id);
+        if (auto it = m_source_map.find(*id); it != m_source_map.end()) {
+            // s.sourceId = it->second;
+        }
     }
     return s;
 }
 
-void PlayQueue::setCurrentSong(const std::optional<model::Song>& s) {
-    // TODO
-    // auto get_id = [](const auto& el) {
-    //     return el.id;
-    // };
-    // if (m_current_song.transform(get_id) != s.transform(get_id)) {
-    //     m_current_song = s;
-    //     currentSongChanged();
-    // }
+void PlayQueue::setCurrentSong(rstd::Option<SongItem> s) {
+    if (m_current_song != s) {
+        m_current_song = std::move(s);
+        currentSongChanged();
+    }
 }
 void PlayQueue::setCurrentSong(qint32 idx) {
-    setCurrentSong(getId(idx).and_then([this](const auto& id) -> std::optional<model::Song> {
-        auto hash = std::hash<model::ItemId>()(id);
-        if (auto it = m_songs.find(hash); it != m_songs.end()) {
-            return it->second;
+    setCurrentSong(getId(idx).and_then([this](const auto& id) -> rstd::Option<SongItem> {
+        if (auto it = m_songs.find(id); it != m_songs.end()) {
+            return Some(SongItem { it->second });
         }
-        return std::nullopt;
+        return None();
     }));
 }
 
 auto PlayQueue::name() const -> const QString& { return m_name; }
-auto PlayQueue::currentId() const -> std::optional<model::ItemId> { return getId(currentIndex()); }
+auto PlayQueue::currentId() const -> rstd::Option<model::ItemId> { return getId(currentIndex()); }
 
-auto PlayQueue::getId(qint32 idx) const -> std::optional<model::ItemId> {
+auto PlayQueue::getId(qint32 idx) const -> rstd::Option<model::ItemId> {
     if (auto source = sourceModel()) {
         auto val = source->data(source->index(idx, 0));
         if (auto pval = get_if<model::ItemId>(&val)) {
-            return *pval;
+            return Some(*pval);
         }
     }
-    return std::nullopt;
+    return None();
 }
 
 auto PlayQueue::currentIndex() const -> qint32 { return m_current_index.value(); }
@@ -458,32 +468,36 @@ void PlayQueue::startIfNoCurrent() {
 void PlayQueue::clear() { removeRows(0, rowCount()); }
 
 auto PlayQueue::update(std::span<const model::Song> in) -> void {
-    // for (auto& el : in) {
-    //     auto hash = std::hash<model::ItemId>()(el.id);
-    //     m_songs.insert_or_assign(hash, el);
-    // }
+    auto store = AppStore::instance();
+    for (auto& el : in) {
+        auto item = store->songs.store_item(el.id_proto());
+        if (item) {
+            m_songs.insert_or_assign(el.itemId(), *item);
+        }
+    }
 }
-
 
 void PlayQueue::updateSourceId(std::span<const model::ItemId> songIds,
                                const model::ItemId&           sourceId) {
     for (auto& el : songIds) {
-        auto hash = std::hash<model::ItemId> {}(el);
-        if (auto it = m_songs.find(hash); it != m_songs.end()) {
+        if (auto it = m_songs.find(el); it != m_songs.end()) {
             // TODO
             // it->second.sourceId = sourceId;
         } else {
-            m_source_ids.insert_or_assign(hash, sourceId);
+            m_source_map.insert_or_assign(el, sourceId);
         }
     }
 }
 
 void PlayQueue::onSourceRowsInserted(const QModelIndex&, int first, int last) {
+    auto                       store = AppStore::instance();
     std::vector<model::ItemId> ids;
     for (int i = first; i <= last; i++) {
         if (auto id = getId(i)) {
-            auto hash = std::hash<model::ItemId>()(*id);
-            if (! m_songs.contains(hash)) ids.emplace_back(id.value());
+            if (m_songs.contains(*id)) continue;
+            if (auto song_item = store->songs.store_item(id->id())) {
+                m_songs.insert_or_assign(*id, *song_item);
+            }
         }
     }
 
@@ -504,9 +518,8 @@ void PlayQueue::onSourceRowsAboutToBeRemoved(const QModelIndex&, int first, int 
     for (int i = first; i <= last; i++) {
         auto id = getId(i);
         if (id) {
-            auto hash = get_hash(*id);
-            m_songs.erase(hash);
-            m_source_ids.erase(hash);
+            m_songs.erase(*id);
+            m_source_map.erase(*id);
         }
     }
 }
@@ -542,6 +555,5 @@ void PlayQueue::checkCanMove() {
 }
 
 } // namespace qcm
-
 
 #include <Qcm/model/moc_play_queue.cpp>

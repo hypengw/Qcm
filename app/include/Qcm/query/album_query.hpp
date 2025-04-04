@@ -52,8 +52,6 @@ public:
 
     void setAlbum(const album_type&);
 
-    Q_INVOKABLE QQmlPropertyMap* songExtra(qint32) const;
-
     Q_SIGNAL void albumChanged();
 
 private:

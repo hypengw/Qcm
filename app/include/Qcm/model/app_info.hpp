@@ -11,14 +11,20 @@ namespace model
 class AppInfo {
     Q_GADGET
 public:
-    AppInfo() {}
-    ~AppInfo() {}
+    AppInfo();
+    ~AppInfo();
 
-    GADGET_PROPERTY_DEF(QString, id, id)
-    GADGET_PROPERTY_DEF(QString, name, name)
-    GADGET_PROPERTY_DEF(QString, version, version)
-    GADGET_PROPERTY_DEF(QString, author, author)
-    GADGET_PROPERTY_DEF(QString, summary, summary)
+    Q_PROPERTY(QString id MEMBER id CONSTANT FINAL)
+    Q_PROPERTY(QString name MEMBER name CONSTANT FINAL)
+    Q_PROPERTY(QString version MEMBER version CONSTANT FINAL)
+    Q_PROPERTY(QString author MEMBER author CONSTANT FINAL)
+    Q_PROPERTY(QString summary MEMBER summary CONSTANT FINAL)
+private:
+    QString id;
+    QString name;
+    QString version;
+    QString author;
+    QString summary;
 };
 
 } // namespace model

@@ -36,7 +36,6 @@ Action* Action::create(QQmlEngine*, QJSEngine*) {
     return act;
 }
 
-
 void App::connect_actions() {
     connect(Action::instance(), &Action::switch_user, this, &App::on_switch_user);
     connect(Action::instance(), &Action::logout, this, &App::on_logout);
@@ -62,25 +61,27 @@ void App::connect_actions() {
             &Action::record,
             this,
             [this,
-             old_id        = std::optional<model::ItemId> {},
-             old_source_id = std::optional<model::ItemId>()](enums::RecordAction act) mutable {
+             old_id        = rstd::Option<model::ItemId> {},
+             old_source_id = rstd::Option<model::ItemId>()](enums::RecordAction act) mutable {
                 switch (act) {
                 case enums::RecordAction::RecordSwitch:
                 case enums::RecordAction::RecordNext:
                 case enums::RecordAction::RecordPrev: {
-                    if (old_id) {
-                        Action::instance()->playbackLog(enums::PlaybackState::StoppedState,
-                                                        *old_id,
-                                                        old_source_id.value_or(model::ItemId {}));
-                    }
-                    old_id = this->playqueue()->currentId();
-                    auto source_id_var =
-                        this->playqueue()->currentData(this->playqueue()->roleOf("sourceId"));
-                    if (auto source_id_p = get_if<model::ItemId>(&source_id_var)) {
-                        old_source_id = *source_id_p;
-                    } else {
-                        old_source_id.reset();
-                    }
+                    // TODO:
+                    // if (old_id) {
+                    //     Action::instance()->playbackLog(enums::PlaybackState::StoppedState,
+                    //                                     *old_id,
+                    //                                     old_source_id.value_or(model::ItemId
+                    //                                     {}));
+                    // }
+                    // old_id = this->playqueue()->currentId();
+                    // auto source_id_var =
+                    //     this->playqueue()->currentData(this->playqueue()->roleOf("sourceId"));
+                    // if (auto source_id_p = get_if<model::ItemId>(&source_id_var)) {
+                    //     old_source_id = *source_id_p;
+                    // } else {
+                    //     old_source_id.reset();
+                    // }
                     break;
                 }
                 default: {
@@ -252,33 +253,20 @@ void App::on_switch_queue(model::IdQueue* queue) {
 }
 
 void App::on_route_by_id(const model::ItemId& id, const QVariantMap& in_props) {
-    // model::RouteMsg msg;
-    // QUrl            url;
-    // auto&           type = id.type();
-    // if (type == "album") {
-    //     url = u"qrc:/Qcm/App/qml/page/AlbumDetailPage.qml"_s;
-    // } else if (type == "artist") {
-    //     url = u"qrc:/Qcm/App/qml/page/ArtistDetailPage.qml"_s;
-    // } else if (type == "playlist") {
-    //     url = u"qrc:/Qcm/App/qml/page/MixDetailPage.qml"_s;
-    // } else if (type == "radio") {
-    //     url = u"qrc:/Qcm/App/qml/page/RadioDetailPage.qml"_s;
-    // } else {
-    //     INFO_LOG("no page url for item type: {}", type);
-    //     return;
-    // }
+    model::RouteMsg msg;
+    auto            url = id.toPageUrl();
 
-    // Action::instance()->route_special(u"main"_s);
+    Action::instance()->route_special(u"main"_s);
 
-    // auto props      = in_props;
-    // msg.url         = url;
-    // props["itemId"] = QVariant::fromValue(id);
-    // msg.props       = std::move(props);
+    auto props      = in_props;
+    msg.url         = url;
+    props["itemId"] = QVariant::fromValue(id);
+    msg.props       = std::move(props);
 
-    // if (debug()) {
-    //     INFO_LOG("route to: {}", url.toString());
-    // }
-    // Action::instance()->route(msg);
+    if (debug()) {
+        INFO_LOG("route to: {}", url.toString());
+    }
+    Action::instance()->route(msg);
 }
 
 } // namespace qcm

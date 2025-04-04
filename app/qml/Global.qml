@@ -129,6 +129,10 @@ QA.GlobalWrapper {
         readonly property date durationDate: new Date(duration)
     }
 
+    Component {
+        QA.AlbumDetailPage {}
+    }
+
     Connections {
         target: QA.Action
         function onPlay(url, reload) {

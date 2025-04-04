@@ -170,7 +170,7 @@ MD.Page {
                         image: QA.Util.image_url(model.itemId)
                         text: model.name
                         supportText: {
-                            const ex = QA.Store.albumExtra(model.id_proto);
+                            const ex = QA.Store.extra(model.itemId);
                             const tc = model.trackCount;
                             const trackInfo = tc > 0 ? qsTr(`${tc} tracks`) : qsTr('no track');
                             return [QA.Util.joinName(ex?.artists, '/'), trackInfo].filter(e => !!e).join(' - ');
@@ -247,13 +247,9 @@ MD.Page {
                 else
                     m_content.replace(m_content.currentItem, item, params, oper);
             }
-            function route(itemId, type) {
+            function route(itemId) {
                 currentItemId = itemId;
-                let url = null;
-                switch (type) {
-                case 'album':
-                    url = 'qrc:/Qcm/App/qml/page/detail/AlbumDetailPage.qml';
-                }
+                let url = itemId.toPageUrl();
                 push_page(url, {
                     "itemId": itemId
                 });
@@ -276,7 +272,7 @@ MD.Page {
 
         function checkCur() {
             if (currentItem) {
-                if (currentItem.id_proto !== m_content.currentItemId)
+                if (currentItem.itemId !== m_content.currentItemId)
                     currentIndex = -1;
             }
         }
@@ -309,7 +305,7 @@ MD.Page {
     component BaseItem: MD.ListItem {
         required property int index
         required property var model
-        property var itemId: model.id_proto
+        property var itemId: model.itemId
         property string image
 
         width: ListView.view.width
@@ -339,7 +335,7 @@ MD.Page {
             leftMargin: 48 + 16 * 2
         }
         onClicked: {
-            m_content.route(itemId, ListView.view.type);
+            m_content.route(itemId);
 
             ListView.view.currentIndex = index;
         }

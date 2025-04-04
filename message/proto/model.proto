@@ -9,7 +9,7 @@ message Song {
   string native_id = 2;
   int64 library_id = 3;
   string name = 4;
-  string album_id = 5;
+  int64 album_id = 5;
   int32 track_number = 6;
   int32 disc_number = 7;
   double duration = 8;

@@ -11,6 +11,7 @@
 #include "core/log.h"
 #include "core/qstr_helper.h"
 #include "Qcm/status/process.hpp"
+#include "Qcm/store.hpp"
 
 import ncrequest.event;
 import rstd.rc;
@@ -278,5 +279,18 @@ auto rstd::Impl<rstd::convert::From<google::protobuf::Value>, QVariant>::from(
     }
 }
 
+namespace qcm::model
+{
+
+auto Song::albumName() const -> QString {
+    auto ex = AppStore::instance()->extra(itemId());
+    if (ex) {
+        auto al  = ex->value("album");
+        auto map = al.toMap();
+        return map.value("name", {}).toString();
+    }
+    return {};
+}
+} // namespace qcm::model
 #include <Qcm/moc_backend_msg.cpp>
 #include <Qcm/moc_backend.cpp>

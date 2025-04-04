@@ -6,7 +6,7 @@ import Qcm.Material as MD
 
 Action {
     id: root
-    property QA.t_id songId: song.itemId
+    property QA.item_id songId: song.itemId
     property QA.song song
 
     enabled: root.itemId !== QA.App.playqueue.currentSong.itemId

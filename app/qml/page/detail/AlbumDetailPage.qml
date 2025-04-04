@@ -9,7 +9,7 @@ MD.Page {
     id: root
 
     readonly property var album: qr_al.data.album
-    property alias itemId: qr_al.itemId
+    property QA.item_id itemId
     title: qsTr("album")
 
     padding: 0
@@ -107,7 +107,8 @@ MD.Page {
                 }
                 MD.IconButton {
                     id: btn_comment
-                    visible: QA.Global.session.supportComment
+                    // TODO
+                    visible: false
                     action: QA.CommentAction {
                         itemId: root.itemId
                     }
@@ -216,7 +217,7 @@ MD.Page {
             leftMargin: 16
             rightMargin: 16
 
-            subtitle: QA.Util.joinName(ListView.view.model.songExtra(index).artists, '/')
+            subtitle: QA.Util.joinName(QA.Store.extra(model.itemId)?.artists, '/')
 
             onClicked: {
                 QA.Action.play_by_id(dgModel.itemId);
@@ -224,7 +225,7 @@ MD.Page {
         }
 
         footer: MD.ListBusyFooter {
-            running: qr_al.status === QA.Enum.Querying
+            running: qr_al.querying
             width: ListView.view.contentWidth
         }
     }
@@ -244,6 +245,7 @@ MD.Page {
 
     QA.AlbumQuery {
         id: qr_al
+        itemId: root.itemId.sid
         Component.onCompleted: reload()
     }
 }

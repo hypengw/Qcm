@@ -125,6 +125,10 @@ set(QML_REG_INCLUDE_DIRS
     "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm/status"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/qcm_interface")
 
+set(APP_INFO_MACROS
+    APP_ID="${APP_ID}" APP_VERSION="${APP_VERSION}" APP_AUTHOR="${APP_AUTHOR}"
+    APP_NAME="${APP_NAME}" APP_SUMMARY="${APP_SUMMARY}")
+
 qt_add_qml_module(
   app
   URI
@@ -148,6 +152,10 @@ target_sources(app PRIVATE FILE_SET CXX_MODULES FILES ${MODULES})
 set_source_files_properties(
   "${CMAKE_CURRENT_BINARY_DIR}/app_qmltyperegistrations.cpp" TARGET_DIRECTORY
   app PROPERTIES INCLUDE_DIRECTORIES "${QML_REG_INCLUDE_DIRS}")
+
+set_source_files_properties(
+  src/player.cpp src/global.cpp src/app.cpp src/qml/qml_util.cpp
+  src/model/app_info.cpp PROPERTIES COMPILE_DEFINITIONS "${APP_INFO_MACROS}")
 
 set_target_properties(app PROPERTIES CXX_SCAN_FOR_MODULES ON)
 
@@ -186,6 +194,7 @@ target_link_libraries(
 
 qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cpp)
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_SCAN_FOR_MODULES ON)
+target_compile_definitions(${PROJECT_NAME} PRIVATE "${APP_INFO_MACROS}")
 
 qt_add_qml_module(
   ${PROJECT_NAME}

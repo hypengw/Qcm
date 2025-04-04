@@ -112,7 +112,7 @@ MD.ListItem {
                         if (root.subtitle) {
                             return root.subtitle;
                         }
-                        const ex = QA.Store.songExtra(root.dgModel.id_proto);
+                        const ex = QA.Store.extra(root.dgModel.itemId);
                         return [QA.Util.joinName(ex?.artists), ex?.album?.name].filter(e => !!e).join(' - ');
                     }
                 }
