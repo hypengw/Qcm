@@ -54,6 +54,8 @@ void QueryListBase::setLimit(qint32 v) {
 void QueryListBase::fetchMore(qint32) { log::warn("fetchMore not impl"); }
 
 void detail::try_connect_fetch_more(QObject* query, QObject* model) {
+    if (model == nullptr) return;
+
     auto signal    = QMetaObject::normalizedSignature("reqFetchMore(qint32)");
     auto slot      = QMetaObject::normalizedSignature("fetchMore(qint32)");
     auto signalIdx = model->metaObject()->indexOfSignal(signal);

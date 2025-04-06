@@ -1,9 +1,10 @@
 #pragma once
 
-#include "qcm_interface/query.h"
 #include "meta_model/qgadget_list_model.hpp"
+#include "Qcm/query/query.hpp"
+#include "Qcm/backend_msg.hpp"
 
-namespace qcm::query
+namespace qcm
 {
 
 struct SearchTypeItem {
@@ -36,17 +37,24 @@ private:
     qint32 m_current_index;
 };
 
+namespace model
+{
+
 class SearchSongModel : public meta_model::QGadgetListModel<Song> {
 public:
     using base_type = meta_model::QGadgetListModel<Song>;
     using base_type::base_type;
 };
+
 class SearchAlbumModel : public meta_model::QGadgetListModel<Album> {
+public:
     using base_type = meta_model::QGadgetListModel<Album>;
     using base_type::base_type;
 };
 
-class SearchQuery : public QueryList<QAbstractListModel> {
+} // namespace model
+
+class SearchQuery : public query::QueryList<QAbstractListModel> {
     Q_OBJECT
     QML_ELEMENT
 
@@ -80,10 +88,6 @@ public:
         return data().value<T*>();
     }
 
-    auto query_album(WatchSelf, SearchLocation, QStringView text, i32 offset, i32 limit)
-        -> task<void>;
-    auto query_song(WatchSelf, SearchLocation, QStringView text, i32 offset, i32 limit)
-        -> task<void>;
     void reload() override;
 
 private:
@@ -92,4 +96,4 @@ private:
     QString        m_text;
 };
 
-} // namespace qcm::query
+} // namespace qcm
