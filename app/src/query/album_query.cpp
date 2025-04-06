@@ -9,21 +9,10 @@
 namespace qcm
 {
 
-AlbumListModel::AlbumListModel(QObject* parent): base_type(parent) {}
-QQmlPropertyMap* AlbumListModel::extra(i32 idx) const {
-    if (auto extend = App::instance()->store()->albums.query_extend(this->key_at(idx)); extend) {
-        return extend->extra.get();
-    }
-    return nullptr;
-}
-
-AlbumsQuery::AlbumsQuery(QObject* parent): query::QueryList<AlbumListModel>(parent) {
+AlbumsQuery::AlbumsQuery(QObject* parent): query::QueryList<model::AlbumListModel>(parent) {
     // set_use_queue(true);
     this->tdata()->set_store(this->tdata(), App::instance()->store()->albums);
 }
-
-static const std::set<QStringView> album_json_fields { u"artists" };
-static const std::set<QStringView> song_json_fields { u"artists", u"album" };
 
 void AlbumsQuery::reload() {
     set_status(Status::Querying);
@@ -78,15 +67,7 @@ void AlbumsQuery::fetchMore(qint32) {
     });
 }
 
-AlbumSongListModel::AlbumSongListModel(QObject* parent): base_type(parent) {
-    connect(&m_item, &model::AlbumStoreItem::itemChanged, this, &AlbumSongListModel::albumChanged);
-}
-AlbumSongListModel::~AlbumSongListModel() {}
-auto AlbumSongListModel::album() const -> album_type { return m_item.item(); }
-void AlbumSongListModel::setAlbum(const album_type& album) { m_item.setItem(album); }
-auto AlbumSongListModel::extra() const -> QQmlPropertyMap* { return m_item.extra(); }
-
-AlbumQuery::AlbumQuery(QObject* parent): query::QueryList<AlbumSongListModel>(parent) {
+AlbumQuery::AlbumQuery(QObject* parent): query::QueryList<model::AlbumSongListModel>(parent) {
     this->tdata()->set_store(this->tdata(), App::instance()->store()->songs);
 }
 auto AlbumQuery::itemId() const -> model::ItemId { return m_item_id; }

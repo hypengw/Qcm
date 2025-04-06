@@ -30,6 +30,7 @@ set(SOURCES
     src/model/empty_model.cpp
     src/model/item_id.cpp
     src/model/store_item.cpp
+    src/model/list_models.cpp
     src/util/global_static.cpp
     src/util/path.cpp
     src/query/album_query.cpp

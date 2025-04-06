@@ -13,7 +13,7 @@ public:
     EmptyModel(QObject* parent = nullptr): QObject(parent) {}
     ~EmptyModel() {}
 
-    auto song() const { return m_song; }
+    auto song() const -> const model::Song& { return m_song; }
 
 private:
     model::Song m_song;

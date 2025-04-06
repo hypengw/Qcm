@@ -4,24 +4,11 @@
 
 #include "meta_model/qgadget_list_model.hpp"
 #include "Qcm/query/query.hpp"
-#include "Qcm/model/store_item.hpp"
+#include "Qcm/model/list_models.hpp"
 
 namespace qcm
 {
-class ArtistListModel
-    : public meta_model::QGadgetListModel<model::Artist,
-                                          meta_model::QMetaListStore::VectorWithMap> {
-    Q_OBJECT
-    using base_type =
-        meta_model::QGadgetListModel<model::Artist, meta_model::QMetaListStore::VectorWithMap>;
-
-    using value_type = model::Artist;
-
-public:
-    ArtistListModel(QObject* parent = nullptr);
-};
-
-class ArtistsQuery : public query::QueryList<ArtistListModel> {
+class ArtistsQuery : public query::QueryList<model::ArtistListModel> {
     Q_OBJECT
     QML_ELEMENT
 public:

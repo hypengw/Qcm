@@ -9,9 +9,8 @@
 namespace qcm
 {
 
-MixListModel::MixListModel(QObject* parent): base_type(parent) {}
 
-MixesQuery::MixesQuery(QObject* parent): query::QueryList<MixListModel>(parent) {}
+MixesQuery::MixesQuery(QObject* parent): query::QueryList<model::MixListModel>(parent) {}
 
 void MixesQuery::reload() {
     set_status(Status::Querying);

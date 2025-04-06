@@ -9,9 +9,7 @@
 namespace qcm
 {
 
-ArtistListModel::ArtistListModel(QObject* parent): base_type(parent) {}
-
-ArtistsQuery::ArtistsQuery(QObject* parent): query::QueryList<ArtistListModel>(parent) {
+ArtistsQuery::ArtistsQuery(QObject* parent): query::QueryList<model::ArtistListModel>(parent) {
     // set_use_queue(true);
 }
 void ArtistsQuery::reload() {

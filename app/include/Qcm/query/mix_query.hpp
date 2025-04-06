@@ -4,24 +4,12 @@
 
 #include "meta_model/qgadget_list_model.hpp"
 #include "Qcm/query/query.hpp"
-#include "Qcm/model/store_item.hpp"
+#include "Qcm/model/list_models.hpp"
 
 namespace qcm
 {
-class MixListModel
-    : public meta_model::QGadgetListModel<model::Mix,
-                                          meta_model::QMetaListStore::VectorWithMap> {
-    Q_OBJECT
-    using base_type =
-        meta_model::QGadgetListModel<model::Mix, meta_model::QMetaListStore::VectorWithMap>;
 
-    using value_type = model::Mix;
-
-public:
-    MixListModel(QObject* parent = nullptr);
-};
-
-class MixesQuery : public query::QueryList<MixListModel> {
+class MixesQuery : public query::QueryList<model::MixListModel> {
     Q_OBJECT
     QML_ELEMENT
 public:
