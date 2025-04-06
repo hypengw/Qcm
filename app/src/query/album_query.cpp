@@ -78,36 +78,13 @@ void AlbumsQuery::fetchMore(qint32) {
     });
 }
 
-AlbumSongListModel::AlbumSongListModel(QObject* parent): base_type(parent), m_key(0) {}
-AlbumSongListModel::~AlbumSongListModel() {
-    auto store = App::instance()->store();
-    store->albums.store_remove(m_key);
+AlbumSongListModel::AlbumSongListModel(QObject* parent): base_type(parent) {
+    connect(&m_item, &model::AlbumStoreItem::itemChanged, this, &AlbumSongListModel::albumChanged);
 }
-auto AlbumSongListModel::album() const -> album_type {
-    if (auto item = App::instance()->store()->albums.store_query(m_key); item) {
-        return *item;
-    }
-    return {};
-}
-void AlbumSongListModel::setAlbum(const album_type& album) {
-    auto store = App::instance()->store();
-    auto key   = album.id_proto();
-
-    auto old = m_key;
-    if (ycore::cmp_exchange(m_key, key)) {
-        store->albums.store_remove(old);
-        store->albums.store_insert(album, true, 0);
-        albumChanged();
-    } else {
-        store->albums.store_insert(album, false, 0);
-    }
-}
-auto AlbumSongListModel::extra() const -> QQmlPropertyMap* {
-    if (auto extend = App::instance()->store()->albums.query_extend(m_key); extend) {
-        return extend->extra.get();
-    }
-    return nullptr;
-}
+AlbumSongListModel::~AlbumSongListModel() {}
+auto AlbumSongListModel::album() const -> album_type { return m_item.item(); }
+void AlbumSongListModel::setAlbum(const album_type& album) { m_item.setItem(album); }
+auto AlbumSongListModel::extra() const -> QQmlPropertyMap* { return m_item.extra(); }
 
 AlbumQuery::AlbumQuery(QObject* parent): query::QueryList<AlbumSongListModel>(parent) {
     this->tdata()->set_store(this->tdata(), App::instance()->store()->songs);

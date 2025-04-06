@@ -3,8 +3,8 @@
 #include <QQmlEngine>
 
 #include "meta_model/qgadget_list_model.hpp"
-#include "Qcm/backend_msg.hpp"
 #include "Qcm/query/query.hpp"
+#include "Qcm/model/store_item.hpp"
 
 namespace qcm
 {
@@ -53,7 +53,7 @@ public:
     Q_SIGNAL void albumChanged();
 
 private:
-    i64 m_key;
+    model::AlbumStoreItem m_item;
 };
 
 class AlbumQuery : public query::QueryList<AlbumSongListModel> {

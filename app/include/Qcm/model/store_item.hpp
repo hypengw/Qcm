@@ -27,10 +27,18 @@ public:
             m_item = m_item.store().store_insert(v);
             static_cast<CRTP*>(this)->itemChanged();
             unreg();
-            m_handle = Some(m_item.store().store_reg_notify([this](auto key) {
+            m_handle = Some(m_item.store().store_reg_notify([this](auto) {
                 static_cast<CRTP*>(this)->itemChanged();
             }));
         }
+    }
+    auto extra() const -> QQmlPropertyMap* {
+        if (auto key = m_item.key()) {
+            if (auto extend = m_item.store().query_extend(*key); extend) {
+                return extend->extra.get();
+            }
+        }
+        return nullptr;
     }
 
 private:
