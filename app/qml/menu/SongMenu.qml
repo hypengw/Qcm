@@ -9,12 +9,15 @@ MD.Menu {
     property QA.item_id itemId
     property QA.item_id sourceId
     property bool canDelete: false
-    property QA.song song
+    // no aot, it's bugly
+    property var song
+    readonly property QA.item_id _itemId: {
+        return itemId.valid ? itemId : song.itemId;
+    }
     readonly property list<var> artists: {
         const ex = QA.Store.extra(_itemId);
         return ex?.artists ?? [];
     }
-    readonly property QA.item_id _itemId: itemId.valid() ? itemId : song.itemId
 
     dim: false
     font.capitalization: Font.Capitalize

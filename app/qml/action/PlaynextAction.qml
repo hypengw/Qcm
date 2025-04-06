@@ -14,7 +14,7 @@ Action {
     text: qsTr('play next')
 
     onTriggered: {
-        if(song.itemId.valid()) {
+        if(song.itemId.valid) {
             QA.Action.play(root.song);
         } else {
             QA.Action.play_by_id(root.songId);

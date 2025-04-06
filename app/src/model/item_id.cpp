@@ -23,11 +23,7 @@ ItemId& ItemId::operator=(const QUrl& url) {
 
 auto ItemId::type() const -> enums::ItemType { return m_type; }
 
-auto ItemId::idStr() const -> const QString& {
-    static thread_local QString str;
-    str = QString::number(m_id);
-    return str;
-}
+auto ItemId::idStr() const -> QString { return QString::number(m_id); }
 
 auto ItemId::libraryIdStr() const -> QString { return QString::number(m_library_id); }
 
@@ -52,7 +48,7 @@ void ItemId::setLibraryId(QStringView v) { m_library_id = v.toLongLong(); }
 void ItemId::setUrl(const QUrl& u) {
     _assert_(u.scheme() == "itemid" || u.scheme().isEmpty());
     setType(u.userName());
-    setId(u.path().sliced(1)); // remove leading '/'
+    setId(u.path().sliced(1));
     setLibraryId(u.password());
 }
 

@@ -47,6 +47,9 @@ auto AppStore::extra(model::ItemId item_id) const -> QQmlPropertyMap* {
     return nullptr;
 }
 
+const std::set<QStringView> model::AlbumJsonFields { u"artists" };
+const std::set<QStringView> model::SongJsonFields { u"artists", u"album" };
+
 } // namespace qcm
 
 #include <Qcm/moc_store.cpp>

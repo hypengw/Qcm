@@ -29,6 +29,7 @@ set(SOURCES
     src/model/app_info.cpp
     src/model/empty_model.cpp
     src/model/item_id.cpp
+    src/model/store_item.cpp
     src/util/global_static.cpp
     src/util/path.cpp
     src/query/album_query.cpp

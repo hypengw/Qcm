@@ -221,6 +221,7 @@ auto Backend::serial() -> i32 {
     return cur;
 }
 
+
 void msg::merge_extra(QQmlPropertyMap& extra, const google::protobuf::Struct& in,
                       const std::set<QStringView>& is_json_field) {
     auto it  = in.fields().cbegin();

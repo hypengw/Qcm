@@ -15,11 +15,13 @@ namespace qcm::model
 class ItemId {
     Q_GADGET
     QML_VALUE_TYPE(item_id)
-public:
-    Q_PROPERTY(qcm::enums::ItemType type READ type)
+    Q_PROPERTY(qcm::enums::ItemType type MEMBER m_type)
     Q_PROPERTY(QString sid READ idStr)
     Q_PROPERTY(QString libraryId READ libraryIdStr)
-
+    Q_PROPERTY(bool valid READ valid)
+    Q_PROPERTY(QUrl url READ toUrl)
+    Q_PROPERTY(QUrl pageUrl READ toPageUrl)
+public:
     ItemId();
     ItemId(std::nullptr_t);
     ItemId(enums::ItemType, i64 id, i64 library_id = -1);
@@ -33,7 +35,7 @@ public:
     ItemId& operator=(const QUrl&);
 
     auto type() const -> enums::ItemType;
-    auto idStr() const -> const QString&;
+    auto idStr() const -> QString;
     auto libraryIdStr() const -> QString;
 
     auto id() const -> i64;
@@ -54,10 +56,10 @@ public:
     bool                 operator==(std::string_view) const;
     bool                 operator==(QStringView) const;
 
-    Q_INVOKABLE bool valid() const;
-    Q_INVOKABLE QUrl toUrl() const;
+    bool valid() const;
+    auto toUrl() const -> QUrl;
 
-    Q_INVOKABLE QUrl toPageUrl() const;
+    auto toPageUrl() const -> QUrl;
 
 private:
     enums::ItemType m_type;

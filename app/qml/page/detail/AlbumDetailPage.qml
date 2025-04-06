@@ -245,7 +245,7 @@ MD.Page {
 
     QA.AlbumQuery {
         id: qr_al
-        itemId: root.itemId.sid
+        itemId: root.itemId
         Component.onCompleted: reload()
     }
 }

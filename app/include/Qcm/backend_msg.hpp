@@ -55,100 +55,54 @@ auto get_msg(msg::QcmMessage& msg) -> Option<T> {
     return None();
 }
 
-template<>
-struct MsgTraits<msg::GetProviderMetasReq> {
-    using Rsp                   = msg::GetProviderMetasRsp;
-    static constexpr auto HasFn = &msg::QcmMessage::hasGetProviderMetasReq;
-    static constexpr auto GetFn = &msg::QcmMessage::getProviderMetasReq;
+// Add these macros before template specializations
+#define QCM_MSG_TRAITS_COMMON(TYPE, GET)                       \
+    static constexpr auto HasFn = &msg::QcmMessage::has##TYPE; \
+    static constexpr auto GetFn = &msg::QcmMessage::GET;
 
-    template<typename T>
-    static auto set(msg::QcmMessage& m, T&& r) {
-        m.setType(MessageTypeGadget::MessageType::GET_PROVIDER_METAS_REQ);
-        m.setGetProviderMetasReq(std::forward<T>(r));
-    }
-};
-template<>
-struct MsgTraits<msg::GetProviderMetasRsp> {
-    using Req                   = msg::GetProviderMetasReq;
-    static constexpr auto HasFn = &msg::QcmMessage::hasGetProviderMetasRsp;
-    static constexpr auto GetFn = &msg::QcmMessage::getProviderMetasRsp;
-};
+#define QCM_MSG_TRAITS_REQ(TYPE, RSP_TYPE, MSG_TYPE, GET)        \
+    template<>                                                   \
+    struct MsgTraits<msg::TYPE> {                                \
+        using Rsp = msg::RSP_TYPE;                               \
+        QCM_MSG_TRAITS_COMMON(TYPE, GET)                         \
+        template<typename T>                                     \
+        static auto set(msg::QcmMessage& m, T&& r) {             \
+            m.setType(MessageTypeGadget::MessageType::MSG_TYPE); \
+            m.set##TYPE(std::forward<T>(r));                     \
+        }                                                        \
+    };
 
-template<>
-struct MsgTraits<msg::AddProviderReq> {
-    using Rsp                   = msg::Rsp;
-    static constexpr auto HasFn = &msg::QcmMessage::hasAddProviderReq;
-    static constexpr auto GetFn = &msg::QcmMessage::addProviderReq;
+#define QCM_MSG_TRAITS_RSP(TYPE, REQ_TYPE, GET) \
+    template<>                                  \
+    struct MsgTraits<msg::TYPE> {               \
+        using Req = msg::REQ_TYPE;              \
+        QCM_MSG_TRAITS_COMMON(TYPE, GET)        \
+    };
 
-    template<typename T>
-    static auto set(msg::QcmMessage& m, T&& r) {
-        m.setType(MessageTypeGadget::MessageType::ADD_PROVIDER_REQ);
-        m.setAddProviderReq(std::forward<T>(r));
-    }
-};
+// Replace existing specializations with macro usage
+QCM_MSG_TRAITS_REQ(GetProviderMetasReq, GetProviderMetasRsp, GET_PROVIDER_METAS_REQ,
+                   getProviderMetasReq)
+QCM_MSG_TRAITS_RSP(GetProviderMetasRsp, GetProviderMetasReq, getProviderMetasRsp)
+QCM_MSG_TRAITS_REQ(AddProviderReq, Rsp, ADD_PROVIDER_REQ, addProviderReq)
 
-template<>
-struct MsgTraits<msg::GetAlbumsReq> {
-    using Rsp                   = msg::GetAlbumsRsp;
-    static constexpr auto HasFn = &msg::QcmMessage::hasGetAlbumsReq;
-    static constexpr auto GetFn = &msg::QcmMessage::getAlbumsReq;
+QCM_MSG_TRAITS_REQ(GetAlbumsReq, GetAlbumsRsp, GET_ALBUMS_REQ, getAlbumsReq)
+QCM_MSG_TRAITS_REQ(GetAlbumReq, GetAlbumRsp, GET_ALBUM_REQ, getAlbumReq)
+QCM_MSG_TRAITS_RSP(GetAlbumsRsp, GetAlbumsReq, getAlbumsRsp)
+QCM_MSG_TRAITS_RSP(GetAlbumRsp, GetAlbumReq, getAlbumRsp)
 
-    template<typename T>
-    static auto set(msg::QcmMessage& m, T&& r) {
-        m.setType(MessageTypeGadget::MessageType::GET_ALBUMS_REQ);
-        m.setGetAlbumsReq(std::forward<T>(r));
-    }
-};
-
-template<>
-struct MsgTraits<msg::GetAlbumReq> {
-    using Rsp                   = msg::GetAlbumRsp;
-    static constexpr auto HasFn = &msg::QcmMessage::hasGetAlbumReq;
-    static constexpr auto GetFn = &msg::QcmMessage::getAlbumReq;
-
-    template<typename T>
-    static auto set(msg::QcmMessage& m, T&& r) {
-        m.setType(MessageTypeGadget::MessageType::GET_ALBUM_REQ);
-        m.setGetAlbumReq(std::forward<T>(r));
-    }
-};
-
-template<>
-struct MsgTraits<msg::GetArtistsReq> {
-    using Rsp                   = msg::GetArtistsRsp;
-    static constexpr auto HasFn = &msg::QcmMessage::hasGetArtistsReq;
-    static constexpr auto GetFn = &msg::QcmMessage::getArtistsReq;
-
-    template<typename T>
-    static auto set(msg::QcmMessage& m, T&& r) {
-        m.setType(MessageTypeGadget::MessageType::GET_ARTISTS_REQ);
-        m.setGetArtistsReq(std::forward<T>(r));
-    }
-};
-
-template<>
-struct MsgTraits<msg::GetAlbumsRsp> {
-    static constexpr auto HasFn = &msg::QcmMessage::hasGetAlbumsRsp;
-    static constexpr auto GetFn = &msg::QcmMessage::getAlbumsRsp;
-};
-
-template<>
-struct MsgTraits<msg::GetAlbumRsp> {
-    static constexpr auto HasFn = &msg::QcmMessage::hasGetAlbumRsp;
-    static constexpr auto GetFn = &msg::QcmMessage::getAlbumRsp;
-};
-
-template<>
-struct MsgTraits<msg::GetArtistsRsp> {
-    static constexpr auto HasFn = &msg::QcmMessage::hasGetArtistsRsp;
-    static constexpr auto GetFn = &msg::QcmMessage::getArtistsRsp;
-};
+QCM_MSG_TRAITS_REQ(GetArtistsReq, GetArtistsRsp, GET_ARTISTS_REQ, getArtistsReq)
+QCM_MSG_TRAITS_RSP(GetArtistsRsp, GetArtistsReq, getArtistsRsp)
+QCM_MSG_TRAITS_REQ(GetArtistReq, GetArtistRsp, GET_ARTIST_REQ, getArtistReq)
+QCM_MSG_TRAITS_RSP(GetArtistRsp, GetArtistReq, getArtistRsp)
 
 template<>
 struct MsgTraits<msg::Rsp> {
-    static constexpr auto HasFn = &msg::QcmMessage::hasRsp;
-    static constexpr auto GetFn = &msg::QcmMessage::rsp;
+    QCM_MSG_TRAITS_COMMON(Rsp, rsp)
 };
+
+#undef QCM_MSG_TRAITS_COMMON
+#undef QCM_MSG_TRAITS_REQ
+#undef QCM_MSG_TRAITS_RSP
 
 } // namespace qcm::msg
 
@@ -178,13 +132,23 @@ namespace qcm::model
 #define QCM_MODEL_COMMON(T)                                                       \
     Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId FINAL)       \
 public:                                                                           \
+    T(): msg::model::T() { this->setId_proto(-1); }                               \
+    T(const model::T& o): msg::model::T(o) {}                                     \
+    T(model::T&& o) noexcept: msg::model::T(std::move(o)) {}                      \
+    T& operator=(const model::T& o) {                                             \
+        msg::model::T::operator=(o);                                              \
+        return *this;                                                             \
+    }                                                                             \
+    T& operator=(model::T&& o) noexcept {                                         \
+        msg::model::T::operator=(std::move(o));                                   \
+        return *this;                                                             \
+    }                                                                             \
     T(const msg::model::T& o): msg::model::T(o) {}                                \
     T(msg::model::T&& o) noexcept: msg::model::T(std::move(o)) {}                 \
     auto itemId() const -> qcm::model::ItemId {                                   \
         return { enums::ItemType::Item##T, this->id_proto(), this->libraryId() }; \
     }                                                                             \
-    void setItemId(const qcm::model::ItemId& v) { this->setId_proto(v.id()); }    \
-    using msg::model::T::T;
+    void setItemId(const qcm::model::ItemId& v) { this->setId_proto(v.id()); }
 
 class Album : public msg::model::Album {
     Q_GADGET
@@ -195,16 +159,16 @@ class Album : public msg::model::Album {
 class Song : public msg::model::Song {
     Q_GADGET
     QML_VALUE_TYPE(song)
-    Q_PROPERTY(qcm::model::ItemId albumId READ albumId WRITE setAlbumId FINAL)
+    Q_PROPERTY(qcm::model::ItemId albumId READ albumItemId WRITE setAlbumItemId FINAL)
     Q_PROPERTY(QString albumName READ albumName FINAL)
     QCM_MODEL_COMMON(Song)
 public:
-    auto albumId() const {
+    auto albumItemId() const -> ItemId {
         return ItemId { enums::ItemType::ItemAlbum,
                         msg::model::Song::albumId(),
                         this->libraryId() };
     }
-    void setAlbumId(ItemId id) { msg::model::Song::setAlbumId(id.id()); }
+    void setAlbumItemId(ItemId id) { msg::model::Song::setAlbumId(id.id()); }
     auto albumName() const -> QString;
 };
 

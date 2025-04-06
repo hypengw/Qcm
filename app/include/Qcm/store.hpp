@@ -33,4 +33,27 @@ public:
     artist_store artists;
 };
 
+namespace model
+{
+extern const std::set<QStringView> AlbumJsonFields;
+extern const std::set<QStringView> SongJsonFields;
+} // namespace model
+
+template<typename T>
+auto merge_store_extra(T& store, i64 key, const google::protobuf::Struct& in) {
+    if (auto extend = store.query_extend(key); extend) {
+        std::set<QStringView> const* json_fields { nullptr };
+        if constexpr (std::same_as<T, AppStore::album_store>) {
+            json_fields = &model::AlbumJsonFields;
+        } else if constexpr (std::same_as<T, AppStore::song_store>) {
+            json_fields = &model::SongJsonFields;
+        } else if constexpr (std::same_as<T, AppStore::artist_store>) {
+            json_fields = &model::SongJsonFields;
+        } else {
+            static_assert(false);
+        }
+        msg::merge_extra(*(extend->extra), in, *json_fields);
+    }
+}
+
 } // namespace qcm

@@ -11,8 +11,7 @@ namespace qcm
 class AlbumListModel
     : public meta_model::QGadgetListModel<model::Album, meta_model::QMetaListStore::Share> {
     Q_OBJECT
-    using base_type =
-        meta_model::QGadgetListModel<model::Album, meta_model::QMetaListStore::Share>;
+    using base_type = meta_model::QGadgetListModel<model::Album, meta_model::QMetaListStore::Share>;
 
     using value_type = model::Album;
 
@@ -37,8 +36,7 @@ class AlbumSongListModel
 
     Q_PROPERTY(qcm::model::Album album READ album NOTIFY albumChanged)
     Q_PROPERTY(QQmlPropertyMap* extra READ extra NOTIFY albumChanged)
-    using base_type =
-        meta_model::QGadgetListModel<model::Song, meta_model::QMetaListStore::Share>;
+    using base_type = meta_model::QGadgetListModel<model::Song, meta_model::QMetaListStore::Share>;
 
     using album_type = model::Album;
     using value_type = model::Song;
@@ -62,18 +60,18 @@ class AlbumQuery : public query::QueryList<AlbumSongListModel> {
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(QString itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
+    Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
 public:
     AlbumQuery(QObject* parent = nullptr);
     void reload() override;
 
-    auto itemId() const -> QString;
-    void setItemId(QStringView);
+    auto itemId() const -> model::ItemId;
+    void setItemId(model::ItemId);
 
     Q_SIGNAL void itemIdChanged();
 
 private:
-    QString m_item_id;
+    model::ItemId m_item_id;
 };
 
 } // namespace qcm

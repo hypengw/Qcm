@@ -142,7 +142,7 @@ MD.Pane {
                 RowLayout {
                     MD.IconButton {
                         checked: false
-                        enabled: root.currentSong.itemId.valid()
+                        enabled: root.currentSong.itemId.valid
                         icon.name: checked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
 
                         onClicked: {

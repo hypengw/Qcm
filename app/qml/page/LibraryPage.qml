@@ -249,7 +249,7 @@ MD.Page {
             }
             function route(itemId) {
                 currentItemId = itemId;
-                let url = itemId.toPageUrl();
+                let url = itemId.pageUrl;
                 push_page(url, {
                     "itemId": itemId
                 });

@@ -49,16 +49,14 @@ message Program {
 message Mix {
   int64 id = 1;
   string native_id = 2;
-  int64 library_id = 3;
+  int64 provider_id = 3;
   string name = 4;
   int32 track_count = 6;
   int32 special_type = 7;
   string description = 8;
-  google.protobuf.Timestamp create_time = 9;
-  google.protobuf.Timestamp update_time = 10;
-  int32 play_count = 11;
-  string user_id = 12;
-  string tags = 13;
+  string tags = 9;
+  google.protobuf.Timestamp create_time = 10;
+  google.protobuf.Timestamp update_time = 11;
   google.protobuf.Timestamp edit_time = 14;
 }
 

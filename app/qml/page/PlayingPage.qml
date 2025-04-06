@@ -56,7 +56,7 @@ MD.Page {
     //         return data.lrc + data.transLrc;
     //     }
 
-    //     autoReload: songId.valid()
+    //     autoReload: songId.valid
     //     songId: root.song.itemId
     // }
 
@@ -124,7 +124,7 @@ MD.Page {
 
                     MD.IconButton {
                         checked: false
-                        enabled: root.song.itemId.valid()
+                        enabled: root.song.itemId.valid
                         icon.name: checked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
 
                         onClicked: {
