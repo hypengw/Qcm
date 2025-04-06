@@ -9,6 +9,7 @@ SongStoreItem::SongStoreItem(QObject* parent): base_type(AppStore::instance()->s
 AlbumStoreItem::AlbumStoreItem(QObject* parent): base_type(AppStore::instance()->albums, parent) {}
 ArtistStoreItem::ArtistStoreItem(QObject* parent)
     : base_type(AppStore::instance()->artists, parent) {}
+MixStoreItem::MixStoreItem(QObject* parent): base_type(AppStore::instance()->mixes, parent) {}
 
 } // namespace qcm::model
 

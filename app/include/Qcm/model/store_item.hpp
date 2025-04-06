@@ -84,4 +84,14 @@ public:
     Q_SIGNAL void itemChanged();
 };
 
+class MixStoreItem
+    : public StoreItem<meta_model::ItemTrait<qcm::model::Mix>::store_type, MixStoreItem> {
+    Q_OBJECT
+    Q_PROPERTY(qcm::model::Mix item READ item NOTIFY itemChanged)
+public:
+    using base_type = StoreItem<meta_model::ItemTrait<qcm::model::Mix>::store_type, MixStoreItem>;
+    MixStoreItem(QObject* parent = nullptr);
+    Q_SIGNAL void itemChanged();
+};
+
 } // namespace qcm::model

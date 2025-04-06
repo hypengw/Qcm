@@ -95,6 +95,11 @@ QCM_MSG_TRAITS_RSP(GetArtistsRsp, GetArtistsReq, getArtistsRsp)
 QCM_MSG_TRAITS_REQ(GetArtistReq, GetArtistRsp, GET_ARTIST_REQ, getArtistReq)
 QCM_MSG_TRAITS_RSP(GetArtistRsp, GetArtistReq, getArtistRsp)
 
+QCM_MSG_TRAITS_REQ(GetMixsReq, GetMixsRsp, GET_MIXS_REQ, getMixsReq)
+QCM_MSG_TRAITS_RSP(GetMixsRsp, GetMixsReq, getMixsRsp)
+QCM_MSG_TRAITS_REQ(GetMixReq, GetMixRsp, GET_MIX_REQ, getMixReq)
+QCM_MSG_TRAITS_RSP(GetMixRsp, GetMixReq, getMixRsp)
+
 template<>
 struct MsgTraits<msg::Rsp> {
     QCM_MSG_TRAITS_COMMON(Rsp, rsp)
@@ -179,6 +184,15 @@ class Artist : public msg::model::Artist {
     QCM_MODEL_COMMON(Artist)
 };
 
+class Mix : public msg::model::Mix {
+    Q_GADGET
+    QML_VALUE_TYPE(mix)
+
+    QCM_MODEL_COMMON(Mix)
+private:
+    auto libraryId() const -> i64 { return -1; }
+};
+
 #undef QCM_MODEL_COMMON
 } // namespace qcm::model
 
@@ -203,6 +217,14 @@ struct meta_model::ItemTrait<qcm::model::Artist> {
 template<>
 struct meta_model::ItemTrait<qcm::model::Song> {
     using Self       = qcm::model::Song;
+    using key_type   = i64;
+    using store_type = ShareStore<Self, std::pmr::polymorphic_allocator<Self>, qcm::ShareStoreExt>;
+    static auto key(const Self& el) noexcept -> i64 { return el.id_proto(); }
+};
+
+template<>
+struct meta_model::ItemTrait<qcm::model::Mix> {
+    using Self       = qcm::model::Mix;
     using key_type   = i64;
     using store_type = ShareStore<Self, std::pmr::polymorphic_allocator<Self>, qcm::ShareStoreExt>;
     static auto key(const Self& el) noexcept -> i64 { return el.id_proto(); }

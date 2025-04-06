@@ -8,7 +8,7 @@ import Qcm.Material as MD
 MD.Page {
     id: root
 
-    property alias itemData: qr_pl.data
+    property alias mix: qr_pl.data.item
     property alias itemId: qr_pl.itemId
 
     title: qsTr("playlist")
@@ -32,9 +32,9 @@ MD.Page {
         topMargin: MD.MatProp.size.verticalPadding
         bottomMargin: MD.MatProp.size.verticalPadding * 2
 
-        model: root.itemData
+        // model: root.mix
         readonly property bool single: width < m_cover.displaySize.width * (1.0 + 1.5) + 8
-        readonly property bool canDelete: root.itemData.info.userId == QA.Global.session.user.userId
+        readonly property bool canDelete: root.mix.info.userId == QA.Global.session.user.userId
 
         Item {
             visible: false
@@ -42,7 +42,7 @@ MD.Page {
             QA.Image {
                 id: m_cover
                 elevation: MD.Token.elevation.level2
-                source: QA.Util.image_url(root.itemData.info.picUrl)
+                source: QA.Util.image_url(root.mix.info.picUrl)
                 radius: 16
 
                 Layout.preferredWidth: displaySize.width
@@ -53,7 +53,7 @@ MD.Page {
                 id: m_title
                 Layout.fillWidth: true
                 maximumLineCount: 2
-                text: root.itemData.info.name
+                text: root.mix.info.name
                 typescale: m_view.single ? MD.Token.typescale.headline_medium : MD.Token.typescale.headline_large
             }
 
@@ -62,16 +62,16 @@ MD.Page {
                 spacing: 12
                 MD.Text {
                     typescale: MD.Token.typescale.body_medium
-                    text: `${root.itemData.info.trackCount} tracks`
+                    text: `${root.mix.info.trackCount} tracks`
                 }
                 MD.Text {
                     typescale: MD.Token.typescale.body_medium
-                    text: Qt.formatDateTime(root.itemData.info.updateTime, 'yyyy.MM.dd')
+                    text: Qt.formatDateTime(root.mix.info.updateTime, 'yyyy.MM.dd')
                 }
             }
             QA.ListDescription {
                 id: m_desc
-                description: root.itemData.info.description.trim()
+                description: root.mix.info.description.trim()
             }
 
             RowLayout {
@@ -81,7 +81,7 @@ MD.Page {
                 MD.IconButton {
                     action: QA.AppendListAction {
                         getSongIds: function () {
-                            return QA.Util.collect_ids(root.itemData);
+                            return QA.Util.collect_ids(root.mix);
                         }
                     }
                 }
@@ -215,8 +215,8 @@ MD.Page {
         }
     }
 
-    QA.MixDetailQuery {
+    QA.MixQuery {
         id: qr_pl
-        querySong: true
+        // querySong: true
     }
 }

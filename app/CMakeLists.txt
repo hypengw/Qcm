@@ -34,6 +34,7 @@ set(SOURCES
     src/util/path.cpp
     src/query/album_query.cpp
     src/query/artist_query.cpp
+    src/query/mix_query.cpp
     src/query/provider_query.cpp
     src/query/query.cpp
     src/query/storage_info.cpp

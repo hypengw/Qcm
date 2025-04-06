@@ -176,14 +176,14 @@ message GetMixsRsp {
   bool has_more = 4;
 }
 
-message GetMixReq { string id = 1; }
+message GetMixReq { int64 id = 1; }
 
 message GetMixRsp {
   qcm.msg.model.Mix item = 1;
   google.protobuf.Struct extra = 2;
 }
 
-message GetLyricReq { string id = 1; }
+message GetLyricReq { int64 id = 1; }
 
 message GetLyricRsp { repeated qcm.msg.model.LyricLine lines = 1; }
 

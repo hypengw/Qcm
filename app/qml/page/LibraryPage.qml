@@ -52,11 +52,11 @@ MD.Page {
                         text: qsTr("Album")
                     }
                     MD.TabButton {
+                        text: qsTr("Mix")
+                    }
+                    MD.TabButton {
                         text: qsTr("Artist")
                     }
-                    // MD.TabButton {
-                    //     text: qsTr("Mix")
-                    // }
 
                     // MD.TabButton {
                     //     text: qsTr("Radio")
@@ -77,6 +77,29 @@ MD.Page {
                     }
 
                     BaseView {
+                        id: m_view_mix
+                        busy: qr_mix.querying
+                        delegate: dg_playlist
+                        model: qr_mix.data
+                        refresh: function () {
+                            root.refresh_list(qr_mix);
+                        }
+                        // MD.FAB {
+                        //     anchors.right: parent.right
+                        //     anchors.bottom: parent.bottom
+                        //     anchors.rightMargin: 16
+                        //     anchors.bottomMargin: 16
+                        //     flickable: m_view_mix
+                        //     action: Action {
+                        //         icon.name: MD.Token.icon.add
+                        //         onTriggered: {
+                        //             MD.Util.show_popup('qrc:/Qcm/App/qml/dialog/MixCreateDialog.qml', {}, root.Overlay.overlay);
+                        //         }
+                        //     }
+                        // }
+                    }
+
+                    BaseView {
                         id: view_artistlist
                         delegate: dg_artistlist
                         busy: qr_artistlist.querying
@@ -88,44 +111,7 @@ MD.Page {
                     }
                     /*
 
-                    BaseView {
-                        id: m_view_mix
-                        busy: qr_playlist.status === QA.Enum.Querying
-                        delegate: dg_playlist
-                        model: qr_playlist.data
-                        refresh: function () {
-                            root.refresh_list(qr_playlist);
-                        }
-                        Connections {
-                            function onPlaylistChanged() {
-                                m_view_mix.dirty = true;
-                            }
-                            function onPlaylistDeleted() {
-                                m_view_mix.dirty = true;
-                            }
-                            function onPlaylistCreated() {
-                                m_view_mix.dirty = true;
-                            }
-                            function onPlaylistLiked() {
-                                m_view_mix.dirty = true;
-                            }
 
-                            target: QA.App
-                        }
-                        MD.FAB {
-                            anchors.right: parent.right
-                            anchors.bottom: parent.bottom
-                            anchors.rightMargin: 16
-                            anchors.bottomMargin: 16
-                            flickable: m_view_mix
-                            action: Action {
-                                icon.name: MD.Token.icon.add
-                                onTriggered: {
-                                    MD.Util.show_popup('qrc:/Qcm/App/qml/dialog/MixCreateDialog.qml', {}, root.Overlay.overlay)
-                                }
-                            }
-                        }
-                    }
 
 
                     BaseView {
@@ -154,11 +140,11 @@ MD.Page {
                     id: qr_artistlist
                     Component.onCompleted: reload()
                 }
-                /*
-                QA.MixCollectionQuery {
-                    id: qr_playlist
+                QA.MixesQuery {
+                    id: qr_mix
                     Component.onCompleted: reload()
                 }
+                /*
                 QA.RadioCollectionQuery {
                     id: qr_djradiolist
                     Component.onCompleted: reload()
