@@ -10,7 +10,7 @@ MD.Menu {
     property QA.item_id sourceId
     property bool canDelete: false
     // no aot, it's bugly
-    property var song
+    property var song: QA.App.empty.song
     readonly property QA.item_id _itemId: {
         return itemId.valid ? itemId : song.itemId;
     }

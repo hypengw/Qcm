@@ -11,6 +11,7 @@ MD.Dialog {
     MD.ListView {
         anchors.fill: parent
         model: root.itemIds
+
         expand: true
 
         delegate: MD.ListItem {
@@ -20,21 +21,23 @@ MD.Dialog {
             corners: indexCorners(index, count, 16)
 
             leader: QA.Image {
-                source: QA.Util.image_url(m_qr.data.info.picUrl)
+                source: QA.Util.image_url(m_qr.data.item.itemId)
                 sourceSize.height: 48
                 sourceSize.width: 48
                 radius: 24
             }
-            text: m_qr.data.info.name
+            text: m_qr.data.item.name
             onImplicitWidthChanged: {
                 const v = ListView.view;
                 v.implicitWidth = Math.max(v.implicitWidth, implicitWidth);
             }
 
-            QA.ArtistDetailQuery {
+            QA.ArtistQuery {
                 id: m_qr
-                delay: false
                 itemId: modelData
+                onItemIdChanged: {
+                    reload();
+                }
             }
             onClicked: {
                 MD.Util.closePopup(root);
