@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import Qcm.Material as MD
 import Qcm.App as QA
 
-MD.ListView {
+MD.VerticalListView {
     id: lyric_view
     function posTo(idx) {
         if (!visible)
@@ -106,7 +106,7 @@ MD.ListView {
             anim_scroll.manual_stop();
     }
     onVisibleChanged: timer_restart()
-    onWheelMoved: anim_scroll.manual_stop()
+    // onWheelMoved: anim_scroll.manual_stop()
     onWidthChanged: timer_restart()
 
     Timer {

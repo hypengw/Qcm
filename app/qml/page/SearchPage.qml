@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls.Basic as QC
 import Qcm.App as QA
 import Qcm.Material as MD
 
@@ -11,7 +10,7 @@ MD.Page {
     title: qsTr('search')
     topPadding: showHeader ? 0 : MD.MatProp.size.verticalPadding
 
-    component BaseView: MD.ListView {
+    component BaseView:MD.VerticalListView {
         implicitHeight: contentHeight
         model: m_query.data
         busy: m_query.status === QA.Enum.Querying
@@ -52,7 +51,7 @@ MD.Page {
 
         RowLayout {
             MD.FilterChip {
-                action: QC.Action {
+                action: MD.Action {
                     text: qsTr('local')
                     icon.name: MD.Token.icon.arrow_drop_down
                     onTriggered: {}

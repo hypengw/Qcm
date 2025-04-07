@@ -1,10 +1,9 @@
 import QtQuick
-import QtQuick.Controls.Basic
 
 import Qcm.App as QA
 import Qcm.Material as MD
 
-Action {
+MD.Action {
     id: root
     icon.name: MD.Token.icon.album
     text: qsTr('go to album')

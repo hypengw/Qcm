@@ -4,7 +4,7 @@ set(APP_VERSION ${PROJECT_VERSION})
 set(APP_SUMMARY ${PROJECT_DESCRIPTION})
 set(APP_AUTHOR "hypengw")
 
-find_package(Qt6 REQUIRED COMPONENTS QuickControls2 Sql Widgets Protobuf
+find_package(Qt6 REQUIRED COMPONENTS Sql Widgets Protobuf
                                      ProtobufWellKnownTypes ProtobufQuick)
 qt_standard_project_setup()
 
@@ -181,7 +181,6 @@ target_link_libraries(
   app
   PUBLIC Qt6::Core
          Qt6::Quick
-         Qt6::QuickControls2
          Qt6::Sql
          "$<$<CONFIG:Debug>:Qt6::QuickPrivate>"
          core.qasio

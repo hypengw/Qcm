@@ -1,6 +1,6 @@
 import QtQuick
-import QtQuick.Controls.Basic as QC
 import QtQuick.Window
+import QtQuick.Templates as T
 
 import Qcm.Material as MD
 
@@ -11,7 +11,7 @@ MD.Popup {
     property var props: Object()
     required property string source
 
-    parent: QC.Overlay.overlay
+    parent: T.Overlay.overlay
     width: Math.min(400, parent.width)
     height: Math.min(implicitHeight, parent.height * 0.8)
     modal: true
@@ -50,7 +50,7 @@ MD.Popup {
         // headerBackgroundOpacity: 0
         backgroundRadius: root.radius
         radius: root.radius
-        leadingAction: QC.Action {
+        leadingAction: MD.Action {
             icon.name: MD.Token.icon.arrow_back
             onTriggered: {
                 if (loader.item?.canBack)
@@ -72,5 +72,5 @@ MD.Popup {
         id: loader
         asynchronous: false
     }
-    closePolicy: QC.Popup.CloseOnEscape | QC.Popup.CloseOnPressOutside
+    closePolicy: T.Popup.CloseOnEscape | T.Popup.CloseOnPressOutside
 }

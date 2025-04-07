@@ -1,6 +1,5 @@
 import QtCore
 import QtQuick
-import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Qcm.App as QA
 import Qcm.Material as MD
@@ -13,7 +12,7 @@ MD.Page {
     bottomPadding: radius
     scrolling: !m_flick.atYBeginning
 
-    MD.Flickable {
+    MD.VerticalFlickable {
         id: m_flick
         anchors.fill: parent
         leftMargin: 0

@@ -11,7 +11,7 @@ MD.Dialog {
 
     required property var songId
 
-    MD.ListView {
+   MD.VerticalListView {
         id: m_view
         anchors.fill: parent
         expand: true

@@ -1,6 +1,5 @@
 import QtCore
 import QtQuick
-import QtQuick.Controls.Basic as QC
 
 import Qcm.Material as MD
 
@@ -13,7 +12,7 @@ MD.Page {
     header: MD.AppBar {
         id: m_bar
         title: root.title
-        leadingAction: QC.Action {
+        leadingAction: MD.Action {
             icon.name: root.canBack ? MD.Token.icon.arrow_back : MD.Token.icon.menu
             onTriggered: {
                 if (root.canBack)
@@ -27,7 +26,7 @@ MD.Page {
     canBack: m_page_stack.canBack
 
         //control._canBack ? m_back_action : (Window.window?.barAction ?? null)
-        //QC.Action {
+        //MD.Action {
         //    id: m_back_action
         //    icon.name: MD.Token.icon.arrow_back
         //    onTriggered: {

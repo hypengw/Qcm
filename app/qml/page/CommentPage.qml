@@ -11,7 +11,7 @@ MD.Page {
 
     property QA.item_id itemId
 
-    MD.ListView {
+   MD.VerticalListView {
         id: m_view
         anchors.fill: parent
         expand: true

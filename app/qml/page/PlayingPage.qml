@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Qcm.App as QA
 import Qcm.Material as MD
@@ -28,7 +27,7 @@ MD.Page {
                 Layout.leftMargin: 12
                 Layout.topMargin: 12
 
-                action: Action {
+                action:MD.Action {
                     icon.name: MD.Token.icon.arrow_back
 
                     onTriggered: {

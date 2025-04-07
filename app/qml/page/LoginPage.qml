@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Controls.Basic as QC
 import QtQuick.Layouts
 
 import Qcm.App as QA
@@ -25,7 +24,7 @@ MD.Page {
                 id: m_page_ctx
                 inherit: root.MD.MatProp.page
                 showHeader: m_stack.depth > 1
-                leadingAction: QC.Action {
+                leadingAction: MD.Action {
                     icon.name: MD.Token.icon.arrow_back
                     onTriggered: {
                         m_stack.back();
@@ -57,7 +56,7 @@ MD.Page {
                             Component.onCompleted: reload()
                         }
 
-                        MD.ListView {
+                       MD.VerticalListView {
                             id: m_view
                             model: m_meta_query.data.metasData
                             expand: true
@@ -76,7 +75,7 @@ MD.Page {
                                     source: "data:image/svg+xml;utf8," + model.svg
                                     size: 24
                                 }
-                                action: QC.Action {
+                                action: MD.Action {
                                     text: model.typeName
                                     onTriggered: {
                                         m_stack.push_page("qrc:/Qcm/App/qml/page/ProviderMetaPage.qml", {
@@ -104,7 +103,7 @@ MD.Page {
                             typescale: MD.Token.typescale.title_small
                         }
 
-                        MD.ListView {
+                       MD.VerticalListView {
                             id: m_user_view
                             visible: QA.Global.userModel.rowCount() && !QA.Global.session.valid
 
@@ -121,7 +120,7 @@ MD.Page {
                                 width: ListView.view.contentWidth
 
                                 corners: indexCorners(index, count, 16)
-                                action: QC.Action {
+                                action: MD.Action {
                                     text: model.nickname
                                     onTriggered: {
                                         QA.Action.switch_user(model.userId);

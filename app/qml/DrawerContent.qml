@@ -1,15 +1,14 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Qcm.App as QA
 import Qcm.Material as MD
 
-MD.Flickable {
+MD.VerticalFlickable {
     id: root
     property bool standard: false
     property int pageIndex: 0
-    property Action rightTopAction: null
+    property MD.Action rightTopAction: null
 
     signal close
 
@@ -43,7 +42,7 @@ MD.Flickable {
                 required property var index
                 visible: true //root.MD.MatProp.size.isCompact || root.standard
                 checked: root.standard && root.pageIndex == index
-                action: Action {
+                action: MD.Action {
                     icon.name: MD.Token.icon[modelData.icon]
                     text: modelData.name
                     onTriggered: {
@@ -73,7 +72,7 @@ MD.Flickable {
 
         MD.DrawerItem {
             Layout.fillWidth: true
-            action: Action {
+            action: MD.Action {
                 icon.name: MD.Token.icon.info
                 text: qsTr('about')
 

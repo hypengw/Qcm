@@ -1,6 +1,5 @@
 import QtQml.Models
 import QtQuick
-// import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Qcm.App as QA
 import Qcm.Material as MD
@@ -90,7 +89,7 @@ MD.Page {
                         //     anchors.rightMargin: 16
                         //     anchors.bottomMargin: 16
                         //     flickable: m_view_mix
-                        //     action: Action {
+                        //     action:MD.Action {
                         //         icon.name: MD.Token.icon.add
                         //         onTriggered: {
                         //             MD.Util.show_popup('qrc:/Qcm/App/qml/dialog/MixCreateDialog.qml', {}, root.Overlay.overlay);
@@ -249,7 +248,7 @@ MD.Page {
         }
     }
 
-    component BaseView: MD.ListView {
+    component BaseView:MD.VerticalListView {
         bottomMargin: root.vpadding
 
         property bool dirty: false

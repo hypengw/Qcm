@@ -35,4 +35,22 @@ private:
     model::ItemId m_item_id;
 };
 
+class ArtistAlbumQuery : public query::QueryList<model::AlbumListModel> {
+    Q_OBJECT
+    QML_ELEMENT
+    Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
+public:
+    ArtistAlbumQuery(QObject* parent = nullptr);
+    void reload() override;
+    void fetchMore(qint32) override;
+
+    auto itemId() const -> model::ItemId;
+    void setItemId(model::ItemId);
+
+    Q_SIGNAL void itemIdChanged();
+
+private:
+    model::ItemId m_item_id;
+};
+
 } // namespace qcm

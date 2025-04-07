@@ -2,7 +2,6 @@ import QtCore
 import QtQuick
 import QtQuick.Window
 import QtQuick.Layouts
-import QtQuick.Controls.Basic as QC
 
 import Qcm.App as QA
 import Qcm.Material as MD
@@ -100,7 +99,7 @@ MD.Page {
                                 ColumnLayout {
                                     MD.IconButton {
                                         Layout.alignment: Qt.AlignHCenter
-                                        action: QC.Action {
+                                        action: MD.Action {
                                             icon.name: MD.Token.icon.arrow_back
 
                                             onTriggered: {
@@ -115,7 +114,7 @@ MD.Page {
                                         implicitWidth: 56 + 24
                                     }
                                 }
-                                MD.ListView {
+                               MD.VerticalListView {
                                     Layout.fillWidth: true
                                     implicitHeight: contentHeight
                                     interactive: false
@@ -163,7 +162,7 @@ MD.Page {
                             }
                             MD.IconButton {
                                 Layout.alignment: Qt.AlignHCenter
-                                action: QC.Action {
+                                action: MD.Action {
                                     icon.name: MD.Token.icon.hard_drive
                                     onTriggered: {
                                         QA.Action.route_special(QA.Enum.SRSearch);
@@ -274,7 +273,7 @@ MD.Page {
                     radius: root.radius
                 }
 
-                QC.Action {
+                MD.Action {
                     id: m_back_action
                     icon.name: MD.Token.icon.arrow_back
                     onTriggered: {
@@ -282,7 +281,7 @@ MD.Page {
                             root.back();
                     }
                 }
-                QC.Action {
+                MD.Action {
                     id: m_draw_action
                     icon.name: MD.Token.icon.menu
                     onTriggered: {

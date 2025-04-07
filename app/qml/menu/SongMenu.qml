@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Controls.Basic
 import Qcm.App as QA
 import Qcm.Material as MD
 
@@ -46,7 +45,7 @@ MD.Menu {
         itemId: root._itemId
     }
 
-    Action {
+   MD.Action {
         enabled: root.canDelete
         icon.name: MD.Token.icon.delete
         text: qsTr('delete')

@@ -1,10 +1,10 @@
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQml
 
 import Qcm.App as QA
 import Qcm.Material as MD
 
-Action {
+MD.Action {
     id: root
     property bool liked: false
     property var itemId: null

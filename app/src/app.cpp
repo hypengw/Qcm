@@ -16,7 +16,6 @@
 #include <QtQuick/QQuickItem>
 #include <QtQml/QJSValueIterator>
 #include <QtQml/QQmlEngineExtensionPlugin>
-#include <QQuickStyle>
 #include <QQmlContext>
 
 #include "core/asio/basic.h"

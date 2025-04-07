@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Qcm.App as QA
 import Qcm.Material as MD
@@ -10,20 +9,40 @@ MD.Page {
 
     property var artist: qr_artist.data.item
     property alias itemId: qr_artist.itemId
-    readonly property bool single: m_flick.width < m_cover.displaySize.width * (1.0 + 1.5) + 8
+    readonly property bool single: m_view.width < m_cover.displaySize.width * (1.0 + 1.5) + 8
 
     title: qsTr("artist")
     padding: 0
-    scrolling: !m_flick.atYBeginning
+    scrolling: !m_view.atYBeginning
 
-    MD.Flickable {
-        id: m_flick
+    MD.FlickablePane {
+        id: m_view_pane
+        view: m_view
+        excludeBegin: m_view.headerItem.height + view.topMargin
+        radius: root.radius
+        leftMargin: 0
+        rightMargin: 0
+        bottomMargin: MD.MatProp.size.verticalPadding
+    }
+
+    QA.GridView {
+        id: m_view
         anchors.fill: parent
-        contentHeight: content.implicitHeight
-        ScrollBar.vertical.visible: false
 
         topMargin: MD.MatProp.size.verticalPadding
-        bottomMargin: MD.MatProp.size.verticalPadding
+        bottomMargin: MD.MatProp.size.verticalPadding * 2
+        fixedCellWidth: QA.Util.dyn_card_width(width, spacing)
+        model: qr_artist_albums.data
+
+        delegate: QA.PicCardGridDelegate {
+            required property var model
+            image.source: QA.Util.image_url(model.itemId)
+            text: model.name
+            subText: QA.Util.formatDateTime(model.publishTime, 'yyyy')
+            onClicked: {
+                QA.Action.route_by_id(model.itemId);
+            }
+        }
 
         Item {
             visible: false
@@ -49,14 +68,14 @@ MD.Page {
             RowLayout {
                 id: m_info
                 spacing: 12
-                MD.Text {
-                    typescale: MD.Token.typescale.body_medium
-                    text: `${root.artist.albumCount} albums`
-                }
-                MD.Text {
-                    typescale: MD.Token.typescale.body_medium
-                    text: `${root.artist.musicCount} songs`
-                }
+                // MD.Text {
+                //     typescale: MD.Token.typescale.body_medium
+                //     text: `${root.artist.albumCount} albums`
+                // }
+                // MD.Text {
+                //     typescale: MD.Token.typescale.body_medium
+                //     text: `${root.artist.musicCount} songs`
+                // }
             }
             QA.ListDescription {
                 id: m_desc
@@ -75,17 +94,17 @@ MD.Page {
             }
         }
 
-        ColumnLayout {
+        header: ColumnLayout {
             id: content
-            anchors.left: parent.left
-            anchors.right: parent.right
+            width: parent.width
             spacing: 16
 
             MD.Pane {
                 id: m_header
                 Layout.fillWidth: true
                 radius: root.radius
-                padding: 16
+                padding: 0
+                horizontalPadding: 0
 
                 ColumnLayout {
                     width: parent.width
@@ -148,46 +167,6 @@ MD.Page {
                                 target: m_desc
                             }
                         }
-                        MD.Space {
-                            spacing: 8
-                        }
-                    }
-                }
-            }
-
-            MD.Pane {
-                Layout.fillWidth: true
-                radius: root.radius
-
-                ColumnLayout {
-                    id: pane_view_column
-                    width: parent.width
-                    spacing: 0
-
-                    LayoutItemProxy {
-                        target: m_control_pane
-                    }
-
-                    QA.GridView {
-                        fixedCellWidth: QA.Util.dyn_card_width(width, spacing)
-                        interactive: m_flick.atYEnd
-                        implicitHeight: contentHeight
-                        // model: qr_artist_albums.data
-                        onAtYBeginningChanged: {
-                            if (interactive) {
-                                m_flick.contentY -= 1;
-                            }
-                        }
-
-                        delegate: QA.PicCardGridDelegate {
-                            required property var model
-                            image.source: QA.Util.image_url(model.picUrl)
-                            text: model.name
-                            subText: Qt.formatDateTime(model.publishTime, 'yyyy')
-                            onClicked: {
-                                QA.Action.route_by_id(model.itemId);
-                            }
-                        }
                     }
                 }
             }
@@ -197,12 +176,13 @@ MD.Page {
         id: qr_artist
         Component.onCompleted: reload()
     }
+    QA.ArtistAlbumQuery {
+        id: qr_artist_albums
+        itemId: qr_artist.itemId
+        Component.onCompleted: reload()
+    }
     // QA.ArtistSongsQuery {
     //     id: qr_artissongs
-    //     itemId: qr_artist.itemId
-    // }
-    // QA.ArtistAlbumsQuery {
-    //     id: qr_artist_albums
     //     itemId: qr_artist.itemId
     // }
 }

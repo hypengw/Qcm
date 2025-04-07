@@ -8,7 +8,7 @@ MD.Dialog {
     title: qsTr('go to artist')
     standardButtons: MD.Dialog.Cancel
 
-    MD.ListView {
+   MD.VerticalListView {
         anchors.fill: parent
         model: root.itemIds
 

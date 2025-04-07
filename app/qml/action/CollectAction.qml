@@ -1,10 +1,9 @@
 import QtQuick
-import QtQuick.Controls.Basic
 
 import Qcm.App as QA
 import Qcm.Material as MD
 
-Action {
+MD.Action {
     id: root
     property bool liked: false// QA.Global.session.user.collection.contains(itemId)
     property var itemId: null

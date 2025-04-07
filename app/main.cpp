@@ -19,6 +19,9 @@ int main(int argc, char* argv[]) {
     plt::malloc_init();
     auto logger = qcm::LogManager::instance();
     ncrequest::global_init();
+
+    // set by qml_material
+    // qputenv("QT_QUICK_FLICKABLE_WHEEL_DECELERATION", "5000");
     // qputenv("QSGCURVEGLYPHATLAS_FONT_SIZE", "64");
 
     QGuiApplication gui_app(argc, argv);

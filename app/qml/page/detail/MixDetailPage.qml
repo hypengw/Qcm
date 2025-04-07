@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Qcm.App as QA
 import Qcm.Material as MD
@@ -11,7 +10,7 @@ MD.Page {
     property alias mix: qr_pl.data.item
     property alias itemId: qr_pl.itemId
 
-    title: qsTr("playlist")
+    title: qsTr("Mix")
     padding: 0
     scrolling: !m_view.atYBeginning
 
@@ -23,7 +22,7 @@ MD.Page {
         bottomMargin: MD.MatProp.size.verticalPadding
     }
 
-    MD.ListView {
+   MD.VerticalListView {
         id: m_view
         anchors.fill: parent
         reuseItems: true
@@ -206,7 +205,7 @@ MD.Page {
         anchors.rightMargin: 16
         anchors.bottomMargin: 16
         flickable: m_view
-        action: Action {
+        action:MD.Action {
             icon.name: MD.Token.icon.play_arrow
             onTriggered: {
                 const songs = QA.Util.collect_ids(qr_pl.data);
