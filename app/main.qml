@@ -1,20 +1,20 @@
 import QtCore
 import QtQuick
 import QtQml
-import QtQuick.Controls.Basic
 import QtQuick.Window
+import QtQuick.Templates as T
 
 import Qcm.App as QA
 import Qcm.Material as MD
 
-ApplicationWindow {
+MD.ApplicationWindow {
     id: win
 
     // load QA
     readonly property alias snake: m_snake
     property int windowClass: MD.Enum.WindowClassMedium
 
-    MD.MatProp.page.leadingAction: Action {
+    MD.MatProp.page.leadingAction: MD.Action {
         icon.name: MD.Token.icon.menu
         text: qsTr('menu')
         onTriggered: {
@@ -61,7 +61,7 @@ ApplicationWindow {
             id: m_stack_page_ctx
             radius: win.MD.MatProp.size.isCompact ? 0 : MD.Token.shape.corner.large
             showHeader: win_stack.depth > 1
-            leadingAction: Action {
+            leadingAction: MD.Action {
                 icon.name: MD.Token.icon.arrow_back
                 onTriggered: {
                     win_stack.pop();
@@ -91,7 +91,7 @@ ApplicationWindow {
         }
         Connections {
             function onRoute_special(name) {
-                if (name === QA.enums.SRLogin) {
+                if (name === QA.Enum.SRLogin) {
                     win_stack.push(comp_login);
                 }
             }
@@ -108,7 +108,7 @@ ApplicationWindow {
         width: Math.min(Math.max(implicitWidth, 350), parent.width)
         */
         id: m_snake
-        parent: Overlay.overlay
+        parent: T.Overlay.overlay
         anchors.fill: parent
         MD.InputBlock {
             target: m_snake
@@ -122,11 +122,12 @@ ApplicationWindow {
         Connections {
             target: QA.Action
             function onPopup_special(s) {
-                if (s === QA.enums.SRQueue) {
+                if (s === QA.Enum.SRQueue) {
                     queue_popup.open();
                 } else if (typeof s == 'number') {
                     const url = QA.Util.special_route_url(s);
-                    if(url) QA.Action.popup_page(url, {});
+                    if (url)
+                        QA.Action.popup_page(url, {});
                 }
             }
 

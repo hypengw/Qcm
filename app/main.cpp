@@ -3,14 +3,12 @@
 #include <QCommandLineParser>
 #include <QSurfaceFormat>
 #include <QLoggingCategory>
+#include <QDir>
 #include <QThread>
 
-#define QCM_LOG_IMPL
-
-#include "Qcm/app.h"
-#include "request/request.h"
+#include "Qcm/app.hpp"
 #include "core/log.h"
-#include "platform/platform.h"
+import platform;
 
 #include <QtQml/QQmlExtensionPlugin>
 Q_IMPORT_QML_PLUGIN(Qcm_AppPlugin)
@@ -19,9 +17,16 @@ Q_IMPORT_QML_PLUGIN(Qcm_AppPlugin)
 
 int main(int argc, char* argv[]) {
     plt::malloc_init();
-    auto         logger = qcm::LogManager::instance();
-    request::global_init();
+    auto logger = qcm::LogManager::instance();
+    ncrequest::global_init();
+
+    // set by qml_material
+    // qputenv("QT_QUICK_FLICKABLE_WHEEL_DECELERATION", "5000");
+    // qputenv("QSGCURVEGLYPHATLAS_FONT_SIZE", "64");
+
     QGuiApplication gui_app(argc, argv);
+    auto            main_qthread = gui_app.thread();
+    QString         backend_exe;
 
     QCoreApplication::setApplicationName(APP_NAME);
     QCoreApplication::setApplicationVersion(APP_VERSION);
@@ -30,13 +35,26 @@ int main(int argc, char* argv[]) {
         QCommandLineParser parser;
         parser.addHelpOption();
         parser.addVersionOption();
-        QCommandLineOption verboseOption("verbose");
-        parser.addOption(verboseOption);
-        parser.process(gui_app);
 
-        logger->set_level(parser.isSet(verboseOption) ? qcm::LogLevel::DEBUG : qcm::LogLevel::WARN);
+        QCommandLineOption log_level_opt(
+            "log-level", "Log Level (debug, info, warn, error)", "level", "warn");
+        QCommandLineOption backend_opt(
+            { "b", "backend" }, "backend executable path", "path", "QcmBackend");
+
+        parser.addOption(log_level_opt);
+        parser.addOption(backend_opt);
+        parser.process(gui_app);
+        logger->set_level(qcm::log::level_from(parser.value(log_level_opt).toStdString()));
+
+        backend_exe = parser.value(backend_opt);
+        {
+            auto path = QDir(backend_exe);
+            if (! path.isAbsolute()) {
+                backend_exe = QDir(QCoreApplication::applicationDirPath()).filePath(backend_exe);
+            }
+        }
         QLoggingCategory::setFilterRules(
-            QLatin1String(fmt::format("qcm.debug={}", parser.isSet(verboseOption))));
+            QLatin1String(std::format("qcm.debug={}", logger->level() == qcm::LogLevel::DEBUG)));
     }
 
     KDSingleApplication single;
@@ -48,13 +66,14 @@ int main(int argc, char* argv[]) {
 
     int re { 0 };
     {
-        qcm::App app { {} };
+        qcm::App app { backend_exe, {} };
         QObject::connect(&single, &KDSingleApplication::messageReceived, app.instance(), []() {
             emit qcm::App::instance() -> instanceStarted();
         });
         app.init();
 
         re = gui_app.exec();
+        main_qthread->setProperty("exec", false);
     }
 
     return re;

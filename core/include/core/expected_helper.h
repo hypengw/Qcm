@@ -21,7 +21,7 @@
     do {                                    \
         auto exp = (_R_);                   \
         if (! exp.has_value())              \
-            return helper::unexpected(exp); \
+            return ::helper::unexpected(exp); \
         else                                \
             _RES_ = std::move(exp).value(); \
     } while (false)
@@ -30,7 +30,7 @@
     do {                                       \
         auto exp = (_R_);                      \
         if (! exp.has_value())                 \
-            co_return helper::unexpected(exp); \
+            co_return ::helper::unexpected(exp); \
         else                                   \
             _RES_ = std::move(exp).value();    \
     } while (false)
@@ -143,14 +143,14 @@ auto unwrap(T&& opt, std::string_view expr = {},
                          opt.has_value(),
                          loc,
                          "unwrap{}faild: {}",
-                         expr.empty() ? " " : fmt::format(" `{}` ", expr),
+                         expr.empty() ? " " : std::format(" `{}` ", expr),
                          opt.error());
     } else {
         _tpl_assert_msg_(true,
                          opt.has_value(),
                          loc,
                          "unwrap{}faild",
-                         expr.empty() ? " " : fmt::format(" `{}` ", expr));
+                         expr.empty() ? " " : std::format(" `{}` ", expr));
     }
     return std::forward<T>(opt).value();
 }

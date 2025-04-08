@@ -1,0 +1,137 @@
+syntax = "proto3";
+
+package qcm.msg.model;
+
+import "google/protobuf/timestamp.proto";
+
+message Song {
+  int64 id = 1;
+  string native_id = 2;
+  int64 library_id = 3;
+  string name = 4;
+  int64 album_id = 5;
+  int32 track_number = 6;
+  int32 disc_number = 7;
+  double duration = 8;
+  bool can_play = 9;
+  google.protobuf.Timestamp publish_time = 10;
+  double popularity = 11;
+  google.protobuf.Timestamp edit_time = 12;
+  repeated string tags = 13;
+}
+
+message Radio {
+  int64 id = 1;
+  string native_id = 2;
+  int64 library_id = 3;
+  string name = 4;
+  string description = 6;
+  int32 program_count = 7;
+  google.protobuf.Timestamp create_time = 8;
+  google.protobuf.Timestamp edit_time = 9;
+}
+
+message Program {
+  int64 id = 1;
+  string native_id = 2;
+  int64 library_id = 3;
+  string name = 4;
+  string description = 5;
+  google.protobuf.Timestamp duration = 6;
+  string cover_url = 7;
+  string song_id = 8;
+  google.protobuf.Timestamp create_time = 9;
+  int32 serial_number = 10;
+  string radio_id = 11;
+  google.protobuf.Timestamp edit_time = 12;
+}
+
+message Mix {
+  int64 id = 1;
+  string native_id = 2;
+  int64 provider_id = 3;
+  string name = 4;
+  int32 track_count = 6;
+  int32 special_type = 7;
+  string description = 8;
+  string tags = 9;
+  google.protobuf.Timestamp create_time = 10;
+  google.protobuf.Timestamp update_time = 11;
+  google.protobuf.Timestamp edit_time = 14;
+}
+
+message Library {
+  int64 library_id = 1;
+  string name = 2;
+  string provider_id = 3;
+  string native_id = 4;
+  google.protobuf.Timestamp edit_time = 5;
+}
+
+message Artist {
+  int64 id = 1;
+  string native_id = 2;
+  string name = 3;
+  int64 library_id = 5;
+  string description = 6;
+  int32 album_count = 7;
+  int32 music_count = 8;
+  google.protobuf.Timestamp edit_time = 10;
+}
+
+message Album {
+  int64 id = 1;
+  string native_id = 2;
+  int64 library_id = 3;
+  string name = 4;
+  google.protobuf.Timestamp publish_time = 6;
+  int32 track_count = 7;
+  string description = 8;
+  string company = 9;
+  google.protobuf.Timestamp edit_time = 11;
+}
+
+message LyricLine {
+  string text = 1;
+  int64 start = 2;
+}
+
+message UsernameAuth {
+  string username = 1;
+  string pw = 2;
+}
+
+message PhoneAuth {
+  string Phone = 1;
+  string pw = 2;
+}
+
+message EmailAuth {
+  string email = 1;
+  string pw = 2;
+}
+
+message AuthInfo {
+  string server_url = 1;
+  oneof method {
+    UsernameAuth username = 2;
+    PhoneAuth phone = 3;
+    EmailAuth email = 4;
+  }
+}
+
+message ProviderMeta {
+  string type_name = 1;
+  string svg = 2;
+  bool mutable = 3;
+  bool is_script = 4;
+  bool has_server_url = 5;
+}
+
+message ProviderStatus {
+  string id = 1;
+  string name = 2;
+  bool syncing = 3;
+  int64 finished = 4;
+  int64 total = 5;
+}

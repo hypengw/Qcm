@@ -77,7 +77,7 @@ MD.ListItem {
                     id: m_comp_song_image
                     QA.Image {
                         radius: 8
-                        source: QA.Util.image_url(root.dgModel?.album.picUrl ?? root.dgModel.coverUrl)
+                        source: QA.Util.image_url(root.dgModel.itemId)
                         displaySize: Qt.size(48, 48)
                     }
                 }
@@ -108,14 +108,20 @@ MD.ListItem {
                     verticalAlignment: Qt.AlignVCenter
                     typescale: MD.Token.typescale.body_medium
                     color: root.mdState.supportTextColor
-                    text: root.subtitle ? root.subtitle : `${QA.Global.join_name(root.dgModel.artists, '/')} - ${root.dgModel.album.name}`
+                    text: {
+                        if (root.subtitle) {
+                            return root.subtitle;
+                        }
+                        const ex = QA.Store.extra(root.dgModel.itemId);
+                        return [QA.Util.joinName(ex?.artists), ex?.album?.name].filter(e => !!e).join(' - ');
+                    }
                 }
             }
         }
         MD.Text {
             visible: !(Window.window?.windowClass === MD.Enum.WindowClassCompact)
             typescale: MD.Token.typescale.body_medium
-            text: Qt.formatDateTime(root.dgModel.duration, 'mm:ss')
+            text: QA.Util.formatDateTime(root.dgModel.duration, 'mm:ss')
             verticalAlignment: Qt.AlignVCenter
         }
         RowLayout {
@@ -123,7 +129,7 @@ MD.ListItem {
 
             MD.IconButton {
                 visible: !(Window.window?.windowClass === MD.Enum.WindowClassCompact)
-                checked: QA.Global.session.user.collection.contains(root.dgModel.itemId)
+                checked: false
                 icon.name: checked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
 
                 onClicked: {

@@ -1,5 +1,7 @@
 #pragma once
 
+#define YCORE_BREAK_ON(x) if(x) break
+
 #define YCORE_EMPTY_OBJ
 #define YCORE_EMPTY(...)
 #define YCORE_PARENS          ()
@@ -43,7 +45,7 @@
     }
 
 #define C_DECLARE_PRIVATE(Class, DName) \
-    up<Private> DName;                  \
+    Box<Private> DName;                  \
     C_DECLARE_PRIVATE_FUNC(Class, DName)
 
 #define C_D(Class)       Class::Private* const d = d_func()

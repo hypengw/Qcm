@@ -8,16 +8,16 @@ import Qcm.Material as MD
 QA.GlobalWrapper {
     id: root
 
-    readonly property QA.t_song cur_song: QA.App.playqueue.currentSong
+    readonly property QA.song cur_song: QA.App.playqueue.currentSong
 
     readonly property string loop_icon: switch (QA.App.playqueue.loopMode) {
-    case QA.enums.SingleLoop:
+    case QA.Enum.SingleLoop:
         return MD.Token.icon.repeat_one;
-    case QA.enums.ListLoop:
+    case QA.Enum.ListLoop:
         return MD.Token.icon.loop;
-    case QA.enums.ShuffleLoop:
+    case QA.Enum.ShuffleLoop:
         return MD.Token.icon.shuffle;
-    case QA.enums.NoneLoop:
+    case QA.Enum.NoneLoop:
     default:
         return MD.Token.icon.trending_flat;
     }
@@ -28,7 +28,7 @@ QA.GlobalWrapper {
 
     property string song_cover: ''
 
-    property int color_scheme: MD.MdColorMgr.Light
+    property int color_scheme: MD.Enum.Light
     property bool use_system_color_scheme: true
     property bool use_system_accent_color: true
     property color primary_color: MD.Token.color.accentColor
@@ -46,12 +46,6 @@ QA.GlobalWrapper {
         }
     }
 
-    function join_name(objs, split) {
-        const names = objs.map(o => {
-            return o.name;
-        });
-        return names.join(split);
-    }
     function route(dest, props = {}) {
         let url = dest;
         if (QA.App.isItemId(dest)) {
@@ -71,7 +65,7 @@ QA.GlobalWrapper {
     }
 
     function toggleColorScheme() {
-        color_scheme = color_scheme == MD.MdColorMgr.Dark ? MD.MdColorMgr.Light : MD.MdColorMgr.Dark;
+        color_scheme = color_scheme == MD.Enum.Dark ? MD.Enum.Light : MD.Enum.Dark;
     }
 
     LoggingCategory {
@@ -109,30 +103,35 @@ QA.GlobalWrapper {
             MD.Token.color.useSysAccentColor = Qt.binding(() => {
                 return root.use_system_accent_color;
             });
-            if (root.use_system_accent_color) {
-                root.primary_color = MD.Token.color.accentColor;
-            }
             MD.Token.color.accentColor = Qt.binding(() => {
                 return primary_color;
             });
-            if (MD.Token.color.useSysColorSM) {
-                root.color_scheme = MD.Token.color.colorScheme;
-            }
-            MD.Token.color.colorScheme = Qt.binding(() => {
+            MD.Token.themeMode = Qt.binding(() => {
                 return root.color_scheme;
             });
+
+            if (root.use_system_accent_color) {
+                root.primary_color = MD.Token.color.accentColor;
+            }
+            if (root.use_system_color_scheme) {
+                root.color_scheme = MD.Token.themeMode;
+            }
         }
     }
 
     QA.Mpris {
         id: m_mpris
-        player: root.player
+        player: m_player
         playlist: QA.App.playqueue
     }
 
     QA.QcmPlayer {
         id: m_player
         readonly property date durationDate: new Date(duration)
+    }
+
+    Component {
+        QA.AlbumDetailPage {}
     }
 
     Connections {
@@ -163,12 +162,12 @@ QA.GlobalWrapper {
             const queue = QA.App.playqueue;
             // console.debug(root.category, `state: ${p.playbackState}, ${p.position}, ${p.duration}, ${p.source}`);
 
-            if (p.playbackState === QA.enums.StoppedState && p.source) {
+            if (p.playbackState === QA.Enum.StoppedState && p.source) {
                 if (p.position / p.duration > 0.98) {
                     queue.next(queue.loopMode);
                 }
             }
-            if (p.playbackState !== QA.enums.StoppedState) {
+            if (p.playbackState !== QA.Enum.StoppedState) {
                 QA.Action.playbackLog(p.playbackState, root.cur_song.itemId, root.cur_song.source?.itemId ?? QA.Util.create_itemid());
             }
         }

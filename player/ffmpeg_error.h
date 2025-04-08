@@ -27,7 +27,7 @@ struct FFmpegError : public error::ErrorBase<FFmpegError> {
     std::string what() {
         std::array<char, AV_ERROR_MAX_STRING_SIZE> err_buf;
         av_make_error_string(err_buf.data(), err_buf.size(), code);
-        return fmt::format("{}", err_buf.data());
+        return std::format("{}", err_buf.data());
     }
 
     int code;

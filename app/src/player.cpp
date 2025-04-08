@@ -1,14 +1,14 @@
-#include "Qcm/player.h"
-#include "Qcm/app.h"
+#include "Qcm/player.hpp"
+#include "Qcm/app.hpp"
 
 #include <asio/use_future.hpp>
 
 #include <asio/thread_pool.hpp>
 #include <asio/as_tuple.hpp>
-#include "asio_helper/basic.h"
+#include "core/asio/basic.h"
 
-#include "asio_qt/qt_executor.h"
-#include "qcm_interface/ex.h"
+#include "core/qasio/qt_executor.h"
+#include "Qcm/util/ex.hpp"
 #include "core/math.h"
 
 using namespace qcm;
@@ -225,3 +225,6 @@ void Player::processNotify(NotifyInfo info) {
                             } },
                info);
 }
+
+
+#include <Qcm/moc_player.cpp>

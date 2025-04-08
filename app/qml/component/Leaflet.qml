@@ -1,6 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Templates as T
 
 import Qcm.Material as MD
 
@@ -285,12 +285,12 @@ Item {
 
         Item {
             id: m_split_left
-            SplitView.minimumWidth: Math.max(root.leftMin, root.leftPage.implicitWidth)
+            T.SplitView.minimumWidth: Math.max(root.leftMin, root.leftPage.implicitWidth)
         }
 
         Item {
             id: m_split_right
-            SplitView.minimumWidth: Math.max(root.rightMin, root.rightPage.implicitWidth)
+            T.SplitView.minimumWidth: Math.max(root.rightMin, root.rightPage.implicitWidth)
         }
     }
 

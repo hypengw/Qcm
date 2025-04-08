@@ -12,7 +12,7 @@ extern "C" {
 
 #include "ffmpeg_format_context.h"
 #include "core/log.h"
-#include "core/platform.h"
+import platform;
 #include "ffmpeg_error.h"
 #include "packet_queue.h"
 #include "player/notify.h"
@@ -86,7 +86,7 @@ public:
 
 private:
     void read_thread(rc<FFmpegFormatContext> rc_fmt_ctx, PacketQueue& pkt_queue) {
-        qcm::set_thread_name("qcm stream reader");
+        plt::set_thread_name("qcm stream reader");
         auto& fmt_ctx = *rc_fmt_ctx;
 
         FFmpegError err;

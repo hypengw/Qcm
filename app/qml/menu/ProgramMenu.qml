@@ -5,8 +5,8 @@ import Qcm.Material as MD
 MD.Menu {
     id: root
 
-    required property QA.t_id itemId
-    required property QA.t_song song
+    required property QA.item_id itemId
+    required property QA.song song
 
     dim: false
     font.capitalization: Font.Capitalize

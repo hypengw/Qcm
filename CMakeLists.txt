@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.28)
 
 project(
   Qcm
@@ -13,12 +13,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_AUTOMOC_PATH_PREFIX ON)
+set(BUILD_SHARED_LIBS OFF)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 if(NOT ANDROID)
   set(CMAKE_LINKER_TYPE "$<IF:$<CONFIG:Debug>,MOLD,DEFAULT>")
 endif()
 set(QT_QML_GENERATE_QMLLS_INI ON)
+
+# options
+option(QCM_BUILD_TESTS "Build tests" ${PROJECT_IS_TOP_LEVEL})
 
 # check lto
 include(CheckIPOSupported)
@@ -36,12 +40,12 @@ include(GNUInstallDirs)
 
 find_package(PkgConfig REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Core Quick ShaderTools)
-qt_standard_project_setup()
 
 if(QT_KNOWN_POLICY_QTP0002)
   qt_policy(SET QTP0002 NEW)
 endif()
 if(QT_KNOWN_POLICY_QTP0004)
+  qt_policy(SET QTP0003 NEW)
   qt_policy(SET QTP0004 NEW)
 endif()
 
@@ -54,11 +58,6 @@ set(QML_IMPORT_PATH
 
 option(QCM_USE_ASAN "use asan" OFF)
 option(QCM_QML_DEBUG "qml debug" OFF)
-if(ANDROID)
-  set(QCM_MODEL_GENERATOR
-      ""
-      CACHE STRING "")
-endif()
 
 if("${QT_INSTALL_QML}" STREQUAL "")
   set(QT_INSTALL_QML "${CMAKE_INSTALL_LIBDIR}/qt6/qml")
@@ -80,15 +79,18 @@ set(WARN_OPTS
     "$<$<COMPILE_LANG_AND_ID:CXX,GNU>:-Wno-dangling-reference>")
 
 add_compile_options(
-  $<$<CONFIG:Debug>:-fno-omit-frame-pointer>
-  $<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=address>
-  $<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=undefined>
-  $<$<BOOL:${QCM_USE_ASAN}>:-fsanitize-recover=address>)
+  "$<$<CONFIG:Debug>:-fno-omit-frame-pointer>"
+  # fix for clangd "$<$<CONFIG:Debug>:-fretain-comments-from-system-headers>"
+  # asan
+  "$<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=address>"
+  "$<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=undefined>"
+  "$<$<BOOL:${QCM_USE_ASAN}>:-fsanitize-recover=address>")
 
 add_link_options(
-  $<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=address>
-  $<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=undefined>
-  $<$<BOOL:${QCM_USE_ASAN}>:-fsanitize-recover=address>)
+  # asan
+  "$<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=address>"
+  "$<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=undefined>"
+  "$<$<BOOL:${QCM_USE_ASAN}>:-fsanitize-recover=address>")
 
 add_subdirectory(third_party)
 
@@ -115,34 +117,28 @@ function(register_qcm_service url_ target_)
   set_property(GLOBAL APPEND PROPERTY QCM_SERVICES ${target_})
 endfunction()
 
-add_subdirectory(core)
-add_subdirectory(binder)
-add_subdirectory(platform)
-add_subdirectory(error)
-add_subdirectory(json_helper)
-add_subdirectory(asio_helper)
-add_subdirectory(asio_qt)
-add_subdirectory(request)
-add_subdirectory(crypto)
-
-add_subdirectory(generator/model)
-add_subdirectory(qcm_interface)
-
 if(ANDROID)
   set(QCM_SERVICE_STATIC_BUILD ON)
 endif()
-add_subdirectory(service/jellyfin)
-add_subdirectory(service/jellyfin/qml_plugin)
-add_subdirectory(service/ncm)
+
+add_subdirectory(platform)
+add_subdirectory(core)
+add_subdirectory(error)
+add_subdirectory(crypto)
+
+add_subdirectory(message)
 
 add_subdirectory(mpris)
-add_subdirectory(meta_model)
-add_subdirectory(media_cache)
 add_subdirectory(player)
 
 set(QM_BUILD_STATIC ON)
 if(ANDROID)
   set(QM_BUILD_EXAMPLE OFF)
 endif()
-add_subdirectory(qml_material)
 add_subdirectory(app)
+
+if(QCM_BUILD_TESTS)
+  include(CTest)
+  enable_testing()
+  add_subdirectory(test)
+endif()

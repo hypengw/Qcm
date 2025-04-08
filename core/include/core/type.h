@@ -2,9 +2,9 @@
 
 #include <source_location>
 
-#include "core/core.h"
+import qcm.core;
+#include "core/helper.h"
 #include "core/array_helper.h"
-#include "strv_helper.h"
 
 struct YCORE_CLASS_REF {};
 

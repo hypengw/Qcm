@@ -1,9 +1,18 @@
 # Qcm
 Material You cloud music player.  
 
-Music Service:  
-- Jellyfin(wip)
-- Netease Cloud Music
+To use Qcm, you'll need to run it with a compatible local backend.  
+
+The backend process is managed by Qcm, you can use `--backend <path>` to set the backend executable path.  
+
+### Backend Support
+
+A backend implementation can be found at [QcmBackend](https://github.com/hypengw/QcmBackend), which supports the following music services:
+
+- **Jellyfin**
+- **Netease Cloud Music**(wip)
+
+### Screenshots
 
 <table>
   <tr>
@@ -35,12 +44,26 @@ Music Service:
 sudo pacman -S qcm
 ```
 
-## Dependencies
-- Qt 6.8 (quick, dbus, sql)
-- C++ 23
-- Openssl 3
-- FFmpeg 7
-- Curl
+### Require:  
+- Compiler: clang 19+
+- OS: linux
+
+#### Separated Libraries
+The following libraries were extracted and modularized during Qcm's development.  
+- [QmlMaterial](https://github.com/hypengw/QmlMaterial.git)
+- [MetaModel](https://github.com/hypengw/MetaModel.git)
+- [ncrequest](https://github.com/hypengw/ncrequest.git)
+- [rstd](https://github.com/hypengw/rstd.git)
+
+#### Third Libraries
+- [Qt](https://www.qt.io/)
+- [ffmpeg](https://www.ffmpeg.org/)
+- [curl](https://curl.se/)
+- [openssl](https://www.openssl.org/)
+- [asio](https://github.com/chriskohlhoff/asio)
+- [cubeb](https://github.com/mozilla/cubeb)
+- [PEGTL](https://github.com/taocpp/PEGTL)
+- [ctre](https://github.com/hanickadot/compile-time-regular-expressions)
 
 ## Build
 ```shell
@@ -51,7 +74,7 @@ cmake --build build
 
 # run without install
 export QML_IMPORT_PATH=$PWD/build/qml_modules
-./build/app/Qcm
+./build/app/Qcm --backend <backend executable>
 
 # install
 cmake --install build
@@ -80,42 +103,9 @@ cmake --install build
   ...
   ```
 
-## TODO
-- [ ] jellyfin
-- [ ] subsonic
+### Todo:
 - [ ] mac/win
 - [ ] offline mode
 - [ ] playing page colorpick
 - [ ] playing page blur
 - [ ] android
-- [ ] sql cjk fts
-- [x] sql fts
-- [x] private radio
-- [x] sql api model
-- [x] user session switch
-- [x] feedback
-- [x] upload
-- [x] fade in/out
-- [x] sidebar popup
-- [x] search page
-- [x] lyric
-- [x] audio cache using http proxy(AndroidVideoCache)
-- [x] cache limit
-- [x] sql cache
-- [x] mpris
-- [x] api
-- [x] json
-- [x] http lib(libcurl)
-
-## Credits
-### Libraries Used
-- [Qt](https://www.qt.io/)
-- [ffmpeg](https://www.ffmpeg.org/)
-- [curl](https://curl.se/)
-- [openssl](https://www.openssl.org/)
-- [asio](https://github.com/chriskohlhoff/asio)
-- [cubeb](https://github.com/mozilla/cubeb)
-- [PEGTL](https://github.com/taocpp/PEGTL)
-- [nlohmann/json](https://github.com/nlohmann/json)
-- [fmt](https://github.com/fmtlib/fmt)
-- [ctre](https://github.com/hanickadot/compile-time-regular-expressions)

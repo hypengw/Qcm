@@ -11,14 +11,14 @@ MD.Dialog {
 
     required property var songId
 
-    MD.ListView {
+   MD.VerticalListView {
         id: m_view
         anchors.fill: parent
         expand: true
         topMargin: 8
         bottomMargin: 8
 
-        busy: m_qr.status === QA.enums.Querying
+        busy: m_qr.status === QA.Enum.Querying
         model: m_qr.data
         header: MD.ListItem {
             font.capitalization: Font.Capitalize
@@ -66,7 +66,7 @@ MD.Dialog {
 
         QA.MixManipulateQuery {
             id: m_qr_manipulate
-            oper: QA.enums.ManipulateMixAdd
+            oper: QA.Enum.ManipulateMixAdd
 
             onFinished: {
                 MD.Util.closePopup(root);

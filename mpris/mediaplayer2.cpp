@@ -370,3 +370,6 @@ void MediaPlayer2::notifyPropertiesChanged(const QString&     interfaceName,
     if (! QDBusConnection::sessionBus().send(msg)) {
     }
 }
+
+
+#include <mpris/moc_mediaplayer2.cpp>

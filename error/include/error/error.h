@@ -10,7 +10,7 @@
 
 #define EC_RET(_RES_, _R_) ERR_RET(_RES_, error::Error::expected_chain(helper::to_expected(_R_)))
 #define EC_RET_CO(_RES_, _R_) \
-    ERR_RET_CO(_RES_, error::Error::expected_chain(helper::to_expected(_R_)))
+    ERR_RET_CO(_RES_, error::Error::expected_chain(::helper::to_expected(_R_)))
 
 #define OPT_EC_RET(_OPT_)                                             \
     do {                                                              \
@@ -61,7 +61,8 @@ struct Msg {
 };
 
 class Error {
-    friend struct fmt::formatter<Error>;
+    friend struct std::formatter<Error>;
+    friend struct std::formatter<Error>;
 
 public:
     Error()  = default;
@@ -90,15 +91,15 @@ public:
 
     template<typename Fmt>
         requires(! std::same_as<std::decay_t<Fmt>, Error>) &&
-                (fmt::formattable<std::decay_t<Fmt>> ||
+                (std::formattable<std::decay_t<Fmt>, char> ||
                  std::same_as<std::decay_t<Fmt>, std::nullopt_t>)
     static Error push(Fmt&& f, const std::source_location loc = std::source_location::current()) {
         using T = std::decay_t<Fmt>;
         Error e;
         Msg   msg;
         msg.loc = loc;
-        if constexpr (fmt::formattable<T>) {
-            msg.what = fmt::format("{}", f);
+        if constexpr (std::formattable<T, char>) {
+            msg.what = std::format("{}", f);
         } else {
             msg.what = "nullopt";
         }
@@ -133,30 +134,30 @@ Error push(Fmt&& f, const std::source_location loc = std::source_location::curre
 } // namespace error
 
 template<>
-struct fmt::formatter<error::Msg> : fmt::formatter<std::string> {
+struct std::formatter<error::Msg> : std::formatter<std::string> {
     template<typename FormatContext>
     auto format(const error::Msg& msg, FormatContext& ctx) const {
-        auto out = (fmt::format("{} at {} {}({}:{})",
+        auto out = (std::format("{} at {} {}({}:{})",
                                 msg.what,
                                 msg.loc.function_name(),
                                 msg.loc.file_name(),
                                 msg.loc.line(),
                                 msg.loc.column()));
-        return fmt::formatter<std::string>::format(out, ctx);
+        return std::formatter<std::string>::format(out, ctx);
     }
 };
 
 template<>
-struct fmt::formatter<std::error_code> : fmt::formatter<std::string> {
+struct std::formatter<std::error_code> : std::formatter<std::string> {
     template<typename FormatContext>
     auto format(const std::error_code& e, FormatContext& ctx) const {
-        return fmt::formatter<std::string>::format(
-            fmt::format("{}({}:{})", e.message(), e.value(), e.category().name()), ctx);
+        return std::formatter<std::string>::format(
+            std::format("{}({}:{})", e.message(), e.value(), e.category().name()), ctx);
     }
 };
 
 template<>
-struct fmt::formatter<error::Error> : fmt::formatter<std::string> {
+struct std::formatter<error::Error> : std::formatter<std::string> {
     template<typename FormatContext>
     auto format(const error::Error& e, FormatContext& ctx) const {
         std::string out { "err stack:\n" };
@@ -165,12 +166,13 @@ struct fmt::formatter<error::Error> : fmt::formatter<std::string> {
         } else {
             std::size_t i { 0 };
             for (auto& msg : e.m_msg_stack) {
-                out.append(fmt::format("   {}# {}\n", i++, msg));
+                out.append(std::format("   {}# {}\n", i++, msg));
             }
         }
-        return fmt::formatter<std::string>::format(out, ctx);
+        return std::formatter<std::string>::format(out, ctx);
     }
 };
+
 
 inline std::string error::Error::what() const {
     if (m_msg_stack.empty()) return {};

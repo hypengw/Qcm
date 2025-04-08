@@ -191,3 +191,6 @@ CON(MediaPlayer2PlayerAdaptor, CanPlay);
 CON(MediaPlayer2PlayerAdaptor, CanPause);
 CON(MediaPlayer2PlayerAdaptor, CanSeek);
 CON(MediaPlayer2PlayerAdaptor, CanControl);
+
+
+#include <mpris/moc_mediaplayer2_adaptor.cpp>

@@ -8,7 +8,7 @@ extern "C" {
 #include <ranges>
 
 #include "core/core.h"
-#include "core/str_helper.h"
+#include "core/helper.h"
 
 namespace player
 {

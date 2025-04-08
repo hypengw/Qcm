@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls.Basic as QC
 import Qcm.App as QA
 import Qcm.Material as MD
 
@@ -12,7 +11,7 @@ MD.Page {
     scrolling: !m_view.atYBeginning
 
     actions: [
-        QC.Action {
+        MD.Action {
             icon.name: MD.Token.icon.delete
             onTriggered: {
                 const q = QA.App.playqueue;
@@ -25,7 +24,7 @@ MD.Page {
         }
     ]
 
-    MD.ListView {
+   MD.VerticalListView {
         id: m_view
         anchors.fill: parent
         expand: true

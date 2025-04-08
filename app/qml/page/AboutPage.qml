@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Qcm.App as QA
 import Qcm.Material as MD
@@ -11,7 +10,7 @@ MD.Page {
     bottomPadding: radius
     scrolling: !m_flick.atYBeginning
 
-    MD.Flickable {
+    MD.VerticalFlickable {
         id: m_flick
         anchors.fill: parent
         topMargin: 4
@@ -91,7 +90,7 @@ MD.Page {
             //    font.capitalization: Font.Capitalize
             //    text: qsTr('status')
             //    onClicked: {
-            //        QA.Action.popup_special(QA.enums.SRStatus);
+            //        QA.Action.popup_special(QA.Enum.SRStatus);
             //    }
             //}
         }

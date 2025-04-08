@@ -9,9 +9,10 @@
 #include <openssl/decoder.h>
 
 #include <string_view>
+#include <memory>
+#include <utility>
 
-#include "core/expected_helper.h"
-#include "core/str_helper.h"
+import qcm.helper;
 
 using namespace qcm;
 
@@ -38,14 +39,14 @@ int to_padding(crypto::rsa::Padding pad) {
     }
 }
 } // namespace
-nstd::expected<std::vector<byte>, int> crypto::encrypt(const EVP_CIPHER* cipher, bytes_view key,
-                                                       bytes_view iv, bytes_view data) {
+Result<std::vector<byte>, int> crypto::encrypt(const EVP_CIPHER* cipher, bytes_view key,
+                                               bytes_view iv, bytes_view data) {
     evp_cipher_ctx ctx_ { EVP_CIPHER_CTX_new(), ::EVP_CIPHER_CTX_free };
     auto           ctx = ctx_.get();
 
     int rc = EVP_EncryptInit_ex(
         ctx, cipher, NULL, (unsigned char*)key.data(), (unsigned char*)iv.data());
-    if (rc != 1) return nstd::unexpected(0);
+    if (rc != 1) return Err(0);
 
     std::vector<byte> out(data.size() + iv.size());
 
@@ -54,25 +55,25 @@ nstd::expected<std::vector<byte>, int> crypto::encrypt(const EVP_CIPHER* cipher,
     rc = EVP_EncryptUpdate(
         ctx, (unsigned char*)out.data(), &out_len1, (unsigned char*)data.data(), (int)data.size());
 
-    if (rc != 1) return nstd::unexpected(0);
+    if (rc != 1) return Err(0);
 
     int out_len2 = (int)out.size() - out_len1;
 
     rc = EVP_EncryptFinal_ex(ctx, (unsigned char*)out.data() + out_len1, &out_len2);
-    if (rc != 1) return nstd::unexpected(0);
+    if (rc != 1) return Err(0);
 
     // Set cipher text size now that we know it
     out.resize(out_len1 + out_len2);
-    return out;
+    return Ok(out);
 }
-nstd::expected<std::vector<byte>, int> crypto::decrypt(const EVP_CIPHER* cipher, bytes_view key,
-                                                       bytes_view iv, bytes_view in) {
+Result<std::vector<byte>, int> crypto::decrypt(const EVP_CIPHER* cipher, bytes_view key,
+                                               bytes_view iv, bytes_view in) {
     evp_cipher_ctx ctx_ { EVP_CIPHER_CTX_new(), ::EVP_CIPHER_CTX_free };
     auto           ctx = ctx_.get();
 
     int rc = EVP_DecryptInit_ex(
         ctx, cipher, NULL, (unsigned char*)key.data(), (unsigned char*)iv.data());
-    if (rc != 1) return nstd::unexpected(0);
+    if (rc != 1) return Err(0);
 
     std::vector<byte> out(in.size());
 
@@ -80,19 +81,19 @@ nstd::expected<std::vector<byte>, int> crypto::decrypt(const EVP_CIPHER* cipher,
 
     rc = EVP_DecryptUpdate(
         ctx, (unsigned char*)out.data(), &out_len1, (unsigned char*)in.data(), (int)in.size());
-    if (rc != 1) return nstd::unexpected(0);
+    if (rc != 1) return Err(0);
 
     int out_len2 = (int)out.size() - out_len1;
     rc           = EVP_DecryptFinal_ex(ctx, (unsigned char*)out.data() + out_len1, &out_len2);
 
-    if (rc != 1) return nstd::unexpected(0);
+    if (rc != 1) return Err(0);
 
     // Set recovered text size now that we know it
     out.resize(out_len1 + out_len2);
-    return out;
+    return Ok(out);
 }
 
-nstd::expected<std::vector<byte>, int> crypto::encode(bytes_view in) {
+Result<std::vector<byte>, int> crypto::encode(bytes_view in) {
     evp_encode_ctx ctx_ { EVP_ENCODE_CTX_new(), ::EVP_ENCODE_CTX_free };
     auto           ctx = ctx_.get();
     EVP_EncodeInit(ctx);
@@ -104,17 +105,16 @@ nstd::expected<std::vector<byte>, int> crypto::encode(bytes_view in) {
     auto out_data = (unsigned char*)out.data();
     auto in_data  = (unsigned char*)in.data();
 
-    if (EVP_EncodeUpdate(ctx, out_data, &out_size, in_data, in_size) != 1)
-        return nstd::unexpected(1);
+    if (EVP_EncodeUpdate(ctx, out_data, &out_size, in_data, in_size) != 1) return Err(1);
     total += out_size;
 
     EVP_EncodeFinal(ctx, out_data + total, &out_size);
 
     out.resize(total + out_size);
-    return out;
+    return Ok(out);
 }
 
-nstd::expected<std::vector<byte>, int> crypto::decode(bytes_view in) {
+Result<std::vector<byte>, int> crypto::decode(bytes_view in) {
     evp_encode_ctx ctx_ { EVP_ENCODE_CTX_new(), ::EVP_ENCODE_CTX_free };
     auto           ctx = ctx_.get();
     EVP_DecodeInit(ctx);
@@ -127,32 +127,31 @@ nstd::expected<std::vector<byte>, int> crypto::decode(bytes_view in) {
     auto in_data  = (unsigned char*)in.data();
 
     int rc = EVP_DecodeUpdate(ctx, out_data, &out_size, in_data, in_size);
-    if (rc != 1 && rc != 0) return nstd::unexpected(1);
+    if (rc != 1 && rc != 0) return Err(1);
     total += out_size;
 
-    if (EVP_DecodeFinal(ctx, out_data + total, &out_size) != 1) return nstd::unexpected(1);
+    if (EVP_DecodeFinal(ctx, out_data + total, &out_size) != 1) return Err(1);
 
     out.resize(total + out_size);
-    return out;
+    return Ok(out);
 }
 
-nstd::expected<std::vector<byte>, int> crypto::digest(const md* type, bytes_view data) {
+Result<std::vector<byte>, int> crypto::digest(const md* type, bytes_view data) {
     evp_md_ctx        ctx_ { EVP_MD_CTX_new(), ::EVP_MD_CTX_free };
     auto              ctx = ctx_.get();
     std::vector<byte> out(EVP_MAX_MD_SIZE);
     unsigned int      out_size = out.size();
 
-    if (EVP_DigestInit(ctx, type) != 1) return nstd::unexpected(1);
-    if (EVP_DigestUpdate(ctx, data.data(), data.size()) != 1) return nstd::unexpected(1);
-    if (EVP_DigestFinal(ctx, (unsigned char*)out.data(), &out_size) != 1)
-        return nstd::unexpected(1);
+    if (EVP_DigestInit(ctx, type) != 1) return Err(1);
+    if (EVP_DigestUpdate(ctx, data.data(), data.size()) != 1) return Err(1);
+    if (EVP_DigestFinal(ctx, (unsigned char*)out.data(), &out_size) != 1) return Err(1);
 
     out.resize(out_size);
-    return out;
+    return Ok(out);
 }
 
-auto crypto::digest(const md* type, usize buf_size,
-                    const reader& reader) -> nstd::expected<std::vector<byte>, int> {
+auto crypto::digest(const md* type, usize buf_size, const reader& reader)
+    -> Result<std::vector<byte>, int> {
     evp_md_ctx        ctx_ { EVP_MD_CTX_new(), ::EVP_MD_CTX_free };
     auto              ctx = ctx_.get();
     std::vector<byte> out(EVP_MAX_MD_SIZE);
@@ -160,17 +159,16 @@ auto crypto::digest(const md* type, usize buf_size,
 
     std::vector<byte> buf(buf_size);
 
-    if (EVP_DigestInit(ctx, type) != 1) return nstd::unexpected(1);
+    if (EVP_DigestInit(ctx, type) != 1) return Err(1);
     for (;;) {
         auto size = reader(buf);
         if (size == 0) break;
-        if (EVP_DigestUpdate(ctx, buf.data(), size) != 1) return nstd::unexpected(1);
+        if (EVP_DigestUpdate(ctx, buf.data(), size) != 1) return Err(1);
     }
-    if (EVP_DigestFinal(ctx, (unsigned char*)out.data(), &out_size) != 1)
-        return nstd::unexpected(1);
+    if (EVP_DigestFinal(ctx, (unsigned char*)out.data(), &out_size) != 1) return Err(1);
 
     out.resize(out_size);
-    return out;
+    return Ok(out);
 }
 
 std::vector<byte> crypto::hex::encode_low(bytes_view data) {
@@ -245,7 +243,7 @@ std::optional<rsa::Rsa> rsa::Rsa::from_pem(bytes_view data, bytes_view pass) {
     return std::nullopt;
 }
 
-nstd::expected<std::vector<byte>, int> rsa::Rsa::encrypt(Padding pad, bytes_view data) {
+Result<std::vector<byte>, int> rsa::Rsa::encrypt(Padding pad, bytes_view data) {
     if (auto ctx_ =
             evp_pkey_ctx(EVP_PKEY_CTX_new_from_pkey(NULL, key->pkey, NULL), ::EVP_PKEY_CTX_free);
         ctx_) {
@@ -263,11 +261,11 @@ nstd::expected<std::vector<byte>, int> rsa::Rsa::encrypt(Padding pad, bytes_view
                     out.resize(out_len);
                     if (EVP_PKEY_encrypt(ctx, (unsigned char*)out.data(), &out_len, in, in_len) ==
                         1) {
-                        return out;
+                        return Ok(out);
                     }
                 }
     }
-    return nstd::unexpected(1);
+    return Err(1);
 }
 
 } // namespace qcm::crypto

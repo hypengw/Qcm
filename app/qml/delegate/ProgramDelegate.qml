@@ -69,7 +69,7 @@ MD.ListItem {
                     verticalAlignment: Qt.AlignVCenter
                     typescale: MD.Token.typescale.body_medium
                     color: root.mdState.supportTextColor
-                    // text: root.subtitle ? root.subtitle : `${Qt.formatDateTime(root.dgModel.createTime, 'yyyy.MM.dd')} - ${QA.Global.join_name(root.dgModel.song.artists, '/')}`
+                    // text: root.subtitle ? root.subtitle : `${Qt.formatDateTime(root.dgModel.createTime, 'yyyy.MM.dd')} - ${QA.Util.joinName(root.dgModel.song.artists, '/')}`
                 }
             }
         }

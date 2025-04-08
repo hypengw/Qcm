@@ -2,59 +2,53 @@ set(APP_ID io.github.hypengw.Qcm)
 set(APP_NAME ${PROJECT_NAME})
 set(APP_VERSION ${PROJECT_VERSION})
 set(APP_SUMMARY ${PROJECT_DESCRIPTION})
-set(APP_AUTHOR "hypeng")
+set(APP_AUTHOR "hypengw")
 
-find_package(Qt6 REQUIRED COMPONENTS QuickControls2 Sql Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Sql Widgets Protobuf
+                                     ProtobufWellKnownTypes ProtobufQuick)
+qt_standard_project_setup()
 
 set(SOURCES
-    include/Qcm/app.h
-    include/Qcm/info.h
-    include/Qcm/image_provider.h
-    include/Qcm/play_queue.h
-    include/Qcm/qr_image.h
-    include/Qcm/lyric.h
-    include/Qcm/clipboard.h
-    include/Qcm/player.h
-    include/Qcm/qml_util.h
-    include/Qcm/storage_info.h
-    include/Qcm/sql/item_sql.h
-    include/Qcm/sql/cache_sql.h
-    include/Qcm/sql/collection_sql.h
-    include/Qcm/query/query_load.h
-    include/Qcm/query/album_collection.h
-    include/Qcm/query/artist_collection.h
-    include/Qcm/query/radio_collection.h
-    include/Qcm/query/mix_collection.h
-    include/Qcm/query/album_detail.h
-    include/Qcm/query/mix_detail.h
-    include/Qcm/query/radio_detail.h
-    include/Qcm/query/artist_detail.h
-    include/Qcm/query/artist_albums.h
-    include/Qcm/query/artist_songs.h
-    include/Qcm/query/song_detail.h
-    include/Qcm/query/mix_create.h
-    include/Qcm/query/mix_manipulate.h
-    include/Qcm/query/mix_delete.h
-    include/Qcm/query/user_mix.h
-    include/Qcm/query/comments.h
-    include/Qcm/query/search.h
+    src/log.cpp
     src/action.cpp
     src/app.cpp
-    src/image_provider.cpp
-    src/play_queue.cpp
-    src/qr_image.cpp
-    src/lyric.cpp
-    src/clipboard.cpp
+    src/store.cpp
     src/player.cpp
-    src/fake_moc.cpp
-    src/qml_util.cpp
-    src/storage_info.cpp
-    src/sql/item_sql.cpp
-    src/sql/cache_sql.cpp
-    src/sql/collection_sql.cpp
-    src/sql/sql.cpp
-    src/query/search.cpp
-    src/query.cpp)
+    src/backend.cpp
+    src/notifier.cpp
+    src/global.cpp
+    src/qml/clipboard.cpp
+    src/qml/qml_util.cpp
+    src/qml/enum.cpp
+    src/qml/duration.cpp
+    src/model/lyric.cpp
+    src/model/page_model.cpp
+    src/model/play_queue.cpp
+    src/model/id_queue.cpp
+    src/model/router_msg.cpp
+    src/model/app_info.cpp
+    src/model/empty_model.cpp
+    src/model/item_id.cpp
+    src/model/store_item.cpp
+    src/model/list_models.cpp
+    src/util/global_static.cpp
+    src/util/path.cpp
+    src/query/album_query.cpp
+    src/query/artist_query.cpp
+    src/query/mix_query.cpp
+    src/query/provider_query.cpp
+    src/query/search_query.cpp
+    src/query/query.cpp
+    src/query/storage_info.cpp
+    src/query/query_api.cpp
+    src/image_provider/response.cpp
+    src/image_provider/http.cpp
+    src/image_provider/qr.cpp
+    src/status/provider.cpp
+    src/status/process.cpp
+    src/status/app_state.cpp)
+
+set(MODULES src/mod.cppm)
 
 set(QML_FILES
     qml/js/util.mjs
@@ -62,27 +56,29 @@ set(QML_FILES
     qml/Drawer.qml
     qml/DrawerContent.qml
     qml/Global.qml
+    qml/page/detail/AlbumDetailPage.qml
+    qml/page/detail/ArtistDetailPage.qml
+    qml/page/detail/RadioDetailPage.qml
+    qml/page/detail/MixDetailPage.qml
     qml/page/AboutPage.qml
-    qml/page/AlbumDetailPage.qml
-    qml/page/ArtistDetailPage.qml
     qml/page/CommentPage.qml
     qml/page/DescriptionPage.qml
-    qml/page/RadioDetailPage.qml
+    qml/page/ProviderMetaPage.qml
     qml/page/LoginPage.qml
-    qml/page/MixDetailPage.qml
     qml/page/RetryPage.qml
     qml/page/SettingsPage.qml
     qml/page/SearchPage.qml
     qml/page/PlayingPage.qml
     qml/page/PlayQueuePage.qml
     qml/page/MainPage.qml
-    qml/page/MinePage.qml
+    qml/page/LibraryPage.qml
     qml/page/StatusPage.qml
     qml/delegate/CommentDelegate.qml
     qml/delegate/SongDelegate.qml
     qml/delegate/PicCardDelegate.qml
     qml/delegate/PicCardGridDelegate.qml
     qml/delegate/ProgramDelegate.qml
+    qml/component/DebugRect.qml
     qml/component/SnakeView.qml
     qml/component/Mpris.qml
     qml/component/SongTag.qml
@@ -128,10 +124,15 @@ set_source_files_properties(qml/Global.qml PROPERTIES QT_QML_SINGLETON_TYPE
 
 set(QML_REG_INCLUDE_DIRS
     "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm/qml"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm/model"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm/query"
-    "${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface"
-    "${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface/model"
-    "${CMAKE_SOURCE_DIR}/qcm_interface/include/qcm_interface/state")
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm/status"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/qcm_interface")
+
+set(APP_INFO_MACROS
+    APP_ID="${APP_ID}" APP_VERSION="${APP_VERSION}" APP_AUTHOR="${APP_AUTHOR}"
+    APP_NAME="${APP_NAME}" APP_SUMMARY="${APP_SUMMARY}")
 
 qt_add_qml_module(
   app
@@ -151,14 +152,27 @@ qt_add_qml_module(
   NO_PLUGIN_OPTIONAL)
 
 target_sources(app PRIVATE $<$<CONFIG:Debug>:src/util/QmlStackTraceHelper.cpp>)
+target_sources(app PRIVATE FILE_SET CXX_MODULES FILES ${MODULES})
 
 set_source_files_properties(
   "${CMAKE_CURRENT_BINARY_DIR}/app_qmltyperegistrations.cpp" TARGET_DIRECTORY
   app PROPERTIES INCLUDE_DIRECTORIES "${QML_REG_INCLUDE_DIRS}")
 
+set_source_files_properties(
+  src/player.cpp src/global.cpp src/app.cpp src/qml/qml_util.cpp
+  src/model/app_info.cpp PROPERTIES COMPILE_DEFINITIONS "${APP_INFO_MACROS}")
+
+set_target_properties(app PROPERTIES CXX_SCAN_FOR_MODULES ON)
+
 target_compile_definitions(
   app PUBLIC "$<$<OR:$<BOOL:${QCM_QML_DEBUG}>,$<CONFIG:Debug>>:QT_QML_DEBUG>"
              "$<$<NOT:$<TARGET_EXISTS:mpris>>:NODEBUS>")
+
+target_compile_definitions(
+  app
+  PUBLIC APP_ID="${APP_ID}" APP_VERSION="${APP_VERSION}"
+         APP_AUTHOR="${APP_AUTHOR}" APP_NAME="${APP_NAME}"
+         APP_SUMMARY="${APP_SUMMARY}")
 
 target_include_directories(
   app
@@ -168,23 +182,23 @@ target_link_libraries(
   app
   PUBLIC Qt6::Core
          Qt6::Quick
-         Qt6::QuickControls2
          Qt6::Sql
-         $<$<CONFIG:Debug>:Qt6::QuickPrivate>
-         asio_qt
-         request
-         fmt::fmt
+         "$<$<CONFIG:Debug>:Qt6::QuickPrivate>"
+         core.qasio
+         ncrequest::ncrequest
+         rstd::rstd
          crypto
          qr_code
          meta_model
-         media_cache
          ctre::ctre
          player
          platform
-         qcm_interface
+         "message"
          "$<$<TARGET_EXISTS:mpris>:mpris>")
 
 qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cpp)
+set_target_properties(${PROJECT_NAME} PROPERTIES CXX_SCAN_FOR_MODULES ON)
+target_compile_definitions(${PROJECT_NAME} PRIVATE "${APP_INFO_MACROS}")
 
 qt_add_qml_module(
   ${PROJECT_NAME}

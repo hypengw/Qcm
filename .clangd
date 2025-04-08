@@ -1,2 +1,6 @@
 CompileFlags:
+  Add: [-D__clangd__]
   Remove: [-fconcepts-diagnostics-depth*, -mno-direct*]
+
+Diagnostics:
+  Suppress: [multiple_decl_in_different_modules]

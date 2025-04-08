@@ -1,8 +1,6 @@
 import QtQuick
-import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Qcm.App as QA
-import Qcm.Service.Ncm as QNcm
 import Qcm.Material as MD
 import "../js/util.mjs" as Util
 
@@ -13,6 +11,10 @@ MD.Page {
     backgroundColor: MD.MatProp.color.surface
 
     readonly property var song: QA.App.playqueue.currentSong
+    readonly property list<var> artists: {
+        const ex = QA.Store.extra(song.itemId);
+        return ex?.artists ?? [];
+    }
 
     header: MD.Pane {
         clip: false
@@ -25,7 +27,7 @@ MD.Page {
                 Layout.leftMargin: 12
                 Layout.topMargin: 12
 
-                action: Action {
+                action:MD.Action {
                     icon.name: MD.Token.icon.arrow_back
 
                     onTriggered: {
@@ -46,16 +48,16 @@ MD.Page {
         m_small.switch_pane();
     }
 
-    QNcm.SongLyricQuerier {
-        id: querier_lyric
+    // QNcm.SongLyricQuerier {
+    //     id: querier_lyric
 
-        readonly property string combined_lrc: {
-            return data.lrc + data.transLrc;
-        }
+    //     readonly property string combined_lrc: {
+    //         return data.lrc + data.transLrc;
+    //     }
 
-        autoReload: songId.valid()
-        songId: root.song.itemId
-    }
+    //     autoReload: songId.valid
+    //     songId: root.song.itemId
+    // }
 
     Item {
         visible: false
@@ -82,7 +84,7 @@ MD.Page {
                 QA.Image {
                     Layout.alignment: Qt.AlignHCenter
                     elevation: MD.Token.elevation.level2
-                    source: QA.Util.image_url(root.song.coverUrl ? root.song.coverUrl : root.song.album.picUrl)
+                    source: QA.Util.image_url(root.song.itemId)
                     radius: 16
 
                     Layout.preferredWidth: displaySize.width
@@ -106,22 +108,22 @@ MD.Page {
                     Layout.fillWidth: true
                     typescale: MD.Token.typescale.body_medium
                     horizontalAlignment: Text.AlignHCenter
-                    text: root.song.album.name
+                    text: root.song.albumName
                 }
                 MD.Text {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.fillWidth: true
                     typescale: MD.Token.typescale.body_medium
                     horizontalAlignment: Text.AlignHCenter
-                    text: QA.Global.join_name(root.song.artists, '/')
+                    text: QA.Util.joinName(root.artists, '/')
                 }
                 RowLayout {
                     id: row_control
                     Layout.alignment: Qt.AlignHCenter
 
                     MD.IconButton {
-                        checked: QA.Global.session.user.collection.contains(root.song.itemId)
-                        enabled: root.song.itemId.valid()
+                        checked: false
+                        enabled: root.song.itemId.valid
                         icon.name: checked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
 
                         onClicked: {
@@ -198,7 +200,7 @@ MD.Page {
                         icon.name: MD.Token.icon.playlist_play
 
                         onClicked: {
-                            QA.Action.popup_special(QA.enums.SRQueue);
+                            QA.Action.popup_special(QA.Enum.SRQueue);
                         }
                     }
                     MD.IconButton {
@@ -238,7 +240,7 @@ MD.Page {
                     value: QA.Global.player.position + 50
                     restoreMode: Binding.RestoreNone
                 }
-                source: querier_lyric.combined_lrc
+                // source: querier_lyric.combined_lrc
 
                 onCurrentIndexChanged: {
                     lyric_view.posTo(currentIndex);

@@ -9,13 +9,13 @@ MD.Page {
     bottomPadding: radius
     scrolling: !m_view.atYBeginning
 
-    property QA.t_id itemId
+    property QA.item_id itemId
 
-    MD.ListView {
+   MD.VerticalListView {
         id: m_view
         anchors.fill: parent
         expand: true
-        busy: m_query.status === QA.enums.Querying
+        busy: m_query.status === QA.Enum.Querying
         model: m_query.data
 
         delegate: QA.CommentDelegate {}

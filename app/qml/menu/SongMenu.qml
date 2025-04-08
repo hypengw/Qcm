@@ -1,53 +1,59 @@
 import QtQuick
-import QtQuick.Controls.Basic
 import Qcm.App as QA
 import Qcm.Material as MD
 
 MD.Menu {
     id: root
 
-    property QA.t_id itemId
-    property QA.t_id sourceId
+    property QA.item_id itemId
+    property QA.item_id sourceId
     property bool canDelete: false
-    property var song: qr_detail.data
-    readonly property QA.t_id itemId_: itemId.valid() ? itemId : song.itemId
+    // no aot, it's bugly
+    property var song: QA.App.empty.song
+    readonly property QA.item_id _itemId: {
+        return itemId.valid ? itemId : song.itemId;
+    }
+    readonly property list<var> artists: {
+        const ex = QA.Store.extra(_itemId);
+        return ex?.artists ?? [];
+    }
 
     dim: false
     font.capitalization: Font.Capitalize
     modal: true
 
     QA.PlaynextAction {
-        enabled: root.itemId_ !== QA.App.playqueue.currentSong.itemId
-        songId: root.itemId_
+        enabled: root._itemId !== QA.App.playqueue.currentSong.itemId
+        songId: root._itemId
     }
 
     QA.AddToMixAction {
-        songId: root.itemId_
+        songId: root._itemId
     }
 
     QA.GoToAlbumAction {
-        albumId: root.song.album.itemId
+        albumId: root.song.albumId
     }
 
     QA.GoToArtistAction {
-        enabled: root.song.artists.length > 1 || root.song.artists[0]?.itemId.valid()
+        enabled: root.artists.length > 0
         getItemIds: function () {
-            return root.song.artists.map(el => el.itemId);
+            return root.artists.map(el => QA.Util.artistId(el.id));
         }
     }
     QA.CommentAction {
-        itemId: root.itemId_
+        itemId: root._itemId
     }
 
-    Action {
+   MD.Action {
         enabled: root.canDelete
         icon.name: MD.Token.icon.delete
         text: qsTr('delete')
-        onTriggered: {
-            m_qr_manipulate.mixId = root.sourceId;
-            m_qr_manipulate.itemIds = [root.itemId_];
-            m_qr_manipulate.reload();
-        }
+        onTriggered:
+        //m_qr_manipulate.mixId = root.sourceId;
+        //m_qr_manipulate.itemIds = [root._itemId];
+        //m_qr_manipulate.reload();
+        {}
     }
 
     MD.Menu {
@@ -75,13 +81,13 @@ MD.Menu {
         }
     }
 
-    QA.SongDetailQuery {
-        id: qr_detail
-        itemId: root.itemId
-    }
+    // QA.SongDetailQuery {
+    //     id: qr_detail
+    //     itemId: root.itemId
+    // }
 
-    QA.MixManipulateQuery {
-        id: m_qr_manipulate
-        oper: QA.enums.ManipulateMixDel
-    }
+    // QA.MixManipulateQuery {
+    //     id: m_qr_manipulate
+    //     oper: QA.Enum.ManipulateMixDel
+    // }
 }

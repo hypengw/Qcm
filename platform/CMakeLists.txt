@@ -1,8 +1,12 @@
+add_library(platform STATIC src/platform.cpp src/win.cpp src/linux.cpp)
 
-add_library(
-  platform STATIC
-  include/platform/platform.h 
-  platform.cpp)
-
-target_include_directories(platform PUBLIC include)
-target_link_libraries(platform PUBLIC core)
+target_sources(
+  platform
+  PUBLIC FILE_SET
+         all
+         TYPE
+         CXX_MODULES
+         BASE_DIRS
+         src
+         FILES
+         src/platform.cppm)

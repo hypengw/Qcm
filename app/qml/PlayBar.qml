@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Qcm.App as QA
 import Qcm.Material as MD
@@ -8,6 +7,10 @@ MD.Pane {
     id: root
 
     readonly property var currentSong: QA.App.playqueue.currentSong
+    readonly property var artists: {
+        const ex = QA.Store.extra(root.currentSong.itemId);
+        return ex?.artists;
+    }
 
     // backgroundColor: Window.window?.windowClass === MD.Enum.WindowClassCompact ? MD.MatProp.color.surface_container : MD.MatProp.color.surface
     backgroundColor: MD.Token.color.surface_container
@@ -52,21 +55,10 @@ MD.Pane {
             Layout.topMargin: 8
 
             MD.Image {
-                readonly property string picUrl: {
-                    const cover = root.currentSong.coverUrl;
-                    return cover ? cover : root.currentSong.album.picUrl;
-                }
-                source: QA.Util.image_url(picUrl)
+                source: QA.Util.image_url(root.currentSong.itemId)
                 sourceSize.height: 48
                 sourceSize.width: 48
                 radius: 8
-
-                onStatusChanged: {
-                    if (status == Image.Ready) {
-                        const p = root.currentSong.itemId.provider;
-                        QA.Global.song_cover = QA.Util.image_cache_of(p, picUrl, sourceSize);
-                    }
-                }
 
                 MouseArea {
                     anchors.fill: parent
@@ -97,7 +89,7 @@ MD.Pane {
                         hoverEnabled: true
 
                         onClicked: {
-                            QA.Action.route_by_id(root.currentSong.album.itemId);
+                            QA.Action.route_by_id(root.currentSong.albumId);
                         }
                     }
                 }
@@ -118,7 +110,7 @@ MD.Pane {
                         MD.MatProp.textColor: ma_subtitle.containsMouse ? MD.Token.color.primary : MD.Token.color.on_background
                         typescale: MD.Token.typescale.body_medium
                         opacity: 0.6
-                        text: QA.Global.join_name(root.currentSong.artists, '/')
+                        text: QA.Util.joinName(root.artists, '/')
                         verticalAlignment: Qt.AlignVCenter
 
                         MouseArea {
@@ -135,7 +127,7 @@ MD.Pane {
                         QA.GoToArtistAction {
                             id: m_go_to_artist_act
                             getItemIds: function () {
-                                return root.currentSong.artists.map(el => el.itemId);
+                                return root.artists?.map(el => el.itemId);
                             }
                         }
                     }
@@ -148,8 +140,8 @@ MD.Pane {
                 id: comp_ctl
                 RowLayout {
                     MD.IconButton {
-                        checked: QA.Global.session.user.collection.contains(root.currentSong.itemId)
-                        enabled: root.currentSong.itemId.valid()
+                        checked: false
+                        enabled: root.currentSong.itemId.valid
                         icon.name: checked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
 
                         onClicked: {
@@ -185,7 +177,7 @@ MD.Pane {
                         icon.name: MD.Token.icon.playlist_play
 
                         onClicked: {
-                            QA.Action.popup_special(QA.enums.SRQueue);
+                            QA.Action.popup_special(QA.Enum.SRQueue);
                         }
                     }
                     QA.VolumeButton {
@@ -256,7 +248,7 @@ MD.Pane {
                         icon.name: MD.Token.icon.playlist_play
 
                         onClicked: {
-                            QA.Action.popup_special(QA.enums.SRQueue);
+                            QA.Action.popup_special(QA.Enum.SRQueue);
                         }
                     }
                 }

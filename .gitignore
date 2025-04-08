@@ -86,3 +86,6 @@ compile_commands.json
 /CMakeUserPresets.json
 /env.sh
 .gradle
+/qml_material
+/third_party/qml_material
+/third_party/meta_model

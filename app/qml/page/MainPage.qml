@@ -2,7 +2,6 @@ import QtCore
 import QtQuick
 import QtQuick.Window
 import QtQuick.Layouts
-import QtQuick.Controls.Basic as QC
 
 import Qcm.App as QA
 import Qcm.Material as MD
@@ -19,24 +18,14 @@ MD.Page {
 
     backgroundColor: MD.MatProp.backgroundColor
 
-    property var model: {
-        const p = [...QA.Global.session.pages];
-        if (QA.App.debug) {
-            const page = QA.Util.create_page();
-            page.name = qsTr('test');
-            page.icon = 'queue_music';
-            page.source = 'qrc:/Qcm/Material/Example/Example.qml';
-            p.push(page);
-        }
-        return p;
-    }
+    property var model: QA.App.pages
 
     function back() {
         m_page_stack.back();
     }
 
     onPageIndexChanged: {
-        const m = model[pageIndex];
+        const m = model.item(pageIndex);
         if (m?.source) {
             page_container.switchTo(m.source, m.props ?? {}, m.cache);
         }
@@ -110,7 +99,7 @@ MD.Page {
                                 ColumnLayout {
                                     MD.IconButton {
                                         Layout.alignment: Qt.AlignHCenter
-                                        action: QC.Action {
+                                        action: MD.Action {
                                             icon.name: MD.Token.icon.arrow_back
 
                                             onTriggered: {
@@ -125,7 +114,7 @@ MD.Page {
                                         implicitWidth: 56 + 24
                                     }
                                 }
-                                MD.ListView {
+                               MD.VerticalListView {
                                     Layout.fillWidth: true
                                     implicitHeight: contentHeight
                                     interactive: false
@@ -173,10 +162,10 @@ MD.Page {
                             }
                             MD.IconButton {
                                 Layout.alignment: Qt.AlignHCenter
-                                action: QC.Action {
-                                    icon.name: MD.Token.icon.search
+                                action: MD.Action {
+                                    icon.name: MD.Token.icon.hard_drive
                                     onTriggered: {
-                                        QA.Action.route_special(QA.enums.SRSearch);
+                                        QA.Action.route_special(QA.Enum.SRSearch);
                                     }
                                 }
                             }
@@ -217,7 +206,7 @@ MD.Page {
                 RowLayout {
                     anchors.fill: parent
                     Repeater {
-                        model: QA.Global.session.pages.filter(el => el.primary)
+                        model: root.model
                         Item {
                             Layout.fillWidth: true
                             implicitHeight: 12 + children[0].implicitHeight + 16
@@ -225,15 +214,11 @@ MD.Page {
                                 anchors.fill: parent
                                 anchors.topMargin: 12
                                 anchors.bottomMargin: 16
-                                icon.name: modelData.icon
-                                text: modelData.name
+                                icon.name: model.icon
+                                text: model.name
                                 checked: root.pageIndex == index
                                 onClicked: {
-                                    if (modelData.action) {
-                                        modelData.action.do();
-                                    } else {
-                                        QA.Action.switch_main_page(index);
-                                    }
+                                    QA.Action.switch_main_page(index);
                                 }
                             }
                         }
@@ -288,7 +273,7 @@ MD.Page {
                     radius: root.radius
                 }
 
-                QC.Action {
+                MD.Action {
                     id: m_back_action
                     icon.name: MD.Token.icon.arrow_back
                     onTriggered: {
@@ -296,7 +281,7 @@ MD.Page {
                             root.back();
                     }
                 }
-                QC.Action {
+                MD.Action {
                     id: m_draw_action
                     icon.name: MD.Token.icon.menu
                     onTriggered: {

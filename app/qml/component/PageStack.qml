@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Templates as T
 
 import Qcm.Material as MD
 
@@ -55,11 +55,11 @@ MD.StackView {
     function popup(item) {
         const items = [];
         while (currentItem !== item)
-            items.unshift(pop(StackView.Immediate));
+            items.unshift(pop(T.StackView.Immediate));
         if (items.length === 0)
             return;
-        const target = pop(StackView.Immediate);
-        push(items, StackView.Immediate);
+        const target = pop(T.StackView.Immediate);
+        push(items, T.StackView.Immediate);
         push(target);
     }
 

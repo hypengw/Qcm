@@ -4,8 +4,6 @@
 #include <span>
 #include <functional>
 
-#include "core/expected_helper.h"
-
 struct evp_cipher_st;
 struct evp_md_st;
 
@@ -23,14 +21,14 @@ const cipher* aes_128_ecb() noexcept;
 const cipher* aes_128_cbc() noexcept;
 const md*     md5() noexcept;
 
-auto encrypt(const cipher* cipher, bytes_view key, bytes_view iv,
-             bytes_view data) -> nstd::expected<std::vector<byte>, int>;
-auto decrypt(const cipher* cipher, bytes_view key, bytes_view iv,
-             bytes_view data) -> nstd::expected<std::vector<byte>, int>;
-auto encode(bytes_view data) -> nstd::expected<std::vector<byte>, int>;
-auto decode(bytes_view data) -> nstd::expected<std::vector<byte>, int>;
-auto digest(const md* type, bytes_view data) -> nstd::expected<std::vector<byte>, int>;
-auto digest(const md* type, usize buf_size, const reader&) -> nstd::expected<std::vector<byte>, int>;
+auto encrypt(const cipher* cipher, bytes_view key, bytes_view iv, bytes_view data)
+    -> Result<std::vector<byte>, int>;
+auto decrypt(const cipher* cipher, bytes_view key, bytes_view iv, bytes_view data)
+    -> Result<std::vector<byte>, int>;
+auto encode(bytes_view data) -> Result<std::vector<byte>, int>;
+auto decode(bytes_view data) -> Result<std::vector<byte>, int>;
+auto digest(const md* type, bytes_view data) -> Result<std::vector<byte>, int>;
+auto digest(const md* type, usize buf_size, const reader&) -> Result<std::vector<byte>, int>;
 
 namespace hex
 {
@@ -59,7 +57,7 @@ public:
     Rsa& operator=(Rsa&&) noexcept;
 
     static auto from_pem(bytes_view data, bytes_view pass) -> std::optional<Rsa>;
-    auto        encrypt(Padding, bytes_view data) -> nstd::expected<std::vector<byte>, int>;
+    auto        encrypt(Padding, bytes_view data) -> Result<std::vector<byte>, int>;
 
 private:
     up<Pkey> key;

@@ -1,21 +1,79 @@
 include(FetchContent)
 find_package(PkgConfig REQUIRED)
 
+# rstd
+FetchContent_Declare(
+  rstd
+  GIT_REPOSITORY https://github.com/hypengw/rstd.git
+  GIT_TAG 2920a1b15570aa3ff4f0eb1e84d6d8e2c878fa1c
+  GIT_SHALLOW 1
+  GIT_PROGRESS 1
+  EXCLUDE_FROM_ALL)
+FetchContent_MakeAvailable(rstd)
+
 add_subdirectory(qr_code)
 
-add_library(random INTERFACE)
-target_include_directories(random INTERFACE random/include)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/meta_model")
+  add_subdirectory(meta_model)
+else()
+  FetchContent_Declare(
+    meta_model
+    GIT_REPOSITORY https://github.com/hypengw/MetaModel.git
+    GIT_TAG master
+    GIT_SHALLOW 1
+    GIT_PROGRESS 1)
+  FetchContent_MakeAvailable(meta_model)
+endif()
 
-add_library(expected INTERFACE)
-target_include_directories(expected INTERFACE expected/include)
-add_library(tl::expected ALIAS expected)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/qml_material")
+  add_subdirectory(qml_material)
+else()
+  FetchContent_Declare(
+    qml_material
+    GIT_REPOSITORY https://github.com/hypengw/QmlMaterial.git
+    GIT_TAG main
+    GIT_SHALLOW 1
+    GIT_PROGRESS 1)
+  FetchContent_MakeAvailable(qml_material)
+endif()
 
+set(Random_BuildTests OFF)
+FetchContent_Declare(
+  random
+  GIT_REPOSITORY https://github.com/ilqvya/random.git
+  GIT_TAG 041302cdb6668c1f6b09e803b6c9bda8e3820fdc
+  GIT_SHALLOW 1
+  GIT_PROGRESS 1
+  EXCLUDE_FROM_ALL)
+FetchContent_MakeAvailable(random)
+add_library(random ALIAS effolkronium_random)
+
+set(EXPECTED_BUILD_PACKAGE OFF)
+set(EXPECTED_BUILD_TESTS OFF)
+set(EXPECTED_BUILD_PACKAGE_DEB OFF)
+FetchContent_Declare(
+  expected
+  GIT_REPOSITORY https://github.com/TartanLlama/expected.git
+  GIT_TAG 41d3e1f48d682992a2230b2a715bca38b848b269
+  GIT_SHALLOW 1
+  GIT_PROGRESS 1
+  EXCLUDE_FROM_ALL)
+FetchContent_MakeAvailable(expected)
+
+# KDSingleApplication
 set(KDSingleApplication_QT6 ON)
 set(KDSingleApplication_STATIC ON)
 set(KDSingleApplication_TESTS OFF)
 set(KDSingleApplication_EXAMPLES OFF)
 set(KDSingleApplication_DOCS OFF)
-add_subdirectory(KDSingleApplication EXCLUDE_FROM_ALL)
+FetchContent_Declare(
+  KDSingleApplication
+  GIT_REPOSITORY https://github.com/KDAB/KDSingleApplication.git
+  GIT_TAG 631237acd4e20251c7f702db5e5434c83f0e336d
+  GIT_SHALLOW 1
+  GIT_PROGRESS 1
+  SYSTEM EXCLUDE_FROM_ALL FIND_PACKAGE_ARGS QUIET GLOBAL)
+FetchContent_MakeAvailable(KDSingleApplication)
 
 # asio
 add_library(asio INTERFACE)
@@ -26,8 +84,9 @@ if(NOT ASIO_FOUND)
   FetchContent_Declare(
     asio
     GIT_REPOSITORY https://github.com/chriskohlhoff/asio.git
-    GIT_TAG asio-1-30-2
-    GIT_SHALLOW TRUE
+    GIT_TAG asio-1-34-0
+    GIT_SHALLOW 1
+    GIT_PROGRESS 1
     EXCLUDE_FROM_ALL)
   FetchContent_MakeAvailable(asio)
   target_include_directories(asio INTERFACE ${asio_SOURCE_DIR}/asio/include)
@@ -35,59 +94,26 @@ else()
   target_include_directories(asio INTERFACE ${ASIO_INCLUDE_DIRS})
 endif()
 
-# fmt
-find_package(fmt 11.0.2 QUIET GLOBAL)
-if(NOT fmt_FOUND)
-  message(STATUS "fmt not found, fetching it...")
-  FetchContent_Declare(
-    fmt
-    GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-    GIT_TAG 11.0.2
-    GIT_SHALLOW 1
-    EXCLUDE_FROM_ALL)
-  FetchContent_MakeAvailable(fmt)
-endif()
-
 # pegtl
-find_package(pegtl 3.2.7 QUIET GLOBAL)
-if(NOT pegtl_FOUND)
-  message(STATUS "pegtl not found, fetching it...")
-  FetchContent_Declare(
-    pegtl
-    GIT_REPOSITORY https://github.com/taocpp/PEGTL.git
-    GIT_TAG 3.2.8
-    GIT_SHALLOW 1
-    EXCLUDE_FROM_ALL)
-  FetchContent_MakeAvailable(pegtl)
-endif()
+FetchContent_Declare(
+  pegtl
+  GIT_REPOSITORY https://github.com/taocpp/PEGTL.git
+  GIT_TAG 3.2.8
+  GIT_SHALLOW 1
+  GIT_PROGRESS 1
+  SYSTEM EXCLUDE_FROM_ALL FIND_PACKAGE_ARGS 3.2.7 QUIET GLOBAL)
+FetchContent_MakeAvailable(pegtl)
 
 # ctre
-find_package(ctre 3.9.0 QUIET GLOBAL)
-if(NOT ctre_FOUND)
-  message(STATUS "ctre not found, fetching it...")
-  FetchContent_Declare(
-    ctre
-    GIT_REPOSITORY
-      https://github.com/hanickadot/compile-time-regular-expressions.git
-    GIT_TAG v3.9.0
-    GIT_SHALLOW 1
-    EXCLUDE_FROM_ALL)
-  FetchContent_MakeAvailable(ctre)
-endif()
-
-# nlohmann json
-set(JSON_DIAGNOSTICS ON)
-find_package(nlohmann_json 3.11.0 QUIET GLOBAL)
-if(NOT nlohmann_json_FOUND)
-  message(STATUS "nlohmann_json not found, fetching it...")
-  FetchContent_Declare(
-    nlohmann_json
-    GIT_REPOSITORY https://github.com/nlohmann/json.git
-    GIT_TAG v3.11.3
-    GIT_SHALLOW 1
-    EXCLUDE_FROM_ALL)
-  FetchContent_MakeAvailable(nlohmann_json)
-endif()
+FetchContent_Declare(
+  ctre
+  GIT_REPOSITORY
+    https://github.com/hanickadot/compile-time-regular-expressions.git
+  GIT_TAG e0f36500bc941fe447718ab625490728790c933f
+  GIT_SHALLOW 1
+  GIT_PROGRESS 1
+  EXCLUDE_FROM_ALL FIND_PACKAGE_ARGS 3.9.0 GLOBAL)
+FetchContent_MakeAvailable(ctre)
 
 # cubeb
 set(BUILD_TESTS OFF)
@@ -95,17 +121,25 @@ set(BUILD_TOOLS OFF)
 set(BUNDLE_SPEEX ON)
 set(USE_SANITIZERS OFF)
 set(USE_WINMM OFF)
-find_package(cubeb QUIET GLOBAL)
-if(NOT cubeb_FOUND)
-  message(STATUS "cubeb not found, fetching it...")
-  FetchContent_Declare(
-    cubeb
-    GIT_REPOSITORY https://github.com/mozilla/cubeb.git
-    GIT_COMMIT 78b2bce70e0d1c21d3c175b72f322c50801b2e94
-    GIT_SHALLOW 1
-    EXCLUDE_FROM_ALL)
-  FetchContent_MakeAvailable(cubeb)
-endif()
+# find_package(cubeb QUIET GLOBAL)
+FetchContent_Declare(
+  cubeb
+  GIT_REPOSITORY https://github.com/mozilla/cubeb.git
+  GIT_COMMIT 78b2bce70e0d1c21d3c175b72f322c50801b2e94
+  GIT_SHALLOW 1
+  GIT_PROGRESS 1
+  SYSTEM EXCLUDE_FROM_ALL FIND_PACKAGE_ARGS GLOBAL)
+FetchContent_MakeAvailable(cubeb)
 if(NOT TARGET cubeb::cubeb)
   add_library(cubeb::cubeb ALIAS cubeb)
 endif()
+
+# ncrequest
+FetchContent_Declare(
+  ncrequest
+  GIT_REPOSITORY https://github.com/hypengw/ncrequest.git
+  GIT_TAG 63fc742909d67651967f373184bdc414efff713a
+  GIT_SHALLOW 1
+  GIT_PROGRESS 1
+  EXCLUDE_FROM_ALL)
+FetchContent_MakeAvailable(ncrequest)

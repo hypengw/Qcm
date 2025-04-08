@@ -1,7 +1,7 @@
 import QtQuick
 import Qcm.Material as MD
 
-MD.GridView {
+MD.VerticalGridView {
     id: root
 
     property int spacing: 12

@@ -2,6 +2,7 @@
 #include <QString>
 #include <QStringView>
 #include <QVariant>
+#include <QUrl>
 
 #include "core/core.h"
 #include "core/fmt.h"
@@ -57,43 +58,52 @@ struct Convert<std::string, QAnyStringView> {
 };
 
 template<>
-struct fmt::formatter<QString> : fmt::formatter<std::string_view> {
-    auto format(const QString& qs, fmt::format_context& ctx) const
-        -> fmt::format_context::iterator {
-        return fmt::formatter<std::string_view>::format(qs.toStdString(), ctx);
+struct std::formatter<QString> : std::formatter<std::string_view> {
+    template<typename CTX>
+    auto format(const QString& qs, CTX& ctx) const -> CTX::iterator {
+        return std::formatter<std::string_view>::format(qs.toStdString(), ctx);
     }
 };
 
 template<>
-struct fmt::formatter<QStringView> : fmt::formatter<std::string_view> {
-    auto format(QStringView qs, fmt::format_context& ctx) const -> fmt::format_context::iterator {
-        return fmt::formatter<std::string_view>::format(qs.toString().toStdString(), ctx);
+struct std::formatter<QStringView> : std::formatter<std::string_view> {
+    auto format(QStringView qs, std::format_context& ctx) const -> std::format_context::iterator {
+        return std::formatter<std::string_view>::format(qs.toString().toStdString(), ctx);
     }
 };
 
 template<>
-struct fmt::formatter<QLatin1String> : fmt::formatter<std::string_view> {
-    auto format(QLatin1String qs, fmt::format_context& ctx) const -> fmt::format_context::iterator {
-        return fmt::formatter<std::string_view>::format(qs.toString().toStdString(), ctx);
+struct std::formatter<QLatin1String> : std::formatter<std::string_view> {
+    auto format(QLatin1String qs, std::format_context& ctx) const -> std::format_context::iterator {
+        return std::formatter<std::string_view>::format(qs.toString().toStdString(), ctx);
     }
 };
 
 template<>
-struct fmt::formatter<QUtf8StringView> : fmt::formatter<std::string_view> {
-    auto format(QUtf8StringView qs, fmt::format_context& ctx) const
-        -> fmt::format_context::iterator {
-        return fmt::formatter<std::string_view>::format({ qs.data(), (usize)qs.size() }, ctx);
+struct std::formatter<QUtf8StringView> : std::formatter<std::string_view> {
+    auto format(QUtf8StringView qs, std::format_context& ctx) const
+        -> std::format_context::iterator {
+        return std::formatter<std::string_view>::format({ qs.data(), (usize)qs.size() }, ctx);
     }
 };
 
 template<>
-struct fmt::formatter<QAnyStringView> : fmt::formatter<std::string_view> {
-    auto format(QAnyStringView qs, fmt::format_context& ctx) const
-        -> fmt::format_context::iterator {
+struct std::formatter<QAnyStringView> : std::formatter<std::string_view> {
+    auto format(QAnyStringView qs, std::format_context& ctx) const
+        -> std::format_context::iterator {
         std::string out;
         Convert<std::string, QAnyStringView>::from(out, qs);
-        return fmt::formatter<std::string_view>::format(out, ctx);
+        return std::formatter<std::string_view>::format(out, ctx);
     }
+};
+
+template<>
+struct rstd::Impl<rstd::convert::From<std::string>, QString> {
+    static auto from(std::string str) { return QString::fromStdString(std::move(str)); }
+};
+template<>
+struct rstd::Impl<rstd::convert::From<std::string>, QUrl> {
+    static auto from(std::string str) { return QString::fromStdString(std::move(str)); }
 };
 
 #if (QT_VERSION < QT_VERSION_CHECK(6, 8, 0))

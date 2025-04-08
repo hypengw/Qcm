@@ -1,6 +1,5 @@
 import QtCore
 import QtQuick
-import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Qcm.App as QA
 import Qcm.Material as MD
@@ -13,7 +12,7 @@ MD.Page {
     bottomPadding: radius
     scrolling: !m_flick.atYBeginning
 
-    MD.Flickable {
+    MD.VerticalFlickable {
         id: m_flick
         anchors.fill: parent
         leftMargin: 0
@@ -172,19 +171,19 @@ MD.Page {
                             [
                                 {
                                     "text": qsTr('Standard'),
-                                    "value": QA.enums.AQStandard
+                                    "value": QA.Enum.AQStandard
                                 },
                                 {
                                     "text": qsTr('Higher'),
-                                    "value": QA.enums.AQHigher
+                                    "value": QA.Enum.AQHigher
                                 },
                                 {
                                     "text": qsTr('Exhigh'),
-                                    "value": QA.enums.AQExhigh
+                                    "value": QA.Enum.AQExhigh
                                 },
                                 {
                                     "text": qsTr('Lossless'),
-                                    "value": QA.enums.AQLossless
+                                    "value": QA.Enum.AQLossless
                                 }
                             ].map(el => model.append(el));
                             currentIndex = indexOfValue(settings_audio.streaming_quality);
@@ -360,7 +359,7 @@ MD.Page {
                     Layout.fillWidth: true
                     text: qsTr('Summary')
                     canInput: false
-                    supportText: m_qr_storage.status === QA.enums.Quering ? qsTr('querying') : Util.pretty_bytes(m_qr_storage.data.total * 1024, 1)
+                    supportText: m_qr_storage.status === QA.Enum.Quering ? qsTr('querying') : Util.pretty_bytes(m_qr_storage.data.total * 1024, 1)
 
                     QA.StorageInfoQuerier {
                         id: m_qr_storage
@@ -462,7 +461,7 @@ MD.Page {
         Settings {
             id: settings_audio
             category: 'audio'
-            property int streaming_quality: QA.enums.AQExhigh
+            property int streaming_quality: QA.Enum.AQExhigh
             Component.onCompleted: {}
         }
         Settings {

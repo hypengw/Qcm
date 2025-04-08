@@ -10,7 +10,7 @@ MD.Page {
     bottomPadding: radius
     scrolling: !m_flick.atYBeginning
 
-    MD.Flickable {
+    MD.VerticalFlickable {
         id: m_flick
 
         anchors.fill: parent
