@@ -128,9 +128,17 @@ message ProviderMeta {
   bool has_server_url = 5;
 }
 
+enum SyncState {
+  Finished = 0;
+  Error = 1;
+}
+
 message ProviderSyncStatus {
   int64 id = 1;
-  bool syncing = 2;
+  SyncState state = 2;
+  int32 album = 3;
+  int32 artist = 4;
+  int32 song = 5;
 }
 
 message ProviderStatus {
