@@ -116,29 +116,36 @@ MD.ApplicationWindow {
     }
 
     QA.PagePopup {
-        id: queue_popup
+        id: m_sync_popup
+        source: 'qrc:/Qcm/App/qml/page/SyncPage.qml'
+    }
+
+    QA.PagePopup {
+        id: m_queue_popup
         source: 'qrc:/Qcm/App/qml/page/PlayQueuePage.qml'
+    }
 
-        Connections {
-            target: QA.Action
-            function onPopup_special(s) {
-                if (s === QA.Enum.SRQueue) {
-                    queue_popup.open();
-                } else if (typeof s == 'number') {
-                    const url = QA.Util.special_route_url(s);
-                    if (url)
-                        QA.Action.popup_page(url, {});
-                }
+    Connections {
+        target: QA.Action
+        function onPopup_special(s) {
+            if (s === QA.Enum.SRQueue) {
+                m_queue_popup.open();
+            } else if (s === QA.Enum.SRSync) {
+                m_sync_popup.open();
+            } else if (typeof s == 'number') {
+                const url = QA.Util.special_route_url(s);
+                if (url)
+                    QA.Action.popup_page(url, {});
             }
+        }
 
-            function onPopup_page(url, props, popup_props, callback) {
-                const popup = MD.Util.show_popup('qrc:/Qcm/App/qml/component/PagePopup.qml', Object.assign({}, {
-                    "source": url,
-                    "props": props
-                }, popup_props), win);
-                if (callback) {
-                    callback(popup);
-                }
+        function onPopup_page(url, props, popup_props, callback) {
+            const popup = MD.Util.show_popup('qrc:/Qcm/App/qml/component/PagePopup.qml', Object.assign({}, {
+                "source": url,
+                "props": props
+            }, popup_props), win);
+            if (callback) {
+                callback(popup);
             }
         }
     }

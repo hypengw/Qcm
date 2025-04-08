@@ -244,7 +244,7 @@ template<>
 struct meta_model::ItemTrait<qcm::msg::model::ProviderStatus> {
     using key_type = i64;
     static auto key(const qcm::msg::model::ProviderStatus& el) noexcept -> i64 {
-        return el.id_proto().toLongLong();
+        return el.id_proto();
     }
 };
 

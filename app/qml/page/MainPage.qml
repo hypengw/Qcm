@@ -165,7 +165,7 @@ MD.Page {
                                 action: MD.Action {
                                     icon.name: MD.Token.icon.hard_drive
                                     onTriggered: {
-                                        QA.Action.route_special(QA.Enum.SRSearch);
+                                        QA.Action.popup_special(QA.Enum.SRSync);
                                     }
                                 }
                             }

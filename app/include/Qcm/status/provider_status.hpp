@@ -29,6 +29,8 @@ class ProviderStatusModel : public meta_model::QGadgetListModel<msg::model::Prov
 public:
     ProviderStatusModel(QObject* parent = nullptr);
     ~ProviderStatusModel();
+
+    Q_INVOKABLE QString svg(qint32) const;
 };
 
 } // namespace qcm
