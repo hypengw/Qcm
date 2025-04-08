@@ -31,7 +31,7 @@ else()
   FetchContent_Declare(
     qml_material
     GIT_REPOSITORY https://github.com/hypengw/QmlMaterial.git
-    GIT_TAG b800e6893363c290882c82b49551e2634126ff61
+    GIT_TAG main
     GIT_SHALLOW 1
     GIT_PROGRESS 1)
   FetchContent_MakeAvailable(qml_material)
