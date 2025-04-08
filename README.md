@@ -67,10 +67,9 @@ The following libraries were extracted and modularized during Qcm's development.
 
 ## Build
 ```shell
-git clone https://github.com/hypengw/Qcm.git  
-git submodule update --init
+git clone --recursive https://github.com/hypengw/Qcm.git
 
-cmake -S . -B build -GNinja -DCMAKE_BUILD_TYPE=Release  
+cmake -S Qcm -B build -GNinja -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 
 # run without install
