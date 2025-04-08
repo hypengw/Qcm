@@ -34,7 +34,7 @@ MD.Page {
                 RowLayout {
                     Layout.fillWidth: true
                     MD.IconSvg {
-                        source: 'data:image/svg+xml;utf8,' + QA.App.providerStatus.svg(index)
+                        sourceData: QA.App.providerStatus.svg(index)
                         size: 24
                     }
                     MD.Text {

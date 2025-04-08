@@ -23,7 +23,7 @@ MD.Page {
 
         MD.IconSvg {
             Layout.alignment: Qt.AlignHCenter
-            source: 'data:image/svg+xml;utf8,' + root.meta.svg
+            sourceData: root.meta.svg
             size: 96
         }
 
