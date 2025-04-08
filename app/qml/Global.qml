@@ -28,7 +28,7 @@ QA.GlobalWrapper {
 
     property string song_cover: ''
 
-    property int color_scheme: MD.MdColorMgr.Light
+    property int color_scheme: MD.Enum.Light
     property bool use_system_color_scheme: true
     property bool use_system_accent_color: true
     property color primary_color: MD.Token.color.accentColor
@@ -65,7 +65,7 @@ QA.GlobalWrapper {
     }
 
     function toggleColorScheme() {
-        color_scheme = color_scheme == MD.MdColorMgr.Dark ? MD.MdColorMgr.Light : MD.MdColorMgr.Dark;
+        color_scheme = color_scheme == MD.Enum.Dark ? MD.Enum.Light : MD.Enum.Dark;
     }
 
     LoggingCategory {
@@ -103,18 +103,19 @@ QA.GlobalWrapper {
             MD.Token.color.useSysAccentColor = Qt.binding(() => {
                 return root.use_system_accent_color;
             });
-            if (root.use_system_accent_color) {
-                root.primary_color = MD.Token.color.accentColor;
-            }
             MD.Token.color.accentColor = Qt.binding(() => {
                 return primary_color;
             });
-            if (MD.Token.color.useSysColorSM) {
-                root.color_scheme = MD.Token.color.colorScheme;
-            }
-            MD.Token.color.colorScheme = Qt.binding(() => {
+            MD.Token.themeMode = Qt.binding(() => {
                 return root.color_scheme;
             });
+
+            if (root.use_system_accent_color) {
+                root.primary_color = MD.Token.color.accentColor;
+            }
+            if (root.use_system_color_scheme) {
+                root.color_scheme = MD.Token.themeMode;
+            }
         }
     }
 

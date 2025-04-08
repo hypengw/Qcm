@@ -18,11 +18,13 @@ MD.Page {
     MD.FlickablePane {
         id: m_view_pane
         view: m_view
-        excludeBegin: m_view.headerItem.height + view.topMargin
+        excludeBegin: m_view.headerItem.height
         radius: root.radius
         leftMargin: 0
         rightMargin: 0
-        bottomMargin: MD.MatProp.size.verticalPadding
+        x: m_view.leftMargin
+        topMargin: MD.MatProp.size.verticalPadding
+        bottomMargin: 0
     }
 
     QA.GridView {
@@ -30,7 +32,7 @@ MD.Page {
         anchors.fill: parent
 
         topMargin: MD.MatProp.size.verticalPadding
-        bottomMargin: MD.MatProp.size.verticalPadding * 2
+        bottomMargin: MD.MatProp.size.verticalPadding
         fixedCellWidth: QA.Util.dyn_card_width(width, spacing)
         model: qr_artist_albums.data
 
@@ -60,10 +62,9 @@ MD.Page {
             }
             MD.Text {
                 id: m_title
-                Layout.fillWidth: true
                 maximumLineCount: 2
                 text: root.artist.name
-                typescale: MD.Token.typescale.headline_large
+                typescale: MD.Token.typescale.headline_medium
             }
             RowLayout {
                 id: m_info
@@ -97,19 +98,20 @@ MD.Page {
         header: ColumnLayout {
             id: content
             width: parent.width
-            spacing: 16
+            spacing: 0
 
             MD.Pane {
                 id: m_header
                 Layout.fillWidth: true
                 radius: root.radius
-                padding: 0
+                verticalPadding: 12
                 horizontalPadding: 0
 
                 ColumnLayout {
                     width: parent.width
 
                     RowLayout {
+                        Layout.fillWidth: true
                         spacing: 16
                         visible: !root.single
 
@@ -148,12 +150,11 @@ MD.Page {
                         }
                         ColumnLayout {
                             Layout.alignment: Qt.AlignHCenter
+                            Layout.fillWidth: true
                             spacing: 12
 
                             LayoutItemProxy {
                                 Layout.alignment: Qt.AlignHCenter
-                                Layout.maximumWidth: implicitWidth
-                                Layout.fillWidth: true
                                 target: m_title
                             }
                             LayoutItemProxy {
@@ -169,6 +170,10 @@ MD.Page {
                         }
                     }
                 }
+            }
+
+            MD.Space {
+                spacing: MD.MatProp.size.verticalPadding * 2
             }
         }
     }

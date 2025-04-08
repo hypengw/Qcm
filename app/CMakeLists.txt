@@ -78,6 +78,7 @@ set(QML_FILES
     qml/delegate/PicCardDelegate.qml
     qml/delegate/PicCardGridDelegate.qml
     qml/delegate/ProgramDelegate.qml
+    qml/component/DebugRect.qml
     qml/component/SnakeView.qml
     qml/component/Mpris.qml
     qml/component/SongTag.qml
