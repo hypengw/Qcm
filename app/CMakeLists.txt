@@ -4,8 +4,8 @@ set(APP_VERSION ${PROJECT_VERSION})
 set(APP_SUMMARY ${PROJECT_DESCRIPTION})
 set(APP_AUTHOR "hypengw")
 
-find_package(Qt6 REQUIRED COMPONENTS Sql Widgets Protobuf
-                                     ProtobufWellKnownTypes ProtobufQuick)
+find_package(Qt6 REQUIRED COMPONENTS Protobuf ProtobufWellKnownTypes
+                                     ProtobufQuick)
 qt_standard_project_setup()
 
 set(SOURCES
@@ -73,6 +73,7 @@ set(QML_FILES
     qml/page/MainPage.qml
     qml/page/LibraryPage.qml
     qml/page/StatusPage.qml
+    qml/page/SyncPage.qml
     qml/delegate/CommentDelegate.qml
     qml/delegate/SongDelegate.qml
     qml/delegate/PicCardDelegate.qml
@@ -182,7 +183,6 @@ target_link_libraries(
   app
   PUBLIC Qt6::Core
          Qt6::Quick
-         Qt6::Sql
          "$<$<CONFIG:Debug>:Qt6::QuickPrivate>"
          core.qasio
          ncrequest::ncrequest

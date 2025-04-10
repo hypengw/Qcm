@@ -1,6 +1,7 @@
 import QtCore
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Templates as T
 import Qcm.App as QA
 import Qcm.Material as MD
 import "../js/util.mjs" as Util
@@ -492,7 +493,7 @@ MD.Page {
             value = v >= m_GB ? v / m_GB + 9 : v / m_MB;
         }
 
-        snapMode: Slider.SnapAlways
+        snapMode: T.Slider.SnapAlways
     }
     component SettingRow: ColumnLayout {
         id: s_row

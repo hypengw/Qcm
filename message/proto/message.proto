@@ -15,6 +15,7 @@ enum MessageType {
   ADD_PROVIDER_REQ = 6;
   PROVIDER_META_STATUS_MSG = 7;
   PROVIDER_STATUS_MSG = 8;
+  PROVIDER_SYNC_STATUS_MSG = 9;
 
   GET_ALBUMS_REQ = 10;
   GET_ALBUMS_RSP = 11;
@@ -35,6 +36,9 @@ enum MessageType {
 
   GET_LYRIC_REQ = 40;
   GET_LYRIC_RSP = 41;
+
+  SYNC_REQ = 50;
+  SYNC_RSP = 51;
 }
 
 message GetSongsByAlbumRequest {
@@ -100,6 +104,10 @@ message ProviderMetaStatusMsg {
 message ProviderStatusMsg {
   repeated qcm.msg.model.ProviderStatus statuses = 1;
   bool full = 2;
+}
+
+message ProviderSyncStatusMsg {
+  repeated qcm.msg.model.ProviderSyncStatus statuses = 1;
 }
 
 message GetAlbumsReq {
@@ -187,6 +195,9 @@ message GetLyricReq { int64 id = 1; }
 
 message GetLyricRsp { repeated qcm.msg.model.LyricLine lines = 1; }
 
+message SyncReq { int64 provider_id = 1; }
+message SyncRsp { int64 handle = 1; }
+
 message QcmMessage {
   MessageType type = 1;
   int32 id = 2;
@@ -200,6 +211,7 @@ message QcmMessage {
     AddProviderReq add_provider_req = 105;
     ProviderMetaStatusMsg provider_meta_status_msg = 106;
     ProviderStatusMsg provider_status_msg = 107;
+    ProviderSyncStatusMsg provider_sync_status_msg = 108;
 
     GetAlbumsReq get_albums_req = 110;
     GetAlbumsRsp get_albums_rsp = 111;
@@ -220,5 +232,8 @@ message QcmMessage {
 
     GetLyricReq get_lyric_req = 140;
     GetLyricRsp get_lyric_rsp = 141;
+
+    SyncReq sync_req = 150;
+    SyncRsp sync_rsp = 151;
   }
 }

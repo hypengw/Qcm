@@ -118,10 +118,10 @@ private:
                 auto in_frame = AudioFrame::from(frame);
                 // resampler
                 {
-                    err = resampler->resampler(out_frame, in_frame.value());
+                    err = resampler->resampler(out_frame, *in_frame);
                     if (err == AVERROR_INPUT_CHANGED || err == AVERROR_OUTPUT_CHANGED) {
                         resampler->close();
-                        err = resampler->resampler(out_frame, in_frame.value());
+                        err = resampler->resampler(out_frame, *in_frame);
                     }
                 }
                 if (err) continue;

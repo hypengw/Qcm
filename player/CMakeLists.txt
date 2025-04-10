@@ -1,17 +1,18 @@
 set(FFMPEG_TARGETS)
 if(ANDROID)
-find_package(ffmpeg REQUIRED)
-set(FFMPEG_TARGETS ffmpeg::avformat ffmpeg::avcodec ffmpeg::avutil ffmpeg::swresample)
+  find_package(ffmpeg REQUIRED)
+  set(FFMPEG_TARGETS ffmpeg::avformat ffmpeg::avcodec ffmpeg::avutil
+                     ffmpeg::swresample)
 else()
-pkg_check_modules(
-  LIBAV
-  REQUIRED
-  IMPORTED_TARGET
-  libavformat
-  libavcodec
-  libavutil
-  libswresample)
-set(FFMPEG_TARGETS PkgConfig::LIBAV)
+  pkg_check_modules(
+    LIBAV
+    REQUIRED
+    IMPORTED_TARGET
+    libavformat
+    libavcodec
+    libavutil
+    libswresample)
+  set(FFMPEG_TARGETS PkgConfig::LIBAV)
 endif()
 
 add_library(
@@ -31,5 +32,5 @@ target_include_directories(
 
 target_link_libraries(
   player
-  PUBLIC core error core.asio ${FFMPEG_TARGETS}
+  PUBLIC core error core.asio ${FFMPEG_TARGETS} rstd::rstd
   PRIVATE ctre::ctre cubeb::cubeb)

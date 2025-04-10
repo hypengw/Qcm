@@ -28,8 +28,8 @@ public:
     static FFmpegResult<Self> ref(const AVFrame* in) {
         Self        out;
         FFmpegError err = av_frame_ref(out.m_frame, in);
-        if (err) return UNEXPECTED(err);
-        return out;
+        if (err) return rstd::Err(err);
+        return rstd::Ok(std::move(out));
     }
 
     auto operator->() { return m_frame; }

@@ -56,7 +56,7 @@ MD.Page {
                             Component.onCompleted: reload()
                         }
 
-                       MD.VerticalListView {
+                        MD.VerticalListView {
                             id: m_view
                             model: m_meta_query.data.metasData
                             expand: true
@@ -72,7 +72,7 @@ MD.Page {
 
                                 corners: indexCorners(index, count, 16)
                                 leader: MD.IconSvg {
-                                    source: "data:image/svg+xml;utf8," + model.svg
+                                    sourceData: model.svg
                                     size: 24
                                 }
                                 action: MD.Action {
@@ -103,7 +103,7 @@ MD.Page {
                             typescale: MD.Token.typescale.title_small
                         }
 
-                       MD.VerticalListView {
+                        MD.VerticalListView {
                             id: m_user_view
                             visible: QA.Global.userModel.rowCount() && !QA.Global.session.valid
 

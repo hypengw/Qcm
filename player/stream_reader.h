@@ -194,10 +194,12 @@ private:
                     continue;
                 }
                 if (st_idx == audio_idx) {
-                    if (! pkt_queue.push(std::move(pkt_ref).value())) continue;
+                    if (! pkt_queue.push(pkt_ref.unwrap())) continue;
                 }
             } else {
-                ERROR_LOG("{}", pkt_ref.error().what());
+                pkt_ref.inspect_err([](auto& err) {
+                    log::error("{}", err);
+                });
             }
             pkt.unref();
         }

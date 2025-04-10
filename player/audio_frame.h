@@ -26,7 +26,7 @@ struct AudioFrame : NoCopy {
     static Self               from(FFmpegFrame&& ff) { return Self(std::move(ff)); }
     static FFmpegResult<Self> from(const FFmpegFrame& ff) {
         auto ff_ref = ff.ref();
-        return RECORD(ff_ref.map([](FFmpegFrame& ff) {
+        return RECORD(ff_ref.map([](FFmpegFrame&& ff) {
             return from(std::move(ff));
         }));
     }
@@ -50,13 +50,13 @@ struct AudioFrame : NoCopy {
     FFmpegResult<int> buffer_size() const {
         int ret = av_samples_get_buffer_size(
             NULL, ff->ch_layout.nb_channels, ff->nb_samples, (AVSampleFormat)ff->format, 1);
-        if (ret < 0) return UNEXPECTED(ret);
-        return ret;
+        if (ret < 0) return rstd::Err(ret);
+        return rstd::Ok(ret);
     }
 
     auto channel_data(i32 idx) const {
         _assert_msg_(idx < ff->ch_layout.nb_channels, "not such channel: {}", idx);
-        usize buffer_size_ = buffer_size().value_or(0);
+        usize buffer_size_ = buffer_size().unwrap_or(0);
         return std::span<const byte>((const byte*)ff->extended_data[idx], buffer_size_);
     }
 

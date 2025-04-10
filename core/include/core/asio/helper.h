@@ -55,39 +55,4 @@ void post(const Ex& exec, F&& handler, Args&&... args) {
              std::forward<F>(handler),
              std::forward<Args>(args)...);
 }
-
-namespace detail_awaitable
-{
-
-template<typename T>
-struct inner_type {
-    using type = T;
-};
-
-template<typename T>
-using inner_type_t = typename inner_type<T>::type;
-
-template<typename T, typename F>
-struct inner_type<nstd::expected<T, F>> {
-    using type = inner_type_t<T>;
-};
-
-template<typename T>
-struct inner_type<asio::awaitable<T>> {
-    using type = inner_type_t<T>;
-};
-} // namespace detail_awaitable
-
-template<typename T, typename F, typename R = detail_awaitable::inner_type_t<T>>
-asio::awaitable<nstd::expected<R, F>> awaitable_unpack(nstd::expected<T, F>&& expr) {
-    if (expr.has_value()) {
-        if constexpr (helper::is_awaitable<T>)
-            co_return co_await awaitable_unpack(
-                nstd::expected_unpack(co_await std::move(expr).value()));
-        else
-            co_return nstd::expected_unpack(std::move(expr));
-    } else {
-        co_return nstd::unexpected(std::move(expr).error());
-    }
-}
 } // namespace helper

@@ -121,7 +121,7 @@ public:
         return cubeb_get_min_latency(m_cubeb_ctx, &params, &latency);
     }
 
-    nstd::expected<rc<cubeb_stream>, int> stream_init(
+    rstd::Result<rc<cubeb_stream>, int> stream_init(
         char const* stream_name, cubeb_devid input_device, cubeb_stream_params* input_stream_params,
         cubeb_devid output_device, cubeb_stream_params* output_stream_params, unsigned int latency,
         cubeb_data_callback data_callback, cubeb_state_callback state_callback, void* user_ptr
@@ -140,9 +140,9 @@ public:
                                      state_callback,
                                      user_ptr);
         if (res != CUBEB_OK) {
-            return nstd::unexpected(res);
+            return rstd::Err(res);
         } else {
-            return std::shared_ptr<cubeb_stream>(st, &cubeb_stream_destroy);
+            return rstd::Ok(std::shared_ptr<cubeb_stream>(st, &cubeb_stream_destroy));
         }
     }
 
@@ -180,20 +180,17 @@ public:
 
         // m_buffer.reserve(m_bytes_per_block * kBlockCount);
 
-        if (auto res = m_ctx->stream_init("Cubeb output",
-                                          nullptr,
-                                          nullptr,
-                                          devid,
-                                          &output_params,
-                                          latency,
-                                          Self::data_cb,
-                                          Self::state_cb,
-                                          this);
-            res) {
-            m_stream = res.value();
-        } else {
-            throw std::runtime_error("can't initialize cubeb device");
-        }
+        m_stream = m_ctx
+                       ->stream_init("Cubeb output",
+                                     nullptr,
+                                     nullptr,
+                                     devid,
+                                     &output_params,
+                                     latency,
+                                     Self::data_cb,
+                                     Self::state_cb,
+                                     this)
+                       .expect("can't initialize cubeb device");
 
         m_audio_params = convert_from<AudioParams>(output_params);
     };
@@ -245,8 +242,8 @@ public:
 
 private:
     struct Frame {
-        static std::optional<Frame> from(std::optional<AudioFrame> f) {
-            return helper::map(f, [](AudioFrame& f_) {
+        static rstd::Option<Frame> from(rstd::Option<AudioFrame> f) {
+            return f.map([](AudioFrame&& f_) {
                 if (f_.eof()) {
                     return Frame { .frame = std::move(f_), .data = {} };
                 } else {
@@ -292,11 +289,11 @@ private:
         if (! self->dirty()) {
             auto& frame = self->m_cached_frame;
             if (! frame) {
-                frame = Frame::from(self->m_output_queue->try_pop());
+                frame = Frame::from(rstd::into(self->m_output_queue->try_pop()));
             }
 
             while (frame && (! self->paused() || self->fading())) {
-                if (! frame->notified) self->notify(frame.value());
+                if (! frame->notified) self->notify(*frame);
 
                 auto copied = std::min(output.size(), frame->data.size());
                 details::adjust_audio_sample(CUBEB_SAMPLE_S16NE,
@@ -311,13 +308,13 @@ private:
                 self->fade_elapse(frame->duration * ((float)copied / frame->full_size));
 
                 if (frame->data.empty()) {
-                    frame = Frame::from(self->m_output_queue->try_pop());
+                    frame = Frame::from(rstd::into(self->m_output_queue->try_pop()));
                 }
                 if (output.empty()) break;
             };
         } else {
             self->m_output_queue->try_pop();
-            self->m_cached_frame = std::nullopt;
+            self->m_cached_frame = None();
         }
 
         // silence
@@ -384,10 +381,10 @@ private:
     };
     FadeInfo m_fade;
 
-    std::optional<Frame> m_cached_frame;
-    std::atomic<bool>    m_paused;
-    std::atomic<i32>     m_mark_pos;
-    std::atomic<usize>   m_mark_serial;
+    rstd::Option<Frame> m_cached_frame;
+    std::atomic<bool>   m_paused;
+    std::atomic<i32>    m_mark_pos;
+    std::atomic<usize>  m_mark_serial;
 
     AudioParams         m_audio_params;
     rc<AudioFrameQueue> m_output_queue;
