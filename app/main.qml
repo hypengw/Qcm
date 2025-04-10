@@ -100,13 +100,7 @@ MD.ApplicationWindow {
         }
     }
 
-    QA.SnakeView {
-        /*
-        anchors.top: parent.top
-        anchors.topMargin: 24
-        anchors.horizontalCenter: parent.horizontalCenter
-        width: Math.min(Math.max(implicitWidth, 350), parent.width)
-        */
+    MD.SnakeView {
         id: m_snake
         parent: T.Overlay.overlay
         anchors.fill: parent
@@ -180,7 +174,7 @@ MD.ApplicationWindow {
     Connections {
         target: QA.Action
         function onToast(text, duration, flags, action) {
-            win.snake.show2(text, duration, flags, action);
+            win.snake.show(text, duration, flags, action);
         }
     }
     Connections {
