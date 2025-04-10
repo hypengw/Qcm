@@ -38,7 +38,7 @@ Q_SIGNALS:
     void popup_page(const QJSValue& url_or_comp, QVariantMap props, QVariantMap popup_props = {},
                     const QJSValue& callback = {});
     void switch_main_page(qint32 idx);
-    void toast(QString text, qint32 duration = 4000, enums::ToastFlags flags = {},
+    void toast(QString text, qint32 duration = 3000, enums::ToastFlags flags = {},
                QObject* action = nullptr);
     void collect(model::ItemId itemId, bool act = true);
 

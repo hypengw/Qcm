@@ -19,13 +19,6 @@
     "url" : "https://github.com/ilqvya/random.git"
   },
   {
-    "commit" : "41d3e1f48d682992a2230b2a715bca38b848b269",
-    "dest" : "build/_flatpak_deps/expected-src",
-    "disable-shallow-clone" : false,
-    "type" : "git",
-    "url" : "https://github.com/TartanLlama/expected.git"
-  },
-  {
     "commit" : "631237acd4e20251c7f702db5e5434c83f0e336d",
     "dest" : "build/_flatpak_deps/KDSingleApplication-src",
     "disable-shallow-clone" : false,

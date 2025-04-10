@@ -29,8 +29,8 @@ public:
     static FFmpegResult<Self> ref(const AVPacket* in) noexcept {
         Self        out;
         FFmpegError err = av_packet_ref(out.m_pkt, in);
-        if (err) return UNEXPECTED(err);
-        return out;
+        if (err) return rstd::Err(err);
+        return rstd::Ok(std::move(out));
     }
 
     auto operator->() const { return m_pkt; }

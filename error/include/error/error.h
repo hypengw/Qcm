@@ -46,11 +46,12 @@ private:
 };
 
 template<typename T>
-    requires nstd::is_expected<T> && requires(T::error_type err, std::source_location loc) {
-        { err.record(loc) };
-    }
+    requires rstd::meta::special_of<T, rstd::result::Result> &&
+             requires(T::error_type err, std::source_location loc) {
+                 { err.record(loc) };
+             }
 auto record(T&& exp, const std::source_location loc = std::source_location::current()) {
-    return std::forward<T>(exp).map_error([&loc](auto err) {
+    return std::forward<T>(exp).map_err([&loc](auto err) {
         return err.record(loc);
     });
 }
@@ -107,18 +108,18 @@ public:
         return e;
     }
 
-    template<typename T>
-        requires helper::is_expected<T>
-    static auto expected_chain(T&&                        exp,
-                               const std::source_location loc = std::source_location::current()) {
-        return std::forward<T>(exp).map_error([&loc](auto err) {
-            if constexpr (std::same_as<std::decay_t<decltype(err)>, Error>) {
-                return Error::push(err, {}, loc);
-            } else {
-                return Error::push(err, loc);
-            }
-        });
-    }
+    // template<typename T>
+    //     requires helper::is_expected<T>
+    // static auto expected_chain(T&&                        exp,
+    //                            const std::source_location loc = std::source_location::current()) {
+    //     return std::forward<T>(exp).map_error([&loc](auto err) {
+    //         if constexpr (std::same_as<std::decay_t<decltype(err)>, Error>) {
+    //             return Error::push(err, {}, loc);
+    //         } else {
+    //             return Error::push(err, loc);
+    //         }
+    //     });
+    // }
 
 private:
     std::vector<Msg> m_msg_stack;
@@ -172,7 +173,6 @@ struct std::formatter<error::Error> : std::formatter<std::string> {
         return std::formatter<std::string>::format(out, ctx);
     }
 };
-
 
 inline std::string error::Error::what() const {
     if (m_msg_stack.empty()) return {};

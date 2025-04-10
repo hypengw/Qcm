@@ -48,18 +48,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(random)
 add_library(random ALIAS effolkronium_random)
 
-set(EXPECTED_BUILD_PACKAGE OFF)
-set(EXPECTED_BUILD_TESTS OFF)
-set(EXPECTED_BUILD_PACKAGE_DEB OFF)
-FetchContent_Declare(
-  expected
-  GIT_REPOSITORY https://github.com/TartanLlama/expected.git
-  GIT_TAG 41d3e1f48d682992a2230b2a715bca38b848b269
-  GIT_SHALLOW 1
-  GIT_PROGRESS 1
-  EXCLUDE_FROM_ALL)
-FetchContent_MakeAvailable(expected)
-
 # KDSingleApplication
 set(KDSingleApplication_QT6 ON)
 set(KDSingleApplication_STATIC ON)
