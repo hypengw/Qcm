@@ -23,6 +23,7 @@ public:
     void          setDelay(bool v);
     Q_SIGNAL void delayChanged();
 
+    void connectSyncFinished();
 protected:
     template<typename T, typename R, typename... ARGS>
     void connect_requet_reload(R (T::*f)(ARGS...), T* obj = nullptr) {

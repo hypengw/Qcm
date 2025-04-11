@@ -31,15 +31,9 @@ Util* Util::create(QQmlEngine*, QJSEngine*) {
 auto Util::create_itemid() const -> model::ItemId { return {}; }
 
 auto Util::mprisTrackid(model::ItemId id) const -> QString {
-    return "";
-    // TODO
-    // static const auto dbus_path = QStringLiteral(APP_ID).replace('.', '/');
+    static const auto dbus_path = QStringLiteral(APP_ID).replace('.', '/');
     // auto              provider  = id.provider();
-    // auto              sid       = id.id();
-    // return QStringLiteral("/%1/TrackId/%2/%3")
-    //    .arg(dbus_path)
-    //    .arg(provider.isEmpty() ? u"unknown"_s : provider)
-    //    .arg(sid.isEmpty() ? u"0"_s : sid);
+    return rstd::into(std::format("/{}/TrackId/{}", dbus_path, id.id()));
 }
 
 auto Util::create_route_msg(QVariantMap props) const -> model::RouteMsg {

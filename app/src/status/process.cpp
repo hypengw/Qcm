@@ -28,7 +28,7 @@ void qcm::process_msg(msg::QcmMessage&& msg) {
             p->sync(view);
 
             auto state = App::instance()->app_state();
-            if (state->is_state<AppState::Loading>()) {
+            if (! state->is_state<AppState::Error>()) {
                 if (size == 0) {
                     state->set_state(AppState::Welcome {});
                 } else {

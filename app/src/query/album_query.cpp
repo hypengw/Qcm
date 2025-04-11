@@ -12,6 +12,7 @@ namespace qcm
 AlbumsQuery::AlbumsQuery(QObject* parent): query::QueryList<model::AlbumListModel>(parent) {
     // set_use_queue(true);
     this->tdata()->set_store(this->tdata(), App::instance()->store()->albums);
+    this->connectSyncFinished();
 }
 
 void AlbumsQuery::reload() {

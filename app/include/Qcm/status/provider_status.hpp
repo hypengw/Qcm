@@ -26,13 +26,23 @@ class ProviderStatusModel
     using Base =
         meta_model::QGadgetListModel<model::ProviderStatus, meta_model::QMetaListStore::Map>;
 
+    Q_PROPERTY(bool syncing READ syncing NOTIFY syncingChanged)
+
 public:
     ProviderStatusModel(QObject* parent = nullptr);
     ~ProviderStatusModel();
 
     void updateSyncStatus(const msg::model::ProviderSyncStatus&);
+    auto syncing() const -> bool;
 
     Q_INVOKABLE QString svg(qint32) const;
+    Q_SIGNAL void       syncingChanged(bool);
+
+private:
+    void setSyncing(bool);
+    void checkSyncing();
+
+    bool m_syncing;
 };
 
 } // namespace qcm

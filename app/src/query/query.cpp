@@ -1,4 +1,6 @@
 #include "Qcm/query/query.hpp"
+#include "Qcm/status/provider_status.hpp"
+#include "Qcm/app.hpp"
 
 namespace qcm::query
 {
@@ -30,6 +32,15 @@ void QueryBase::setDelay(bool v) {
     if (ycore::cmp_exchange(m_delay, v)) {
         delayChanged();
     }
+}
+void QueryBase::connectSyncFinished() {
+    connect(App::instance()->provider_status(),
+            &ProviderStatusModel::syncingChanged,
+            this,
+            [this](bool syncing) {
+                if (syncing) return;
+                request_reload();
+            });
 }
 
 QueryListBase::QueryListBase(QObject* parent): QueryBase(parent), m_offset(0), m_limit(200) {

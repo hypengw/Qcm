@@ -10,7 +10,9 @@ namespace qcm
 {
 
 
-MixesQuery::MixesQuery(QObject* parent): query::QueryList<model::MixListModel>(parent) {}
+MixesQuery::MixesQuery(QObject* parent): query::QueryList<model::MixListModel>(parent) {
+    this->connectSyncFinished();
+}
 
 void MixesQuery::reload() {
     set_status(Status::Querying);

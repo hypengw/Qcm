@@ -11,6 +11,7 @@ namespace qcm
 
 ArtistsQuery::ArtistsQuery(QObject* parent): query::QueryList<model::ArtistListModel>(parent) {
     // set_use_queue(true);
+    this->connectSyncFinished();
 }
 void ArtistsQuery::reload() {
     set_status(Status::Querying);

@@ -97,6 +97,7 @@ set(QML_FILES
     qml/component/PagePopup.qml
     qml/component/PageStack.qml
     qml/component/VolumeButton.qml
+    qml/component/SyncingLabel.qml
     qml/action/AppendListAction.qml
     qml/action/PlaynextAction.qml
     qml/action/CommentAction.qml

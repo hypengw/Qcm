@@ -16,6 +16,13 @@ void ProviderStatusModel::updateSyncStatus(const msg::model::ProviderSyncStatus&
     if (auto v = this->query(id); v) {
         auto& value = *v;
         value.setSyncStatus(s);
+
+        if (s.state() == msg::model::SyncStateGadget::SyncState::Syncing) {
+            setSyncing(true);
+        } else {
+            checkSyncing();
+        }
+
         auto idx = this->index(this->idx_at(id));
         dataChanged(idx, idx, { role });
     }
@@ -28,6 +35,25 @@ auto ProviderStatusModel::svg(qint32 idx) const -> QString {
         return m->svg();
     }
     return "";
+}
+auto ProviderStatusModel::syncing() const -> bool { return m_syncing; }
+
+void ProviderStatusModel::setSyncing(bool v) {
+    if (m_syncing != v) {
+        m_syncing = v;
+        syncingChanged(v);
+    }
+}
+void ProviderStatusModel::checkSyncing() {
+    bool out = false;
+    for (auto i = 0; i < rowCount(); i++) {
+        auto& p = this->at(i);
+        if (p.syncStatus().state() == msg::model::SyncStateGadget::SyncState::Syncing) {
+            out = true;
+            break;
+        }
+    }
+    setSyncing(out);
 }
 } // namespace qcm
 

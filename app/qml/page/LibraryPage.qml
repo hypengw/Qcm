@@ -248,7 +248,8 @@ MD.Page {
         }
     }
 
-    component BaseView:MD.VerticalListView {
+    component BaseView: MD.VerticalListView {
+        id: m_view_base
         bottomMargin: root.vpadding
 
         property bool dirty: false
@@ -278,6 +279,24 @@ MD.Page {
         currentIndex: -1
         highlightMoveDuration: 1000
         highlightMoveVelocity: -1
+
+        footer: ColumnLayout {
+            width: parent.width
+            MD.Space {
+                spacing: 8
+            }
+            QA.SyncingLabel {
+                Layout.alignment: Qt.AlignHCenter
+                Layout.maximumWidth: parent.width
+            }
+            MD.Space {
+                spacing: 8
+            }
+            MD.ListBusyFooter {
+                Layout.fillWidth: true
+                running: parent.ListView.view.busy
+            }
+        }
 
         Component.onCompleted: {
             visibleChanged.connect(checkCur);
