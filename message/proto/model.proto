@@ -130,7 +130,8 @@ message ProviderMeta {
 
 enum SyncState {
   Finished = 0;
-  Error = 1;
+  Syncing = 1;
+  Error = 2;
 }
 
 message ProviderSyncStatus {
@@ -145,5 +146,6 @@ message ProviderStatus {
   int64 id = 1;
   string name = 2;
   string type_name = 3;
+  ProviderSyncStatus sync_status = 4;
   repeated Library libraries = 5;
 }

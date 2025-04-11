@@ -107,7 +107,8 @@ message ProviderStatusMsg {
 }
 
 message ProviderSyncStatusMsg {
-  repeated qcm.msg.model.ProviderSyncStatus statuses = 1;
+  qcm.msg.model.ProviderSyncStatus status = 1;
+  repeated qcm.msg.model.ProviderStatus statuses = 2;
 }
 
 message GetAlbumsReq {

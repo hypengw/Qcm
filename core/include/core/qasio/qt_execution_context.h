@@ -1,13 +1,13 @@
 #pragma once
 
+#include "core/core.h"
+
 #include <QObject>
 #include <QCoreApplication>
 #include <QEvent>
 #include <QPointer>
 
 #include <asio/execution_context.hpp>
-
-#include "core/core.h"
 
 class QtExecEvent : public QEvent {
 public:

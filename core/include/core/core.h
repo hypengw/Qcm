@@ -1,8 +1,9 @@
 #pragma once
 
-#include "core/macro.h"
+import qcm.core;
 
 #ifdef __clangd__
-#include "core/clangd.h"
+#    include "core/clangd.h"
 #endif
-import qcm.core;
+
+#include "core/macro.h"
