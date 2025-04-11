@@ -5,7 +5,7 @@ MD.Pane {
     id: root
 
     required property string tag
-    MD.MatProp.textColor: MD.Token.color.tertiary
+    MD.MProp.textColor: MD.Token.color.tertiary
     height: tag_label.lineHeight
     padding: 0
     horizontalPadding: 2
@@ -23,7 +23,7 @@ MD.Pane {
         implicitHeight: 0
         radius: 1
         border.width: 1
-        border.color: root.MD.MatProp.textColor
+        border.color: root.MD.MProp.textColor
     }
     MD.InputBlock {
         target: root

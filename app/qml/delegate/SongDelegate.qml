@@ -88,7 +88,7 @@ MD.ListItem {
             MD.Text {
                 Layout.fillWidth: true
                 text: root.dgModel.name
-                color: root.isPlaying ? MD.Token.color.primary : MD.MatProp.textColor
+                color: root.isPlaying ? MD.Token.color.primary : MD.MProp.textColor
                 typescale: MD.Token.typescale.body_large
                 verticalAlignment: Qt.AlignVCenter
             }

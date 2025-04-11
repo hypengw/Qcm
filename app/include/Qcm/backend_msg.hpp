@@ -102,6 +102,9 @@ QCM_MSG_TRAITS_RSP(GetMixsRsp, GetMixsReq, getMixsRsp)
 QCM_MSG_TRAITS_REQ(GetMixReq, GetMixRsp, GET_MIX_REQ, getMixReq)
 QCM_MSG_TRAITS_RSP(GetMixRsp, GetMixReq, getMixRsp)
 
+QCM_MSG_TRAITS_REQ(SyncReq, SyncRsp, SYNC_REQ, syncReq)
+QCM_MSG_TRAITS_RSP(SyncRsp, SyncReq, syncRsp)
+
 template<>
 struct MsgTraits<msg::Rsp> {
     QCM_MSG_TRAITS_COMMON(Rsp, rsp)
@@ -136,39 +139,39 @@ struct std::formatter<qcm::msg::MessageTypeGadget::MessageType> : std::formatter
 
 namespace qcm::model
 {
-#define QCM_MODEL_COMMON(T)                                                       \
-    Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId FINAL)       \
-public:                                                                           \
-    T(): msg::model::T() { this->setId_proto(-1); }                               \
-    T(const model::T& o): msg::model::T(o) {}                                     \
-    T(model::T&& o) noexcept: msg::model::T(std::move(o)) {}                      \
-    T& operator=(const model::T& o) {                                             \
-        msg::model::T::operator=(o);                                              \
-        return *this;                                                             \
-    }                                                                             \
-    T& operator=(model::T&& o) noexcept {                                         \
-        msg::model::T::operator=(std::move(o));                                   \
-        return *this;                                                             \
-    }                                                                             \
-    T(const msg::model::T& o): msg::model::T(o) {}                                \
-    T(msg::model::T&& o) noexcept: msg::model::T(std::move(o)) {}                 \
-    auto itemId() const -> qcm::model::ItemId {                                   \
-        return { enums::ItemType::Item##T, this->id_proto(), this->libraryId() }; \
-    }                                                                             \
+#define QCM_MODEL_COMMON(T, _ItemType)                                              \
+    Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId FINAL)         \
+public:                                                                             \
+    T(): msg::model::T() { this->setId_proto(-1); }                                 \
+    T(const model::T& o): msg::model::T(o) {}                                       \
+    T(model::T&& o) noexcept: msg::model::T(std::move(o)) {}                        \
+    T& operator=(const model::T& o) {                                               \
+        msg::model::T::operator=(o);                                                \
+        return *this;                                                               \
+    }                                                                               \
+    T& operator=(model::T&& o) noexcept {                                           \
+        msg::model::T::operator=(std::move(o));                                     \
+        return *this;                                                               \
+    }                                                                               \
+    T(const msg::model::T& o): msg::model::T(o) {}                                  \
+    T(msg::model::T&& o) noexcept: msg::model::T(std::move(o)) {}                   \
+    auto itemId() const -> qcm::model::ItemId {                                     \
+        return { enums::ItemType::_ItemType, this->id_proto(), this->libraryId() }; \
+    }                                                                               \
     void setItemId(const qcm::model::ItemId& v) { this->setId_proto(v.id()); }
 
 class Album : public msg::model::Album {
     Q_GADGET
     QML_VALUE_TYPE(album)
 
-    QCM_MODEL_COMMON(Album)
+    QCM_MODEL_COMMON(Album, ItemAlbum)
 };
 class Song : public msg::model::Song {
     Q_GADGET
     QML_VALUE_TYPE(song)
     Q_PROPERTY(qcm::model::ItemId albumId READ albumItemId WRITE setAlbumItemId FINAL)
     Q_PROPERTY(QString albumName READ albumName FINAL)
-    QCM_MODEL_COMMON(Song)
+    QCM_MODEL_COMMON(Song, ItemSong)
 public:
     auto albumItemId() const -> ItemId {
         return ItemId { enums::ItemType::ItemAlbum,
@@ -183,14 +186,21 @@ class Artist : public msg::model::Artist {
     Q_GADGET
     QML_VALUE_TYPE(artist)
 
-    QCM_MODEL_COMMON(Artist)
+    QCM_MODEL_COMMON(Artist, ItemArtist)
 };
 
 class Mix : public msg::model::Mix {
     Q_GADGET
     QML_VALUE_TYPE(mix)
 
-    QCM_MODEL_COMMON(Mix)
+    QCM_MODEL_COMMON(Mix, ItemMix)
+private:
+    auto libraryId() const -> i64 { return -1; }
+};
+
+class ProviderStatus : public msg::model::ProviderStatus {
+    Q_GADGET
+    QCM_MODEL_COMMON(ProviderStatus, ItemProvider)
 private:
     auto libraryId() const -> i64 { return -1; }
 };
@@ -241,11 +251,10 @@ struct meta_model::ItemTrait<qcm::msg::model::ProviderMeta> {
 };
 
 template<>
-struct meta_model::ItemTrait<qcm::msg::model::ProviderStatus> {
+struct meta_model::ItemTrait<qcm::model::ProviderStatus> {
+    using Self     = qcm::model::ProviderStatus;
     using key_type = i64;
-    static auto key(const qcm::msg::model::ProviderStatus& el) noexcept -> i64 {
-        return el.id_proto();
-    }
+    static auto key(const Self& el) noexcept -> i64 { return el.id_proto(); }
 };
 
 template<>

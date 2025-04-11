@@ -76,7 +76,9 @@ Backend::Backend(Arc<ncrequest::Session> session)
                     msg.deserialize(m_serializer.get(), *cache);
                     cache->clear();
                 }
-                log::info("ws recv: {}", msg.type());
+                if (msg.type() != msg::MessageTypeGadget::MessageType::PROVIDER_SYNC_STATUS_MSG) {
+                    log::info("ws recv: {}", msg.type());
+                }
 
                 if (auto it = m_handlers.find(msg.id_proto()); it != m_handlers.end()) {
                     it->second(asio::error_code {}, std::move(msg));
@@ -220,7 +222,6 @@ auto Backend::serial() -> i32 {
     }
     return cur;
 }
-
 
 void msg::merge_extra(QQmlPropertyMap& extra, const google::protobuf::Struct& in,
                       const std::set<QStringView>& is_json_field) {

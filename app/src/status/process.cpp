@@ -19,10 +19,20 @@ void qcm::process_msg(msg::QcmMessage&& msg) {
         asio::post(qcm::qexecutor(), [msg = std::move(msg)] {
             Global::instance()->app_state()->set_state(state::AppState::Session {});
             auto p = App::instance()->provider_status();
-            for(auto& s : msg.providerStatusMsg().statuses()) {
+            for (auto& s : msg.providerStatusMsg().statuses()) {
                 log::info("{}", s.name());
             }
-            p->sync(msg.providerStatusMsg().statuses());
+            auto view = std::views::transform(msg.providerStatusMsg().statuses(), [](auto&& el) {
+                return qcm::model::ProviderStatus { el };
+            });
+            p->sync(view);
+        });
+        break;
+    }
+    case M::PROVIDER_SYNC_STATUS_MSG: {
+        asio::post(qcm::qexecutor(), [msg = std::move(msg)] {
+            auto p = App::instance()->provider_status();
+            p->updateSyncStatus(msg.providerSyncStatusMsg().status());
         });
         break;
     }

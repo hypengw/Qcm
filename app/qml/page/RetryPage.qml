@@ -18,7 +18,7 @@ MD.Page {
         MD.Text {
             id: item_text
             Layout.alignment: Qt.AlignHCenter
-            MD.MatProp.textColor: MD.Token.color.error
+            MD.MProp.textColor: MD.Token.color.error
             typescale: MD.Token.typescale.label_large
         }
 

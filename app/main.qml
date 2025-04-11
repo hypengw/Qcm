@@ -14,7 +14,7 @@ MD.ApplicationWindow {
     readonly property alias snake: m_snake
     property int windowClass: MD.Enum.WindowClassMedium
 
-    MD.MatProp.page.leadingAction: MD.Action {
+    MD.MProp.page.leadingAction: MD.Action {
         icon.name: MD.Token.icon.menu
         text: qsTr('menu')
         onTriggered: {
@@ -22,8 +22,8 @@ MD.ApplicationWindow {
         }
     }
 
-    MD.MatProp.size.windowClass: windowClass
-    MD.MatProp.backgroundColor: {
+    MD.MProp.size.windowClass: windowClass
+    MD.MProp.backgroundColor: {
         switch (win.windowClass) {
         case MD.Enum.WindowClassCompact:
             return MD.Token.color.surface;
@@ -31,9 +31,9 @@ MD.ApplicationWindow {
             return MD.Token.color.surface_container;
         }
     }
-    MD.MatProp.textColor: MD.MatProp.color.getOn(MD.MatProp.backgroundColor)
+    MD.MProp.textColor: MD.MProp.color.getOn(MD.MProp.backgroundColor)
 
-    color: MD.MatProp.backgroundColor
+    color: MD.MProp.backgroundColor
     height: 600
     visible: true
     width: 900
@@ -56,10 +56,10 @@ MD.ApplicationWindow {
 
         initialItem: comp_loading
 
-        MD.MatProp.page: m_stack_page_ctx
+        MD.MProp.page: m_stack_page_ctx
         MD.PageContext {
             id: m_stack_page_ctx
-            radius: win.MD.MatProp.size.isCompact ? 0 : MD.Token.shape.corner.large
+            radius: win.MD.MProp.size.isCompact ? 0 : MD.Token.shape.corner.large
             showHeader: win_stack.depth > 1
             leadingAction: MD.Action {
                 icon.name: MD.Token.icon.arrow_back

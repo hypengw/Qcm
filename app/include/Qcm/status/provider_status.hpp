@@ -19,16 +19,18 @@ public:
     ~ProviderMetaStatusModel();
 };
 
-class ProviderStatusModel : public meta_model::QGadgetListModel<msg::model::ProviderStatus,
-                                                                meta_model::QMetaListStore::Map> {
+class ProviderStatusModel
+    : public meta_model::QGadgetListModel<model::ProviderStatus, meta_model::QMetaListStore::Map> {
     Q_OBJECT
     QML_ELEMENT
     using Base =
-        meta_model::QGadgetListModel<msg::model::ProviderStatus, meta_model::QMetaListStore::Map>;
+        meta_model::QGadgetListModel<model::ProviderStatus, meta_model::QMetaListStore::Map>;
 
 public:
     ProviderStatusModel(QObject* parent = nullptr);
     ~ProviderStatusModel();
+
+    void updateSyncStatus(const msg::model::ProviderSyncStatus&);
 
     Q_INVOKABLE QString svg(qint32) const;
 };

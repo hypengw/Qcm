@@ -8,7 +8,7 @@ MD.Page {
     id: root
 
     showBackground: true
-    backgroundColor: MD.MatProp.color.surface
+    backgroundColor: MD.MProp.color.surface
 
     readonly property var song: QA.App.playqueue.currentSong
     readonly property list<var> artists: {

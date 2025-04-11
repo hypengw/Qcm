@@ -19,7 +19,7 @@ MD.Page {
         view: m_view
         excludeBegin: m_view.headerItem.height - m_control_pane.height + view.topMargin
         radius: root.radius
-        bottomMargin: MD.MatProp.size.verticalPadding
+        bottomMargin: MD.MProp.size.verticalPadding
     }
 
    MD.VerticalListView {
@@ -28,8 +28,8 @@ MD.Page {
         reuseItems: true
         contentY: 0
 
-        topMargin: MD.MatProp.size.verticalPadding
-        bottomMargin: MD.MatProp.size.verticalPadding * 2
+        topMargin: MD.MProp.size.verticalPadding
+        bottomMargin: MD.MProp.size.verticalPadding * 2
 
         // model: root.mix
         readonly property bool single: width < m_cover.displaySize.width * (1.0 + 1.5) + 8

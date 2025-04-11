@@ -88,7 +88,7 @@ MD.Page {
 
                                     Rectangle {
                                         anchors.centerIn: parent
-                                        border.color: MD.MatProp.backgroundColor
+                                        border.color: MD.MProp.backgroundColor
                                         border.width: 3
                                         color: parent.color
                                         height: width
@@ -529,7 +529,7 @@ MD.Page {
                             visible: text
                             Layout.fillWidth: true
                             typescale: MD.Token.typescale.title_small
-                            color: MD.MatProp.color.on_surface_variant
+                            color: MD.MProp.color.on_surface_variant
                         }
                     }
                     MD.Control {
@@ -567,7 +567,7 @@ MD.Page {
                 id: sec_title
                 Layout.leftMargin: 12
                 Layout.rightMargin: 12
-                MD.MatProp.textColor: MD.Token.color.primary
+                MD.MProp.textColor: MD.Token.color.primary
                 typescale: MD.Token.typescale.title_medium
             }
         }

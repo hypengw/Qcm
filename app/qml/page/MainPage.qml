@@ -16,7 +16,7 @@ MD.Page {
     title: m_page_stack.currentItem?.title ?? ""
     canBack: m_page_stack.canBack
 
-    backgroundColor: MD.MatProp.backgroundColor
+    backgroundColor: MD.MProp.backgroundColor
 
     property var model: QA.App.pages
 
@@ -61,7 +61,7 @@ MD.Page {
             Loader {
                 Layout.fillHeight: true
 
-                readonly property bool useLarge: MD.MatProp.size.windowClass >= MD.Enum.WindowClassLarge
+                readonly property bool useLarge: MD.MProp.size.windowClass >= MD.Enum.WindowClassLarge
                 sourceComponent: useLarge ? m_large_navi : m_small_navi
 
                 Component {
@@ -201,7 +201,7 @@ MD.Page {
                 Layout.fillWidth: true
                 visible: m_page_stack.depth <= 1
                 padding: 0
-                backgroundColor: MD.MatProp.color.surface_container
+                backgroundColor: MD.MProp.color.surface_container
                 elevation: MD.Token.elevation.level2
                 RowLayout {
                     anchors.fill: parent
@@ -254,22 +254,22 @@ MD.Page {
                     initialItem: Item {}
                     property string title: currentItem?.title ?? ""
 
-                    MD.MatProp.page: m_page_context
+                    MD.MProp.page: m_page_context
                     MD.PageContext {
                         id: m_page_context
                         headerType: MD.Enum.AppBarCenterAligned
-                        showHeader: root.MD.MatProp.size.isCompact
+                        showHeader: root.MD.MProp.size.isCompact
                         leadingAction: root.canBack ? m_back_action : m_draw_action
                         radius: root.radius
                     }
                 }
 
-                MD.MatProp.backgroundColor: MD.MatProp.color.surface
-                MD.MatProp.page: m_page_stack_context
+                MD.MProp.backgroundColor: MD.MProp.color.surface
+                MD.MProp.page: m_page_stack_context
                 MD.PageContext {
                     id: m_page_stack_context
                     leadingAction: root.canBack ? m_back_action : null
-                    showHeader: root.MD.MatProp.size.isCompact
+                    showHeader: root.MD.MProp.size.isCompact
                     radius: root.radius
                 }
 
@@ -290,7 +290,7 @@ MD.Page {
                 }
 
                 Binding {
-                    when: root.MD.MatProp.size.isCompact
+                    when: root.MD.MProp.size.isCompact
                     m_page_stack.Layout.topMargin: 0
                     m_page_stack.Layout.bottomMargin: 0
                     m_page_stack.Layout.rightMargin: 0

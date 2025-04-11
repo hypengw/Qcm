@@ -16,9 +16,9 @@ MD.Popup {
     height: Math.min(implicitHeight, parent.height * 0.8)
     modal: true
 
-    mdState.textColor: MD.MatProp.color.on_surface
-    mdState.backgroundColor: MD.MatProp.color.surface
-    MD.MatProp.backgroundColor: MD.MatProp.color.surface
+    mdState.textColor: MD.MProp.color.on_surface
+    mdState.backgroundColor: MD.MProp.color.surface
+    MD.MProp.backgroundColor: MD.MProp.color.surface
 
     x: Math.round((parent.width - width) / 2)
     y: Math.round((parent.height - height) / 2)
@@ -62,7 +62,7 @@ MD.Popup {
         }
     }
 
-    MD.MatProp.page: m_page_context
+    MD.MProp.page: m_page_context
 
     onSourceChanged: {
         loader.setSource(source, props);

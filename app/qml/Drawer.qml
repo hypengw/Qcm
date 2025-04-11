@@ -7,7 +7,7 @@ MD.Drawer {
     font.capitalization: Font.Capitalize
     padding: 0
 
-    MD.MatProp.backgroundColor: MD.MatProp.color.surface
+    MD.MProp.backgroundColor: MD.MProp.color.surface
 
     contentItem: QA.DrawerContent {}
     Connections {

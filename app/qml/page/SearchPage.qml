@@ -8,7 +8,7 @@ MD.Page {
     id: root
     padding: 0
     title: qsTr('search')
-    topPadding: showHeader ? 0 : MD.MatProp.size.verticalPadding
+    topPadding: showHeader ? 0 : MD.MProp.size.verticalPadding
 
     component BaseView:MD.VerticalListView {
         implicitHeight: contentHeight
@@ -16,7 +16,7 @@ MD.Page {
         busy: m_query.status === QA.Enum.Querying
 
         topMargin: 8
-        bottomMargin: MD.MatProp.size.verticalPadding * 2
+        bottomMargin: MD.MProp.size.verticalPadding * 2
 
         leftMargin: 24
         rightMargin: 24
@@ -135,7 +135,7 @@ MD.Page {
                 //    id: m_view_pane
                 //    view: m_stack.children[m_stack.currentIndex]
                 //    corners: MD.Util.corner(0, root.radius)
-                //    color: root.MD.MatProp.backgroundColor
+                //    color: root.MD.MProp.backgroundColor
                 //}
 
                 StackLayout {

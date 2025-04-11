@@ -9,7 +9,7 @@ MD.Page {
 
     readonly property bool canBack: leaf.folded && leaf.rightAbove
     title: m_content.currentItem?.title ?? qsTr("library")
-    property int vpadding: showHeader ? 0 : MD.MatProp.size.verticalPadding
+    property int vpadding: showHeader ? 0 : MD.MProp.size.verticalPadding
     scrolling: m_content.currentItem?.scrolling ?? false
 
     function back() {
@@ -219,7 +219,7 @@ MD.Page {
 
             property var currentItemId: null
 
-            MD.MatProp.page: m_page_context
+            MD.MProp.page: m_page_context
             MD.PageContext {
                 id: m_page_context
                 showHeader: false
@@ -308,7 +308,7 @@ MD.Page {
         }
         rightPadding: 0
         trailing: MD.IconButton {
-            MD.MatProp.textColor: MD.Token.color.on_surface_variant
+            MD.MProp.textColor: MD.Token.color.on_surface_variant
             icon.name: MD.Token.icon.more_vert
             onClicked: {
                 if (showMenu)

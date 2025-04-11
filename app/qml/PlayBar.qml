@@ -12,7 +12,7 @@ MD.Pane {
         return ex?.artists;
     }
 
-    // backgroundColor: Window.window?.windowClass === MD.Enum.WindowClassCompact ? MD.MatProp.color.surface_container : MD.MatProp.color.surface
+    // backgroundColor: Window.window?.windowClass === MD.Enum.WindowClassCompact ? MD.MProp.color.surface_container : MD.MProp.color.surface
     backgroundColor: MD.Token.color.surface_container
     elevation: Window.window?.windowClass === MD.Enum.WindowClassCompact ? MD.Token.elevation.level2 : MD.Token.elevation.level0
 
@@ -77,7 +77,7 @@ MD.Pane {
                 MD.Text {
                     Layout.fillWidth: true
                     Layout.maximumWidth: implicitWidth + 10
-                    MD.MatProp.textColor: ma_name.containsMouse ? MD.Token.color.primary : MD.Token.color.on_background
+                    MD.MProp.textColor: ma_name.containsMouse ? MD.Token.color.primary : MD.Token.color.on_background
                     verticalAlignment: Qt.AlignVCenter
                     typescale: MD.Token.typescale.body_medium
 
@@ -107,7 +107,7 @@ MD.Pane {
                         id: subtitle_label
                         Layout.fillWidth: true
                         Layout.maximumWidth: implicitWidth + 10
-                        MD.MatProp.textColor: ma_subtitle.containsMouse ? MD.Token.color.primary : MD.Token.color.on_background
+                        MD.MProp.textColor: ma_subtitle.containsMouse ? MD.Token.color.primary : MD.Token.color.on_background
                         typescale: MD.Token.typescale.body_medium
                         opacity: 0.6
                         text: QA.Util.joinName(root.artists, '/')

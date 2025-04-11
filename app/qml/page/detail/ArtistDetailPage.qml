@@ -23,7 +23,7 @@ MD.Page {
         leftMargin: 0
         rightMargin: 0
         x: m_view.leftMargin
-        topMargin: MD.MatProp.size.verticalPadding
+        topMargin: MD.MProp.size.verticalPadding
         bottomMargin: 0
     }
 
@@ -31,8 +31,8 @@ MD.Page {
         id: m_view
         anchors.fill: parent
 
-        topMargin: MD.MatProp.size.verticalPadding
-        bottomMargin: MD.MatProp.size.verticalPadding
+        topMargin: MD.MProp.size.verticalPadding
+        bottomMargin: MD.MProp.size.verticalPadding
         fixedCellWidth: QA.Util.dyn_card_width(width, spacing)
         model: qr_artist_albums.data
 
@@ -173,7 +173,7 @@ MD.Page {
             }
 
             MD.Space {
-                spacing: MD.MatProp.size.verticalPadding * 2
+                spacing: MD.MProp.size.verticalPadding * 2
             }
         }
     }

@@ -8,7 +8,7 @@ MD.Page {
     id: root
     showHeader: false
     showBackground: true
-    MD.MatProp.backgroundColor: MD.MatProp.color.surface
+    MD.MProp.backgroundColor: MD.MProp.color.surface
 
     Item {
         anchors.fill: parent
@@ -19,10 +19,10 @@ MD.Page {
             id: m_stack
             anchors.fill: parent
 
-            MD.MatProp.page: m_page_ctx
+            MD.MProp.page: m_page_ctx
             MD.PageContext {
                 id: m_page_ctx
-                inherit: root.MD.MatProp.page
+                inherit: root.MD.MProp.page
                 showHeader: m_stack.depth > 1
                 leadingAction: MD.Action {
                     icon.name: MD.Token.icon.arrow_back
@@ -33,7 +33,7 @@ MD.Page {
             }
 
             initialItem: MD.Page {
-                MD.MatProp.page: root.MD.MatProp.page
+                MD.MProp.page: root.MD.MProp.page
                 Item {
                     anchors.fill: parent
                     MD.Text {

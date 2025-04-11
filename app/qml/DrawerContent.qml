@@ -40,7 +40,7 @@ MD.VerticalFlickable {
                 Layout.fillWidth: true
                 required property var modelData
                 required property var index
-                visible: true //root.MD.MatProp.size.isCompact || root.standard
+                visible: true //root.MD.MProp.size.isCompact || root.standard
                 checked: root.standard && root.pageIndex == index
                 action: MD.Action {
                     icon.name: MD.Token.icon[modelData.icon]
@@ -57,7 +57,7 @@ MD.VerticalFlickable {
             }
         }
         Divider {
-            visible: root.MD.MatProp.size.isCompact || root.standard
+            visible: root.MD.MProp.size.isCompact || root.standard
         }
 
         MD.DrawerItem {
