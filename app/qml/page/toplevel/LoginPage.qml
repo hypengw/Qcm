@@ -41,7 +41,7 @@ MD.Page {
                         anchors.bottom: m_services_layout.top
                         anchors.bottomMargin: 24
 
-                        text: qsTr('add music service')
+                        text: qsTr('add music provider')
                         font.capitalization: Font.Capitalize
                         typescale: MD.Token.typescale.title_large
                     }
@@ -81,49 +81,6 @@ MD.Page {
                                         m_stack.push_page("qrc:/Qcm/App/qml/page/ProviderMetaPage.qml", {
                                             meta: model
                                         });
-                                    }
-                                }
-                                mdState: MD.StateListItem {
-                                    item: parent
-                                    backgroundColor: ctx.color.surface_container
-                                }
-                                divider: MD.Divider {
-                                    anchors.bottom: parent.bottom
-                                    orientation: Qt.Horizontal
-                                }
-                            }
-                        }
-
-                        MD.Text {
-                            Layout.leftMargin: 16
-                            Layout.topMargin: 16
-                            visible: m_user_view.visible
-                            text: qsTr('switch to')
-                            font.capitalization: Font.Capitalize
-                            typescale: MD.Token.typescale.title_small
-                        }
-
-                        MD.VerticalListView {
-                            id: m_user_view
-                            visible: QA.Global.userModel.rowCount() && !QA.Global.session.valid
-
-                            model: QA.Global.userModel
-                            expand: true
-                            interactive: false
-                            implicitWidth: Math.min(400, m_stack.width)
-                            leftMargin: 16
-                            rightMargin: 16
-
-                            delegate: MD.ListItem {
-                                required property int index
-                                required property var model
-                                width: ListView.view.contentWidth
-
-                                corners: indexCorners(index, count, 16)
-                                action: MD.Action {
-                                    text: model.nickname
-                                    onTriggered: {
-                                        QA.Action.switch_user(model.userId);
                                     }
                                 }
                                 mdState: MD.StateListItem {

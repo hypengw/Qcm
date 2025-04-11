@@ -1,18 +1,16 @@
 #pragma once
 
-#include <variant>
-#include <QObject>
-
-import qcm.core;
 #include "core/core.h"
+
+#include <variant>
+#include <QQmlEngine>
 #include "Qcm/util/async.hpp"
 
-namespace qcm::state
+namespace qcm
 {
 class AppState : public QObject {
     Q_OBJECT
     QML_ANONYMOUS
-    Q_PROPERTY(QAsyncResult* rescue READ rescue CONSTANT FINAL)
 public:
     AppState(QObject* parent = nullptr);
     ~AppState();
@@ -20,20 +18,19 @@ public:
     struct Loading {
         bool operator==(const Loading&) const = default;
     };
-    struct Start {
-        bool operator==(const Start&) const = default;
+    struct Welcome {
+        bool operator==(const Welcome&) const = default;
     };
-    struct Session {
-        QObject* session;
-        bool     operator==(const Session&) const = default;
+    struct Main {
+        bool operator==(const Main&) const = default;
     };
     struct Error {
         QString err;
         bool    fatal { false };
-        bool    operator==(const Error&) const = default;
+        bool    operator==(const Error&) const { return true; }
     };
 
-    using StateTypelist = ycore::type_list<Loading, Start, Session, Error>;
+    using StateTypelist = ycore::type_list<Loading, Welcome, Main, Error>;
     using State         = StateTypelist::to<std::variant>;
 
     template<typename T>
@@ -43,18 +40,23 @@ public:
 
     auto state() const -> const State&;
     void set_state(const State&);
-    auto rescue() const -> QAsyncResult*;
 
     void load_session();
 
     Q_SIGNAL void stateChanged();
+    Q_SIGNAL void retry();
 
-    Q_SIGNAL void start();
-    Q_SIGNAL void session(QObject*);
+    Q_SIGNAL void loading();
+    Q_SIGNAL void welcome();
+    Q_SIGNAL void main();
     Q_SIGNAL void error(QString);
 
+    Q_SLOT void onQmlCompleted();
+
 private:
-    State         m_state;
-    QAsyncResult* m_rescue;
+    Q_SLOT void on_retry();
+    void        triggerSignal();
+
+    State m_state;
 };
-} // namespace qcm::state
+} // namespace qcm

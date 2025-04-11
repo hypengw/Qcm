@@ -1,7 +1,6 @@
 #pragma once
 
-#include <QObject>
-#include "Qcm/macro.hpp"
+#include <QQmlEngine>
 
 namespace qcm
 {
@@ -10,6 +9,7 @@ namespace model
 
 class AppInfo {
     Q_GADGET
+    QML_VALUE_TYPE(app_info)
 public:
     AppInfo();
     ~AppInfo();

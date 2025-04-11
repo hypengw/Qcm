@@ -91,9 +91,7 @@ Global::Private::Private(Global* p)
     : qt_ctx(make_arc<QtExecutionContext>(p, (QEvent::Type)QEvent::registerEventType())),
       pool(get_pool_size()),
       session(ncrequest::Session::make(pool.get_executor())),
-      copy_action_comp(nullptr),
-      app_state(new state::AppState(p)) {
-}
+      copy_action_comp(nullptr) {}
 Global::Private::~Private() {}
 
 auto Global::instance() -> Global* { return static_global(); }
@@ -113,17 +111,6 @@ Global::~Global() {
     qDeleteAll(children());
     GlobalStatic::instance()->reset();
 }
-
-auto Global::info() const -> const model::AppInfo& {
-    C_D(const Global);
-    return d->info;
-}
-
-auto Global::app_state() const -> state::AppState* {
-    C_D(const Global);
-    return d->app_state;
-}
-
 auto Global::qexecutor() -> qt_executor_t& {
     C_D(Global);
     return d->qt_ctx->get_executor();
@@ -176,7 +163,6 @@ void Global::join() {
     d->pool.join();
 }
 
-
 GlobalWrapper::GlobalWrapper(): m_g(Global::instance()) {
     connect_from_global(m_g, &Global::copyActionCompChanged, &GlobalWrapper::copyActionCompChanged);
     connect_from_global(m_g, &Global::errorOccurred, &GlobalWrapper::errorOccurred);
@@ -199,10 +185,8 @@ GlobalWrapper::GlobalWrapper(): m_g(Global::instance()) {
 }
 GlobalWrapper::~GlobalWrapper() {}
 auto GlobalWrapper::datas() -> QQmlListProperty<QObject> { return { this, &m_datas }; }
-auto GlobalWrapper::info() -> const model::AppInfo& { return m_g->info(); }
 auto GlobalWrapper::copy_action_comp() const -> QQmlComponent* { return m_g->copy_action_comp(); }
 auto GlobalWrapper::uuid() const -> QString { return m_g->uuid().toString(QUuid::WithoutBraces); }
-auto GlobalWrapper::app_state() const -> state::AppState* { return m_g->app_state(); }
 void GlobalWrapper::set_copy_action_comp(QQmlComponent* val) { m_g->set_copy_action_comp(val); }
 
 } // namespace qcm

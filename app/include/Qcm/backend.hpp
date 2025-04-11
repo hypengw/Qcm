@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/core.h"
+
 #include <map>
 #include <functional>
 
@@ -9,6 +11,7 @@
 #include <QProtobufSerializer>
 
 #include <asio/thread_pool.hpp>
+
 #include "core/qasio/qt_execution_context.h"
 #include "core/asio/task.h"
 
@@ -64,8 +67,12 @@ public:
 
     Q_SIGNAL void started(i32 port);
     Q_SIGNAL void connected(i32 port);
+    Q_SIGNAL void error(QString);
+
+    Q_SLOT void on_retry();
 
 private:
+    Q_SLOT void on_error(QString);
     Q_SLOT void on_started(i32 port);
     Q_SLOT void on_connected(i32 port);
 
@@ -84,5 +91,7 @@ private:
 
     std::atomic<i32> m_serial;
     i32              m_port;
+    QString          m_exe;
+    QString          m_data_dir;
 };
 } // namespace qcm

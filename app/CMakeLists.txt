@@ -61,12 +61,13 @@ set(QML_FILES
     qml/page/detail/ArtistDetailPage.qml
     qml/page/detail/RadioDetailPage.qml
     qml/page/detail/MixDetailPage.qml
+    qml/page/toplevel/LoginPage.qml
+    qml/page/toplevel/RetryPage.qml
+    qml/page/toplevel/LoadingPage.qml
     qml/page/AboutPage.qml
     qml/page/CommentPage.qml
     qml/page/DescriptionPage.qml
     qml/page/ProviderMetaPage.qml
-    qml/page/LoginPage.qml
-    qml/page/RetryPage.qml
     qml/page/SettingsPage.qml
     qml/page/SearchPage.qml
     qml/page/PlayingPage.qml

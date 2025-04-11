@@ -1,41 +1,62 @@
 #include "Qcm/status/app_state.hpp"
-#include "core/core.h"
 #include "core/helper.h"
 
-namespace qcm::state
+namespace qcm
 {
-AppState::AppState(QObject* parent)
-    : QObject(parent), m_state(Loading {}), m_rescue(new QAsyncResult(this)) {}
+AppState::AppState(QObject* parent): QObject(parent), m_state(Loading {}) {
+    connect(this, &AppState::retry, this, &AppState::on_retry);
+}
 AppState::~AppState() {}
 
-auto AppState::rescue() const -> QAsyncResult* { return m_rescue; }
 auto AppState::state() const -> const State& { return m_state; }
 void AppState::set_state(const State& v) {
-    if (v == m_state) return;
-
+    if (v == m_state) {
+        if (auto e = std::get_if<Error>(&m_state)) {
+            e->err.append("\n");
+            e->err.append(std::get_if<Error>(&v)->err);
+            stateChanged();
+            triggerSignal();
+        }
+        return;
+    }
+    m_state = v;
     stateChanged();
+    triggerSignal();
+}
+
+void AppState::triggerSignal() {
     std::visit(overloaded { [this](const Loading& s) {
-                               m_state = s;
+                               this->loading();
                            },
-                            [this](const Start& s) {
-                                m_state = s;
-                                this->start();
+                            [this](const Welcome& s) {
+                                this->welcome();
                             },
-                            [this](const Session& s) {
-                                m_state = s;
-                                this->session(s.session);
+                            [this](const Main& s) {
+                                this->main();
                             },
                             [this](const Error& e) {
-                                m_state = e;
                                 this->error(e.err);
                             } },
-               v);
+               m_state);
+}
 
-    if (! is_state<Error>()) {
-        // clean callback
-        this->rescue()->set_reload_callback({});
+void AppState::onQmlCompleted() {
+    if (! is_state<Loading>()) {
+        triggerSignal();
     }
 }
-}; // namespace qcm::state
+
+void AppState::on_retry() {
+    this->set_state(Loading {});
+
+    QMetaObject::invokeMethod(
+        this,
+        [this] {
+            disconnect(this, &AppState::retry, nullptr, nullptr);
+            connect(this, &AppState::retry, this, &AppState::on_retry);
+        },
+        Qt::QueuedConnection);
+}
+}; // namespace qcm
 
 #include <Qcm/status/moc_app_state.cpp>

@@ -90,6 +90,7 @@ public:
           provider_meta_status(new ProviderMetaStatusModel(self)),
           provider_status(new ProviderStatusModel(self)),
           page_model(new PageModel(self)),
+          app_state(new AppState(self)),
 #ifndef NODEBUS
           m_mpris(make_up<mpris::Mpris>()),
 #endif
@@ -115,6 +116,9 @@ public:
     ProviderMetaStatusModel* provider_meta_status;
     ProviderStatusModel*     provider_status;
     PageModel*               page_model;
+    model::AppInfo           info;
+    AppState*                app_state;
+
 #ifndef NODEBUS
     Box<mpris::Mpris> m_mpris;
 #endif
@@ -151,7 +155,14 @@ App::App(QStringView backend_exe, std::monostate)
 
     log::debug("thread pool size: {}", get_pool_size());
     {
-        d->m_backend  = ::make_box<Backend>(d->m_global->session());
+        d->m_backend = ::make_box<Backend>(d->m_global->session());
+        {
+            connect(d->m_backend.get(), &Backend::error, d->app_state, [d](QString err) {
+                QObject::connect(d->app_state, &AppState::retry, d->m_backend.get(), &Backend::on_retry);
+                d->app_state->set_state(AppState::Error { err });
+            }, Qt::QueuedConnection);
+        }
+
         auto data_dir = convert_from<QString>(data_path().string());
         d->m_backend->start(backend_exe, data_dir);
     }
@@ -237,8 +248,6 @@ void App::init() {
 
     _assert_msg_rel_(d->m_main_win, "main window must exist");
     _assert_msg_rel_(d->m_player_sender, "player must init");
-
-    global()->app_state()->set_state(state::AppState::Start {});
 }
 
 QString App::media_url(const QUrl& ori, const QString& id) const {
@@ -522,6 +531,17 @@ void App::save_settings() {
     QSettings s;
     s.setValue("play/loop", (int)playqueue()->loopMode());
 }
+
+auto App::info() const -> const model::AppInfo& {
+    C_D(const App);
+    return d->info;
+}
+
+auto App::app_state() const -> AppState* {
+    C_D(const App);
+    return d->app_state;
+}
+
 } // namespace qcm
 
 #include <Qcm/moc_app.cpp>

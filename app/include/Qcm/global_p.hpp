@@ -23,9 +23,7 @@ public:
 
     MetadataImpl metadata_impl;
 
-    model::AppInfo   info;
     QQmlComponent*   copy_action_comp;
-    state::AppState* app_state;
 
     mutable std::mutex                     mutex;
 };

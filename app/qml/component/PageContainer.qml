@@ -31,9 +31,9 @@ MD.StackView {
     }
     function switchTo(page_url, props, is_cache = true) {
         const key = JSON.stringify({
-                "url": page_url,
-                "props": props
-            });
+            "url": page_url,
+            "props": props
+        });
         if (key === m_current_page)
             return;
         switchByKey(key, page_url, props, is_cache);
@@ -44,7 +44,9 @@ MD.StackView {
 
     Component.onDestruction: {
         m_page_cache.forEach(page => {
-                return page.destroy();
-            });
+            return page.destroy();
+        });
     }
+    // replaceEnter: MD.FadeThrough {}
+    // pushEnter: MD.FadeThrough {}
 }

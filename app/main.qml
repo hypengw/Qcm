@@ -43,15 +43,15 @@ MD.ApplicationWindow {
     }
 
     function back() {
-        if (win_stack.currentItem.canBack) {
-            win_stack.currentItem.back();
+        if (m_win_stack.currentItem.canBack) {
+            m_win_stack.currentItem.back();
         } else {
             console.log("back to quit");
         }
     }
 
     QA.PageStack {
-        id: win_stack
+        id: m_win_stack
         anchors.fill: parent
 
         initialItem: comp_loading
@@ -60,39 +60,46 @@ MD.ApplicationWindow {
         MD.PageContext {
             id: m_stack_page_ctx
             radius: win.MD.MProp.size.isCompact ? 0 : MD.Token.shape.corner.large
-            showHeader: win_stack.depth > 1
+            showHeader: m_win_stack.depth > 1
             leadingAction: MD.Action {
                 icon.name: MD.Token.icon.arrow_back
                 onTriggered: {
-                    win_stack.pop();
+                    m_win_stack.pop();
                 }
             }
         }
 
+        Component.onCompleted: QA.App.appState.onQmlCompleted()
+
         Connections {
-            function onStart() {
-                win_stack.pop(null);
-                win_stack.replace(win_stack.currentItem, comp_login);
+            function onLoading() {
+                m_win_stack.pop(null);
+                m_win_stack.replace(m_win_stack.currentItem, comp_loading);
             }
-            function onSession() {
-                win_stack.pop(null);
-                win_stack.replace(win_stack.currentItem, comp_main);
+            function onWelcome() {
+                m_win_stack.pop(null);
+                m_win_stack.replace(m_win_stack.currentItem, comp_login);
+            }
+            function onMain() {
+                m_win_stack.pop(null);
+                m_win_stack.replace(m_win_stack.currentItem, comp_main);
             }
             function onError(err) {
-                win_stack.pop(null);
-                win_stack.replace(win_stack.currentItem, comp_retry, {
+                console.error(err);
+                m_win_stack.pop(null);
+                m_win_stack.replace(m_win_stack.currentItem, comp_retry, {
                     text: err,
                     retryCallback: () => {
-                        QA.Global.appState.rescue.reload();
+                        QA.App.appState.retry();
                     }
                 });
             }
-            target: QA.Global.appState
+            target: QA.App.appState
         }
         Connections {
             function onRoute_special(name) {
                 if (name === QA.Enum.SRLogin) {
-                    win_stack.push(comp_login);
+                    m_win_stack.push(comp_login);
                 }
             }
 
@@ -244,11 +251,6 @@ MD.ApplicationWindow {
     }
     Component {
         id: comp_loading
-        Item {
-            MD.CircularIndicator {
-                anchors.centerIn: parent
-                running: visible
-            }
-        }
+        QA.LoadingPage {}
     }
 }

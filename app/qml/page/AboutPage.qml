@@ -10,6 +10,8 @@ MD.Page {
     bottomPadding: radius
     scrolling: !m_flick.atYBeginning
 
+    readonly property QA.app_info info: QA.App.info
+
     MD.VerticalFlickable {
         id: m_flick
         anchors.fill: parent
@@ -38,18 +40,18 @@ MD.Page {
             MD.Text {
                 Layout.alignment: Qt.AlignHCenter
                 typescale: MD.Token.typescale.headline_small
-                text: QA.Global.info.name
+                text: root.info.name
             }
             MD.Text {
                 Layout.alignment: Qt.AlignHCenter
                 typescale: MD.Token.typescale.label_medium
                 opacity: 0.8
-                text: QA.Global.info.version
+                text: root.info.version
             }
             MD.Text {
                 Layout.alignment: Qt.AlignHCenter
                 typescale: MD.Token.typescale.label_large
-                text: QA.Global.info.author
+                text: root.info.author
             }
 
             MD.Text {
@@ -57,7 +59,7 @@ MD.Page {
                 Layout.bottomMargin: 8
                 Layout.alignment: Qt.AlignHCenter
                 typescale: MD.Token.typescale.body_large
-                text: QA.Global.info.summary
+                text: root.info.summary
             }
 
             MD.DrawerItem {

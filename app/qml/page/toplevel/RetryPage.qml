@@ -15,10 +15,12 @@ MD.Page {
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
 
-        MD.Text {
+        MD.Label {
             id: item_text
             Layout.alignment: Qt.AlignHCenter
             MD.MProp.textColor: MD.Token.color.error
+            maximumLineCount: 10
+            font.capitalization: Font.MixedCase
             typescale: MD.Token.typescale.label_large
         }
 

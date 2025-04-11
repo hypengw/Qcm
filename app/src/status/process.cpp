@@ -17,7 +17,6 @@ void qcm::process_msg(msg::QcmMessage&& msg) {
     }
     case M::PROVIDER_STATUS_MSG: {
         asio::post(qcm::qexecutor(), [msg = std::move(msg)] {
-            Global::instance()->app_state()->set_state(state::AppState::Session {});
             auto p = App::instance()->provider_status();
             for (auto& s : msg.providerStatusMsg().statuses()) {
                 log::info("{}", s.name());
@@ -25,7 +24,17 @@ void qcm::process_msg(msg::QcmMessage&& msg) {
             auto view = std::views::transform(msg.providerStatusMsg().statuses(), [](auto&& el) {
                 return qcm::model::ProviderStatus { el };
             });
+            auto size = view.size();
             p->sync(view);
+
+            auto state = App::instance()->app_state();
+            if (state->is_state<AppState::Loading>()) {
+                if (size == 0) {
+                    state->set_state(AppState::Welcome {});
+                } else {
+                    state->set_state(AppState::Main {});
+                }
+            }
         });
         break;
     }

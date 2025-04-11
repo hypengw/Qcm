@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/core.h"
+
 #include <QtCore/QObject>
 #include <QtGui/QGuiApplication>
 #include <QtQml/QQmlApplicationEngine>
@@ -11,8 +13,6 @@
 
 #include <asio/thread_pool.hpp>
 #include <asio/steady_timer.hpp>
-
-#include "core/core.h"
 
 #include "core/qasio/qt_executor.h"
 
@@ -55,6 +55,8 @@ class App : public QObject {
         qcm::ProviderMetaStatusModel* providerMetaStatus READ provider_meta_status CONSTANT FINAL)
     Q_PROPERTY(qcm::ProviderStatusModel* providerStatus READ provider_status CONSTANT FINAL)
     Q_PROPERTY(qcm::PageModel* pages READ pages CONSTANT FINAL)
+    Q_PROPERTY(qcm::model::AppInfo info READ info CONSTANT FINAL)
+    Q_PROPERTY(qcm::AppState* appState READ app_state CONSTANT FINAL)
 
     friend class qml::Util;
 
@@ -105,6 +107,8 @@ public:
     auto        provider_status() const -> ProviderStatusModel*;
     auto        pages() const -> PageModel*;
     auto        store() const -> AppStore*;
+    auto        info() const -> const model::AppInfo&;
+    auto        app_state() const -> AppState*;
     void        switchPlayIdQueue();
 
     QObject* mpris() const;

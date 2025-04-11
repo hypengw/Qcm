@@ -64,12 +64,13 @@ Item {
             if (root.song_cover)
                 meta[key(QA.MprisMediaPlayer.MetaArtUrl)] = root.song_cover;
             meta[key(QA.MprisMediaPlayer.MetaTitle)] = song.name;
-            meta[key(QA.MprisMediaPlayer.MetaAlbum)] = song.album.name;
-            const artist = song.artists.map(a => {
-                return a.name;
-            });
-            meta[key(QA.MprisMediaPlayer.MetaArtist)] = artist;
-            meta[key(QA.MprisMediaPlayer.MetaAlbumArtist)] = artist;
+            meta[key(QA.MprisMediaPlayer.MetaAlbum)] = song.albumName;
+            // TODO:
+            // const artist = song.artists.map(a => {
+            //     return a.name;
+            // });
+            // meta[key(QA.MprisMediaPlayer.MetaArtist)] = artist;
+            // meta[key(QA.MprisMediaPlayer.MetaAlbumArtist)] = artist;
             meta[key(QA.MprisMediaPlayer.MetaLength)] = player.duration * 1000;
             return meta;
         });
