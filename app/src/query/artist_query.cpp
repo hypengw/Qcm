@@ -24,8 +24,10 @@ void ArtistsQuery::reload() {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
         self->inspect_set(rsp, [self](msg::GetArtistsRsp& el) {
-            self->tdata()->resetModel(el.items());
-            self->tdata()->setHasMore(el.hasMore());
+            auto t = self->tdata();
+            t->setHasMore(false);
+            t->resetModel(el.items());
+            t->setHasMore(el.hasMore());
         });
         co_return;
     });

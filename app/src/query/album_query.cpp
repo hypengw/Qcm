@@ -26,13 +26,15 @@ void AlbumsQuery::reload() {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
         self->inspect_set(rsp, [self](msg::GetAlbumsRsp& el) {
-            self->tdata()->resetModel(el.items());
+            auto t = self->tdata();
+            t->setHasMore(false);
+            t->resetModel(el.items());
             auto store = AppStore::instance();
             for (qsizetype i = 0; i < el.extras().size(); i++) {
                 auto id = el.items().at(i).id_proto();
                 merge_store_extra(store->albums, id, el.extras().at(i));
             }
-            self->tdata()->setHasMore(el.hasMore());
+            t->setHasMore(el.hasMore());
         });
         co_return;
     });
