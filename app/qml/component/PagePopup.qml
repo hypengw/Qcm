@@ -76,6 +76,13 @@ MD.Popup {
         implicitHeight: currentItem.implicitHeight
         implicitWidth: currentItem.implicitWidth
 
+        Behavior on implicitHeight {
+            NumberAnimation {
+                easing.type: Easing.InOutQuad
+                duration: 350
+            }
+        }
+
         Connections {
             function onPushItem(comp, props) {
                 m_stack.pushItem(comp, props, T.StackView.PushTransition);

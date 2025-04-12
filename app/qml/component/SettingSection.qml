@@ -10,6 +10,30 @@ MD.Pane {
     padding: 0
     font.capitalization: Font.Capitalize
 
+    signal columnChanged
+    onColumnChanged: {
+        if (!visible)
+            return;
+        const children = m_column.children.filter(el => {
+            const ok = el instanceof QA.SettingRow;
+            if (ok) {
+                el.start = false;
+                el.end = false;
+            }
+            return ok && el.visible;
+        });
+        let start = children[0];
+        if (start)
+            start.start = true;
+        let end = children[children.length - 1];
+        if (end)
+            end.end = true;
+    }
+    Component.onCompleted: {
+        visibleChanged.connect(columnChanged);
+        columnChanged();
+    }
+
     ColumnLayout {
         id: m_column
         anchors.fill: parent
@@ -22,17 +46,6 @@ MD.Pane {
             MD.MProp.textColor: MD.Token.color.primary
             typescale: MD.Token.typescale.title_medium
             visible: text
-        }
-
-        Component.onCompleted: {
-            let start = m_column.children[1];
-            if (start instanceof QA.SettingRow) {
-                start.start = true;
-            }
-            let end = m_column.children[m_column.children.length - 1];
-            if (end instanceof QA.SettingRow) {
-                end.end = true;
-            }
         }
     }
 }

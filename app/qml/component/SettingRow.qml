@@ -22,10 +22,10 @@ MD.ListItem {
         target: root
     }
 
-    Component.onCompleted:
-    // if (root.actionItem?.clicked)
-    //     clicked.connect(root.actionItem.clicked);
-    // if (root.actionItem?.checkable)
-    //     clicked.connect(root.actionItem.toggle);
-    {}
+    Component.onCompleted: {
+        if (root.trailing?.clicked)
+            clicked.connect(root.trailing.clicked);
+        if (root.trailing?.checkable)
+            clicked.connect(root.trailing.toggle);
+    }
 }

@@ -7,7 +7,7 @@ import Qcm.Material as MD
 MD.Page {
     id: root
     font.capitalization: Font.Capitalize
-    title: qsTr('settings')
+    title: qsTr('audio')
     bottomPadding: radius
     scrolling: !m_flick.atYBeginning
 
@@ -24,76 +24,71 @@ MD.Page {
             Component.onCompleted: {}
         }
 
-        ColumnLayout {
-            height: implicitHeight
-            spacing: 12
+        QA.SettingSection {
+            id: m_audio
             width: parent.width
-            SettingSection {
-                id: sec_audio
-                Layout.fillWidth: true
-                title: qsTr('audio')
+            height: implicitHeight
+            spacing: 2
+            horizontalPadding: 16
 
-                SettingRow {
+            QA.SettingRow {
+                text: `${qsTr('Fade When Play/Pause')}: ${slider_fade.value} ms`
+                font.capitalization: Font.MixedCase
+                canInput: false
+                below: MD.Slider {
+                    id: slider_fade
                     Layout.fillWidth: true
-                    text: `${qsTr('Fade When Play/Pause')}: ${slider_fade.value} ms`
-                    font.capitalization: Font.MixedCase
-                    canInput: false
-                    belowItem: MD.Slider {
-                        id: slider_fade
-                        Layout.fillWidth: true
-                        from: 0
-                        stepSize: 20
-                        to: 1000
-                        onMoved: {
-                            QA.Global.player.fadeTime = value;
-                        }
-                        Component.onCompleted: {
-                            value = QA.Global.player.fadeTime;
-                        }
+                    from: 0
+                    stepSize: 20
+                    to: 1000
+                    onMoved: {
+                        QA.Global.player.fadeTime = value;
+                    }
+                    Component.onCompleted: {
+                        value = QA.Global.player.fadeTime;
                     }
                 }
-                SettingRow {
-                    Layout.fillWidth: true
-                    text: qsTr('streaming quality')
-                    canInput: !comb_playing_quality.popup.visible
+            }
+            QA.SettingRow {
+                text: qsTr('streaming quality')
+                canInput: !comb_playing_quality.popup.visible
 
-                    actionItem: MD.ComboBox {
-                        id: comb_playing_quality
-                        signal clicked
+                trailing: MD.ComboBox {
+                    id: comb_playing_quality
+                    signal clicked
 
-                        textRole: "text"
-                        valueRole: "value"
+                    textRole: "text"
+                    valueRole: "value"
 
-                        model: ListModel {}
+                    model: ListModel {}
 
-                        Component.onCompleted: {
-                            [
-                                {
-                                    "text": qsTr('Standard'),
-                                    "value": QA.Enum.AQStandard
-                                },
-                                {
-                                    "text": qsTr('Higher'),
-                                    "value": QA.Enum.AQHigher
-                                },
-                                {
-                                    "text": qsTr('Exhigh'),
-                                    "value": QA.Enum.AQExhigh
-                                },
-                                {
-                                    "text": qsTr('Lossless'),
-                                    "value": QA.Enum.AQLossless
-                                }
-                            ].map(el => model.append(el));
-                            currentIndex = indexOfValue(settings_audio.streaming_quality);
-                            settings_audio.streaming_quality = Qt.binding(() => {
-                                return comb_playing_quality.currentValue;
-                            });
-                        }
+                    Component.onCompleted: {
+                        [
+                            {
+                                "text": qsTr('Standard'),
+                                "value": QA.Enum.AQStandard
+                            },
+                            {
+                                "text": qsTr('Higher'),
+                                "value": QA.Enum.AQHigher
+                            },
+                            {
+                                "text": qsTr('Exhigh'),
+                                "value": QA.Enum.AQExhigh
+                            },
+                            {
+                                "text": qsTr('Lossless'),
+                                "value": QA.Enum.AQLossless
+                            }
+                        ].map(el => model.append(el));
+                        currentIndex = indexOfValue(settings_audio.streaming_quality);
+                        settings_audio.streaming_quality = Qt.binding(() => {
+                            return comb_playing_quality.currentValue;
+                        });
+                    }
 
-                        onClicked: {
-                            popup.open();
-                        }
+                    onClicked: {
+                        popup.open();
                     }
                 }
             }

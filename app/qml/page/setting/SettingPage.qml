@@ -42,9 +42,9 @@ MD.Page {
                 icon.name: MD.Token.icon.router
                 text: 'Network'
                 supportText: ''
-                onClicked: {
-                    root.MD.MProp.page.pushItem('qrc:/Qcm/App/qml/page/setting/NetworkSetting.qml');
-                }
+                onClicked:
+                // root.MD.MProp.page.pushItem('qrc:/Qcm/App/qml/page/setting/NetworkSetting.qml');
+                {}
             }
         }
     }

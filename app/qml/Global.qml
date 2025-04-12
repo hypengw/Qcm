@@ -32,6 +32,7 @@ QA.GlobalWrapper {
     property bool use_system_color_scheme: true
     property bool use_system_accent_color: true
     property color primary_color: MD.Token.color.accentColor
+    property int palette_type: MD.Token.color.paletteType
 
     property int cover_quality: -1
     readonly property string user_setting_category: 'user_test'//`user_${user_info.userId.sid}`
@@ -94,28 +95,26 @@ QA.GlobalWrapper {
         property alias use_system_color_scheme: root.use_system_color_scheme
         property alias use_system_accent_color: root.use_system_accent_color
         property alias primary_color: root.primary_color
+        property alias palette_type: root.palette_type
         category: 'theme'
 
         Component.onCompleted: {
-            MD.Token.color.useSysColorSM = Qt.binding(() => {
-                return root.use_system_color_scheme;
-            });
-            MD.Token.color.useSysAccentColor = Qt.binding(() => {
-                return root.use_system_accent_color;
-            });
             MD.Token.color.accentColor = Qt.binding(() => {
-                return primary_color;
+                return root.primary_color;
             });
             MD.Token.themeMode = Qt.binding(() => {
                 return root.color_scheme;
             });
+            MD.Token.color.paletteType = Qt.binding(() => {
+                return root.palette_type;
+            });
+            MD.Token.color.useSysAccentColor = Qt.binding(() => {
+                return root.use_system_accent_color;
+            });
+            MD.Token.color.useSysColorSM = Qt.binding(() => {
+                return root.use_system_color_scheme;
+            });
 
-            if (root.use_system_accent_color) {
-                root.primary_color = MD.Token.color.accentColor;
-            }
-            if (root.use_system_color_scheme) {
-                root.color_scheme = MD.Token.themeMode;
-            }
         }
     }
 
