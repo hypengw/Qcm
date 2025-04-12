@@ -157,10 +157,16 @@ App::App(QStringView backend_exe, std::monostate)
     {
         d->m_backend = ::make_box<Backend>(d->m_global->session());
         {
-            connect(d->m_backend.get(), &Backend::error, d->app_state, [d](QString err) {
-                QObject::connect(d->app_state, &AppState::retry, d->m_backend.get(), &Backend::on_retry);
-                d->app_state->set_state(AppState::Error { err });
-            }, Qt::QueuedConnection);
+            connect(
+                d->m_backend.get(),
+                &Backend::error,
+                d->app_state,
+                [d](QString err) {
+                    QObject::connect(
+                        d->app_state, &AppState::retry, d->m_backend.get(), &Backend::on_retry);
+                    d->app_state->set_state(AppState::Error { err });
+                },
+                Qt::QueuedConnection);
         }
 
         auto data_dir = convert_from<QString>(data_path().string());
@@ -237,8 +243,7 @@ void App::init() {
     }
 
     engine->addImageProvider("qcm", new QcmImageProvider);
-
-    engine->load(u"qrc:/main/main.qml"_s);
+    engine->loadFromModule("Qcm.App", "Window");
 
     for (auto el : engine->rootObjects()) {
         if (auto win = qobject_cast<QQuickWindow*>(el)) {
@@ -248,20 +253,6 @@ void App::init() {
 
     _assert_msg_rel_(d->m_main_win, "main window must exist");
     _assert_msg_rel_(d->m_player_sender, "player must init");
-}
-
-QString App::media_url(const QUrl& ori, const QString& id) const {
-    C_D(const App);
-    return "";
-}
-
-QString App::md5(QString txt) const {
-    auto opt = crypto::digest(crypto::md5(), convert_from<std::vector<byte>>(txt.toStdString()))
-                   .map([](auto in) {
-                       return convert_from<QString>(crypto::hex::encode_low(in));
-                   });
-    _assert_(opt);
-    return *opt;
 }
 
 void App::triggerCacheLimit() {
@@ -425,7 +416,7 @@ img rsp: {}
                info.mmap_num,
                as_mb(info.mmap),
                as_mb(info.totle_in_use),
-               qml_dyn_count().load(),
+               0,
                image_response_count().load());
 }
 

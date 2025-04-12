@@ -53,9 +53,12 @@ MD.Popup {
         leadingAction: MD.Action {
             icon.name: MD.Token.icon.arrow_back
             onTriggered: {
-                if (loader.item?.canBack)
-                    loader.item.back();
-                else {
+                const cur = m_stack.currentItem;
+                if (cur?.canBack) {
+                    cur.back();
+                } else if (m_stack.depth > 1) {
+                    m_stack.pop();
+                } else {
                     root.close();
                 }
             }
@@ -65,12 +68,20 @@ MD.Popup {
     MD.MProp.page: m_page_context
 
     onSourceChanged: {
-        loader.setSource(source, props);
+        m_stack.replaceCurrentItem(source, props);
     }
 
-    contentItem: Loader {
-        id: loader
-        asynchronous: false
+    contentItem: MD.StackView {
+        id: m_stack
+        implicitHeight: currentItem.implicitHeight
+        implicitWidth: currentItem.implicitWidth
+
+        Connections {
+            function onPushItem(comp, props) {
+                m_stack.pushItem(comp, props, T.StackView.PushTransition);
+            }
+            target: m_page_context
+        }
     }
     closePolicy: T.Popup.CloseOnEscape | T.Popup.CloseOnPressOutside
 }

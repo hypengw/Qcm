@@ -57,6 +57,7 @@ set(QML_FILES
     qml/Drawer.qml
     qml/DrawerContent.qml
     qml/Global.qml
+    qml/Window.qml
     qml/page/detail/AlbumDetailPage.qml
     qml/page/detail/ArtistDetailPage.qml
     qml/page/detail/RadioDetailPage.qml
@@ -68,7 +69,6 @@ set(QML_FILES
     qml/page/CommentPage.qml
     qml/page/DescriptionPage.qml
     qml/page/ProviderMetaPage.qml
-    qml/page/SettingsPage.qml
     qml/page/SearchPage.qml
     qml/page/PlayingPage.qml
     qml/page/PlayQueuePage.qml
@@ -98,6 +98,9 @@ set(QML_FILES
     qml/component/PageStack.qml
     qml/component/VolumeButton.qml
     qml/component/SyncingLabel.qml
+    qml/component/ByteSlider.qml
+    qml/component/SettingRow.qml
+    qml/component/SettingSection.qml
     qml/action/AppendListAction.qml
     qml/action/PlaynextAction.qml
     qml/action/CommentAction.qml
@@ -118,7 +121,13 @@ set(QML_FILES
     qml/menu/ArtistMenu.qml
     qml/menu/RadioMenu.qml
     qml/menu/MixMenu.qml
-    qml/menu/ProgramMenu.qml)
+    qml/menu/ProgramMenu.qml
+    qml/page/setting/SettingPage.qml
+    qml/page/setting/AudioSetting.qml
+    qml/page/setting/MiscSetting.qml
+    qml/page/setting/NetworkSetting.qml
+    qml/page/setting/StorageSetting.qml
+    qml/page/setting/ThemeSetting.qml)
 set(RESOURCES assets/Qcm.svg)
 
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
@@ -198,19 +207,9 @@ target_link_libraries(
          "message"
          "$<$<TARGET_EXISTS:mpris>:mpris>")
 
-qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cpp)
+qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION src/main.cpp)
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_SCAN_FOR_MODULES ON)
 target_compile_definitions(${PROJECT_NAME} PRIVATE "${APP_INFO_MACROS}")
-
-qt_add_qml_module(
-  ${PROJECT_NAME}
-  URI
-  main
-  QML_FILES
-  main.qml
-  SOURCES
-  RESOURCE_PREFIX
-  /)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE app appplugin kdsingleapplication)
 

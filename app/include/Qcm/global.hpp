@@ -37,10 +37,6 @@ struct StopSignal {
     bool val { false };
 };
 
-auto qml_dyn_count() -> std::atomic<i32>&;
-auto create_item(QQmlEngine* engine, const QJSValue& url_or_comp,
-                                   const QVariantMap& props, QObject* parent) -> QObject*;
-
 auto image_provider_url(const QUrl& url, const QString& provider) -> QUrl;
 auto parse_image_provider_url(const QUrl& url) -> std::tuple<QUrl, QString>;
 

@@ -211,68 +211,6 @@ auto parse_image_provider_url(const QUrl& url) -> std::tuple<QUrl, QString> {
         return {};
     }
 }
-
-auto qml_dyn_count() -> std::atomic<i32>& {
-    static std::atomic<i32> n { 0 };
-    return n;
-}
-
-auto create_item(QQmlEngine* engine, const QJSValue& url_or_comp, const QVariantMap& props,
-                 QObject* parent) -> QObject* {
-    std::unique_ptr<QQmlComponent, void (*)(QQmlComponent*)> comp { nullptr, nullptr };
-    if (auto p = qobject_cast<QQmlComponent*>(url_or_comp.toQObject())) {
-        comp = decltype(comp)(p, [](QQmlComponent*) {
-        });
-    } else if (auto p = url_or_comp.toVariant(); ! p.isNull()) {
-        QUrl url;
-        if (p.canConvert<QUrl>()) {
-            url = p.toUrl();
-        } else if (p.canConvert<QString>()) {
-            url = p.toString();
-        }
-
-        comp = decltype(comp)(new QQmlComponent(engine, url, nullptr), [](QQmlComponent* q) {
-            delete q;
-        });
-    } else {
-        log::error("url not valid");
-        return nullptr;
-    }
-
-    switch (comp->status()) {
-    case QQmlComponent::Status::Ready: {
-        QObject* obj { nullptr };
-        QMetaObject::invokeMethod(comp.get(),
-                                  "createObject",
-                                  Q_RETURN_ARG(QObject*, obj),
-                                  Q_ARG(QObject*, parent),
-                                  Q_ARG(const QVariantMap&, props));
-        if (obj != nullptr) {
-            qml_dyn_count()++;
-            auto name = obj->metaObject()->className();
-            QObject::connect(obj, &QObject::destroyed, [name](QObject*) {
-                DEBUG_LOG("dyn_delete {}", name);
-                qml_dyn_count()--;
-            });
-        } else {
-            log::error("{}", comp->errorString());
-        }
-        return obj;
-        break;
-    }
-    case QQmlComponent::Status::Error: {
-        log::error("{}", comp->errorString());
-        break;
-    }
-    case QQmlComponent::Status::Loading: {
-        log::error("use before loading");
-        break;
-    }
-    default: break;
-    }
-    return nullptr;
-}
-
 } // namespace qcm
 
 #include <Qcm/moc_global.cpp>

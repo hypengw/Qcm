@@ -115,9 +115,6 @@ public:
 
     bool debug() const;
 
-    Q_INVOKABLE QString media_url(const QUrl& ori, const QString& id) const;
-    Q_INVOKABLE QString md5(QString) const;
-
     Q_INVOKABLE bool    isItemId(const QJSValue&) const;
     Q_INVOKABLE QString itemIdPageUrl(const QJSValue&) const;
 

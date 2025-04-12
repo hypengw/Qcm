@@ -90,7 +90,7 @@ int Util::dyn_card_width(qint32 containerWidth, qint32 spacing) const {
 QUrl Util::special_route_url(enums::SpecialRoute r) const {
     using SR = enums::SpecialRoute;
     switch (r) {
-    case SR::SRSetting: return u"qrc:/Qcm/App/qml/page/SettingsPage.qml"_s;
+    case SR::SRSetting: return u"qrc:/Qcm/App/qml/page/setting/SettingPage.qml"_s;
     case SR::SRAbout: return u"qrc:/Qcm/App/qml/page/AboutPage.qml"_s;
     case SR::SRStatus: return u"qrc:/Qcm/App/qml/page/StatusPage.qml"_s;
     case SR::SRSearch: return u"qrc:/Qcm/App/qml/page/SearchPage.qml"_s;
