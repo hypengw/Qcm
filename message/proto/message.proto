@@ -10,17 +10,19 @@ enum MessageType {
   RSP = 1;
   TEST_REQ = 2;
   TEST_RSP = 3;
+
   GET_PROVIDER_METAS_REQ = 4;
   GET_PROVIDER_METAS_RSP = 5;
   ADD_PROVIDER_REQ = 6;
-  PROVIDER_META_STATUS_MSG = 7;
-  PROVIDER_STATUS_MSG = 8;
-  PROVIDER_SYNC_STATUS_MSG = 9;
+  ADD_PROVIDER_RSP = 7;
+  PROVIDER_META_STATUS_MSG = 8;
+  PROVIDER_STATUS_MSG = 9;
+  PROVIDER_SYNC_STATUS_MSG = 10;
 
-  GET_ALBUMS_REQ = 10;
-  GET_ALBUMS_RSP = 11;
-  GET_ALBUM_REQ = 12;
-  GET_ALBUM_RSP = 13;
+  GET_ALBUMS_REQ = 60;
+  GET_ALBUMS_RSP = 61;
+  GET_ALBUM_REQ = 62;
+  GET_ALBUM_RSP = 63;
 
   GET_ARTISTS_REQ = 20;
   GET_ARTISTS_RSP = 21;
@@ -94,6 +96,11 @@ message AddProviderReq {
   string name = 1;
   string type_name = 2;
   qcm.msg.model.AuthInfo auth_info = 3;
+}
+
+message AddProviderRsp {
+  qcm.msg.model.AuthResult code = 1;
+  string detail = 2;
 }
 
 message ProviderMetaStatusMsg {
@@ -207,17 +214,19 @@ message QcmMessage {
     Rsp rsp = 100;
     TestReq test_req = 101;
     TestRsp test_rsp = 102;
+
     GetProviderMetasReq get_provider_metas_req = 103;
     GetProviderMetasRsp get_provider_metas_rsp = 104;
     AddProviderReq add_provider_req = 105;
-    ProviderMetaStatusMsg provider_meta_status_msg = 106;
-    ProviderStatusMsg provider_status_msg = 107;
-    ProviderSyncStatusMsg provider_sync_status_msg = 108;
+    AddProviderRsp add_provider_rsp = 106;
+    ProviderMetaStatusMsg provider_meta_status_msg = 107;
+    ProviderStatusMsg provider_status_msg = 108;
+    ProviderSyncStatusMsg provider_sync_status_msg = 109;
 
-    GetAlbumsReq get_albums_req = 110;
-    GetAlbumsRsp get_albums_rsp = 111;
-    GetAlbumReq get_album_req = 112;
-    GetAlbumRsp get_album_rsp = 113;
+    GetAlbumsReq get_albums_req = 160;
+    GetAlbumsRsp get_albums_rsp = 161;
+    GetAlbumReq get_album_req = 162;
+    GetAlbumRsp get_album_rsp = 163;
 
     GetArtistsReq get_artists_req = 120;
     GetArtistsRsp get_artists_rsp = 121;

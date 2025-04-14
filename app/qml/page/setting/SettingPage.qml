@@ -16,35 +16,53 @@ MD.Page {
         leftMargin: 0
         rightMargin: 0
 
-        QA.SettingSection {
-            spacing: 2
+        ColumnLayout {
             width: parent.width
             height: implicitHeight
-            horizontalPadding: 16
+            QA.SettingSection {
+                Layout.fillWidth: true
+                spacing: 2
+                horizontalPadding: 16
+                QA.SettingRow {
+                    icon.name: MD.Token.icon.hard_drive
+                    text: 'provider manage'
+                    supportText: ''
+                    onClicked: {
+                        root.MD.MProp.page.pushItem('qrc:/Qcm/App/qml/page/setting/ProviderManagePage.qml');
+                    }
+                }
+            }
 
-            QA.SettingRow {
-                icon.name: MD.Token.icon.palette
-                text: 'Theme'
-                supportText: ''
-                onClicked: {
-                    root.MD.MProp.page.pushItem('qrc:/Qcm/App/qml/page/setting/ThemeSetting.qml');
+            MD.Divider {}
+
+            QA.SettingSection {
+                Layout.fillWidth: true
+                spacing: 2
+                horizontalPadding: 16
+                QA.SettingRow {
+                    icon.name: MD.Token.icon.palette
+                    text: 'Theme'
+                    supportText: ''
+                    onClicked: {
+                        root.MD.MProp.page.pushItem('qrc:/Qcm/App/qml/page/setting/ThemeSetting.qml');
+                    }
                 }
-            }
-            QA.SettingRow {
-                icon.name: MD.Token.icon.media_output
-                text: 'Audio'
-                supportText: ''
-                onClicked: {
-                    root.MD.MProp.page.pushItem('qrc:/Qcm/App/qml/page/setting/AudioSetting.qml');
+                QA.SettingRow {
+                    icon.name: MD.Token.icon.media_output
+                    text: 'Audio'
+                    supportText: ''
+                    onClicked: {
+                        root.MD.MProp.page.pushItem('qrc:/Qcm/App/qml/page/setting/AudioSetting.qml');
+                    }
                 }
-            }
-            QA.SettingRow {
-                icon.name: MD.Token.icon.router
-                text: 'Network'
-                supportText: ''
-                onClicked:
-                // root.MD.MProp.page.pushItem('qrc:/Qcm/App/qml/page/setting/NetworkSetting.qml');
-                {}
+                QA.SettingRow {
+                    icon.name: MD.Token.icon.router
+                    text: 'Network'
+                    supportText: ''
+                    onClicked:
+                    // root.MD.MProp.page.pushItem('qrc:/Qcm/App/qml/page/setting/NetworkSetting.qml');
+                    {}
+                }
             }
         }
     }

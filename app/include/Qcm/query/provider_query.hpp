@@ -14,11 +14,12 @@ public:
     void reload() override;
 };
 
-class AddProviderQuery : public QAsyncResultT<msg::Rsp> {
+class AddProviderQuery : public QAsyncResultT<msg::AddProviderRsp> {
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(msg::AddProviderReq req READ req WRITE setReq NOTIFY reqChanged)
+    Q_PROPERTY(msg::AddProviderReq req READ req WRITE setReq NOTIFY reqChanged FINAL)
+    Q_PROPERTY(QString failed READ failed NOTIFY failedChanged FINAL)
 public:
     AddProviderQuery(QObject* parent = nullptr);
     void reload() override;
@@ -26,9 +27,14 @@ public:
     auto req() -> msg::AddProviderReq&;
     void setReq(msg::AddProviderReq&);
 
+    auto failed() const -> const QString&;
+    void setFailed(QStringView);
+
     Q_SIGNAL void reqChanged();
+    Q_SIGNAL void failedChanged();
 
 private:
     msg::AddProviderReq m_req;
+    QString m_failed;
 };
 } // namespace qcm::query

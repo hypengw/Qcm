@@ -83,7 +83,8 @@ auto get_msg(msg::QcmMessage& msg) -> Option<T> {
 QCM_MSG_TRAITS_REQ(GetProviderMetasReq, GetProviderMetasRsp, GET_PROVIDER_METAS_REQ,
                    getProviderMetasReq)
 QCM_MSG_TRAITS_RSP(GetProviderMetasRsp, GetProviderMetasReq, getProviderMetasRsp)
-QCM_MSG_TRAITS_REQ(AddProviderReq, Rsp, ADD_PROVIDER_REQ, addProviderReq)
+QCM_MSG_TRAITS_REQ(AddProviderReq, AddProviderRsp, ADD_PROVIDER_REQ, addProviderReq)
+QCM_MSG_TRAITS_RSP(AddProviderRsp, AddProviderReq, addProviderRsp)
 
 QCM_MSG_TRAITS_REQ(GetAlbumsReq, GetAlbumsRsp, GET_ALBUMS_REQ, getAlbumsReq)
 QCM_MSG_TRAITS_REQ(GetAlbumReq, GetAlbumRsp, GET_ALBUM_REQ, getAlbumReq)

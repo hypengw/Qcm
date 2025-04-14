@@ -78,7 +78,7 @@ MD.ApplicationWindow {
             }
             function onWelcome() {
                 m_win_stack.pop(null);
-                m_win_stack.replace(m_win_stack.currentItem, comp_login);
+                m_win_stack.replace(m_win_stack.currentItem, comp_welcome);
             }
             function onMain() {
                 m_win_stack.pop(null);
@@ -99,7 +99,7 @@ MD.ApplicationWindow {
         Connections {
             function onRoute_special(name) {
                 if (name === QA.Enum.SRLogin) {
-                    m_win_stack.push(comp_login);
+                    m_win_stack.push(comp_welcome);
                 }
             }
 
@@ -242,8 +242,8 @@ MD.ApplicationWindow {
         }
     }
     Component {
-        id: comp_login
-        QA.LoginPage {}
+        id: comp_welcome
+        QA.WelcomePage {}
     }
     Component {
         id: comp_retry

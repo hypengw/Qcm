@@ -111,6 +111,12 @@ message EmailAuth {
   string pw = 2;
 }
 
+enum AuthType {
+  USERNAME_AUTH = 0;
+  PHONE_AUTH = 1;
+  EMAIL_AUTH = 2;
+}
+
 message AuthInfo {
   string server_url = 1;
   oneof method {
@@ -126,6 +132,7 @@ message ProviderMeta {
   bool mutable = 3;
   bool is_script = 4;
   bool has_server_url = 5;
+  repeated int32 auth_types = 6;
 }
 
 enum SyncState {
@@ -148,4 +155,13 @@ message ProviderStatus {
   string type_name = 3;
   ProviderSyncStatus sync_status = 4;
   repeated Library libraries = 5;
+}
+
+enum AuthResult {
+  Ok = 0;
+  Failed = 1;
+  WrongPassword = 2;
+  NoSuchUsername = 3;
+  NoSuchEmail = 4;
+  NoSuchPhone = 5;
 }

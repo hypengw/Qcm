@@ -62,9 +62,10 @@ set(QML_FILES
     qml/page/detail/ArtistDetailPage.qml
     qml/page/detail/RadioDetailPage.qml
     qml/page/detail/MixDetailPage.qml
-    qml/page/toplevel/LoginPage.qml
+    qml/page/toplevel/WelcomePage.qml
     qml/page/toplevel/RetryPage.qml
     qml/page/toplevel/LoadingPage.qml
+    qml/page/AddProviderPage.qml
     qml/page/AboutPage.qml
     qml/page/CommentPage.qml
     qml/page/DescriptionPage.qml
@@ -127,7 +128,8 @@ set(QML_FILES
     qml/page/setting/MiscSetting.qml
     qml/page/setting/NetworkSetting.qml
     qml/page/setting/StorageSetting.qml
-    qml/page/setting/ThemeSetting.qml)
+    qml/page/setting/ThemeSetting.qml
+    qml/page/setting/ProviderManagePage.qml)
 set(RESOURCES assets/Qcm.svg)
 
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)

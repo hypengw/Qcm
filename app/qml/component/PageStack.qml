@@ -17,6 +17,16 @@ MD.StackView {
         }
     }
 
+    implicitHeight: currentItem.implicitHeight
+    implicitWidth: currentItem.implicitWidth
+
+    Behavior on implicitHeight {
+        NumberAnimation {
+            easing.type: Easing.InOutQuad
+            duration: 350
+        }
+    }
+
     function push_page(url, props = {}) {
         const key = JSON.stringify({
             "url": url,

@@ -7,9 +7,16 @@
 namespace qcm::query
 {
 
-AddProviderQuery::AddProviderQuery(QObject* parent): QAsyncResultT<msg::Rsp>(parent) {
+AddProviderQuery::AddProviderQuery(QObject* parent): QAsyncResultT<msg::AddProviderRsp>(parent) {
     set_forwardError(true);
 }
+auto AddProviderQuery::failed() const -> const QString& { return m_failed; }
+void AddProviderQuery::setFailed(QStringView v) {
+    if (ycore::cmp_exchange(m_failed, v.toString())) {
+        failedChanged();
+    }
+}
+
 void AddProviderQuery::reload() {
     set_status(Status::Querying);
     auto backend = App::instance()->backend();
@@ -17,6 +24,34 @@ void AddProviderQuery::reload() {
     spawn([self, backend, req = m_req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
+        rsp.inspect([&self](auto& rsp) {
+            using R = qcm::msg::model::AuthResultGadget::AuthResult;
+            switch (rsp.code()) {
+            case R::Failed: {
+                self->setFailed(u"Failed");
+                break;
+            }
+            case R::NoSuchEmail: {
+                self->setFailed(u"No such email");
+                break;
+            }
+            case R::NoSuchPhone: {
+                self->setFailed(u"No such phone");
+                break;
+            }
+            case R::NoSuchUsername: {
+                self->setFailed(u"No such username");
+                break;
+            }
+            case R::WrongPassword: {
+                self->setFailed(u"Wrong password");
+                break;
+            }
+            default: {
+                self->setFailed({});
+            }
+            }
+        });
         self->set(std::move(rsp));
         co_return;
     });
@@ -39,6 +74,7 @@ void ProviderMetasQuery::reload() {
     spawn([self, backend] -> task<void> {
         auto rsp = co_await backend->send(msg::GetProviderMetasReq {});
         co_await qcm::qexecutor_switch();
+
         self->set(std::move(rsp));
         co_return;
     });
