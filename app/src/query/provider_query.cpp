@@ -24,11 +24,11 @@ void AddProviderQuery::reload() {
     spawn([self, backend, req = m_req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
-        rsp.inspect([&self](auto& rsp) {
+        self->inspect_set(std::move(rsp), [&self](auto& rsp) {
             using R = qcm::msg::model::AuthResultGadget::AuthResult;
             switch (rsp.code()) {
             case R::Failed: {
-                self->setFailed(u"Failed");
+                self->setFailed(rstd::into(std::format("Failed: {}", rsp.message())));
                 break;
             }
             case R::NoSuchEmail: {
@@ -51,8 +51,8 @@ void AddProviderQuery::reload() {
                 self->setFailed({});
             }
             }
+            self->set_tdata(rsp);
         });
-        self->set(std::move(rsp));
         co_return;
     });
 }

@@ -87,6 +87,9 @@ MD.Popup {
             function onPushItem(comp, props) {
                 m_stack.pushItem(comp, props, T.StackView.PushTransition);
             }
+            function onPop() {
+                m_stack.pop();
+            }
             target: m_page_context
         }
     }

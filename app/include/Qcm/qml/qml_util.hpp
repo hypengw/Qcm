@@ -34,6 +34,7 @@ public:
 
     Q_INVOKABLE QUrl image_url(model::ItemId    id,
                                enums::ImageType image_type = enums::ImageType::ImagePrimary) const;
+    Q_INVOKABLE QUrl image_url(const QString&) const;
     Q_INVOKABLE QUrl audio_url(model::ItemId id) const;
 
     Q_INVOKABLE model::ItemId artistId(QString) const;

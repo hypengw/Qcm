@@ -111,10 +111,13 @@ message EmailAuth {
   string pw = 2;
 }
 
+message QrAuth { string key = 1; }
+
 enum AuthType {
   USERNAME_AUTH = 0;
   PHONE_AUTH = 1;
   EMAIL_AUTH = 2;
+  QR_AUTH = 3;
 }
 
 message AuthInfo {
@@ -123,6 +126,7 @@ message AuthInfo {
     UsernameAuth username = 2;
     PhoneAuth phone = 3;
     EmailAuth email = 4;
+    QrAuth qr = 5;
   }
 }
 
@@ -158,10 +162,14 @@ message ProviderStatus {
 }
 
 enum AuthResult {
-  Ok = 0;
-  Failed = 1;
-  WrongPassword = 2;
-  NoSuchUsername = 3;
-  NoSuchEmail = 4;
-  NoSuchPhone = 5;
+  Uinit = 0;
+  Ok = 1;
+  Failed = 2;
+  WrongPassword = 3;
+  NoSuchUsername = 4;
+  NoSuchEmail = 5;
+  NoSuchPhone = 6;
+  QrExpired = 20;
+  QrWaitScan = 21;
+  QrWaitComform = 22;
 }

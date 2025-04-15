@@ -78,15 +78,8 @@ public:
         co_return rsp_http->header().clone();
     }
 
-
-
-    task<QImage> request_image(ImageParam p, QSize req_size) {
-        // std::string key = cache_path.filename().native();
-        // if (! std::filesystem::exists(cache_path)) {
-        //     co_await cache_new_image(req, key, cache_path, req_size);
-        // }
-        auto b        = App::instance()->backend();
-        auto rsp_http = co_await b->image(p.item_type, p.item_id, p.image_type);
+    task<QImage> request_image(const ncrequest::Request& req, QSize req_size) {
+        auto rsp_http = (co_await m_session->get(req)).unwrap();
         auto bytes    = co_await rsp_http->bytes();
 
         QImage img;
@@ -101,8 +94,9 @@ public:
         co_return img;
     }
 
-    task<void> handle_request(rc<QcmAsyncImageResponse> rsp, ImageParam p, QSize req_size) {
-        auto img   = co_await request_image(p, req_size);
+    task<void> handle_request(rc<QcmAsyncImageResponse> rsp, const ncrequest::Request& req,
+                              QSize req_size) {
+        auto img   = co_await request_image(req, req_size);
         rsp->image = img;
         co_return;
     }
@@ -124,33 +118,22 @@ QQuickImageResponse* QcmImageProvider::requestImageResponse(const QString& id,
     do {
         if (id.isEmpty()) break;
 
-        ImageParam p = parse_image_url(rstd::into(std::format("image://qcm/{}", id)));
-        // ncrequest::Request req;
-        // if (auto c = Global::instance()->qsession()->client();
-        //     c && c->api->provider == provider.toStdString()) {
-        //     if (! c->api->make_request(
-        //             *(c->instance), req, url, Client::ReqInfoImg { requestedSize })) {
-        //         ERROR_LOG("make image req failed");
-        //         break;
-        //     }
-        // } else {
-        //     ERROR_LOG("client not found");
-        //     break;
-        // }
-        // std::filesystem::path file_path;
-        // if (auto opt = gen_image_cache_entry(provider, url, requestedSize)) {
-        //     file_path = opt.value();
-        // } else {
-        //     ERROR_LOG("gen cache entry failed");
-        //     break;
-        // }
+        auto req = rstd::None<ncrequest::Request>();
+
+        if (id.startsWith("http")) {
+            req = rstd::Some(ncrequest::Request { id.toStdString() });
+        } else {
+            ImageParam p = parse_image_url(rstd::into(std::format("image://qcm/{}", id)));
+            auto       b = App::instance()->backend();
+            req          = rstd::Some(b->image(p.item_type, p.item_id, p.image_type));
+        }
 
         auto alloc = asio::recycling_allocator<void>();
         auto ex    = asio::make_strand(m_inner->get_executor());
         rsp->wdog().spawn(
             ex,
-            [rsp, requestedSize, p, inner = m_inner]() -> task<void> {
-                co_await inner->handle_request(rsp, p, requestedSize);
+            [rsp, requestedSize, req = std::move(req), inner = m_inner]() -> task<void> {
+                co_await inner->handle_request(rsp, *req, requestedSize);
                 co_return;
             },
             asio::bind_allocator(alloc,

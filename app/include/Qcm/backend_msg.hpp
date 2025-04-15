@@ -86,6 +86,9 @@ QCM_MSG_TRAITS_RSP(GetProviderMetasRsp, GetProviderMetasReq, getProviderMetasRsp
 QCM_MSG_TRAITS_REQ(AddProviderReq, AddProviderRsp, ADD_PROVIDER_REQ, addProviderReq)
 QCM_MSG_TRAITS_RSP(AddProviderRsp, AddProviderReq, addProviderRsp)
 
+QCM_MSG_TRAITS_REQ(QrAuthUrlReq, QrAuthUrlRsp, QR_AUTH_URL_REQ, qrAuthUrlReq)
+QCM_MSG_TRAITS_RSP(QrAuthUrlRsp, QrAuthUrlReq, qrAuthUrlRsp)
+
 QCM_MSG_TRAITS_REQ(GetAlbumsReq, GetAlbumsRsp, GET_ALBUMS_REQ, getAlbumsReq)
 QCM_MSG_TRAITS_REQ(GetAlbumReq, GetAlbumRsp, GET_ALBUM_REQ, getAlbumReq)
 QCM_MSG_TRAITS_RSP(GetAlbumsRsp, GetAlbumsReq, getAlbumsRsp)

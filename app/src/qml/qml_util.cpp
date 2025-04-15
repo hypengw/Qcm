@@ -42,8 +42,13 @@ auto Util::create_route_msg(QVariantMap props) const -> model::RouteMsg {
     msg.props = (props.value("props").toMap());
     return msg;
 }
+
 auto Util::image_url(model::ItemId id, enums::ImageType image_type) const -> QUrl {
     return rstd::into(std::format("image://qcm/{}/{}/{}", id.type(), id.id(), image_type));
+}
+
+auto Util::image_url(const QString& url) const -> QUrl {
+    return rstd::into(std::format("image://qcm/{}", url));
 }
 
 auto Util::audio_url(model::ItemId id) const -> QUrl {

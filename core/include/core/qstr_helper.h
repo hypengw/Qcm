@@ -106,6 +106,11 @@ struct rstd::Impl<rstd::convert::From<std::string>, QUrl> {
     static auto from(std::string str) { return QString::fromStdString(std::move(str)); }
 };
 
+template<>
+struct rstd::Impl<rstd::convert::From<std::string>, QStringView> {
+    static auto from(std::string str) { return QString::fromStdString(std::move(str)); }
+};
+
 #if (QT_VERSION < QT_VERSION_CHECK(6, 8, 0))
 inline std::strong_ordering operator<=>(const QString& a, const QString& b) {
     return a < b ? std::strong_ordering::less

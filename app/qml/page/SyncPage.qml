@@ -17,6 +17,7 @@ MD.Page {
         rightMargin: 12
         topMargin: 8
         bottomMargin: 8
+        spacing: 8
         expand: true
 
         model: QA.App.providerStatus

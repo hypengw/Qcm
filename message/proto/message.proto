@@ -19,6 +19,9 @@ enum MessageType {
   PROVIDER_STATUS_MSG = 9;
   PROVIDER_SYNC_STATUS_MSG = 10;
 
+  QR_AUTH_URL_REQ = 11;
+  QR_AUTH_URL_RSP = 12;
+
   GET_ALBUMS_REQ = 60;
   GET_ALBUMS_RSP = 61;
   GET_ALBUM_REQ = 62;
@@ -100,7 +103,9 @@ message AddProviderReq {
 
 message AddProviderRsp {
   qcm.msg.model.AuthResult code = 1;
-  string detail = 2;
+  string message = 2;
+  string qr_name = 3;       // opt
+  string qr_avatar_url = 4; // opt
 }
 
 message ProviderMetaStatusMsg {
@@ -206,22 +211,31 @@ message GetLyricRsp { repeated qcm.msg.model.LyricLine lines = 1; }
 message SyncReq { int64 provider_id = 1; }
 message SyncRsp { int64 handle = 1; }
 
+message QrAuthUrlReq { string provider_meta = 1; }
+message QrAuthUrlRsp {
+  string key = 1;
+  string url = 2;
+}
+
 message QcmMessage {
   MessageType type = 1;
   int32 id = 2;
 
   oneof payload {
-    Rsp rsp = 100;
-    TestReq test_req = 101;
-    TestRsp test_rsp = 102;
+    Rsp rsp = 101;
+    TestReq test_req = 102;
+    TestRsp test_rsp = 103;
 
-    GetProviderMetasReq get_provider_metas_req = 103;
-    GetProviderMetasRsp get_provider_metas_rsp = 104;
-    AddProviderReq add_provider_req = 105;
-    AddProviderRsp add_provider_rsp = 106;
-    ProviderMetaStatusMsg provider_meta_status_msg = 107;
-    ProviderStatusMsg provider_status_msg = 108;
-    ProviderSyncStatusMsg provider_sync_status_msg = 109;
+    GetProviderMetasReq get_provider_metas_req = 104;
+    GetProviderMetasRsp get_provider_metas_rsp = 105;
+    AddProviderReq add_provider_req = 106;
+    AddProviderRsp add_provider_rsp = 107;
+    ProviderMetaStatusMsg provider_meta_status_msg = 108;
+    ProviderStatusMsg provider_status_msg = 109;
+    ProviderSyncStatusMsg provider_sync_status_msg = 110;
+
+    QrAuthUrlReq qr_auth_url_req = 111;
+    QrAuthUrlRsp qr_auth_url_rsp = 112;
 
     GetAlbumsReq get_albums_req = 160;
     GetAlbumsRsp get_albums_rsp = 161;

@@ -43,9 +43,8 @@ public:
 
     auto send(msg::QcmMessage&& msg) -> task<Result<msg::QcmMessage, msg::Error>>;
 
-    auto image(QStringView item_type, QStringView id, QStringView image_type)
-        -> task<Arc<ncrequest::Response>>;
-    auto image(model::ItemId id, enums::ImageType image_type) -> task<Arc<ncrequest::Response>>;
+    auto image(QStringView item_type, QStringView id, QStringView image_type) -> ncrequest::Request;
+    auto image(model::ItemId id, enums::ImageType image_type) -> ncrequest::Request;
     auto audio_url(model::ItemId id) -> QUrl;
 
     template<typename Req>
