@@ -41,7 +41,6 @@ target_compile_definitions(
 target_link_libraries(core.asio PUBLIC core asio)
 set_target_properties(core.asio PROPERTIES CXX_VISIBILITY_PRESET hidden
                                            OUTPUT_NAME qcm_asio)
-install(TARGETS core.asio)
 
 # core.qasio
 find_package(Qt6 REQUIRED COMPONENTS Core)
