@@ -41,8 +41,8 @@ set(Random_BuildTests OFF)
 FetchContent_Declare(
   random
   GIT_REPOSITORY https://github.com/ilqvya/random.git
-  GIT_COMMIT 041302cdb6668c1f6b09e803b6c9bda8e3820fdc
-  GIT_SHALLOW 1
+  GIT_TAG 2b07d64ef1f8f00988ad813662ecb40766dba4cc
+  GIT_SHALLOW 0
   GIT_PROGRESS 1
   EXCLUDE_FROM_ALL)
 FetchContent_MakeAvailable(random)
@@ -57,8 +57,8 @@ set(KDSingleApplication_DOCS OFF)
 FetchContent_Declare(
   KDSingleApplication
   GIT_REPOSITORY https://github.com/KDAB/KDSingleApplication.git
-  GIT_COMMIT 631237acd4e20251c7f702db5e5434c83f0e336d
-  GIT_SHALLOW 1
+  GIT_TAG 631237acd4e20251c7f702db5e5434c83f0e336d
+  GIT_SHALLOW 0
   GIT_PROGRESS 1
   SYSTEM EXCLUDE_FROM_ALL FIND_PACKAGE_ARGS QUIET GLOBAL)
 FetchContent_MakeAvailable(KDSingleApplication)
@@ -97,8 +97,8 @@ FetchContent_Declare(
   ctre
   GIT_REPOSITORY
     https://github.com/hanickadot/compile-time-regular-expressions.git
-  GIT_COMMIT e0f36500bc941fe447718ab625490728790c933f
-  GIT_SHALLOW 1
+  GIT_TAG e0f36500bc941fe447718ab625490728790c933f
+  GIT_SHALLOW 0
   GIT_PROGRESS 1
   EXCLUDE_FROM_ALL FIND_PACKAGE_ARGS 3.9.0 GLOBAL)
 FetchContent_MakeAvailable(ctre)
@@ -113,8 +113,8 @@ set(USE_WINMM OFF)
 FetchContent_Declare(
   cubeb
   GIT_REPOSITORY https://github.com/mozilla/cubeb.git
-  GIT_COMMIT 78b2bce70e0d1c21d3c175b72f322c50801b2e94
-  GIT_SHALLOW 1
+  GIT_TAG 78b2bce70e0d1c21d3c175b72f322c50801b2e94
+  GIT_SHALLOW 0
   GIT_PROGRESS 1
   SYSTEM EXCLUDE_FROM_ALL FIND_PACKAGE_ARGS GLOBAL)
 FetchContent_MakeAvailable(cubeb)
@@ -126,8 +126,8 @@ endif()
 FetchContent_Declare(
   ncrequest
   GIT_REPOSITORY https://github.com/hypengw/ncrequest.git
-  GIT_COMMIT 63fc742909d67651967f373184bdc414efff713a
-  GIT_SHALLOW 1
+  GIT_TAG 7fb630540ff32a30e91d7f7543f02f3ba9f7b630
+  GIT_SHALLOW 0
   GIT_PROGRESS 1
   EXCLUDE_FROM_ALL)
 FetchContent_MakeAvailable(ncrequest)

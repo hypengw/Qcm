@@ -33,7 +33,7 @@ target_link_libraries(
   PRIVATE platform)
 
 # core.asio
-add_library(core.asio SHARED src/asio/asio.cpp)
+add_library(core.asio STATIC src/asio/asio.cpp)
 target_compile_definitions(
   core.asio
   PUBLIC ASIO_DYN_LINK ASIO_DISABLE_VISIBILITY

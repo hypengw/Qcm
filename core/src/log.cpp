@@ -148,10 +148,11 @@ struct file_iterator {
 
 } // namespace
 
-namespace qcm
-{
 
 extern auto the_log_manager() -> qcm::LogManager*;
+
+namespace qcm
+{
 
 LogManager* LogManager::init() { return the_log_manager(); }
 

@@ -6,9 +6,8 @@
 #include "core/fmt.h"
 #include "core/macro.h"
 
-
 #ifdef __clangd__
-#include "core/clangd.h"
+#    include "core/clangd.h"
 #endif
 
 import qcm.log;
@@ -59,12 +58,8 @@ import qcm.log;
                                                                     \
         LogLevel m_level { LogLevel::INFO };                        \
     };                                                              \
-                                                                    \
-    C_DECL_EXPORT auto the_log_manager() -> LogManager* {           \
-        static LogManagerImpl manager;                              \
-        return &manager;                                            \
     }                                                               \
+    auto the_log_manager() -> qcm::LogManager* {                    \
+        static qcm::LogManagerImpl manager;                         \
+        return &manager;                                            \
     }
-
-
-

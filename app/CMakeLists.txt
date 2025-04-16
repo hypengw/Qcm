@@ -9,7 +9,6 @@ find_package(Qt6 REQUIRED COMPONENTS Protobuf ProtobufWellKnownTypes
 qt_standard_project_setup()
 
 set(SOURCES
-    src/log.cpp
     src/action.cpp
     src/app.cpp
     src/store.cpp
@@ -189,6 +188,9 @@ target_compile_definitions(
          APP_AUTHOR="${APP_AUTHOR}" APP_NAME="${APP_NAME}"
          APP_SUMMARY="${APP_SUMMARY}")
 
+add_library(qcm.log STATIC src/log.cpp)
+target_link_libraries(qcm.log PUBLIC core)
+
 target_include_directories(
   app
   PUBLIC include
@@ -214,7 +216,9 @@ qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION src/main.cpp)
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_SCAN_FOR_MODULES ON)
 target_compile_definitions(${PROJECT_NAME} PRIVATE "${APP_INFO_MACROS}")
 
-target_link_libraries(${PROJECT_NAME} PRIVATE app appplugin kdsingleapplication)
+target_link_libraries(
+  ${PROJECT_NAME} PRIVATE app appplugin kdsingleapplication
+                          "$<LINK_GROUP:RESCAN,core,qcm.log>")
 
 set(APP_DESKTOP assets/Qcm.desktop)
 set(APP_METAINFO assets/Qcm.metainfo.xml)

@@ -12,7 +12,21 @@
     "url" : "https://github.com/hypengw/rstd.git"
   },
   {
-    "commit" : "041302cdb6668c1f6b09e803b6c9bda8e3820fdc",
+    "dest" : "build/_flatpak_deps/meta_model-src",
+    "disable-shallow-clone" : false,
+    "tag" : "master",
+    "type" : "git",
+    "url" : "https://github.com/hypengw/MetaModel.git"
+  },
+  {
+    "dest" : "build/_flatpak_deps/qml_material-src",
+    "disable-shallow-clone" : false,
+    "tag" : "main",
+    "type" : "git",
+    "url" : "https://github.com/hypengw/QmlMaterial.git"
+  },
+  {
+    "commit" : "2b07d64ef1f8f00988ad813662ecb40766dba4cc",
     "dest" : "build/_flatpak_deps/random-src",
     "disable-shallow-clone" : false,
     "type" : "git",
@@ -40,13 +54,14 @@
     "url" : "https://github.com/hanickadot/compile-time-regular-expressions.git"
   },
   {
+    "commit" : "78b2bce70e0d1c21d3c175b72f322c50801b2e94",
     "dest" : "build/_flatpak_deps/cubeb-src",
     "disable-shallow-clone" : false,
     "type" : "git",
     "url" : "https://github.com/mozilla/cubeb.git"
   },
   {
-    "commit" : "63fc742909d67651967f373184bdc414efff713a",
+    "commit" : "7fb630540ff32a30e91d7f7543f02f3ba9f7b630",
     "dest" : "build/_flatpak_deps/ncrequest-src",
     "disable-shallow-clone" : false,
     "type" : "git",
