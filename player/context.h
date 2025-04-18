@@ -8,7 +8,7 @@ namespace player
 
 struct Context {
     Context()
-        : audio_pkt_queue(make_rc<PacketQueue>(100 * 1024 * 1024)), // 100 MB
+        : audio_pkt_queue(make_rc<PacketQueue>(2 * 1024 * 1024)), // 2 MB
           audio_frame_queue(make_rc<AudioFrameQueue>(32)) {}
 
     ~Context() { set_aborted(true); }
