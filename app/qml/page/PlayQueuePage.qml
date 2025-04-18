@@ -45,7 +45,7 @@ MD.Page {
 
         delegate: MD.ListItem {
             required property var model
-            required property var index
+            required property int index
             readonly property bool is_playing: ListView.isCurrentItem
 
             rightPadding: 4
@@ -53,6 +53,7 @@ MD.Page {
             onClicked: {
                 const m = ListView.view.model;
                 if (m.canJump) {
+                    console.error(model.itemId, model.name)
                     QA.Action.play_by_id(model.itemId);
                 } else {
                     QA.Action.toast(qsTr(`Not support for ${m.name}`));

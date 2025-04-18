@@ -16,6 +16,7 @@ MD.Page {
         anchors.fill: parent
         leftMargin: 0
         rightMargin: 0
+        contentHeight: m_theme_section.implicitHeight
 
         QA.SettingSection {
             id: m_theme_section

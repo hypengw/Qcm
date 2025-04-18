@@ -19,13 +19,6 @@
     "url" : "https://github.com/hypengw/MetaModel.git"
   },
   {
-    "dest" : "build/_flatpak_deps/qml_material-src",
-    "disable-shallow-clone" : false,
-    "tag" : "main",
-    "type" : "git",
-    "url" : "https://github.com/hypengw/QmlMaterial.git"
-  },
-  {
     "commit" : "2b07d64ef1f8f00988ad813662ecb40766dba4cc",
     "dest" : "build/_flatpak_deps/random-src",
     "disable-shallow-clone" : false,

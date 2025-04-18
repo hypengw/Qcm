@@ -81,6 +81,7 @@ enum ErrorCode {
   NO_SUCH_IMAGE_TYPE = 121;
 
   UNSUPPORTED_ITEM_TYPE = 200;
+  NOT_FOUND = 210;
 }
 
 message Rsp {
