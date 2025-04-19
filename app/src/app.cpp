@@ -162,6 +162,8 @@ App::App(QStringView backend_exe, std::monostate)
                 &Backend::error,
                 d->app_state,
                 [d](QString err) {
+                    QObject::disconnect(
+                        d->app_state, &AppState::retry, d->m_backend.get(), &Backend::on_retry);
                     QObject::connect(
                         d->app_state, &AppState::retry, d->m_backend.get(), &Backend::on_retry);
                     d->app_state->set_state(AppState::Error { err });

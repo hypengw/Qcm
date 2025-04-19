@@ -30,8 +30,10 @@ void ProviderStatusModel::updateSyncStatus(const msg::model::ProviderSyncStatus&
             checkSyncing();
         }
 
-        auto idx = this->index(this->idx_at(id));
-        dataChanged(idx, idx, { role });
+        if (auto idx = this->query_idx(id); idx) {
+            auto qidx = this->index(*idx);
+            dataChanged(qidx, qidx, { role });
+        }
     }
 }
 

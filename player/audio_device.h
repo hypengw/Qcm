@@ -280,6 +280,7 @@ private:
         }
     }
 
+    // todo : destroy order, make self unvalid
     static long data_cb(cubeb_stream*, void* user, const void*, void* outputbuffer, long nframes) {
         auto*      self = (Self*)user;
         const auto size =

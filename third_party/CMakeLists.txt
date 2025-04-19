@@ -6,7 +6,7 @@ FetchContent_Declare(
   rstd
   GIT_REPOSITORY https://github.com/hypengw/rstd.git
   GIT_TAG df2e471560f30c8e51b9dba24f7323fca72935ab
-  GIT_SHALLOW 1
+  GIT_SHALLOW 0
   GIT_PROGRESS 1
   EXCLUDE_FROM_ALL)
 FetchContent_MakeAvailable(rstd)
@@ -128,7 +128,7 @@ endif()
 FetchContent_Declare(
   ncrequest
   GIT_REPOSITORY https://github.com/hypengw/ncrequest.git
-  GIT_TAG 7fb630540ff32a30e91d7f7543f02f3ba9f7b630
+  GIT_TAG 470df24a242747d4b8747f38da126d25354c784d
   GIT_SHALLOW 0
   GIT_PROGRESS 1
   EXCLUDE_FROM_ALL)
