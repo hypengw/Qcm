@@ -33,7 +33,9 @@ else()
     GIT_REPOSITORY https://github.com/hypengw/QmlMaterial.git
     GIT_TAG main
     GIT_SHALLOW 1
-    GIT_PROGRESS 1)
+    GIT_PROGRESS 1
+    FIND_PACKAGE_ARGS GLOBAL
+    )
   FetchContent_MakeAvailable(qml_material)
 endif()
 
