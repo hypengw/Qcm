@@ -9,7 +9,7 @@ MD.Pane {
     readonly property var currentSong: QA.App.playqueue.currentSong
     readonly property var artists: {
         const ex = QA.Store.extra(root.currentSong.itemId);
-        return ex?.artists;
+        return ex?.artists ?? [];
     }
 
     // backgroundColor: Window.window?.windowClass === MD.Enum.WindowClassCompact ? MD.MProp.color.surface_container : MD.MProp.color.surface
@@ -127,7 +127,8 @@ MD.Pane {
                         QA.GoToArtistAction {
                             id: m_go_to_artist_act
                             getItemIds: function () {
-                                return root.artists?.map(el => el.itemId);
+                                console.error(root.currentSong.itemId, root.artists)
+                                return root.artists?.map(el => QA.Util.artistId(el.id));
                             }
                         }
                     }

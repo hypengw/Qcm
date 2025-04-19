@@ -1,12 +1,19 @@
 #include "Qcm/status/provider_status.hpp"
 
 #include "Qcm/app.hpp"
+#include <QtCore/QSettings>
 
 namespace qcm
 {
 ProviderMetaStatusModel::ProviderMetaStatusModel(QObject* parent): Base(parent) {}
 ProviderMetaStatusModel::~ProviderMetaStatusModel() {}
-ProviderStatusModel::ProviderStatusModel(QObject* parent): Base(parent) {}
+ProviderStatusModel::ProviderStatusModel(QObject* parent)
+    : Base(parent), m_lib_status(new LibraryStatus(this)) {
+    connect(m_lib_status,
+            &LibraryStatus::activedChanged,
+            this,
+            &ProviderStatusModel::libraryStatusChanged);
+}
 ProviderStatusModel::~ProviderStatusModel() {}
 
 void ProviderStatusModel::updateSyncStatus(const msg::model::ProviderSyncStatus& s) {
@@ -54,6 +61,51 @@ void ProviderStatusModel::checkSyncing() {
         }
     }
     setSyncing(out);
+}
+
+auto ProviderStatusModel::libraryStatus() const -> LibraryStatus* { return m_lib_status; }
+
+static constexpr std::string_view inactived_library_key { "provider/inactived_libraries" };
+LibraryStatus::LibraryStatus(QObject* parent): QObject(parent) {
+    QSettings s;
+    for (const auto& v : s.value(inactived_library_key).toStringList()) {
+        m_inactived.insert(v.toLongLong());
+    }
+
+    connect(this, &LibraryStatus::activedChanged, this, &LibraryStatus::activedIdsChanged);
+    connect(this, &LibraryStatus::activedChanged, this, [this](i64, bool) {
+        QSettings   s;
+        QStringList list;
+        for (auto el : m_inactived) list.emplaceBack(QString::number(el));
+        s.setValue(inactived_library_key, list);
+    });
+}
+LibraryStatus::~LibraryStatus() {}
+
+auto LibraryStatus::activedIds() -> const QtProtobuf::int64List& {
+    m_ids.clear();
+    auto p = App::instance()->provider_status();
+    for (auto i = 0; i < p->rowCount(); i++) {
+        auto& provider = p->at(i);
+        for (auto& l : provider.libraries()) {
+            auto id = l.libraryId();
+            if (actived(id)) m_ids.emplaceBack(id);
+        }
+    }
+    return m_ids;
+}
+
+bool LibraryStatus::actived(i64 id) const { return ! m_inactived.contains(id); }
+void LibraryStatus::setActived(i64 id, bool v) {
+    bool has = ! m_inactived.contains(id);
+    if (has != v) {
+        if (has) {
+            m_inactived.insert(id);
+        } else {
+            m_inactived.erase(id);
+        }
+        activedChanged(id, v);
+    }
 }
 } // namespace qcm
 

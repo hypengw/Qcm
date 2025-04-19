@@ -80,12 +80,6 @@ MD.Menu {
             }
         }
     }
-
-    // QA.SongDetailQuery {
-    //     id: qr_detail
-    //     itemId: root.itemId
-    // }
-
     // QA.MixManipulateQuery {
     //     id: m_qr_manipulate
     //     oper: QA.Enum.ManipulateMixDel

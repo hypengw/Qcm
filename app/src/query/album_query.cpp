@@ -5,20 +5,26 @@
 #include "Qcm/store.hpp"
 
 #include "Qcm/util/async.inl"
+#include "Qcm/status/provider_status.hpp"
 
 namespace qcm
 {
 
 AlbumsQuery::AlbumsQuery(QObject* parent): query::QueryList<model::AlbumListModel>(parent) {
     // set_use_queue(true);
-    this->tdata()->set_store(this->tdata(), App::instance()->store()->albums);
+    auto app = App::instance();
+    this->tdata()->set_store(this->tdata(), app->store()->albums);
     this->connectSyncFinished();
+    this->connect_requet_reload(&LibraryStatus::activedIdsChanged,
+                                app->provider_status()->libraryStatus());
 }
 
 void AlbumsQuery::reload() {
     set_status(Status::Querying);
-    auto backend = App::instance()->backend();
+    auto app     = App::instance();
+    auto backend = app->backend();
     auto req     = msg::GetAlbumsReq {};
+    req.setLibraryId(app->provider_status()->libraryStatus()->activedIds());
     req.setPage(0);
     req.setPageSize((offset() + 1) * limit());
     auto self = helper::QWatcher { this };
@@ -28,7 +34,10 @@ void AlbumsQuery::reload() {
         self->inspect_set(rsp, [self](msg::GetAlbumsRsp& el) {
             auto t = self->tdata();
             t->setHasMore(false);
-            t->resetModel(el.items());
+            auto view = std::views::transform(el.items(), [](auto& el) {
+                return model::Album { el };
+            });
+            t->resetModel(view);
             auto store = AppStore::instance();
             for (qsizetype i = 0; i < el.extras().size(); i++) {
                 auto id = el.items().at(i).id_proto();
@@ -42,8 +51,10 @@ void AlbumsQuery::reload() {
 
 void AlbumsQuery::fetchMore(qint32) {
     set_status(Status::Querying);
-    auto backend = App::instance()->backend();
+    auto app     = App::instance();
+    auto backend = app->backend();
     auto req     = msg::GetAlbumsReq {};
+    req.setLibraryId(app->provider_status()->libraryStatus()->activedIds());
     req.setPage(offset() + 1);
     req.setPageSize(limit());
     auto self = helper::QWatcher { this };

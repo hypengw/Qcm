@@ -8,7 +8,7 @@ MD.Action {
     icon.name: MD.Token.icon.album
     text: qsTr('go to album')
 
-    property QA.item_id albumId
+    property var albumId
     enabled: {
         console.error(albumId);
         return albumId.valid;

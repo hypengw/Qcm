@@ -24,10 +24,15 @@ public:
     Q_SIGNAL void delayChanged();
 
     void connectSyncFinished();
+
 protected:
     template<typename T, typename R, typename... ARGS>
-    void connect_requet_reload(R (T::*f)(ARGS...), T* obj = nullptr) {
-        connect(obj == nullptr ? static_cast<T*>(this) : obj, f, this, &QueryBase::request_reload);
+    void connect_requet_reload(R (T::*f)(ARGS...), T* obj) {
+        connect(obj, f, this, &QueryBase::request_reload);
+    }
+    template<typename T, typename R, typename... ARGS>
+    void connect_requet_reload(R (T::*f)(ARGS...)) {
+        connect(static_cast<T*>(this), f, this, &QueryBase::request_reload);
     }
 
 private:

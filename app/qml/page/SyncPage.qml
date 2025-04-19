@@ -9,6 +9,7 @@ MD.Page {
     title: qsTr('provider')
     bottomPadding: radius
     scrolling: !m_view.atYBeginning
+    readonly property var libStatus: QA.App.providerStatus.libraryStatus
 
     MD.VerticalListView {
         id: m_view
@@ -108,6 +109,11 @@ MD.Page {
                             model: m_item.libraries
                             MD.FilterChip {
                                 text: modelData.name
+                                checkable: false
+                                checked: libStatus.actived(modelData.libraryId)
+                                onClicked: {
+                                    libStatus.setActived(modelData.libraryId, !checked);
+                                }
                             }
                         }
                     }

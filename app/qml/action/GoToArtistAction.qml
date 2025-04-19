@@ -19,7 +19,7 @@ MD.Action {
         } else {
             MD.Util.show_popup('qrc:/Qcm/App/qml/dialog/GoToArtistDialog.qml', {
                 "itemIds": itemIds
-            }, QA.Global.main_win.Overlay.overlay);
+            }, QA.Global.main_win);
         }
     }
 }

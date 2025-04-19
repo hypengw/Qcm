@@ -143,10 +143,22 @@ struct std::formatter<qcm::msg::MessageTypeGadget::MessageType> : std::formatter
 
 namespace qcm::model
 {
+class Song;
+
+
+template<typename T>
+void model_init(T* self) {
+    self->setId_proto(-1);
+    if constexpr(std::same_as<T, Song>) {
+        self->setAlbumId(-1);
+    }
+}
+
 #define QCM_MODEL_COMMON(T, _ItemType)                                              \
     Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId FINAL)         \
+                                                                                    \
 public:                                                                             \
-    T(): msg::model::T() { this->setId_proto(-1); }                                 \
+    T(): msg::model::T() { model_init<T>(this); }                                   \
     T(const model::T& o): msg::model::T(o) {}                                       \
     T(model::T&& o) noexcept: msg::model::T(std::move(o)) {}                        \
     T& operator=(const model::T& o) {                                               \
@@ -170,12 +182,14 @@ class Album : public msg::model::Album {
 
     QCM_MODEL_COMMON(Album, ItemAlbum)
 };
+
 class Song : public msg::model::Song {
     Q_GADGET
     QML_VALUE_TYPE(song)
     Q_PROPERTY(qcm::model::ItemId albumId READ albumItemId WRITE setAlbumItemId FINAL)
     Q_PROPERTY(QString albumName READ albumName FINAL)
     QCM_MODEL_COMMON(Song, ItemSong)
+
 public:
     auto albumItemId() const -> ItemId {
         return ItemId { enums::ItemType::ItemAlbum,
@@ -210,6 +224,8 @@ private:
 };
 
 #undef QCM_MODEL_COMMON
+
+
 } // namespace qcm::model
 
 // -----------------------------------------
