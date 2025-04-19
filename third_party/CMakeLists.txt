@@ -68,7 +68,6 @@ add_library(asio INTERFACE)
 target_compile_definitions(asio INTERFACE ASIO_NO_DEPRECATED)
 pkg_check_modules(ASIO QUIET asio>=1.30.2)
 if(NOT ASIO_FOUND)
-  message(STATUS "asio not found, fetching it...")
   FetchContent_Declare(
     asio
     GIT_REPOSITORY https://github.com/chriskohlhoff/asio.git
@@ -78,6 +77,7 @@ if(NOT ASIO_FOUND)
     EXCLUDE_FROM_ALL)
   FetchContent_MakeAvailable(asio)
   target_include_directories(asio INTERFACE ${asio_SOURCE_DIR}/asio/include)
+  message(STATUS "asio dir: ${asio_SOURCE_DIR}")
 else()
   target_include_directories(asio INTERFACE ${ASIO_INCLUDE_DIRS})
 endif()

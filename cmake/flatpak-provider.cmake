@@ -1,6 +1,8 @@
 include(FetchContent)
 
-set(FLATPAK_SOURCE_OUTPUT "${CMAKE_BINARY_DIR}/flatpak_source.json" CACHE STRING "")
+set(FLATPAK_SOURCE_OUTPUT
+    "${CMAKE_BINARY_DIR}/flatpak_source.json"
+    CACHE STRING "")
 
 function(init_flatpak_source_file)
   set(flatpak_source
@@ -14,7 +16,7 @@ function(init_flatpak_source_file)
       "[{
         \"type\": \"inline\",
         \"dest-filename\": \"flatpak-provider.cmake\",
-        \"content\": \"${flatpak_provider_content}\"
+        \"contents\": \"${flatpak_provider_content}\"
     }]")
   file(WRITE "${FLATPAK_SOURCE_OUTPUT}" "${flatpak_source}")
 endfunction()
@@ -22,7 +24,7 @@ endfunction()
 init_flatpak_source_file()
 
 function(to_flatpak_source dep_name)
-  set(options)
+  set(options EXCLUDE_FROM_ALL)
   set(oneValueArgs EXTERNALPROJECT_INTERNAL_ARGUMENT_SEPARATOR)
   set(multiValueArgs
       SOURCE_DIR
@@ -109,7 +111,6 @@ function(to_flatpak_source dep_name)
       USES_TERMINAL_INSTALL # <bool>
       USES_TERMINAL_TEST # <bool>
       DEPENDS # <targets>...
-      EXCLUDE_FROM_ALL # <bool>
       STEP_TARGETS # <step-target>...
       INDEPENDENT_STEP_TARGETS # <step-target>...
   )
@@ -133,6 +134,11 @@ function(to_flatpak_source dep_name)
   set(disable_submodules "false")
 
   set(revision "")
+  if(DEFINED EP_EXCLUDE_FROM_ALL)
+    set(${dep_name}_exclude_from_all
+        ON
+        PARENT_SCOPE)
+  endif()
 
   if(EP_GIT_REPOSITORY)
     set(url ${EP_GIT_REPOSITORY})
@@ -245,20 +251,35 @@ endfunction()
 
 macro(flatpak_provider method dep_name)
   __fetchcontent_getsaveddetails("${dep_name}" fetch_details)
-  message("flatpak_provider: ${dep_name}")
+  set(${dep_name}_exclude_from_all false)
   to_flatpak_source("${dep_name}" ${fetch_details})
 
-  if(DEFINED ENV{FLATPAK_ID})
-    # flatpak-builder
-    fetchcontent_setpopulated(
-      ${dep_name}
-      SOURCE_DIR
-      "$ENV{FLATPAK_BUILDER_BUILDDIR}/build/_flatpak_deps/${dep_name}-src"
-      BINARY_DIR
-      "$ENV{FLATPAK_BUILDER_BUILDDIR}/build/_flatpak_deps/${dep_name}-build")
-  else()
-    # forward
-    FetchContent_MakeAvailable(${dep_name})
+  if(NOT DEFINED "${dep_name}_SOURCE_DIR")
+
+    if(DEFINED ENV{FLATPAK_ID})
+      message("flatpak_provider: ${dep_name}")
+      set(${dep_name}_SOURCE_DIR
+          "$ENV{FLATPAK_BUILDER_BUILDDIR}/build/_flatpak_deps/${dep_name}-src")
+      set(${dep_name}_BINARY_DIR
+          "$ENV{FLATPAK_BUILDER_BUILDDIR}/build/_flatpak_deps/${dep_name}-build"
+      )
+      if(EXISTS "${${dep_name}_SOURCE_DIR}/CMakeLists.txt")
+        set(${dep_name}_extra)
+        if(${${dep_name}_exclude_from_all})
+          set(${dep_name}_extra EXCLUDE_FROM_ALL)
+        endif()
+        message("extra: ${${dep_name}_extra}")
+        add_subdirectory("${${dep_name}_SOURCE_DIR}"
+                         "${${dep_name}_BINARY_DIR}" ${${dep_name}_extra})
+      endif()
+      # flatpak-builder
+      fetchcontent_setpopulated(
+        ${dep_name} SOURCE_DIR "${${dep_name}_SOURCE_DIR}" BINARY_DIR
+        "${${dep_name}_BINARY_DIR}")
+    else()
+      # forward
+      FetchContent_MakeAvailable(${dep_name})
+    endif()
   endif()
 
 endmacro()
