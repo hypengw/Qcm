@@ -46,8 +46,8 @@ class ProviderStatusModel
     using Base =
         meta_model::QGadgetListModel<model::ProviderStatus, meta_model::QMetaListStore::Map>;
 
-    Q_PROPERTY(bool syncing READ syncing NOTIFY syncingChanged)
-    Q_PROPERTY(qcm::LibraryStatus* libraryStatus READ libraryStatus NOTIFY libraryStatusChanged)
+    Q_PROPERTY(bool syncing READ syncing NOTIFY syncingChanged FINAL)
+    Q_PROPERTY(qcm::LibraryStatus* libraryStatus READ libraryStatus NOTIFY libraryStatusChanged FINAL)
 
 public:
     ProviderStatusModel(QObject* parent = nullptr);

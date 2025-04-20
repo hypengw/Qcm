@@ -5,18 +5,23 @@
 #include "Qcm/store.hpp"
 
 #include "Qcm/util/async.inl"
+#include "Qcm/status/provider_status.hpp"
 
 namespace qcm
 {
 
 ArtistsQuery::ArtistsQuery(QObject* parent): query::QueryList<model::ArtistListModel>(parent) {
     // set_use_queue(true);
+    auto app = App::instance();
     this->connectSyncFinished();
+    this->connect_requet_reload(&LibraryStatus::activedIdsChanged, app->libraryStatus());
 }
 void ArtistsQuery::reload() {
     set_status(Status::Querying);
-    auto backend = App::instance()->backend();
+    auto app     = App::instance();
+    auto backend = app->backend();
     auto req     = msg::GetArtistsReq {};
+    req.setLibraryId(app->libraryStatus()->activedIds());
     req.setPage(0);
     req.setPageSize((offset() + 1) * limit());
     auto self = helper::QWatcher { this };
@@ -35,8 +40,10 @@ void ArtistsQuery::reload() {
 
 void ArtistsQuery::fetchMore(qint32) {
     set_status(Status::Querying);
-    auto backend = App::instance()->backend();
+    auto app     = App::instance();
+    auto backend = app->backend();
     auto req     = msg::GetArtistsReq {};
+    req.setLibraryId(app->libraryStatus()->activedIds());
     req.setPage(offset() + 1);
     req.setPageSize(limit());
     auto self = helper::QWatcher { this };

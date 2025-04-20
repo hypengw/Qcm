@@ -16,7 +16,7 @@ AlbumsQuery::AlbumsQuery(QObject* parent): query::QueryList<model::AlbumListMode
     this->tdata()->set_store(this->tdata(), app->store()->albums);
     this->connectSyncFinished();
     this->connect_requet_reload(&LibraryStatus::activedIdsChanged,
-                                app->provider_status()->libraryStatus());
+                                app->libraryStatus());
 }
 
 void AlbumsQuery::reload() {
@@ -24,7 +24,7 @@ void AlbumsQuery::reload() {
     auto app     = App::instance();
     auto backend = app->backend();
     auto req     = msg::GetAlbumsReq {};
-    req.setLibraryId(app->provider_status()->libraryStatus()->activedIds());
+    req.setLibraryId(app->libraryStatus()->activedIds());
     req.setPage(0);
     req.setPageSize((offset() + 1) * limit());
     auto self = helper::QWatcher { this };
@@ -54,7 +54,7 @@ void AlbumsQuery::fetchMore(qint32) {
     auto app     = App::instance();
     auto backend = app->backend();
     auto req     = msg::GetAlbumsReq {};
-    req.setLibraryId(app->provider_status()->libraryStatus()->activedIds());
+    req.setLibraryId(app->libraryStatus()->activedIds());
     req.setPage(offset() + 1);
     req.setPageSize(limit());
     auto self = helper::QWatcher { this };

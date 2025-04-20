@@ -189,6 +189,11 @@ App::App(QStringView backend_exe, std::monostate)
     {
         d->m_global->set_metadata_impl(player::get_metadata);
     }
+
+    connect(provider_status(),
+            &ProviderStatusModel::libraryStatusChanged,
+            this,
+            &App::libraryStatusChanged);
 }
 App::~App() {}
 
@@ -481,6 +486,11 @@ auto App::provider_meta_status() const -> ProviderMetaStatusModel* {
 auto App::provider_status() const -> ProviderStatusModel* {
     C_D(const App);
     return d->provider_status;
+}
+
+auto App::libraryStatus() const -> LibraryStatus* {
+    C_D(const App);
+    return d->provider_status->libraryStatus();
 }
 
 auto App::pages() const -> PageModel* {

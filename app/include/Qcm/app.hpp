@@ -38,6 +38,7 @@ class PlayQueue;
 class Backend;
 class ProviderStatusModel;
 class ProviderMetaStatusModel;
+class LibraryStatus;
 class PageModel;
 class AppStore;
 
@@ -54,6 +55,8 @@ class App : public QObject {
     Q_PROPERTY(
         qcm::ProviderMetaStatusModel* providerMetaStatus READ provider_meta_status CONSTANT FINAL)
     Q_PROPERTY(qcm::ProviderStatusModel* providerStatus READ provider_status CONSTANT FINAL)
+    Q_PROPERTY(
+        qcm::LibraryStatus* libraryStatus READ libraryStatus NOTIFY libraryStatusChanged FINAL)
     Q_PROPERTY(qcm::PageModel* pages READ pages CONSTANT FINAL)
     Q_PROPERTY(qcm::model::AppInfo info READ info CONSTANT FINAL)
     Q_PROPERTY(qcm::AppState* appState READ app_state CONSTANT FINAL)
@@ -105,6 +108,7 @@ public:
     auto        empty() const -> model::EmptyModel*;
     auto        provider_meta_status() const -> ProviderMetaStatusModel*;
     auto        provider_status() const -> ProviderStatusModel*;
+    auto        libraryStatus() const -> LibraryStatus*;
     auto        pages() const -> PageModel*;
     auto        store() const -> AppStore*;
     auto        info() const -> const model::AppInfo&;
@@ -135,6 +139,7 @@ public:
     Q_SIGNAL void playlistCreated();
     Q_SIGNAL void playlistDeleted();
     Q_SIGNAL void playlistChanged();
+    Q_SIGNAL void libraryStatusChanged();
 
     Q_SLOT void releaseResources(QQuickWindow*);
     Q_SLOT void triggerCacheLimit();
