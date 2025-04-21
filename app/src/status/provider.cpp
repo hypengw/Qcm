@@ -8,7 +8,7 @@ namespace qcm
 ProviderMetaStatusModel::ProviderMetaStatusModel(QObject* parent): Base(parent) {}
 ProviderMetaStatusModel::~ProviderMetaStatusModel() {}
 ProviderStatusModel::ProviderStatusModel(QObject* parent)
-    : Base(parent), m_lib_status(new LibraryStatus(this)) {
+    : Base(parent), m_lib_status(new LibraryStatus(this)), m_syncing(false) {
     connect(m_lib_status,
             &LibraryStatus::activedChanged,
             this,
