@@ -37,7 +37,7 @@ void AlbumsQuery::reload() {
             auto view = std::views::transform(el.items(), [](auto& el) {
                 return model::Album { el };
             });
-            t->resetModel(view);
+            t->sync(view);
             auto store = AppStore::instance();
             for (qsizetype i = 0; i < el.extras().size(); i++) {
                 auto id = el.items().at(i).id_proto();
