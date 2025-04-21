@@ -29,9 +29,12 @@ void ArtistsQuery::reload() {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
         self->inspect_set(rsp, [self](msg::GetArtistsRsp& el) {
-            auto t = self->tdata();
+            auto t    = self->tdata();
+            auto view = std::views::transform(el.items(), [](auto&& el) {
+                return model::Artist(el);
+            });
             t->setHasMore(false);
-            t->resetModel(el.items());
+            t->sync(view);
             t->setHasMore(el.hasMore());
         });
         co_return;
@@ -52,6 +55,63 @@ void ArtistsQuery::fetchMore(qint32) {
         auto rsp    = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
         self->inspect_set(rsp, [self, offset](msg::GetArtistsRsp& el) {
+            auto view = std::views::transform(el.items(), [](auto&& el) {
+                return model::Artist(el);
+            });
+            self->tdata()->extend(view);
+            self->setOffset(offset + 1);
+            self->tdata()->setHasMore(el.hasMore());
+        });
+        co_return;
+    });
+}
+
+AlbumArtistsQuery::AlbumArtistsQuery(QObject* parent)
+    : query::QueryList<model::ArtistListModel>(parent) {
+    // set_use_queue(true);
+    auto app = App::instance();
+    this->connectSyncFinished();
+    this->connect_requet_reload(&LibraryStatus::activedIdsChanged, app->libraryStatus());
+}
+void AlbumArtistsQuery::reload() {
+    set_status(Status::Querying);
+    auto app     = App::instance();
+    auto backend = app->backend();
+    auto req     = msg::GetAlbumArtistsReq {};
+    req.setLibraryId(app->libraryStatus()->activedIds());
+    req.setPage(0);
+    req.setPageSize((offset() + 1) * limit());
+    auto self = helper::QWatcher { this };
+    spawn([self, backend, req] mutable -> task<void> {
+        auto rsp = co_await backend->send(std::move(req));
+        co_await qcm::qexecutor_switch();
+        self->inspect_set(rsp, [self](msg::GetAlbumArtistsRsp& el) {
+            auto t    = self->tdata();
+            auto view = std::views::transform(el.items(), [](auto&& el) {
+                return model::Artist(el);
+            });
+            t->setHasMore(false);
+            t->sync(view);
+            t->setHasMore(el.hasMore());
+        });
+        co_return;
+    });
+}
+
+void AlbumArtistsQuery::fetchMore(qint32) {
+    set_status(Status::Querying);
+    auto app     = App::instance();
+    auto backend = app->backend();
+    auto req     = msg::GetAlbumArtistsReq {};
+    req.setLibraryId(app->libraryStatus()->activedIds());
+    req.setPage(offset() + 1);
+    req.setPageSize(limit());
+    auto self = helper::QWatcher { this };
+    spawn([self, backend, req] mutable -> task<void> {
+        auto offset = req.page();
+        auto rsp    = co_await backend->send(std::move(req));
+        co_await qcm::qexecutor_switch();
+        self->inspect_set(rsp, [self, offset](msg::GetAlbumArtistsRsp& el) {
             auto view = std::views::transform(el.items(), [](auto&& el) {
                 return model::Artist(el);
             });

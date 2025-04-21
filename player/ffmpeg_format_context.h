@@ -34,6 +34,7 @@ public:
     constexpr auto operator->() const { return m_d; }
 
     FFmpegError open_input(const char* url, std::optional<FFmpegDict> opt = std::nullopt) noexcept {
+        // TODO: timeout
         return avformat_open_input(&m_d, url, NULL, opt ? opt->praw() : nullptr);
     }
 

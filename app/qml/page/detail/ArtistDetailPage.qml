@@ -105,7 +105,7 @@ MD.Page {
                 Layout.fillWidth: true
                 radius: root.radius
                 verticalPadding: 12
-                horizontalPadding: 0
+                horizontalPadding: 16
 
                 ColumnLayout {
                     width: parent.width

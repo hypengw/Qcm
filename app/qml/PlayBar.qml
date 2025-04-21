@@ -103,23 +103,15 @@ MD.Pane {
                             }
                         }
                     }
-                    MD.Text {
+                    MD.ActionLabel {
                         id: subtitle_label
                         Layout.fillWidth: true
                         Layout.maximumWidth: implicitWidth + 10
-                        MD.MProp.textColor: ma_subtitle.containsMouse ? MD.Token.color.primary : MD.Token.color.on_background
-                        typescale: MD.Token.typescale.body_medium
                         opacity: 0.6
-                        text: QA.Util.joinName(root.artists, '/')
                         verticalAlignment: Qt.AlignVCenter
-
-                        MouseArea {
-                            id: ma_subtitle
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            hoverEnabled: true
-
-                            onClicked: {
+                        action: MD.Action {
+                            text: QA.Util.joinName(root.artists, '/')
+                            onTriggered: {
                                 m_go_to_artist_act.trigger();
                             }
                         }
@@ -127,7 +119,6 @@ MD.Pane {
                         QA.GoToArtistAction {
                             id: m_go_to_artist_act
                             getItemIds: function () {
-                                console.error(root.currentSong.itemId, root.artists)
                                 return root.artists?.map(el => QA.Util.artistId(el.id));
                             }
                         }

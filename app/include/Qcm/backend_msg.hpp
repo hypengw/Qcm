@@ -96,6 +96,8 @@ QCM_MSG_TRAITS_RSP(GetAlbumRsp, GetAlbumReq, getAlbumRsp)
 
 QCM_MSG_TRAITS_REQ(GetArtistsReq, GetArtistsRsp, GET_ARTISTS_REQ, getArtistsReq)
 QCM_MSG_TRAITS_RSP(GetArtistsRsp, GetArtistsReq, getArtistsRsp)
+QCM_MSG_TRAITS_REQ(GetAlbumArtistsReq, GetAlbumArtistsRsp, GET_ALBUM_ARTISTS_REQ, getAlbumArtistsReq)
+QCM_MSG_TRAITS_RSP(GetAlbumArtistsRsp, GetAlbumArtistsReq, getAlbumArtistsRsp)
 QCM_MSG_TRAITS_REQ(GetArtistReq, GetArtistRsp, GET_ARTIST_REQ, getArtistReq)
 QCM_MSG_TRAITS_RSP(GetArtistRsp, GetArtistReq, getArtistRsp)
 QCM_MSG_TRAITS_REQ(GetArtistAlbumReq, GetArtistAlbumRsp, GET_ARTIST_ALBUM_REQ, getArtistAlbumReq)

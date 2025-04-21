@@ -22,7 +22,7 @@ MD.Page {
         bottomMargin: MD.MProp.size.verticalPadding
     }
 
-   MD.VerticalListView {
+    MD.VerticalListView {
         id: m_view
         anchors.fill: parent
         reuseItems: true
@@ -48,7 +48,7 @@ MD.Page {
                 source: QA.Util.image_url(root.album.itemId)
                 radius: 16
             }
-            MD.Text {
+            MD.Label {
                 id: m_title
                 maximumLineCount: 2
                 text: root.album.name
@@ -57,19 +57,30 @@ MD.Page {
             RowLayout {
                 id: m_info
                 spacing: 12
-                MD.Text {
+                MD.Label {
                     typescale: MD.Token.typescale.body_medium
                     text: `${root.album.trackCount} tracks`
                 }
-                MD.Text {
+                MD.Label {
                     typescale: MD.Token.typescale.body_medium
                     text: QA.Util.formatDateTime(root.album.publishTime, 'yyyy.MM')
                 }
             }
-            MD.Text {
+            MD.ActionLabel {
                 id: m_artist
                 typescale: MD.Token.typescale.body_medium
-                text: QA.Util.joinName(m_view.model.extra?.artists, '/')
+                action: MD.Action {
+                    text: QA.Util.joinName(m_view.model.extra?.artists, '/')
+                    onTriggered: {
+                        m_go_to_artist_act.trigger();
+                    }
+                }
+                QA.GoToArtistAction {
+                    id: m_go_to_artist_act
+                    getItemIds: function () {
+                        return m_view.model.extra?.artists.map(el => QA.Util.artistId(el.id));
+                    }
+                }
                 /*
                         onClicked: {
                             const artists = root.albumInfo.artists;
@@ -234,7 +245,7 @@ MD.Page {
         anchors.rightMargin: 16
         anchors.bottomMargin: 16
         flickable: m_view
-        action:MD.Action {
+        action: MD.Action {
             icon.name: MD.Token.icon.play_arrow
             onTriggered: {
                 QA.Action.switch_ids(QA.Util.collect_ids(qr_al.data));

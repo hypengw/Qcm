@@ -17,6 +17,15 @@ public:
     void fetchMore(qint32) override;
 };
 
+class AlbumArtistsQuery : public query::QueryList<model::ArtistListModel> {
+    Q_OBJECT
+    QML_ELEMENT
+public:
+    AlbumArtistsQuery(QObject* parent = nullptr);
+    void reload() override;
+    void fetchMore(qint32) override;
+};
+
 class ArtistQuery : public query::Query<model::ArtistStoreItem> {
     Q_OBJECT
     QML_ELEMENT

@@ -29,10 +29,12 @@ enum MessageType {
 
   GET_ARTISTS_REQ = 20;
   GET_ARTISTS_RSP = 21;
-  GET_ARTIST_REQ = 22;
-  GET_ARTIST_RSP = 23;
-  GET_ARTIST_ALBUM_REQ = 24;
-  GET_ARTIST_ALBUM_RSP = 25;
+  GET_ALBUM_ARTISTS_REQ = 22;
+  GET_ALBUM_ARTISTS_RSP = 23;
+  GET_ARTIST_REQ = 24;
+  GET_ARTIST_RSP = 25;
+  GET_ARTIST_ALBUM_REQ = 26;
+  GET_ARTIST_ALBUM_RSP = 27;
 
   GET_MIXS_REQ = 30;
   GET_MIXS_RSP = 31;
@@ -163,6 +165,21 @@ message GetArtistsRsp {
   bool has_more = 4;
 }
 
+message GetAlbumArtistsReq {
+  repeated int64 library_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  // sort
+  // filter
+}
+
+message GetAlbumArtistsRsp {
+  repeated qcm.msg.model.Artist items = 1;
+  repeated google.protobuf.Struct extras = 2;
+  int32 total = 3;
+  bool has_more = 4;
+}
+
 message GetArtistReq { int64 id = 1; }
 
 message GetArtistRsp {
@@ -245,10 +262,12 @@ message QcmMessage {
 
     GetArtistsReq get_artists_req = 120;
     GetArtistsRsp get_artists_rsp = 121;
-    GetArtistReq get_artist_req = 122;
-    GetArtistRsp get_artist_rsp = 123;
-    GetArtistAlbumReq get_artist_album_req = 124;
-    GetArtistAlbumRsp get_artist_album_rsp = 125;
+    GetAlbumArtistsReq get_album_artists_req = 122;
+    GetAlbumArtistsRsp get_album_artists_rsp = 123;
+    GetArtistReq get_artist_req = 124;
+    GetArtistRsp get_artist_rsp = 125;
+    GetArtistAlbumReq get_artist_album_req = 126;
+    GetArtistAlbumRsp get_artist_album_rsp = 127;
 
     GetMixsReq get_mixs_req = 130;
     GetMixsRsp get_mixs_rsp = 131;

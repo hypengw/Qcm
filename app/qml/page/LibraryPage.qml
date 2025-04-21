@@ -54,24 +54,25 @@ MD.Page {
                         text: qsTr("Mix")
                     }
                     MD.TabButton {
+                        width: implicitWidth
+                        text: qsTr("AlbumArtist")
+                    }
+                    MD.TabButton {
                         text: qsTr("Artist")
                     }
 
-                    // MD.TabButton {
-                    //     text: qsTr("Radio")
-                    // }
                 }
                 StackLayout {
                     currentIndex: bar.currentIndex
 
                     BaseView {
                         id: view_albumlist
-                        busy: qr_albumlist.querying
+                        busy: qr_albums.querying
                         delegate: dg_albumlist
-                        model: qr_albumlist.data
+                        model: qr_albums.data
                         type: 'album'
                         refresh: function () {
-                            root.refresh_list(qr_albumlist);
+                            root.refresh_list(qr_albums);
                         }
                     }
 
@@ -97,15 +98,25 @@ MD.Page {
                         //     }
                         // }
                     }
+                    BaseView {
+                        id: m_view_album_artists
+                        delegate: dg_artistlist
+                        busy: qr_album_artists.querying
+                        model: qr_album_artists.data
+                        type: 'artist'
+                        refresh: function () {
+                            root.refresh_list(qr_album_artists);
+                        }
+                    }
 
                     BaseView {
                         id: view_artistlist
                         delegate: dg_artistlist
-                        busy: qr_artistlist.querying
-                        model: qr_artistlist.data
+                        busy: qr_artists.querying
+                        model: qr_artists.data
                         type: 'artist'
                         refresh: function () {
-                            root.refresh_list(qr_artistlist);
+                            root.refresh_list(qr_artists);
                         }
                     }
                     /*
@@ -132,11 +143,15 @@ MD.Page {
                     */
                 }
                 QA.AlbumsQuery {
-                    id: qr_albumlist
+                    id: qr_albums
                     Component.onCompleted: reload()
                 }
                 QA.ArtistsQuery {
-                    id: qr_artistlist
+                    id: qr_artists
+                    Component.onCompleted: reload()
+                }
+                QA.AlbumArtistsQuery {
+                    id: qr_album_artists
                     Component.onCompleted: reload()
                 }
                 QA.MixesQuery {
