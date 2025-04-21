@@ -67,27 +67,6 @@ public:
     using pool_executor_t = asio::thread_pool::executor_type;
     using qt_executor_t   = QtExecutor;
 
-    enum ImageQuality
-    {
-        Img400px  = 400,
-        Img800px  = 800,
-        Img1200px = 1200,
-        ImgAuto   = -1,
-        ImgOrigin = -2,
-    };
-    Q_ENUMS(ImageQuality)
-
-    enum ProxyType
-    {
-        PROXY_HTTP    = 0,
-        PROXY_HTTPS2  = 3,
-        PROXY_SOCKS4  = 4,
-        PROXY_SOCKS5  = 5,
-        PROXY_SOCKS4A = 6,
-        PROXY_SOCKS5H = 7
-    };
-    Q_ENUMS(ProxyType)
-
     App(QStringView backend_exe, std::monostate);
     virtual ~App();
     static App* create(QQmlEngine* qmlEngine, QJSEngine* jsEngine);
@@ -143,7 +122,7 @@ public:
 
     Q_SLOT void releaseResources(QQuickWindow*);
     Q_SLOT void triggerCacheLimit();
-    Q_SLOT void setProxy(ProxyType, QString);
+    Q_SLOT void setProxy(enums::ProxyType, QString);
     Q_SLOT void setVerifyCertificate(bool);
     Q_SLOT void load_settings();
     Q_SLOT void save_settings();

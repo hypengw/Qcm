@@ -48,7 +48,7 @@ import platform;
 
 using namespace qcm;
 
-DEFINE_CONVERT(ncrequest::req_opt::Proxy::Type, App::ProxyType) {
+DEFINE_CONVERT(ncrequest::req_opt::Proxy::Type, enums::ProxyType) {
     out = static_cast<std::decay_t<decltype(out)>>(in);
 }
 
@@ -283,7 +283,7 @@ void App::load_plugins() {
     QPluginLoader::staticInstances();
 }
 
-void App::setProxy(ProxyType t, QString content) {
+void App::setProxy(enums::ProxyType t, QString content) {
     C_D(App);
     d->m_global->session()->set_proxy(
         ncrequest::req_opt::Proxy { .type    = convert_from<ncrequest::req_opt::Proxy::Type>(t),
@@ -438,19 +438,19 @@ QSizeF App::image_size(QSizeF display, int quality, QQuickItem* item) const {
     auto   dpr =
         (item && item->window() ? item->window()->effectiveDevicePixelRatio() : devicePixelRatio());
 
-    if (quality == ImgOrigin) {
-    } else if (quality == ImgAuto) {
-        constexpr std::array sizes { Img400px, Img800px, Img1200px };
-        auto                 size = std::max(display.width(), display.height()) * dpr;
-        auto                 it   = std::upper_bound(sizes.begin(), sizes.end(), size);
-        if (it != sizes.end()) {
-            size = ((int)*it / dpr);
-            out  = display.scaled(size, size, Qt::AspectRatioMode::KeepAspectRatio);
-        }
-    } else {
-        qreal qualityF = quality / dpr;
-        out            = display.scaled(qualityF, qualityF, Qt::AspectRatioMode::KeepAspectRatio);
-    }
+    // if (quality == ImgOrigin) {
+    // } else if (quality == ImgAuto) {
+    //     constexpr std::array sizes { Img400px, Img800px, Img1200px };
+    //     auto                 size = std::max(display.width(), display.height()) * dpr;
+    //     auto                 it   = std::upper_bound(sizes.begin(), sizes.end(), size);
+    //     if (it != sizes.end()) {
+    //         size = ((int)*it / dpr);
+    //         out  = display.scaled(size, size, Qt::AspectRatioMode::KeepAspectRatio);
+    //     }
+    // } else {
+    //     qreal qualityF = quality / dpr;
+    //     out            = display.scaled(qualityF, qualityF, Qt::AspectRatioMode::KeepAspectRatio);
+    // }
     return out;
 }
 
@@ -521,7 +521,7 @@ void App::load_settings() {
     });
     // session proxy
     {
-        auto type        = s.value("network/proxy_type").value<ProxyType>();
+        auto type        = s.value("network/proxy_type").value<enums::ProxyType>();
         auto content     = s.value("network/proxy_content").toString();
         auto ignore_cert = convert_from<std::optional<bool>>(s.value("network/ignore_certificate"))
                                .value_or(false);
