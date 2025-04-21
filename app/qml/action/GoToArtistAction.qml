@@ -17,7 +17,7 @@ MD.Action {
         if (itemIds.length === 1) {
             QA.Action.route_by_id(itemIds[0]);
         } else {
-            MD.Util.show_popup('qrc:/Qcm/App/qml/dialog/GoToArtistDialog.qml', {
+            MD.Util.showPopup('qrc:/Qcm/App/qml/dialog/GoToArtistDialog.qml', {
                 "itemIds": itemIds
             }, QA.Global.main_win);
         }

@@ -87,7 +87,7 @@ MD.Page {
                             if (artists.length === 1)
                                 QA.Action.route_by_id(artists[0].itemId);
                             else
-                                MD.Util.show_popup('qrc:/Qcm/App/qml/component/ArtistsPopup.qml', {
+                                MD.Util.showPopup('qrc:/Qcm/App/qml/component/ArtistsPopup.qml', {
                                         "model": artists
                                     });
                         }

@@ -212,7 +212,7 @@ MD.Page {
                         icon.name: MD.Token.icon.more_vert
 
                         onClicked: {
-                            const popup = MD.Util.show_popup('qrc:/Qcm/App/qml/menu/SongMenu.qml', {
+                            const popup = MD.Util.showPopup('qrc:/Qcm/App/qml/menu/SongMenu.qml', {
                                 "song": root.song,
                                 "y": 0
                             }, this);

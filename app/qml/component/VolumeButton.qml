@@ -29,7 +29,7 @@ MD.IconButton {
     }
 
     onClicked: {
-        const popup = MD.Util.show_popup(comp_popup, {
+        const popup = MD.Util.showPopup(comp_popup, {
             "value": control.volume,
             "y": 0
         }, this);

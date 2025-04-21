@@ -182,7 +182,7 @@ MD.Pane {
                         icon.name: MD.Token.icon.more_vert
 
                         onClicked: {
-                            const popup = MD.Util.show_popup(comp_song_menu, {
+                            const popup = MD.Util.showPopup(comp_song_menu, {
                                 "song": root.currentSong,
                                 "y": 0
                             }, this);

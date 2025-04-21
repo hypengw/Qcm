@@ -19,7 +19,7 @@ MD.StackView {
         if (is_cache) {
             let cache = m_page_cache.get(key);
             if (!cache) {
-                cache = MD.Util.create_item(url_or_comp, props, null);
+                cache = MD.Util.createItem(url_or_comp, props, null);
                 cache.visible = false;
                 m_page_cache.set(key, cache);
             }

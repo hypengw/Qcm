@@ -30,13 +30,13 @@ MD.StackView {
     function push_page(url, props = {}) {
         const key = JSON.stringify({
             "url": url,
-            "props": MD.Util.params_string(props)
+            "props": MD.Util.paramsString(props)
         });
         let item = pages.get(key);
         if (item) {
             popup(item);
         } else {
-            item = MD.Util.create_item(url, props, null);
+            item = MD.Util.createItem(url, props, null);
             if (item) {
                 pages.set(key, item);
                 push(item);

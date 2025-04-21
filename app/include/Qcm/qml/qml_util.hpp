@@ -23,7 +23,7 @@ public:
     ~Util() override;
     static Util* create(QQmlEngine* qmlEngine, QJSEngine* jsEngine);
 
-    Q_INVOKABLE model::ItemId create_itemid() const;
+    Q_INVOKABLE model::ItemId createItemid() const;
     Q_INVOKABLE model::RouteMsg create_route_msg(QVariantMap) const;
 
     Q_INVOKABLE std::vector<model::ItemId> collect_ids(QAbstractItemModel* model) const;

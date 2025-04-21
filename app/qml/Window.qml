@@ -141,7 +141,7 @@ MD.ApplicationWindow {
         }
 
         function onPopup_page(url, props, popup_props, callback) {
-            const popup = MD.Util.show_popup('qrc:/Qcm/App/qml/component/PagePopup.qml', Object.assign({}, {
+            const popup = MD.Util.showPopup('qrc:/Qcm/App/qml/component/PagePopup.qml', Object.assign({}, {
                 "source": url,
                 "props": props
             }, popup_props), win);
@@ -203,7 +203,7 @@ MD.ApplicationWindow {
             id: sv_main
 
             property var playing_page: {
-                const page = MD.Util.create_item(comp_playing, {}, sv_main);
+                const page = MD.Util.createItem(comp_playing, {}, sv_main);
                 page.visible = false;
                 playing_page = page;
             }

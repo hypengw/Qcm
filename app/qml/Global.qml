@@ -167,7 +167,7 @@ QA.GlobalWrapper {
                 }
             }
             if (p.playbackState !== QA.Enum.StoppedState) {
-                QA.Action.playbackLog(p.playbackState, root.cur_song.itemId, root.cur_song.source?.itemId ?? QA.Util.create_itemid());
+                QA.Action.playbackLog(p.playbackState, root.cur_song.itemId, root.cur_song.source?.itemId ?? QA.Util.createItemid());
             }
         }
     }

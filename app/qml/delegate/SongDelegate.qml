@@ -150,7 +150,7 @@ MD.ListItem {
                     if (root.dgModel.sourceId) {
                         props["sourceId"] = root.dgModel.sourceId;
                     }
-                    MD.Util.show_popup('qrc:/Qcm/App/qml/menu/SongMenu.qml', props, this);
+                    MD.Util.showPopup('qrc:/Qcm/App/qml/menu/SongMenu.qml', props, this);
                 }
             }
         }

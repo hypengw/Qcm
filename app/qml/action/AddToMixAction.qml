@@ -9,7 +9,7 @@ MD.Action {
     text: qsTr('add to mix')
     required property QA.item_id songId
     onTriggered: {
-        MD.Util.show_popup('qrc:/Qcm/App/qml/dialog/AddToMixDialog.qml', {
+        MD.Util.showPopup('qrc:/Qcm/App/qml/dialog/AddToMixDialog.qml', {
             "songId": root.songId
         }, QA.Global.main_win.Overlay.overlay);
     }

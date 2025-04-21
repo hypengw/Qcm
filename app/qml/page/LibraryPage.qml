@@ -93,7 +93,7 @@ MD.Page {
                         //     action:MD.Action {
                         //         icon.name: MD.Token.icon.add
                         //         onTriggered: {
-                        //             MD.Util.show_popup('qrc:/Qcm/App/qml/dialog/MixCreateDialog.qml', {}, root.Overlay.overlay);
+                        //             MD.Util.showPopup('qrc:/Qcm/App/qml/dialog/MixCreateDialog.qml', {}, root.Overlay.overlay);
                         //         }
                         //     }
                         // }
@@ -177,7 +177,7 @@ MD.Page {
                         }
                         function showMenu(parent) {
                             console.error(ListView.view.model.extra(index).artists);
-                        // MD.Util.show_popup('qrc:/Qcm/App/qml/menu/AlbumMenu.qml', {
+                        // MD.Util.showPopup('qrc:/Qcm/App/qml/menu/AlbumMenu.qml', {
                         //     "itemId": model.itemId,
                         //     "y": parent.height
                         // }, parent);
@@ -191,7 +191,7 @@ MD.Page {
                         text: model.name
                         // supportText: `${model.albumCount} albums`
                         function showMenu(parent) {
-                            MD.Util.show_popup('qrc:/Qcm/App/qml/menu/ArtistMenu.qml', {
+                            MD.Util.showPopup('qrc:/Qcm/App/qml/menu/ArtistMenu.qml', {
                                 "itemId": model.itemId,
                                 "y": parent.height
                             }, parent);
@@ -205,7 +205,7 @@ MD.Page {
                         text: model.name
                         supportText: `${model.trackCount} songs`
                         function showMenu(parent) {
-                            MD.Util.show_popup('qrc:/Qcm/App/qml/menu/MixMenu.qml', {
+                            MD.Util.showPopup('qrc:/Qcm/App/qml/menu/MixMenu.qml', {
                                 "itemId": model.itemId,
                                 "userId": model.userId,
                                 "y": parent.height
@@ -220,7 +220,7 @@ MD.Page {
                         text: model.name
                         supportText: `${model.programCount} programs`
                         function showMenu(parent) {
-                            MD.Util.show_popup('qrc:/Qcm/App/qml/menu/RadioMenu.qml', {
+                            MD.Util.showPopup('qrc:/Qcm/App/qml/menu/RadioMenu.qml', {
                                 "itemId": model.itemId,
                                 "y": parent.height
                             }, parent);

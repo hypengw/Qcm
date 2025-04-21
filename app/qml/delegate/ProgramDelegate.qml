@@ -85,7 +85,7 @@ MD.ListItem {
                 icon.name: MD.Token.icon.more_vert
 
                 onClicked: {
-                    MD.Util.show_popup('qrc:/Qcm/App/qml/menu/ProgramMenu.qml', {
+                    MD.Util.showPopup('qrc:/Qcm/App/qml/menu/ProgramMenu.qml', {
                         "itemId": root.dgModel.itemId,
                         "song": root.dgModel.song,
                         "y": height
