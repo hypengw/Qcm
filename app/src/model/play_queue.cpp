@@ -53,6 +53,7 @@ void PlayIdProxyQueue::setSourceModel(QAbstractItemModel* source_model) {
             old, &QAbstractItemModel::rowsInserted, this, &PlayIdProxyQueue::onSourceRowsInserted);
         disconnect(
             old, &QAbstractItemModel::rowsRemoved, this, &PlayIdProxyQueue::onSourceRowsRemoved);
+        disconnect(old, &QAbstractItemModel::rowsMoved, this, &PlayIdProxyQueue::onSourceRowsMoved);
         disconnect(old,
                    &QAbstractItemModel::rowsAboutToBeInserted,
                    this,
@@ -70,6 +71,8 @@ void PlayIdProxyQueue::setSourceModel(QAbstractItemModel* source_model) {
             &QAbstractItemModel::rowsRemoved,
             this,
             &PlayIdProxyQueue::onSourceRowsRemoved);
+    connect(
+        source_model, &QAbstractItemModel::rowsMoved, this, &PlayIdProxyQueue::onSourceRowsMoved);
 }
 
 auto PlayIdProxyQueue::shuffle() const -> bool { return m_shuffle.value(); }
@@ -147,7 +150,7 @@ void PlayIdProxyQueue::shuffleSync() {
         refreshFromSource();
 
     } else if (old > count) {
-        for (int i = 0, k = 0; i < count; i++) {
+        for (int i = 0, k = 1; i < count; i++) {
             if (m_shuffle_list[i] >= count) {
                 std::swap(m_shuffle_list[i], m_shuffle_list[old - k]);
                 k++;
@@ -174,6 +177,9 @@ void PlayIdProxyQueue::refreshFromSource() {
 
 void PlayIdProxyQueue::onSourceRowsInserted(const QModelIndex&, int, int) { shuffleSync(); }
 void PlayIdProxyQueue::onSourceRowsRemoved(const QModelIndex&, int, int) { shuffleSync(); }
+void PlayIdProxyQueue::onSourceRowsMoved(const QModelIndex&, int, int, const QModelIndex&, int) {
+    shuffleSync();
+}
 
 void PlayIdProxyQueue::onSourceRowsAboutToBeInserted(const QModelIndex&, int, int) {}
 
@@ -552,6 +558,10 @@ void PlayQueue::checkCanMove() {
         setCanNext(count);
     }
     }
+}
+bool PlayQueue::move(qint32 src, qint32 dst, qint32 count) {
+    auto parent = this->index(-1, 0);
+    return moveRows(parent, src, count, parent, dst);
 }
 
 } // namespace qcm

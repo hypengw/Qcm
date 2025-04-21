@@ -53,6 +53,7 @@ private:
     Q_SLOT void onSourceRowsAboutToBeInserted(const QModelIndex& parent, int first, int last);
     Q_SLOT void onSourceRowsInserted(const QModelIndex& parent, int first, int last);
     Q_SLOT void onSourceRowsRemoved(const QModelIndex& parent, int first, int last);
+    Q_SLOT void onSourceRowsMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd, const QModelIndex &destinationParent, int destinationRow);
 
     auto mapToSource(int row) const -> int;
     auto mapFromSource(int row) const -> int;
@@ -144,6 +145,8 @@ public:
 
     Q_SLOT void   clear();
     Q_SIGNAL void requestNext();
+
+    Q_INVOKABLE bool move(qint32 src, qint32 dst, qint32 count = 1);
 
     auto update(std::span<const model::Song>) -> void;
     void updateSourceId(std::span<const model::ItemId> songIds, const model::ItemId& sourceId);

@@ -52,8 +52,10 @@ public:
     auto          insert(qint32 pos, std::span<const Item>) -> int;
     void          remove(const model::ItemId&);
     bool removeRows(int row, int count, const QModelIndex& parent = QModelIndex()) override;
-    bool moveRows(const QModelIndex& sourceParent, int sourceRow, int count,
-                  const QModelIndex& destinationParent, int destinationChild) override;
+    bool             moveRows(const QModelIndex& sourceParent, int sourceRow, int count,
+                              const QModelIndex& destinationParent, int destinationChild) override;
+
+    Q_INVOKABLE bool move(qint32 src, qint32 dst, qint32 count = 1);
 
     auto name() const -> const QString&;
 

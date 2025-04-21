@@ -1,4 +1,5 @@
 #include "Qcm/model/id_queue.hpp"
+#include "core/log.h"
 
 #include <ranges>
 namespace qcm::model
@@ -143,7 +144,31 @@ bool IdQueue::removeRows(int first, int count, const QModelIndex& parent) {
 }
 bool IdQueue::moveRows(const QModelIndex& sourceParent, int sourceRow, int count,
                        const QModelIndex& destinationParent, int destinationChild) {
+    if (sourceRow < 0 || sourceRow + count - 1 >= rowCount(sourceParent) || destinationChild < 0 ||
+        destinationChild > rowCount(destinationParent) || sourceRow == destinationChild - 1 ||
+        count <= 0 || sourceParent.isValid() || destinationParent.isValid()) {
+        return false;
+    }
+    if (! beginMoveRows(
+            QModelIndex(), sourceRow, sourceRow + count - 1, QModelIndex(), destinationChild))
+        return false;
+    {
+        auto it  = m_queue.begin();
+        auto src = it + sourceRow;
+        auto dst = it + destinationChild;
+        if (src > dst) {
+            std::rotate(dst, src, src + count);
+        } else {
+            std::rotate(src, src + count, dst);
+        }
+    }
+    endMoveRows();
     return true;
+}
+
+bool IdQueue::move(qint32 src, qint32 dst, qint32 count) {
+    auto p = index(-1);
+    return moveRows(p, src, count, p, dst);
 }
 } // namespace qcm::model
 

@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Qcm.App as QA
@@ -24,7 +25,7 @@ MD.Page {
         }
     ]
 
-   MD.VerticalListView {
+    MD.VerticalListView {
         id: m_view
         anchors.fill: parent
         expand: true
@@ -43,50 +44,99 @@ MD.Page {
 
         footer: Item {}
 
-        delegate: MD.ListItem {
+        delegate: DropArea {
+            id: m_delegate
             required property var model
             required property int index
             readonly property bool is_playing: ListView.isCurrentItem
-
-            rightPadding: 4
             width: ListView.view.width
-            onClicked: {
-                const m = ListView.view.model;
-                if (m.canJump) {
-                    console.error(model.itemId, model.name)
-                    QA.Action.play_by_id(model.itemId);
-                } else {
-                    QA.Action.toast(qsTr(`Not support for ${m.name}`));
-                }
+            implicitHeight: m_item.implicitHeight
+
+            onEntered: drag => {
+                QA.App.playqueue.move(drag.source.model.index, model.index);
             }
 
-            contentItem: RowLayout {
-                spacing: 12
+            MD.ListItem {
+                id: m_item
+                anchors {
+                    horizontalCenter: parent.horizontalCenter
+                    verticalCenter: parent.verticalCenter
+                }
+                width: m_delegate.width
+                height: implicitHeight
 
-                QA.ListenIcon {
-                    Layout.fillWidth: false
-                    Layout.minimumWidth: item_font_metrics.minimumWidth + 2
-                    index: model.index
-                    isPlaying: is_playing
+                rightPadding: 4
+                onClicked: {
+                    const m = m_delegate.ListView.view.model;
+                    if (m.canJump) {
+                        QA.Action.play_by_id(model.itemId);
+                    } else {
+                        QA.Action.toast(qsTr(`Not support for ${m.name}`));
+                    }
                 }
 
-                MD.Text {
-                    id: item_idx
-                    Layout.fillWidth: true
-                    typescale: MD.Token.typescale.body_medium
-                    verticalAlignment: Qt.AlignVCenter
-                    text: model.name
-                }
+                Drag.active: dragArea.drag.active
+                Drag.source: m_delegate
+                Drag.hotSpot.x: dragArea.width / 2
+                Drag.hotSpot.y: dragArea.height / 2
+                states: [
+                    State {
+                        when: m_item.Drag.active
+                        ParentChange {
+                            target: m_item
+                            parent: m_view
+                        }
+                        AnchorChanges {
+                            target: m_item
+                            anchors.verticalCenter: undefined
+                            anchors.horizontalCenter: undefined
+                        }
+                    }
+                ]
 
-                MD.IconButton {
-                    icon.name: MD.Token.icon.remove
+                contentItem: RowLayout {
+                    spacing: 12
 
-                    onClicked: {
-                        const q = QA.App.playqueue;
-                        if (q.canRemove) {
-                            m_view.model.removeRow(model.index);
-                        } else {
-                            QA.Action.toast(`Not support for ${q.name}`);
+                    MD.Icon {
+                        implicitWidth: 40
+                        implicitHeight: 40
+                        name: MD.Token.icon.drag_indicator
+
+                        MouseArea {
+                            id: dragArea
+                            anchors.fill: parent
+                            drag.target: m_item
+                            drag.axis: Drag.YAxis
+                            drag.threshold: 0
+                            cursorShape: pressed ? Qt.ClosedHandCursor : Qt.OpenHandCursor 
+                        }
+                    }
+
+                    QA.ListenIcon {
+                        Layout.fillWidth: false
+                        Layout.minimumWidth: item_font_metrics.minimumWidth + 2
+                        index: model.index
+                        isPlaying: m_delegate.is_playing
+                    }
+
+                    MD.Text {
+                        id: item_idx
+                        Layout.fillWidth: true
+                        typescale: MD.Token.typescale.body_medium
+                        verticalAlignment: Qt.AlignVCenter
+                        text: model.name
+                    }
+
+                    MD.IconButton {
+                        icon.name: MD.Token.icon.remove
+
+                        onClicked: {
+                            const q = QA.App.playqueue;
+                            if (q.canRemove) {
+                                m_view.model.removeRow(model.index);
+                            } else {
+                                QA.Action.toast(`Not support for ${q.name}`);
+                            }
                         }
                     }
                 }
