@@ -68,6 +68,7 @@ FetchContent_MakeAvailable(KDSingleApplication)
 # asio
 add_library(asio INTERFACE)
 target_compile_definitions(asio INTERFACE ASIO_NO_DEPRECATED)
+#ASIO_NO_TYPEID
 pkg_check_modules(ASIO QUIET asio>=1.30.2)
 if(NOT ASIO_FOUND)
   FetchContent_Declare(
