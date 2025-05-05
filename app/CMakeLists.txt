@@ -4,7 +4,7 @@ set(APP_VERSION ${PROJECT_VERSION})
 set(APP_SUMMARY ${PROJECT_DESCRIPTION})
 set(APP_AUTHOR "hypengw")
 
-find_package(Qt6 REQUIRED COMPONENTS Quick)
+find_package(Qt6 REQUIRED COMPONENTS Quick ProtobufQuick ProtobufWellKnownTypes)
 qt_standard_project_setup()
 
 set(SOURCES
