@@ -7,6 +7,7 @@ project(
   HOMEPAGE_URL "https://github.com/hypengw/Qcm"
   DESCRIPTION "Material You cloud music player")
 
+set(CMAKE_POLICY_DEFAULT_CMP0065 NEW) # remove unnecessary -rdynamic
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -23,11 +24,14 @@ set(QT_QML_GENERATE_QMLLS_INI ON)
 
 # options
 option(QCM_BUILD_TESTS "Build tests" ${PROJECT_IS_TOP_LEVEL})
+option(QCM_USE_ASAN "use asan" OFF)
+option(QCM_QML_DEBUG "qml debug" OFF)
 
 # check lto
 include(CheckIPOSupported)
 check_ipo_supported(RESULT is_ipo_supported OUTPUT lto_error)
 if(is_ipo_supported)
+  message(STATUS "enable lto")
   set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
   set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_DEBUG OFF)
 endif()
@@ -56,9 +60,6 @@ set(QML_IMPORT_PATH
     "${QML_DIRS}"
     CACHE STRING "Qt Creator extra qml import paths" FORCE)
 
-option(QCM_USE_ASAN "use asan" OFF)
-option(QCM_QML_DEBUG "qml debug" OFF)
-
 if("${QT_INSTALL_QML}" STREQUAL "")
   set(QT_INSTALL_QML "${CMAKE_INSTALL_LIBDIR}/qt6/qml")
 endif()
@@ -78,7 +79,12 @@ set(WARN_OPTS
     "$<$<COMPILE_LANG_AND_ID:CXX,GNU>:-fconcepts-diagnostics-depth=2>"
     "$<$<COMPILE_LANG_AND_ID:CXX,GNU>:-Wno-dangling-reference>")
 
+set(GC_SECTIONS_OPTS "-fdata-sections -ffunction-sections")
+set(GC_SECTIONS_LINK_OPTS "-Wl,--gc-sections")
+
 add_compile_options(
+  ${WARN_OPTS}
+  "$<$<NOT:$<CONFIG:Debug>>:${GC_SECTIONS_OPTS}>"
   "$<$<CONFIG:Debug>:-fno-omit-frame-pointer>"
   # fix for clangd "$<$<CONFIG:Debug>:-fretain-comments-from-system-headers>"
   # asan
@@ -87,14 +93,13 @@ add_compile_options(
   "$<$<BOOL:${QCM_USE_ASAN}>:-fsanitize-recover=address>")
 
 add_link_options(
+  "$<$<NOT:$<CONFIG:Debug>>:${GC_SECTIONS_LINK_OPTS}>"
   # asan
   "$<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=address>"
   "$<$<BOOL:${QCM_USE_ASAN}>:-fsanitize=undefined>"
   "$<$<BOOL:${QCM_USE_ASAN}>:-fsanitize-recover=address>")
 
 add_subdirectory(third_party)
-
-add_compile_options(${WARN_OPTS})
 
 function(qt_install_qml_module target_)
   get_target_property(QML_TARGET_PATH ${target_} QT_QML_MODULE_TARGET_PATH)
