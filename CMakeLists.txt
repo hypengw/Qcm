@@ -83,6 +83,7 @@ set(GC_SECTIONS_OPTS -fdata-sections -ffunction-sections)
 set(GC_SECTIONS_LINK_OPTS "-Wl,--gc-sections")
 
 add_compile_options(
+  -fno-rtti
   ${WARN_OPTS}
   "$<$<NOT:$<CONFIG:Debug>>:${GC_SECTIONS_OPTS}>"
   "$<$<CONFIG:Debug>:-fno-omit-frame-pointer>"
