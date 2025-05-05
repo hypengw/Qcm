@@ -175,7 +175,8 @@ set_source_files_properties(
   src/player.cpp src/global.cpp src/app.cpp src/qml/qml_util.cpp
   src/model/app_info.cpp PROPERTIES COMPILE_DEFINITIONS "${APP_INFO_MACROS}")
 
-set_target_properties(app PROPERTIES CXX_SCAN_FOR_MODULES ON)
+set_target_properties(app PROPERTIES CXX_SCAN_FOR_MODULES ON
+                                     QT_QMLCACHEGEN_ARGUMENTS "--only-bytecode")
 
 target_compile_definitions(
   app PUBLIC "$<$<OR:$<BOOL:${QCM_QML_DEBUG}>,$<CONFIG:Debug>>:QT_QML_DEBUG>"

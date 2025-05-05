@@ -79,7 +79,7 @@ set(WARN_OPTS
     "$<$<COMPILE_LANG_AND_ID:CXX,GNU>:-fconcepts-diagnostics-depth=2>"
     "$<$<COMPILE_LANG_AND_ID:CXX,GNU>:-Wno-dangling-reference>")
 
-set(GC_SECTIONS_OPTS "-fdata-sections -ffunction-sections")
+set(GC_SECTIONS_OPTS -fdata-sections -ffunction-sections)
 set(GC_SECTIONS_LINK_OPTS "-Wl,--gc-sections")
 
 add_compile_options(
