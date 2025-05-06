@@ -123,9 +123,10 @@ Backend::~Backend() {
     m_thread->wait();
 }
 
-auto Backend::start(QStringView exe_, QStringView data_dir_) -> bool {
-    m_exe      = exe_.toString();
-    m_data_dir = data_dir_.toString();
+auto Backend::start(QStringView exe_, QStringView data_dir_, QStringView cache_dir_) -> bool {
+    m_exe       = exe_.toString();
+    m_data_dir  = data_dir_.toString();
+    m_cache_dir = cache_dir_.toString();
 
     {
         std::error_code ec;
@@ -179,14 +180,14 @@ auto Backend::start(QStringView exe_, QStringView data_dir_) -> bool {
                     }));
     }
 
-    m_context->post([this, exe = m_exe, data_dir = m_data_dir] {
+    m_context->post([this, exe = m_exe, data_dir = m_data_dir, cache_dir = m_cache_dir] {
         log::debug("starting backend: {}", exe);
-        m_process->start(exe, { u"--data"_s, data_dir });
+        m_process->start(exe, { u"--data"_s, data_dir, u"--cache"_s, cache_dir });
     });
     return true;
 }
 
-void Backend::on_retry() { start(m_exe, m_data_dir); }
+void Backend::on_retry() { start(m_exe, m_data_dir, m_cache_dir); }
 
 void Backend::on_error(QString) {
     m_context->post([this] {
@@ -226,8 +227,7 @@ auto Backend::image(QStringView item_type, QStringView id, QStringView image_typ
     auto url = std::format("{0}/image/{1}/{2}/{3}", this->base(), item_type, id, image_type);
     return ncrequest::Request { url };
 }
-auto Backend::image(model::ItemId id, enums::ImageType image_type)
-    -> ncrequest::Request {
+auto Backend::image(model::ItemId id, enums::ImageType image_type) -> ncrequest::Request {
     auto url = std::format("{0}/image/{1}/{2}/{3}", this->base(), id.type(), id.id(), image_type);
     return ncrequest::Request { url };
 }

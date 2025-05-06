@@ -34,8 +34,7 @@ else()
     GIT_TAG main
     GIT_SHALLOW 1
     GIT_PROGRESS 1
-    FIND_PACKAGE_ARGS GLOBAL
-    )
+    FIND_PACKAGE_ARGS GLOBAL)
   FetchContent_MakeAvailable(qml_material)
 endif()
 
@@ -78,10 +77,11 @@ if(NOT ASIO_FOUND)
     GIT_PROGRESS 1
     EXCLUDE_FROM_ALL)
   FetchContent_MakeAvailable(asio)
-  target_include_directories(asio INTERFACE ${asio_SOURCE_DIR}/asio/include)
+  target_include_directories(asio SYSTEM
+                             INTERFACE ${asio_SOURCE_DIR}/asio/include)
   message(STATUS "asio dir: ${asio_SOURCE_DIR}")
 else()
-  target_include_directories(asio INTERFACE ${ASIO_INCLUDE_DIRS})
+  target_include_directories(asio SYSTEM INTERFACE ${ASIO_INCLUDE_DIRS})
 endif()
 
 # pegtl
@@ -128,7 +128,7 @@ endif()
 FetchContent_Declare(
   ncrequest
   GIT_REPOSITORY https://github.com/hypengw/ncrequest.git
-  GIT_TAG 470df24a242747d4b8747f38da126d25354c784d
+  GIT_TAG a6f3970fbb0321195384e3ff2fe6ddce239d59b3
   GIT_SHALLOW 0
   GIT_PROGRESS 1
   EXCLUDE_FROM_ALL)

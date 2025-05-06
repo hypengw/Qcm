@@ -37,7 +37,7 @@ public:
     Backend(Arc<ncrequest::Session>);
     ~Backend();
 
-    auto start(QStringView exe, QStringView data_dir) -> bool;
+    auto start(QStringView exe, QStringView data_dir, QStringView cache_dir) -> bool;
 
     void send_immediate(msg::QcmMessage&& msg);
 
@@ -92,5 +92,6 @@ private:
     i32              m_port;
     QString          m_exe;
     QString          m_data_dir;
+    QString          m_cache_dir;
 };
 } // namespace qcm

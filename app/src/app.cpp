@@ -171,8 +171,9 @@ App::App(QStringView backend_exe, std::monostate)
                 Qt::QueuedConnection);
         }
 
-        auto data_dir = convert_from<QString>(data_path().string());
-        d->m_backend->start(backend_exe, data_dir);
+        auto data_dir  = convert_from<QString>(data_path().string());
+        auto cache_dir = convert_from<QString>(cache_path().string());
+        d->m_backend->start(backend_exe, data_dir, cache_dir);
     }
 
     d->m_qml_engine->addImportPath(u"qrc:/"_s);
@@ -449,7 +450,8 @@ QSizeF App::image_size(QSizeF display, int quality, QQuickItem* item) const {
     //     }
     // } else {
     //     qreal qualityF = quality / dpr;
-    //     out            = display.scaled(qualityF, qualityF, Qt::AspectRatioMode::KeepAspectRatio);
+    //     out            = display.scaled(qualityF, qualityF,
+    //     Qt::AspectRatioMode::KeepAspectRatio);
     // }
     return out;
 }

@@ -9,7 +9,7 @@ if(NOT GTest_FOUND)
   FetchContent_MakeAvailable(googletest)
 endif()
 
-add_executable(qcm_test src/asio.cpp)
+add_executable(qcm_test src/asio.cpp src/main.cpp src/log.cpp)
 
 target_link_libraries(qcm_test PRIVATE core.asio GTest::gtest_main)
 
