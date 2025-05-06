@@ -2,6 +2,7 @@ module;
 #include <cstdint>
 #include <cstddef>
 #include <memory>
+#include <optional>
 #include <variant>
 #include <iterator>
 #include <expected>

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <variant>
 #include "core/sender.h"
 #include "core/helper.h"
 
