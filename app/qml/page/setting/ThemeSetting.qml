@@ -54,15 +54,6 @@ MD.Page {
                     }
                     MD.ActionGroup {
                         id: m_theme_mode_group
-                        onTriggered: act => {
-                            const g = QA.Global;
-                            if (actions[1] == act) {
-                                g.color_scheme = MD.Enum.Light;
-                            } else if (actions[2] == act) {
-                                g.color_scheme = MD.Enum.Dark;
-                            }
-                            g.use_system_color_scheme = actions[0] == act;
-                        }
                     }
                     delegate: MD.InputChip {
                         required property int index
@@ -70,9 +61,21 @@ MD.Page {
                         action: MD.Action {
                             T.ActionGroup.group: m_theme_mode_group
                             icon.name: ''
-                            checkable: true
+                            checkable: false
                             checked: m_theme_mode_view.currentIndex == index
                             text: model.name
+                            onTriggered: {
+                                m_theme_mode_view.currentIndex = index;
+                                const g = QA.Global;
+                                if (index == 1) {
+                                    console.error("set light");
+                                    g.color_scheme = MD.Enum.Light;
+                                } else if (index == 2) {
+                                    console.error("set dark");
+                                    g.color_scheme = MD.Enum.Dark;
+                                }
+                                g.use_system_color_scheme = index == 0;
+                            }
                         }
                     }
                 }
