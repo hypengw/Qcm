@@ -47,7 +47,8 @@ class ProviderStatusModel
         meta_model::QGadgetListModel<model::ProviderStatus, meta_model::QMetaListStore::Map>;
 
     Q_PROPERTY(bool syncing READ syncing NOTIFY syncingChanged FINAL)
-    Q_PROPERTY(qcm::LibraryStatus* libraryStatus READ libraryStatus NOTIFY libraryStatusChanged FINAL)
+    Q_PROPERTY(
+        qcm::LibraryStatus* libraryStatus READ libraryStatus NOTIFY libraryStatusChanged FINAL)
 
 public:
     ProviderStatusModel(QObject* parent = nullptr);
@@ -57,9 +58,12 @@ public:
     auto syncing() const -> bool;
     auto libraryStatus() const -> LibraryStatus*;
 
-    Q_INVOKABLE QString svg(qint32) const;
-    Q_SIGNAL void       syncingChanged(bool);
-    Q_SIGNAL void       libraryStatusChanged();
+    Q_INVOKABLE QVariant itemById(const model::ItemId&) const;
+    Q_INVOKABLE QString  svg(qint32) const;
+    Q_INVOKABLE QString  svg(const model::ItemId&) const;
+
+    Q_SIGNAL void syncingChanged(bool);
+    Q_SIGNAL void libraryStatusChanged();
 
 private:
     void setSyncing(bool);

@@ -45,6 +45,24 @@ auto ProviderStatusModel::svg(qint32 idx) const -> QString {
     }
     return "";
 }
+
+auto ProviderStatusModel::svg(const model::ItemId& item_id) const -> QString {
+    auto p = this->query(item_id.id());
+    if (p) {
+        auto metas = App::instance()->provider_meta_status();
+        if (auto m = metas->query(p->typeName())) {
+            return m->svg();
+        }
+    }
+    return "";
+}
+
+QVariant ProviderStatusModel::itemById(const model::ItemId& item_id) const {
+    auto p = this->query(item_id.id());
+    if (p) return QVariant::fromValue(*p);
+    return {};
+}
+
 auto ProviderStatusModel::syncing() const -> bool { return m_syncing; }
 
 void ProviderStatusModel::setSyncing(bool v) {

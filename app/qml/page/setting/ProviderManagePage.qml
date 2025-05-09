@@ -29,6 +29,12 @@ MD.Page {
                 size: 24
             }
             text: model.name
+
+            onClicked: {
+                root.MD.MProp.page.pushItem('qrc:/Qcm/App/qml/page/edit/ProviderEditPage.qml', {
+                    itemId: model.itemId
+                });
+            }
         }
 
         footer: ColumnLayout {
