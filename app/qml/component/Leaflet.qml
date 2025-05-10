@@ -93,11 +93,11 @@ Item {
                         via: root
                         NumberAnimation {
                             properties: "x,y"
-                            duration: 250
+                            duration: 200
                         }
                         NumberAnimation {
                             properties: "width,height"
-                            duration: 400
+                            duration: 200
                         }
                     }
                 }

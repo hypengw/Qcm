@@ -53,8 +53,6 @@ set(MODULES src/mod.cppm)
 set(QML_FILES
     qml/js/util.mjs
     qml/PlayBar.qml
-    qml/Drawer.qml
-    qml/DrawerContent.qml
     qml/Global.qml
     qml/Window.qml
     qml/page/detail/AlbumDetailPage.qml

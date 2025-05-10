@@ -19,6 +19,7 @@ MD.Page {
     backgroundColor: MD.MProp.backgroundColor
 
     property var model: QA.App.pages
+    readonly property bool useLarge: MD.MProp.size.windowClass >= MD.Enum.WindowClassLarge
 
     function back() {
         m_page_stack.back();
@@ -58,125 +59,82 @@ MD.Page {
             anchors.fill: parent
             visible: false
 
-            Loader {
+            MD.StandardDrawer {
+                id: m_drawer
                 Layout.fillHeight: true
+                model: root.model
+                onClicked: function (model) {
+                    m_page_stack.pop_page(null);
+                    QA.Action.switch_main_page(model.index);
+                }
 
-                readonly property bool useLarge: MD.MProp.size.windowClass >= MD.Enum.WindowClassLarge
-                sourceComponent: useLarge ? m_large_navi : m_small_navi
-
-                Component {
-                    id: m_large_navi
-
-                    MD.StandardDrawer {
-                        contentItem: QA.DrawerContent {
-                            standard: true
-                            pageIndex: root.pageIndex
-                            rightTopAction: m_page_stack_context.leadingAction
-                        }
+                Behavior on implicitWidth {
+                    NumberAnimation {
+                        duration: 200
                     }
                 }
 
-                Component {
-                    id: m_small_navi
-                    Item {
-                        implicitWidth: children[0].implicitWidth
-                        implicitHeight: children[0].implicitHeight
+                headerAction: (m_page_stack.depth > 1 || !!page_container.canBack) ? m_drawer_back_action : defaultHeaderAction
+                MD.Action {
+                    id: m_drawer_back_action
+                    icon.name: MD.Token.icon.arrow_back
+                    onTriggered: {
+                        if (m_page_stack.depth > 1)
+                            m_page_stack.pop_page();
+                        else if (page_container.canBack)
+                            page_container.back();
+                    }
+                }
 
-                        ColumnLayout {
-                            anchors.fill: parent
-                            anchors.topMargin: 12
-                            anchors.bottomMargin: 12
-
-                            StackLayout {
-                                Layout.fillHeight: false
-                                currentIndex: 1
-
-                                Binding on currentIndex {
-                                    value: 0
-                                    when: m_page_stack.depth > 1 || !!page_container.canBack
-                                }
-
-                                ColumnLayout {
-                                    MD.IconButton {
-                                        Layout.alignment: Qt.AlignHCenter
-                                        action: MD.Action {
-                                            icon.name: MD.Token.icon.arrow_back
-
-                                            onTriggered: {
-                                                if (m_page_stack.depth > 1)
-                                                    m_page_stack.pop_page();
-                                                else if (page_container.canBack)
-                                                    page_container.back();
-                                            }
-                                        }
-                                    }
-                                    Item {
-                                        implicitWidth: 56 + 24
-                                    }
-                                }
-                               MD.VerticalListView {
-                                    Layout.fillWidth: true
-                                    implicitHeight: contentHeight
-                                    interactive: false
-                                    spacing: 12
-                                    // reuseItems: false
-                                    currentIndex: root.pageIndex
-
-                                    header: ColumnLayout {
-                                        width: ListView.view.width
-                                        spacing: 0
-                                        MD.RailItem {
-                                            icon.name: MD.Token.icon.menu
-                                            text: qsTr('menu')
-                                            onClicked: {
-                                                m_drawer.open();
-                                            }
-                                        }
-                                        Item {
-                                            implicitHeight: 12
-                                        }
-                                    }
-
-                                    delegate: MD.RailItem {
-                                        required property var model
-                                        required property int index
-
-                                        width: ListView.view.width
-                                        icon.name: MD.Token.icon[model.icon]
-                                        text: model.name
-                                        checked: root.pageIndex == index
-                                        onClicked: {
-                                            if (model.action) {
-                                                model.action.do();
-                                            } else {
-                                                QA.Action.switch_main_page(index);
-                                            }
-                                        }
-                                    }
-
-                                    model: root.model
+                footer: Column {
+                    MD.IconButton {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        action: MD.Action {
+                            icon.name: MD.Token.icon.hard_drive
+                            onTriggered: {
+                                QA.Action.popup_special(QA.Enum.SRSync);
+                            }
+                        }
+                    }
+                    MD.IconButton {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        action: QA.SettingAction {}
+                    }
+                }
+                drawerContent: Item {
+                    implicitHeight: children[0].implicitHeight
+                    Column {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: parent.width - 24
+                        MD.DrawerItem {
+                            width: parent.width
+                            action: MD.Action {
+                                icon.name: MD.Token.icon.hard_drive
+                                text: qsTr('provider')
+                                onTriggered: {
+                                    QA.Action.popup_special(QA.Enum.SRSync);
+                                    m_drawer.close();
                                 }
                             }
-                            Item {
-                                Layout.fillHeight: true
-                            }
-                            MD.IconButton {
-                                Layout.alignment: Qt.AlignHCenter
-                                action: MD.Action {
-                                    icon.name: MD.Token.icon.hard_drive
-                                    onTriggered: {
-                                        QA.Action.popup_special(QA.Enum.SRSync);
-                                    }
+                        }
+                        MD.DrawerItem {
+                            width: parent.width
+                            action: QA.SettingAction {
+                                onTriggered: {
+                                    m_drawer.close();
                                 }
                             }
-                            MD.IconButton {
-                                Layout.alignment: Qt.AlignHCenter
-                                visible: !QA.Global.use_system_color_scheme
-                                action: QA.ColorSchemeAction {}
-                            }
-                            MD.IconButton {
-                                Layout.alignment: Qt.AlignHCenter
-                                action: QA.SettingAction {}
+                        }
+                        MD.DrawerItem {
+                            width: parent.width
+                            action: MD.Action {
+                                icon.name: MD.Token.icon.info
+                                text: qsTr('about')
+
+                                onTriggered: {
+                                    QA.Action.popup_special(QA.Enum.SRAbout);
+                                    m_drawer.close();
+                                }
                             }
                         }
                     }
@@ -228,11 +186,6 @@ MD.Page {
         }
     }
 
-    QA.Drawer {
-        id: m_drawer
-        width: Math.min(400, (root.Window.window?.width ?? 0) * 0.8)
-        height: root.height
-    }
     Item {
         visible: false
         ColumnLayout {
