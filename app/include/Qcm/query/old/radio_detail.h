@@ -14,7 +14,7 @@
 #include "Qcm/macro.hpp"
 #include "Qcm/util/async.inl"
 
-namespace qcm::query
+namespace qcm
 {
 
 class RadioDetail : public meta_model::QGadgetListModel<Program> {
@@ -101,7 +101,7 @@ class RadioDetailQuery : public Query<RadioDetail> {
     Q_PROPERTY(RadioDetail* data READ tdata NOTIFY itemIdChanged FINAL)
 public:
     RadioDetailQuery(QObject* parent = nullptr): Query<RadioDetail>(parent) {
-        connect(this, &RadioDetailQuery::itemIdChanged, this, &RadioDetailQuery::reload);
+        connect(this, &RadioDetailitemIdChanged, this, &RadioDetailreload);
     }
 
     auto itemId() const -> const model::ItemId& { return m_radio_id; }
@@ -211,4 +211,4 @@ private:
     model::ItemId m_radio_id;
 };
 
-} // namespace qcm::query
+} // namespace qcm

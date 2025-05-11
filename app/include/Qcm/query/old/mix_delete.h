@@ -14,7 +14,7 @@
 #include "Qcm/util/async.inl"
 #include "Qcm/sql/collection_sql.h"
 
-namespace qcm::query
+namespace qcm
 {
 
 class MixDelete : public QObject {
@@ -78,4 +78,4 @@ private:
     std::vector<model::ItemId> m_ids;
 };
 
-} // namespace qcm::query
+} // namespace qcm

@@ -7,7 +7,7 @@
 
 namespace qcm
 {
-class AlbumsQuery : public query::QueryList<model::AlbumListModel> {
+class AlbumsQuery : public QueryList<model::AlbumListModel> {
     Q_OBJECT
     QML_ELEMENT
 public:
@@ -16,7 +16,7 @@ public:
     void fetchMore(qint32) override;
 };
 
-class AlbumQuery : public query::QueryList<model::AlbumSongListModel> {
+class AlbumQuery : public QueryList<model::AlbumSongListModel> {
     Q_OBJECT
     QML_ELEMENT
 

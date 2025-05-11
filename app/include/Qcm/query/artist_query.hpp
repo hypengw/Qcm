@@ -8,7 +8,7 @@
 
 namespace qcm
 {
-class ArtistsQuery : public query::QueryList<model::ArtistListModel> {
+class ArtistsQuery : public QueryList<model::ArtistListModel> {
     Q_OBJECT
     QML_ELEMENT
 public:
@@ -17,7 +17,7 @@ public:
     void fetchMore(qint32) override;
 };
 
-class AlbumArtistsQuery : public query::QueryList<model::ArtistListModel> {
+class AlbumArtistsQuery : public QueryList<model::ArtistListModel> {
     Q_OBJECT
     QML_ELEMENT
 public:
@@ -26,7 +26,7 @@ public:
     void fetchMore(qint32) override;
 };
 
-class ArtistQuery : public query::Query<model::ArtistStoreItem> {
+class ArtistQuery : public Query<model::ArtistStoreItem> {
     Q_OBJECT
     QML_ELEMENT
 
@@ -44,7 +44,7 @@ private:
     model::ItemId m_item_id;
 };
 
-class ArtistAlbumQuery : public query::QueryList<model::AlbumListModel> {
+class ArtistAlbumQuery : public QueryList<model::AlbumListModel> {
     Q_OBJECT
     QML_ELEMENT
     Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)

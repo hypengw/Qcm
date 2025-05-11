@@ -16,7 +16,7 @@
 #include "Qcm/model/artist.hpp"
 #include "Qcm/util/async.inl"
 
-namespace qcm::query
+namespace qcm
 {
 
 class ArtistAlbums : public meta_model::QGadgetListModel<model::Album> {
@@ -48,8 +48,8 @@ class ArtistAlbumsQuery : public QueryList<ArtistAlbums> {
     Q_PROPERTY(ArtistAlbums* data READ tdata NOTIFY itemIdChanged FINAL)
 public:
     ArtistAlbumsQuery(QObject* parent = nullptr): QueryList<ArtistAlbums>(parent) {
-        connect_requet_reload(&ArtistAlbumsQuery::itemIdChanged);
-        connect(tdata(), &ArtistAlbums::fetchMoreReq, this, &ArtistAlbumsQuery::setOffset);
+        connect_requet_reload(&ArtistAlbumsitemIdChanged);
+        connect(tdata(), &ArtistAlbums::fetchMoreReq, this, &ArtistAlbumssetOffset);
     }
 
     auto itemId() const -> const model::ItemId& { return m_album_id; }
@@ -159,4 +159,4 @@ private:
     model::ItemId m_album_id;
 };
 
-} // namespace qcm::query
+} // namespace qcm

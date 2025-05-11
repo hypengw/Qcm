@@ -59,6 +59,7 @@ public:
     auto libraryStatus() const -> LibraryStatus*;
 
     Q_INVOKABLE QVariant itemById(const model::ItemId&) const;
+    Q_INVOKABLE QVariant metaById(const model::ItemId&) const;
     Q_INVOKABLE QString  svg(qint32) const;
     Q_INVOKABLE QString  svg(const model::ItemId&) const;
 

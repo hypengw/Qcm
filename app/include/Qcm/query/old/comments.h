@@ -10,7 +10,7 @@
 #include "core/log.h"
 #include "Qcm/app.hpp"
 
-namespace qcm::query
+namespace qcm
 {
 
 class Comments : public meta_model::QGadgetListModel<model::Comment> {
@@ -64,8 +64,8 @@ class CommentsQuery : public QueryList<Comments> {
 
 public:
     CommentsQuery(QObject* parent = nullptr): QueryList<Comments>(parent) {
-        connect_requet_reload(&CommentsQuery::itemIdChanged);
-        connect(tdata(), &Comments::fetchMoreReq, this, &CommentsQuery::setOffset);
+        connect_requet_reload(&CommentsitemIdChanged);
+        connect(tdata(), &Comments::fetchMoreReq, this, &CommentssetOffset);
     }
 
 public:
@@ -117,4 +117,4 @@ private:
     model::ItemId m_id;
 };
 
-} // namespace qcm::query
+} // namespace qcm

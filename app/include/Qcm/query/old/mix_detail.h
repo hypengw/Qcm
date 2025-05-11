@@ -16,7 +16,7 @@
 #include "Qcm/model/artist.hpp"
 #include "Qcm/util/async.inl"
 
-namespace qcm::query
+namespace qcm
 {
 
 class MixDetail : public meta_model::QGadgetListModel<Song> {
@@ -56,7 +56,7 @@ class MixDetailQuery : public Query<MixDetail> {
     Q_PROPERTY(MixDetail* data READ tdata NOTIFY itemIdChanged FINAL)
 public:
     MixDetailQuery(QObject* parent = nullptr): Query<MixDetail>(parent), m_query_song(false) {
-        connect(this, &MixDetailQuery::itemIdChanged, this, &MixDetailQuery::reload);
+        connect(this, &MixDetailitemIdChanged, this, &MixDetailreload);
         connect(
             Notifier::instance(), &Notifier::itemChanged, this, [this](const model::ItemId& id) {
                 if (this->itemId() == id) {
@@ -105,7 +105,7 @@ WHERE playlist.itemId = :itemId AND ({1});
         } else if (query.next()) {
             model::Mix pl;
             int        i = 0;
-            query::load_query(query, pl, i);
+            load_query(query, pl, i);
             editTime = query.value(i++).toDateTime();
             co_return pl;
         }
@@ -198,4 +198,4 @@ private:
     model::ItemId m_id;
 };
 
-} // namespace qcm::query
+} // namespace qcm

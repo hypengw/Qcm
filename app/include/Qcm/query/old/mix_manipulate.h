@@ -13,7 +13,7 @@
 #include "Qcm/macro.hpp"
 #include "Qcm/util/async.inl"
 
-namespace qcm::query
+namespace qcm
 {
 
 class MixManipulate : public QObject {
@@ -31,8 +31,8 @@ class MixManipulateQuery : public Query<MixManipulate> {
     Q_PROPERTY(qint32 oper READ oper WRITE setOper NOTIFY operChanged FINAL)
 public:
     MixManipulateQuery(QObject* parent = nullptr): Query<MixManipulate>(parent), m_oper(0) {
-        // connect_requet_reload(&MixManipulateQuery::idsChanged);
-        connect(this, &MixManipulateQuery::statusChanged, [this](Status s) {
+        // connect_requet_reload(&MixManipulateidsChanged);
+        connect(this, &MixManipulatestatusChanged, [this](Status s) {
             if (s == Status::Finished) {
                 Action::instance()->sync_item(this->itemId(), true);
             }
@@ -97,4 +97,4 @@ private:
     qint32                     m_oper;
 };
 
-} // namespace qcm::query
+} // namespace qcm

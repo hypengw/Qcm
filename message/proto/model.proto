@@ -158,7 +158,8 @@ message ProviderStatus {
   string name = 2;
   string type_name = 3;
   ProviderSyncStatus sync_status = 4;
-  repeated Library libraries = 5;
+  AuthInfo auth_info = 5;
+  repeated Library libraries = 6;
 }
 
 enum AuthResult {

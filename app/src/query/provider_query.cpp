@@ -4,10 +4,10 @@
 
 #include "Qcm/app.hpp"
 
-namespace qcm::query
+namespace qcm
 {
 
-AddProviderQuery::AddProviderQuery(QObject* parent): QAsyncResultT<msg::AddProviderRsp>(parent) {
+AddProviderQuery::AddProviderQuery(QObject* parent): Query<msg::AddProviderRsp>(parent) {
     set_forwardError(true);
 }
 auto AddProviderQuery::failed() const -> const QString& { return m_failed; }
@@ -64,7 +64,7 @@ void AddProviderQuery::setReq(msg::AddProviderReq& req) {
 }
 
 ProviderMetasQuery::ProviderMetasQuery(QObject* parent)
-    : QAsyncResultT<msg::GetProviderMetasRsp>(parent) {
+    : Query<msg::GetProviderMetasRsp>(parent) {
     set_forwardError(true);
 }
 void ProviderMetasQuery::reload() {

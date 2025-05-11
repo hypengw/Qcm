@@ -5,7 +5,7 @@
 #include "Qcm/action.hpp"
 #include "Qcm/notifier.hpp"
 
-namespace qcm::query
+namespace qcm
 {
 
 class QueryBase : public QAsyncResult {
@@ -68,23 +68,19 @@ namespace detail
 void try_connect_fetch_more(QObject* query, QObject* model);
 }
 
-template<typename T, typename Base = QueryBase>
-class Query : public QAsyncResultT<T, Base> {
+template<typename T>
+class Query : public QueryBase, public QAsyncResultExtra<T, Query<T>> {
 public:
-    Query(ycore::monostate m, QObject* parent, QAsyncResultT<T, Base>::const_reference_value_type t)
-        : QAsyncResultT<T, Base>(m, parent, t), m_last(QDateTime::fromSecsSinceEpoch(0)) {
+    Query(QObject* parent): QueryBase(parent), m_last(QDateTime::fromSecsSinceEpoch(0)) {
         if constexpr (std::is_base_of_v<QObject, T>) {
             detail::try_connect_fetch_more(this, this->tdata());
-        }
-    }
-
-    template<typename... Arg>
-        requires std::is_constructible_v<T, Arg...>
-    Query(QObject* parent, Arg&&... arg)
-        : QAsyncResultT<T, Base>(parent, std::forward<Arg>(arg)...),
-          m_last(QDateTime::fromSecsSinceEpoch(0)) {
-        if constexpr (std::is_base_of_v<QObject, T>) {
-            detail::try_connect_fetch_more(this, this->tdata());
+            if constexpr (std::constructible_from<T, QObject*>) {
+                this->set_tdata(new T(this));
+            } else {
+                this->set_tdata(nullptr);
+            }
+        } else {
+            this->set_tdata({});
         }
     }
 
@@ -105,6 +101,35 @@ public:
 };
 
 template<typename T>
-using QueryList = Query<T, QueryListBase>;
+class QueryList : public QueryListBase, public QAsyncResultExtra<T, Query<T>> {
+public:
+    QueryList(QObject* parent): QueryListBase(parent), m_last(QDateTime::fromSecsSinceEpoch(0)) {
+        if constexpr (std::is_base_of_v<QObject, T>) {
+            detail::try_connect_fetch_more(this, this->tdata());
+            if constexpr (std::constructible_from<T, QObject*>) {
+                this->set_tdata(new T(this));
+            } else {
+                this->set_tdata(nullptr);
+            }
+        } else {
+            this->set_tdata({});
+        }
+    }
 
-} // namespace qcm::query
+    ~QueryList() override {}
+
+    auto last() const -> const QDateTime& { return m_last; }
+    void setLast(const QDateTime& t, const QDateTime& last = QDateTime::currentDateTime()) {
+        m_last = std::min<QDateTime>(t, last);
+    }
+    void resetLast() { m_last = QDateTime::fromSecsSinceEpoch(0); }
+    auto record() {
+        auto old = m_last;
+        m_last   = QDateTime::currentDateTimeUtc();
+        return old;
+    }
+
+    QDateTime m_last;
+};
+
+} // namespace qcm

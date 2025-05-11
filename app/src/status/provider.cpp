@@ -37,6 +37,17 @@ void ProviderStatusModel::updateSyncStatus(const msg::model::ProviderSyncStatus&
     }
 }
 
+auto ProviderStatusModel::metaById(const model::ItemId& item_id) const -> QVariant {
+    auto p = this->query(item_id.id());
+    if (p) {
+        auto metas = App::instance()->provider_meta_status();
+        if (auto m = metas->query(p->typeName())) {
+            return QVariant::fromValue(*m);
+        }
+    }
+    return {};
+}
+
 auto ProviderStatusModel::svg(qint32 idx) const -> QString {
     auto& p     = this->at(idx);
     auto  metas = App::instance()->provider_meta_status();

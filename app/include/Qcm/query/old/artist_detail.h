@@ -15,7 +15,7 @@
 #include "Qcm/model/artist.hpp"
 #include "Qcm/util/async.inl"
 
-namespace qcm::query
+namespace qcm
 {
 
 class ArtistDetail : public QObject {
@@ -45,7 +45,7 @@ class ArtistDetailQuery : public Query<ArtistDetail> {
     Q_PROPERTY(ArtistDetail* data READ tdata NOTIFY itemIdChanged FINAL)
 public:
     ArtistDetailQuery(QObject* parent = nullptr): Query<ArtistDetail>(parent) {
-        connect(this, &ArtistDetailQuery::itemIdChanged, this, &ArtistDetailQuery::reload);
+        connect(this, &ArtistDetailitemIdChanged, this, &ArtistDetailreload);
     }
 
     auto itemId() const -> const model::ItemId& { return m_album_id; }
@@ -78,7 +78,7 @@ WHERE itemId = :itemId AND ({1});
         } else if (query.next()) {
             Artist artist;
             int    i = 0;
-            query::load_query(query, artist, i);
+            load_query(query, artist, i);
             co_return artist;
         }
         co_return std::nullopt;
@@ -121,4 +121,4 @@ private:
     model::ItemId m_album_id;
 };
 
-} // namespace qcm::query
+} // namespace qcm

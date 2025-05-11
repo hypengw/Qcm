@@ -132,7 +132,9 @@ MD.Page {
 
                 onClicked: {
                     const req = m_add_query.req;
-                    req.authInfo = m_auth_loader.item.authInfo();
+                    const info = root.authInfo;
+                    m_auth_loader.item.updateAuth(info);
+                    req.authInfo = info;
                     req.name = m_tf_name.text;
                     req.typeName = root.meta.typeName;
                     m_add_query.reload();
@@ -141,174 +143,25 @@ MD.Page {
         }
         Component {
             id: m_comp_email
-
-            ColumnLayout {
+            QA.AuthEmail {
                 anchors.fill: parent
-                spacing: 12
-
-                MD.TextField {
-                    id: m_tf_email
-                    Layout.fillWidth: true
-                    type: MD.Enum.TextFieldFilled
-                    placeholderText: qsTr('Email')
-                }
-                MD.TextField {
-                    id: m_tf_pw
-                    Layout.fillWidth: true
-                    type: MD.Enum.TextFieldFilled
-                    placeholderText: qsTr('Password')
-                }
-
-                property QM.emailAuth emailAuth
-                function authInfo() {
-                    emailAuth.email = m_tf_email.text;
-                    emailAuth.pw = m_tf_pw.text;
-                    root.authInfo.serverUrl = m_tf_server.text;
-                    root.authInfo.email = emailAuth;
-                    return root.authInfo;
-                }
             }
         }
 
         Component {
             id: m_comp_username
-
-            ColumnLayout {
+            QA.AuthUsername {
                 anchors.fill: parent
-                spacing: 12
-
-                MD.TextField {
-                    id: m_tf_username
-                    Layout.fillWidth: true
-                    type: MD.Enum.TextFieldFilled
-                    placeholderText: qsTr('User Name')
-                }
-                MD.TextField {
-                    id: m_tf_pw
-                    Layout.fillWidth: true
-                    type: MD.Enum.TextFieldFilled
-                    placeholderText: qsTr('Password')
-                }
-                property QM.usernameAuth usernameAuth
-                function authInfo() {
-                    usernameAuth.username = m_tf_username.text;
-                    usernameAuth.pw = m_tf_pw.text;
-                    root.authInfo.serverUrl = m_tf_server.text;
-                    root.authInfo.username = usernameAuth;
-                    return root.authInfo;
-                }
             }
         }
         Component {
             id: m_comp_qr
-
-            ColumnLayout {
+            QA.AuthQr {
+                query: m_add_query
+                name: m_tf_name.text
+                serverUrl: m_tf_server.text
+                typeName: root.meta.typeName
                 anchors.fill: parent
-                spacing: 12
-
-                QA.QrAuthUrlQuery {
-                    id: m_qr_query
-                    typeName: root.meta.typeName
-                }
-
-                MD.StackView {
-                    id: m_qr_stack
-                    Layout.fillWidth: true
-
-                    initialItem: comp_qr_wait_scan
-
-                    implicitHeight: currentItem.implicitHeight
-
-                    Connections {
-                        function onCodeChanged() {
-                            const code = root.code;
-                            const stack = m_qr_stack;
-                            if (code == QM.AuthResult.QrExpired) {
-                                m_qr_query.reload();
-                            }
-                            switch (code) {
-                            case QM.AuthResult.Ok:
-                            case QM.AuthResult.QrWaitComform:
-                                {
-                                    if (stack.depth == 1)
-                                        stack.pushItem(comp_qr_wait_comfirm, {}, T.StackView.PushTransition);
-                                    break;
-                                }
-                            default:
-                                {
-                                    if (stack.depth > 1) {
-                                        stack.pop(null);
-                                    }
-                                }
-                            }
-                        }
-                        target: root
-                    }
-                    Component.onCompleted: {
-                        m_qr_query.reload();
-                    }
-                }
-                Component {
-                    id: comp_qr_wait_scan
-                    Column {
-                        MD.Pane {
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            backgroundColor: 'white'
-                            elevation: MD.Token.elevation.level3
-                            padding: 12
-                            radius: 12
-
-                            MD.Image {
-                                id: qr_image
-                                cache: false
-                                source: `image://qr/${m_qr_query.data.url}`
-                                sourceSize.height: 200
-                                sourceSize.width: 200
-                            }
-                        }
-                    }
-                }
-
-                Component {
-                    id: comp_qr_wait_comfirm
-                    ColumnLayout {
-                        MD.Image {
-                            Layout.alignment: Qt.AlignHCenter
-                            source: QA.Util.image_url(m_add_query.data.qrAvatarUrl)
-                            sourceSize.height: 96
-                            sourceSize.width: 96
-                            radius: height / 2
-                        }
-                        MD.Label {
-                            Layout.alignment: Qt.AlignHCenter
-                            text: m_add_query.data.qrName
-                        }
-                        MD.Label {
-                            Layout.alignment: Qt.AlignHCenter
-                            text: m_add_query.data.message
-                        }
-                    }
-                }
-                Timer {
-                    interval: 2000
-                    repeat: true
-                    running: true
-
-                    property QM.qrAuth qrAuth
-                    onTriggered: {
-                        if (m_add_query.querying)
-                            return;
-
-                        qrAuth.key = m_qr_query.data.key;
-                        root.authInfo.serverUrl = m_tf_server.text;
-                        root.authInfo.qr = qrAuth;
-                        const req = m_add_query.req;
-                        req.authInfo = root.authInfo;
-                        req.name = m_tf_name.text;
-                        req.typeName = root.meta.typeName;
-                        m_add_query.reload();
-                    }
-                }
             }
         }
     }

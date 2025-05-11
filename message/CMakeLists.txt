@@ -1,5 +1,3 @@
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
-#find_package(WrapProtoc REQUIRED )
 find_package(Qt6 REQUIRED COMPONENTS Protobuf ProtobufWellKnownTypes ProtobufQuick)
 set(CMAKE_AUTOMOC ON)
 

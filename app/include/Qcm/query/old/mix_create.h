@@ -14,7 +14,7 @@
 #include "Qcm/macro.hpp"
 #include "Qcm/util/async.inl"
 
-namespace qcm::query
+namespace qcm
 {
 
 class MixCreate : public QObject {
@@ -88,4 +88,4 @@ private:
     QString m_name;
 };
 
-} // namespace qcm::query
+} // namespace qcm

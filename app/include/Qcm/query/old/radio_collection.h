@@ -15,7 +15,7 @@
 #include "Qcm/sql/item_sql.h"
 #include "Qcm/sql/collection_sql.h"
 
-namespace qcm::query
+namespace qcm
 {
 struct RadioCollectionItem : public model::Radio {
     Q_GADGET
@@ -91,7 +91,7 @@ ORDER BY collection.collectTime DESC;
         while (query.next()) {
             auto& item = items.emplace_back();
             int   i    = 0;
-            query::load_query<model::Radio>(query, item, i);
+            load_query<model::Radio>(query, item, i);
             item.subTime = query.value(i++).toDateTime();
         }
         co_return items;
@@ -156,4 +156,4 @@ ORDER BY collection.collectTime DESC;
     Q_SLOT void reset() {}
 };
 
-} // namespace qcm::query
+} // namespace qcm

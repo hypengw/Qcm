@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Qcm/util/async.hpp"
+#include "Qcm/query/query.hpp"
 
 namespace qcm::qml
 {
@@ -20,7 +20,7 @@ private:
     double m_total;
 };
 
-class StorageInfoQuerier : public QAsyncResultT<StorageInfo> {
+class StorageInfoQuerier : public Query<StorageInfo> {
     Q_OBJECT
     QML_ELEMENT
 public:

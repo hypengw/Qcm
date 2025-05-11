@@ -16,7 +16,7 @@
 #include "Qcm/sql/item_sql.h"
 #include "Qcm/app.hpp"
 
-namespace qcm::query
+namespace qcm
 {
 
 class AlbumDetail : public meta_model::QGadgetListModel<Song> {
@@ -55,7 +55,7 @@ class AlbumDetailQuery : public Query<AlbumDetail> {
     Q_PROPERTY(AlbumDetail* data READ tdata NOTIFY itemIdChanged FINAL)
 public:
     AlbumDetailQuery(QObject* parent = nullptr): Query<AlbumDetail>(parent) {
-        connect(this, &AlbumDetailQuery::itemIdChanged, this, &AlbumDetailQuery::reload);
+        connect(this, &AlbumDetailitemIdChanged, this, &AlbumDetailreload);
     }
 
     auto itemId() const -> const model::ItemId& { return m_album_id; }
@@ -171,4 +171,4 @@ private:
     model::ItemId m_album_id;
 };
 
-} // namespace qcm::query
+} // namespace qcm

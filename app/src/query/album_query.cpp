@@ -10,7 +10,7 @@
 namespace qcm
 {
 
-AlbumsQuery::AlbumsQuery(QObject* parent): query::QueryList<model::AlbumListModel>(parent) {
+AlbumsQuery::AlbumsQuery(QObject* parent): QueryList<model::AlbumListModel>(parent) {
     // set_use_queue(true);
     auto app = App::instance();
     this->tdata()->set_store(this->tdata(), app->store()->albums);
@@ -81,7 +81,7 @@ void AlbumsQuery::fetchMore(qint32) {
     });
 }
 
-AlbumQuery::AlbumQuery(QObject* parent): query::QueryList<model::AlbumSongListModel>(parent) {
+AlbumQuery::AlbumQuery(QObject* parent): QueryList<model::AlbumSongListModel>(parent) {
     this->tdata()->set_store(this->tdata(), App::instance()->store()->songs);
 }
 auto AlbumQuery::itemId() const -> model::ItemId { return m_item_id; }

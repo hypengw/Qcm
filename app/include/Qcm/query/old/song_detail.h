@@ -16,7 +16,7 @@
 #include "Qcm/sql/item_sql.h"
 #include "Qcm/app.hpp"
 
-namespace qcm::query
+namespace qcm
 {
 
 class SongDetailQuery : public Query<Song> {
@@ -24,10 +24,10 @@ class SongDetailQuery : public Query<Song> {
     QML_ELEMENT
 
     Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
-    Q_PROPERTY(qcm::query::Song data READ tdata NOTIFY dataChanged FINAL)
+    Q_PROPERTY(qcm::Song data READ tdata NOTIFY dataChanged FINAL)
 public:
     SongDetailQuery(QObject* parent = nullptr): Query<Song>(parent) {
-        connect(this, &SongDetailQuery::itemIdChanged, this, &SongDetailQuery::reload);
+        connect(this, &SongDetailitemIdChanged, this, &SongDetailreload);
     }
 
     auto itemId() const -> const model::ItemId& { return m_id; }
@@ -111,4 +111,4 @@ private:
     model::ItemId m_id;
 };
 
-} // namespace qcm::query
+} // namespace qcm

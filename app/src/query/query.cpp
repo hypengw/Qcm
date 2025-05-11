@@ -2,7 +2,7 @@
 #include "Qcm/status/provider_status.hpp"
 #include "Qcm/app.hpp"
 
-namespace qcm::query
+namespace qcm
 {
 
 QueryBase::QueryBase(QObject* parent): QAsyncResult(parent), m_delay(true) {
@@ -78,6 +78,6 @@ void detail::try_connect_fetch_more(QObject* query, QObject* model) {
     }
 }
 
-} // namespace qcm::query
+} // namespace qcm
 
 #include <Qcm/query/moc_query.cpp>

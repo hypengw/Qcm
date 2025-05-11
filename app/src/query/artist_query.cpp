@@ -10,7 +10,7 @@
 namespace qcm
 {
 
-ArtistsQuery::ArtistsQuery(QObject* parent): query::QueryList<model::ArtistListModel>(parent) {
+ArtistsQuery::ArtistsQuery(QObject* parent): QueryList<model::ArtistListModel>(parent) {
     // set_use_queue(true);
     auto app = App::instance();
     this->connectSyncFinished();
@@ -67,7 +67,7 @@ void ArtistsQuery::fetchMore(qint32) {
 }
 
 AlbumArtistsQuery::AlbumArtistsQuery(QObject* parent)
-    : query::QueryList<model::ArtistListModel>(parent) {
+    : QueryList<model::ArtistListModel>(parent) {
     // set_use_queue(true);
     auto app = App::instance();
     this->connectSyncFinished();
@@ -123,7 +123,7 @@ void AlbumArtistsQuery::fetchMore(qint32) {
     });
 }
 
-ArtistQuery::ArtistQuery(QObject* parent): query::Query<model::ArtistStoreItem>(parent) {}
+ArtistQuery::ArtistQuery(QObject* parent): Query<model::ArtistStoreItem>(parent) {}
 auto ArtistQuery::itemId() const -> model::ItemId { return m_item_id; }
 void ArtistQuery::setItemId(model::ItemId in) {
     if (ycore::cmp_exchange(m_item_id, in)) {
@@ -150,7 +150,7 @@ void ArtistQuery::reload() {
 }
 
 ArtistAlbumQuery::ArtistAlbumQuery(QObject* parent)
-    : query::QueryList<model::AlbumListModel>(parent) {
+    : QueryList<model::AlbumListModel>(parent) {
     // set_use_queue(true);
     this->tdata()->set_store(this->tdata(), AppStore::instance()->albums);
 }

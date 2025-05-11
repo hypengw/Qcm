@@ -15,7 +15,7 @@
 #include "Qcm/util/async.inl"
 #include "qcm_interface/sql/meta_sql.h"
 
-namespace qcm::query
+namespace qcm
 {
 class UserMix : public meta_model::QGadgetListModel<model::Mix> {
     Q_OBJECT
@@ -77,7 +77,7 @@ ORDER BY collection.collectTime DESC;
         while (query.next()) {
             auto& item = items.emplace_back();
             int   i    = 0;
-            query::load_query<model::Mix>(query, item, i);
+            load_query<model::Mix>(query, item, i);
         }
         co_return items;
     }
@@ -111,4 +111,4 @@ ORDER BY collection.collectTime DESC;
     Q_SLOT void reset() {}
 };
 
-} // namespace qcm::query
+} // namespace qcm

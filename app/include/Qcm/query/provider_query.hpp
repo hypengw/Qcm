@@ -2,11 +2,11 @@
 
 #include <QtQml/QQmlEngine>
 #include "Qcm/backend.hpp"
-#include "Qcm/util/async.hpp"
+#include "Qcm/query/query.hpp"
 
-namespace qcm::query
+namespace qcm
 {
-class ProviderMetasQuery : public QAsyncResultT<msg::GetProviderMetasRsp> {
+class ProviderMetasQuery : public Query<msg::GetProviderMetasRsp> {
     Q_OBJECT
     QML_ELEMENT
 public:
@@ -14,7 +14,7 @@ public:
     void reload() override;
 };
 
-class AddProviderQuery : public QAsyncResultT<msg::AddProviderRsp> {
+class AddProviderQuery : public Query<msg::AddProviderRsp> {
     Q_OBJECT
     QML_ELEMENT
 
@@ -37,4 +37,4 @@ private:
     msg::AddProviderReq m_req;
     QString m_failed;
 };
-} // namespace qcm::query
+} // namespace qcm
