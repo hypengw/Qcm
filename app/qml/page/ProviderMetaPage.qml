@@ -11,17 +11,39 @@ MD.Page {
     id: root
     required property var meta
     property QM.authInfo authInfo
-    property int code: m_add_query.data.code
 
-    onCodeChanged: {
-        if (code == QM.AuthResult.Ok) {
-            QA.Notifier.providerAdded(m_tf_name.text);
-            root.MD.MProp.page.pop();
+    QA.CreateTmpProviderQuery {
+        id: m_tmp_provider_query
+        typeName: root.meta.typeName
+        Component.onCompleted: reload()
+    }
+
+    QA.AuthProviderQuery {
+        id: m_auth_query
+        tmpProvider: m_tmp_provider_query.data.key
+
+        onStatusChanged: {
+            if (status == QA.Enum.Finished) {
+                if (data.code == QM.AuthResult.Ok) {
+                    const query = m_add_query;
+                    const req = query.req;
+                    req.name = m_tf_name.text;
+                    req.tmpProvider = tmpProvider;
+                    query.req = req;
+                    query.reload();
+                }
+            }
         }
     }
 
     QA.AddProviderQuery {
         id: m_add_query
+        onStatusChanged: {
+            if (status == QA.Enum.Finished) {
+                QA.Notifier.providerAdded(m_tf_name.text);
+                root.MD.MProp.page.pop();
+            }
+        }
     }
 
     MD.VerticalFlickable {
@@ -118,7 +140,7 @@ MD.Page {
                 Layout.fillWidth: true
                 color: MD.MProp.color.error
                 visible: text
-                text: m_add_query.failed
+                text: m_auth_query.failed
             }
 
             MD.Button {
@@ -131,13 +153,13 @@ MD.Page {
                 text: qsTr('connect')
 
                 onClicked: {
-                    const req = m_add_query.req;
+                    const query = m_auth_query;
+                    const req = query.req;
                     const info = root.authInfo;
-                    m_auth_loader.item.updateAuth(info);
+                    m_auth_loader.item.updateInfo(info);
+                    info.serverUrl = m_tf_server.text;
                     req.authInfo = info;
-                    req.name = m_tf_name.text;
-                    req.typeName = root.meta.typeName;
-                    m_add_query.reload();
+                    query.reload();
                 }
             }
         }
@@ -157,7 +179,8 @@ MD.Page {
         Component {
             id: m_comp_qr
             QA.AuthQr {
-                query: m_add_query
+                tmpProvider: m_auth_query.tmpProvider
+                query: m_auth_query
                 name: m_tf_name.text
                 serverUrl: m_tf_server.text
                 typeName: root.meta.typeName

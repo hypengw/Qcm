@@ -13,6 +13,7 @@ class QrAuthUrlQuery : public Query, public QueryExtra<msg::QrAuthUrlRsp, QrAuth
     QML_ELEMENT
 
     Q_PROPERTY(QString typeName READ typeName WRITE setTypeName NOTIFY typeNameChanged)
+    Q_PROPERTY(QString tmpProvider READ tmpProvider WRITE setTmpProvider NOTIFY tmpProviderChanged)
 
 public:
     QrAuthUrlQuery(QObject* parent = nullptr);
@@ -20,9 +21,14 @@ public:
     auto typeName() const -> QString;
     void setTypeName(const QString&);
 
+    auto tmpProvider() const -> QString;
+    void setTmpProvider(const QString&);
+
     Q_SIGNAL void typeNameChanged();
+    Q_SIGNAL void tmpProviderChanged();
 
 private:
     QString m_type_name;
+    QString m_tmp_provider;
 };
 } // namespace qcm

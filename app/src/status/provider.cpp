@@ -49,10 +49,12 @@ auto ProviderStatusModel::metaById(const model::ItemId& item_id) const -> QVaria
 }
 
 auto ProviderStatusModel::svg(qint32 idx) const -> QString {
-    auto& p     = this->at(idx);
-    auto  metas = App::instance()->provider_meta_status();
-    if (auto m = metas->query(p.typeName())) {
-        return m->svg();
+    if (this->rowCount() > idx && idx >= 0) {
+        auto& p     = this->at(idx);
+        auto  metas = App::instance()->provider_meta_status();
+        if (auto m = metas->query(p.typeName())) {
+            return m->svg();
+        }
     }
     return "";
 }

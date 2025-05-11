@@ -30,7 +30,7 @@ ColumnLayout {
     }
 
     property QM.emailAuth auth
-    function updateAuth(info) {
+    function updateInfo(info) {
         auth.email = m_tf_email.text;
         auth.pw = m_tf_pw.text;
         info.email = auth;

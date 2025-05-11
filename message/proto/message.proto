@@ -107,8 +107,8 @@ message GetProviderMetasReq {}
 message GetProviderMetasRsp { repeated qcm.msg.model.ProviderMeta metas = 1; }
 
 message CreateTmpProviderReq { string type_name = 1; }
-message CreateTmpProviderRsp { string id = 1; }
-message DeleteTmpProviderReq { string id = 1; }
+message CreateTmpProviderRsp { string key = 1; }
+message DeleteTmpProviderReq { string key = 1; }
 
 message AuthProviderReq {
   string tmp_provider = 1;

@@ -20,6 +20,8 @@ class AuthProviderQuery : public Query, public QueryExtra<msg::AuthProviderRsp, 
     QML_ELEMENT
 
     Q_PROPERTY(msg::AuthProviderReq req READ req WRITE setReq NOTIFY reqChanged FINAL)
+    Q_PROPERTY(
+        QString tmpProvider READ tmpProvider WRITE setTmpProvider NOTIFY tmpProviderChanged FINAL)
     Q_PROPERTY(QString failed READ failed NOTIFY failedChanged FINAL)
 public:
     AuthProviderQuery(QObject* parent = nullptr);
@@ -27,16 +29,20 @@ public:
 
     auto req() -> msg::AuthProviderReq&;
     void setReq(msg::AuthProviderReq&);
+    auto tmpProvider() const -> QString;
+    void setTmpProvider(const QString&);
 
     auto failed() const -> const QString&;
     void setFailed(QStringView);
 
     Q_SIGNAL void reqChanged();
     Q_SIGNAL void failedChanged();
+    Q_SIGNAL void tmpProviderChanged();
 
 private:
     msg::AuthProviderReq m_req;
     QString              m_failed;
+    QString              m_tmp_provider;
 };
 
 class AddProviderQuery : public Query, public QueryExtra<msg::Rsp, AddProviderQuery> {
@@ -87,17 +93,19 @@ class DeleteProviderQuery : public Query, public QueryExtra<msg::Rsp, DeleteProv
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(msg::DeleteProviderReq req READ req WRITE setReq NOTIFY reqChanged FINAL)
+    Q_PROPERTY(model::ItemId providerId READ providerId WRITE setProviderId NOTIFY providerIdChanged FINAL)
 public:
     DeleteProviderQuery(QObject* parent = nullptr);
     void reload() override;
 
-    auto req() -> msg::DeleteProviderReq&;
-    void setReq(msg::DeleteProviderReq&);
+    auto providerId() const -> model::ItemId;
+    void setProviderId(const model::ItemId&);
 
     Q_SIGNAL void reqChanged();
+    Q_SIGNAL void providerIdChanged();
 
 private:
+    model::ItemId          m_provider_id;
     msg::DeleteProviderReq m_req;
 };
 
@@ -118,9 +126,11 @@ public:
     void setReq(msg::ReplaceProviderReq&);
 
     Q_SIGNAL void reqChanged();
+    Q_SIGNAL void providerIdChanged();
 
 private:
     msg::ReplaceProviderReq m_req;
+    model::ItemId           m_provider_id;
 };
 
 class CreateTmpProviderQuery
@@ -129,19 +139,19 @@ class CreateTmpProviderQuery
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(msg::CreateTmpProviderReq req READ req WRITE setReq NOTIFY reqChanged FINAL)
+    Q_PROPERTY(QString typeName READ typeName WRITE setTypeName NOTIFY typeNameChanged FINAL)
 public:
     CreateTmpProviderQuery(QObject* parent = nullptr);
     ~CreateTmpProviderQuery();
     void reload() override;
 
-    auto req() -> msg::CreateTmpProviderReq&;
-    void setReq(msg::CreateTmpProviderReq&);
+    auto typeName() const -> QString;
+    void setTypeName(const QString&);
 
-    Q_SIGNAL void reqChanged();
+    Q_SIGNAL void typeNameChanged();
 
 private:
-    msg::CreateTmpProviderReq m_req;
+    QString m_type_name;
 };
 
 class DeleteTmpProviderQuery : public Query, public QueryExtra<msg::Rsp, DeleteTmpProviderQuery> {

@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtCore
 import QtQuick
 import QtQuick.Layouts
@@ -10,6 +11,10 @@ MD.Page {
     title: qsTr('provider manage')
     bottomPadding: radius
     scrolling: !m_view.atYBeginning
+
+    QA.DeleteProviderQuery {
+        id: m_delete_query
+    }
 
     MD.VerticalListView {
         id: m_view
@@ -29,6 +34,14 @@ MD.Page {
                 size: 24
             }
             text: model.name
+            trailing: MD.IconButton {
+                icon.name: MD.Token.icon.close
+                onClicked: {
+                    const query = m_delete_query;
+                    query.providerId = model.itemId;
+                    query.reload();
+                }
+            }
 
             onClicked: {
                 root.MD.MProp.page.pushItem('qrc:/Qcm/App/qml/page/edit/ProviderEditPage.qml', {

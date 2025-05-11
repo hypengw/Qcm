@@ -10,11 +10,15 @@ void QrAuthUrlQuery::reload() {
     auto backend = App::instance()->backend();
     auto req     = msg::QrAuthUrlReq {};
     req.setProviderMeta(m_type_name);
+    req.setTmpProvider(m_tmp_provider);
     auto self = helper::QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
-        self->set(std::move(rsp));
+        // ignore error
+        if (rsp) {
+            self->set(std::move(rsp));
+        }
         co_return;
     });
 }
@@ -22,6 +26,13 @@ auto QrAuthUrlQuery::typeName() const -> QString { return m_type_name; }
 void QrAuthUrlQuery::setTypeName(const QString& v) {
     if (ycore::cmp_exchange(m_type_name, v)) {
         typeNameChanged();
+    }
+}
+
+auto QrAuthUrlQuery::tmpProvider() const -> QString { return m_tmp_provider; }
+void QrAuthUrlQuery::setTmpProvider(const QString& v) {
+    if (ycore::cmp_exchange(m_tmp_provider, v)) {
+        tmpProviderChanged();
     }
 }
 } // namespace qcm

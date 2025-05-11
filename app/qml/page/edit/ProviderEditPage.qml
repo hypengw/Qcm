@@ -12,7 +12,8 @@ MD.Page {
     required property QA.item_id itemId
     readonly property var model: QA.App.providerStatus.itemById(itemId)
     readonly property var meta: QA.App.providerStatus.metaById(itemId)
-    readonly property bool changed: model.name != m_tf_name.text || (m_auth_loader.item?.modified ?? false)
+    readonly property bool modified: model.name != m_tf_name.text || authInfoModified
+    readonly property bool authInfoModified: m_auth_loader.item?.modified ?? false
 
     font.capitalization: Font.Capitalize
     title: qsTr('provider edit')
@@ -145,23 +146,38 @@ MD.Page {
                 QA.UpdateProviderQuery {
                     id: m_update_query
                     providerId: root.model.itemId
+                    onStatusChanged: {
+                        if (status == QA.Enum.Finished)
+                            root.MD.MProp.page.pop();
+                    }
                 }
                 QA.ReplaceProviderQuery {
                     id: m_replace_query
                     providerId: root.model.itemId
+                    onStatusChanged: {
+                        if (status == QA.Enum.Finished)
+                            root.MD.MProp.page.pop();
+                    }
                 }
 
                 MD.Button {
-                    enabled: root.changed
+                    enabled: root.modified
                     text: qsTr("update")
                     onClicked: {
                         const query = m_update_query;
                         const req = query.req;
-                        req.clearAuthInfo();
+
+                        if (root.authInfoModified) {
+                            const info = root.model.authInfo;
+                            m_auth_loader.item.updateInfo(info);
+                            req.authInfo = info;
+                        } else {
+                            req.clearAuthInfo();
+                        }
+
                         req.name = m_tf_name.text;
                         query.req = req;
                         query.reload();
-                        root.MD.MProp.page.pop();
                     }
                 }
             }
@@ -197,11 +213,14 @@ MD.Page {
                 QA.AuthQr {
                     QA.CreateTmpProviderQuery {
                         id: m_tmp_provider_query
+                        typeName: root.model.typeName
                         Component.onCompleted: reload()
                     }
                     QA.AuthProviderQuery {
                         id: m_auth_query
+                        tmpProvider: m_tmp_provider_query.data.key
                     }
+                    tmpProvider: m_tmp_provider_query.data.key
                     query: m_auth_query
                     name: m_tf_name.text
                     serverUrl: m_tf_server.text

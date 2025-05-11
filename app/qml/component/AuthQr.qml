@@ -15,11 +15,17 @@ ColumnLayout {
     property string serverUrl
     property string name
     property string typeName
+    property string tmpProvider
     property QM.authInfo authInfo
+
+    function updateInfo(info) {
+    }
 
     QA.QrAuthUrlQuery {
         id: m_qr_query
         typeName: root.typeName
+        tmpProvider: root.tmpProvider
+        onTmpProviderChanged: reload()
     }
 
     MD.StackView {
@@ -107,7 +113,10 @@ ColumnLayout {
 
         property QM.qrAuth auth
         onTriggered: {
+            const query = root.query;
             if (query.querying)
+                return;
+            if (m_qr_query.data.key == 0)
                 return;
 
             const info = root.authInfo;
