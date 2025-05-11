@@ -83,8 +83,16 @@ auto get_msg(msg::QcmMessage& msg) -> Option<T> {
 QCM_MSG_TRAITS_REQ(GetProviderMetasReq, GetProviderMetasRsp, GET_PROVIDER_METAS_REQ,
                    getProviderMetasReq)
 QCM_MSG_TRAITS_RSP(GetProviderMetasRsp, GetProviderMetasReq, getProviderMetasRsp)
-QCM_MSG_TRAITS_REQ(AddProviderReq, AddProviderRsp, ADD_PROVIDER_REQ, addProviderReq)
-QCM_MSG_TRAITS_RSP(AddProviderRsp, AddProviderReq, addProviderRsp)
+QCM_MSG_TRAITS_REQ(AddProviderReq, Rsp, ADD_PROVIDER_REQ, addProviderReq)
+QCM_MSG_TRAITS_REQ(DeleteProviderReq, Rsp, DELETE_PROVIDER_REQ, deleteProviderReq)
+QCM_MSG_TRAITS_REQ(ReplaceProviderReq, Rsp, REPLACE_PROVIDER_REQ, replaceProviderReq)
+QCM_MSG_TRAITS_REQ(UpdateProviderReq, UpdateProviderRsp, UPDATE_PROVIDER_REQ, updateProviderReq)
+QCM_MSG_TRAITS_RSP(UpdateProviderRsp, UpdateProviderReq, updateProviderRsp)
+QCM_MSG_TRAITS_REQ(AuthProviderReq, AuthProviderRsp, AUTH_PROVIDER_REQ, authProviderReq)
+QCM_MSG_TRAITS_RSP(AuthProviderRsp, AuthProviderReq, authProviderRsp)
+QCM_MSG_TRAITS_REQ(CreateTmpProviderReq, CreateTmpProviderRsp, CREATE_TMP_PROVIDER_REQ, createTmpProviderReq)
+QCM_MSG_TRAITS_RSP(CreateTmpProviderRsp, CreateTmpProviderReq, createTmpProviderRsp)
+QCM_MSG_TRAITS_REQ(DeleteTmpProviderReq, Rsp, DELETE_TMP_PROVIDER_REQ, deleteTmpProviderReq)
 
 QCM_MSG_TRAITS_REQ(QrAuthUrlReq, QrAuthUrlRsp, QR_AUTH_URL_REQ, qrAuthUrlReq)
 QCM_MSG_TRAITS_RSP(QrAuthUrlRsp, QrAuthUrlReq, qrAuthUrlRsp)
@@ -96,7 +104,8 @@ QCM_MSG_TRAITS_RSP(GetAlbumRsp, GetAlbumReq, getAlbumRsp)
 
 QCM_MSG_TRAITS_REQ(GetArtistsReq, GetArtistsRsp, GET_ARTISTS_REQ, getArtistsReq)
 QCM_MSG_TRAITS_RSP(GetArtistsRsp, GetArtistsReq, getArtistsRsp)
-QCM_MSG_TRAITS_REQ(GetAlbumArtistsReq, GetAlbumArtistsRsp, GET_ALBUM_ARTISTS_REQ, getAlbumArtistsReq)
+QCM_MSG_TRAITS_REQ(GetAlbumArtistsReq, GetAlbumArtistsRsp, GET_ALBUM_ARTISTS_REQ,
+                   getAlbumArtistsReq)
 QCM_MSG_TRAITS_RSP(GetAlbumArtistsRsp, GetAlbumArtistsReq, getAlbumArtistsRsp)
 QCM_MSG_TRAITS_REQ(GetArtistReq, GetArtistRsp, GET_ARTIST_REQ, getArtistReq)
 QCM_MSG_TRAITS_RSP(GetArtistRsp, GetArtistReq, getArtistRsp)
@@ -147,11 +156,10 @@ namespace qcm::model
 {
 class Song;
 
-
 template<typename T>
 void model_init(T* self) {
     self->setId_proto(-1);
-    if constexpr(std::same_as<T, Song>) {
+    if constexpr (std::same_as<T, Song>) {
         self->setAlbumId(-1);
     }
 }
@@ -226,7 +234,6 @@ private:
 };
 
 #undef QCM_MODEL_COMMON
-
 
 } // namespace qcm::model
 

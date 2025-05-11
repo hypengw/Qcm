@@ -7,17 +7,15 @@
 namespace qcm
 {
 
-AddProviderQuery::AddProviderQuery(QObject* parent): Query(parent) {
-    set_forwardError(true);
-}
-auto AddProviderQuery::failed() const -> const QString& { return m_failed; }
-void AddProviderQuery::setFailed(QStringView v) {
+auto AuthProviderQuery::failed() const -> const QString& { return m_failed; }
+void AuthProviderQuery::setFailed(QStringView v) {
     if (ycore::cmp_exchange(m_failed, v.toString())) {
         failedChanged();
     }
 }
+AuthProviderQuery::AuthProviderQuery(QObject* parent): Query(parent) { set_forwardError(true); }
 
-void AddProviderQuery::reload() {
+void AuthProviderQuery::reload() {
     set_status(Status::Querying);
     auto backend = App::instance()->backend();
     auto self    = helper::QWatcher { this };
@@ -56,17 +54,14 @@ void AddProviderQuery::reload() {
         co_return;
     });
 }
-auto AddProviderQuery::req() -> msg::AddProviderReq& { return m_req; }
-void AddProviderQuery::setReq(msg::AddProviderReq& req) {
+auto AuthProviderQuery::req() -> msg::AuthProviderReq& { return m_req; }
+void AuthProviderQuery::setReq(msg::AuthProviderReq& req) {
     if (ycore::cmp_exchange(m_req, req)) {
         reqChanged();
     }
 }
 
-ProviderMetasQuery::ProviderMetasQuery(QObject* parent)
-    : Query(parent) {
-    set_forwardError(true);
-}
+ProviderMetasQuery::ProviderMetasQuery(QObject* parent): Query(parent) { set_forwardError(true); }
 void ProviderMetasQuery::reload() {
     set_status(Status::Querying);
     auto backend = App::instance()->backend();
@@ -80,6 +75,148 @@ void ProviderMetasQuery::reload() {
     });
 }
 
-} // namespace qcm::query
+AddProviderQuery::AddProviderQuery(QObject* parent): Query(parent) { set_forwardError(true); }
+auto AddProviderQuery::req() -> msg::AddProviderReq& { return m_req; }
+void AddProviderQuery::setReq(msg::AddProviderReq& req) {
+    if (ycore::cmp_exchange(m_req, req)) {
+        reqChanged();
+    }
+}
+
+void AddProviderQuery::reload() {
+    set_status(Status::Querying);
+    auto backend = App::instance()->backend();
+    auto self    = helper::QWatcher { this };
+    spawn([self, backend, req = m_req]() mutable -> task<void> {
+        auto rsp = co_await backend->send(std::move(req));
+        co_await qcm::qexecutor_switch();
+        self->set(std::move(rsp));
+        co_return;
+    });
+}
+
+UpdateProviderQuery::UpdateProviderQuery(QObject* parent): Query(parent) { set_forwardError(true); }
+
+auto UpdateProviderQuery::req() -> msg::UpdateProviderReq& { return m_req; }
+void UpdateProviderQuery::setReq(const msg::UpdateProviderReq& req) {
+    if (ycore::cmp_exchange(m_req, req)) {
+        reqChanged();
+    }
+}
+auto UpdateProviderQuery::providerId() const -> model::ItemId { return m_provider_id; }
+void UpdateProviderQuery::setProviderId(const model::ItemId& id) {
+    if (ycore::cmp_exchange(m_provider_id, id)) {
+        providerIdChanged();
+    }
+}
+
+void UpdateProviderQuery::reload() {
+    set_status(Status::Querying);
+    auto backend = App::instance()->backend();
+    auto self    = helper::QWatcher { this };
+    m_req.setProviderId(m_provider_id.id());
+    spawn([self, backend, req = m_req]() mutable -> task<void> {
+        auto rsp = co_await backend->send(std::move(req));
+        co_await qcm::qexecutor_switch();
+        self->set(std::move(rsp));
+        co_return;
+    });
+}
+
+DeleteProviderQuery::DeleteProviderQuery(QObject* parent): Query(parent) { set_forwardError(true); }
+auto DeleteProviderQuery::req() -> msg::DeleteProviderReq& { return m_req; }
+void DeleteProviderQuery::setReq(msg::DeleteProviderReq& req) {
+    if (ycore::cmp_exchange(m_req, req)) {
+        reqChanged();
+    }
+}
+void DeleteProviderQuery::reload() {
+    set_status(Status::Querying);
+    auto backend = App::instance()->backend();
+    auto self    = helper::QWatcher { this };
+    spawn([self, backend, req = m_req]() mutable -> task<void> {
+        auto rsp = co_await backend->send(std::move(req));
+        co_await qcm::qexecutor_switch();
+        self->set(std::move(rsp));
+        co_return;
+    });
+}
+
+ReplaceProviderQuery::ReplaceProviderQuery(QObject* parent): Query(parent) {
+    set_forwardError(true);
+}
+
+auto ReplaceProviderQuery::req() -> msg::ReplaceProviderReq& { return m_req; }
+void ReplaceProviderQuery::setReq(msg::ReplaceProviderReq& req) {
+    if (ycore::cmp_exchange(m_req, req)) {
+        reqChanged();
+    }
+}
+void ReplaceProviderQuery::reload() {
+    set_status(Status::Querying);
+    auto backend = App::instance()->backend();
+    auto self    = helper::QWatcher { this };
+    spawn([self, backend, req = m_req]() mutable -> task<void> {
+        auto rsp = co_await backend->send(std::move(req));
+        co_await qcm::qexecutor_switch();
+        self->set(std::move(rsp));
+        co_return;
+    });
+}
+
+CreateTmpProviderQuery::CreateTmpProviderQuery(QObject* parent): Query(parent) {
+    set_forwardError(true);
+}
+CreateTmpProviderQuery::~CreateTmpProviderQuery() {
+    auto    backend = App::instance()->backend();
+    QString id      = this->tdata().id_proto();
+    if (id.isEmpty()) return;
+    spawn([backend, id]() mutable -> task<void> {
+        auto req = msg::DeleteTmpProviderReq {};
+        req.setId_proto(id);
+        co_await backend->send(std::move(req));
+        co_return;
+    });
+}
+auto CreateTmpProviderQuery::req() -> msg::CreateTmpProviderReq& { return m_req; }
+void CreateTmpProviderQuery::setReq(msg::CreateTmpProviderReq& req) {
+    if (ycore::cmp_exchange(m_req, req)) {
+        reqChanged();
+    }
+}
+void CreateTmpProviderQuery::reload() {
+    set_status(Status::Querying);
+    auto backend = App::instance()->backend();
+    auto self    = helper::QWatcher { this };
+    spawn([self, backend, req = m_req]() mutable -> task<void> {
+        auto rsp = co_await backend->send(std::move(req));
+        co_await qcm::qexecutor_switch();
+        self->set(std::move(rsp));
+        co_return;
+    });
+}
+
+DeleteTmpProviderQuery::DeleteTmpProviderQuery(QObject* parent): Query(parent) {
+    set_forwardError(true);
+}
+auto DeleteTmpProviderQuery::req() -> msg::DeleteTmpProviderReq& { return m_req; }
+void DeleteTmpProviderQuery::setReq(msg::DeleteTmpProviderReq& req) {
+    if (ycore::cmp_exchange(m_req, req)) {
+        reqChanged();
+    }
+}
+void DeleteTmpProviderQuery::reload() {
+    set_status(Status::Querying);
+    auto backend = App::instance()->backend();
+    auto self    = helper::QWatcher { this };
+    spawn([self, backend, req = m_req]() mutable -> task<void> {
+        auto rsp = co_await backend->send(std::move(req));
+        co_await qcm::qexecutor_switch();
+        self->set(std::move(rsp));
+        co_return;
+    });
+}
+
+} // namespace qcm
 
 #include <Qcm/query/moc_provider_query.cpp>

@@ -13,28 +13,22 @@ enum MessageType {
 
   GET_PROVIDER_METAS_REQ = 4;
   GET_PROVIDER_METAS_RSP = 5;
-  ADD_PROVIDER_REQ = 6;
-  ADD_PROVIDER_RSP = 7;
-  PROVIDER_META_STATUS_MSG = 8;
-  PROVIDER_STATUS_MSG = 9;
-  PROVIDER_SYNC_STATUS_MSG = 10;
 
-  QR_AUTH_URL_REQ = 11;
-  QR_AUTH_URL_RSP = 12;
-
-  GET_ALBUMS_REQ = 60;
-  GET_ALBUMS_RSP = 61;
-  GET_ALBUM_REQ = 62;
-  GET_ALBUM_RSP = 63;
-
-  GET_ARTISTS_REQ = 20;
-  GET_ARTISTS_RSP = 21;
-  GET_ALBUM_ARTISTS_REQ = 22;
-  GET_ALBUM_ARTISTS_RSP = 23;
-  GET_ARTIST_REQ = 24;
-  GET_ARTIST_RSP = 25;
-  GET_ARTIST_ALBUM_REQ = 26;
-  GET_ARTIST_ALBUM_RSP = 27;
+  QR_AUTH_URL_REQ = 6;
+  QR_AUTH_URL_RSP = 7;
+  AUTH_PROVIDER_REQ = 8;
+  AUTH_PROVIDER_RSP = 9;
+  ADD_PROVIDER_REQ = 10;
+  UPDATE_PROVIDER_REQ = 11;
+  UPDATE_PROVIDER_RSP = 12;
+  REPLACE_PROVIDER_REQ = 13;
+  DELETE_PROVIDER_REQ = 14;
+  PROVIDER_META_STATUS_MSG = 15;
+  PROVIDER_STATUS_MSG = 16;
+  PROVIDER_SYNC_STATUS_MSG = 17;
+  CREATE_TMP_PROVIDER_REQ = 18;
+  CREATE_TMP_PROVIDER_RSP = 19;
+  DELETE_TMP_PROVIDER_REQ = 20;
 
   GET_MIXS_REQ = 30;
   GET_MIXS_RSP = 31;
@@ -46,6 +40,20 @@ enum MessageType {
 
   SYNC_REQ = 50;
   SYNC_RSP = 51;
+
+  GET_ALBUMS_REQ = 60;
+  GET_ALBUMS_RSP = 61;
+  GET_ALBUM_REQ = 62;
+  GET_ALBUM_RSP = 63;
+
+  GET_ARTISTS_REQ = 70;
+  GET_ARTISTS_RSP = 71;
+  GET_ALBUM_ARTISTS_REQ = 72;
+  GET_ALBUM_ARTISTS_RSP = 73;
+  GET_ARTIST_REQ = 74;
+  GET_ARTIST_RSP = 75;
+  GET_ARTIST_ALBUM_REQ = 76;
+  GET_ARTIST_ALBUM_RSP = 77;
 }
 
 message GetSongsByAlbumRequest {
@@ -98,18 +106,41 @@ message TestRsp { string test_data = 2; }
 message GetProviderMetasReq {}
 message GetProviderMetasRsp { repeated qcm.msg.model.ProviderMeta metas = 1; }
 
-message AddProviderReq {
-  string name = 1;
-  string type_name = 2;
-  qcm.msg.model.AuthInfo auth_info = 3;
-}
+message CreateTmpProviderReq { string type_name = 1; }
+message CreateTmpProviderRsp { string id = 1; }
+message DeleteTmpProviderReq { string id = 1; }
 
-message AddProviderRsp {
+message AuthProviderReq {
+  string tmp_provider = 1;
+  qcm.msg.model.AuthInfo auth_info = 2;
+}
+message AuthProviderRsp {
   qcm.msg.model.AuthResult code = 1;
   string message = 2;
   string qr_name = 3;       // opt
   string qr_avatar_url = 4; // opt
 }
+
+message AddProviderReq {
+  string name = 1;
+  string tmp_provider = 2;
+}
+
+message UpdateProviderReq {
+  int64 provider_id = 1;
+  string name = 2;
+  qcm.msg.model.AuthInfo auth_info = 3;
+}
+message UpdateProviderRsp {
+  qcm.msg.model.AuthResult code = 1;
+  string message = 2;
+}
+
+message ReplaceProviderReq {
+  int64 provider_id = 1;
+  string tmp_provider = 2;
+}
+message DeleteProviderReq { int64 provider_id = 1; }
 
 message ProviderMetaStatusMsg {
   repeated qcm.msg.model.ProviderMeta metas = 1;
@@ -229,7 +260,10 @@ message GetLyricRsp { repeated qcm.msg.model.LyricLine lines = 1; }
 message SyncReq { int64 provider_id = 1; }
 message SyncRsp { int64 handle = 1; }
 
-message QrAuthUrlReq { string provider_meta = 1; }
+message QrAuthUrlReq {
+  string provider_meta = 1;
+  string tmp_provider = 2;
+}
 message QrAuthUrlRsp {
   string key = 1;
   string url = 2;
@@ -246,28 +280,22 @@ message QcmMessage {
 
     GetProviderMetasReq get_provider_metas_req = 104;
     GetProviderMetasRsp get_provider_metas_rsp = 105;
-    AddProviderReq add_provider_req = 106;
-    AddProviderRsp add_provider_rsp = 107;
-    ProviderMetaStatusMsg provider_meta_status_msg = 108;
-    ProviderStatusMsg provider_status_msg = 109;
-    ProviderSyncStatusMsg provider_sync_status_msg = 110;
 
-    QrAuthUrlReq qr_auth_url_req = 111;
-    QrAuthUrlRsp qr_auth_url_rsp = 112;
-
-    GetAlbumsReq get_albums_req = 160;
-    GetAlbumsRsp get_albums_rsp = 161;
-    GetAlbumReq get_album_req = 162;
-    GetAlbumRsp get_album_rsp = 163;
-
-    GetArtistsReq get_artists_req = 120;
-    GetArtistsRsp get_artists_rsp = 121;
-    GetAlbumArtistsReq get_album_artists_req = 122;
-    GetAlbumArtistsRsp get_album_artists_rsp = 123;
-    GetArtistReq get_artist_req = 124;
-    GetArtistRsp get_artist_rsp = 125;
-    GetArtistAlbumReq get_artist_album_req = 126;
-    GetArtistAlbumRsp get_artist_album_rsp = 127;
+    QrAuthUrlReq qr_auth_url_req = 106;
+    QrAuthUrlRsp qr_auth_url_rsp = 107;
+    AuthProviderReq auth_provider_req = 108;
+    AuthProviderRsp auth_provider_rsp = 109;
+    AddProviderReq add_provider_req = 110;
+    UpdateProviderReq update_provider_req = 111;
+    UpdateProviderRsp update_provider_rsp = 112;
+    ReplaceProviderReq replace_provider_req = 113;
+    DeleteProviderReq delete_provider_req = 114;
+    ProviderMetaStatusMsg provider_meta_status_msg = 115;
+    ProviderStatusMsg provider_status_msg = 116;
+    ProviderSyncStatusMsg provider_sync_status_msg = 117;
+    CreateTmpProviderReq create_tmp_provider_req = 118;
+    CreateTmpProviderRsp create_tmp_provider_rsp = 119;
+    DeleteTmpProviderReq delete_tmp_provider_req = 120;
 
     GetMixsReq get_mixs_req = 130;
     GetMixsRsp get_mixs_rsp = 131;
@@ -279,5 +307,19 @@ message QcmMessage {
 
     SyncReq sync_req = 150;
     SyncRsp sync_rsp = 151;
+
+    GetAlbumsReq get_albums_req = 160;
+    GetAlbumsRsp get_albums_rsp = 161;
+    GetAlbumReq get_album_req = 162;
+    GetAlbumRsp get_album_rsp = 163;
+
+    GetArtistsReq get_artists_req = 170;
+    GetArtistsRsp get_artists_rsp = 171;
+    GetAlbumArtistsReq get_album_artists_req = 172;
+    GetAlbumArtistsRsp get_album_artists_rsp = 173;
+    GetArtistReq get_artist_req = 174;
+    GetArtistRsp get_artist_rsp = 175;
+    GetArtistAlbumReq get_artist_album_req = 176;
+    GetArtistAlbumRsp get_artist_album_rsp = 177;
   }
 }

@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtCore
 import QtQuick
 import QtQuick.Layouts
+
 import Qcm.App as QA
 import Qcm.Material as MD
 
@@ -61,22 +62,41 @@ MD.Page {
                 property list<var> models: [
                     {
                         name: qsTr('Username'),
-                        comp: m_comp_username
+                        comp: m_comp_username,
+                        is: function (info) {
+                            return info.hasUsername;
+                        }
                     },
                     {
                         name: qsTr('Phone'),
-                        comp: m_comp_username
+                        comp: m_comp_username,
+                        is: function (info) {
+                            return info.hasPhone;
+                        }
                     },
                     {
                         name: qsTr('Email'),
-                        comp: m_comp_email
+                        comp: m_comp_email,
+                        is: function (info) {
+                            return info.hasEmail;
+                        }
                     },
                     {
                         name: qsTr('Qr'),
-                        comp: m_comp_qr
+                        comp: m_comp_qr,
+                        is: function (info) {
+                            return info.hasQr;
+                        }
                     }
                 ]
-                currentIndex: 0
+                currentIndex: {
+                    const info = root.model.authInfo;
+                    for (let i = 0; i < model.length; i++) {
+                        if (model[i].is(info))
+                            return i;
+                    }
+                    return 0;
+                }
                 model: root.meta.authTypes.map(el => models[el])
                 delegate: MD.InputChip {
                     required property int index
@@ -97,6 +117,7 @@ MD.Page {
                 Layout.fillWidth: true
                 visible: root.meta.hasServerUrl
                 type: MD.Enum.TextFieldFilled
+                text: root.model.authInfo.serverUrl
                 placeholderText: qsTr('Server Url')
             }
 
@@ -121,15 +142,40 @@ MD.Page {
                     Layout.fillWidth: true
                 }
 
+                QA.UpdateProviderQuery {
+                    id: m_update_query
+                    providerId: root.model.itemId
+                }
+                QA.ReplaceProviderQuery {
+                    id: m_replace_query
+                    providerId: root.model.itemId
+                }
+
                 MD.Button {
                     enabled: root.changed
-                    text: qsTr("apply")
+                    text: qsTr("update")
+                    onClicked: {
+                        const query = m_update_query;
+                        const req = query.req;
+                        req.clearAuthInfo();
+                        req.name = m_tf_name.text;
+                        query.req = req;
+                        query.reload();
+                        root.MD.MProp.page.pop();
+                    }
                 }
             }
             Component {
                 id: m_comp_email
                 QA.AuthEmail {
                     anchors.fill: parent
+                    Component.onCompleted: {
+                        const auth = root.model.authInfo;
+                        if (auth.hasEmail) {
+                            originEmail = auth.email.emil;
+                            originPw = auth.email.pw;
+                        }
+                    }
                 }
             }
 
@@ -137,12 +183,26 @@ MD.Page {
                 id: m_comp_username
                 QA.AuthUsername {
                     anchors.fill: parent
+                    Component.onCompleted: {
+                        const auth = root.model.authInfo;
+                        if (auth.hasUsername) {
+                            originUsername = auth.username.username;
+                            originPw = auth.username.pw;
+                        }
+                    }
                 }
             }
             Component {
                 id: m_comp_qr
                 QA.AuthQr {
-                    query: m_add_query
+                    QA.CreateTmpProviderQuery {
+                        id: m_tmp_provider_query
+                        Component.onCompleted: reload()
+                    }
+                    QA.AuthProviderQuery {
+                        id: m_auth_query
+                    }
+                    query: m_auth_query
                     name: m_tf_name.text
                     serverUrl: m_tf_server.text
                     typeName: root.meta.typeName
