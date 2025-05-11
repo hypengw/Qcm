@@ -23,13 +23,13 @@ public:
     MixCreate(QObject* parent = nullptr): QObject(parent) {}
 };
 
-class MixCreateQuery : public Query<MixCreate> {
+class MixCreateQuery : public Query, public QueryExtra<MixCreate> {
     Q_OBJECT
     QML_ELEMENT
 
     Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged FINAL)
 public:
-    MixCreateQuery(QObject* parent = nullptr): Query<MixCreate>(parent) {}
+    MixCreateQuery(QObject* parent = nullptr): Query, public QueryExtra<MixCreate>(parent) {}
 
     auto name() const -> const QString& { return m_name; }
     void setName(const QString& v) {

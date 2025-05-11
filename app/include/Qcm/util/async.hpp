@@ -113,24 +113,6 @@ public:
     using const_reference_value_type =
         std::conditional_t<std::is_base_of_v<QObject, T>, std::add_pointer_t<T>,
                            std::add_lvalue_reference_t<std::add_const_t<T>>>;
-
-    // QAsyncResultT(ycore::monostate, QObject* parent, const_reference_value_type t): Base(parent)
-    // {
-    //     set_tdata(t);
-    // }
-
-    // template<typename... Arg>
-    //     requires(std::is_base_of_v<QObject, T> && std::is_constructible_v<T, Arg..., QObject*>)
-    //     ||
-    //             (! std::is_base_of_v<QObject, T> && std::is_constructible_v<T, Arg...>)
-    // QAsyncResultT(QObject* parent, Arg&&... arg): Base(parent) {
-    //     if constexpr (std::is_base_of_v<QObject, T>) {
-    //         set_tdata(new T(std::forward<Arg>(arg)..., this));
-    //     } else {
-    //         set_tdata(T(std::forward<Arg>(arg)...));
-    //     }
-    // }
-
     auto tdata() const { return static_cast<Self*>(this)->data().template value<value_type>(); }
     auto tdata() { return static_cast<Self*>(this)->data().template value<value_type>(); }
     void set_tdata(const_reference_value_type val) {

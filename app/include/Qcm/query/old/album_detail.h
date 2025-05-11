@@ -47,14 +47,14 @@ private:
     Album m_info;
 };
 
-class AlbumDetailQuery : public Query<AlbumDetail> {
+class AlbumDetailQuery : public Query, public QueryExtra<AlbumDetail> {
     Q_OBJECT
     QML_ELEMENT
 
     Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
     Q_PROPERTY(AlbumDetail* data READ tdata NOTIFY itemIdChanged FINAL)
 public:
-    AlbumDetailQuery(QObject* parent = nullptr): Query<AlbumDetail>(parent) {
+    AlbumDetailQuery(QObject* parent = nullptr): Query, public QueryExtra<AlbumDetail>(parent) {
         connect(this, &AlbumDetailitemIdChanged, this, &AlbumDetailreload);
     }
 

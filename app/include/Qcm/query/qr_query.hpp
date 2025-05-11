@@ -8,7 +8,7 @@
 namespace qcm
 {
 
-class QrAuthUrlQuery : public Query<msg::QrAuthUrlRsp> {
+class QrAuthUrlQuery : public Query, public QueryExtra<msg::QrAuthUrlRsp, QrAuthUrlQuery> {
     Q_OBJECT
     QML_ELEMENT
 

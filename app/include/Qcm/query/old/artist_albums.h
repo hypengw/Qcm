@@ -40,14 +40,14 @@ private:
     bool m_has_more;
 };
 
-class ArtistAlbumsQuery : public QueryList<ArtistAlbums> {
+class ArtistAlbumsQuery : public QueryList, public QueryExtra<ArtistAlbums> {
     Q_OBJECT
     QML_ELEMENT
 
     Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
     Q_PROPERTY(ArtistAlbums* data READ tdata NOTIFY itemIdChanged FINAL)
 public:
-    ArtistAlbumsQuery(QObject* parent = nullptr): QueryList<ArtistAlbums>(parent) {
+    ArtistAlbumsQuery(QObject* parent = nullptr): , public QueryExtra<ArtistAlbums>(parent) {
         connect_requet_reload(&ArtistAlbumsitemIdChanged);
         connect(tdata(), &ArtistAlbums::fetchMoreReq, this, &ArtistAlbumssetOffset);
     }

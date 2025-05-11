@@ -47,7 +47,7 @@ private:
     model::Mix m_info;
 };
 
-class MixDetailQuery : public Query<MixDetail> {
+class MixDetailQuery : public Query, public QueryExtra<MixDetail> {
     Q_OBJECT
     QML_ELEMENT
 
@@ -55,7 +55,7 @@ class MixDetailQuery : public Query<MixDetail> {
     Q_PROPERTY(bool querySong READ querySong WRITE setQuerySong NOTIFY querySongChanged)
     Q_PROPERTY(MixDetail* data READ tdata NOTIFY itemIdChanged FINAL)
 public:
-    MixDetailQuery(QObject* parent = nullptr): Query<MixDetail>(parent), m_query_song(false) {
+    MixDetailQuery(QObject* parent = nullptr): Query, public QueryExtra<MixDetail>(parent), m_query_song(false) {
         connect(this, &MixDetailitemIdChanged, this, &MixDetailreload);
         connect(
             Notifier::instance(), &Notifier::itemChanged, this, [this](const model::ItemId& id) {

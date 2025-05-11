@@ -20,7 +20,7 @@ private:
     double m_total;
 };
 
-class StorageInfoQuerier : public Query<StorageInfo> {
+class StorageInfoQuerier : public Query, public QueryExtra<StorageInfo, StorageInfoQuerier> {
     Q_OBJECT
     QML_ELEMENT
 public:

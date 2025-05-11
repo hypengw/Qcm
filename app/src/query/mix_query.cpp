@@ -10,7 +10,7 @@ namespace qcm
 {
 
 
-MixesQuery::MixesQuery(QObject* parent): QueryList<model::MixListModel>(parent) {
+MixesQuery::MixesQuery(QObject* parent): QueryList(parent) {
     this->connectSyncFinished();
 }
 
@@ -57,7 +57,7 @@ void MixesQuery::fetchMore(qint32) {
     });
 }
 
-MixQuery::MixQuery(QObject* parent): Query<model::MixStoreItem>(parent) {}
+MixQuery::MixQuery(QObject* parent): Query(parent) {}
 
 auto MixQuery::itemId() const -> model::ItemId { return m_item_id; }
 

@@ -54,7 +54,7 @@ public:
 
 } // namespace model
 
-class SearchQuery : public QueryList<QAbstractListModel> {
+class SearchQuery : public QueryList, public QueryExtra<QAbstractListModel, SearchQuery> {
     Q_OBJECT
     QML_ELEMENT
 

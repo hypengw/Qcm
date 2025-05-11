@@ -57,13 +57,13 @@ private:
     i64  m_total;
 };
 
-class CommentsQuery : public QueryList<Comments> {
+class CommentsQuery : public QueryList, public QueryExtra<Comments> {
     Q_OBJECT
     QML_ELEMENT
     Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
 
 public:
-    CommentsQuery(QObject* parent = nullptr): QueryList<Comments>(parent) {
+    CommentsQuery(QObject* parent = nullptr): , public QueryExtra<Comments>(parent) {
         connect_requet_reload(&CommentsitemIdChanged);
         connect(tdata(), &Comments::fetchMoreReq, this, &CommentssetOffset);
     }

@@ -22,7 +22,7 @@ public:
     MixManipulate(QObject* parent = nullptr): QObject(parent) {}
 };
 
-class MixManipulateQuery : public Query<MixManipulate> {
+class MixManipulateQuery : public Query, public QueryExtra<MixManipulate> {
     Q_OBJECT
     QML_ELEMENT
 
@@ -30,7 +30,7 @@ class MixManipulateQuery : public Query<MixManipulate> {
     Q_PROPERTY(std::vector<model::ItemId> itemIds READ ids WRITE setIds NOTIFY idsChanged FINAL)
     Q_PROPERTY(qint32 oper READ oper WRITE setOper NOTIFY operChanged FINAL)
 public:
-    MixManipulateQuery(QObject* parent = nullptr): Query<MixManipulate>(parent), m_oper(0) {
+    MixManipulateQuery(QObject* parent = nullptr): Query, public QueryExtra<MixManipulate>(parent), m_oper(0) {
         // connect_requet_reload(&MixManipulateidsChanged);
         connect(this, &MixManipulatestatusChanged, [this](Status s) {
             if (s == Status::Finished) {

@@ -38,7 +38,7 @@ void SearchTypeModel::setCurrentType(enums::SearchType v) {
 };
 
 SearchQuery::SearchQuery(QObject* parent)
-    : QueryList<QAbstractListModel>(parent),
+    : QueryList(parent),
       m_location(enums::SearchLocation::SearchLocal),
       m_type(enums::SearchType::SearchSong) {
     connect(this, &SearchQuery::typeChanged, this, [this](SearchType type) {

@@ -15,7 +15,7 @@ void StorageInfo::setTotal(double v) {
         totalChanged();
     }
 }
-StorageInfoQuerier::StorageInfoQuerier(QObject* parent): Query<StorageInfo>(parent) {}
+StorageInfoQuerier::StorageInfoQuerier(QObject* parent): Query(parent) {}
 void StorageInfoQuerier::reload() {
     // set_status(Status::Querying);
     // auto media_cache_sql = App::instance()->media_cache_sql();

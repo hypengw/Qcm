@@ -35,11 +35,11 @@ private:
     bool m_has_more;
 };
 
-class UserMixQuery : public Query<UserMix> {
+class UserMixQuery : public Query, public QueryExtra<UserMix> {
     Q_OBJECT
     QML_ELEMENT
 public:
-    UserMixQuery(QObject* parent = nullptr): Query<UserMix>(parent) {
+    UserMixQuery(QObject* parent = nullptr): Query, public QueryExtra<UserMix>(parent) {
         connect(Notifier::instance(),
                 &Notifier::collected,
                 this,

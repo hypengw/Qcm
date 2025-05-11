@@ -93,14 +93,14 @@ private:
     Radio m_info;
 };
 
-class RadioDetailQuery : public Query<RadioDetail> {
+class RadioDetailQuery : public Query, public QueryExtra<RadioDetail> {
     Q_OBJECT
     QML_ELEMENT
 
     Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
     Q_PROPERTY(RadioDetail* data READ tdata NOTIFY itemIdChanged FINAL)
 public:
-    RadioDetailQuery(QObject* parent = nullptr): Query<RadioDetail>(parent) {
+    RadioDetailQuery(QObject* parent = nullptr): Query, public QueryExtra<RadioDetail>(parent) {
         connect(this, &RadioDetailitemIdChanged, this, &RadioDetailreload);
     }
 

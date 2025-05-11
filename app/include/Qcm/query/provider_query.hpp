@@ -6,7 +6,7 @@
 
 namespace qcm
 {
-class ProviderMetasQuery : public Query<msg::GetProviderMetasRsp> {
+class ProviderMetasQuery : public Query, public QueryExtra<msg::GetProviderMetasRsp, ProviderMetasQuery> {
     Q_OBJECT
     QML_ELEMENT
 public:
@@ -14,7 +14,7 @@ public:
     void reload() override;
 };
 
-class AddProviderQuery : public Query<msg::AddProviderRsp> {
+class AddProviderQuery : public Query, public QueryExtra<msg::AddProviderRsp, AddProviderQuery> {
     Q_OBJECT
     QML_ELEMENT
 

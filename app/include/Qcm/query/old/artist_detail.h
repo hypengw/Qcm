@@ -37,14 +37,14 @@ private:
     Artist m_info;
 };
 
-class ArtistDetailQuery : public Query<ArtistDetail> {
+class ArtistDetailQuery : public Query, public QueryExtra<ArtistDetail> {
     Q_OBJECT
     QML_ELEMENT
 
     Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
     Q_PROPERTY(ArtistDetail* data READ tdata NOTIFY itemIdChanged FINAL)
 public:
-    ArtistDetailQuery(QObject* parent = nullptr): Query<ArtistDetail>(parent) {
+    ArtistDetailQuery(QObject* parent = nullptr): Query, public QueryExtra<ArtistDetail>(parent) {
         connect(this, &ArtistDetailitemIdChanged, this, &ArtistDetailreload);
     }
 

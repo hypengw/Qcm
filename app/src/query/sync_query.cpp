@@ -5,7 +5,7 @@
 
 namespace qcm
 {
-SyncQuery::SyncQuery(QObject* parent): Query<msg::SyncRsp>(parent) {}
+SyncQuery::SyncQuery(QObject* parent): Query(parent) {}
 void SyncQuery::reload() {
     set_status(Status::Querying);
     auto backend = App::instance()->backend();

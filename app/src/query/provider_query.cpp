@@ -7,7 +7,7 @@
 namespace qcm
 {
 
-AddProviderQuery::AddProviderQuery(QObject* parent): Query<msg::AddProviderRsp>(parent) {
+AddProviderQuery::AddProviderQuery(QObject* parent): Query(parent) {
     set_forwardError(true);
 }
 auto AddProviderQuery::failed() const -> const QString& { return m_failed; }
@@ -64,7 +64,7 @@ void AddProviderQuery::setReq(msg::AddProviderReq& req) {
 }
 
 ProviderMetasQuery::ProviderMetasQuery(QObject* parent)
-    : Query<msg::GetProviderMetasRsp>(parent) {
+    : Query(parent) {
     set_forwardError(true);
 }
 void ProviderMetasQuery::reload() {

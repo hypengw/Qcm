@@ -8,7 +8,7 @@
 namespace qcm
 {
 
-class SyncQuery : public Query<msg::SyncRsp> {
+class SyncQuery : public Query, public QueryExtra<msg::SyncRsp, SyncQuery> {
     Q_OBJECT
     QML_ELEMENT
 

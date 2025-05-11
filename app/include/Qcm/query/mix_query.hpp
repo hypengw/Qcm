@@ -9,7 +9,7 @@
 namespace qcm
 {
 
-class MixesQuery : public QueryList<model::MixListModel> {
+class MixesQuery : public QueryList, public QueryExtra<model::MixListModel, MixesQuery> {
     Q_OBJECT
     QML_ELEMENT
 public:
@@ -18,7 +18,7 @@ public:
     void fetchMore(qint32) override;
 };
 
-class MixQuery : public Query<model::MixStoreItem> {
+class MixQuery : public Query, public QueryExtra<model::MixStoreItem, MixQuery> {
     Q_OBJECT
     QML_ELEMENT
 

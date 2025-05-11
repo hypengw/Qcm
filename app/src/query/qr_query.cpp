@@ -4,7 +4,7 @@
 
 namespace qcm
 {
-QrAuthUrlQuery::QrAuthUrlQuery(QObject* parent): Query<msg::QrAuthUrlRsp>(parent) {}
+QrAuthUrlQuery::QrAuthUrlQuery(QObject* parent): Query(parent) {}
 void QrAuthUrlQuery::reload() {
     set_status(Status::Querying);
     auto backend = App::instance()->backend();

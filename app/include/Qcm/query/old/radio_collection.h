@@ -41,11 +41,11 @@ private:
     bool m_has_more;
 };
 
-class RadioCollectionQuery : public Query<RadioCollection> {
+class RadioCollectionQuery : public Query, public QueryExtra<RadioCollection> {
     Q_OBJECT
     QML_ELEMENT
 public:
-    RadioCollectionQuery(QObject* parent = nullptr): Query<RadioCollection>(parent) {
+    RadioCollectionQuery(QObject* parent = nullptr): Query, public QueryExtra<RadioCollection>(parent) {
         set_use_queue(true);
         connect(Notifier::instance(),
                 &Notifier::collected,

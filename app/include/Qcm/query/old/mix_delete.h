@@ -23,13 +23,13 @@ public:
     MixDelete(QObject* parent = nullptr): QObject(parent) {}
 };
 
-class MixDeleteQuery : public Query<MixDelete> {
+class MixDeleteQuery : public Query, public QueryExtra<MixDelete> {
     Q_OBJECT
     QML_ELEMENT
 
     Q_PROPERTY(std::vector<model::ItemId> itemIds READ ids WRITE setIds NOTIFY idsChanged FINAL)
 public:
-    MixDeleteQuery(QObject* parent = nullptr): Query<MixDelete>(parent) {}
+    MixDeleteQuery(QObject* parent = nullptr): Query, public QueryExtra<MixDelete>(parent) {}
 
     auto ids() const { return m_ids; }
     void setIds(const std::vector<model::ItemId>& ids) {

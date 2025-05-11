@@ -19,14 +19,14 @@
 namespace qcm
 {
 
-class SongDetailQuery : public Query<Song> {
+class SongDetailQuery : public Query, public QueryExtra<Song> {
     Q_OBJECT
     QML_ELEMENT
 
     Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
     Q_PROPERTY(qcm::Song data READ tdata NOTIFY dataChanged FINAL)
 public:
-    SongDetailQuery(QObject* parent = nullptr): Query<Song>(parent) {
+    SongDetailQuery(QObject* parent = nullptr): Query, public QueryExtra<Song>(parent) {
         connect(this, &SongDetailitemIdChanged, this, &SongDetailreload);
     }
 

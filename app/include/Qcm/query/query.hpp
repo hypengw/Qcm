@@ -8,15 +8,15 @@
 namespace qcm
 {
 
-class QueryBase : public QAsyncResult {
+class Query : public QAsyncResult {
     Q_OBJECT
 
     Q_PROPERTY(bool delay READ delay WRITE setDelay NOTIFY delayChanged FINAL)
 public:
-    QueryBase(QObject* parent = nullptr);
-    ~QueryBase();
+    Query(QObject* parent = nullptr);
+    ~Query();
 
-    static auto create(std::string_view) -> QueryBase*;
+    static auto create(std::string_view) -> Query*;
 
     Q_SLOT void   request_reload();
     auto          delay() const -> bool;
@@ -28,27 +28,39 @@ public:
 protected:
     template<typename T, typename R, typename... ARGS>
     void connect_requet_reload(R (T::*f)(ARGS...), T* obj) {
-        connect(obj, f, this, &QueryBase::request_reload);
+        connect(obj, f, this, &Query::request_reload);
     }
     template<typename T, typename R, typename... ARGS>
     void connect_requet_reload(R (T::*f)(ARGS...)) {
-        connect(static_cast<T*>(this), f, this, &QueryBase::request_reload);
+        connect(static_cast<T*>(this), f, this, &Query::request_reload);
+    }
+
+    auto last() const -> const QDateTime& { return m_last; }
+    void setLast(const QDateTime& t, const QDateTime& last = QDateTime::currentDateTime()) {
+        m_last = std::min<QDateTime>(t, last);
+    }
+    void resetLast() { m_last = QDateTime::fromSecsSinceEpoch(0); }
+    auto record() {
+        auto old = m_last;
+        m_last   = QDateTime::currentDateTimeUtc();
+        return old;
     }
 
 private:
-    QTimer m_timer;
-    bool   m_delay;
+    QTimer    m_timer;
+    bool      m_delay;
+    QDateTime m_last;
 
     std::deque<std::function<task<void>()>> m_queue;
 };
 
-class QueryListBase : public QueryBase {
+class QueryList : public Query {
     Q_OBJECT
     Q_PROPERTY(qint32 offset READ offset WRITE setOffset NOTIFY offsetChanged)
     Q_PROPERTY(qint32 limit READ limit WRITE setLimit NOTIFY limitChanged)
 public:
-    QueryListBase(QObject* parent = nullptr);
-    ~QueryListBase();
+    QueryList(QObject* parent = nullptr);
+    ~QueryList();
     auto          offset() const -> qint32;
     auto          limit() const -> qint32;
     Q_SLOT void   setOffset(qint32 v);
@@ -68,14 +80,15 @@ namespace detail
 void try_connect_fetch_more(QObject* query, QObject* model);
 }
 
-template<typename T>
-class Query : public QueryBase, public QAsyncResultExtra<T, Query<T>> {
+template<typename T, typename Self>
+class QueryExtra : public QAsyncResultExtra<T, Self> {
 public:
-    Query(QObject* parent): QueryBase(parent), m_last(QDateTime::fromSecsSinceEpoch(0)) {
+    QueryExtra() {
+        auto self = static_cast<Self*>(this);
         if constexpr (std::is_base_of_v<QObject, T>) {
-            detail::try_connect_fetch_more(this, this->tdata());
+            detail::try_connect_fetch_more(self, this->tdata());
             if constexpr (std::constructible_from<T, QObject*>) {
-                this->set_tdata(new T(this));
+                this->set_tdata(new T(self));
             } else {
                 this->set_tdata(nullptr);
             }
@@ -83,53 +96,6 @@ public:
             this->set_tdata({});
         }
     }
-
-    ~Query() override {}
-
-    auto last() const -> const QDateTime& { return m_last; }
-    void setLast(const QDateTime& t, const QDateTime& last = QDateTime::currentDateTime()) {
-        m_last = std::min<QDateTime>(t, last);
-    }
-    void resetLast() { m_last = QDateTime::fromSecsSinceEpoch(0); }
-    auto record() {
-        auto old = m_last;
-        m_last   = QDateTime::currentDateTimeUtc();
-        return old;
-    }
-
-    QDateTime m_last;
-};
-
-template<typename T>
-class QueryList : public QueryListBase, public QAsyncResultExtra<T, Query<T>> {
-public:
-    QueryList(QObject* parent): QueryListBase(parent), m_last(QDateTime::fromSecsSinceEpoch(0)) {
-        if constexpr (std::is_base_of_v<QObject, T>) {
-            detail::try_connect_fetch_more(this, this->tdata());
-            if constexpr (std::constructible_from<T, QObject*>) {
-                this->set_tdata(new T(this));
-            } else {
-                this->set_tdata(nullptr);
-            }
-        } else {
-            this->set_tdata({});
-        }
-    }
-
-    ~QueryList() override {}
-
-    auto last() const -> const QDateTime& { return m_last; }
-    void setLast(const QDateTime& t, const QDateTime& last = QDateTime::currentDateTime()) {
-        m_last = std::min<QDateTime>(t, last);
-    }
-    void resetLast() { m_last = QDateTime::fromSecsSinceEpoch(0); }
-    auto record() {
-        auto old = m_last;
-        m_last   = QDateTime::currentDateTimeUtc();
-        return old;
-    }
-
-    QDateTime m_last;
 };
 
 } // namespace qcm
