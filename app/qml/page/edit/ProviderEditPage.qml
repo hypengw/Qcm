@@ -220,11 +220,9 @@ MD.Page {
                         id: m_auth_query
                         tmpProvider: m_tmp_provider_query.data.key
                     }
-                    tmpProvider: m_tmp_provider_query.data.key
+                    tmpProvider: m_auth_query.tmpProvider
                     query: m_auth_query
-                    name: m_tf_name.text
                     serverUrl: m_tf_server.text
-                    typeName: root.meta.typeName
                     anchors.fill: parent
                 }
             }

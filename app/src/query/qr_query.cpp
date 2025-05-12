@@ -9,7 +9,6 @@ void QrAuthUrlQuery::reload() {
     set_status(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::QrAuthUrlReq {};
-    req.setProviderMeta(m_type_name);
     req.setTmpProvider(m_tmp_provider);
     auto self = helper::QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
@@ -21,12 +20,6 @@ void QrAuthUrlQuery::reload() {
         }
         co_return;
     });
-}
-auto QrAuthUrlQuery::typeName() const -> QString { return m_type_name; }
-void QrAuthUrlQuery::setTypeName(const QString& v) {
-    if (ycore::cmp_exchange(m_type_name, v)) {
-        typeNameChanged();
-    }
 }
 
 auto QrAuthUrlQuery::tmpProvider() const -> QString { return m_tmp_provider; }

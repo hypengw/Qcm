@@ -13,17 +13,17 @@ ColumnLayout {
 
     property var query: null
     property string serverUrl
-    property string name
     property string typeName
     property string tmpProvider
     property QM.authInfo authInfo
+
+    readonly property int code: query.data.code
 
     function updateInfo(info) {
     }
 
     QA.QrAuthUrlQuery {
         id: m_qr_query
-        typeName: root.typeName
         tmpProvider: root.tmpProvider
         onTmpProviderChanged: reload()
     }
@@ -126,8 +126,6 @@ ColumnLayout {
             info.qr = auth;
             const req = query.req;
             req.authInfo = info;
-            req.name = root.name;
-            req.typeName = root.typeName;
             root.query.reload();
         }
     }
