@@ -15,8 +15,7 @@ AlbumsQuery::AlbumsQuery(QObject* parent): QueryList(parent) {
     auto app = App::instance();
     this->tdata()->set_store(this->tdata(), app->store()->albums);
     this->connectSyncFinished();
-    this->connect_requet_reload(&LibraryStatus::activedIdsChanged,
-                                app->libraryStatus());
+    this->connect_requet_reload(&LibraryStatus::activedIdsChanged, app->libraryStatus());
 }
 
 void AlbumsQuery::reload() {
@@ -27,6 +26,9 @@ void AlbumsQuery::reload() {
     req.setLibraryId(app->libraryStatus()->activedIds());
     req.setPage(0);
     req.setPageSize((offset() + 1) * limit());
+    req.setSort((msg::model::AlbumSortGadget::AlbumSort)sort());
+    req.setSortAsc(asc());
+
     auto self = helper::QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
@@ -57,6 +59,9 @@ void AlbumsQuery::fetchMore(qint32) {
     req.setLibraryId(app->libraryStatus()->activedIds());
     req.setPage(offset() + 1);
     req.setPageSize(limit());
+    req.setSort((msg::model::AlbumSortGadget::AlbumSort)sort());
+    req.setSortAsc(asc());
+
     auto self = helper::QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto offset = req.page();

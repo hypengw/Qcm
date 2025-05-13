@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.28)
 
 project(
   Qcm
-  VERSION 1.2.0
+  VERSION 1.2.1
   LANGUAGES CXX
   HOMEPAGE_URL "https://github.com/hypengw/Qcm"
   DESCRIPTION "Material You cloud music player")

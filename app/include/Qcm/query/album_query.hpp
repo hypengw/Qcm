@@ -10,8 +10,10 @@ namespace qcm
 class AlbumsQuery : public QueryList, public QueryExtra<model::AlbumListModel, AlbumsQuery> {
     Q_OBJECT
     QML_ELEMENT
+
 public:
     AlbumsQuery(QObject* parent = nullptr);
+
     void reload() override;
     void fetchMore(qint32) override;
 };

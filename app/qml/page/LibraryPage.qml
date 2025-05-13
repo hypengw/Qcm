@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQml.Models
 import QtQuick
 import QtQuick.Layouts
@@ -60,7 +61,6 @@ MD.Page {
                     MD.TabButton {
                         text: qsTr("Artist")
                     }
-
                 }
                 StackLayout {
                     currentIndex: bar.currentIndex
@@ -73,6 +73,10 @@ MD.Page {
                         type: 'album'
                         refresh: function () {
                             root.refresh_list(qr_albums);
+                        }
+
+                        header: HeaderToolBar {
+                            model: m_album_sort_type
                         }
                     }
 
@@ -107,6 +111,9 @@ MD.Page {
                         refresh: function () {
                             root.refresh_list(qr_album_artists);
                         }
+                        header: HeaderToolBar {
+                            model: m_album_artist_sort_type
+                        }
                     }
 
                     BaseView {
@@ -117,6 +124,9 @@ MD.Page {
                         type: 'artist'
                         refresh: function () {
                             root.refresh_list(qr_artists);
+                        }
+                        header: HeaderToolBar {
+                            model: m_artist_sort_type
                         }
                     }
                     /*
@@ -142,16 +152,35 @@ MD.Page {
                     }
                     */
                 }
+                QA.AlbumSortTypeModel {
+                    id: m_album_sort_type
+                }
+                QA.ArtistSortTypeModel {
+                    id: m_artist_sort_type
+                }
+                QA.ArtistSortTypeModel {
+                    id: m_album_artist_sort_type
+                }
                 QA.AlbumsQuery {
                     id: qr_albums
+                    asc: m_album_sort_type.asc
+                    sort: m_album_sort_type.currentType
+                    onAscChanged: reload()
+                    onSortChanged: reload()
                     Component.onCompleted: reload()
                 }
                 QA.ArtistsQuery {
                     id: qr_artists
+                    asc: m_artist_sort_type.asc
+                    sort: m_artist_sort_type.currentType
+                    onAscChanged: reload()
+                    onSortChanged: reload()
                     Component.onCompleted: reload()
                 }
                 QA.AlbumArtistsQuery {
                     id: qr_album_artists
+                    asc: m_album_artist_sort_type.asc
+                    sort: m_album_artist_sort_type.currentType
                     Component.onCompleted: reload()
                 }
                 QA.MixesQuery {
@@ -349,14 +378,74 @@ MD.Page {
                     showMenu(this);
             }
         }
-        divider: MD.Divider {
-            anchors.bottom: parent.bottom
-            leftMargin: 48 + 16 * 2
-        }
+        // divider: MD.Divider {
+        //     anchors.bottom: parent.bottom
+        //     leftMargin: 48 + 16 * 2
+        // }
         onClicked: {
             m_content.route(itemId);
 
             ListView.view.currentIndex = index;
+        }
+    }
+
+    component HeaderToolBar: MD.Control {
+        id: m_header_bar
+        width: ListView.view.width
+        horizontalPadding: 8
+        property var model
+        MD.Menu {
+            id: m_header_sort_menu
+            y: m_header_bar.height
+            model: m_header_bar.model
+            contentDelegate: MD.MenuItem {
+                required property var model
+                text: model.name
+                icon.name: {
+                    const m = m_header_bar.model;
+                    if (m.currentIndex == model.index) {
+                        return m.asc ? MD.Token.icon.arrow_upward : MD.Token.icon.arrow_downward;
+                    } else {
+                        return ' ';
+                    }
+                }
+                onClicked: {
+                    const m = m_header_bar.model;
+                    if (m.currentIndex == model.index) {
+                        m.asc = !m.asc;
+                    } else {
+                        m.currentIndex = model.index;
+                    }
+                    m_header_sort_menu.close();
+                }
+            }
+        }
+
+        contentItem: RowLayout {
+            QA.OrderChip {
+                Layout.alignment: Qt.AlignVCenter
+                text: {
+                    const m = m_header_bar.model;
+                    m.item(m.currentIndex).name;
+                }
+                asc: m_header_bar.model.asc
+                onClicked: {
+                    m_header_sort_menu.open();
+                }
+            }
+            Item {
+                Layout.fillWidth: true
+            }
+            MD.StandardIconButton {
+                Layout.alignment: Qt.AlignVCenter
+                icon.name: MD.Token.icon.filter_list
+                icon.width: 22
+                icon.height: 22
+                implicitBackgroundSize: 0
+            }
+        }
+        background: Rectangle {
+            color: MD.MProp.color.surface
         }
     }
 }

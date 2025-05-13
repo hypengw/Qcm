@@ -24,6 +24,8 @@ void ArtistsQuery::reload() {
     req.setLibraryId(app->libraryStatus()->activedIds());
     req.setPage(0);
     req.setPageSize((offset() + 1) * limit());
+    req.setSort((msg::model::ArtistSortGadget::ArtistSort)sort());
+    req.setSortAsc(asc());
     auto self = helper::QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
@@ -49,6 +51,8 @@ void ArtistsQuery::fetchMore(qint32) {
     req.setLibraryId(app->libraryStatus()->activedIds());
     req.setPage(offset() + 1);
     req.setPageSize(limit());
+    req.setSort((msg::model::ArtistSortGadget::ArtistSort)sort());
+    req.setSortAsc(asc());
     auto self = helper::QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto offset = req.page();
@@ -66,8 +70,7 @@ void ArtistsQuery::fetchMore(qint32) {
     });
 }
 
-AlbumArtistsQuery::AlbumArtistsQuery(QObject* parent)
-    : QueryList(parent) {
+AlbumArtistsQuery::AlbumArtistsQuery(QObject* parent): QueryList(parent) {
     // set_use_queue(true);
     auto app = App::instance();
     this->connectSyncFinished();
@@ -81,6 +84,8 @@ void AlbumArtistsQuery::reload() {
     req.setLibraryId(app->libraryStatus()->activedIds());
     req.setPage(0);
     req.setPageSize((offset() + 1) * limit());
+    req.setSort((msg::model::ArtistSortGadget::ArtistSort)sort());
+    req.setSortAsc(asc());
     auto self = helper::QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
@@ -106,6 +111,8 @@ void AlbumArtistsQuery::fetchMore(qint32) {
     req.setLibraryId(app->libraryStatus()->activedIds());
     req.setPage(offset() + 1);
     req.setPageSize(limit());
+    req.setSort((msg::model::ArtistSortGadget::ArtistSort)sort());
+    req.setSortAsc(asc());
     auto self = helper::QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto offset = req.page();
@@ -149,8 +156,7 @@ void ArtistQuery::reload() {
     });
 }
 
-ArtistAlbumQuery::ArtistAlbumQuery(QObject* parent)
-    : QueryList(parent) {
+ArtistAlbumQuery::ArtistAlbumQuery(QObject* parent): QueryList(parent) {
     // set_use_queue(true);
     this->tdata()->set_store(this->tdata(), AppStore::instance()->albums);
 }

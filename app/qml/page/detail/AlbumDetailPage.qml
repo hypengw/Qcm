@@ -100,7 +100,13 @@ MD.Page {
             }
             RowLayout {
                 id: m_control_pane
-                Layout.alignment: Qt.AlignHCenter
+                QA.OrderChip {
+                    Layout.alignment: Qt.AlignVCenter
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
 
                 MD.IconButton {
                     action: QA.AppendListAction {
@@ -215,6 +221,9 @@ MD.Page {
                 }
 
                 LayoutItemProxy {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: 16
+                    Layout.rightMargin: 16
                     target: m_control_pane
                 }
             }

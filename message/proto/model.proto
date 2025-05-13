@@ -174,3 +174,19 @@ enum AuthResult {
   QrWaitScan = 21;
   QrWaitComform = 22;
 }
+
+enum AlbumSort {
+  TITLE = 0;
+  SORT_TITLE = 1;
+  YEAR = 2;
+  PUBLISH_TIME = 3;
+  TRACK_COUNT = 4;
+  // LAST_PLAY = 5;
+}
+
+enum ArtistSort {
+  NAME = 0;
+  SORT_NAME = 1;
+  ALBUM_COUNT = 2;
+  MUSIC_COUNT = 3;
+}

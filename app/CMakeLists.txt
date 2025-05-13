@@ -29,6 +29,7 @@ set(SOURCES
     src/model/item_id.cpp
     src/model/store_item.cpp
     src/model/list_models.cpp
+    src/model/sort.cpp
     src/util/global_static.cpp
     src/util/path.cpp
     src/query/album_query.cpp
@@ -83,6 +84,7 @@ set(QML_FILES
     qml/component/AuthEmail.qml
     qml/component/AuthQr.qml
     qml/component/AuthUsername.qml
+    qml/component/OrderChip.qml
     qml/component/DebugRect.qml
     qml/component/Mpris.qml
     qml/component/SongTag.qml
