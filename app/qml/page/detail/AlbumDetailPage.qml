@@ -31,7 +31,7 @@ MD.Page {
         topMargin: MD.MProp.size.verticalPadding
         bottomMargin: MD.MProp.size.verticalPadding * 2
 
-        model: qr_al.data
+        model: m_sort_filter_model
 
         readonly property bool single: width < m_cover.displaySize.width * (1.0 + 1.5) + 8
 
@@ -102,6 +102,19 @@ MD.Page {
                 id: m_control_pane
                 QA.OrderChip {
                     Layout.alignment: Qt.AlignVCenter
+                    text: {
+                        const m = m_song_sort_type;
+                        m.item(m.currentIndex).name;
+                    }
+                    asc: m_song_sort_type.asc
+                    onClicked: {
+                        m_header_sort_menu.open();
+                    }
+                    QA.SortMenu {
+                        id: m_header_sort_menu
+                        y: parent.height
+                        model: m_song_sort_type
+                    }
                 }
 
                 Item {
@@ -260,6 +273,17 @@ MD.Page {
                 QA.Action.switch_ids(QA.Util.collect_ids(qr_al.data));
             }
         }
+    }
+
+    QA.SongSortFilterModel {
+        id: m_sort_filter_model
+        sourceModel: qr_al.data
+        sortType: m_song_sort_type.currentType
+        asc: m_song_sort_type.asc
+    }
+
+    QA.SongSortTypeModel {
+        id: m_song_sort_type
     }
 
     QA.AlbumQuery {

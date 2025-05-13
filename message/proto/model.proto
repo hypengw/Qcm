@@ -9,15 +9,16 @@ message Song {
   string native_id = 2;
   int64 library_id = 3;
   string name = 4;
-  int64 album_id = 5;
-  int32 track_number = 6;
-  int32 disc_number = 7;
-  double duration = 8;
-  bool can_play = 9;
-  google.protobuf.Timestamp publish_time = 10;
-  double popularity = 11;
-  google.protobuf.Timestamp edit_time = 12;
-  repeated string tags = 13;
+  string sort_name = 5;
+  int64 album_id = 6;
+  int32 track_number = 7;
+  int32 disc_number = 8;
+  double duration = 9;
+  bool can_play = 10;
+  google.protobuf.Timestamp publish_time = 11;
+  double popularity = 12;
+  google.protobuf.Timestamp edit_time = 13;
+  repeated string tags = 14;
 }
 
 message Radio {
@@ -25,6 +26,7 @@ message Radio {
   string native_id = 2;
   int64 library_id = 3;
   string name = 4;
+  string sort_name = 5;
   string description = 6;
   int32 program_count = 7;
   google.protobuf.Timestamp create_time = 8;
@@ -36,14 +38,15 @@ message Program {
   string native_id = 2;
   int64 library_id = 3;
   string name = 4;
-  string description = 5;
-  google.protobuf.Timestamp duration = 6;
-  string cover_url = 7;
-  string song_id = 8;
-  google.protobuf.Timestamp create_time = 9;
-  int32 serial_number = 10;
-  string radio_id = 11;
-  google.protobuf.Timestamp edit_time = 12;
+  string sort_name = 5;
+  string description = 6;
+  google.protobuf.Timestamp duration = 7;
+  string cover_url = 8;
+  string song_id = 9;
+  google.protobuf.Timestamp create_time = 10;
+  int32 serial_number = 11;
+  string radio_id = 12;
+  google.protobuf.Timestamp edit_time = 13;
 }
 
 message Mix {
@@ -51,6 +54,7 @@ message Mix {
   string native_id = 2;
   int64 provider_id = 3;
   string name = 4;
+  string sort_name = 5;
   int32 track_count = 6;
   int32 special_type = 7;
   string description = 8;
@@ -72,6 +76,7 @@ message Artist {
   int64 id = 1;
   string native_id = 2;
   string name = 3;
+  string sort_name = 4;
   int64 library_id = 5;
   string description = 6;
   int32 album_count = 7;
@@ -84,10 +89,12 @@ message Album {
   string native_id = 2;
   int64 library_id = 3;
   string name = 4;
+  string sort_name = 5;
   google.protobuf.Timestamp publish_time = 6;
   int32 track_count = 7;
   string description = 8;
   string company = 9;
+  google.protobuf.Timestamp added_time = 10;
   google.protobuf.Timestamp edit_time = 11;
 }
 
@@ -176,17 +183,27 @@ enum AuthResult {
 }
 
 enum AlbumSort {
-  TITLE = 0;
-  SORT_TITLE = 1;
-  YEAR = 2;
-  PUBLISH_TIME = 3;
-  TRACK_COUNT = 4;
+  ALBUM_SORT_TITLE = 0;
+  ALBUM_SORT_SORT_TITLE = 1;
+  ALBUM_SORT_YEAR = 2;
+  ALBUM_SORT_PUBLISH_TIME = 3;
+  ALBUM_SORT_TRACK_COUNT = 4;
+  ALBUM_SORT_ADDED_TIME = 5;
   // LAST_PLAY = 5;
 }
 
 enum ArtistSort {
-  NAME = 0;
-  SORT_NAME = 1;
-  ALBUM_COUNT = 2;
-  MUSIC_COUNT = 3;
+  ARTIST_SORT_NAME = 0;
+  ARTIST_SORT_SORT_NAME = 1;
+  ARTIST_SORT_ALBUM_COUNT = 2;
+  ARTIST_SORT_MUSIC_COUNT = 3;
+}
+
+enum SongSort {
+  SONG_SORT_TRACK_NUMBER = 0;
+  SONG_SORT_TITLE = 1;
+  SONG_SORT_SORT_TITLE = 2;
+  SONG_SORT_PUBLISH_TIME = 3;
+  SONG_SORT_DURATION = 4;
+  SONG_SORT_POPULARITY = 5;
 }

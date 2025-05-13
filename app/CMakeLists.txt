@@ -29,7 +29,7 @@ set(SOURCES
     src/model/item_id.cpp
     src/model/store_item.cpp
     src/model/list_models.cpp
-    src/model/sort.cpp
+    src/model/sort_filter.cpp
     src/util/global_static.cpp
     src/util/path.cpp
     src/query/album_query.cpp
@@ -126,6 +126,7 @@ set(QML_FILES
     qml/menu/RadioMenu.qml
     qml/menu/MixMenu.qml
     qml/menu/ProgramMenu.qml
+    qml/menu/SortMenu.qml
     qml/page/setting/SettingPage.qml
     qml/page/setting/AudioSetting.qml
     qml/page/setting/MiscSetting.qml

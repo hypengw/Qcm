@@ -7,7 +7,7 @@ StackLayout {
     id: root
     currentIndex: 0
     property bool isPlaying: false
-    property int index: 0
+    property int trackNumber: 0
     property int count: 0
 
     Binding on currentIndex {
@@ -20,7 +20,7 @@ StackLayout {
         verticalAlignment: Qt.AlignVCenter
         typescale: MD.Token.typescale.body_medium
         opacity: 0.6
-        text: root.index + 1
+        text: root.trackNumber == 0 ? '' : root.trackNumber
     }
     MD.Icon {
         name: MD.Token.icon.equalizer

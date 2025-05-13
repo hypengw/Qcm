@@ -64,7 +64,7 @@ MD.ListItem {
 
                 currentIndex: root.showCover ? 2 : 0
                 isPlaying: root.isPlaying
-                index: root.dgIndex
+                trackNumber: root.dgModel.trackNumber
                 MD.FontMetrics {
                     id: item_font_metrics
                     typescale: MD.Token.typescale.body_medium

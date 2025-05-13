@@ -394,31 +394,10 @@ MD.Page {
         width: ListView.view.width
         horizontalPadding: 8
         property var model
-        MD.Menu {
+        QA.SortMenu {
             id: m_header_sort_menu
             y: m_header_bar.height
             model: m_header_bar.model
-            contentDelegate: MD.MenuItem {
-                required property var model
-                text: model.name
-                icon.name: {
-                    const m = m_header_bar.model;
-                    if (m.currentIndex == model.index) {
-                        return m.asc ? MD.Token.icon.arrow_upward : MD.Token.icon.arrow_downward;
-                    } else {
-                        return ' ';
-                    }
-                }
-                onClicked: {
-                    const m = m_header_bar.model;
-                    if (m.currentIndex == model.index) {
-                        m.asc = !m.asc;
-                    } else {
-                        m.currentIndex = model.index;
-                    }
-                    m_header_sort_menu.close();
-                }
-            }
         }
 
         contentItem: RowLayout {

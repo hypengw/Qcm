@@ -1,5 +1,6 @@
 #pragma once
 #include <QQmlEngine>
+#include <QSortFilterProxyModel>
 
 #include "meta_model/qgadget_list_model.hpp"
 
@@ -55,6 +56,39 @@ class ArtistSortTypeModel : public SortTypeModel {
     QML_ELEMENT
 public:
     ArtistSortTypeModel(QObject* parent = nullptr);
+};
+
+class SongSortTypeModel : public SortTypeModel {
+    Q_OBJECT
+    QML_ELEMENT
+public:
+    SongSortTypeModel(QObject* parent = nullptr);
+};
+
+class SongSortFilterModel : public QSortFilterProxyModel {
+    Q_OBJECT
+    QML_ELEMENT
+
+    Q_PROPERTY(qint32 sortType READ sortType WRITE setSortType NOTIFY sortTypeChanged FINAL)
+    Q_PROPERTY(bool asc READ asc WRITE setAsc NOTIFY ascChanged FINAL)
+public:
+    SongSortFilterModel(QObject* parent = nullptr);
+    auto sortType() const -> qint32;
+    void setSortType(qint32);
+    bool asc() const;
+    void setAsc(bool);
+
+    bool lessThan(const QModelIndex& source_left, const QModelIndex& source_right) const override;
+
+    Q_SIGNAL void ascChanged();
+    Q_SIGNAL void sortTypeChanged();
+
+private:
+    Q_SLOT void freshSortType();
+    Q_SLOT void freshSort();
+
+    qint32 m_sort_type;
+    bool   m_asc;
 };
 
 } // namespace qcm
