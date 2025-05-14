@@ -46,7 +46,7 @@ sudo pacman -S qcm
 
 ### Require:  
 - Compiler: clang 19+
-- OS: linux
+- OS: linux, win(libc++)
 
 #### Separated Libraries
 The following libraries were extracted and modularized during Qcm's development.  
