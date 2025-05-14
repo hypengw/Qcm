@@ -17,7 +17,6 @@ using stream_type = asio::basic_stream_socket<asio::generic::stream_protocol, T>
 template<typename T>
 using stream_type = asio::posix::basic_stream_descriptor<T>;
 #endif
-// asio::generic::stream_protocol::socket<T>;
 
 #include "core/log.h"
 #include "core/qstr_helper.h"

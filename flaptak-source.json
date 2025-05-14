@@ -5,7 +5,7 @@
     "type" : "inline"
   },
   {
-    "commit" : "42b14d29ccc664d4974b0017330da52a99d0f7a8",
+    "commit" : "a37763b19444cc4e6e26eddda2512754594613c3",
     "dest" : "build/_flatpak_deps/rstd-src",
     "disable-shallow-clone" : false,
     "type" : "git",
@@ -54,7 +54,7 @@
     "url" : "https://github.com/mozilla/cubeb.git"
   },
   {
-    "commit" : "8fc54e79efdbc583a8315d2967a42734f22699be",
+    "commit" : "56aa3326a6c7b25bb83ba537705d2a8f53552225",
     "dest" : "build/_flatpak_deps/ncrequest-src",
     "disable-shallow-clone" : false,
     "type" : "git",
@@ -68,7 +68,7 @@
     "url" : "https://github.com/taocpp/PEGTL.git"
   },
   {
-    "commit" : "42b14d29ccc664d4974b0017330da52a99d0f7a8",
+    "commit" : "a37763b19444cc4e6e26eddda2512754594613c3",
     "dest" : "build/_flatpak_deps/rstd-src",
     "disable-shallow-clone" : false,
     "type" : "git",
