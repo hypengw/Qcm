@@ -4,6 +4,7 @@
 
 #include <map>
 #include <functional>
+#include "std23/move_only_function.h"
 
 #include <QtCore/QObject>
 #include <QtCore/QProcess>
@@ -86,7 +87,7 @@ private:
 
     Arc<ncrequest::Session> m_session;
 
-    std::map<i32, std::move_only_function<void(asio::error_code, msg::QcmMessage)>> m_handlers;
+    std::map<i32, std23::move_only_function<void(asio::error_code, msg::QcmMessage)>> m_handlers;
 
     std::atomic<i32> m_serial;
     i32              m_port;

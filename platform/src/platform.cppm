@@ -22,5 +22,6 @@ auto mem_info() -> MemInfo;
 void set_thread_name(const char* name);
 
 auto is_terminal() -> bool;
+auto support_color() -> bool;
 
 } // namespace plt

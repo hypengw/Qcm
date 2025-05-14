@@ -14,6 +14,23 @@
                 "QT_ANDROID_SIGN_APK": "ON"
             },
             "toolchainFile": "build/android-release/generators/conan_toolchain.cmake"
+        },
+        {
+            "name": "win",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_GENERATOR": "Ninja",
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++",
+                "PKG_CONFIG_EXECUTABLE": "pkg-config",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}"
+            },
+            "environment": {
+                "MY_ENVIRONMENT_VARIABLE": "Test",
+                "PATH": "C:/msys64/clang64/bin;$penv{PATH}"
+            }
         }
     ]
 }

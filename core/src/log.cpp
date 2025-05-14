@@ -86,47 +86,6 @@ bool check_stderr(qcm::LogLevel lv) {
     }
 }
 
-#ifdef _WIN32
-
-auto supports_color() -> bool {
-    // Get the handle to the standard output
-    HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
-    if (hStdout == INVALID_HANDLE_VALUE) {
-        return false;
-    }
-
-    // Retrieve the current console mode
-    DWORD consoleMode = 0;
-    if (! GetConsoleMode(hStdout, &consoleMode)) {
-        return false;
-    }
-
-    // Check if the console supports virtual terminal sequences (ANSI colors)
-    return (consoleMode & ENABLE_VIRTUAL_TERMINAL_PROCESSING) != 0;
-}
-
-#else
-
-auto supports_color() -> bool {
-    // Check if the standard output is a terminal
-    if (! plt::is_terminal()) {
-        return false;
-    }
-
-    // Get the TERM environment variable
-    auto term = helper::get_env_var("TERM");
-    if (! term) {
-        return false;
-    }
-
-    // Check if the TERM value contains keywords indicating color support
-    return term->find("color") != std::string_view::npos ||
-           term->find("xterm") != std::string_view::npos ||
-           term->find("screen") != std::string_view::npos ||
-           term->find("tmux") != std::string_view::npos;
-}
-#endif
-
 struct file_iterator {
     FILE* file;
 
@@ -169,7 +128,7 @@ void        log::log_raw(LogLevel level, std::string_view content) {
     if (out == nullptr) return;
 
     file_iterator out_iter(out);
-    if (supports_color()) {
+    if (plt::support_color()) {
         std::format_to(out_iter, "{}{}{}", get_log_color(level), content, COLOR_RESET);
     } else {
         std::format_to(out_iter, "{}", content);
@@ -179,10 +138,10 @@ void        log::log_raw(LogLevel level, std::string_view content) {
 void log::log_loc_raw(LogLevel level, const std::source_location loc, std::string_view content) {
     using namespace std::chrono;
     auto now_utc   = system_clock::now();
-    auto now_local = current_zone()->to_local(now_utc);
+    // auto now_local = std::chrono::current_zone()->to_local(now_utc);
     log_raw(level,
             std::format("{:.26s}Z {:>5} {}({},{}): {}  \n",
-                        std::format("{:%Y-%m-%dT%H:%M:%S}", now_local),
+                        "",//std::format("{:%Y-%m-%dT%H:%M:%S}", now_local),
                         to_sv(level),
                         extract_last(loc.file_name(), 2),
                         loc.line(),

@@ -38,11 +38,14 @@ void PlayIdProxyQueue::setSourceModel(QAbstractItemModel* source_model) {
     if (old == source_model) return;
 
     QIdentityProxyModel::setSourceModel(source_model);
+#if _WIN32
+#else
     QBindable<qint32> source_idx(source_model, "currentIndex");
     m_current_index.setBinding([source_idx, this] {
         auto source = source_idx.value();
         return m_shuffle.value() && m_support_shuffle.value() ? mapFromSource(source) : source;
     });
+#endif
 
     shuffleSync();
 
@@ -251,10 +254,13 @@ void PlayQueue::setSourceModel(QAbstractItemModel* source_model) {
     if (old == source_model) return;
 
     base_type::setSourceModel(source_model);
+#if _WIN32
+#else
     QBindable<qint32> source_idx(source_model, "currentIndex");
     m_current_index.setBinding([source_idx] {
         return source_idx.value();
     });
+#endif
 
     if (old) {
         disconnect(old, &QAbstractItemModel::rowsInserted, this, &PlayQueue::onSourceRowsInserted);

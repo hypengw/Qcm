@@ -6,7 +6,18 @@
 #include <QtCore/QMetaEnum>
 #include <QtCore/QTextStream>
 
-#include <asio/posix/stream_descriptor.hpp>
+#include <asio/dispatch.hpp>
+
+#ifdef _WIN32
+#    include <asio/generic/stream_protocol.hpp>
+template<typename T>
+using stream_type = asio::basic_stream_socket<asio::generic::stream_protocol, T>;
+#else
+#    include <asio/posix/stream_descriptor.hpp>
+template<typename T>
+using stream_type = asio::posix::basic_stream_socket<T>;
+#endif
+// asio::generic::stream_protocol::socket<T>;
 
 #include "core/log.h"
 #include "core/qstr_helper.h"
@@ -34,7 +45,7 @@ public:
                     [&backend, msg = std::move(msg), handler = std::move(handler)] mutable {
                         msg.setId_proto(backend.serial());
                         backend.m_handlers.insert_or_assign(
-                            msg.id_proto(), std::move_only_function<ret> { std::move(handler) });
+                            msg.id_proto(), std23::move_only_function<ret> { std::move(handler) });
                         auto bytes = msg.serialize(backend.m_serializer.get());
                         backend.m_client->send({ bytes.constData(), (std::size_t)bytes.size() });
                     });
@@ -50,8 +61,7 @@ Backend::Backend(Arc<ncrequest::Session> session)
           make_box<QtExecutionContext>(m_thread.get(), (QEvent::Type)QEvent::registerEventType())),
       m_process(new QProcess()),
       m_client(make_box<ncrequest::WebSocketClient>(
-          ncrequest::event::create<asio::posix::basic_stream_descriptor>(
-              m_context->get_executor()))),
+          ncrequest::event::create<stream_type>(m_context->get_executor()))),
       m_serializer(make_box<QProtobufSerializer>()),
       m_session(session),
       m_serial(1), // start from 1, as 0 is none

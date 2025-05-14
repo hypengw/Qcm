@@ -25,6 +25,9 @@ target_sources(
           include/core/expected_helper.h include/core/log.h
           include/core/clangd.h src/log.cpp)
 
+target_compile_definitions(
+  core
+  PUBLIC ${WIN_DEFS})
 target_compile_features(core PUBLIC cxx_std_23)
 target_include_directories(core PUBLIC include)
 target_link_libraries(
@@ -36,7 +39,7 @@ target_link_libraries(
 add_library(core.asio STATIC src/asio/asio.cpp)
 target_compile_definitions(
   core.asio
-  PUBLIC ASIO_DYN_LINK ASIO_DISABLE_VISIBILITY
+  PUBLIC ASIO_DISABLE_VISIBILITY
   PRIVATE QCM_ASIO_EXPORT)
 target_link_libraries(core.asio PUBLIC core asio)
 set_target_properties(core.asio PROPERTIES CXX_VISIBILITY_PRESET hidden

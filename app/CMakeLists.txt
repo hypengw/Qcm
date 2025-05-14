@@ -215,6 +215,8 @@ target_link_libraries(
          player
          platform
          "message"
+         #message_qtprotoreg
+         #messageplugin
          "$<$<TARGET_EXISTS:mpris>:mpris>")
 
 qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION src/main.cpp)

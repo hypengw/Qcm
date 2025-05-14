@@ -37,15 +37,17 @@ void malloc_trim_count(std::size_t pad, std::size_t count) {
 }
 
 auto mem_info() -> MemInfo {
-
+#if defined(__GLIBC__)
     auto info = mallinfo2();
     return MemInfo {
         .totle_in_use = info.uordblks,
-        .heap = info.arena,
-        .mmap = info.hblkhd,
-        .mmap_num = info.hblks,
+        .heap         = info.arena,
+        .mmap         = info.hblkhd,
+        .mmap_num     = info.hblks,
     };
-
+#else
+    return {};
+#endif
 }
 
 } // namespace plt

@@ -10,3 +10,5 @@ target_sources(
          src
          FILES
          src/platform.cppm)
+
+target_link_libraries(platform PUBLIC rstd::rstd)

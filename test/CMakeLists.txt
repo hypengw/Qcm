@@ -11,7 +11,7 @@ endif()
 
 add_executable(qcm_test src/asio.cpp src/main.cpp src/log.cpp)
 
-target_link_libraries(qcm_test PRIVATE core.asio GTest::gtest_main)
+target_link_libraries(qcm_test PRIVATE core.asio GTest::gtest_main "message")
 
 include(GoogleTest)
 gtest_discover_tests(qcm_test)

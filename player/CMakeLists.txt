@@ -33,4 +33,6 @@ target_include_directories(
 target_link_libraries(
   player
   PUBLIC core error core.asio ${FFMPEG_TARGETS} rstd::rstd
-  PRIVATE ctre::ctre cubeb::cubeb)
+  PRIVATE ctre::ctre cubeb::cubeb 
+    "$<$<PLATFORM_ID:Windows>:winmm>"
+  )

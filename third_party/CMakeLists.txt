@@ -5,7 +5,7 @@ find_package(PkgConfig REQUIRED)
 FetchContent_Declare(
   rstd
   GIT_REPOSITORY https://github.com/hypengw/rstd.git
-  GIT_TAG 5e56fd0d3a3f1e3d95ae75ae5b862e8574e30e13
+  GIT_TAG 42b14d29ccc664d4974b0017330da52a99d0f7a8
   GIT_SHALLOW 0
   GIT_PROGRESS 1
   EXCLUDE_FROM_ALL)
@@ -66,7 +66,7 @@ FetchContent_MakeAvailable(KDSingleApplication)
 
 # asio
 add_library(asio INTERFACE)
-target_compile_definitions(asio INTERFACE ASIO_NO_DEPRECATED ASIO_NO_TYPEID)
+target_compile_definitions(asio INTERFACE ASIO_NO_DEPRECATED ASIO_NO_TYPEID ASIO_HAS_THREADS ${WIN_DEFS})
 pkg_check_modules(ASIO QUIET asio>=1.30.2)
 if(NOT ASIO_FOUND)
   FetchContent_Declare(
@@ -128,7 +128,7 @@ endif()
 FetchContent_Declare(
   ncrequest
   GIT_REPOSITORY https://github.com/hypengw/ncrequest.git
-  GIT_TAG d1bdf29a85f434afdf91cbfcd4e887774ae8d8fd
+  GIT_TAG 307781b5dce40410cc2bf950c35d761994191ff1
   GIT_SHALLOW 0
   GIT_PROGRESS 1
   EXCLUDE_FROM_ALL)

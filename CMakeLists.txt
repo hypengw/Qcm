@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 
+message(STATUS "PATH: $ENV{PATH}")
+
 project(
   Qcm
   VERSION 1.2.1
@@ -17,7 +19,10 @@ set(CMAKE_AUTOMOC_PATH_PREFIX ON)
 set(BUILD_SHARED_LIBS OFF)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-if(NOT ANDROID)
+
+set(WIN_DEFS WIN32_LEAN_AND_MEAN NOMINMAX NOGDI _WIN32_WINNT=0x0A00)
+
+if(NOT ANDROID AND NOT WIN32)
   set(CMAKE_LINKER_TYPE "$<IF:$<CONFIG:Debug>,MOLD,DEFAULT>")
 endif()
 set(QT_QML_GENERATE_QMLLS_INI ON)
@@ -85,6 +90,7 @@ set(GC_SECTIONS_LINK_OPTS "-Wl,--gc-sections")
 
 add_compile_options(
   -fno-rtti
+  -pthread
   ${WARN_OPTS}
   "$<$<NOT:$<CONFIG:Debug>>:${GC_SECTIONS_OPTS}>"
   "$<$<CONFIG:Debug>:-fno-omit-frame-pointer>"

@@ -1,4 +1,4 @@
-if(NOT ANDROID)
+if(NOT ANDROID AND NOT WIN32)
   find_package(Qt6 REQUIRED COMPONENTS DBus)
 
   add_library(

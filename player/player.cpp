@@ -199,7 +199,8 @@ auto player::get_metadata(const std::filesystem::path& path) -> Metadata {
     FFmpegFormatContext ctx;
     FFmpegError         err;
     do {
-        err = ctx.open_input(path.c_str());
+        err = ctx.open_input(path.string().c_str());
+
         if (err) break;
 
         err = ctx.find_stream_info(NULL);

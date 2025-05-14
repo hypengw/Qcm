@@ -1,8 +1,9 @@
-find_package(Qt6 REQUIRED COMPONENTS Protobuf ProtobufWellKnownTypes ProtobufQuick)
+find_package(Qt6 REQUIRED COMPONENTS Core Quick Protobuf ProtobufWellKnownTypes ProtobufQuick)
 set(CMAKE_AUTOMOC ON)
 
 set(output_inc_dir "${CMAKE_CURRENT_BINARY_DIR}/gen")
 set(output_dir "${CMAKE_CURRENT_BINARY_DIR}/gen/Qcm/message")
+
 qt_add_protobuf(
   message
   PROTO_FILES
@@ -10,6 +11,8 @@ qt_add_protobuf(
   proto/model.proto
   OUTPUT_DIRECTORY
   "${output_dir}"
+  OUTPUT_TARGETS
+    message_targets
   QML
   QML_URI
   "Qcm.Msg")

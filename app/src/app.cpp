@@ -59,7 +59,7 @@ void cache_clean_cb(const std::filesystem::path& cache_dir, std::string_view key
     std::error_code ec;
     auto            file = cache_dir / (key.size() >= 2 ? key.substr(0, 2) : "no"sv) / key;
     std::filesystem::remove(file, ec);
-    log::debug("cache remove {}", file.native());
+    log::debug("cache remove {}", file.string());
 }
 
 auto get_pool_size() -> std::size_t {
