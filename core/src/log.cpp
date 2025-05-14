@@ -107,7 +107,6 @@ struct file_iterator {
 
 } // namespace
 
-
 auto the_log_manager() -> qcm::LogManager*;
 
 namespace qcm
@@ -137,11 +136,16 @@ void        log::log_raw(LogLevel level, std::string_view content) {
 };
 void log::log_loc_raw(LogLevel level, const std::source_location loc, std::string_view content) {
     using namespace std::chrono;
+#ifdef _LIBCPP_VERSION
+    auto time_str = "";
+#else
     auto now_utc   = system_clock::now();
-    // auto now_local = std::chrono::current_zone()->to_local(now_utc);
+    auto now_local = std::chrono::current_zone()->to_local(now_utc);
+    auto time_str  = std::format("{:%Y-%m-%dT%H:%M:%S}", now_local);
+#endif
     log_raw(level,
             std::format("{:.26s}Z {:>5} {}({},{}): {}  \n",
-                        "",//std::format("{:%Y-%m-%dT%H:%M:%S}", now_local),
+                        time_str,
                         to_sv(level),
                         extract_last(loc.file_name(), 2),
                         loc.line(),

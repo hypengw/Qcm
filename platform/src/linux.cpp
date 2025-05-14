@@ -3,7 +3,20 @@ module;
 #    include <cstdio>
 #    include <pthread.h>
 #    include <unistd.h>
+#    include <cstdlib>
+#    include <string_view>
+#    include <optional>
 module platform;
+
+namespace
+{
+auto get_env_var(std::string_view var_name) -> std::optional<std::string_view> {
+    if (const char* value = std::getenv(var_name.data())) {
+        return std::string_view(value);
+    }
+    return std::nullopt;
+}
+} // namespace
 
 namespace plt
 {
@@ -18,7 +31,7 @@ auto support_color() -> bool {
     }
 
     // Get the TERM environment variable
-    auto term = helper::get_env_var("TERM");
+    auto term = get_env_var("TERM");
     if (! term) {
         return false;
     }

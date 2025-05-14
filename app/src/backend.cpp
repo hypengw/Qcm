@@ -15,7 +15,7 @@ using stream_type = asio::basic_stream_socket<asio::generic::stream_protocol, T>
 #else
 #    include <asio/posix/stream_descriptor.hpp>
 template<typename T>
-using stream_type = asio::posix::basic_stream_socket<T>;
+using stream_type = asio::posix::basic_stream_descriptor<T>;
 #endif
 // asio::generic::stream_protocol::socket<T>;
 
