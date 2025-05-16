@@ -23,8 +23,8 @@ using AudioFrameQueue = qcm::QueueWithSize<AudioFrame>;
 class AudioFrameQueue : public qcm::QueueConcurrent<detail::AudioFrameQueue> {
 public:
     using Self = AudioFrameQueue;
-    AudioFrameQueue(usize max_size)
-        : qcm::QueueConcurrent<detail::AudioFrameQueue>(max_size), m_serial(0) {}
+    AudioFrameQueue(usize max_size, std::pmr::memory_resource* mem)
+        : qcm::QueueConcurrent<detail::AudioFrameQueue>(max_size, mem), m_serial(0) {}
     ~AudioFrameQueue() {}
 
     void prepare_item(AudioFrame& out) {

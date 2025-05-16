@@ -12,11 +12,13 @@
 
 using namespace player;
 
-Player::Player(std::string_view name, Notifier notifier, executor_type exc)
-    : m_d(make_up<Private>(name, notifier, exc)) {}
+Player::Player(std::string_view name, Notifier notifier, executor_type exc,
+               std::pmr::memory_resource* mem)
+    : m_d(make_up<Private>(name, notifier, exc, mem)) {}
 Player::~Player() {}
 
-Player::Private::Private(std::string_view name, Notifier notifier, executor_type exc)
+Player::Private::Private(std::string_view name, Notifier notifier, executor_type exc,
+                         std::pmr::memory_resource* mem)
     : m_notifier(notifier),
       m_action_channel(make_rc<action_channel_type>(exc, 64)),
       m_action_id(0),
@@ -24,7 +26,7 @@ Player::Private::Private(std::string_view name, Notifier notifier, executor_type
       m_reader(make_rc<StreamReader>(notifier)),
       m_dec(make_up<Decoder>()),
       m_dev(make_up<Device>(make_rc<DeviceContext>(name), nullptr, 2, 44100, notifier)),
-      m_ctx(make_rc<Context>()) {
+      m_ctx(make_rc<Context>(mem)) {
     auto channel = m_action_channel;
     asio::co_spawn(
         asio::strand<action_channel_type::executor_type>(channel->get_executor()),

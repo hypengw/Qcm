@@ -2,6 +2,7 @@
 
 #include <map>
 #include <filesystem>
+#include <memory_resource>
 #include <asio/experimental/concurrent_channel.hpp>
 #include <asio/thread_pool.hpp>
 #include <asio/strand.hpp>
@@ -20,7 +21,8 @@ public:
     using executor_type = asio::thread_pool::executor_type;
 
     class Private;
-    Player(std::string_view name, Notifier, executor_type exc);
+    Player(std::string_view name, Notifier, executor_type exc,
+           std::pmr::memory_resource* mem = std::pmr::get_default_resource());
     ~Player();
 
     void play();

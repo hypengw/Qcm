@@ -9,6 +9,7 @@
 
 #include "core/qasio/qt_executor.h"
 #include "Qcm/util/ex.hpp"
+#include "Qcm/util/mem.hpp"
 #include "core/math.h"
 
 using namespace qcm;
@@ -63,7 +64,7 @@ Player::Player(QObject* parent)
 
     auto channel = m_channel->channel();
     m_player     = std::make_unique<player::Player>(
-        APP_NAME, player::Notifier(m_channel), qcm::pool_executor());
+        APP_NAME, player::Notifier(m_channel), qcm::pool_executor(), mem_mgr().player_mem);
 
     auto qt_exec = qcm::qexecutor();
     asio::co_spawn(
@@ -225,6 +226,5 @@ void Player::processNotify(NotifyInfo info) {
                             } },
                info);
 }
-
 
 #include <Qcm/moc_player.cpp>

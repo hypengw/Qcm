@@ -29,6 +29,7 @@
 import platform;
 
 #include "Qcm/util/path.hpp"
+#include "Qcm/util/mem.hpp"
 
 #include "Qcm/image_provider/http.hpp"
 #include "Qcm/image_provider/qr.hpp"
@@ -401,6 +402,13 @@ void App::releaseResources(QQuickWindow*) {
         return std::format("{:.2f} MB", n / (1024.0 * 1024.0));
     };
 
+    auto print_mem_stat = [as_mb](MemoryStatResource* s) {
+        return std::format("used({}): {}, peak: {}",
+                           s->current_block_count(),
+                           as_mb(s->current_bytes()),
+                           as_mb(s->peak_bytes()));
+    };
+
     auto store = AppStore::instance();
 
     log::debug(R"(
@@ -419,13 +427,27 @@ mmap({}): {}
 in use: {}
 dyn create: {}
 img rsp: {}
+
+pool:
+  {}
+session:
+  {}
+backend:
+  {}
+player:
+  {}
 )",
                as_mb(info.heap),
                info.mmap_num,
                as_mb(info.mmap),
                as_mb(info.totle_in_use),
                0,
-               image_response_count().load());
+               image_response_count().load(),
+               print_mem_stat(mem_mgr().pool_stat),
+               print_mem_stat(mem_mgr().session_mem),
+               print_mem_stat(mem_mgr().backend_mem),
+               print_mem_stat(mem_mgr().player_mem)
+            );
 }
 
 qreal App::devicePixelRatio() const {

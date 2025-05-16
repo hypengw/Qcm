@@ -22,6 +22,7 @@ using stream_type = asio::posix::basic_stream_descriptor<T>;
 #include "core/qstr_helper.h"
 #include "Qcm/status/process.hpp"
 #include "Qcm/store.hpp"
+#include "Qcm/util/mem.hpp"
 
 import ncrequest.event;
 import rstd.rc;
@@ -60,7 +61,8 @@ Backend::Backend(Arc<ncrequest::Session> session)
           make_box<QtExecutionContext>(m_thread.get(), (QEvent::Type)QEvent::registerEventType())),
       m_process(new QProcess()),
       m_client(make_box<ncrequest::WebSocketClient>(
-          ncrequest::event::create<stream_type>(m_context->get_executor()))),
+          ncrequest::event::create<stream_type>(m_context->get_executor()), None(),
+          mem_mgr().backend_mem)),
       m_serializer(make_box<QProtobufSerializer>()),
       m_session(session),
       m_serial(1), // start from 1, as 0 is none

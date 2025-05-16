@@ -14,6 +14,7 @@ target_sources(
          src/type_list.cppm
          src/log.cppm
          src/core.cppm
+         src/mem.cppm
          src/lambda.cppm
          src/fmt.cppm
          src/helper/mod.cppm
@@ -23,7 +24,7 @@ target_sources(
   core
   PRIVATE include/core/core.h include/core/callable.h
           include/core/expected_helper.h include/core/log.h
-          include/core/clangd.h src/log.cpp)
+          include/core/clangd.h src/log.cpp src/mem.cpp)
 
 target_compile_definitions(
   core

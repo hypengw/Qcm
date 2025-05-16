@@ -10,6 +10,7 @@
 #include <vector>
 #include <cmath>
 #include <numeric>
+#include <memory_resource>
 
 #include "core/core.h"
 #include "core/log.h"
@@ -159,8 +160,10 @@ struct QueueWithSize {
 public:
     using value_type     = V;
     using push_info_type = usize;
+    using allocator_type = std::pmr::polymorphic_allocator<V>;
 
-    QueueWithSize(usize max_size): data_size(0), max_size(max_size), aborted(false) {}
+    QueueWithSize(usize max_size, std::pmr::memory_resource* mem = std::pmr::get_default_resource())
+        : queue(allocator_type(mem)), data_size(0), max_size(max_size), aborted(false) {}
 
     template<typename T>
         requires std::ranges::forward_range<T> && std::ranges::sized_range<T>
@@ -227,7 +230,7 @@ public:
 
     bool is_notify_pop() const { return data_size < std::max(max_size / 2, (usize)1); }
 
-    std::deque<value_type> queue;
+    std::deque<value_type, allocator_type> queue;
 
     usize data_size;
     usize max_size;

@@ -12,6 +12,7 @@
 #include "core/log.h"
 #include "Qcm/util/path.hpp"
 #include "Qcm/util/ex.hpp"
+#include "Qcm/util/mem.hpp"
 #include "Qcm/util/global_static.hpp"
 #include "Qcm/action.hpp"
 
@@ -37,6 +38,10 @@ auto qcm::pool_executor() -> asio::thread_pool::executor_type {
 }
 auto qcm::strand_executor() -> asio::strand<asio::thread_pool::executor_type> {
     return asio::make_strand(Global::instance()->pool_executor());
+}
+auto qcm::mem_mgr() -> MemResourceMgr& {
+    static MemResourceMgr the_mgr {};
+    return the_mgr;
 }
 
 namespace qcm
@@ -90,7 +95,7 @@ void GlobalWrapper::connect_to_global(Global* g, R (Global::*g_func)(ARGS...),
 Global::Private::Private(Global* p)
     : qt_ctx(make_arc<QtExecutionContext>(p, (QEvent::Type)QEvent::registerEventType())),
       pool(get_pool_size()),
-      session(ncrequest::Session::make(pool.get_executor())),
+      session(ncrequest::Session::make(pool.get_executor(), mem_mgr().session_mem)),
       copy_action_comp(nullptr) {}
 Global::Private::~Private() {}
 

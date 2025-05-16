@@ -7,9 +7,9 @@ namespace player
 {
 
 struct Context {
-    Context()
-        : audio_pkt_queue(make_rc<PacketQueue>(2 * 1024 * 1024)), // 2 MB
-          audio_frame_queue(make_rc<AudioFrameQueue>(32)) {}
+    Context(std::pmr::memory_resource* mem)
+        : audio_pkt_queue(make_rc<PacketQueue>(2 * 1024 * 1024, mem)), // 2 MB
+          audio_frame_queue(make_rc<AudioFrameQueue>(32, mem)) {}
 
     ~Context() { set_aborted(true); }
 
@@ -22,8 +22,6 @@ struct Context {
         audio_pkt_queue->clear();
         audio_frame_queue->clear();
     }
-
-    
 
     rc<PacketQueue>     audio_pkt_queue;
     rc<AudioFrameQueue> audio_frame_queue;

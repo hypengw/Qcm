@@ -64,7 +64,9 @@ public:
     executor_type& get_executor() { return m_ex; }
 
     QcmImageProviderInner()
-        : m_ex(Global::instance()->pool_executor()), m_session(Global::instance()->session()) {}
+        : m_ex(Global::instance()->pool_executor()),
+          m_session(Global::instance()->session()),
+          m_strand_image_read(m_ex) {}
 
     task<ncrequest::HttpHeader> dl_image(const ncrequest::Request& req, std::filesystem::path p) {
         helper::SyncFile file { std::fstream(p, std::ios::out | std::ios::binary) };
@@ -81,6 +83,8 @@ public:
     task<QImage> request_image(const ncrequest::Request& req, QSize req_size) {
         auto rsp_http = (co_await m_session->get(req)).unwrap();
         auto bytes    = co_await rsp_http->bytes();
+
+        co_await asio::post(asio::bind_executor(m_strand_image_read, asio::use_awaitable));
 
         QImage img;
         if (bytes) {
@@ -102,8 +106,9 @@ public:
     }
 
 private:
-    executor_type          m_ex;
-    rc<ncrequest::Session> m_session;
+    executor_type               m_ex;
+    rc<ncrequest::Session>      m_session;
+    asio::strand<executor_type> m_strand_image_read;
 };
 } // namespace qcm
 

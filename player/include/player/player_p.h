@@ -40,7 +40,8 @@ public:
         asio::experimental::concurrent_channel<asio::thread_pool::executor_type,
                                                void(asio::error_code, action::info)>;
 
-    Private(std::string_view name, Notifier notifier, asio::thread_pool::executor_type exc);
+    Private(std::string_view name, Notifier notifier, asio::thread_pool::executor_type exc,
+            std::pmr::memory_resource* mem);
     ~Private();
 
     void play();

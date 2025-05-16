@@ -75,7 +75,8 @@ using PacketQueue = qcm::QueueWithSize<Packet>;
 
 class PacketQueue : public qcm::QueueConcurrent<detail::PacketQueue> {
 public:
-    PacketQueue(usize max_size): qcm::QueueConcurrent<detail::PacketQueue>(max_size), m_serial(0) {}
+    PacketQueue(usize max_size, std::pmr::memory_resource* mem)
+        : qcm::QueueConcurrent<detail::PacketQueue>(max_size, mem), m_serial(0) {}
 
     bool aborted() {
         return with_lock([this](lock_type&) {
