@@ -55,6 +55,7 @@ Player::Player(QObject* parent)
       m_channel(make_rc<NotifyChannel>(
           make_rc<NotifyChannel::channel_type>(qcm::pool_executor(), MaxChannelSize))),
       m_end(false),
+      m_last_time(std::chrono::steady_clock::now()),
       m_position(0),
       m_duration(0),
       m_busy(false),
@@ -168,9 +169,14 @@ void Player::set_fadeTime(u32 val) {
 }
 
 void Player::set_position_raw(int v) {
-    int expected = m_position.load();
+    int expected = m_position.load(std::memory_order_relaxed);
     if (m_position.compare_exchange_weak(expected, v)) {
-        emit positionChanged();
+        auto now  = std::chrono::steady_clock::now();
+        auto last = m_last_time.load(std::memory_order_relaxed);
+        if (now - last > std::chrono::milliseconds(50)) {
+            m_last_time.store(now, std::memory_order_relaxed);
+            emit positionChanged();
+        }
     }
 }
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <QVector2D>
 #include <QQmlEngine>
 #include "player/player.h"
@@ -82,6 +83,8 @@ private:
     QUrl               m_source;
     rc<NotifyChannel>  m_channel;
     bool               m_end;
+
+    std::atomic<std::chrono::steady_clock::time_point> m_last_time;
 
     std::atomic<int> m_position;
     int              m_duration;
