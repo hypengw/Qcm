@@ -13,6 +13,7 @@ struct MemResourceMgr {
     MemoryStatResource* session_mem { new MemoryStatResource { pool } };
     MemoryStatResource* backend_mem { new MemoryStatResource { pool } };
     MemoryStatResource* player_mem { new MemoryStatResource { pool } };
+    MemoryStatResource* store_mem { new MemoryStatResource { pool } };
 };
 
 auto mem_mgr() -> MemResourceMgr&;

@@ -13,6 +13,7 @@ namespace qcm
 ArtistsQuery::ArtistsQuery(QObject* parent): QueryList(parent) {
     // set_use_queue(true);
     auto app = App::instance();
+    this->tdata()->set_store(this->tdata(), AppStore::instance()->artists);
     this->connectSyncFinished();
     this->connect_requet_reload(&LibraryStatus::activedIdsChanged, app->libraryStatus());
 }
@@ -73,6 +74,7 @@ void ArtistsQuery::fetchMore(qint32) {
 AlbumArtistsQuery::AlbumArtistsQuery(QObject* parent): QueryList(parent) {
     // set_use_queue(true);
     auto app = App::instance();
+    this->tdata()->set_store(this->tdata(), AppStore::instance()->artists);
     this->connectSyncFinished();
     this->connect_requet_reload(&LibraryStatus::activedIdsChanged, app->libraryStatus());
 }
@@ -130,7 +132,8 @@ void AlbumArtistsQuery::fetchMore(qint32) {
     });
 }
 
-ArtistQuery::ArtistQuery(QObject* parent): Query(parent) {}
+ArtistQuery::ArtistQuery(QObject* parent): Query(parent) {
+}
 auto ArtistQuery::itemId() const -> model::ItemId { return m_item_id; }
 void ArtistQuery::setItemId(model::ItemId in) {
     if (ycore::cmp_exchange(m_item_id, in)) {

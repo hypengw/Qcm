@@ -2,9 +2,11 @@
 #include "Qcm/model/store_item.hpp"
 #include "Qcm/store.hpp"
 
+#include "Qcm/util/mem.hpp"
+
 namespace qcm::model
 {
-AlbumListModel::AlbumListModel(QObject* parent): base_type(parent) {}
+AlbumListModel::AlbumListModel(QObject* parent): base_type(parent, { mem_mgr().store_mem }) {}
 QQmlPropertyMap* AlbumListModel::extra(i32 idx) const {
     if (auto extend = AppStore::instance()->albums.query_extend(this->key_at(idx)); extend) {
         return extend->extra.get();
@@ -12,7 +14,7 @@ QQmlPropertyMap* AlbumListModel::extra(i32 idx) const {
     return nullptr;
 }
 
-AlbumSongListModel::AlbumSongListModel(QObject* parent): base_type(parent) {
+AlbumSongListModel::AlbumSongListModel(QObject* parent): base_type(parent, { mem_mgr().store_mem }) {
     connect(&m_item, &model::AlbumStoreItem::itemChanged, this, &AlbumSongListModel::albumChanged);
 }
 AlbumSongListModel::~AlbumSongListModel() {}
@@ -20,7 +22,7 @@ auto AlbumSongListModel::album() const -> album_type { return m_item.item(); }
 void AlbumSongListModel::setAlbum(const album_type& album) { m_item.setItem(album); }
 auto AlbumSongListModel::extra() const -> QQmlPropertyMap* { return m_item.extra(); }
 
-ArtistListModel::ArtistListModel(QObject* parent): base_type(parent) {}
+ArtistListModel::ArtistListModel(QObject* parent): base_type(parent, { mem_mgr().store_mem }) {}
 
 MixListModel::MixListModel(QObject* parent): base_type(parent) {}
 } // namespace qcm::model

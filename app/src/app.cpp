@@ -415,9 +415,11 @@ void App::releaseResources(QQuickWindow*) {
 --- store ---
 albums: {}
 songs: {}
+artists: {}
 )",
                store->albums.size(),
-               store->songs.size());
+               store->songs.size(),
+               store->artists.size());
 
     auto info = plt::mem_info();
     log::debug(R"(
@@ -436,6 +438,8 @@ backend:
   {}
 player:
   {}
+store:
+  {}
 )",
                as_mb(info.heap),
                info.mmap_num,
@@ -446,8 +450,8 @@ player:
                print_mem_stat(mem_mgr().pool_stat),
                print_mem_stat(mem_mgr().session_mem),
                print_mem_stat(mem_mgr().backend_mem),
-               print_mem_stat(mem_mgr().player_mem)
-            );
+               print_mem_stat(mem_mgr().player_mem),
+               print_mem_stat(mem_mgr().store_mem));
 }
 
 qreal App::devicePixelRatio() const {
