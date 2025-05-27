@@ -46,92 +46,57 @@ MD.Page {
     }
     ColumnLayout {
         anchors.fill: parent
-        spacing: 16
+        spacing: 8
 
-        MD.SearchBar {
-            id: m_search_bar
-            Layout.fillWidth: true
-            onAccepted: {
-                m_stack.updateText(text);
-            }
-        }
+        ColumnLayout {
+            Layout.leftMargin: 12
+            Layout.rightMargin: 12
+            spacing: 16
 
-        RowLayout {
-            MD.FilterChip {
-                action: MD.Action {
-                    text: qsTr('local')
-                    icon.name: MD.Token.icon.arrow_drop_down
-                    onTriggered: {}
+            MD.SearchBar {
+                id: m_search_bar
+                Layout.fillWidth: true
+
+                onAccepted: {
+                    m_stack.updateText(text);
                 }
             }
 
-            MD.ButtonGroup {
-                id: m_group
-            }
-
-            Repeater {
-                model: m_search_type_model
+            Row {
+                spacing: 4
                 MD.FilterChip {
-                    required property var model
-                    text: model.name
-                    MD.ButtonGroup.group: m_group
-
-                    onClicked: {
-                        m_search_type_model.currentIndex = model.index;
+                    action: MD.Action {
+                        text: qsTr('local')
+                        icon.name: MD.Token.icon.arrow_drop_down
+                        onTriggered: {}
                     }
                 }
-            }
 
-            Component.onCompleted: {
-                m_group.buttons[m_search_type_model.currentIndex].checked = true;
+                MD.ButtonGroup {
+                    id: m_group
+                }
+
+                Repeater {
+                    model: m_search_type_model
+                    MD.FilterChip {
+                        required property var model
+                        text: model.name
+                        MD.ButtonGroup.group: m_group
+
+                        onClicked: {
+                            m_search_type_model.currentIndex = model.index;
+                        }
+                    }
+                }
+
+                Component.onCompleted: {
+                    m_group.buttons[m_search_type_model.currentIndex].checked = true;
+                }
             }
         }
 
         ColumnLayout {
             spacing: 0
-
-            /*
-            MD.TabBar {
-                id: bar
-                Layout.fillWidth: true
-                corners: MD.Util.corner(root.radius, 0)
-
-                function get_query() {
-                    return m_stack.children[currentIndex]?.query;
-                }
-
-                Component.onCompleted: {
-                    item_search.accepted.connect(() => {
-                        let query = get_query();
-                        if (query) {
-                            query.keywords = '';
-                            query.keywords = item_search.text;
-                        }
-                    });
-                    currentIndexChanged();
-                }
-
-                MD.TabButton {
-                    text: qsTr("Song")
-                }
-                MD.TabButton {
-                    text: qsTr("Album")
-                }
-                MD.TabButton {
-                    text: qsTr("Playlist")
-                }
-                MD.TabButton {
-                    text: qsTr("Djradio")
-                }
-
-                onCurrentIndexChanged: {
-                    let query = get_query();
-                    if (query && query.keywords != item_search.text) {
-                        query.keywords = item_search.text;
-                    }
-                }
-            }
-            */
 
             Item {
                 Layout.fillHeight: true

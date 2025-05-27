@@ -8,6 +8,8 @@ namespace qcm::model
 {
 class EmptyModel : public QObject {
     Q_OBJECT
+    QML_ANONYMOUS
+
     Q_PROPERTY(qcm::model::Song song READ song CONSTANT FINAL)
 public:
     EmptyModel(QObject* parent = nullptr): QObject(parent) {}

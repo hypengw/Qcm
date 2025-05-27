@@ -14,7 +14,7 @@ MD.ListItem {
             if (typeof modelData?.objectName == 'string') {
                 return modelData;
             }
-            if (model) {
+            if (model && model.index >= 0) {
                 return model;
             }
         }
@@ -112,6 +112,8 @@ MD.ListItem {
                         if (root.subtitle) {
                             return root.subtitle;
                         }
+                        if (!root.dgModel?.itemId)
+                            return "";
                         const ex = QA.Store.extra(root.dgModel.itemId);
                         return [QA.Util.joinName(ex?.artists), ex?.album?.name].filter(e => !!e).join(' - ');
                     }

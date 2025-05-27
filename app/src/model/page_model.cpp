@@ -6,7 +6,8 @@ namespace qcm
 void PageModel::init_main_pages(PageModel* self) {
     std::array arr { Page { .name   = "library",
                             .icon   = "library_music",
-                            .source = "qrc:/Qcm/App/qml/page/LibraryPage.qml" },
+                            .source = "qrc:/Qcm/App/qml/page/LibraryPage.qml",
+                            .cache  = true },
                      Page { .name   = "search",
                             .icon   = "search",
                             .source = "qrc:/Qcm/App/qml/page/SearchPage.qml" } };
