@@ -1,8 +1,9 @@
 #pragma once
 
 #include "meta_model/qgadget_list_model.hpp"
-#include "Qcm/query/query.hpp"
 #include "Qcm/backend_msg.hpp"
+#include "Qcm/query/query.hpp"
+#include "Qcm/model/list_models.hpp"
 
 namespace qcm
 {
@@ -21,7 +22,7 @@ class SearchTypeModel : public meta_model::QGadgetListModel<SearchTypeItem> {
     Q_PROPERTY(qint32 currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY
                    currentIndexChanged FINAL)
     Q_PROPERTY(qcm::enums::SearchType currentType READ currentType WRITE setCurrentType NOTIFY
-                   currentTypeChanged FINAL)
+                   currentIndexChanged FINAL)
 public:
     SearchTypeModel(QObject* parent = nullptr);
     auto currentIndex() const -> qint32;
@@ -31,7 +32,6 @@ public:
     void setCurrentType(enums::SearchType v);
 
     Q_SIGNAL void currentIndexChanged();
-    Q_SIGNAL void currentTypeChanged();
 
 private:
     qint32 m_current_index;
@@ -52,12 +52,53 @@ public:
     using base_type::base_type;
 };
 
-} // namespace model
-
-class SearchQuery : public QueryList, public QueryExtra<QAbstractListModel, SearchQuery> {
+class SearchModel : public QObject {
     Q_OBJECT
     QML_ELEMENT
 
+    Q_PROPERTY(qcm::model::SongListModel* songs READ songs CONSTANT FINAL)
+    Q_PROPERTY(qcm::model::AlbumListModel* albums READ albums CONSTANT FINAL)
+    Q_PROPERTY(qcm::model::ArtistListModel* artists READ artists CONSTANT FINAL)
+
+    Q_PROPERTY(QString songQuery READ songQuery NOTIFY songQueryChanged FINAL)
+    Q_PROPERTY(QString albumQuery READ albumQuery NOTIFY albumQueryChanged FINAL)
+    Q_PROPERTY(QString artistQuery READ artistQuery NOTIFY artistQueryChanged FINAL)
+public:
+    SearchModel(QObject* parent = nullptr);
+
+    auto songs() -> model::SongListModel*;
+    auto albums() -> model::AlbumListModel*;
+    auto artists() -> model::ArtistListModel*;
+
+    auto songQuery() const -> QString;
+    auto albumQuery() const -> QString;
+    auto artistQuery() const -> QString;
+
+    void setSongQuery(const QString& v);
+    void setAlbumQuery(const QString& v);
+    void setArtistQuery(const QString& v);
+
+    Q_SIGNAL void songQueryChanged(const QString&);
+    Q_SIGNAL void albumQueryChanged(const QString&);
+    Q_SIGNAL void artistQueryChanged(const QString&);
+
+private:
+    QString m_song_query;
+    QString m_album_query;
+    QString m_artist_query;
+
+    model::AlbumListModel*  m_album_model;
+    model::SongListModel*   m_song_model;
+    model::ArtistListModel* m_artist_model;
+};
+
+} // namespace model
+
+class SearchQuery : public QueryList, public QueryExtra<model::SearchModel, SearchQuery> {
+    Q_OBJECT
+    QML_ELEMENT
+
+    Q_PROPERTY(qcm::model::SearchModel* data READ data WRITE setData NOTIFY dataChanged FINAL)
     Q_PROPERTY(qcm::enums::SearchLocation location READ location WRITE setLocation NOTIFY
                    locationChanged FINAL)
     Q_PROPERTY(qcm::enums::SearchType type READ type WRITE setType NOTIFY typeChanged FINAL)
@@ -73,6 +114,8 @@ public:
     auto          text() const -> QString;
     void          setText(QString v);
     Q_SIGNAL void textChanged(const QString&);
+    auto          data() const -> model::SearchModel*;
+    void          setData(model::SearchModel* v);
 
     auto          location() const -> SearchLocation;
     void          setLocation(SearchLocation v);
@@ -82,11 +125,6 @@ public:
     void setType(SearchType v);
 
     Q_SIGNAL void typeChanged(SearchType);
-
-    template<typename T>
-    T* get_model() {
-        return data().value<T*>();
-    }
 
     void reload() override;
 

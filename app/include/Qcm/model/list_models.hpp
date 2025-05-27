@@ -7,9 +7,12 @@
 namespace qcm::model
 {
 class AlbumListModel
-    : public meta_model::QGadgetListModel<model::Album, meta_model::QMetaListStore::Share, std::pmr::polymorphic_allocator<model::Album>> {
+    : public meta_model::QGadgetListModel<model::Album, meta_model::QMetaListStore::Share,
+                                          std::pmr::polymorphic_allocator<model::Album>> {
     Q_OBJECT
-    using base_type = meta_model::QGadgetListModel<model::Album, meta_model::QMetaListStore::Share, std::pmr::polymorphic_allocator<model::Album>>;
+    QML_ANONYMOUS
+    using base_type = meta_model::QGadgetListModel<model::Album, meta_model::QMetaListStore::Share,
+                                                   std::pmr::polymorphic_allocator<model::Album>>;
 
     using value_type = model::Album;
 
@@ -19,13 +22,32 @@ public:
     Q_INVOKABLE QQmlPropertyMap* extra(i32 idx) const;
 };
 
-class AlbumSongListModel
-    : public meta_model::QGadgetListModel<model::Song, meta_model::QMetaListStore::Share, std::pmr::polymorphic_allocator<model::Song>> {
+class SongListModel
+    : public meta_model::QGadgetListModel<model::Song, meta_model::QMetaListStore::Share,
+                                          std::pmr::polymorphic_allocator<model::Song>> {
     Q_OBJECT
+    QML_ANONYMOUS
+    using base_type = meta_model::QGadgetListModel<model::Song, meta_model::QMetaListStore::Share,
+                                                   std::pmr::polymorphic_allocator<model::Song>>;
+
+    using value_type = model::Song;
+
+public:
+    SongListModel(QObject* parent = nullptr);
+
+    Q_INVOKABLE QQmlPropertyMap* extra(i32 idx) const;
+};
+
+class AlbumSongListModel
+    : public meta_model::QGadgetListModel<model::Song, meta_model::QMetaListStore::Share,
+                                          std::pmr::polymorphic_allocator<model::Song>> {
+    Q_OBJECT
+    QML_ANONYMOUS
 
     Q_PROPERTY(qcm::model::Album album READ album NOTIFY albumChanged)
     Q_PROPERTY(QQmlPropertyMap* extra READ extra NOTIFY albumChanged)
-    using base_type = meta_model::QGadgetListModel<model::Song, meta_model::QMetaListStore::Share, std::pmr::polymorphic_allocator<model::Song>>;
+    using base_type = meta_model::QGadgetListModel<model::Song, meta_model::QMetaListStore::Share,
+                                                   std::pmr::polymorphic_allocator<model::Song>>;
 
     using album_type = model::Album;
     using value_type = model::Song;
@@ -46,11 +68,12 @@ private:
 };
 
 class ArtistListModel
-    : public meta_model::QGadgetListModel<model::Artist,
-                                          meta_model::QMetaListStore::Share, std::pmr::polymorphic_allocator<model::Artist>> {
+    : public meta_model::QGadgetListModel<model::Artist, meta_model::QMetaListStore::Share,
+                                          std::pmr::polymorphic_allocator<model::Artist>> {
     Q_OBJECT
-    using base_type =
-        meta_model::QGadgetListModel<model::Artist, meta_model::QMetaListStore::Share, std::pmr::polymorphic_allocator<model::Artist>>;
+    QML_ANONYMOUS
+    using base_type = meta_model::QGadgetListModel<model::Artist, meta_model::QMetaListStore::Share,
+                                                   std::pmr::polymorphic_allocator<model::Artist>>;
 
     using value_type = model::Artist;
 
@@ -59,9 +82,9 @@ public:
 };
 
 class MixListModel
-    : public meta_model::QGadgetListModel<model::Mix,
-                                          meta_model::QMetaListStore::VectorWithMap> {
+    : public meta_model::QGadgetListModel<model::Mix, meta_model::QMetaListStore::VectorWithMap> {
     Q_OBJECT
+    QML_ANONYMOUS
     using base_type =
         meta_model::QGadgetListModel<model::Mix, meta_model::QMetaListStore::VectorWithMap>;
 

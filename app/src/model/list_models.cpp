@@ -13,8 +13,16 @@ QQmlPropertyMap* AlbumListModel::extra(i32 idx) const {
     }
     return nullptr;
 }
+SongListModel::SongListModel(QObject* parent): base_type(parent, { mem_mgr().store_mem }) {}
+QQmlPropertyMap* SongListModel::extra(i32 idx) const {
+    if (auto extend = AppStore::instance()->songs.query_extend(this->key_at(idx)); extend) {
+        return extend->extra.get();
+    }
+    return nullptr;
+}
 
-AlbumSongListModel::AlbumSongListModel(QObject* parent): base_type(parent, { mem_mgr().store_mem }) {
+AlbumSongListModel::AlbumSongListModel(QObject* parent)
+    : base_type(parent, { mem_mgr().store_mem }) {
     connect(&m_item, &model::AlbumStoreItem::itemChanged, this, &AlbumSongListModel::albumChanged);
 }
 AlbumSongListModel::~AlbumSongListModel() {}

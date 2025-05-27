@@ -10,29 +10,40 @@ MD.Page {
     title: qsTr('search')
     topPadding: showHeader ? 0 : MD.MProp.size.verticalPadding
 
-    component BaseView:MD.VerticalListView {
-        implicitHeight: contentHeight
-        model: m_query.data
-        busy: m_query.status === QA.Enum.Querying
+    property list<var> models: [m_model.songs, m_model.albums, m_model.artists]
+    property list<var> delegates: [m_dg_song, m_dg_album, m_dg_artist]
 
-        topMargin: 8
-        bottomMargin: MD.MProp.size.verticalPadding * 2
-
-        leftMargin: 24
-        rightMargin: 24
-
-        property alias query: m_query
-        property alias type: m_query.type
-
-        QA.SearchQuery {
-            id: m_query
-        }
+    QA.SearchModel {
+        id: m_model
     }
 
     QA.SearchTypeModel {
         id: m_search_type_model
     }
 
+    component BaseView: MD.VerticalListView {
+        property string text
+        readonly property alias query: m_query
+
+        implicitHeight: contentHeight
+        busy: query.status === QA.Enum.Querying
+        topMargin: 8
+        bottomMargin: MD.MProp.size.verticalPadding * 2
+
+        leftMargin: 12
+        rightMargin: 12
+
+        QA.SearchQuery {
+            id: m_query
+            data: m_model
+            function doQuery(text: string, type: int) {
+                const q = m_query;
+                q.text = text;
+                q.type = type;
+                q.reload();
+            }
+        }
+    }
     ColumnLayout {
         anchors.fill: parent
         spacing: 16
@@ -41,11 +52,7 @@ MD.Page {
             id: m_search_bar
             Layout.fillWidth: true
             onAccepted: {
-                let query = m_stack.get_query();
-                if (query) {
-                    query.text = m_search_bar.text;
-                    query.reload();
-                }
+                m_stack.updateText(text);
             }
         }
 
@@ -142,28 +149,31 @@ MD.Page {
                     id: m_stack
                     anchors.fill: parent
                     currentIndex: m_search_type_model.currentIndex
-                    property list<var> delegates: [m_dg_song, m_dg_album, m_dg_mix, m_dg_radio]
 
                     Repeater {
                         model: m_search_type_model
 
                         BaseView {
-                            required property var model
-                            delegate: m_stack.delegates[model.index]
-                            type: model.type
+                            required property int index
+                            model: root.models[index]
+                            delegate: root.delegates[index]
                         }
                     }
 
-                    function get_query() {
-                        return m_stack.children[currentIndex]?.query;
+                    function updateText(text: string) {
+                        const q = m_stack.children[currentIndex]?.query;
+                        if (!q) {
+                            return;
+                        }
+                        const v = m_stack.children[currentIndex];
+                        if (v && v.text != text) {
+                            v.text = text;
+                            q.doQuery(text, m_search_type_model.currentType);
+                        }
                     }
 
                     onCurrentIndexChanged: {
-                        let query = get_query();
-                        if (query && query.text != m_search_bar.text) {
-                            query.text = m_search_bar.text;
-                            query.reload();
-                        }
+                        updateText(m_search_bar.text);
                     }
 
                     Component {
@@ -172,6 +182,8 @@ MD.Page {
                             required property int index
                             required property var model
                             width: ListView.view.contentWidth
+                            mdState.backgroundColor: mdState.ctx.color.surface
+                            useTracknumber: false
                             onClicked: {
                                 QA.Action.play_by_id(dgModel.itemId);
                             }
@@ -187,10 +199,14 @@ MD.Page {
                             rightPadding: 0
                             text: model.name
                             maximumLineCount: 2
-                            supportText: [model.artists.map(el => el.name).join('/'), Qt.formatDateTime(model.publishTime, 'yyyy')].filter(Boolean).join(' • ')
+                            corners: indexCorners(index, count, 16)
+                            supportText: {
+                                const ex = QA.Store.extra(model.itemId);
+                                return [QA.Util.joinName(ex?.artists), QA.Util.formatDateTime(model.publishTime, 'yyyy')].filter(e => !!e).join(' • ');
+                            }
                             leader: QA.Image {
                                 radius: 8
-                                source: QA.Util.image_url(m_item.model.picUrl)
+                                source: QA.Util.image_url(model.itemId)
                                 sourceSize.height: 48
                                 sourceSize.width: 48
                             }
@@ -213,37 +229,18 @@ MD.Page {
                     }
 
                     Component {
-                        id: m_dg_mix
+                        id: m_dg_artist
                         MD.ListItem {
+                            required property int index
                             required property var model
                             width: ListView.view.contentWidth
                             text: model.name
                             maximumLineCount: 2
-                            supportText: `${model.trackCount} songs`
+                            corners: indexCorners(index, count, 16)
+                            supportText: `${model.albumCount} albums`
                             leader: QA.Image {
                                 radius: 8
-                                source: QA.Util.image_url(model.picUrl)
-                                sourceSize.height: 48
-                                sourceSize.width: 48
-                            }
-                            onClicked: {
-                                QA.Action.route_by_id(model.itemId);
-                                ListView.view.currentIndex = index;
-                            }
-                        }
-                    }
-
-                    Component {
-                        id: m_dg_radio
-                        MD.ListItem {
-                            required property var model
-                            width: ListView.view.contentWidth
-                            text: model.name
-                            maximumLineCount: 2
-                            supportText: `${model.programCount} programs`
-                            leader: QA.Image {
-                                radius: 8
-                                source: QA.Util.image_url(model.picUrl)
+                                source: QA.Util.image_url(model.itemId)
                                 sourceSize.height: 48
                                 sourceSize.width: 48
                             }

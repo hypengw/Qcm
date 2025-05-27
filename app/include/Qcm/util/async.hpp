@@ -113,8 +113,16 @@ public:
     using const_reference_value_type =
         std::conditional_t<std::is_base_of_v<QObject, T>, std::add_pointer_t<T>,
                            std::add_lvalue_reference_t<std::add_const_t<T>>>;
-    auto tdata() const { return static_cast<Self*>(this)->data().template value<value_type>(); }
-    auto tdata() { return static_cast<Self*>(this)->data().template value<value_type>(); }
+    auto tdata() const {
+        return static_cast<const QAsyncResult*>(static_cast<const Self*>(this))
+            ->data()
+            .template value<value_type>();
+    }
+    auto tdata() {
+        return static_cast<QAsyncResult*>(static_cast<Self*>(this))
+            ->data()
+            .template value<value_type>();
+    }
     void set_tdata(const_reference_value_type val) {
         auto self = static_cast<Self*>(this);
         if constexpr (std::is_base_of_v<QObject, T>) {

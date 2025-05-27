@@ -54,6 +54,9 @@ enum MessageType {
   GET_ARTIST_RSP = 75;
   GET_ARTIST_ALBUM_REQ = 76;
   GET_ARTIST_ALBUM_RSP = 77;
+
+  SEARCH_REQ = 100;
+  SEARCH_RSP = 101;
 }
 
 message GetSongsByAlbumRequest {
@@ -89,6 +92,7 @@ enum ErrorCode {
 
   NO_SUCH_ITEM_TYPE = 120;
   NO_SUCH_IMAGE_TYPE = 121;
+  NO_SUCH_SEARCH_TYPE = 122;
 
   UNSUPPORTED_ITEM_TYPE = 200;
   NOT_FOUND = 210;
@@ -155,6 +159,13 @@ message ProviderStatusMsg {
 message ProviderSyncStatusMsg {
   qcm.msg.model.ProviderSyncStatus status = 1;
   repeated qcm.msg.model.ProviderStatus statuses = 2;
+}
+
+message GetSongsRsp {
+  repeated qcm.msg.model.Song items = 1;
+  repeated google.protobuf.Struct extras = 2;
+  int32 total = 3;
+  bool has_more = 4;
 }
 
 message GetAlbumsReq {
@@ -269,6 +280,26 @@ message QrAuthUrlRsp {
   string url = 2;
 }
 
+enum SearchType {
+  SEARCH_TYPE_ALBUM = 0;
+  SEARCH_TYPE_ARTIST = 1;
+  SEARCH_TYPE_SONG = 2;
+}
+
+message SearchReq {
+  string query = 1;
+  repeated int64 library_id = 2;
+  repeated int32 types = 3;
+  int32 page = 4;
+  int32 page_size = 5;
+}
+
+message SearchRsp {
+  GetAlbumsRsp albums = 1;
+  GetArtistsRsp artists = 2;
+  GetSongsRsp songs = 3;
+}
+
 message QcmMessage {
   MessageType type = 1;
   int32 id = 2;
@@ -321,5 +352,8 @@ message QcmMessage {
     GetArtistRsp get_artist_rsp = 175;
     GetArtistAlbumReq get_artist_album_req = 176;
     GetArtistAlbumRsp get_artist_album_rsp = 177;
+
+    SearchReq search_req = 200;
+    SearchRsp search_rsp = 201;
   }
 }

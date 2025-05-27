@@ -117,6 +117,10 @@ QCM_MSG_TRAITS_RSP(GetMixsRsp, GetMixsReq, getMixsRsp)
 QCM_MSG_TRAITS_REQ(GetMixReq, GetMixRsp, GET_MIX_REQ, getMixReq)
 QCM_MSG_TRAITS_RSP(GetMixRsp, GetMixReq, getMixRsp)
 
+
+QCM_MSG_TRAITS_REQ(SearchReq, SearchRsp, SEARCH_REQ, searchReq)
+QCM_MSG_TRAITS_RSP(SearchRsp, SearchReq, searchRsp)
+
 QCM_MSG_TRAITS_REQ(SyncReq, SyncRsp, SYNC_REQ, syncReq)
 QCM_MSG_TRAITS_RSP(SyncRsp, SyncReq, syncRsp)
 

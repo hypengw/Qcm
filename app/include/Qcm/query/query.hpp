@@ -63,17 +63,16 @@ class QueryList : public Query {
 public:
     QueryList(QObject* parent = nullptr);
     ~QueryList();
-    auto          offset() const -> qint32;
-    auto          limit() const -> qint32;
+    auto offset() const -> qint32;
+    auto limit() const -> qint32;
 
     auto sort() const -> qint32;
     void setSort(qint32);
     auto asc() const -> bool;
     void setAsc(bool);
 
-
-    Q_SLOT void   setOffset(qint32 v);
-    Q_SLOT void   setLimit(qint32 v);
+    Q_SLOT void setOffset(qint32 v);
+    Q_SLOT void setLimit(qint32 v);
 
     Q_SIGNAL void sortChanged();
     Q_SIGNAL void ascChanged();
@@ -97,7 +96,10 @@ void try_connect_fetch_more(QObject* query, QObject* model);
 template<typename T, typename Self>
 class QueryExtra : public QAsyncResultExtra<T, Self> {
 public:
-    QueryExtra() {
+    QueryExtra(bool skip_init_data = false) {
+        if (skip_init_data) {
+            return;
+        }
         auto self = static_cast<Self*>(this);
         if constexpr (std::is_base_of_v<QObject, T>) {
             detail::try_connect_fetch_more(self, this->tdata());

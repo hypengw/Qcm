@@ -142,8 +142,9 @@ Q_ENUM_NS(SearchLocation)
 
 enum class SearchType
 {
-    SearchSong = 0,
-    SearchAlbum,
+    SearchAlbum = 0,
+    SearchArtist,
+    SearchSong,
 };
 Q_ENUM_NS(SearchType)
 
