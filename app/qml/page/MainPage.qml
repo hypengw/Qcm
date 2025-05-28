@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtCore
 import QtQuick
 import QtQuick.Window
@@ -54,95 +55,100 @@ MD.Page {
     }
 
     contentItem: Item {
-        RowLayout {
+        ColumnLayout {
             id: m_large_layout
             anchors.fill: parent
             visible: false
 
-            MD.StandardDrawer {
-                id: m_drawer
-                Layout.fillHeight: true
-                model: root.model
-                onClicked: function (model) {
-                    m_page_stack.pop_page(null);
-                    QA.Action.switch_main_page(model.index);
-                }
-
-                Behavior on implicitWidth {
-                    NumberAnimation {
-                        duration: 200
+            RowLayout {
+                MD.StandardDrawer {
+                    id: m_drawer
+                    Layout.fillHeight: true
+                    model: root.model
+                    onClicked: function (model) {
+                        m_page_stack.pop_page(null);
+                        QA.Action.switch_main_page(model.index);
                     }
-                }
 
-                headerAction: (m_page_stack.depth > 1 || !!page_container.canBack) ? m_drawer_back_action : defaultHeaderAction
-                MD.Action {
-                    id: m_drawer_back_action
-                    icon.name: MD.Token.icon.arrow_back
-                    onTriggered: {
-                        if (m_page_stack.depth > 1)
-                            m_page_stack.pop_page();
-                        else if (page_container.canBack)
-                            page_container.back();
-                    }
-                }
-
-                footer: Column {
-                    MD.IconButton {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        action: MD.Action {
-                            icon.name: MD.Token.icon.hard_drive
-                            onTriggered: {
-                                QA.Action.popup_special(QA.Enum.SRSync);
-                            }
+                    Behavior on implicitWidth {
+                        NumberAnimation {
+                            duration: 200
                         }
                     }
-                    MD.IconButton {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        action: QA.SettingAction {}
+
+                    headerAction: (m_page_stack.depth > 1 || !!page_container.canBack) ? m_drawer_back_action : defaultHeaderAction
+                    MD.Action {
+                        id: m_drawer_back_action
+                        icon.name: MD.Token.icon.arrow_back
+                        onTriggered: {
+                            if (m_page_stack.depth > 1)
+                                m_page_stack.pop_page();
+                            else if (page_container.canBack)
+                                page_container.back();
+                        }
                     }
-                }
-                drawerContent: Item {
-                    implicitHeight: children[0].implicitHeight
-                    Column {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        width: parent.width - 24
-                        MD.DrawerItem {
-                            width: parent.width
+
+                    footer: Column {
+                        MD.IconButton {
+                            anchors.horizontalCenter: parent.horizontalCenter
                             action: MD.Action {
                                 icon.name: MD.Token.icon.hard_drive
-                                text: qsTr('provider')
                                 onTriggered: {
                                     QA.Action.popup_special(QA.Enum.SRSync);
-                                    m_drawer.close();
                                 }
                             }
                         }
-                        MD.DrawerItem {
-                            width: parent.width
-                            action: QA.SettingAction {
-                                onTriggered: {
-                                    m_drawer.close();
+                        MD.IconButton {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            action: QA.SettingAction {}
+                        }
+                    }
+                    drawerContent: Item {
+                        implicitHeight: children[0].implicitHeight
+                        Column {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            width: parent.width - 24
+                            MD.DrawerItem {
+                                width: parent.width
+                                action: MD.Action {
+                                    icon.name: MD.Token.icon.hard_drive
+                                    text: qsTr('provider')
+                                    onTriggered: {
+                                        QA.Action.popup_special(QA.Enum.SRSync);
+                                        m_drawer.close();
+                                    }
                                 }
                             }
-                        }
-                        MD.DrawerItem {
-                            width: parent.width
-                            action: MD.Action {
-                                icon.name: MD.Token.icon.info
-                                text: qsTr('about')
+                            MD.DrawerItem {
+                                width: parent.width
+                                action: QA.SettingAction {
+                                    onTriggered: {
+                                        m_drawer.close();
+                                    }
+                                }
+                            }
+                            MD.DrawerItem {
+                                width: parent.width
+                                action: MD.Action {
+                                    icon.name: MD.Token.icon.info
+                                    text: qsTr('about')
 
-                                onTriggered: {
-                                    QA.Action.popup_special(QA.Enum.SRAbout);
-                                    m_drawer.close();
+                                    onTriggered: {
+                                        QA.Action.popup_special(QA.Enum.SRAbout);
+                                        m_drawer.close();
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
 
+                LayoutItemProxy {
+                    target: m_content
+                }
+            }
             LayoutItemProxy {
-                target: m_content
+                target: m_play_bar
             }
         }
         ColumnLayout {
@@ -153,6 +159,10 @@ MD.Page {
 
             LayoutItemProxy {
                 target: m_content
+            }
+
+            LayoutItemProxy {
+                target: m_play_bar
             }
 
             MD.Pane {
@@ -168,15 +178,17 @@ MD.Page {
                         Item {
                             Layout.fillWidth: true
                             implicitHeight: 12 + children[0].implicitHeight + 16
+                            required property var model
+                            required property int index
                             MD.BarItem {
                                 anchors.fill: parent
                                 anchors.topMargin: 12
                                 anchors.bottomMargin: 16
-                                icon.name: model.icon
-                                text: model.name
-                                checked: root.pageIndex == index
+                                icon.name: parent.model.icon
+                                text: parent.model.name
+                                checked: root.pageIndex == parent.index
                                 onClicked: {
-                                    QA.Action.switch_main_page(index);
+                                    QA.Action.switch_main_page(parent.index);
                                 }
                             }
                         }
@@ -188,6 +200,10 @@ MD.Page {
 
     Item {
         visible: false
+        QA.PlayBar {
+            id: m_play_bar
+            Layout.fillWidth: true
+        }
         ColumnLayout {
             id: m_content
             Layout.fillHeight: true
@@ -248,9 +264,6 @@ MD.Page {
                     m_page_stack.Layout.bottomMargin: 0
                     m_page_stack.Layout.rightMargin: 0
                 }
-            }
-            QA.PlayBar {
-                Layout.fillWidth: true
             }
         }
     }
