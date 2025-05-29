@@ -36,6 +36,7 @@ set(SOURCES
     src/query/artist_query.cpp
     src/query/mix_query.cpp
     src/query/provider_query.cpp
+    src/query/lyric_query.cpp
     src/query/search_query.cpp
     src/query/sync_query.cpp
     src/query/qr_query.cpp

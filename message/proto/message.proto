@@ -35,9 +35,6 @@ enum MessageType {
   GET_MIX_REQ = 32;
   GET_MIX_RSP = 33;
 
-  GET_LYRIC_REQ = 40;
-  GET_LYRIC_RSP = 41;
-
   SYNC_REQ = 50;
   SYNC_RSP = 51;
 
@@ -57,6 +54,8 @@ enum MessageType {
 
   SEARCH_REQ = 100;
   SEARCH_RSP = 101;
+  GET_SUBTITLE_REQ = 102;
+  GET_SUBTITLE_RSP = 103;
 }
 
 message GetSongsByAlbumRequest {
@@ -82,6 +81,7 @@ enum ErrorCode {
   DB = 9;
   HYPER_BODY = 10;
   WRONG_ID = 11;
+  PARSE_SUBTITLE = 12;
 
   NO_SUCH_LIBRARY = 100;
   NO_SUCH_PROVIDER = 101;
@@ -267,10 +267,6 @@ message GetMixRsp {
   google.protobuf.Struct extra = 2;
 }
 
-message GetLyricReq { int64 id = 1; }
-
-message GetLyricRsp { repeated qcm.msg.model.LyricLine lines = 1; }
-
 message SyncReq { int64 provider_id = 1; }
 message SyncRsp { int64 handle = 1; }
 
@@ -299,6 +295,10 @@ message SearchRsp {
   GetArtistsRsp artists = 2;
   GetSongsRsp songs = 3;
 }
+
+message GetSubtitleReq { int64 song_id = 1; }
+
+message GetSubtitleRsp { qcm.msg.model.Subtitle subtitle = 1; }
 
 message QcmMessage {
   MessageType type = 1;
@@ -333,8 +333,8 @@ message QcmMessage {
     GetMixReq get_mix_req = 132;
     GetMixRsp get_mix_rsp = 133;
 
-    GetLyricReq get_lyric_req = 140;
-    GetLyricRsp get_lyric_rsp = 141;
+    GetSubtitleReq get_subtitle_req = 140;
+    GetSubtitleRsp get_subtitle_rsp = 141;
 
     SyncReq sync_req = 150;
     SyncRsp sync_rsp = 151;

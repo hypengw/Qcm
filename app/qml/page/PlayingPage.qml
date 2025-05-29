@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Layouts
 import Qcm.App as QA
 import Qcm.Material as MD
-import "../js/util.mjs" as Util
 
 MD.Page {
     id: root
@@ -27,7 +26,7 @@ MD.Page {
                 Layout.leftMargin: 12
                 Layout.topMargin: 12
 
-                action:MD.Action {
+                action: MD.Action {
                     icon.name: MD.Token.icon.arrow_back
 
                     onTriggered: {
@@ -232,24 +231,29 @@ MD.Page {
             Layout.fillWidth: true
             implicitWidth: play_pane.implicitWidth
 
-            QA.LrcLyric {
-                id: lrc
-                Binding on position {
-                    when: !QA.Global.player.busy
-                    // offset to avoid flicking
-                    value: QA.Global.player.position + 50
-                    restoreMode: Binding.RestoreNone
-                }
-                // source: querier_lyric.combined_lrc
+            QA.LyricQuery {
+                id: m_query
+                itemId: root.song.itemId
+            }
 
-                onCurrentIndexChanged: {
-                    lyric_view.posTo(currentIndex);
+            Connections {
+                target: m_query.data
+                function onCurrentIndexChanged(idx) {
+                    lyric_view.posTo(idx);
                 }
             }
+            Binding {
+                target: m_query.data
+                property: 'position'
+                when: !QA.Global.player.busy
+                value: QA.Global.player.position + 50
+                restoreMode: Binding.RestoreNone
+            }
+
             QA.LyricView {
                 id: lyric_view
                 anchors.fill: parent
-                model: lrc
+                model: m_query.data
             }
         }
     }

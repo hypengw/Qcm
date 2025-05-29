@@ -7,7 +7,7 @@
 namespace qcm
 {
 
-class LrcLyricLine {
+class LyricItem {
     Q_GADGET
 public:
     Q_PROPERTY(qlonglong milliseconds MEMBER milliseconds FINAL)
@@ -17,7 +17,7 @@ public:
     QString   content;
 };
 
-class LrcLyric : public meta_model::QGadgetListModel<LrcLyricLine> {
+class LyricModel : public meta_model::QGadgetListModel<LyricItem> {
     Q_OBJECT
     QML_ELEMENT
 
@@ -25,8 +25,8 @@ class LrcLyric : public meta_model::QGadgetListModel<LrcLyricLine> {
     Q_PROPERTY(qlonglong position READ position WRITE setPosition NOTIFY positionChanged FINAL)
     Q_PROPERTY(QString source READ source WRITE setSource NOTIFY sourceChanged FINAL)
 public:
-    LrcLyric(QObject* = nullptr);
-    ~LrcLyric();
+    LyricModel(QObject* = nullptr);
+    ~LyricModel();
 
     QString source() const;
     void    setSource(QString);
@@ -36,14 +36,15 @@ public:
 
     qlonglong currentIndex() const;
 
-    Q_SIGNAL void currentIndexChanged();
+    Q_SIGNAL void currentIndexChanged(qlonglong);
     Q_SIGNAL void positionChanged();
     Q_SIGNAL void sourceChanged();
+
+    Q_SLOT void setCurrentIndex(qlonglong);
 
 private:
     Q_SLOT void parseLrc();
     Q_SLOT void refreshIndex();
-    Q_SLOT void setCurrentIndex(qlonglong);
 
 private:
     qlonglong m_cur_idx;

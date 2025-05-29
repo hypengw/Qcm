@@ -1,10 +1,12 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Qcm.Material as MD
 import Qcm.App as QA
 
 MD.VerticalListView {
-    id: lyric_view
+    id: root
+
     function posTo(idx) {
         if (!visible)
             return;
@@ -28,12 +30,13 @@ MD.VerticalListView {
     }
 
     highlightFollowsCurrentItem: false
+    highlightRangeMode: ListView.NoHighlightRange
     reuseItems: true
     spacing: 4
 
     SmoothedAnimation {//on contentY {
         id: anim_scroll
-        target: lyric_view
+        target: root
         property: 'contentY'
         running: false
 
@@ -48,32 +51,35 @@ MD.VerticalListView {
         velocity: 200
 
         onStopped: {
+            return;
             if (manual_stopped) {
                 manual_stopped = false;
                 return;
             }
 
-            if (lyric_view.count === 0)
+            if (root.count === 0)
                 return;
 
-            const cur = lyric_view.itemAtIndex(lrc.currentIndex);
+            const cur = root.itemAtIndex(root.model.currentIndex);
             if (cur) {
                 const center = cur.y + cur.height / 2;
-                const list_center = lyric_view.contentY + lyric_view.height / 2;
+                const list_center = root.contentY + root.height / 2;
                 const diff = Math.abs(center - list_center);
                 if (diff > 10) {
                     timer_scroll.triggered();
                 }
             } else {
-                lyric_view.timer_restart();
+                root.timer_restart();
             }
         }
     }
     delegate: MD.ListItem {
+        required property int index
+        required property var model
+        readonly property bool current: root.model.currentIndex === index
         width: ListView.view.width
 
         contentItem: ColumnLayout {
-            property bool current: lrc.currentIndex === index
             MD.Text {
                 Layout.fillWidth: true
                 typescale: {
@@ -84,7 +90,7 @@ MD.VerticalListView {
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
                 text: model.content
-                color: parent.current ? MD.Token.color.primary : MD.Token.color.on_surface
+                color: current ? MD.Token.color.primary : MD.Token.color.on_surface
                 maximumLineCount: -1
             }
         }
@@ -115,6 +121,9 @@ MD.VerticalListView {
         repeat: false
         running: true
 
-        onTriggered: lrc.currentIndexChanged()
+        onTriggered: {
+            const idx = root.model.currentIndex;
+            root.model.currentIndexChanged(idx);
+        }
     }
 }

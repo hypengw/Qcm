@@ -98,11 +98,6 @@ message Album {
   google.protobuf.Timestamp edit_time = 11;
 }
 
-message LyricLine {
-  string text = 1;
-  int64 start = 2;
-}
-
 message UsernameAuth {
   string username = 1;
   string pw = 2;
@@ -168,6 +163,13 @@ message ProviderStatus {
   AuthInfo auth_info = 5;
   repeated Library libraries = 6;
 }
+
+message SubtitleItem {
+  int64 start = 1;
+  int64 end = 2;
+  string text = 3;
+}
+message Subtitle { repeated SubtitleItem items = 1; }
 
 enum AuthResult {
   Uinit = 0;

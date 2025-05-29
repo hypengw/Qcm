@@ -123,6 +123,8 @@ QCM_MSG_TRAITS_RSP(SearchRsp, SearchReq, searchRsp)
 
 QCM_MSG_TRAITS_REQ(SyncReq, SyncRsp, SYNC_REQ, syncReq)
 QCM_MSG_TRAITS_RSP(SyncRsp, SyncReq, syncRsp)
+QCM_MSG_TRAITS_REQ(GetSubtitleReq, GetSubtitleRsp, GET_SUBTITLE_REQ, getSubtitleReq)
+QCM_MSG_TRAITS_RSP(GetSubtitleRsp, GetSubtitleReq, getSubtitleRsp)
 
 template<>
 struct MsgTraits<msg::Rsp> {

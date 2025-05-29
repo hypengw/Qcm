@@ -16,9 +16,9 @@ static constexpr auto RE_LrcLine =
     ctll::fixed_string { "\\[([0-9]{2})[:]([0-9]{2})[.:]([0-9]{2,3})\\](.*)" };
 static constexpr auto RE_LrcTagLine = ctll::fixed_string { "\\[([^:]+)[:](.*?)\\]" };
 
-QList<LrcLyricLine> parse_lrc(const QString& source) {
-    std::map<qlonglong, LrcLyricLine> lrc_map;
-    auto                              list = QStringView(source).split('\n');
+QList<LyricItem> parse_lrc(const QString& source) {
+    std::map<qlonglong, LyricItem> lrc_map;
+    auto                           list = QStringView(source).split('\n');
 
     qlonglong last_milli { 0 };
     for (auto line_ : list) {
@@ -34,8 +34,8 @@ QList<LrcLyricLine> parse_lrc(const QString& source) {
                 lrc_map.at(milli_total).content.append('\n').append(QString::fromUtf8(content_str));
             } else if (! content_str.empty()) {
                 lrc_map.insert({ milli_total,
-                                 LrcLyricLine { .milliseconds = milli_total,
-                                                .content      = QString::fromUtf8(content_str) } });
+                                 LyricItem { .milliseconds = milli_total,
+                                             .content      = QString::fromUtf8(content_str) } });
             }
             last_milli = milli_total;
         } else if (auto [whole, tag, tag_v] = ctre::match<RE_LrcTagLine>(line); whole) {
@@ -47,7 +47,7 @@ QList<LrcLyricLine> parse_lrc(const QString& source) {
             }
         }
     }
-    QList<LrcLyricLine> out;
+    QList<LyricItem> out;
 
     std::transform(lrc_map.begin(), lrc_map.end(), std::back_inserter(out), [](auto& el) {
         return el.second;
@@ -58,36 +58,36 @@ QList<LrcLyricLine> parse_lrc(const QString& source) {
 
 } // namespace
 
-LrcLyric::LrcLyric(QObject* parent)
-    : meta_model::QGadgetListModel<LrcLyricLine>(parent), m_cur_idx(-1), m_position(0) {
-    connect(this, &LrcLyric::sourceChanged, this, &LrcLyric::parseLrc);
-    connect(this, &LrcLyric::positionChanged, this, &LrcLyric::refreshIndex);
+LyricModel::LyricModel(QObject* parent)
+    : meta_model::QGadgetListModel<LyricItem>(parent), m_cur_idx(-1), m_position(0) {
+    // connect(this, &Lyric::sourceChanged, this, &Lyric::parseLrc);
+    connect(this, &LyricModel::positionChanged, this, &LyricModel::refreshIndex);
 }
-LrcLyric::~LrcLyric() {}
+LyricModel::~LyricModel() {}
 
-qlonglong LrcLyric::position() const { return m_position; }
-void      LrcLyric::setPosition(qlonglong v) {
+qlonglong LyricModel::position() const { return m_position; }
+void      LyricModel::setPosition(qlonglong v) {
     if (std::exchange(m_position, v) != v) {
         emit positionChanged();
     }
 }
 
-qlonglong LrcLyric::currentIndex() const { return m_cur_idx; }
+qlonglong LyricModel::currentIndex() const { return m_cur_idx; }
 
-void LrcLyric::setCurrentIndex(qlonglong v) {
+void LyricModel::setCurrentIndex(qlonglong v) {
     if (std::exchange(m_cur_idx, v) != v) {
-        emit currentIndexChanged();
+        currentIndexChanged(v);
     }
 }
 
-QString LrcLyric::source() const { return m_source; }
-void    LrcLyric::setSource(QString v) {
+QString LyricModel::source() const { return m_source; }
+void    LyricModel::setSource(QString v) {
     if (std::exchange(m_source, v) != v) {
         emit sourceChanged();
     }
 }
 
-void LrcLyric::parseLrc() {
+void LyricModel::parseLrc() {
     m_position = 0;
     resetModel();
     setCurrentIndex(-1);
@@ -96,7 +96,7 @@ void LrcLyric::parseLrc() {
     refreshIndex();
 }
 
-void LrcLyric::refreshIndex() {
+void LyricModel::refreshIndex() {
     auto old   = m_cur_idx;
     auto begin = this->begin();
     auto end   = this->end();
@@ -129,9 +129,8 @@ void LrcLyric::refreshIndex() {
         m_cur_idx = -1;
 
     if (old != m_cur_idx) {
-        emit currentIndexChanged();
+        emit currentIndexChanged(m_cur_idx);
     }
 }
-
 
 #include <Qcm/model/moc_lyric.cpp>

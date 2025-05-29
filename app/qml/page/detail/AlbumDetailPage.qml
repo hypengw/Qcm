@@ -14,6 +14,8 @@ MD.Page {
     padding: 0
     scrolling: !m_view.atYBeginning
 
+    readonly property var model: qr_al.data
+
     MD.FlickablePane {
         id: m_view_pane
         view: m_view
@@ -70,7 +72,10 @@ MD.Page {
                 id: m_artist
                 typescale: MD.Token.typescale.body_medium
                 action: MD.Action {
-                    text: QA.Util.joinName(m_view.model.extra?.artists, '/')
+                    text: {
+                        const names = QA.Util.joinName(root.model.extra?.artists, '/');
+                        return names || qsTr("Unknown Artist");
+                    }
                     onTriggered: {
                         m_go_to_artist_act.trigger();
                     }
@@ -78,7 +83,7 @@ MD.Page {
                 QA.GoToArtistAction {
                     id: m_go_to_artist_act
                     getItemIds: function () {
-                        return m_view.model.extra?.artists.map(el => QA.Util.artistId(el.id));
+                        return root.model.extra?.artists.map(el => QA.Util.artistId(el.id));
                     }
                 }
                 /*
@@ -277,7 +282,7 @@ MD.Page {
 
     QA.SongSortFilterModel {
         id: m_sort_filter_model
-        sourceModel: qr_al.data
+        sourceModel: root.model
         sortType: m_song_sort_type.currentType
         asc: m_song_sort_type.asc
     }
