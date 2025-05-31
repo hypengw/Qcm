@@ -12,7 +12,6 @@ MD.ApplicationWindow {
 
     // load QA
     readonly property alias snake: m_snake
-    property int windowClass: MD.Enum.WindowClassMedium
 
     MD.MProp.page.leadingAction: MD.Action {
         icon.name: MD.Token.icon.menu
@@ -22,9 +21,10 @@ MD.ApplicationWindow {
         }
     }
 
-    MD.MProp.size.windowClass: windowClass
+    MD.MProp.size.width: width
     MD.MProp.backgroundColor: {
-        switch (win.windowClass) {
+        const c = MD.MProp.size.windowClass;
+        switch (c) {
         case MD.Enum.WindowClassCompact:
             return MD.Token.color.surface;
         default:
@@ -37,10 +37,6 @@ MD.ApplicationWindow {
     height: 600
     visible: true
     width: 900
-
-    onWidthChanged: {
-        windowClass = MD.Token.window_class.select_type(width);
-    }
 
     function back() {
         if (m_win_stack.currentItem.canBack) {

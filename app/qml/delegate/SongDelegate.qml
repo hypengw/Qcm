@@ -121,7 +121,7 @@ MD.ListItem {
             }
         }
         MD.Text {
-            visible: !(Window.window?.windowClass === MD.Enum.WindowClassCompact)
+            visible: !root.MD.MProp.size.isCompact
             typescale: MD.Token.typescale.body_medium
             text: QA.Util.formatDateTime(root.dgModel.duration, 'mm:ss')
             verticalAlignment: Qt.AlignVCenter
@@ -130,7 +130,7 @@ MD.ListItem {
             spacing: 0
 
             MD.IconButton {
-                visible: !(Window.window?.windowClass === MD.Enum.WindowClassCompact)
+                visible: !root.MD.MProp.size.isCompact
                 checked: false
                 icon.name: checked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
 

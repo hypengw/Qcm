@@ -32,8 +32,11 @@ auto Util::createItemid() const -> model::ItemId { return {}; }
 
 auto Util::mprisTrackid(model::ItemId id) const -> QString {
     static const auto dbus_path = QStringLiteral(APP_ID).replace('.', '/');
-    // auto              provider  = id.provider();
-    return rstd::into(std::format("/{}/TrackId/{}", dbus_path, id.id()));
+    std::string track_id = "none";
+    if (id.id() >= 0) {
+        track_id = std::to_string(id.id());
+    }
+    return rstd::into(std::format("/{}/TrackId/{}", dbus_path, track_id));
 }
 
 auto Util::create_route_msg(QVariantMap props) const -> model::RouteMsg {

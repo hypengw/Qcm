@@ -269,9 +269,10 @@ MD.Page {
     }
 
     Connections {
-        target: root.Window.window
+        target: root.MD.MProp.size
         function onWindowClassChanged() {
-            if (this.target.windowClass === MD.Enum.WindowClassCompact) {
+            const size = root.MD.MProp.size;
+            if (size.isCompact) {
                 m_small_layout.visible = true;
                 m_large_layout.visible = false;
             } else {

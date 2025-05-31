@@ -32,12 +32,10 @@ MD.Popup {
         when: root.fillWidth
     }
 
-    // use attch from parent, tested
-    readonly property bool isCompact: root.parent.Window.window?.windowClass === MD.Enum.WindowClassCompact
-    radius: root.isCompact ? 0 : MD.Token.shape.corner.large
+    radius: MD.MProp.size.isCompact ? 0 : MD.Token.shape.corner.large
 
     Binding {
-        when: root.isCompact
+        when: root.MD.MProp.size.isCompact
         root.fillHeight: true
         root.fillWidth: true
         root.padding: 0
