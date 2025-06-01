@@ -35,6 +35,9 @@ enum MessageType {
   GET_MIX_REQ = 32;
   GET_MIX_RSP = 33;
 
+  GET_SUBTITLE_REQ = 40;
+  GET_SUBTITLE_RSP = 41;
+
   SYNC_REQ = 50;
   SYNC_RSP = 51;
 
@@ -54,8 +57,7 @@ enum MessageType {
 
   SEARCH_REQ = 100;
   SEARCH_RSP = 101;
-  GET_SUBTITLE_REQ = 102;
-  GET_SUBTITLE_RSP = 103;
+  SET_FAVORITE_REQ = 102;
 }
 
 message GetSongsByAlbumRequest {
@@ -300,6 +302,12 @@ message GetSubtitleReq { int64 song_id = 1; }
 
 message GetSubtitleRsp { qcm.msg.model.Subtitle subtitle = 1; }
 
+message SetFavoriteReq {
+  int64 id = 1;
+  qcm.msg.model.ItemType item_type = 2;
+  bool value = 3;
+}
+
 message QcmMessage {
   MessageType type = 1;
   int32 id = 2;
@@ -355,5 +363,6 @@ message QcmMessage {
 
     SearchReq search_req = 200;
     SearchRsp search_rsp = 201;
+    SetFavoriteReq set_favorite_req = 202;
   }
 }

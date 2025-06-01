@@ -98,13 +98,28 @@ message Album {
   google.protobuf.Timestamp edit_time = 11;
 }
 
+enum ItemType {
+  ITEM_TYPE_UNSPECIFIED = 0;
+  ITEM_TYPE_PROVIDER = 1;
+  ITEM_TYPE_LIBRARY = 2;
+
+  ITEM_TYPE_ALBUM = 51;
+  ITEM_TYPE_ALBUMARTIST = 52;
+  ITEM_TYPE_ARTIST = 53;
+  ITEM_TYPE_MIX = 54;
+  ITEM_TYPE_RADIO = 55;
+
+  ITEM_TYPE_SONG = 101;
+  ITEM_TYPE_PROGRAM = 102;
+}
+
 message UsernameAuth {
   string username = 1;
   string pw = 2;
 }
 
 message PhoneAuth {
-  string Phone = 1;
+  string phone = 1;
   string pw = 2;
 }
 
