@@ -1,8 +1,13 @@
 #include "Qcm/store.hpp"
+#include "Qcm/util/mem.hpp"
 #include "Qcm/util/global_static.hpp"
 namespace qcm
 {
-AppStore::AppStore(QObject* parent): QObject(parent) {}
+AppStore::AppStore(QObject* parent)
+    : QObject(parent),
+      albums(mem_mgr().store_mem),
+      songs(mem_mgr().store_mem),
+      artists(mem_mgr().store_mem) {}
 AppStore::~AppStore() {}
 auto AppStore::instance() -> AppStore* {
     static auto the =
