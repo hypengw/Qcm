@@ -52,10 +52,10 @@ auto AppStore::extra(model::ItemId item_id) const -> QQmlPropertyMap* {
     return nullptr;
 }
 
-const std::set<QStringView> model::AlbumJsonFields { u"artists" };
+const std::set<QStringView> model::AlbumJsonFields { u"artists", u"dynamic" };
 const std::set<QStringView> model::ArtistJsonFields {};
 const std::set<QStringView> model::MixJsonFields {};
-const std::set<QStringView> model::SongJsonFields { u"artists", u"album" };
+const std::set<QStringView> model::SongJsonFields { u"artists", u"album", u"dynamic" };
 
 } // namespace qcm
 

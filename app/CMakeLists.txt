@@ -37,6 +37,7 @@ set(SOURCES
     src/query/mix_query.cpp
     src/query/provider_query.cpp
     src/query/lyric_query.cpp
+    src/query/favorite_query.cpp
     src/query/search_query.cpp
     src/query/sync_query.cpp
     src/query/qr_query.cpp
@@ -118,6 +119,7 @@ set(QML_FILES
     qml/action/GoToArtistAction.qml
     qml/action/AddToMixAction.qml
     qml/action/MixCreateAction.qml
+    qml/action/FavoriteAction.qml
     qml/dialog/MixCreateDialog.qml
     qml/dialog/GoToArtistDialog.qml
     qml/dialog/AddToMixDialog.qml

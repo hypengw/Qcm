@@ -133,9 +133,15 @@ MD.Page {
                         }
                     }
                 }
+                // MD.IconButton {
+                //     id: btn_fav
+                //     action: QA.CollectAction {
+                //         itemId: root.itemId
+                //     }
+                // }
                 MD.IconButton {
                     id: btn_fav
-                    action: QA.CollectAction {
+                    action: QA.FavoriteAction {
                         itemId: root.itemId
                     }
                 }

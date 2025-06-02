@@ -90,7 +90,8 @@ QCM_MSG_TRAITS_REQ(UpdateProviderReq, UpdateProviderRsp, UPDATE_PROVIDER_REQ, up
 QCM_MSG_TRAITS_RSP(UpdateProviderRsp, UpdateProviderReq, updateProviderRsp)
 QCM_MSG_TRAITS_REQ(AuthProviderReq, AuthProviderRsp, AUTH_PROVIDER_REQ, authProviderReq)
 QCM_MSG_TRAITS_RSP(AuthProviderRsp, AuthProviderReq, authProviderRsp)
-QCM_MSG_TRAITS_REQ(CreateTmpProviderReq, CreateTmpProviderRsp, CREATE_TMP_PROVIDER_REQ, createTmpProviderReq)
+QCM_MSG_TRAITS_REQ(CreateTmpProviderReq, CreateTmpProviderRsp, CREATE_TMP_PROVIDER_REQ,
+                   createTmpProviderReq)
 QCM_MSG_TRAITS_RSP(CreateTmpProviderRsp, CreateTmpProviderReq, createTmpProviderRsp)
 QCM_MSG_TRAITS_REQ(DeleteTmpProviderReq, Rsp, DELETE_TMP_PROVIDER_REQ, deleteTmpProviderReq)
 
@@ -117,7 +118,6 @@ QCM_MSG_TRAITS_RSP(GetMixsRsp, GetMixsReq, getMixsRsp)
 QCM_MSG_TRAITS_REQ(GetMixReq, GetMixRsp, GET_MIX_REQ, getMixReq)
 QCM_MSG_TRAITS_RSP(GetMixRsp, GetMixReq, getMixRsp)
 
-
 QCM_MSG_TRAITS_REQ(SearchReq, SearchRsp, SEARCH_REQ, searchReq)
 QCM_MSG_TRAITS_RSP(SearchRsp, SearchReq, searchRsp)
 
@@ -125,6 +125,7 @@ QCM_MSG_TRAITS_REQ(SyncReq, SyncRsp, SYNC_REQ, syncReq)
 QCM_MSG_TRAITS_RSP(SyncRsp, SyncReq, syncRsp)
 QCM_MSG_TRAITS_REQ(GetSubtitleReq, GetSubtitleRsp, GET_SUBTITLE_REQ, getSubtitleReq)
 QCM_MSG_TRAITS_RSP(GetSubtitleRsp, GetSubtitleReq, getSubtitleRsp)
+QCM_MSG_TRAITS_REQ(SetFavoriteReq, Rsp, SET_FAVORITE_REQ, setFavoriteReq)
 
 template<>
 struct MsgTraits<msg::Rsp> {
@@ -295,4 +296,12 @@ struct meta_model::ItemTrait<qcm::model::ProviderStatus> {
 template<>
 struct rstd::Impl<rstd::convert::From<google::protobuf::Value>, QVariant> {
     static auto from(google::protobuf::Value) -> QVariant;
+};
+
+template<>
+struct rstd::Impl<rstd::convert::From<qcm::enums::ItemType>,
+                  qcm::msg::model::ItemTypeGadget::ItemType> {
+    using in_t  = qcm::enums::ItemType;
+    using out_t = qcm::msg::model::ItemTypeGadget::ItemType;
+    static auto from(qcm::enums::ItemType) -> out_t;
 };

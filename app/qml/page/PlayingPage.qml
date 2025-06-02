@@ -121,12 +121,8 @@ MD.Page {
                     Layout.alignment: Qt.AlignHCenter
 
                     MD.IconButton {
-                        checked: false
-                        enabled: root.song.itemId.valid
-                        icon.name: checked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
-
-                        onClicked: {
-                            QA.Action.collect(root.song.itemId, !checked);
+                        action: QA.FavoriteAction {
+                            itemId: root.song.itemId
                         }
                     }
                     MD.IconButton {

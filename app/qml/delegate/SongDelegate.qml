@@ -82,16 +82,18 @@ MD.ListItem {
                 }
             }
         }
-        ColumnLayout {
+        Column {
             spacing: 0
+            Layout.fillWidth: true
             MD.Text {
-                Layout.fillWidth: true
+                width: parent.width
                 text: root.dgModel.name
                 color: root.isPlaying ? MD.Token.color.primary : MD.MProp.textColor
                 typescale: MD.Token.typescale.body_large
                 verticalAlignment: Qt.AlignVCenter
             }
-            RowLayout {
+            Row {
+                width: parent.width
                 Repeater {
                     model: root.dgModel.tags
 
@@ -104,7 +106,7 @@ MD.ListItem {
                 }
                 MD.Text {
                     id: subtitle_label
-                    Layout.fillWidth: true
+                    width: parent.width
                     verticalAlignment: Qt.AlignVCenter
                     typescale: MD.Token.typescale.body_medium
                     color: root.mdState.supportTextColor
@@ -126,16 +128,13 @@ MD.ListItem {
             text: QA.Util.formatDateTime(root.dgModel.duration, 'mm:ss')
             verticalAlignment: Qt.AlignVCenter
         }
-        RowLayout {
+        Row {
             spacing: 0
 
             MD.IconButton {
                 visible: !root.MD.MProp.size.isCompact
-                checked: false
-                icon.name: checked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
-
-                onClicked: {
-                    QA.Action.collect(root.dgModel.itemId, !checked);
+                action: QA.FavoriteAction {
+                    itemId: root.dgModel.itemId
                 }
             }
             MD.IconButton {

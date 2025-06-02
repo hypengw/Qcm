@@ -88,7 +88,7 @@ MD.Page {
                 Layout.alignment: Qt.AlignHCenter
                 MD.IconButton {
                     id: btn_fav
-                    action: QA.CollectAction {
+                    action: QA.FavoriteAction {
                         itemId: root.itemId
                     }
                 }

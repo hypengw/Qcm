@@ -316,6 +316,11 @@ auto rstd::Impl<rstd::convert::From<google::protobuf::Value>, QVariant>::from(
     }
 }
 
+auto rstd::Impl<rstd::convert::From<qcm::enums::ItemType>,
+                qcm::msg::model::ItemTypeGadget::ItemType>::from(in_t t) -> out_t {
+    return (out_t)(i32)(t);
+}
+
 namespace qcm::model
 {
 

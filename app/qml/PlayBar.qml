@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Qcm.App as QA
@@ -136,12 +137,9 @@ MD.Pane {
                     id: comp_ctl
                     RowLayout {
                         MD.IconButton {
-                            checked: false
                             enabled: root.currentSong.itemId.valid
-                            icon.name: checked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
-
-                            onClicked: {
-                                QA.Action.collect(root.currentSong.itemId, !checked);
+                            action: QA.FavoriteAction {
+                                itemId: root.currentSong.itemId
                             }
                         }
                         MD.IconButton {
