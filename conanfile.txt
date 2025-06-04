@@ -7,6 +7,10 @@ ffmpeg/[~7]
 openssl*:shared=True
 libcurl*:shared=True
 ffmpeg*:shared=True
+
+libcurl*:with_ssl=openssl
+ffmpeg*:with_ssl=openssl
+
 ffmpeg*:swscale=False
 ffmpeg*:avdevice=False
 ffmpeg*:with_freetype=False
@@ -18,6 +22,7 @@ ffmpeg*:with_libiconv=False
 ffmpeg*:with_vorbis=False
 ffmpeg*:with_libx264=False
 ffmpeg*:with_libx265=False
+ffmpeg*:with_libvpx=False
 ffmpeg*:with_libsvtav1=False
 ffmpeg*:with_libaom=False
 ffmpeg*:with_libdav1d=False
@@ -25,6 +30,8 @@ ffmpeg*:with_libdrm=False
 ffmpeg*:with_programs=False
 ffmpeg*:with_videotoolbox=False
 ffmpeg*:with_audiotoolbox=False
+ffmpeg*:with_libmp3lame=False
+ffmpeg*:with_libfdk_aac=False
 ffmpeg*:disable_all_filters=True
 ffmpeg*:disable_all_encoders=True
 ffmpeg*:disable_all_decoders=True

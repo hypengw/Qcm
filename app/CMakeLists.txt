@@ -220,7 +220,9 @@ target_link_libraries(
          "$<$<TARGET_EXISTS:mpris>:mpris>")
 
 qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION src/main.cpp)
-set_target_properties(${PROJECT_NAME} PROPERTIES CXX_SCAN_FOR_MODULES ON)
+set_target_properties(${PROJECT_NAME} PROPERTIES 
+	CXX_SCAN_FOR_MODULES ON 
+	WIN32_EXECUTABLE TRUE)
 target_compile_definitions(${PROJECT_NAME} PRIVATE "${APP_INFO_MACROS}")
 
 target_link_libraries(

@@ -39,7 +39,13 @@ int main(int argc, char* argv[]) {
         QCommandLineOption log_level_opt(
             "log-level", "Log Level (debug, info, warn, error)", "level", "warn");
         QCommandLineOption backend_opt(
-            { "b", "backend" }, "backend executable path", "path", "QcmBackend");
+            { "b", "backend" }, "backend executable path", "path", 
+#ifdef _WIN32
+	    "QcmBackend.exe"
+#else
+	    "QcmBackend"
+#endif
+	    );
 
         parser.addOption(log_level_opt);
         parser.addOption(backend_opt);
