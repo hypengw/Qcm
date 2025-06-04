@@ -67,6 +67,7 @@ Backend::Backend(Arc<ncrequest::Session> session)
       m_session(session),
       m_serial(1), // start from 1, as 0 is none
       m_port(0) {
+    m_process->setWorkingDirectory(QCoreApplication::applicationDirPath());
     m_process->setProcessChannelMode(QProcess::ProcessChannelMode::ForwardedErrorChannel);
     m_client->set_on_error_callback([](std::string_view err) {
         log::error("{}", err);

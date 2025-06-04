@@ -1,4 +1,5 @@
 module;
+#include <new>
 #include <memory_resource>
 #include <atomic>
 module qcm.core;

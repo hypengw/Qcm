@@ -1,5 +1,5 @@
 set(FFMPEG_TARGETS)
-if(ANDROID)
+if(ANDROID OR WIN32)
   find_package(ffmpeg REQUIRED)
   set(FFMPEG_TARGETS ffmpeg::avformat ffmpeg::avcodec ffmpeg::avutil
                      ffmpeg::swresample)
