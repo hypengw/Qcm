@@ -38,7 +38,8 @@ void PlayIdProxyQueue::setSourceModel(QAbstractItemModel* source_model) {
     if (old == source_model) return;
 
     QIdentityProxyModel::setSourceModel(source_model);
-#if _WIN32
+#ifdef _WIN32
+    connect(source_model, SIGNAL(currentIndexChanged(qint32)), this, SLOT(setCurrentIndexFromSource(qint32)));
 #else
     QBindable<qint32> source_idx(source_model, "currentIndex");
     m_current_index.setBinding([source_idx, this] {
@@ -86,6 +87,10 @@ auto PlayIdProxyQueue::useShuffle() const -> bool { return m_support_shuffle && 
 auto PlayIdProxyQueue::currentIndex() const -> qint32 { return m_current_index.value(); }
 void PlayIdProxyQueue::setCurrentIndex(qint32 idx) {
     sourceModel()->setProperty("currentIndex", mapToSource(idx));
+}
+void PlayIdProxyQueue::setCurrentIndexFromSource(qint32 source) {
+    m_current_index =
+        m_shuffle.value() && m_support_shuffle.value() ? mapFromSource(source) : source;
 }
 auto PlayIdProxyQueue::bindableCurrentIndex() -> const QBindable<qint32> {
     return &m_current_index;
@@ -254,7 +259,8 @@ void PlayQueue::setSourceModel(QAbstractItemModel* source_model) {
     if (old == source_model) return;
 
     base_type::setSourceModel(source_model);
-#if _WIN32
+#ifdef _WIN32
+    connect(source_model, SIGNAL(currentIndexChanged(qint32)), this, SLOT(setCurrentIndex(qint32)));
 #else
     QBindable<qint32> source_idx(source_model, "currentIndex");
     m_current_index.setBinding([source_idx] {
@@ -345,6 +351,7 @@ auto PlayQueue::getId(qint32 idx) const -> rstd::Option<model::ItemId> {
 }
 
 auto PlayQueue::currentIndex() const -> qint32 { return m_current_index.value(); }
+void PlayQueue::setCurrentIndex(qint32 source) { m_current_index = source; }
 auto PlayQueue::bindableCurrentIndex() -> const QBindable<qint32> { return &m_current_index; }
 
 auto PlayQueue::currentData(int role) const -> QVariant {

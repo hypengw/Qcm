@@ -42,18 +42,20 @@ public:
     Q_SIGNAL void shuffleChanged();
 
     auto currentIndex() const -> qint32;
-    void setCurrentIndex(qint32 idx);
     auto bindableCurrentIndex() -> const QBindable<qint32>;
     auto randomIndex() -> int;
 
+    Q_SLOT void   setCurrentIndex(qint32 idx);
     Q_SIGNAL void currentIndexChanged(qint32);
 
 private:
+    Q_SLOT void   setCurrentIndexFromSource(qint32 idx);
     auto        useShuffle() const -> bool;
     Q_SLOT void onSourceRowsAboutToBeInserted(const QModelIndex& parent, int first, int last);
     Q_SLOT void onSourceRowsInserted(const QModelIndex& parent, int first, int last);
     Q_SLOT void onSourceRowsRemoved(const QModelIndex& parent, int first, int last);
-    Q_SLOT void onSourceRowsMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd, const QModelIndex &destinationParent, int destinationRow);
+    Q_SLOT void onSourceRowsMoved(const QModelIndex& sourceParent, int sourceStart, int sourceEnd,
+                                  const QModelIndex& destinationParent, int destinationRow);
 
     auto mapToSource(int row) const -> int;
     auto mapFromSource(int row) const -> int;
@@ -106,6 +108,7 @@ public:
     auto          getId(qint32 idx) const -> rstd::Option<model::ItemId>;
     auto          currentIndex() const -> qint32;
     auto          bindableCurrentIndex() -> const QBindable<qint32>;
+    Q_SLOT void   setCurrentIndex(qint32);
     Q_SIGNAL void currentIndexChanged(qint32);
     auto          currentData(int role) const -> QVariant;
 

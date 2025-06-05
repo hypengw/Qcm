@@ -42,7 +42,7 @@ public:
     auto          currentExtra() const -> std::optional<QVariant>;
     auto          currentOrFirstExtra() const -> std::optional<QVariant>;
     auto          currentIndex() const -> qint32;
-    void          setCurrentIndex(qint32 idx);
+    Q_SLOT void   setCurrentIndex(qint32 idx);
     void          setCurrentIndex(const model::ItemId&);
     auto          bindableCurrentIndex() -> QBindable<qint32>;
     Q_SIGNAL void currentIndexChanged(qint32 idx);
@@ -52,8 +52,8 @@ public:
     auto          insert(qint32 pos, std::span<const Item>) -> int;
     void          remove(const model::ItemId&);
     bool removeRows(int row, int count, const QModelIndex& parent = QModelIndex()) override;
-    bool             moveRows(const QModelIndex& sourceParent, int sourceRow, int count,
-                              const QModelIndex& destinationParent, int destinationChild) override;
+    bool moveRows(const QModelIndex& sourceParent, int sourceRow, int count,
+                  const QModelIndex& destinationParent, int destinationChild) override;
 
     Q_INVOKABLE bool move(qint32 src, qint32 dst, qint32 count = 1);
 

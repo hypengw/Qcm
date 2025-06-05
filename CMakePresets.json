@@ -28,7 +28,6 @@
                 "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}"
             },
             "environment": {
-                "MY_ENVIRONMENT_VARIABLE": "Test",
                 "PATH": "C:/msys64/clang64/bin;$penv{PATH}"
             }
         }

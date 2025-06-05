@@ -13,7 +13,7 @@ MD.Page {
     readonly property var model: QA.App.providerStatus.itemById(itemId)
     readonly property var meta: QA.App.providerStatus.metaById(itemId)
     readonly property bool modified: model.name != m_tf_name.text || authInfoModified
-    readonly property bool authInfoModified: m_auth_loader.item?.modified ?? false
+    readonly property bool authInfoModified: root.model.authInfo.serverUrl != m_tf_server.text || (m_auth_loader.item?.modified ?? false)
 
     font.capitalization: Font.Capitalize
     title: qsTr('provider edit')
@@ -170,6 +170,7 @@ MD.Page {
                         if (root.authInfoModified) {
                             const info = root.model.authInfo;
                             m_auth_loader.item.updateInfo(info);
+                            info.serverUrl = m_tf_server.text;
                             req.authInfo = info;
                         } else {
                             req.clearAuthInfo();
