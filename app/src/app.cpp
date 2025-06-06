@@ -101,9 +101,14 @@ public:
     ~Private() {
         m_qml_engine = nullptr;
 
-        m_p->save_settings();
+        save_settings();
         m_global->session()->about_to_stop();
         m_global->join();
+    }
+
+    void save_settings() {
+        QSettings s;
+        s.setValue("play/loop", (int)m_playqueu->loopMode());
     }
 
     App* m_p;
@@ -559,8 +564,8 @@ void App::load_settings() {
     }
 }
 void App::save_settings() {
-    QSettings s;
-    s.setValue("play/loop", (int)playqueue()->loopMode());
+    C_D(App);
+    return d->save_settings();
 }
 
 auto App::info() const -> const model::AppInfo& {
