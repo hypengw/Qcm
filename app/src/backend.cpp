@@ -129,9 +129,11 @@ Backend::Backend(Arc<ncrequest::Session> session)
 
 Backend::~Backend() {
     QMetaObject::invokeMethod(m_process, [self = m_process] {
-        self->terminate();
+        self->waitForFinished();
+        log::warn("backend stopped");
+        self->thread()->quit();
     });
-    m_thread->quit();
+    m_client.reset();
     m_thread->wait();
 }
 
