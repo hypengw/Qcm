@@ -139,7 +139,7 @@ MD.Page {
                 //         itemId: root.itemId
                 //     }
                 // }
-                MD.IconButton {
+                MD.BusyIconButton {
                     id: btn_fav
                     action: QA.FavoriteAction {
                         itemId: root.itemId

@@ -86,7 +86,7 @@ MD.Page {
             RowLayout {
                 id: m_control_pane
                 Layout.alignment: Qt.AlignHCenter
-                MD.IconButton {
+                MD.BusyIconButton {
                     id: btn_fav
                     action: QA.FavoriteAction {
                         itemId: root.itemId
