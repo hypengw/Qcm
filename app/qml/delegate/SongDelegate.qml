@@ -131,7 +131,7 @@ MD.ListItem {
         Row {
             spacing: 0
 
-            MD.IconButton {
+            MD.BusyIconButton {
                 visible: !root.MD.MProp.size.isCompact
                 action: QA.FavoriteAction {
                     itemId: root.dgModel.itemId

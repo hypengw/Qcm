@@ -143,7 +143,7 @@ MD.Page {
                 text: m_auth_query.failed
             }
 
-            MD.Button {
+            MD.BusyButton {
                 Layout.fillWidth: true
                 // enabled: qr_login.status !== QA.Enum.Querying
                 visible: m_auth_loader.sourceComponent != m_comp_qr
@@ -151,6 +151,7 @@ MD.Page {
                 font.capitalization: Font.Capitalize
                 highlighted: true
                 text: qsTr('connect')
+                busy: m_auth_query.querying
 
                 onClicked: {
                     const query = m_auth_query;

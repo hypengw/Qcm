@@ -136,7 +136,7 @@ MD.Pane {
                 Component {
                     id: comp_ctl
                     RowLayout {
-                        MD.IconButton {
+                        MD.BusyIconButton {
                             enabled: root.currentSong.itemId.valid
                             action: QA.FavoriteAction {
                                 itemId: root.currentSong.itemId
