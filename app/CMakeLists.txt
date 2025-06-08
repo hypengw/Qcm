@@ -108,6 +108,7 @@ set(QML_FILES
     qml/component/SettingRow.qml
     qml/component/SettingSection.qml
     qml/action/AppendListAction.qml
+    qml/action/PlayAction.qml
     qml/action/PlaynextAction.qml
     qml/action/CommentAction.qml
     qml/action/CollectAction.qml

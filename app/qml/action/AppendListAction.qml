@@ -9,7 +9,7 @@ MD.Action {
     text: qsTr('add to list')
     onTriggered: {
         if (getSongIds) {
-            QA.Action.queue_ids(root.getSongIds());
+            QA.Action.queue(root.getSongIds());
         } else if(getSongs) {
             QA.Action.queue(root.getSongs());
         }

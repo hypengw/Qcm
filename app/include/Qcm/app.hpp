@@ -8,7 +8,6 @@
 #include <QtQuick/QQuickItem>
 #include <QtQuick/QQuickWindow>
 
-#include <iostream>
 #include <vector>
 
 #include <asio/thread_pool.hpp>
@@ -115,9 +114,6 @@ public:
     Q_SIGNAL void playlistLiked(model::ItemId, bool);
     Q_SIGNAL void djradioLiked(model::ItemId, bool);
     Q_SIGNAL void programLiked(model::ItemId, bool);
-    Q_SIGNAL void playlistCreated();
-    Q_SIGNAL void playlistDeleted();
-    Q_SIGNAL void playlistChanged();
     Q_SIGNAL void libraryStatusChanged();
 
     Q_SLOT void releaseResources(QQuickWindow*);
@@ -128,15 +124,12 @@ public:
     Q_SLOT void save_settings();
 
     // process action
-    Q_SLOT void on_play_by_id(model::ItemId songId, model::ItemId sourceId);
-    Q_SLOT void on_queue_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId);
-    Q_SLOT void on_switch_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId);
+    Q_SLOT void on_play(model::ItemId songId, model::ItemId sourceId);
+    Q_SLOT void on_queue_next(const std::vector<model::ItemId>& songIds, model::ItemId sourceId);
+    Q_SLOT void on_queue(const std::vector<model::ItemId>& songIds, model::ItemId sourceId);
+    Q_SLOT void on_switch(const std::vector<model::ItemId>& songIds, model::ItemId sourceId);
     Q_SLOT void on_switch_queue(model::IdQueue*);
     Q_SLOT void on_logout();
-    Q_SLOT void on_switch_user(model::ItemId);
-    Q_SLOT void on_sync_item(const model::ItemId& itemId, bool notify);
-    Q_SLOT void on_sync_collecttion(enums::CollectionType);
-    Q_SLOT void on_sync_library_collecttion(i64 library_id, enums::CollectionType);
     Q_SLOT void on_record(enums::RecordAction);
 
     Q_SLOT void on_route_by_id(const model::ItemId&, const QVariantMap&);

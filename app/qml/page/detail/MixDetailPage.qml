@@ -191,7 +191,7 @@ MD.Page {
             canDelete: ListView.view.canDelete
 
             onClicked: {
-                QA.Action.play_by_id(dgModel.itemId);
+                QA.Action.play(dgModel.itemId);
             }
         }
         footer: MD.ListBusyFooter {
@@ -209,7 +209,7 @@ MD.Page {
             icon.name: MD.Token.icon.play_arrow
             onTriggered: {
                 const songs = QA.Util.collect_ids(qr_pl.data);
-                QA.Action.switch_ids(songs);
+                QA.Action.switch_songs(songs);
             }
         }
     }

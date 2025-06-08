@@ -11,7 +11,8 @@ MD.Action {
         const ex = QA.Store.extra(itemId);
         return ex?.dynamic?.is_favorite ?? false;
     }
-    icon.name: checked ? MD.Token.icon.favorite : MD.Token.icon.favorite_border
+    icon.name: MD.Token.icon.favorite
+    text: checked ? qsTr('unfavorite') : qsTr('favorite')
     busy: m_query.querying
     onTriggered: {
         if (!busy)

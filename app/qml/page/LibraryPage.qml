@@ -205,11 +205,10 @@ MD.Page {
                             return [QA.Util.joinName(ex?.artists, '/'), trackInfo].filter(e => !!e).join(' - ');
                         }
                         function showMenu(parent) {
-                            console.error(ListView.view.model.extra(index).artists);
-                        // MD.Util.showPopup('qrc:/Qcm/App/qml/menu/AlbumMenu.qml', {
-                        //     "itemId": model.itemId,
-                        //     "y": parent.height
-                        // }, parent);
+                            MD.Util.showPopup('qrc:/Qcm/App/qml/menu/AlbumMenu.qml', {
+                                "itemId": model.itemId,
+                                "y": parent.height
+                            }, parent);
                         }
                     }
                 }

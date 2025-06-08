@@ -37,17 +37,11 @@ Action* Action::create(QQmlEngine*, QJSEngine*) {
 }
 
 void App::connect_actions() {
-    connect(Action::instance(), &Action::switch_user, this, &App::on_switch_user);
     connect(Action::instance(), &Action::logout, this, &App::on_logout);
-    connect(Action::instance(), &Action::sync_item, this, &App::on_sync_item);
-    connect(Action::instance(), &Action::sync_collection, this, &App::on_sync_collecttion);
-    connect(Action::instance(),
-            &Action::sync_library_collection,
-            this,
-            &App::on_sync_library_collecttion);
-    connect(Action::instance(), &Action::queue_ids, this, &App::on_queue_ids);
-    connect(Action::instance(), &Action::switch_ids, this, &App::on_switch_ids);
-    connect(Action::instance(), &Action::play_by_id, this, &App::on_play_by_id);
+    connect(Action::instance(), &Action::queue, this, &App::on_queue);
+    connect(Action::instance(), &Action::queue_next, this, &App::on_queue_next);
+    connect(Action::instance(), &Action::switch_songs, this, &App::on_switch);
+    connect(Action::instance(), &Action::play, this, &App::on_play);
     connect(Action::instance(), &Action::switch_queue, this, &App::on_switch_queue);
     connect(Action::instance(), &Action::record, this, &App::on_record);
     connect(Action::instance(), &Action::route_by_id, this, &App::on_route_by_id);
@@ -69,7 +63,7 @@ void App::connect_actions() {
                 case enums::RecordAction::RecordPrev: {
                     // TODO:
                     // if (old_id) {
-                    //     Action::instance()->playbackLog(enums::PlaybackState::StoppedState,
+                    //     Action::instance()->playback_log(enums::PlaybackState::StoppedState,
                     //                                     *old_id,
                     //                                     old_source_id.value_or(model::ItemId
                     //                                     {}));
@@ -98,7 +92,7 @@ void App::connect_actions() {
         auto t = make_rc<Timer>();
 
         connect(Action::instance(),
-                &Action::playbackLog,
+                &Action::playback_log,
                 this,
                 [t](enums::PlaybackState state,
                     model::ItemId        item,
@@ -149,7 +143,7 @@ void App::connect_actions() {
             auto curId = playqueue()->currentId();
             if (! curId || ! curId->valid()) return;
             auto b = this->backend();
-            Action::instance()->play(b->audio_url(*curId), true);
+            Action::instance()->play_url(b->audio_url(*curId), true);
             /*
             QSettings s;
             auto      qu = s.value("play/play_quality").value<enums::AudioQuality>();
@@ -188,7 +182,7 @@ void App::connect_actions() {
     }
 }
 
-void App::on_play_by_id(model::ItemId songId, model::ItemId sourceId) {
+void App::on_play(model::ItemId songId, model::ItemId sourceId) {
     switchPlayIdQueue();
 
     auto q   = App::instance()->play_id_queue();
@@ -200,7 +194,21 @@ void App::on_play_by_id(model::ItemId songId, model::ItemId sourceId) {
     Action::instance()->record(enums::RecordAction::RecordSwitch);
 }
 
-void App::on_queue_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId) {
+void App::on_queue_next(const std::vector<model::ItemId>& songIds, model::ItemId sourceId) {
+    switchPlayIdQueue();
+
+    auto q        = App::instance()->play_id_queue();
+    auto idx = std::min(q->currentIndex() + 1, q->rowCount());
+    auto inserted = q->insert(idx, songIds);
+    {
+        auto q = App::instance()->playqueue();
+        if (sourceId.valid()) q->updateSourceId(songIds, sourceId);
+        q->startIfNoCurrent();
+    }
+    Action::instance()->toast(QString::fromStdString(
+        inserted > 0 ? std::format("Add {} songs to queue", inserted) : "Already added"s));
+}
+void App::on_queue(const std::vector<model::ItemId>& songIds, model::ItemId sourceId) {
     switchPlayIdQueue();
 
     auto q        = App::instance()->play_id_queue();
@@ -213,7 +221,7 @@ void App::on_queue_ids(const std::vector<model::ItemId>& songIds, model::ItemId 
     Action::instance()->toast(QString::fromStdString(
         inserted > 0 ? std::format("Add {} songs to queue", inserted) : "Already added"s));
 }
-void App::on_switch_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId) {
+void App::on_switch(const std::vector<model::ItemId>& songIds, model::ItemId sourceId) {
     switchPlayIdQueue();
 
     auto q = App::instance()->play_id_queue();
@@ -227,13 +235,6 @@ void App::on_switch_ids(const std::vector<model::ItemId>& songIds, model::ItemId
 }
 
 void App::on_logout() {}
-
-void App::on_switch_user(model::ItemId id) {}
-
-void App::on_sync_item(const model::ItemId& itemId, bool notify) {}
-
-void App::on_sync_collecttion(enums::CollectionType ct) {}
-void App::on_sync_library_collecttion(i64 library_id, enums::CollectionType ct) {}
 
 void App::on_record(enums::RecordAction) {}
 

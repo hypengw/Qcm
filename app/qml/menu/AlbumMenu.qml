@@ -11,11 +11,18 @@ MD.Menu {
     font.capitalization: Font.Capitalize
     modal: true
 
-    QA.CommentAction {
+    onItemIdChanged: {
+        console.error(itemId)
+    }
+
+    QA.PlayAction {
+        itemId: root.itemId
+    }
+    QA.FavoriteAction {
         itemId: root.itemId
     }
 
-    QA.CollectAction {
-        itemId: root.itemId
-    }
+    // QA.CommentAction {
+    //     itemId: root.itemId
+    // }
 }

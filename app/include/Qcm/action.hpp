@@ -44,16 +44,17 @@ Q_SIGNALS:
 
     void next();
     void prev();
+
     void switch_queue(model::IdQueue*);
-    void play_by_id(model::ItemId songId, model::ItemId sourceId = {});
-    void queue_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
-    void switch_ids(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
-    void play(const QUrl& url, bool refresh = false);
-    void sync_item(const model::ItemId& itemId, bool notify = false);
-    void sync_collection(enums::CollectionType);
-    void sync_library_collection(i64 library_id, enums::CollectionType);
+
+    void play(model::ItemId songId, model::ItemId sourceId = {});
+    void queue_next(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
+    void queue(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
+    void switch_songs(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
+
+    void play_url(const QUrl& url, bool refresh = false);
     void record(enums::RecordAction);
-    void playbackLog(enums::PlaybackState state, model::ItemId item, model::ItemId souce,
+    void playback_log(enums::PlaybackState state, model::ItemId item, model::ItemId souce,
                      QVariantMap extra = {});
 };
 

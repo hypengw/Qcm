@@ -150,7 +150,7 @@ MD.Page {
                             mdState.backgroundColor: mdState.ctx.color.surface
                             useTracknumber: false
                             onClicked: {
-                                QA.Action.play_by_id(dgModel.itemId);
+                                QA.Action.play(dgModel.itemId);
                             }
                         }
                     }

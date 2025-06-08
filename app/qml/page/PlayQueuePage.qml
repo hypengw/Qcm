@@ -69,7 +69,7 @@ MD.Page {
                 onClicked: {
                     const m = m_delegate.ListView.view.model;
                     if (m.canJump) {
-                        QA.Action.play_by_id(model.itemId);
+                        QA.Action.play(model.itemId);
                     } else {
                         QA.Action.toast(qsTr(`Not support for ${m.name}`));
                     }

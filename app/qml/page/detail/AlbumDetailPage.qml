@@ -263,7 +263,7 @@ MD.Page {
             subtitle: QA.Util.joinName(QA.Store.extra(model.itemId)?.artists, '/')
 
             onClicked: {
-                QA.Action.play_by_id(dgModel.itemId);
+                QA.Action.play(dgModel.itemId);
             }
         }
 
@@ -281,7 +281,7 @@ MD.Page {
         action: MD.Action {
             icon.name: MD.Token.icon.play_arrow
             onTriggered: {
-                QA.Action.switch_ids(QA.Util.collect_ids(qr_al.data));
+                QA.Action.switch(QA.Util.collect_ids(qr_al.data));
             }
         }
     }

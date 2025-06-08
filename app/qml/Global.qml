@@ -135,7 +135,7 @@ QA.GlobalWrapper {
 
     Connections {
         target: QA.Action
-        function onPlay(url, reload) {
+        function onPlay_url(url, reload) {
             if (reload && m_player.source == Qt.url(url)) {
                 m_player.source = '';
             }
@@ -167,7 +167,7 @@ QA.GlobalWrapper {
                 }
             }
             if (p.playbackState !== QA.Enum.StoppedState) {
-                QA.Action.playbackLog(p.playbackState, root.cur_song.itemId, root.cur_song.source?.itemId ?? QA.Util.createItemid());
+                QA.Action.playback_log(p.playbackState, root.cur_song.itemId, root.cur_song.source?.itemId ?? QA.Util.createItemid());
             }
         }
     }

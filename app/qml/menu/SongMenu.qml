@@ -22,9 +22,12 @@ MD.Menu {
     font.capitalization: Font.Capitalize
     modal: true
 
+    QA.PlayAction {
+        itemId: root._itemId
+    }
+
     QA.PlaynextAction {
-        enabled: root._itemId !== QA.App.playqueue.currentSong.itemId
-        songId: root._itemId
+        itemId: root._itemId
     }
 
     QA.AddToMixAction {
@@ -45,7 +48,7 @@ MD.Menu {
         itemId: root._itemId
     }
 
-   MD.Action {
+    MD.Action {
         enabled: root.canDelete
         icon.name: MD.Token.icon.delete
         text: qsTr('delete')

@@ -10,10 +10,9 @@ MD.Action {
 
     enabled: root.itemId.valid && root.itemId !== QA.App.playqueue.currentSong.itemId
     icon.name: MD.Token.icon.play_arrow
-    text: qsTr('play next')
+    text: qsTr('play')
 
     onTriggered: {
-        const ids = [root.itemId];
-        QA.Action.queue_next(ids, sourceId);
+        QA.Action.play(root.itemId);
     }
 }
