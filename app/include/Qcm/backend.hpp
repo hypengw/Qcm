@@ -56,7 +56,7 @@ public:
         msg::MsgTraits<Req>::set(msg, std::forward<Req>(req));
         co_return (co_await send(std::move(msg))).and_then([](auto m) -> Result<Rsp, msg::Error> {
             if (m.hasRsp()) {
-                if (m.rsp().code() != msg::ErrorCodeGadget::ErrorCode::OK) {
+                if (m.rsp().code() != msg::ErrorCodeGadget::ErrorCode::ERROR_CODE_OK) {
                     return Err(msg::Error { .code    = (i32)m.rsp().code(),
                                             .message = m.rsp().message().toStdString() });
                 }

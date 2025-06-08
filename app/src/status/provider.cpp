@@ -24,7 +24,7 @@ void ProviderStatusModel::updateSyncStatus(const msg::model::ProviderSyncStatus&
         auto& value = *v;
         value.setSyncStatus(s);
 
-        if (s.state() == msg::model::SyncStateGadget::SyncState::Syncing) {
+        if (s.state() == msg::model::SyncStateGadget::SyncState::SYNC_STATE_SYNCING) {
             setSyncing(true);
         } else {
             checkSyncing();
@@ -88,7 +88,7 @@ void ProviderStatusModel::checkSyncing() {
     bool out = false;
     for (auto i = 0; i < rowCount(); i++) {
         auto& p = this->at(i);
-        if (p.syncStatus().state() == msg::model::SyncStateGadget::SyncState::Syncing) {
+        if (p.syncStatus().state() == msg::model::SyncStateGadget::SyncState::SYNC_STATE_SYNCING) {
             out = true;
             break;
         }

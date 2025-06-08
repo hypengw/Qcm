@@ -131,10 +131,10 @@ message EmailAuth {
 message QrAuth { string key = 1; }
 
 enum AuthType {
-  USERNAME_AUTH = 0;
-  PHONE_AUTH = 1;
-  EMAIL_AUTH = 2;
-  QR_AUTH = 3;
+  AUTH_TYPE_USERNAME_AUTH = 0;
+  AUTH_TYPE_PHONE_AUTH = 1;
+  AUTH_TYPE_EMAIL_AUTH = 2;
+  AUTH_TYPE_QR_AUTH = 3;
 }
 
 message AuthInfo {
@@ -157,9 +157,11 @@ message ProviderMeta {
 }
 
 enum SyncState {
-  Finished = 0;
-  Syncing = 1;
-  Error = 2;
+  SYNC_STATE_FINISHED = 0;
+  SYNC_STATE_SYNCING = 1;
+  SYNC_STATE_NOT_AUTH = 2;
+  SYNC_STATE_NETWORK_ERROR = 3;
+  SYNC_STATE_UNKNOWN_ERROR = 4;
 }
 
 message ProviderSyncStatus {

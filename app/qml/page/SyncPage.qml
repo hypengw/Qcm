@@ -1,7 +1,10 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Qcm.Material as MD
 import Qcm.App as QA
+
+import Qcm.Msg as QM
 
 MD.Page {
     id: root
@@ -28,7 +31,7 @@ MD.Page {
             required property int index
             required property var model
             readonly property var libraries: model.librariesData
-            readonly property bool syncing: model.syncStatus.state == 1
+            readonly property bool syncing: model.syncStatus.state == QM.SyncState.SYNC_STATE_SYNCING
 
             width: ListView.view.contentWidth
             topPadding: 0
@@ -40,8 +43,10 @@ MD.Page {
 
             contentItem: Column {
                 spacing: 0
+
                 MD.Control {
                     height: syncing ? implicitHeight : 0
+                    clip: true
                     width: parent.width
                     verticalPadding: 4
                     horizontalPadding: MD.Token.shape.corner.medium
@@ -70,7 +75,7 @@ MD.Page {
                     spacing: syncing ? 8 : 12
                 }
 
-                ColumnLayout {
+                Column {
                     anchors {
                         left: parent.left
                         right: parent.right
@@ -78,10 +83,10 @@ MD.Page {
                         rightMargin: 12
                     }
 
-                    spacing: 12
+                    spacing: 4
 
                     RowLayout {
-                        Layout.fillWidth: true
+                        width: parent.width
                         MD.IconSvg {
                             sourceData: QA.App.providerStatus.svg(index)
                             size: 24
@@ -93,26 +98,49 @@ MD.Page {
                         Item {
                             Layout.fillWidth: true
                         }
-                        MD.Button {
+                        MD.BusyButton {
                             type: MD.Enum.BtOutlined
                             text: qsTr('sync')
+                            busy: m_query.querying || syncing
+                            background.implicitHeight: 32
                             onClicked: {
                                 m_query.providerId = model.itemId;
                                 m_query.reload();
                             }
                         }
                     }
+                    MD.IconLabel {
+                        clip: true
+                        visible: text
+                        anchors.leftMargin: 12
+                        icon_name: MD.Token.icon.error
+                        icon_color: MD.Token.color.error
+                        text: {
+                            const state = model.syncStatus.state;
+                            switch (state) {
+                            case QM.SyncState.SYNC_STATE_NOT_AUTH:
+                                return 'not auth';
+                            case QM.SyncState.SYNC_STATE_NETWORK_ERROR:
+                                return 'network error';
+                            case QM.SyncState.SYNC_STATE_UNKNOWN_ERROR:
+                                return 'unknown error';
+                            }
+                            return '';
+                        }
+                        color: MD.Token.color.error
+                    }
                     Flow {
-                        Layout.fillWidth: true
+                        width: parent.width
                         spacing: 8
                         Repeater {
                             model: m_item.libraries
                             MD.FilterChip {
+                                required property var modelData
                                 text: modelData.name
                                 checkable: false
-                                checked: libStatus.actived(modelData.libraryId)
+                                checked: root.libStatus.actived(modelData.libraryId)
                                 onClicked: {
-                                    libStatus.setActived(modelData.libraryId, !checked);
+                                    root.libStatus.setActived(modelData.libraryId, !checked);
                                 }
                             }
                         }
