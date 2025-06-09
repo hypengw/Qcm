@@ -19,7 +19,7 @@ AlbumsQuery::AlbumsQuery(QObject* parent): QueryList(parent) {
 }
 
 void AlbumsQuery::reload() {
-    set_status(Status::Querying);
+    setStatus(Status::Querying);
     auto app     = App::instance();
     auto backend = app->backend();
     auto req     = msg::GetAlbumsReq {};
@@ -52,7 +52,7 @@ void AlbumsQuery::reload() {
 }
 
 void AlbumsQuery::fetchMore(qint32) {
-    set_status(Status::Querying);
+    setStatus(Status::Querying);
     auto app     = App::instance();
     auto backend = app->backend();
     auto req     = msg::GetAlbumsReq {};
@@ -97,7 +97,7 @@ void AlbumQuery::setItemId(model::ItemId in) {
 }
 
 void AlbumQuery::reload() {
-    set_status(Status::Querying);
+    setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::GetAlbumReq {};
     req.setId_proto(m_item_id.id());

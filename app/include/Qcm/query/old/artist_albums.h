@@ -114,7 +114,7 @@ LIMIT :limit OFFSET :offset;
     }
 
     void reload() override {
-        set_status(Status::Querying);
+        setStatus(Status::Querying);
         auto self   = helper::QWatcher { this };
         auto itemId = m_album_id;
         auto offset = self->offset();
@@ -147,7 +147,7 @@ LIMIT :limit OFFSET :offset;
                     self->tdata()->setHasMore(albums->size());
                     self->tdata()->insert(self->tdata()->rowCount(), albums.value());
                 }
-                self->set_status(Status::Finished);
+                self->setStatus(Status::Finished);
             }
             co_return;
         });

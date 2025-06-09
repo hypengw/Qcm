@@ -156,7 +156,7 @@ QQuickImageResponse* QcmImageProvider::requestImageResponse(const QString& id,
                                          try {
                                              std::rethrow_exception(p);
                                          } catch (const std::exception& e) {
-                                             rsp->set_error(std::format(R"(
+                                             rsp->setError(std::format(R"(
 QcmImageProvider
     id: {}
     error: {})",

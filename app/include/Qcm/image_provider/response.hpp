@@ -12,7 +12,7 @@ class QcmImageResponse : public QQuickImageResponse {
 public:
     ~QcmImageResponse();
     auto errorString() const -> QString;
-    void set_error(QAnyStringView error);
+    void setError(QAnyStringView error);
 
     template<typename T>
     static auto make_rc() {

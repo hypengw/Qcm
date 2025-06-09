@@ -6,7 +6,7 @@ namespace qcm
 {
 
 Query::Query(QObject* parent): QAsyncResult(parent), m_delay(true) {
-    set_forwardError(true);
+    setForwardError(true);
     m_timer.setSingleShot(true);
     connect(&m_timer, &QTimer::timeout, this, &Query::reload);
 }

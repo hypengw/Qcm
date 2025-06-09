@@ -5,6 +5,7 @@ import QtQuick.Layouts
 
 import Qcm.App as QA
 import Qcm.Material as MD
+import Qcm.Msg as QM
 
 MD.Page {
     id: root
@@ -220,6 +221,17 @@ MD.Page {
                     QA.AuthProviderQuery {
                         id: m_auth_query
                         tmpProvider: m_tmp_provider_query.data.key
+                        onStatusChanged: {
+                            if (status == QA.Enum.Finished) {
+                                if (data.code == QM.AuthResult.Ok) {
+                                    const query = m_replace_query;
+                                    const req = query.req;
+                                    req.tmpProvider = tmpProvider;
+                                    query.req = req;
+                                    query.reload();
+                                }
+                            }
+                        }
                     }
                     tmpProvider: m_auth_query.tmpProvider
                     query: m_auth_query

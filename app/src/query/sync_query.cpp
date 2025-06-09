@@ -7,7 +7,7 @@ namespace qcm
 {
 SyncQuery::SyncQuery(QObject* parent): Query(parent) {}
 void SyncQuery::reload() {
-    set_status(Status::Querying);
+    setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::SyncReq {};
     req.setProviderId(m_provider_id.id());

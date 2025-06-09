@@ -148,7 +148,7 @@ ORDER BY playlist_song.orderIdx;
     }
 
     void reload() override {
-        set_status(Status::Querying);
+        setStatus(Status::Querying);
         auto self      = helper::QWatcher { this };
         auto itemId    = m_id;
         auto querySong = m_query_song;
@@ -185,7 +185,7 @@ ORDER BY playlist_song.orderIdx;
                         self->tdata()->resetModel(songs);
                     }
                 }
-                self->set_status(Status::Finished);
+                self->setStatus(Status::Finished);
             }
             co_return;
         });

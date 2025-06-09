@@ -47,7 +47,7 @@ public:
     }
 
     void reload() override {
-        set_status(Status::Querying);
+        setStatus(Status::Querying);
         auto self    = helper::QWatcher { this };
         auto user_id = Global::instance()->qsession()->user()->userId();
         auto c       = Global::instance()->qsession()->client();
@@ -61,13 +61,13 @@ public:
                 asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
             if (self) {
                 if (out) {
-                    self->set_status(Status::Finished);
+                    self->setStatus(Status::Finished);
                     for (auto& el : ids) {
                         Notifier::instance()->collected(el, false);
                     }
                 } else {
-                    self->set_error(convert_from<QString>(out.error().what()));
-                    self->set_status(Status::Error);
+                    self->setError(convert_from<QString>(out.error().what()));
+                    self->setStatus(Status::Error);
                 }
             }
             co_return;

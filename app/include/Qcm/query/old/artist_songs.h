@@ -114,7 +114,7 @@ LIMIT :limit OFFSET :offset;
     }
 
     void reload() override {
-        set_status(Status::Querying);
+        setStatus(Status::Querying);
         auto self   = helper::QWatcher { this };
         auto itemId = m_album_id;
         auto offset = this->offset();
@@ -150,14 +150,14 @@ LIMIT :limit OFFSET :offset;
                 asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
             if (self) {
                 if (error) {
-                    self->set_error(convert_from<QString>(error->what()));
-                    self->set_status(Status::Error);
+                    self->setError(convert_from<QString>(error->what()));
+                    self->setStatus(Status::Error);
                 } else {
                     if (songs) {
                         self->tdata()->setHasMore(songs->size());
                         self->tdata()->insert(self->tdata()->rowCount(), songs.value());
                     }
-                    self->set_status(Status::Finished);
+                    self->setStatus(Status::Finished);
                 }
             }
             co_return;

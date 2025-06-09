@@ -100,7 +100,7 @@ ORDER BY collection.collectTime DESC;
         if (status() == Status::Uninitialized) {
             Action::instance()->sync_collection(enums::CollectionType::CTRadio);
         }
-        set_status(Status::Querying);
+        setStatus(Status::Querying);
         auto userId = Global::instance()->qsession()->user()->userId();
 
         auto self = helper::QWatcher { this };
@@ -148,7 +148,7 @@ ORDER BY collection.collectTime DESC;
                     }
                 }
                 self->setLast(last);
-                self->set_status(Status::Finished);
+                self->setStatus(Status::Finished);
             }
         });
     }

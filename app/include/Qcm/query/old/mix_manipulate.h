@@ -71,7 +71,7 @@ public:
     }
 
     void reload() override {
-        set_status(Status::Querying);
+        setStatus(Status::Querying);
         auto self = helper::QWatcher { this };
         auto c    = Global::instance()->qsession()->client();
         if (! c) return;
@@ -81,10 +81,10 @@ public:
                 asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
             if (self) {
                 if (out) {
-                    self->set_status(Status::Finished);
+                    self->setStatus(Status::Finished);
                 } else {
-                    self->set_error(convert_from<QString>(out.error().what()));
-                    self->set_status(Status::Error);
+                    self->setError(convert_from<QString>(out.error().what()));
+                    self->setStatus(Status::Error);
                 }
             }
             co_return;

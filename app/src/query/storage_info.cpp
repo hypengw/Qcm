@@ -17,7 +17,7 @@ void StorageInfo::setTotal(double v) {
 }
 StorageInfoQuerier::StorageInfoQuerier(QObject* parent): Query(parent) {}
 void StorageInfoQuerier::reload() {
-    // set_status(Status::Querying);
+    // setStatus(Status::Querying);
     // auto media_cache_sql = App::instance()->media_cache_sql();
     // auto cache_sql       = App::instance()->cache_sql();
     // this->spawn([media_cache_sql, cache_sql, this]() -> asio::awaitable<void> {
@@ -29,7 +29,7 @@ void StorageInfoQuerier::reload() {
 
     //     auto d = data().value<StorageInfo*>();
     //     d->setTotal(media_size + normal_size);
-    //     set_status(Status::Finished);
+    //     setStatus(Status::Finished);
     // });
 }
 } // namespace qcm::qml

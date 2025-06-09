@@ -44,7 +44,7 @@ public:
         auto                           main_ex { m_p->get_executor() };
         auto                           alloc = asio::recycling_allocator<void>();
 
-        m_p->set_status(Status::Querying);
+        m_p->setStatus(Status::Querying);
         m_queue_exec_mark = true;
         asio::co_spawn(ex,
                        m_p->watch_dog().watch(
@@ -62,8 +62,8 @@ public:
                                    std::string e_str = e.what();
                                    asio::post(main_ex, [self, e_str]() {
                                        if (self) {
-                                           self->set_error(QString::fromStdString(e_str));
-                                           self->set_status(Status::Error);
+                                           self->setError(QString::fromStdString(e_str));
+                                           self->setStatus(Status::Error);
                                        }
                                    });
                                    log::log(LogLevel::ERROR, loc, "{}", e_str);
@@ -140,7 +140,7 @@ auto QAsyncResult::bindableQuerying() -> QBindable<bool> {
     return &(d->m_querying);
 }
 
-void QAsyncResult::set_status(Status v) {
+void QAsyncResult::setStatus(Status v) {
     C_D(QAsyncResult);
     d->m_status = v;
 }
@@ -163,7 +163,7 @@ auto QAsyncResult::bindableError() -> QBindable<QString> {
     C_D(QAsyncResult);
     return &(d->m_error);
 }
-void QAsyncResult::set_error(const QString& v) {
+void QAsyncResult::setError(const QString& v) {
     C_D(QAsyncResult);
     d->m_error = v;
 }
@@ -172,7 +172,7 @@ bool QAsyncResult::forwardError() const {
     C_D(const QAsyncResult);
     return d->m_forward_error;
 }
-void QAsyncResult::set_forwardError(bool v) {
+void QAsyncResult::setForwardError(bool v) {
     C_D(QAsyncResult);
     if (ycore::cmp_exchange(d->m_forward_error, v)) {
         emit forwardErrorChanged();

@@ -18,7 +18,7 @@ ArtistsQuery::ArtistsQuery(QObject* parent): QueryList(parent) {
     this->connect_requet_reload(&LibraryStatus::activedIdsChanged, app->libraryStatus());
 }
 void ArtistsQuery::reload() {
-    set_status(Status::Querying);
+    setStatus(Status::Querying);
     auto app     = App::instance();
     auto backend = app->backend();
     auto req     = msg::GetArtistsReq {};
@@ -45,7 +45,7 @@ void ArtistsQuery::reload() {
 }
 
 void ArtistsQuery::fetchMore(qint32) {
-    set_status(Status::Querying);
+    setStatus(Status::Querying);
     auto app     = App::instance();
     auto backend = app->backend();
     auto req     = msg::GetArtistsReq {};
@@ -79,7 +79,7 @@ AlbumArtistsQuery::AlbumArtistsQuery(QObject* parent): QueryList(parent) {
     this->connect_requet_reload(&LibraryStatus::activedIdsChanged, app->libraryStatus());
 }
 void AlbumArtistsQuery::reload() {
-    set_status(Status::Querying);
+    setStatus(Status::Querying);
     auto app     = App::instance();
     auto backend = app->backend();
     auto req     = msg::GetAlbumArtistsReq {};
@@ -106,7 +106,7 @@ void AlbumArtistsQuery::reload() {
 }
 
 void AlbumArtistsQuery::fetchMore(qint32) {
-    set_status(Status::Querying);
+    setStatus(Status::Querying);
     auto app     = App::instance();
     auto backend = app->backend();
     auto req     = msg::GetAlbumArtistsReq {};
@@ -142,7 +142,7 @@ void ArtistQuery::setItemId(model::ItemId in) {
 }
 
 void ArtistQuery::reload() {
-    set_status(Status::Querying);
+    setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::GetArtistReq {};
     req.setId_proto(m_item_id.id());
@@ -172,7 +172,7 @@ void ArtistAlbumQuery::setItemId(model::ItemId in) {
 }
 
 void ArtistAlbumQuery::reload() {
-    set_status(Status::Querying);
+    setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::GetArtistAlbumReq {};
     req.setId_proto(m_item_id.id());
@@ -196,7 +196,7 @@ void ArtistAlbumQuery::reload() {
 }
 
 void ArtistAlbumQuery::fetchMore(qint32) {
-    set_status(Status::Querying);
+    setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::GetArtistAlbumReq {};
     req.setId_proto(m_item_id.id());

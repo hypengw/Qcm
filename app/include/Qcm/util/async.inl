@@ -29,8 +29,8 @@ void QAsyncResult::spawn(Fn&& f, const std::source_location loc) {
                                    auto e_str = std::string(error);
                                    asio::post(main_ex, [self, e_str]() {
                                        if (self) {
-                                           self->set_error(QString::fromStdString(e_str));
-                                           self->set_status(Status::Error);
+                                           self->setError(QString::fromStdString(e_str));
+                                           self->setStatus(Status::Error);
                                        }
                                    });
                                },

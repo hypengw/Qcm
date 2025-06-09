@@ -78,7 +78,7 @@ public:
     Q_SIGNAL void itemIdChanged();
 
     void reload() override {
-        set_status(Status::Querying);
+        setStatus(Status::Querying);
         auto self   = helper::QWatcher { this };
         auto itemId = m_id;
         auto offset = this->offset();
@@ -103,10 +103,10 @@ public:
                     if (offset == 0) {
                         self->tdata()->setTotal(total);
                     }
-                    self->set_status(Status::Finished);
+                    self->setStatus(Status::Finished);
                 } else {
-                    self->set_error(convert_from<QString>(out.error().what()));
-                    self->set_status(Status::Error);
+                    self->setError(convert_from<QString>(out.error().what()));
+                    self->setStatus(Status::Error);
                 }
             }
             co_return;

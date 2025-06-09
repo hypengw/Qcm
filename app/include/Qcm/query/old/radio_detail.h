@@ -172,7 +172,7 @@ ORDER BY program.serialNumber DESC;
     }
 
     void reload() override {
-        set_status(Status::Querying);
+        setStatus(Status::Querying);
         auto self   = helper::QWatcher { this };
         auto itemId = m_radio_id;
         spawn( [self, itemId] -> task<void> {
@@ -199,7 +199,7 @@ ORDER BY program.serialNumber DESC;
             if (self) {
                 self->tdata()->setInfo(radio);
                 self->tdata()->resetModel(programes);
-                self->set_status(Status::Finished);
+                self->setStatus(Status::Finished);
             }
             co_return;
         });

@@ -23,12 +23,12 @@ class QAsyncResult : public QObject {
     Q_OBJECT
 
     Q_PROPERTY(QString error READ error NOTIFY errorChanged BINDABLE bindableError FINAL)
-    Q_PROPERTY(qcm::enums::ApiStatus status READ status WRITE set_status NOTIFY statusChanged
+    Q_PROPERTY(qcm::enums::ApiStatus status READ status WRITE setStatus NOTIFY statusChanged
                    BINDABLE bindableStatus FINAL)
     Q_PROPERTY(bool querying READ querying NOTIFY queryingChanged BINDABLE bindableQuerying FINAL)
     Q_PROPERTY(QVariant data READ data NOTIFY dataChanged)
     Q_PROPERTY(
-        bool forwardError READ forwardError WRITE set_forwardError NOTIFY forwardErrorChanged FINAL)
+        bool forwardError READ forwardError WRITE setForwardError NOTIFY forwardErrorChanged FINAL)
 public:
     QAsyncResult(QObject* parent = nullptr);
     virtual ~QAsyncResult();
@@ -65,19 +65,18 @@ public:
             } else {
                 set_data(QVariant::fromValue(nullptr));
             }
-            set_status(Status::Finished);
+            setStatus(Status::Finished);
         } else {
-            set_error(convert_from<QString>(exp.error().what()));
-            set_status(Status::Error);
+            setError(convert_from<QString>(exp.error().what()));
+            setStatus(Status::Error);
         }
     }
 
-    Q_SLOT virtual void set_data(const QVariant&);
-
     Q_SLOT void cancel();
-    Q_SLOT void set_status(Status);
-    Q_SLOT void set_error(const QString&);
-    Q_SLOT void set_forwardError(bool);
+    Q_SLOT void setStatus(Status);
+    Q_SLOT void setError(const QString&);
+    Q_SLOT void setForwardError(bool);
+    Q_SLOT void set_data(const QVariant&);
     Q_SLOT void hold(QStringView, QObject*);
 
     Q_SIGNAL void dataChanged();
@@ -91,12 +90,13 @@ public:
     template<typename T, typename Err>
     void check(const Result<T, Err>& res) {
         if (! res) {
-            set_error(QString::fromStdString(res.error().what()));
-            set_status(Status::Error);
+            setError(QString::fromStdString(res.error().what()));
+            setStatus(Status::Error);
         }
     }
 
 private:
+
     void  push(std::function<task<void>()>, const std::source_location& loc);
     usize size() const;
 
@@ -142,10 +142,10 @@ public:
         auto self = static_cast<Self*>(this);
         if (res) {
             set_tdata(*res);
-            self->set_status(QAsyncResult::Status::Finished);
+            self->setStatus(QAsyncResult::Status::Finished);
         } else {
-            self->set_error(rstd::into(std::format("{}", res.unwrap_err_unchecked())));
-            self->set_status(QAsyncResult::Status::Error);
+            self->setError(rstd::into(std::format("{}", res.unwrap_err_unchecked())));
+            self->setStatus(QAsyncResult::Status::Error);
         }
     }
 
@@ -154,10 +154,10 @@ public:
         auto self = static_cast<Self*>(this);
         if (res) {
             res.inspect(std::forward<F>(f));
-            self->set_status(QAsyncResult::Status::Finished);
+            self->setStatus(QAsyncResult::Status::Finished);
         } else {
-            self->set_error(rstd::into(std::format("{}", res.unwrap_err_unchecked())));
-            self->set_status(QAsyncResult::Status::Error);
+            self->setError(rstd::into(std::format("{}", res.unwrap_err_unchecked())));
+            self->setStatus(QAsyncResult::Status::Error);
         }
     }
 };

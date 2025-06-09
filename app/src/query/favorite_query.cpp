@@ -28,7 +28,7 @@ void SetFavoriteQuery::setItemId(model::ItemId id) {
 void SetFavoriteQuery::reload() {
     if (! m_item_id.valid()) return;
 
-    set_status(Status::Querying);
+    setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::SetFavoriteReq {};
     req.setValue(m_favorite);

@@ -85,7 +85,7 @@ WHERE itemId = :itemId AND ({1});
     }
 
     void reload() override {
-        set_status(Status::Querying);
+        setStatus(Status::Querying);
         auto self   = helper::QWatcher { this };
         auto itemId = m_album_id;
         spawn( [self, itemId] -> task<void> {
@@ -109,7 +109,7 @@ WHERE itemId = :itemId AND ({1});
                 asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
             if (self) {
                 self->tdata()->setInfo(artist);
-                self->set_status(Status::Finished);
+                self->setStatus(Status::Finished);
             }
             co_return;
         });

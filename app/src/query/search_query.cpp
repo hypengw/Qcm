@@ -109,7 +109,7 @@ void SearchQuery::setType(enums::SearchType v) {
 }
 
 void SearchQuery::reload() {
-    set_status(Status::Querying);
+    setStatus(Status::Querying);
     auto app = App::instance();
     auto req = msg::SearchReq {};
     req.setQuery(text());

@@ -15,7 +15,7 @@ MixesQuery::MixesQuery(QObject* parent): QueryList(parent) {
 }
 
 void MixesQuery::reload() {
-    set_status(Status::Querying);
+    setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::GetMixsReq {};
     req.setPage(0);
@@ -35,7 +35,7 @@ void MixesQuery::reload() {
 }
 
 void MixesQuery::fetchMore(qint32) {
-    set_status(Status::Querying);
+    setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::GetMixsReq {};
     req.setPage(offset() + 1);
@@ -68,7 +68,7 @@ void MixQuery::setItemId(model::ItemId in) {
 }
 
 void MixQuery::reload() {
-    set_status(Status::Querying);
+    setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::GetMixReq {};
     req.setId_proto(m_item_id.id());

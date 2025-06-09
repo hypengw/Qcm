@@ -132,7 +132,7 @@ ORDER BY song.trackNumber ASC;
     }
 
     void reload() override {
-        set_status(Status::Querying);
+        setStatus(Status::Querying);
         auto self   = helper::QWatcher { this };
         auto itemId = m_album_id;
         spawn([self, itemId] -> task<void> {
@@ -159,7 +159,7 @@ ORDER BY song.trackNumber ASC;
             if (self) {
                 self->tdata()->setInfo(album);
                 self->tdata()->resetModel(songs);
-                self->set_status(Status::Finished);
+                self->setStatus(Status::Finished);
             }
             co_return;
         });

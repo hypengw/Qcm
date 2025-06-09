@@ -77,7 +77,7 @@ GROUP BY song.itemId;
         if (! itemId.valid()) return;
 
         auto self = helper::QWatcher { this };
-        set_status(Status::Querying);
+        setStatus(Status::Querying);
 
         spawn([self, itemId] -> task<void> {
             auto                     sql = App::instance()->item_sql();
@@ -99,7 +99,7 @@ GROUP BY song.itemId;
                 asio::bind_executor(qcm::qexecutor(), asio::use_awaitable));
             if (self) {
                 self->set_tdata(song.value_or(Song {}));
-                self->set_status(Status::Finished);
+                self->setStatus(Status::Finished);
             }
             co_return;
         });

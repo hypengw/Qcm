@@ -9,7 +9,7 @@ LyricQuery::LyricQuery(QObject* parent): Query(parent) {
     connect_requet_reload(&LyricQuery::itemIdChanged);
 }
 void LyricQuery::reload() {
-    set_status(Status::Querying);
+    setStatus(Status::Querying);
     auto app     = App::instance();
     auto backend = app->backend();
     auto req     = msg::GetSubtitleReq {};
@@ -34,7 +34,7 @@ void LyricQuery::reload() {
                 t->resetModel();
                 t->setCurrentIndex(-1);
             }
-            self->set_status(Status::Finished);
+            self->setStatus(Status::Finished);
             co_return;
         });
     } else {
@@ -42,7 +42,7 @@ void LyricQuery::reload() {
         auto t = this->tdata();
         t->resetModel();
         t->setCurrentIndex(-1);
-        set_status(Status::Finished);
+        setStatus(Status::Finished);
     }
 }
 
