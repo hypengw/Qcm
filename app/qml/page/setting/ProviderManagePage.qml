@@ -34,8 +34,12 @@ MD.Page {
                 size: 24
             }
             text: model.name
-            trailing: MD.IconButton {
+            trailing: MD.BusyIconButton {
                 icon.name: MD.Token.icon.close
+                busy: {
+                    const query = m_delete_query;
+                    return query.providerId == model.itemId && query.querying;
+                }
                 onClicked: {
                     const query = m_delete_query;
                     query.providerId = model.itemId;
@@ -65,7 +69,7 @@ MD.Page {
                 action: MD.Action {
                     text: qsTr('add')
                     onTriggered: {
-                        root.MD.MProp.page.pushItem('qrc:/Qcm/App/qml/page/AddProviderPage.qml');
+                        root.MD.MProp.page.pushItem('qrc:/Qcm/App/qml/page/ProviderAddPage.qml');
                     }
                 }
             }

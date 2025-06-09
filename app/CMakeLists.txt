@@ -66,7 +66,7 @@ set(QML_FILES
     qml/page/toplevel/RetryPage.qml
     qml/page/toplevel/LoadingPage.qml
     qml/page/edit/ProviderEditPage.qml
-    qml/page/AddProviderPage.qml
+    qml/page/ProviderAddPage.qml
     qml/page/AboutPage.qml
     qml/page/CommentPage.qml
     qml/page/DescriptionPage.qml

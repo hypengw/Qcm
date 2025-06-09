@@ -19,7 +19,7 @@ class AuthProviderQuery : public Query, public QueryExtra<msg::AuthProviderRsp, 
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(msg::AuthProviderReq req READ req WRITE setReq NOTIFY reqChanged FINAL)
+    Q_PROPERTY(qcm::msg::AuthProviderReq req READ req WRITE setReq NOTIFY reqChanged FINAL)
     Q_PROPERTY(
         QString tmpProvider READ tmpProvider WRITE setTmpProvider NOTIFY tmpProviderChanged FINAL)
     Q_PROPERTY(QString failed READ failed NOTIFY failedChanged FINAL)
@@ -49,7 +49,7 @@ class AddProviderQuery : public Query, public QueryExtra<msg::Rsp, AddProviderQu
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(msg::AddProviderReq req READ req WRITE setReq NOTIFY reqChanged FINAL)
+    Q_PROPERTY(qcm::msg::AddProviderReq req READ req WRITE setReq NOTIFY reqChanged FINAL)
 public:
     AddProviderQuery(QObject* parent = nullptr);
     void reload() override;
@@ -69,8 +69,8 @@ class UpdateProviderQuery : public Query,
     QML_ELEMENT
 
     Q_PROPERTY(
-        model::ItemId providerId READ providerId WRITE setProviderId NOTIFY providerIdChanged FINAL)
-    Q_PROPERTY(msg::UpdateProviderReq req READ req WRITE setReq NOTIFY reqChanged FINAL)
+        qcm::model::ItemId providerId READ providerId WRITE setProviderId NOTIFY providerIdChanged FINAL)
+    Q_PROPERTY(qcm::msg::UpdateProviderReq req READ req WRITE setReq NOTIFY reqChanged FINAL)
 public:
     UpdateProviderQuery(QObject* parent = nullptr);
     void reload() override;
@@ -93,7 +93,7 @@ class DeleteProviderQuery : public Query, public QueryExtra<msg::Rsp, DeleteProv
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(model::ItemId providerId READ providerId WRITE setProviderId NOTIFY providerIdChanged FINAL)
+    Q_PROPERTY(qcm::model::ItemId providerId READ providerId WRITE setProviderId NOTIFY providerIdChanged FINAL)
 public:
     DeleteProviderQuery(QObject* parent = nullptr);
     void reload() override;
@@ -113,8 +113,8 @@ class ReplaceProviderQuery : public Query, public QueryExtra<msg::Rsp, ReplacePr
     Q_OBJECT
     QML_ELEMENT
     Q_PROPERTY(
-        model::ItemId providerId READ providerId WRITE setProviderId NOTIFY providerIdChanged FINAL)
-    Q_PROPERTY(msg::ReplaceProviderReq req READ req WRITE setReq NOTIFY reqChanged FINAL)
+        qcm::model::ItemId providerId READ providerId WRITE setProviderId NOTIFY providerIdChanged FINAL)
+    Q_PROPERTY(qcm::msg::ReplaceProviderReq req READ req WRITE setReq NOTIFY reqChanged FINAL)
 public:
     ReplaceProviderQuery(QObject* parent = nullptr);
     void reload() override;
@@ -158,7 +158,7 @@ class DeleteTmpProviderQuery : public Query, public QueryExtra<msg::Rsp, DeleteT
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(msg::DeleteTmpProviderReq req READ req WRITE setReq NOTIFY reqChanged FINAL)
+    Q_PROPERTY(qcm::msg::DeleteTmpProviderReq req READ req WRITE setReq NOTIFY reqChanged FINAL)
 public:
     DeleteTmpProviderQuery(QObject* parent = nullptr);
     void reload() override;

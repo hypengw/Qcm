@@ -35,7 +35,7 @@ MD.Page {
                 }
             }
 
-            initialItem: QA.AddProviderPage {
+            initialItem: QA.ProviderAddPage {
                 showHeader: false
             }
         }
