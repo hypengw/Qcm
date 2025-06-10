@@ -221,13 +221,14 @@ MD.Page {
                     QA.AuthProviderQuery {
                         id: m_auth_query
                         tmpProvider: m_tmp_provider_query.data.key
+                        onTmpProviderChanged: {
+                            console.error("---", m_replace_query.providerId, tmpProvider);
+                        }
                         onStatusChanged: {
                             if (status == QA.Enum.Finished) {
                                 if (data.code == QM.AuthResult.Ok) {
                                     const query = m_replace_query;
-                                    const req = query.req;
-                                    req.tmpProvider = tmpProvider;
-                                    query.req = req;
+                                    query.tmpProvider = tmpProvider;
                                     query.reload();
                                 }
                             }

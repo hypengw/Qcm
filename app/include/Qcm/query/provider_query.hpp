@@ -68,8 +68,8 @@ class UpdateProviderQuery : public Query,
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(
-        qcm::model::ItemId providerId READ providerId WRITE setProviderId NOTIFY providerIdChanged FINAL)
+    Q_PROPERTY(qcm::model::ItemId providerId READ providerId WRITE setProviderId NOTIFY
+                   providerIdChanged FINAL)
     Q_PROPERTY(qcm::msg::UpdateProviderReq req READ req WRITE setReq NOTIFY reqChanged FINAL)
 public:
     UpdateProviderQuery(QObject* parent = nullptr);
@@ -93,7 +93,8 @@ class DeleteProviderQuery : public Query, public QueryExtra<msg::Rsp, DeleteProv
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(qcm::model::ItemId providerId READ providerId WRITE setProviderId NOTIFY providerIdChanged FINAL)
+    Q_PROPERTY(qcm::model::ItemId providerId READ providerId WRITE setProviderId NOTIFY
+                   providerIdChanged FINAL)
 public:
     DeleteProviderQuery(QObject* parent = nullptr);
     void reload() override;
@@ -112,25 +113,25 @@ private:
 class ReplaceProviderQuery : public Query, public QueryExtra<msg::Rsp, ReplaceProviderQuery> {
     Q_OBJECT
     QML_ELEMENT
+    Q_PROPERTY(qcm::model::ItemId providerId READ providerId WRITE setProviderId NOTIFY
+                   providerIdChanged FINAL)
     Q_PROPERTY(
-        qcm::model::ItemId providerId READ providerId WRITE setProviderId NOTIFY providerIdChanged FINAL)
-    Q_PROPERTY(qcm::msg::ReplaceProviderReq req READ req WRITE setReq NOTIFY reqChanged FINAL)
+        QString tmpProvider READ tmpProvider WRITE setTmpProvider NOTIFY tmpProviderChanged FINAL)
 public:
     ReplaceProviderQuery(QObject* parent = nullptr);
     void reload() override;
 
     auto providerId() const -> model::ItemId;
     void setProviderId(const model::ItemId&);
+    auto tmpProvider() const -> QString;
+    void setTmpProvider(const QString&);
 
-    auto req() -> msg::ReplaceProviderReq&;
-    void setReq(msg::ReplaceProviderReq&);
-
-    Q_SIGNAL void reqChanged();
+    Q_SIGNAL void tmpProviderChanged();
     Q_SIGNAL void providerIdChanged();
 
 private:
-    msg::ReplaceProviderReq m_req;
-    model::ItemId           m_provider_id;
+    QString       m_tmp_provider;
+    model::ItemId m_provider_id;
 };
 
 class CreateTmpProviderQuery

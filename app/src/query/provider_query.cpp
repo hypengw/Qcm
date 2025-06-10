@@ -173,24 +173,28 @@ ReplaceProviderQuery::ReplaceProviderQuery(QObject* parent): Query(parent) {
     setForwardError(true);
 }
 
-auto ReplaceProviderQuery::req() -> msg::ReplaceProviderReq& { return m_req; }
-void ReplaceProviderQuery::setReq(msg::ReplaceProviderReq& req) {
-    if (ycore::cmp_exchange(m_req, req)) {
-        reqChanged();
-    }
-}
 auto ReplaceProviderQuery::providerId() const -> model::ItemId { return m_provider_id; }
 void ReplaceProviderQuery::setProviderId(const model::ItemId& id) {
     if (ycore::cmp_exchange(m_provider_id, id)) {
         providerIdChanged();
     }
 }
+auto ReplaceProviderQuery::tmpProvider() const -> QString { return m_tmp_provider; }
+void ReplaceProviderQuery::setTmpProvider(const QString& v) {
+    if (v != m_tmp_provider) {
+        m_tmp_provider = v;
+        tmpProviderChanged();
+    }
+}
+
 void ReplaceProviderQuery::reload() {
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto self    = helper::QWatcher { this };
-    m_req.setProviderId(m_provider_id.id());
-    spawn([self, backend, req = m_req]() mutable -> task<void> {
+    auto req     = msg::ReplaceProviderReq {};
+    req.setProviderId(m_provider_id.id());
+    req.setTmpProvider(m_tmp_provider);
+    spawn([self, backend, req]() mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
         self->set(std::move(rsp));
