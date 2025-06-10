@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtCore
 import QtQuick
 import QtQuick.Layouts
@@ -32,11 +33,11 @@ MD.Page {
             horizontalPadding: 16
 
             QA.SettingRow {
-                text: `${qsTr('Fade When Play/Pause')}: ${slider_fade.value} ms`
+                text: `${qsTr('Fade When Play/Pause')}: ${m_slider_fade.value} ms`
                 font.capitalization: Font.MixedCase
                 canInput: false
                 below: MD.Slider {
-                    id: slider_fade
+                    id: m_slider_fade
                     Layout.fillWidth: true
                     from: 0
                     stepSize: 20
@@ -51,10 +52,10 @@ MD.Page {
             }
             QA.SettingRow {
                 text: qsTr('streaming quality')
-                canInput: !comb_playing_quality.popup.visible
+                canInput: !m_comb_playing_quality.popup.visible
 
                 trailing: MD.ComboBox {
-                    id: comb_playing_quality
+                    id: m_comb_playing_quality
                     signal clicked
 
                     textRole: "text"
@@ -83,7 +84,7 @@ MD.Page {
                         ].map(el => model.append(el));
                         currentIndex = indexOfValue(settings_audio.streaming_quality);
                         settings_audio.streaming_quality = Qt.binding(() => {
-                            return comb_playing_quality.currentValue;
+                            return m_comb_playing_quality.currentValue;
                         });
                     }
 
