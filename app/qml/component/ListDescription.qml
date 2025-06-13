@@ -4,6 +4,8 @@ import Qcm.Material as MD
 
 MD.ListItem {
     id: root
+    index: -1
+    model: null
     property string description
     visible: root.description.length > 0
 

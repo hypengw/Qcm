@@ -30,6 +30,7 @@ set(SOURCES
     src/model/store_item.cpp
     src/model/list_models.cpp
     src/model/sort_filter.cpp
+    src/model/table_proxy.cpp
     src/util/global_static.cpp
     src/util/path.cpp
     src/query/album_query.cpp
@@ -161,6 +162,9 @@ qt_add_qml_module(
   URI
   Qcm.App
   STATIC
+  DEPENDENCIES
+  QtQuick
+  Qcm.Material
   RESOURCE_PREFIX
   /
   VERSION
@@ -219,14 +223,12 @@ target_link_libraries(
          player
          platform
          "message"
-         #message_qtprotoreg
-         #messageplugin
+         # message_qtprotoreg messageplugin
          "$<$<TARGET_EXISTS:mpris>:mpris>")
 
 qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION src/main.cpp)
-set_target_properties(${PROJECT_NAME} PROPERTIES 
-	CXX_SCAN_FOR_MODULES ON 
-	WIN32_EXECUTABLE FALSE)
+set_target_properties(${PROJECT_NAME} PROPERTIES CXX_SCAN_FOR_MODULES ON
+                                                 WIN32_EXECUTABLE FALSE)
 target_compile_definitions(${PROJECT_NAME} PRIVATE "${APP_INFO_MACROS}")
 
 target_link_libraries(

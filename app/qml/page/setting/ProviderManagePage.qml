@@ -25,9 +25,6 @@ MD.Page {
         model: QA.App.providerStatus
 
         delegate: MD.ListItem {
-            required property int index
-            required property var model
-
             width: parent.width
             leader: MD.IconSvg {
                 sourceData: QA.App.providerStatus.svg(index)

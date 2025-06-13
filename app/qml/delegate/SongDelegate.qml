@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 
@@ -11,9 +12,6 @@ MD.ListItem {
     property var dgModel: {
         // bind visible
         if (visible) {
-            if (typeof modelData?.objectName == 'string') {
-                return modelData;
-            }
             if (model && model.index >= 0) {
                 return model;
             }
@@ -32,7 +30,7 @@ MD.ListItem {
 
     rightPadding: rightMargin
 
-    corners: indexCorners(dgIndex, count, 16)
+    corners: MD.Util.listCorners(index, count, 16)
 
     mdState.backgroundColor: mdState.ctx.color.surface_container
 
@@ -63,7 +61,7 @@ MD.ListItem {
                 currentIndex: root.showCover ? 2 : 0
                 isPlaying: root.isPlaying
                 trackNumber: root.dgModel.trackNumber
-                index: root.useTracknumber ? -1 : root.dgIndex
+                index: root.useTracknumber ? -1 : root.index
                 MD.FontMetrics {
                     id: item_font_metrics
                     typescale: MD.Token.typescale.body_medium
@@ -116,7 +114,7 @@ MD.ListItem {
                         }
                         if (!root.dgModel?.itemId)
                             return "";
-                        const ex = QA.Store.extra(root.dgModel.itemId);
+                        const ex = root.dgModel.extra;//QA.Store.extra(root.dgModel.itemId);
                         return [QA.Util.joinName(ex?.artists), ex?.album?.name].filter(e => !!e).join(' - ');
                     }
                 }

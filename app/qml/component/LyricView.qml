@@ -74,8 +74,6 @@ MD.VerticalListView {
         }
     }
     delegate: MD.ListItem {
-        required property int index
-        required property var model
         readonly property bool current: root.model.currentIndex === index
         width: ListView.view.width
 

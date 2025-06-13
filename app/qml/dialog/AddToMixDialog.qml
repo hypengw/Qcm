@@ -31,12 +31,10 @@ MD.Dialog {
                     name: MD.Token.icon.add
                 }
             }
-            corners: indexCorners(0, 1 + ListView.view.count, 16)
+            corners: MD.Util.listCorners(0, 1 + ListView.view.count, 16)
             action: QA.MixCreateAction {}
         }
         delegate: MD.ListItem {
-            required property int index
-            required property var model
             text: model.name
             supportText: `${model.trackCount} songs`
             width: ListView.view.width
@@ -47,7 +45,7 @@ MD.Dialog {
                 sourceSize.height: 48
                 sourceSize.width: 48
             }
-            corners: indexCorners(index + 1, count + 1, 16)
+            corners: MD.Util.listCorners(index + 1, count + 1, 16)
             onImplicitWidthChanged: {
                 const v = ListView.view;
                 v.implicitWidth = Math.max(v.implicitWidth, implicitWidth);

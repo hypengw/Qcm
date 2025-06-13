@@ -183,8 +183,6 @@ MD.Page {
             }
         }
         delegate: QA.SongDelegate {
-            required property int index
-            required property var model
             width: ListView.view.contentWidth
             leftMargin: 16
             rightMargin: 16

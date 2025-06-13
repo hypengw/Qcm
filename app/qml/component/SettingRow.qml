@@ -4,12 +4,14 @@ import Qcm.Material as MD
 
 MD.ListItem {
     id: root
+    index: -1
+    model: null
     Layout.fillWidth: true
     font.capitalization: Font.Capitalize
     corners: {
         let s = root.start ? MD.Token.shape.corner.medium : 0;
         let e = root.end ? MD.Token.shape.corner.medium : 0;
-        return MD.Util.corner(s, e);
+        return MD.Util.corners(s, e);
     }
     property bool canInput: true
     property bool start: false

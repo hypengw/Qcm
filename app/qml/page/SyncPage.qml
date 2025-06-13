@@ -67,7 +67,7 @@ MD.Page {
 
                     background: MD.Rectangle {
                         color: MD.Token.color.primary
-                        corners: MD.Util.corner(MD.Token.shape.corner.medium, MD.Token.shape.corner.medium, 0, 0)
+                        corners: MD.Util.corners(MD.Token.shape.corner.medium, MD.Token.shape.corner.medium, 0, 0)
                     }
                 }
 

@@ -45,11 +45,9 @@ MD.Page {
                 rightMargin: 16
 
                 delegate: MD.ListItem {
-                    required property int index
-                    required property var model
                     width: ListView.view.contentWidth
 
-                    corners: indexCorners(index, count, 16)
+                    corners: MD.Util.listCorners(index, count, 16)
                     leader: MD.IconSvg {
                         sourceData: model.svg
                         size: 24

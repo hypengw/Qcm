@@ -46,8 +46,8 @@ MD.Page {
 
         delegate: DropArea {
             id: m_delegate
-            required property var model
             required property int index
+            required property var model
             readonly property bool is_playing: ListView.isCurrentItem
             width: ListView.view.width
             implicitHeight: m_item.implicitHeight
@@ -58,6 +58,8 @@ MD.Page {
 
             MD.ListItem {
                 id: m_item
+                index: m_delegate.index
+                model: m_delegate.model
                 anchors {
                     horizontalCenter: parent.horizontalCenter
                     verticalCenter: parent.verticalCenter

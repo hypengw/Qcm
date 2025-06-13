@@ -42,7 +42,7 @@ MD.Page {
                 MD.TabBar {
                     id: bar
                     Layout.fillWidth: true
-                    corners: MD.Util.corner(root.radius, 0)
+                    corners: MD.Util.corners(root.radius, 0)
 
                     Component.onCompleted: {
                         currentIndexChanged();
@@ -350,15 +350,13 @@ MD.Page {
     }
 
     component BaseItem: MD.ListItem {
-        required property int index
-        required property var model
         property var itemId: model.itemId
         property string image
 
         width: ListView.view.width
         maximumLineCount: 2
 
-        corners: MD.Util.corner(0, dgIndex + 1 == count ? root.radius : 0)
+        corners: MD.Util.corners(0, index + 1 == count ? root.radius : 0)
 
         leader: QA.Image {
             radius: 8

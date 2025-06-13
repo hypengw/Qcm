@@ -23,6 +23,7 @@ using stream_type = asio::posix::basic_stream_descriptor<T>;
 #include "Qcm/status/process.hpp"
 #include "Qcm/store.hpp"
 #include "Qcm/util/mem.hpp"
+#include "Qcm/store.hpp"
 
 import ncrequest.event;
 import rstd.rc;
@@ -337,5 +338,10 @@ auto Song::albumName() const -> QString {
     return {};
 }
 } // namespace qcm::model
+
+auto qcm::model::common_extra(model::ItemId id) -> QQmlPropertyMap* {
+    return AppStore::instance()->extra(id);
+}
+
 #include <Qcm/moc_backend_msg.cpp>
 #include <Qcm/moc_backend.cpp>

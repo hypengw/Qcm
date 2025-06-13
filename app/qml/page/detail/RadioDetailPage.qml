@@ -214,7 +214,7 @@ MD.Page {
             onTriggered: {
                 const songs = m_view.model.collectSongs();
                 console.error(songs);
-                QA.Action.switch_to(songs);
+                QA.Action.switch_songs(songs);
             }
         }
     }

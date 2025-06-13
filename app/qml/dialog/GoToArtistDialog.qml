@@ -16,9 +16,9 @@ MD.Dialog {
 
         delegate: MD.ListItem {
             required property var modelData
-            required property int index
+            model: null
             width: ListView.view.width
-            corners: indexCorners(index, count, 16)
+            corners: MD.Util.listCorners(index, count, 16)
 
             leader: QA.Image {
                 source: QA.Util.image_url(m_qr.data.item.itemId)

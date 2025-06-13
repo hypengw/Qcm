@@ -106,7 +106,7 @@ MD.Page {
                 //MD.FlickablePane {
                 //    id: m_view_pane
                 //    view: m_stack.children[m_stack.currentIndex]
-                //    corners: MD.Util.corner(0, root.radius)
+                //    corners: MD.Util.corners(0, root.radius)
                 //    color: root.MD.MProp.backgroundColor
                 //}
 
@@ -144,8 +144,6 @@ MD.Page {
                     Component {
                         id: m_dg_song
                         QA.SongDelegate {
-                            required property int index
-                            required property var model
                             width: ListView.view.contentWidth
                             mdState.backgroundColor: mdState.ctx.color.surface
                             useTracknumber: false
@@ -158,13 +156,11 @@ MD.Page {
                         id: m_dg_album
                         MD.ListItem {
                             id: m_item
-                            required property int index
-                            required property var model
                             width: ListView.view.contentWidth
                             rightPadding: 0
                             text: model.name
                             maximumLineCount: 2
-                            corners: indexCorners(index, count, 16)
+                            corners: MD.Util.listCorners(index, count, 16)
                             supportText: {
                                 const ex = QA.Store.extra(model.itemId);
                                 return [QA.Util.joinName(ex?.artists), QA.Util.formatDateTime(model.publishTime, 'yyyy')].filter(e => !!e).join(' • ');
@@ -196,12 +192,10 @@ MD.Page {
                     Component {
                         id: m_dg_artist
                         MD.ListItem {
-                            required property int index
-                            required property var model
                             width: ListView.view.contentWidth
                             text: model.name
                             maximumLineCount: 2
-                            corners: indexCorners(index, count, 16)
+                            corners: MD.Util.listCorners(index, count, 16)
                             supportText: `${model.albumCount} albums`
                             leader: QA.Image {
                                 radius: 8

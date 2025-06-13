@@ -171,26 +171,30 @@ void model_init(T* self) {
     }
 }
 
-#define QCM_MODEL_COMMON(T, _ItemType)                                              \
-    Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId FINAL)         \
-                                                                                    \
-public:                                                                             \
-    T(): msg::model::T() { model_init<T>(this); }                                   \
-    T(const model::T& o): msg::model::T(o) {}                                       \
-    T(model::T&& o) noexcept: msg::model::T(std::move(o)) {}                        \
-    T& operator=(const model::T& o) {                                               \
-        msg::model::T::operator=(o);                                                \
-        return *this;                                                               \
-    }                                                                               \
-    T& operator=(model::T&& o) noexcept {                                           \
-        msg::model::T::operator=(std::move(o));                                     \
-        return *this;                                                               \
-    }                                                                               \
-    T(const msg::model::T& o): msg::model::T(o) {}                                  \
-    T(msg::model::T&& o) noexcept: msg::model::T(std::move(o)) {}                   \
-    auto itemId() const -> qcm::model::ItemId {                                     \
-        return { enums::ItemType::_ItemType, this->id_proto(), this->libraryId() }; \
-    }                                                                               \
+auto common_extra(model::ItemId id) -> QQmlPropertyMap*;
+
+#define QCM_MODEL_COMMON(T, _ItemType)                                                 \
+    Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId FINAL)            \
+    Q_PROPERTY(QQmlPropertyMap* extra READ extra FINAL)                                \
+                                                                                       \
+public:                                                                                \
+    T(): msg::model::T() { model_init<T>(this); }                                      \
+    T(const model::T& o): msg::model::T(o) {}                                          \
+    T(model::T&& o) noexcept: msg::model::T(std::move(o)) {}                           \
+    T& operator=(const model::T& o) {                                                  \
+        msg::model::T::operator=(o);                                                   \
+        return *this;                                                                  \
+    }                                                                                  \
+    T& operator=(model::T&& o) noexcept {                                              \
+        msg::model::T::operator=(std::move(o));                                        \
+        return *this;                                                                  \
+    }                                                                                  \
+    T(const msg::model::T& o): msg::model::T(o) {}                                     \
+    T(msg::model::T&& o) noexcept: msg::model::T(std::move(o)) {}                      \
+    auto extra() const noexcept -> QQmlPropertyMap* { return common_extra(itemId()); } \
+    auto itemId() const -> qcm::model::ItemId {                                        \
+        return { enums::ItemType::_ItemType, this->id_proto(), this->libraryId() };    \
+    }                                                                                  \
     void setItemId(const qcm::model::ItemId& v) { this->setId_proto(v.id()); }
 
 class Album : public msg::model::Album {
