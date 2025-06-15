@@ -10,7 +10,7 @@ MD.Page {
     title: qsTr('search')
     topPadding: showHeader ? 0 : MD.MProp.size.verticalPadding
 
-    property list<var> models: [m_model.songs, m_model.albums, m_model.artists]
+    property list<QtObject> models: [m_model.songs, m_model.albums, m_model.artists]
     property list<var> delegates: [m_dg_song, m_dg_album, m_dg_artist]
 
     QA.SearchModel {
@@ -85,12 +85,14 @@ MD.Page {
 
                         onClicked: {
                             m_search_type_model.currentIndex = model.index;
+                            m_stack.currentIndex = model.index;
+                            m_stack.updateText(m_search_bar.text);
+                        }
+
+                        Component.onCompleted: {
+                            checked = m_search_type_model.currentIndex == model.index;
                         }
                     }
-                }
-
-                Component.onCompleted: {
-                    m_group.buttons[m_search_type_model.currentIndex].checked = true;
                 }
             }
         }
@@ -113,34 +115,32 @@ MD.Page {
                 StackLayout {
                     id: m_stack
                     anchors.fill: parent
-                    currentIndex: m_search_type_model.currentIndex
 
                     Repeater {
+                        id: m_view_repeater
                         model: m_search_type_model
-
                         BaseView {
                             required property int index
                             model: root.models[index]
                             delegate: root.delegates[index]
+                            Component.onCompleted: {
+                                // workaround for async and qt stacklayout > 6.5
+                                m_stack.currentIndex = 0;
+                            }
                         }
                     }
-
                     function updateText(text: string) {
-                        const q = m_stack.children[currentIndex]?.query;
+                        const r = m_view_repeater;
+                        const q = r.itemAt(currentIndex)?.query;
                         if (!q) {
                             return;
                         }
-                        const v = m_stack.children[currentIndex];
+                        const v = r.itemAt(currentIndex);
                         if (v && v.text != text) {
                             v.text = text;
                             q.doQuery(text, m_search_type_model.currentType);
                         }
                     }
-
-                    onCurrentIndexChanged: {
-                        updateText(m_search_bar.text);
-                    }
-
                     Component {
                         id: m_dg_song
                         QA.SongDelegate {
