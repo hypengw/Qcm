@@ -79,6 +79,7 @@ set(QML_FILES
     qml/page/LibraryPage.qml
     qml/page/StatusPage.qml
     qml/page/SyncPage.qml
+    qml/page/HomePage.qml
     qml/delegate/CommentDelegate.qml
     qml/delegate/SongDelegate.qml
     qml/delegate/PicCardDelegate.qml

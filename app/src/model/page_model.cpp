@@ -4,7 +4,11 @@ namespace qcm
 {
 
 void PageModel::init_main_pages(PageModel* self) {
-    std::array arr { Page { .name   = "library",
+    std::array arr { Page { .name   = "home",
+                            .icon   = "home",
+                            .source = "qrc:/Qcm/App/qml/page/HomePage.qml",
+                            .cache  = true },
+                     Page { .name   = "library",
                             .icon   = "library_music",
                             .source = "qrc:/Qcm/App/qml/page/LibraryPage.qml",
                             .cache  = true },
