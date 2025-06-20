@@ -22,7 +22,7 @@ MD.Card {
             radius: root.background.radius
         }
 
-        ColumnLayout {
+        Column {
             Layout.leftMargin: 16
             Layout.rightMargin: 16
             Layout.topMargin: 8
@@ -31,7 +31,7 @@ MD.Card {
 
             MD.Label {
                 id: label
-                Layout.fillWidth: true
+                width: parent.width
                 text: root.text
                 maximumLineCount: 2
                 typescale: MD.Token.typescale.body_medium
@@ -39,7 +39,7 @@ MD.Card {
 
             MD.Label {
                 id: label_sub
-                Layout.alignment: Qt.AlignHCenter
+                anchors.horizontalCenter: parent.horizontalCenter
                 text: root.subText
                 visible: !!text
                 opacity: 0.6
