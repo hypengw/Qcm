@@ -1,10 +1,10 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import Qcm.Material as MD
+import QtQml.Models
 
 MD.Menu {
     id: root
-    model: null
     contentDelegate: MD.MenuItem {
         required property var model
         text: model.name

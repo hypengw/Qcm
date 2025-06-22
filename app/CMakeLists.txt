@@ -45,6 +45,7 @@ set(SOURCES
     src/query/query.cpp
     src/query/storage_info.cpp
     src/query/query_api.cpp
+    src/query/play_query.cpp
     src/image_provider/response.cpp
     src/image_provider/http.cpp
     src/image_provider/qr.cpp

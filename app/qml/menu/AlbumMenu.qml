@@ -4,22 +4,20 @@ import Qcm.Material as MD
 
 MD.Menu {
     id: root
-
     required property QA.item_id itemId
-
-    dim: false
     font.capitalization: Font.Capitalize
+    dim: false
     modal: true
-
-    onItemIdChanged: {
-        console.error(itemId)
-    }
 
     QA.PlayAction {
         itemId: root.itemId
+        closeMenu: false
     }
+
     QA.FavoriteAction {
+        id: m_favorite_action
         itemId: root.itemId
+        
     }
 
     // QA.CommentAction {

@@ -23,7 +23,7 @@ class QAsyncResult : public QObject {
     Q_OBJECT
 
     Q_PROPERTY(QString error READ error NOTIFY errorChanged BINDABLE bindableError FINAL)
-    Q_PROPERTY(qcm::enums::ApiStatus status READ status WRITE setStatus NOTIFY statusChanged
+    Q_PROPERTY(Status status READ status WRITE setStatus NOTIFY statusChanged
                    BINDABLE bindableStatus FINAL)
     Q_PROPERTY(bool querying READ querying NOTIFY queryingChanged BINDABLE bindableQuerying FINAL)
     Q_PROPERTY(QVariant data READ data NOTIFY dataChanged)
@@ -33,7 +33,15 @@ public:
     QAsyncResult(QObject* parent = nullptr);
     virtual ~QAsyncResult();
 
-    using Status = enums::ApiStatus;
+    enum class Status
+    {
+        Uninitialized = 0,
+        Querying,
+        Finished,
+        Error
+    };
+    Q_ENUM(Status);
+
     auto data() const -> const QVariant&;
     auto data() -> QVariant&;
 
@@ -96,7 +104,6 @@ public:
     }
 
 private:
-
     void  push(std::function<task<void>()>, const std::source_location& loc);
     usize size() const;
 

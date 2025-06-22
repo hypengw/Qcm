@@ -5,14 +5,19 @@ import Qcm.Material as MD
 
 MD.Action {
     id: root
-    property QA.item_id itemId
+    property alias itemId: m_query.itemId
     property QA.item_id sourceId
 
-    enabled: root.itemId.valid && root.itemId !== QA.App.playqueue.currentSong.itemId
+    enabled: root.itemId.valid
     icon.name: MD.Token.icon.play_arrow
     text: qsTr('play')
+    busy: m_query.querying
+    closeMenu: false
 
-    onTriggered: {
-        QA.Action.play(root.itemId);
+    onTriggered: m_query.reload()
+
+    QA.PlayQuery {
+        id: m_query
+        onFinished: MD.Util.closeMenuOn(root)
     }
 }
