@@ -22,12 +22,17 @@ MD.Page {
             height: 400
             width: parent.width
             spacing: 12
-            delegate: QA.PicCardDelegate {
+            delegate: QA.ImagePlayCard {
                 required property var model
+                itemId: model.itemId
                 text: model.name
                 image.source: QA.Util.image_url(model.itemId)
                 width: m_width_provider.width
                 picWidth: width
+
+                onClicked: {
+                    QA.Action.route_by_id(model.itemId);
+                }
             }
 
             MD.WidthProvider {

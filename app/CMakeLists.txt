@@ -83,7 +83,6 @@ set(QML_FILES
     qml/page/HomePage.qml
     qml/delegate/CommentDelegate.qml
     qml/delegate/SongDelegate.qml
-    qml/delegate/PicCardDelegate.qml
     qml/delegate/PicCardGridDelegate.qml
     qml/delegate/ProgramDelegate.qml
     qml/component/auth/AuthEmail.qml
@@ -96,10 +95,14 @@ set(QML_FILES
     qml/component/basic/Leaflet.qml
     qml/component/basic/GridView.qml
     qml/component/basic/ByteSlider.qml
+    qml/component/basic/ImageCard.qml
     qml/component/player/Mpris.qml
     qml/component/player/PlaySlider.qml
     qml/component/player/LyricView.qml
     qml/component/player/VolumeButton.qml
+    qml/component/misc/CardOverlay.qml
+    qml/component/misc/CardPlayOverlay.qml
+    qml/component/misc/ImagePlayCard.qml
     qml/component/misc/OrderChip.qml
     qml/component/misc/ListDescription.qml
     qml/component/misc/ListenIcon.qml

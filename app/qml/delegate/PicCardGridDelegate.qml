@@ -15,7 +15,7 @@ Item {
     height: GridView.view.cellHeight
     implicitHeight: children[0].implicitHeight
 
-    QA.PicCardDelegate {
+    QA.ImageCard {
         id: m_card
         anchors.horizontalCenter: parent.horizontalCenter
         width: parent.GridView.view.fixedCellWidth
