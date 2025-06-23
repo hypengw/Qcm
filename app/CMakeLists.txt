@@ -96,6 +96,7 @@ set(QML_FILES
     qml/component/basic/GridView.qml
     qml/component/basic/ByteSlider.qml
     qml/component/basic/ImageCard.qml
+    qml/component/basic/HorizontalItemBar.qml
     qml/component/player/Mpris.qml
     qml/component/player/PlaySlider.qml
     qml/component/player/LyricView.qml

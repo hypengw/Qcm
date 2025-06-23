@@ -13,15 +13,18 @@ MD.Page {
         property string title
         property alias model: m_view.model
         visible: m_view.count > 0
-        MD.Label {
-            text: m_block.title
-            typescale: MD.Token.typescale.headline_medium
+        spacing: 8
+        QA.HorizontalItemBar {
+            width: parent.width
+            title: m_block.title
+            view: m_view
         }
         MD.HorizontalListView {
             id: m_view
             height: 400
             width: parent.width
             spacing: 12
+            highlightRangeMode: ListView.StrictlyEnforceRange
             delegate: QA.ImagePlayCard {
                 required property var model
                 itemId: model.itemId
