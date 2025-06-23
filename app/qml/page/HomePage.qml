@@ -59,9 +59,10 @@ MD.Page {
                 width: parent.width
                 title: "Recently Added"
                 model: m_recent_query.data
-                AlbumsQuery {
+                QA.AlbumsQuery {
                     id: m_recent_query
                     sort: QM.AlbumSort.ALBUM_SORT_ADDED_TIME
+                    asc: false
                     Component.onCompleted: reload()
                 }
             }
