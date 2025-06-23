@@ -9,8 +9,8 @@ MD.Card {
     property alias image: image
     property string subText
     property int picWidth: 160
-
     horizontalPadding: 0
+    mdState.radius: MD.Token.shape.corner.small
 
     contentItem: ColumnLayout {
         QA.Image {
@@ -19,7 +19,7 @@ MD.Card {
             Layout.preferredHeight: displaySize.height
             displaySize: Qt.size(root.picWidth, root.picWidth)
             fixedSize: false
-            radius: root.background.radius
+            radius: root.mdState.radius
         }
 
         Column {

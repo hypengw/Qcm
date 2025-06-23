@@ -137,7 +137,7 @@ MD.ApplicationWindow {
         }
 
         function onPopup_page(url, props, popup_props, callback) {
-            const popup = MD.Util.showPopup('qrc:/Qcm/App/qml/component/PagePopup.qml', Object.assign({}, {
+            const popup = MD.Util.showPopup('qrc:/Qcm/App/qml/component/page/PagePopup.qml', Object.assign({}, {
                 "source": url,
                 "props": props
             }, popup_props), win);

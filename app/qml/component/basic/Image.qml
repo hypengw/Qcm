@@ -2,8 +2,6 @@ import QtQuick
 import Qcm.App as QA
 import Qcm.Material as MD
 
-import "../js/util.mjs" as Util
-
 MD.Image {
     property size displaySize
     property bool fixedSize: true

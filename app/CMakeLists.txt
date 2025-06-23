@@ -86,30 +86,30 @@ set(QML_FILES
     qml/delegate/PicCardDelegate.qml
     qml/delegate/PicCardGridDelegate.qml
     qml/delegate/ProgramDelegate.qml
-    qml/component/AuthEmail.qml
-    qml/component/AuthQr.qml
-    qml/component/AuthUsername.qml
-    qml/component/OrderChip.qml
-    qml/component/DebugRect.qml
-    qml/component/Mpris.qml
-    qml/component/SongTag.qml
-    qml/component/RouteMsg.qml
-    qml/component/PlaySlider.qml
-    qml/component/ListDescription.qml
-    qml/component/ListenIcon.qml
-    qml/component/LyricView.qml
-    qml/component/Image.qml
-    qml/component/RoundImage.qml
-    qml/component/Leaflet.qml
-    qml/component/GridView.qml
-    qml/component/PageContainer.qml
-    qml/component/PagePopup.qml
-    qml/component/PageStack.qml
-    qml/component/VolumeButton.qml
-    qml/component/SyncingLabel.qml
-    qml/component/ByteSlider.qml
-    qml/component/SettingRow.qml
-    qml/component/SettingSection.qml
+    qml/component/auth/AuthEmail.qml
+    qml/component/auth/AuthQr.qml
+    qml/component/auth/AuthUsername.qml
+    qml/component/basic/DebugRect.qml
+    qml/component/basic/RouteMsg.qml
+    qml/component/basic/Image.qml
+    qml/component/basic/RoundImage.qml
+    qml/component/basic/Leaflet.qml
+    qml/component/basic/GridView.qml
+    qml/component/basic/ByteSlider.qml
+    qml/component/player/Mpris.qml
+    qml/component/player/PlaySlider.qml
+    qml/component/player/LyricView.qml
+    qml/component/player/VolumeButton.qml
+    qml/component/misc/OrderChip.qml
+    qml/component/misc/ListDescription.qml
+    qml/component/misc/ListenIcon.qml
+    qml/component/misc/SyncingLabel.qml
+    qml/component/page/PageContainer.qml
+    qml/component/page/PagePopup.qml
+    qml/component/page/PageStack.qml
+    qml/component/setting/SettingRow.qml
+    qml/component/setting/SettingSection.qml
+    qml/component/tag/SongTag.qml
     qml/action/AppendListAction.qml
     qml/action/PlayAction.qml
     qml/action/PlaynextAction.qml
