@@ -1,5 +1,4 @@
 pragma ComponentBehavior: Bound
-import QtQml.Models
 import QtQuick
 import QtQuick.Layouts
 import Qcm.App as QA
@@ -15,12 +14,6 @@ MD.Page {
 
     function back() {
         m_content.pop(null);
-    }
-    function refresh_list(qr) {
-        const old_limit = qr.limit;
-        qr.limit = 0;
-        qr.offset = 0;
-        qr.limit = Math.max(old_limit, qr.data.rowCount());
     }
 
     QA.Leaflet {
@@ -71,10 +64,6 @@ MD.Page {
                         delegate: dg_albumlist
                         model: qr_albums.data
                         type: 'album'
-                        refresh: function () {
-                            root.refresh_list(qr_albums);
-                        }
-
                         header: HeaderToolBar {
                             model: m_album_sort_type
                         }
@@ -85,9 +74,6 @@ MD.Page {
                         busy: qr_mix.querying
                         delegate: dg_playlist
                         model: qr_mix.data
-                        refresh: function () {
-                            root.refresh_list(qr_mix);
-                        }
                         // MD.FAB {
                         //     anchors.right: parent.right
                         //     anchors.bottom: parent.bottom
@@ -108,9 +94,7 @@ MD.Page {
                         busy: qr_album_artists.querying
                         model: qr_album_artists.data
                         type: 'artist'
-                        refresh: function () {
-                            root.refresh_list(qr_album_artists);
-                        }
+
                         header: HeaderToolBar {
                             model: m_album_artist_sort_type
                         }
@@ -122,35 +106,11 @@ MD.Page {
                         busy: qr_artists.querying
                         model: qr_artists.data
                         type: 'artist'
-                        refresh: function () {
-                            root.refresh_list(qr_artists);
-                        }
+
                         header: HeaderToolBar {
                             model: m_artist_sort_type
                         }
                     }
-                    /*
-
-
-
-
-                    BaseView {
-                        id: view_djradiolist
-                        busy: qr_djradiolist.status === QA.Enum.Querying
-                        delegate: dg_djradiolist
-                        model: qr_djradiolist.data
-                        refresh: function () {
-                            root.refresh_list(qr_djradiolist);
-                        }
-                        Connections {
-                            function onDjradioLiked() {
-                                view_djradiolist.dirty = true;
-                            }
-
-                            target: QA.App
-                        }
-                    }
-                    */
                 }
                 QA.AlbumSortTypeModel {
                     id: m_album_sort_type
@@ -297,27 +257,6 @@ MD.Page {
 
         property bool dirty: false
         property string type
-        property var refresh: function () {}
-
-        function checkCur() {
-            if (currentItem) {
-                if (currentItem.itemId !== m_content.currentItemId)
-                    currentIndex = -1;
-            }
-        }
-        function checkDirty() {
-            if (visible && dirty) {
-                refresh();
-                dirty = false;
-            }
-        }
-
-        Timer {
-            id: timer_dirty
-            repeat: false
-            interval: 1000
-            onTriggered: parent.checkDirty()
-        }
 
         currentIndex: -1
         highlightMoveDuration: 1000
@@ -335,21 +274,11 @@ MD.Page {
             MD.Space {
                 spacing: 8
             }
-            MD.ListBusyFooter {
-                Layout.fillWidth: true
-                running: parent.ListView.view.busy
-            }
-        }
-
-        Component.onCompleted: {
-            visibleChanged.connect(checkCur);
-            currentItemChanged.connect(checkCur);
-            visibleChanged.connect(checkDirty);
-            dirtyChanged.connect(timer_dirty.restart);
         }
     }
 
     component BaseItem: MD.ListItem {
+        id: m_r
         property var itemId: model.itemId
         property string image
 
@@ -360,7 +289,7 @@ MD.Page {
 
         leader: QA.Image {
             radius: 8
-            source: image
+            source: m_r.image
             implicitWidth: displaySize.width
             implicitHeight: displaySize.height
 
@@ -375,10 +304,6 @@ MD.Page {
                     showMenu(this);
             }
         }
-        // divider: MD.Divider {
-        //     anchors.bottom: parent.bottom
-        //     leftMargin: 48 + 16 * 2
-        // }
         onClicked: {
             m_content.route(itemId);
 
@@ -412,12 +337,35 @@ MD.Page {
             Item {
                 Layout.fillWidth: true
             }
-            MD.StandardIconButton {
+            Row {
                 Layout.alignment: Qt.AlignVCenter
-                icon.name: MD.Token.icon.filter_list
-                icon.width: 22
-                icon.height: 22
-                implicitBackgroundSize: 0
+                MD.StandardIconButton {
+                    anchors.verticalCenter: parent.verticalCenter
+                    icon.name: MD.Token.icon.list_alt
+                    icon.width: 22
+                    icon.height: 22
+                    implicitBackgroundSize: 0
+                    onClicked: {
+                        const popup = MD.Util.showPopup(m_display_mode_menu, {}, this);
+                        
+                    }
+                    Component {
+                        id: m_display_mode_menu
+                        QA.DisplayModeMenu {
+                            y: parent.height
+                            modal: true
+                            dim: false
+                        }
+                    }
+                }
+                MD.StandardIconButton {
+
+                    anchors.verticalCenter: parent.verticalCenter
+                    icon.name: MD.Token.icon.filter_list
+                    icon.width: 22
+                    icon.height: 22
+                    implicitBackgroundSize: 0
+                }
             }
         }
         background: Rectangle {

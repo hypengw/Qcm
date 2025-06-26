@@ -138,6 +138,7 @@ set(QML_FILES
     qml/menu/MixMenu.qml
     qml/menu/ProgramMenu.qml
     qml/menu/SortMenu.qml
+    qml/menu/DisplayModeMenu.qml
     qml/page/setting/SettingPage.qml
     qml/page/setting/AudioSetting.qml
     qml/page/setting/MiscSetting.qml

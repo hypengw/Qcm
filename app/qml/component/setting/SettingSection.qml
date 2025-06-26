@@ -9,6 +9,7 @@ MD.Pane {
     property alias title: m_title.text
     padding: 0
     font.capitalization: Font.Capitalize
+    background: null
 
     signal columnChanged
     onColumnChanged: {
