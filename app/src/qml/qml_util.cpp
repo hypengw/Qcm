@@ -18,15 +18,8 @@
 namespace qcm::qml
 {
 
-Util::Util(std::monostate): QObject(nullptr) {}
+Util::Util(): QObject(nullptr) {}
 Util::~Util() {}
-
-Util* Util::create(QQmlEngine*, QJSEngine*) {
-    Util* util = App::instance()->util();
-    // not delete on qml
-    QJSEngine::setObjectOwnership(util, QJSEngine::CppOwnership);
-    return util;
-}
 
 auto Util::createItemid() const -> model::ItemId { return {}; }
 

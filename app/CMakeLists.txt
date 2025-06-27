@@ -56,10 +56,10 @@ set(SOURCES
 set(MODULES src/mod.cppm)
 
 set(QML_FILES
-    qml/js/util.mjs
     qml/PlayBar.qml
     qml/Global.qml
     qml/Window.qml
+    qml/Util.qml
     qml/page/detail/AlbumDetailPage.qml
     qml/page/detail/ArtistDetailPage.qml
     qml/page/detail/RadioDetailPage.qml
@@ -149,6 +149,7 @@ set(QML_FILES
     qml/page/setting/ProviderManagePage.qml)
 set(RESOURCES assets/Qcm.svg)
 
+set_source_files_properties(qml/Util.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 set_source_files_properties(qml/Global.qml PROPERTIES QT_QML_SINGLETON_TYPE
                                                       TRUE)

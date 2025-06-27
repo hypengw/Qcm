@@ -3,7 +3,6 @@ import QtQuick
 import QtQuick.Layouts
 import Qcm.App as QA
 import Qcm.Material as MD
-import "qrc:/Qcm/Material/qml/js/util.mjs" as Util
 
 MD.Page {
     id: root
@@ -56,7 +55,7 @@ MD.Page {
                     Layout.fillWidth: true
                     text: qsTr('Summary')
                     canInput: false
-                    supportText: m_qr_storage.status === QA.Enum.Quering ? qsTr('querying') : Util.pretty_bytes(m_qr_storage.data.total * 1024, 1)
+                    supportText: m_qr_storage.status === QA.Enum.Quering ? qsTr('querying') : QA.Util.pretty_bytes(m_qr_storage.data.total * 1024, 1)
 
                     QA.StorageInfoQuerier {
                         id: m_qr_storage
@@ -75,7 +74,7 @@ MD.Page {
 
                 SettingRow {
                     Layout.fillWidth: true
-                    text: `${qsTr('total size limit')}: ${Util.pretty_bytes(slider_total_cache.byteValue)}`
+                    text: `${qsTr('total size limit')}: ${QA.Util.pretty_bytes(slider_total_cache.byteValue)}`
                     canInput: false
 
                     belowItem: ByteSlider {
@@ -94,7 +93,7 @@ MD.Page {
 
                 SettingRow {
                     Layout.fillWidth: true
-                    text: `${qsTr('music cache limit')}: ${Util.pretty_bytes(slider_media_cache.byteValue)}`
+                    text: `${qsTr('music cache limit')}: ${QA.Util.pretty_bytes(slider_media_cache.byteValue)}`
                     canInput: false
 
                     belowItem: ByteSlider {

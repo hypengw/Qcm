@@ -84,7 +84,7 @@ public:
     Private(App* self)
         : m_p(self),
           m_global(make_rc<Global>()),
-          m_util(make_rc<qml::Util>(std::monostate {})),
+          m_util(make_rc<qml::Util>()),
           m_play_id_queue(new PlayIdQueue(self)),
           m_playqueu(new qcm::PlayQueue(self)),
           m_empty(new qcm::model::EmptyModel(self)),

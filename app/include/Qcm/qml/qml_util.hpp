@@ -15,13 +15,10 @@ namespace qml
 
 class Util : public QObject {
     Q_OBJECT
-    QML_ELEMENT
-    QML_SINGLETON
-
+    QML_NAMED_ELEMENT(UtilCpp)
 public:
-    Util(std::monostate);
+    Util();
     ~Util() override;
-    static Util* create(QQmlEngine* qmlEngine, QJSEngine* jsEngine);
 
     Q_INVOKABLE model::ItemId createItemid() const;
     Q_INVOKABLE model::RouteMsg create_route_msg(QVariantMap) const;
