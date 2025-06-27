@@ -27,6 +27,14 @@ enum class LoopMode
 };
 Q_ENUM_NS(LoopMode)
 
+enum class DisplayMode
+{
+    DList = 0,
+    DGrid,
+    DCardGrid,
+};
+Q_ENUM_NS(DisplayMode)
+
 enum class PluginBasicPage
 {
     BPageLogin

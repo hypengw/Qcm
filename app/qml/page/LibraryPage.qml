@@ -55,60 +55,83 @@ MD.Page {
                         text: qsTr("Artist")
                     }
                 }
-                StackLayout {
-                    currentIndex: bar.currentIndex
 
-                    BaseView {
-                        id: view_albumlist
-                        busy: qr_albums.querying
-                        delegate: dg_albumlist
-                        model: qr_albums.data
-                        type: 'album'
-                        header: HeaderToolBar {
-                            model: m_album_sort_type
+                Item {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    implicitHeight: m_stack_layout.implicitHeight
+                    implicitWidth: m_stack_layout.implicitWidth
+                    clip: true
+
+                    MD.FlickablePane {
+                        corners: MD.Util.corners(0, MD.Token.shape.corner.large)
+                        view: {
+                            const item = m_stack_layout.itemAt(m_stack_layout.currentIndex);
+                            if (!item)
+                                return null;
+                            const displayMode = ((item as ListView).headerItem as HeaderToolBar)?.displayMode ?? 0;
+                            console.error(item);
+                            return displayMode == 0 ? null : (item as ListView);
                         }
                     }
 
-                    BaseView {
-                        id: m_view_mix
-                        busy: qr_mix.querying
-                        delegate: dg_playlist
-                        model: qr_mix.data
-                        // MD.FAB {
-                        //     anchors.right: parent.right
-                        //     anchors.bottom: parent.bottom
-                        //     anchors.rightMargin: 16
-                        //     anchors.bottomMargin: 16
-                        //     flickable: m_view_mix
-                        //     action:MD.Action {
-                        //         icon.name: MD.Token.icon.add
-                        //         onTriggered: {
-                        //             MD.Util.showPopup('qrc:/Qcm/App/qml/dialog/MixCreateDialog.qml', {}, root.Overlay.overlay);
-                        //         }
-                        //     }
-                        // }
+                    MD.WidthProvider {
+                        id: m_wp
+                        total: m_stack_layout.width
+                        minimum: 160
+                        spacing: 12
+                        leftMargin: 8
+                        rightMargin: 8
                     }
-                    BaseView {
-                        id: m_view_album_artists
-                        delegate: dg_artistlist
-                        busy: qr_album_artists.querying
-                        model: qr_album_artists.data
-                        type: 'artist'
 
-                        header: HeaderToolBar {
-                            model: m_album_artist_sort_type
+                    StackLayout {
+                        id: m_stack_layout
+                        anchors.fill: parent
+                        currentIndex: bar.currentIndex
+
+                        BaseView {
+                            id: view_albumlist
+                            busy: qr_albums.querying
+                            delegate: {
+                                const d = displayMode;
+                                return [dg_albumlist, dg_album_card, dg_album_card][d];
+                            }
+                            model: qr_albums.data
+                            type: 'album'
+                            displayMode: (headerItem as HeaderToolBar)?.displayMode ?? 0
+                            header: HeaderToolBar {
+                                model: m_album_sort_type
+                            }
                         }
-                    }
 
-                    BaseView {
-                        id: view_artistlist
-                        delegate: dg_artistlist
-                        busy: qr_artists.querying
-                        model: qr_artists.data
-                        type: 'artist'
+                        BaseView {
+                            id: m_view_mix
+                            busy: qr_mix.querying
+                            delegate: dg_playlist
+                            model: qr_mix.data
+                        }
+                        BaseView {
+                            id: m_view_album_artists
+                            delegate: dg_artistlist
+                            busy: qr_album_artists.querying
+                            model: qr_album_artists.data
+                            type: 'artist'
 
-                        header: HeaderToolBar {
-                            model: m_artist_sort_type
+                            header: HeaderToolBar {
+                                model: m_album_artist_sort_type
+                            }
+                        }
+
+                        BaseView {
+                            id: view_artistlist
+                            delegate: dg_artistlist
+                            busy: qr_artists.querying
+                            model: qr_artists.data
+                            type: 'artist'
+
+                            header: HeaderToolBar {
+                                model: m_artist_sort_type
+                            }
                         }
                     }
                 }
@@ -147,12 +170,6 @@ MD.Page {
                     id: qr_mix
                     Component.onCompleted: reload()
                 }
-                /*
-                QA.RadioCollectionQuery {
-                    id: qr_djradiolist
-                    Component.onCompleted: reload()
-                }
-                */
                 Component {
                     id: dg_albumlist
                     BaseItem {
@@ -169,6 +186,17 @@ MD.Page {
                                 "itemId": model.itemId,
                                 "y": parent.height
                             }, parent);
+                        }
+                    }
+                }
+                Component {
+                    id: dg_album_card
+                    QA.AlbumCardDelegate {
+                        widthProvider: m_wp
+                        mdState.backgroundOpacity: (ListView.view as BaseView).displayMode == QA.Enum.DGrid ? 0 : 1
+                        onClicked: {
+                            m_content.route(model.itemId);
+                            ListView.view.currentIndex = index;
                         }
                     }
                 }
@@ -257,10 +285,15 @@ MD.Page {
 
         property bool dirty: false
         property string type
+        property int displayMode
+        clip: false
 
         currentIndex: -1
         highlightMoveDuration: 1000
         highlightMoveVelocity: -1
+        cacheBuffer: 300
+        displayMarginBeginning: 300
+        displayMarginEnd: 300
 
         footer: ColumnLayout {
             width: parent.width
@@ -316,6 +349,8 @@ MD.Page {
         width: ListView.view.width
         horizontalPadding: 8
         property var model
+        property int displayMode: 0
+
         QA.SortMenu {
             id: m_header_sort_menu
             y: m_header_bar.height
@@ -346,8 +381,9 @@ MD.Page {
                     icon.height: 22
                     implicitBackgroundSize: 0
                     onClicked: {
-                        const popup = MD.Util.showPopup(m_display_mode_menu, {}, this);
-                        
+                        const popup = MD.Util.showPopup(m_display_mode_menu, {
+                            displayMode: m_header_bar.displayMode
+                        }, this);
                     }
                     Component {
                         id: m_display_mode_menu
@@ -355,6 +391,9 @@ MD.Page {
                             y: parent.height
                             modal: true
                             dim: false
+                            onDisplayModeChanged: {
+                                m_header_bar.displayMode = displayMode;
+                            }
                         }
                     }
                 }

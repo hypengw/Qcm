@@ -85,6 +85,7 @@ set(QML_FILES
     qml/delegate/SongDelegate.qml
     qml/delegate/PicCardGridDelegate.qml
     qml/delegate/ProgramDelegate.qml
+    qml/delegate/AlbumCardDelegate.qml
     qml/component/auth/AuthEmail.qml
     qml/component/auth/AuthQr.qml
     qml/component/auth/AuthUsername.qml

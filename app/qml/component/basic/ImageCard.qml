@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Layouts
 import Qcm.App as QA
 import Qcm.Material as MD
 
@@ -9,32 +8,36 @@ MD.Card {
     property alias image: image
     property string subText
     property int picWidth: 160
+    property MD.typescale typescale: MD.Token.typescale.body_medium
+
     horizontalPadding: 0
+    bottomPadding: 8
     mdState.radius: MD.Token.shape.corner.small
 
-    contentItem: ColumnLayout {
+    contentItem: Column {
+        spacing: 8
         QA.Image {
             id: image
-            Layout.preferredWidth: displaySize.width
-            Layout.preferredHeight: displaySize.height
+            width: displaySize.width
+            height: displaySize.height
             displaySize: Qt.size(root.picWidth, root.picWidth)
             fixedSize: false
             radius: root.mdState.radius
         }
 
         Column {
-            Layout.leftMargin: 16
-            Layout.rightMargin: 16
-            Layout.topMargin: 8
-            Layout.bottomMargin: 8
-            Layout.fillWidth: true
+            spacing: 4
+            anchors.leftMargin: 16
+            anchors.rightMargin: 16
+            anchors.left: parent.left
+            anchors.right: parent.right
 
             MD.Label {
                 id: label
                 width: parent.width
                 text: root.text
                 maximumLineCount: 2
-                typescale: MD.Token.typescale.body_medium
+                typescale: root.typescale
             }
 
             MD.Label {
@@ -43,7 +46,7 @@ MD.Card {
                 text: root.subText
                 visible: !!text
                 opacity: 0.6
-                typescale: MD.Token.typescale.body_medium
+                typescale: root.typescale
                 maximumLineCount: 1
             }
         }
