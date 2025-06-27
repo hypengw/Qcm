@@ -151,7 +151,7 @@ MD.Page {
                     }
                     MD.IconButton {
                         flat: true
-                        icon.name: QA.Global.loop_icon
+                        icon.name: QA.Util.loopModeIcon(QA.App.playqueue.loopMode)
 
                         onClicked: QA.App.playqueue.iterLoopMode()
                     }

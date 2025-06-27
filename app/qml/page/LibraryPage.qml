@@ -376,7 +376,7 @@ MD.Page {
                 Layout.alignment: Qt.AlignVCenter
                 MD.StandardIconButton {
                     anchors.verticalCenter: parent.verticalCenter
-                    icon.name: MD.Token.icon.list_alt
+                    icon.name: QA.Util.displayModeIcon(m_header_bar.displayMode)
                     icon.width: 22
                     icon.height: 22
                     implicitBackgroundSize: 0

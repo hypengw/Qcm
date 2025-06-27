@@ -161,7 +161,7 @@ MD.Pane {
                             onClicked: QA.App.playqueue.next()
                         }
                         MD.IconButton {
-                            icon.name: QA.Global.loop_icon
+                            icon.name: QA.Util.loopModeIcon(QA.App.playqueue.loopMode)
 
                             onClicked: {
                                 QA.App.playqueue.iterLoopMode();

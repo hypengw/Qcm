@@ -10,18 +10,6 @@ QA.GlobalWrapper {
 
     readonly property QA.song cur_song: QA.App.playqueue.currentSong
 
-    readonly property string loop_icon: switch (QA.App.playqueue.loopMode) {
-    case QA.Enum.SingleLoop:
-        return MD.Token.icon.repeat_one;
-    case QA.Enum.ListLoop:
-        return MD.Token.icon.loop;
-    case QA.Enum.ShuffleLoop:
-        return MD.Token.icon.shuffle;
-    case QA.Enum.NoneLoop:
-    default:
-        return MD.Token.icon.trending_flat;
-    }
-
     property Window main_win: null
     property alias category: m_category
     property alias player: m_player
@@ -114,7 +102,6 @@ QA.GlobalWrapper {
             MD.Token.color.useSysColorSM = Qt.binding(() => {
                 return root.use_system_color_scheme;
             });
-
         }
     }
 
