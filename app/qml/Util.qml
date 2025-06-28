@@ -7,7 +7,7 @@ import Qcm.Material as MD
 QA.UtilCpp {
     readonly property list<string> byte_units: ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB',]
 
-    function pretty_bytes(number, maxFrac = 0) {
+    function pretty_bytes(number: real, maxFrac = 0): string {
         const UNITS = byte_units;
         const exponent = number < 1 ? 0 : Math.min(Math.floor(Math.log(number) / Math.log(1024)), UNITS.length - 1);
         const unit = UNITS[exponent];
@@ -31,7 +31,7 @@ QA.UtilCpp {
         }
     }
 
-    function displayModeIcon(mode) {
+    function displayModeIcon(mode: int): string {
         switch (mode) {
         case QA.Enum.DGrid:
         case QA.Enum.DCardGrid:
