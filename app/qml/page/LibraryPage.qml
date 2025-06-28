@@ -19,6 +19,7 @@ MD.Page {
     }
 
     readonly property Item libView: Item {
+        visible: false
         implicitHeight: m_stack_layout.implicitHeight
         implicitWidth: m_stack_layout.implicitWidth
         clip: true
@@ -99,28 +100,44 @@ MD.Page {
         }
     }
 
-    readonly property Item chipBar: MD.HorizontalListView {
+    readonly property list<string> tabs: [qsTr("Album"), qsTr("Mix"), qsTr("AlbumArtist"), qsTr("Artist"),]
+    readonly property Item chipBar: Item {
+        visible: false
+        implicitHeight: children[0].implicitHeight + 16
+        MD.HorizontalListView {
+            anchors.centerIn: parent
+            implicitHeight: contentItem.childrenRect.height
+            spacing: 12
+            leftMargin: 8
+            rightMargin: 8
+            width: Math.min(implicitWidth, parent.width)
+            model: root.tabs
+
+            delegate: MD.FilterChip {
+                required property string modelData
+                required property int index
+                checked: index == root.currentIndex
+                text: modelData
+                onClicked: root.currentIndex = index
+            }
+        }
     }
 
     readonly property MD.TabBar tabBar: MD.TabBar {
+        visible: false
         corners: MD.Util.corners(root.radius, 0)
-        MD.TabButton {
-            text: qsTr("Album")
-        }
-        MD.TabButton {
-            text: qsTr("Mix")
-        }
-        MD.TabButton {
-            width: implicitWidth
-            text: qsTr("AlbumArtist")
-        }
-        MD.TabButton {
-            text: qsTr("Artist")
+        Repeater {
+            model: root.tabs
+            MD.TabButton {
+                required property string modelData
+                text: modelData
+            }
         }
     }
 
     readonly property Item pageView: QA.PageContainer {
         id: m_content
+        visible: false
         property var currentItemId: null
         MD.MProp.page: m_page_context
         MD.PageContext {
@@ -129,11 +146,15 @@ MD.Page {
             radius: root.radius
         }
         function route(itemId) {
-            currentItemId = itemId;
-            let url = itemId.pageUrl;
-            switchTo(url, {
-                "itemId": itemId
-            }, false);
+            if (visible) {
+                currentItemId = itemId;
+                let url = itemId.pageUrl;
+                switchTo(url, {
+                    "itemId": itemId
+                }, false);
+            } else {
+                QA.Action.route_by_id(itemId);
+            }
         }
         initialItem: Item {}
     }
@@ -186,12 +207,6 @@ MD.Page {
                 const trackInfo = tc > 0 ? qsTr(`${tc} tracks`) : qsTr('no track');
                 return [QA.Util.joinName(ex?.artists, '/'), trackInfo].filter(e => !!e).join(' - ');
             }
-            function showMenu(parent) {
-                MD.Util.showPopup('qrc:/Qcm/App/qml/menu/AlbumMenu.qml', {
-                    "itemId": model.itemId,
-                    "y": parent.height
-                }, parent);
-            }
         }
     }
     Component {
@@ -211,12 +226,6 @@ MD.Page {
             image: QA.Util.image_url(model.itemId)
             text: model.name
             // supportText: `${model.albumCount} albums`
-            function showMenu(parent) {
-                MD.Util.showPopup('qrc:/Qcm/App/qml/menu/ArtistMenu.qml', {
-                    "itemId": model.itemId,
-                    "y": parent.height
-                }, parent);
-            }
         }
     }
     Component {
@@ -225,13 +234,6 @@ MD.Page {
             image: QA.Util.image_url(model.itemId)
             text: model.name
             supportText: `${model.trackCount} songs`
-            function showMenu(parent) {
-                MD.Util.showPopup('qrc:/Qcm/App/qml/menu/MixMenu.qml', {
-                    "itemId": model.itemId,
-                    "userId": model.userId,
-                    "y": parent.height
-                }, parent);
-            }
         }
     }
     Component {
@@ -240,19 +242,16 @@ MD.Page {
             image: QA.Util.image_url(model.itemId)
             text: model.name
             supportText: `${model.programCount} programs`
-            function showMenu(parent) {
-                MD.Util.showPopup('qrc:/Qcm/App/qml/menu/RadioMenu.qml', {
-                    "itemId": model.itemId,
-                    "y": parent.height
-                }, parent);
-            }
         }
     }
 
     MD.SplitView {
         anchors.fill: parent
         ColumnLayout {
-            LayoutItemProxy {}
+            LayoutItemProxy {
+                Layout.fillWidth: true
+                target: root.chipBar
+            }
 
             LayoutItemProxy {
                 Layout.fillHeight: true
@@ -336,13 +335,11 @@ MD.Page {
             MD.MProp.textColor: MD.Token.color.on_surface_variant
             icon.name: MD.Token.icon.more_vert
             onClicked: {
-                if (showMenu)
-                    showMenu(this);
+                QA.Action.menu_by_id(m_r.itemId, this);
             }
         }
         onClicked: {
             m_content.route(itemId);
-
             ListView.view.currentIndex = index;
         }
     }

@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Templates as T
@@ -68,10 +69,8 @@ MD.Page {
                                 m_theme_mode_view.currentIndex = index;
                                 const g = QA.Global;
                                 if (index == 1) {
-                                    console.error("set light");
                                     g.color_scheme = MD.Enum.Light;
                                 } else if (index == 2) {
-                                    console.error("set dark");
                                     g.color_scheme = MD.Enum.Dark;
                                 }
                                 g.use_system_color_scheme = index == 0;
@@ -206,13 +205,14 @@ MD.Page {
 
                 delegate: Item {
                     id: color_item
+                    required property var modelData
                     Layout.fillWidth: true
                     implicitHeight: implicitWidth
                     implicitWidth: 24
 
                     Rectangle {
                         anchors.centerIn: parent
-                        color: modelData.value
+                        color: parent.modelData.value
                         height: width
                         radius: width / 2
                         width: parent.implicitWidth

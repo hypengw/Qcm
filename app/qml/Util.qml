@@ -17,7 +17,7 @@ QA.UtilCpp {
         return `${prefix}${num_str} ${unit}`;
     }
 
-    function loopModeIcon(loopMode: int): var {
+    function loopModeIcon(loopMode: int): string {
         switch (loopMode) {
         case QA.Enum.SingleLoop:
             return MD.Token.icon.repeat_one;

@@ -34,6 +34,7 @@ Q_SIGNALS:
     void route(const model::RouteMsg& msg);
     void route_by_id(const model::ItemId& id, const QVariantMap& props = {});
     void route_special(QVariant name_id);
+    void menu_by_id(const model::ItemId& id, QObject* parent, const QVariantMap& props = {});
     void popup_special(QVariant name_id);
     void popup_page(const QJSValue& url_or_comp, QVariantMap props, QVariantMap popup_props = {},
                     const QJSValue& callback = {});
@@ -55,7 +56,7 @@ Q_SIGNALS:
     void play_url(const QUrl& url, bool refresh = false);
     void record(enums::RecordAction);
     void playback_log(enums::PlaybackState state, model::ItemId item, model::ItemId souce,
-                     QVariantMap extra = {});
+                      QVariantMap extra = {});
 };
 
 } // namespace qcm

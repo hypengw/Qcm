@@ -145,6 +145,24 @@ MD.ApplicationWindow {
                 callback(popup);
             }
         }
+
+        function onMenu_by_id(id, parent, props) {
+            let url = "";
+            switch (id.type) {
+            case QA.Enum.ItemAlbum:
+                url = 'qrc:/Qcm/App/qml/menu/AlbumMenu.qml';
+                break;
+            case QA.Enum.ItemArtist:
+            case QA.Enum.ItemAlbumArtist:
+                url = 'qrc:/Qcm/App/qml/menu/ArtistMenu.qml';
+                break;
+            }
+            if (!url)
+                return;
+            MD.Util.showPopup(url, Object.assign({}, props, {
+                itemId: id
+            }), parent);
+        }
     }
 
     Timer {
