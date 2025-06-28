@@ -55,7 +55,7 @@ MD.Page {
                     Layout.fillWidth: true
                     text: qsTr('Summary')
                     canInput: false
-                    supportText: m_qr_storage.status === QA.Enum.Quering ? qsTr('querying') : QA.Util.pretty_bytes(m_qr_storage.data.total * 1024, 1)
+                    supportText: m_qr_storage.status === QA.Enum.Quering ? qsTr('querying') : QA.Util.prettyBytes(m_qr_storage.data.total * 1024, 1)
 
                     QA.StorageInfoQuerier {
                         id: m_qr_storage
@@ -74,7 +74,7 @@ MD.Page {
 
                 SettingRow {
                     Layout.fillWidth: true
-                    text: `${qsTr('total size limit')}: ${QA.Util.pretty_bytes(slider_total_cache.byteValue)}`
+                    text: `${qsTr('total size limit')}: ${QA.Util.prettyBytes(slider_total_cache.byteValue)}`
                     canInput: false
 
                     belowItem: ByteSlider {
@@ -93,7 +93,7 @@ MD.Page {
 
                 SettingRow {
                     Layout.fillWidth: true
-                    text: `${qsTr('music cache limit')}: ${QA.Util.pretty_bytes(slider_media_cache.byteValue)}`
+                    text: `${qsTr('music cache limit')}: ${QA.Util.prettyBytes(slider_media_cache.byteValue)}`
                     canInput: false
 
                     belowItem: ByteSlider {
