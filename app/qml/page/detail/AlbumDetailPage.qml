@@ -13,7 +13,7 @@ MD.Page {
     title: qsTr("album")
 
     padding: 0
-    scrolling: view?.atYBeginning ?? false
+    scrolling: !view?.atYBeginning
 
     readonly property var model: qr_al.data
     property Flickable view: null

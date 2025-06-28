@@ -62,7 +62,6 @@ MD.Page {
                 }
                 model: qr_albums.data
                 type: 'album'
-                displayMode: (headerItem as HeaderToolBar)?.displayMode ?? 0
                 header: HeaderToolBar {
                     model: m_album_sort_type
                 }
@@ -76,10 +75,13 @@ MD.Page {
             }
             BaseView {
                 id: m_view_album_artists
-                delegate: dg_artistlist
                 busy: qr_album_artists.querying
                 model: qr_album_artists.data
                 type: 'artist'
+                delegate: {
+                    const d = displayMode;
+                    return [dg_artistlist, dg_artist_card, dg_artist_card][d];
+                }
 
                 header: HeaderToolBar {
                     model: m_album_artist_sort_type
@@ -88,10 +90,13 @@ MD.Page {
 
             BaseView {
                 id: view_artistlist
-                delegate: dg_artistlist
                 busy: qr_artists.querying
                 model: qr_artists.data
                 type: 'artist'
+                delegate: {
+                    const d = displayMode;
+                    return [dg_artistlist, dg_artist_card, dg_artist_card][d];
+                }
 
                 header: HeaderToolBar {
                     model: m_artist_sort_type
@@ -116,6 +121,7 @@ MD.Page {
             delegate: MD.FilterChip {
                 required property string modelData
                 required property int index
+                checkable: false
                 checked: index == root.currentIndex
                 text: modelData
                 onClicked: root.currentIndex = index
@@ -221,6 +227,17 @@ MD.Page {
         }
     }
     Component {
+        id: dg_artist_card
+        QA.ArtistCardDelegate {
+            widthProvider: m_wp
+            mdState.backgroundOpacity: (ListView.view as BaseView).displayMode == QA.Enum.DGrid ? 0 : 1
+            onClicked: {
+                m_content.route(model.itemId);
+                ListView.view.currentIndex = index;
+            }
+        }
+    }
+    Component {
         id: dg_artistlist
         BaseItem {
             image: QA.Util.image_url(model.itemId)
@@ -287,7 +304,7 @@ MD.Page {
 
         property bool dirty: false
         property string type
-        property int displayMode
+        property int displayMode: (headerItem as HeaderToolBar)?.displayMode ?? 0
         clip: false
 
         currentIndex: -1

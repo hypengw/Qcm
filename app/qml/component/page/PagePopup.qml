@@ -14,7 +14,6 @@ MD.Popup {
     parent: T.Overlay.overlay
     width: Math.min(400, parent.width)
     height: Math.min(implicitHeight, parent.height * 0.8)
-    modal: true
 
     mdState.textColor: MD.MProp.color.on_surface
     mdState.backgroundColor: MD.MProp.color.surface
@@ -33,6 +32,7 @@ MD.Popup {
     }
 
     radius: MD.MProp.size.isCompact ? 0 : MD.Token.shape.corner.large
+    modal: !MD.MProp.size.isCompact
 
     Binding {
         when: root.MD.MProp.size.isCompact
