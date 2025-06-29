@@ -21,7 +21,8 @@ class SortTypeModel : public meta_model::QGadgetListModel<SortTypeItem> {
 
     Q_PROPERTY(qint32 currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY
                    currentIndexChanged FINAL)
-    Q_PROPERTY(qint32 currentType READ currentType NOTIFY currentTypeChanged FINAL)
+    Q_PROPERTY(
+        qint32 currentType READ currentType WRITE setCurrentType NOTIFY currentTypeChanged FINAL)
     Q_PROPERTY(bool asc READ asc WRITE setAsc NOTIFY ascChanged FINAL)
     using Base = meta_model::QGadgetListModel<SortTypeItem>;
 
@@ -31,6 +32,7 @@ public:
     auto currentIndex() const -> qint32;
     auto currentType() const -> qint32;
     void setCurrentIndex(qint32);
+    void setCurrentType(qint32);
 
     auto asc() const -> bool;
     void setAsc(bool);

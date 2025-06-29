@@ -22,6 +22,16 @@ void SortTypeModel::setCurrentIndex(qint32 v) {
         currentTypeChanged();
     }
 }
+void SortTypeModel::setCurrentType(qint32 t) {
+    for (usize i = 0; i < this->size(); i++) {
+        auto& el = at(i);
+        if (el.type == t) {
+            setCurrentIndex(i);
+            break;
+        }
+    }
+}
+
 auto SortTypeModel::asc() const -> bool { return m_asc; }
 void SortTypeModel::setAsc(bool v) {
     if (m_asc != v) {
@@ -71,7 +81,8 @@ SongSortTypeModel::SongSortTypeModel(QObject* parent): SortTypeModel(parent) {
 
 SongSortFilterModel::SongSortFilterModel(QObject* parent)
     : QSortFilterProxyModel(parent), m_sort_type(0), m_asc(true) {
-    connect(this, &SongSortFilterModel::sourceModelChanged, this, &SongSortFilterModel::freshSortType);
+    connect(
+        this, &SongSortFilterModel::sourceModelChanged, this, &SongSortFilterModel::freshSortType);
     connect(this, &SongSortFilterModel::sortTypeChanged, this, &SongSortFilterModel::freshSortType);
     connect(this, &SongSortFilterModel::sortRoleChanged, this, &SongSortFilterModel::freshSort);
     connect(this, &SongSortFilterModel::ascChanged, this, &SongSortFilterModel::freshSort);

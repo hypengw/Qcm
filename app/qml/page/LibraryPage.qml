@@ -1,4 +1,5 @@
 pragma ComponentBehavior: Bound
+import QtCore
 import QtQuick
 import QtQuick.Layouts
 import Qcm.App as QA
@@ -54,8 +55,9 @@ MD.Page {
             }
 
             BaseView {
-                id: view_albumlist
+                id: m_view_album
                 busy: qr_albums.querying
+                displayMode: m_album_setting.display_mode
                 delegate: {
                     const d = displayMode;
                     return [dg_albumlist, dg_album_card, dg_album_card][d];
@@ -64,6 +66,8 @@ MD.Page {
                 type: 'album'
                 header: HeaderToolBar {
                     model: m_album_sort_type
+                    displayMode: m_view_album.displayMode
+                    onSelectDisplayMode: m => m_album_setting.display_mode = m
                 }
             }
 
@@ -74,8 +78,9 @@ MD.Page {
                 model: qr_mix.data
             }
             BaseView {
-                id: m_view_album_artists
+                id: m_view_album_artist
                 busy: qr_album_artists.querying
+                displayMode: m_album_artist_setting.display_mode
                 model: qr_album_artists.data
                 type: 'artist'
                 delegate: {
@@ -85,13 +90,16 @@ MD.Page {
 
                 header: HeaderToolBar {
                     model: m_album_artist_sort_type
+                    displayMode: m_view_album_artist.displayMode
+                    onSelectDisplayMode: m => m_album_artist_setting.display_mode = m
                 }
             }
 
             BaseView {
-                id: view_artistlist
+                id: m_view_artist
                 busy: qr_artists.querying
                 model: qr_artists.data
+                displayMode: m_artist_setting.display_mode
                 type: 'artist'
                 delegate: {
                     const d = displayMode;
@@ -100,6 +108,8 @@ MD.Page {
 
                 header: HeaderToolBar {
                     model: m_artist_sort_type
+                    displayMode: m_view_artist.displayMode
+                    onSelectDisplayMode: m => m_artist_setting.display_mode = m
                 }
             }
         }
@@ -163,43 +173,6 @@ MD.Page {
             }
         }
         initialItem: Item {}
-    }
-
-    QA.AlbumSortTypeModel {
-        id: m_album_sort_type
-    }
-    QA.ArtistSortTypeModel {
-        id: m_artist_sort_type
-    }
-    QA.ArtistSortTypeModel {
-        id: m_album_artist_sort_type
-    }
-
-    QA.AlbumsQuery {
-        id: qr_albums
-        asc: m_album_sort_type.asc
-        sort: m_album_sort_type.currentType
-        onAscChanged: reload()
-        onSortChanged: reload()
-        Component.onCompleted: reload()
-    }
-    QA.ArtistsQuery {
-        id: qr_artists
-        asc: m_artist_sort_type.asc
-        sort: m_artist_sort_type.currentType
-        onAscChanged: reload()
-        onSortChanged: reload()
-        Component.onCompleted: reload()
-    }
-    QA.AlbumArtistsQuery {
-        id: qr_album_artists
-        asc: m_album_artist_sort_type.asc
-        sort: m_album_artist_sort_type.currentType
-        Component.onCompleted: reload()
-    }
-    QA.MixesQuery {
-        id: qr_mix
-        Component.onCompleted: reload()
     }
 
     Component {
@@ -304,7 +277,7 @@ MD.Page {
 
         property bool dirty: false
         property string type
-        property int displayMode: (headerItem as HeaderToolBar)?.displayMode ?? 0
+        property int displayMode: 0
         clip: false
 
         currentIndex: -1
@@ -367,6 +340,7 @@ MD.Page {
         horizontalPadding: 8
         property var model
         property int displayMode: 0
+        signal selectDisplayMode(int mode)
 
         QA.SortMenu {
             id: m_header_sort_menu
@@ -409,7 +383,7 @@ MD.Page {
                             modal: true
                             dim: false
                             onDisplayModeChanged: {
-                                m_header_bar.displayMode = displayMode;
+                                m_header_bar.selectDisplayMode(displayMode);
                             }
                         }
                     }
@@ -427,5 +401,71 @@ MD.Page {
         background: Rectangle {
             color: MD.MProp.color.surface
         }
+    }
+
+    QA.AlbumSortTypeModel {
+        id: m_album_sort_type
+    }
+    QA.ArtistSortTypeModel {
+        id: m_artist_sort_type
+    }
+    QA.ArtistSortTypeModel {
+        id: m_album_artist_sort_type
+    }
+
+    QA.AlbumsQuery {
+        id: qr_albums
+        asc: m_album_sort_type.asc
+        sort: m_album_sort_type.currentType
+        onAscChanged: reload()
+        onSortChanged: reload()
+        Component.onCompleted: reload()
+    }
+    QA.ArtistsQuery {
+        id: qr_artists
+        asc: m_artist_sort_type.asc
+        sort: m_artist_sort_type.currentType
+        onAscChanged: reload()
+        onSortChanged: reload()
+        Component.onCompleted: reload()
+    }
+    QA.AlbumArtistsQuery {
+        id: qr_album_artists
+        asc: m_album_artist_sort_type.asc
+        sort: m_album_artist_sort_type.currentType
+        Component.onCompleted: reload()
+    }
+    QA.MixesQuery {
+        id: qr_mix
+        Component.onCompleted: reload()
+    }
+
+    Settings {
+        category: "library"
+        property alias index: root.currentIndex
+    }
+
+    Settings {
+        id: m_album_setting
+        category: "library.album"
+        property int display_mode: 0
+        property alias sort: m_album_sort_type.currentType
+        property alias asc: m_album_sort_type.asc
+    }
+
+    Settings {
+        id: m_artist_setting
+        category: "library.artist"
+        property int display_mode: 0
+        property alias sort: m_artist_sort_type.currentType
+        property alias asc: m_artist_sort_type.asc
+    }
+
+    Settings {
+        id: m_album_artist_setting
+        category: "library.album_artist"
+        property int display_mode: 0
+        property alias sort: m_album_artist_sort_type.currentType
+        property alias asc: m_album_artist_sort_type.asc
     }
 }
