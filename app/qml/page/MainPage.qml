@@ -148,6 +148,8 @@ MD.Page {
                 }
             }
             LayoutItemProxy {
+                Layout.fillWidth: true
+                // z: -99
                 target: m_play_bar
             }
         }
@@ -162,6 +164,8 @@ MD.Page {
             }
 
             LayoutItemProxy {
+                Layout.fillWidth: true
+                z: -99
                 target: m_play_bar
             }
 
@@ -197,13 +201,36 @@ MD.Page {
             }
         }
     }
-
     Item {
         visible: false
-        QA.PlayBar {
+
+        Item {
             id: m_play_bar
-            Layout.fillWidth: true
+            implicitHeight: children[0].implicitHeight
+            property point origin: Qt.point(0, 0)
+            function updateOrigin() {
+                const p = m_play_bar.mapFromGlobal(0, 0);
+                origin = p;
+            }
+            Connections {
+                function onParentChanged() {
+                    m_play_bar.updateOrigin();
+                }
+                function onYChanged() {
+                    m_play_bar.updateOrigin();
+                }
+                target: m_play_bar
+            }
+
+            QA.PlayBarFlickable {
+                y: m_play_bar.origin.y
+                topMargin: Math.abs(y)
+                contentY: 0
+                width: parent.width
+                height: m_play_bar.Window.height
+            }
         }
+
         ColumnLayout {
             id: m_content
             Layout.fillHeight: true

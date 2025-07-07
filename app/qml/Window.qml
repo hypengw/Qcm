@@ -216,11 +216,11 @@ MD.ApplicationWindow {
         MD.StackView {
             id: sv_main
 
-            property var playing_page: {
-                const page = MD.Util.createItem(comp_playing, {}, sv_main);
-                page.visible = false;
-                playing_page = page;
-            }
+            // property var playing_page: {
+            //     const page = MD.Util.createItem(comp_playing, {}, sv_main);
+            //     page.visible = false;
+            //     playing_page = page;
+            // }
 
             clip: true
 
@@ -235,24 +235,19 @@ MD.ApplicationWindow {
                 }
             }
 
-            Component.onDestruction: {
-                playing_page.destroy();
-            }
-
             Connections {
                 function onRoute_special(name) {
-                    if (name === 'main')
+                    if (name === 'main') {
                         sv_main.pop(null);
-                    else if (name === 'playing')
-                        sv_main.push(sv_main.playing_page);
+                    } else if (name === 'playing') {}
                 }
 
                 target: QA.Action
             }
-            Component {
-                id: comp_playing
-                QA.PlayingPage {}
-            }
+            // Component {
+            //     id: comp_playing
+            //     QA.PlayingPage {}
+            // }
         }
     }
     Component {

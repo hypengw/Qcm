@@ -35,24 +35,6 @@ QA.GlobalWrapper {
         }
     }
 
-    function route(dest, props = {}) {
-        let url = dest;
-        if (QA.App.isItemId(dest)) {
-            url = QA.App.itemIdPageUrl(dest);
-            props = {
-                "itemId": dest
-            };
-        }
-        if (QA.App.debug)
-            console.error('route to:', url);
-        QA.Action.route_special('main');
-        const msg = QA.Util.create_route_msg({
-            "url": url,
-            "props": props
-        });
-        QA.Action.route(msg);
-    }
-
     function toggleColorScheme() {
         color_scheme = color_scheme == MD.Enum.Dark ? MD.Enum.Light : MD.Enum.Dark;
     }
@@ -130,6 +112,14 @@ QA.GlobalWrapper {
             if (url) {
                 m_player.play();
             }
+        }
+
+        function onToggle() {
+            const player = QA.Global.player;
+            if (player.playing)
+                player.pause();
+            else
+                player.play();
         }
     }
 

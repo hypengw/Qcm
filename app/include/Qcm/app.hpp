@@ -131,7 +131,6 @@ public:
     Q_SLOT void on_switch_queue(model::IdQueue*);
     Q_SLOT void on_logout();
     Q_SLOT void on_record(enums::RecordAction);
-
     Q_SLOT void on_route_by_id(const model::ItemId&, const QVariantMap&);
 
 private:

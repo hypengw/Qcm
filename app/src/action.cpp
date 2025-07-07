@@ -198,7 +198,7 @@ void App::on_queue_next(const std::vector<model::ItemId>& songIds, model::ItemId
     switchPlayIdQueue();
 
     auto q        = App::instance()->play_id_queue();
-    auto idx = std::min(q->currentIndex() + 1, q->rowCount());
+    auto idx      = std::min(q->currentIndex() + 1, q->rowCount());
     auto inserted = q->insert(idx, songIds);
     {
         auto q = App::instance()->playqueue();
@@ -269,7 +269,6 @@ void App::on_route_by_id(const model::ItemId& id, const QVariantMap& in_props) {
     }
     Action::instance()->route(msg);
 }
-
 } // namespace qcm
 
 #include <Qcm/moc_action.cpp>

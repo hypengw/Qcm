@@ -1,18 +1,48 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Shapes
 import Qcm.App as QA
 import Qcm.Material as MD
 
 MD.Page {
     id: root
-
     showBackground: true
-    backgroundColor: MD.MProp.color.surface
-
+    backgroundColor: MD.MProp.color.primary
     readonly property var song: QA.App.playqueue.currentSong
     readonly property list<var> artists: {
         const ex = QA.Store.extra(song.itemId);
         return ex?.artists ?? [];
+    }
+
+    background: Rectangle {
+        id: m_background
+        color: m_color_mgr.accentColor
+        border.width: 0
+        MD.Shape {
+            MD.RectPath {
+                strokeColor: "transparent"
+                width: m_background.width
+                height: m_background.height
+                fillGradient: LinearGradient {
+                    y2: m_background.height
+
+                    GradientStop {
+                        position: 0.0
+                        color: Qt.alpha("#000000", 0)
+                    }
+                    GradientStop {
+                        position: 1.0
+                        color: Qt.alpha("#000000", 0.33)
+                    }
+                }
+            }
+        }
+    }
+
+    MD.MProp.color: MD.MdColorMgr {
+        id: m_color_mgr
+        useSysColorSM: false
+        mode: MD.Enum.Dark
     }
 
     header: MD.Pane {
@@ -66,6 +96,7 @@ MD.Page {
             Layout.fillWidth: true
             contentHeight: contentChildren[1].implicitHeight
             contentWidth: contentChildren[1].implicitWidth
+            background: null
 
             MouseArea {
                 anchors.fill: parent
@@ -91,6 +122,14 @@ MD.Page {
                     displaySize: Qt.size(size, size)
                     fixedSize: false
                     readonly property real size: Math.max(240, (root.Window.window?.width ?? 8) / 4.0)
+
+                    onStatusChanged: {
+                        if (status == Image.Ready) {
+                            grabToImage(function (result) {
+                                m_color_mgr.selectFromImage(result.image);
+                            });
+                        }
+                    }
                 }
                 MD.Text {
                     Layout.alignment: Qt.AlignHCenter
@@ -226,6 +265,7 @@ MD.Page {
             Layout.fillHeight: true
             Layout.fillWidth: true
             implicitWidth: play_pane.implicitWidth
+            background: null
 
             QA.LyricQuery {
                 id: m_query

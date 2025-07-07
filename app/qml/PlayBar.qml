@@ -19,14 +19,6 @@ MD.Pane {
     readonly property bool isSmall: root.width > 0 && root.width < 650
     padding: 0
 
-    function swich_play() {
-        const player = QA.Global.player;
-        if (player.playing)
-            player.pause();
-        else
-            player.play();
-    }
-
     Item {
         anchors.fill: parent
         implicitHeight: m_content.implicitHeight
@@ -48,7 +40,7 @@ MD.Pane {
 
             Shortcut {
                 sequences: ["Space"]
-                onActivated: root.swich_play()
+                onActivated: QA.Action.toggle()
             }
 
             Item {
@@ -152,7 +144,7 @@ MD.Pane {
                             type: MD.Enum.IBtFilled
                             icon.name: QA.Global.player.playing ? MD.Token.icon.pause : MD.Token.icon.play_arrow
 
-                            onClicked: root.swich_play()
+                            onClicked: QA.Action.toggle()
                         }
                         MD.IconButton {
                             enabled: QA.App.playqueue.canNext
@@ -231,7 +223,7 @@ MD.Pane {
                         MD.IconButton {
                             icon.name: QA.Global.player.playing ? MD.Token.icon.pause : MD.Token.icon.play_arrow
 
-                            onClicked: root.swich_play()
+                            onClicked: QA.Action.toggle()
 
                             MD.CircleProgressBar {
                                 anchors.centerIn: parent

@@ -43,6 +43,7 @@ Q_SIGNALS:
                QObject* action = nullptr);
     void collect(model::ItemId itemId, bool act = true);
 
+    void toggle();
     void next();
     void prev();
 

@@ -60,6 +60,7 @@ set(QML_FILES
     qml/Global.qml
     qml/Window.qml
     qml/Util.qml
+    qml/PlayBarFlickable.qml
     qml/page/detail/AlbumDetailPage.qml
     qml/page/detail/ArtistDetailPage.qml
     qml/page/detail/RadioDetailPage.qml
