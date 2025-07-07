@@ -73,13 +73,17 @@ MD.VerticalListView {
             }
         }
     }
-    delegate: MD.ListItem {
+    delegate: MD.ItemDelegate {
+        id: m_lyric_item
+        required property int index
+        required property var model
+
         readonly property bool current: root.model.currentIndex === index
         width: ListView.view.width
 
-        contentItem: ColumnLayout {
+        contentItem: Column {
             MD.Text {
-                Layout.fillWidth: true
+                width: parent.width
                 typescale: {
                     const ts = MD.Token.typescale.title_large.fresh();
                     ts.weight = Font.DemiBold;
@@ -87,8 +91,8 @@ MD.VerticalListView {
                 }
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
-                text: model.content
-                color: current ? MD.Token.color.primary : MD.Token.color.on_surface
+                text: m_lyric_item.model.content
+                color: m_lyric_item.current ? root.MD.MProp.color.on_primary : root.MD.MProp.textColor
                 maximumLineCount: -1
             }
         }

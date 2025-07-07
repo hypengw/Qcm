@@ -39,6 +39,8 @@ MD.Page {
         }
     }
 
+    MD.MProp.backgroundColor: "transparent"
+    MD.MProp.textColor: MD.MProp.color.on_surface
     MD.MProp.color: MD.MdColorMgr {
         id: m_color_mgr
         useSysColorSM: false
