@@ -42,6 +42,7 @@ Q_SIGNALS:
     void toast(QString text, qint32 duration = 3000, enums::ToastFlags flags = {},
                QObject* action = nullptr);
     void collect(model::ItemId itemId, bool act = true);
+    void toggle_playbar();
 
     void toggle();
     void next();

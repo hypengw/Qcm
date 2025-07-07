@@ -29,7 +29,7 @@ MD.Pane {
             hoverEnabled: true
 
             onClicked: {
-                QA.Action.route_special('playing');
+                QA.Action.toggle_playbar();
             }
         }
 

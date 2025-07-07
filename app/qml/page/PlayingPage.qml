@@ -63,7 +63,7 @@ MD.Page {
                         if (root.canBack) {
                             root.back();
                         } else {
-                            QA.Action.route_special('main');
+                            QA.Action.toggle_playbar();
                         }
                     }
                 }
