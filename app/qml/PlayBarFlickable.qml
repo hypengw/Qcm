@@ -4,79 +4,110 @@ import Qcm.App as QA
 
 Flickable {
     id: root
+
     implicitHeight: m_bar.implicitHeight
     boundsBehavior: Flickable.StopAtBounds
-    contentHeight: Window.height
 
-    onFlickStarted: resetToBoundsOnFlick()
-    onMovementEnded: resetToBoundsOnFlick()
-    onHeightChanged: resetToBoundsOnResize()
+    // manual topMargin
+    contentHeight: windowHeight + Math.abs(y)
+    readonly property int windowHeight: Window.height
+    readonly property real contentYRadio: visibleArea.yPosition / Math.max((1 - visibleArea.heightRatio), 0.001)
+    property bool closed: true
 
-    NumberAnimation {
-        id: toOpen
-        target: root
-        property: 'contentY'
-        from: root.contentY
-        to: root.contentHeight / 2
-        duration: 350
-        easing.type: Easing.OutCubic
-        running: false
+    // onFlickStarted: resetToBoundsOnFlick()
+    onMovementStarted: {
+        state = 'drag';
     }
-
-    NumberAnimation {
-        id: toClose
-        target: root
-        property: 'contentY'
-        from: root.contentY
-        to: 0
-        duration: 350
-        easing.type: Easing.OutCubic
-        running: false
+    onFlickStarted: {
+        chooseState();
+        cancelFlick();
     }
-
-    function resetToBoundsOnFlick() {
-        if (!atYBeginning || !atYEnd) {
+    onMovementEnded: {
+        chooseState();
+    }
+    function chooseState() {
+        if (state != 'drag')
+            return;
+        let toOpen = contentY > m_content.y / 2;
+        if (flicking) {
             if (verticalVelocity > 0) {
-                toOpen.restart();
+                toOpen = true;
             } else if (verticalVelocity < 0) {
-                toClose.restart();
-            } else {
-                // i.e. when verticalVelocity === 0
-                if (contentY > contentHeight / 4) {
-                    toOpen.restart();
-                } else {
-                    toClose.restart();
-                }
+                toOpen = false;
             }
         }
+        state = toOpen ? 'open' : 'close';
     }
 
-    function resetToBoundsOnResize() {
-        if (contentY > contentHeight / 4) {
-            contentY = contentHeight / 2;
-        } else {
-            contentY = 0;
+    state: 'close'
+
+    states: [
+        State {
+            name: 'close'
+            PropertyChanges {
+                root.contentY: 0
+                root.closed: true
+                restoreEntryValues: false
+            }
+        },
+        State {
+            name: 'drag'
+            PropertyChanges {
+                root.closed: false
+                restoreEntryValues: false
+            }
+        },
+        State {
+            name: 'open'
+            PropertyChanges {
+                root.contentY: m_content.y
+                root.closed: false
+                restoreEntryValues: false
+            }
         }
-    }
+    ]
+
+    transitions: [
+        Transition {
+            to: 'close'
+            SequentialAnimation {
+                NumberAnimation {
+                    property: 'contentY'
+                    duration: 300
+                }
+                PropertyAction {
+                    property: 'closed'
+                }
+            }
+        },
+        Transition {
+            to: 'open'
+            NumberAnimation {
+                property: 'contentY'
+                duration: 300
+            }
+        }
+    ]
 
     Item {
-        id: m_content
         height: root.contentHeight
         width: parent.width
 
-        QA.PlayingPage {
-            id: m_page
-            anchors.fill: parent
-        }
-        QA.PlayBar {
-            id: m_bar
+        Item {
+            id: m_content
+            y: parent.height - height
+            height: root.windowHeight
             width: parent.width
-        }
-
-        Rectangle {
-            anchors.fill: parent
-            color: 'red'
-            opacity: 0.2
+            QA.PlayingPage {
+                id: m_page
+                anchors.fill: parent
+                opacity: root.contentYRadio
+            }
+            QA.PlayBar {
+                id: m_bar
+                width: parent.width
+                opacity: 1 - root.contentYRadio
+            }
         }
     }
 }

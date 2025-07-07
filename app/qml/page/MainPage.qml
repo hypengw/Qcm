@@ -149,7 +149,7 @@ MD.Page {
             }
             LayoutItemProxy {
                 Layout.fillWidth: true
-                // z: -99
+                z: m_play_bar_flick.closed ? -99 : 0
                 target: m_play_bar
             }
         }
@@ -212,22 +212,15 @@ MD.Page {
                 const p = m_play_bar.mapFromGlobal(0, 0);
                 origin = p;
             }
-            Connections {
-                function onParentChanged() {
-                    m_play_bar.updateOrigin();
-                }
-                function onYChanged() {
-                    m_play_bar.updateOrigin();
-                }
-                target: m_play_bar
-            }
+            onParentChanged: updateOrigin()
+            onYChanged: updateOrigin()
 
             QA.PlayBarFlickable {
+                id: m_play_bar_flick
                 y: m_play_bar.origin.y
-                topMargin: Math.abs(y)
-                contentY: 0
                 width: parent.width
-                height: m_play_bar.Window.height
+                height: windowHeight
+                onHeightChanged: m_play_bar.updateOrigin()
             }
         }
 
