@@ -9,6 +9,8 @@ project(
   HOMEPAGE_URL "https://github.com/hypengw/Qcm"
   DESCRIPTION "Material You cloud music player")
 
+set(CMAKE_CXX_COMPILER clang++ CACHE STRING "default clang++")
+
 set(CMAKE_POLICY_DEFAULT_CMP0065 NEW) # remove unnecessary -rdynamic
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 set(CMAKE_CXX_STANDARD 23)
