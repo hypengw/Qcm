@@ -149,7 +149,7 @@ MD.Page {
             }
             LayoutItemProxy {
                 Layout.fillWidth: true
-                z: m_play_bar_flick.closed ? -99 : 0
+                z: m_play_bar_flick.closed ? -99 : 99
                 target: m_play_bar
             }
         }
@@ -165,7 +165,7 @@ MD.Page {
 
             LayoutItemProxy {
                 Layout.fillWidth: true
-                z: -99
+                z: m_play_bar_flick.closed ? -99 : 1
                 target: m_play_bar
             }
 
@@ -214,6 +214,14 @@ MD.Page {
             }
             onParentChanged: updateOrigin()
             onYChanged: updateOrigin()
+
+            MD.InputBlock {
+                target: m_play_bar_flick
+                acceptWheel: !m_play_bar_flick.closed
+                acceptHover: true
+                acceptTouch: true
+                acceptMouseButtons: Qt.LeftButton
+            }
 
             QA.PlayBarFlickable {
                 id: m_play_bar_flick

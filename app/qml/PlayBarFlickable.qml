@@ -14,7 +14,6 @@ Flickable {
     readonly property real contentYRadio: visibleArea.yPosition / Math.max((1 - visibleArea.heightRatio), 0.001)
     property bool closed: true
 
-    // onFlickStarted: resetToBoundsOnFlick()
     onMovementStarted: {
         state = 'drag';
     }
