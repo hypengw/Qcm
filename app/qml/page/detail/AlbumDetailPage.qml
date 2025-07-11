@@ -17,6 +17,7 @@ MD.Page {
 
     readonly property var model: qr_al.data
     property Flickable view: null
+    property Item viewHeaderItem: null
 
     Item {
         visible: false
@@ -67,17 +68,6 @@ MD.Page {
                     return root.model.extra?.artists.map(el => QA.Util.artistId(el.id));
                 }
             }
-            /*
-                        onClicked: {
-                            const artists = root.albumInfo.artists;
-                            if (artists.length === 1)
-                                QA.Action.route_by_id(artists[0].itemId);
-                            else
-                                MD.Util.showPopup('qrc:/Qcm/App/qml/component/ArtistsPopup.qml', {
-                                        "model": artists
-                                    });
-                        }
-                        */
         }
 
         QA.ListDescription {
@@ -86,21 +76,9 @@ MD.Page {
         }
         RowLayout {
             id: m_control_pane
-            QA.OrderChip {
+            QA.SortOrderChip {
                 Layout.alignment: Qt.AlignVCenter
-                text: {
-                    const m = m_song_sort_type;
-                    m.item(m.currentIndex).name;
-                }
-                asc: m_song_sort_type.asc
-                onClicked: {
-                    m_header_sort_menu.open();
-                }
-                QA.SortMenu {
-                    id: m_header_sort_menu
-                    y: parent.height
-                    model: m_song_sort_type
-                }
+                model:m_song_sort_type 
             }
 
             Item {
@@ -135,7 +113,7 @@ MD.Page {
         id: m_view_pane
         view: root.view
         excludeBegin: {
-            return (view?.headerItem?.height ?? 0) - m_control_pane.height + view.topMargin;
+            return ((view)?.headerItem?.height ?? 0) - m_control_pane.height + view.topMargin;
         }
         radius: root.radius
         bottomMargin: MD.MProp.size.verticalPadding
@@ -165,6 +143,8 @@ MD.Page {
             header: Item {
                 width: parent.width
                 implicitHeight: children[0].implicitHeight
+
+                Component.onCompleted: root.viewHeaderItem = this
 
                 ColumnLayout {
                     anchors.fill: parent

@@ -82,6 +82,7 @@ set(QML_FILES
     qml/page/StatusPage.qml
     qml/page/SyncPage.qml
     qml/page/HomePage.qml
+    qml/delegate/ListItemDelegate.qml
     qml/delegate/CommentDelegate.qml
     qml/delegate/SongDelegate.qml
     qml/delegate/PicCardGridDelegate.qml
@@ -91,6 +92,7 @@ set(QML_FILES
     qml/component/auth/AuthEmail.qml
     qml/component/auth/AuthQr.qml
     qml/component/auth/AuthUsername.qml
+    qml/component/basic/ItemView.qml
     qml/component/basic/DebugRect.qml
     qml/component/basic/RouteMsg.qml
     qml/component/basic/Image.qml
@@ -111,6 +113,7 @@ set(QML_FILES
     qml/component/misc/ListDescription.qml
     qml/component/misc/ListenIcon.qml
     qml/component/misc/SyncingLabel.qml
+    qml/component/misc/SortOrderChip.qml
     qml/component/page/PageContainer.qml
     qml/component/page/PagePopup.qml
     qml/component/page/PageStack.qml
@@ -131,6 +134,7 @@ set(QML_FILES
     qml/action/AddToMixAction.qml
     qml/action/MixCreateAction.qml
     qml/action/FavoriteAction.qml
+    qml/action/SelectDisplayModeAction.qml
     qml/dialog/MixCreateDialog.qml
     qml/dialog/GoToArtistDialog.qml
     qml/dialog/AddToMixDialog.qml

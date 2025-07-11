@@ -23,7 +23,6 @@ QA.GlobalWrapper {
     property int palette_type: MD.Token.color.paletteType
 
     property int cover_quality: -1
-    readonly property string user_setting_category: 'user_test'//`user_${user_info.userId.sid}`
 
     copy_action_comp: Component {
         QA.CopyAction {

@@ -181,7 +181,7 @@ MD.Page {
             image: QA.Util.image_url(model.itemId)
             text: model.name
             supportText: {
-                const ex = QA.Store.extra(model.itemId);
+                const ex = model.extra;
                 const tc = model.trackCount;
                 const trackInfo = tc > 0 ? qsTr(`${tc} tracks`) : qsTr('no track');
                 return [QA.Util.joinName(ex?.artists, '/'), trackInfo].filter(e => !!e).join(' - ');
@@ -271,21 +271,15 @@ MD.Page {
     //     rightPage: MD.StackView {}
     // }
 
-    component BaseView: MD.VerticalListView {
+    component BaseView: QA.ItemView {
         id: m_view_base
         bottomMargin: root.vpadding
 
         property bool dirty: false
         property string type
-        property int displayMode: 0
         clip: false
 
         currentIndex: -1
-        highlightFollowsCurrentItem: false
-        cacheBuffer: 300
-        displayMarginBeginning: 300
-        displayMarginEnd: 300
-
         footer: ColumnLayout {
             width: parent.width
             MD.Space {
@@ -301,35 +295,9 @@ MD.Page {
         }
     }
 
-    component BaseItem: MD.ListItem {
-        id: m_r
-        property var itemId: model.itemId
-        property string image
-
-        width: ListView.view.width
-        maximumLineCount: 2
-
-        corners: MD.Util.corners(0, index + 1 == count ? root.radius : 0)
-
-        leader: QA.Image {
-            radius: 8
-            source: m_r.image
-            implicitWidth: displaySize.width
-            implicitHeight: displaySize.height
-
-            displaySize: Qt.size(48, 48)
-        }
-        rightPadding: 0
-        trailing: MD.IconButton {
-            MD.MProp.textColor: MD.Token.color.on_surface_variant
-            icon.name: MD.Token.icon.more_vert
-            onClicked: {
-                QA.Action.menu_by_id(m_r.itemId, this);
-            }
-        }
+    component BaseItem: QA.ListItemDelegate {
         onClicked: {
             m_content.route(itemId);
-            ListView.view.currentIndex = index;
         }
     }
 
@@ -364,36 +332,18 @@ MD.Page {
             }
             Row {
                 Layout.alignment: Qt.AlignVCenter
-                MD.StandardIconButton {
+                MD.SmallIconButton {
+                    id: m_display_mode_btn
                     anchors.verticalCenter: parent.verticalCenter
-                    icon.name: QA.Util.displayModeIcon(m_header_bar.displayMode)
-                    icon.width: 22
-                    icon.height: 22
-                    implicitBackgroundSize: 0
-                    onClicked: {
-                        const popup = MD.Util.showPopup(m_display_mode_menu, {
-                            displayMode: m_header_bar.displayMode
-                        }, this);
-                    }
-                    Component {
-                        id: m_display_mode_menu
-                        QA.DisplayModeMenu {
-                            y: parent.height
-                            modal: true
-                            dim: false
-                            onDisplayModeChanged: {
-                                m_header_bar.selectDisplayMode(displayMode);
-                            }
-                        }
+                    action: QA.SelectDisplayModeAction {
+                        menuParent: m_display_mode_btn
+                        displayMode: m_header_bar.displayMode
+                        onSelectDisplayMode: m => m_header_bar.selectDisplayMode(m)
                     }
                 }
-                MD.StandardIconButton {
-
+                MD.SmallIconButton {
                     anchors.verticalCenter: parent.verticalCenter
                     icon.name: MD.Token.icon.filter_list
-                    icon.width: 22
-                    icon.height: 22
-                    implicitBackgroundSize: 0
                 }
             }
         }

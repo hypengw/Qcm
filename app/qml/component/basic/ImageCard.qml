@@ -9,6 +9,8 @@ MD.Card {
     property string subText
     property int picWidth: 160
     property MD.typescale typescale: MD.Token.typescale.body_medium
+    property int labelSpacing: 4
+    readonly property int subImplicitHeight: label_sub.implicitHeight
 
     horizontalPadding: 0
     bottomPadding: 8
@@ -26,7 +28,7 @@ MD.Card {
         }
 
         Column {
-            spacing: 4
+            spacing: root.labelSpacing
             anchors.leftMargin: 16
             anchors.rightMargin: 16
             anchors.left: parent.left

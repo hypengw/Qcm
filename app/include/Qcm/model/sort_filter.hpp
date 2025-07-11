@@ -18,6 +18,7 @@ public:
 
 class SortTypeModel : public meta_model::QGadgetListModel<SortTypeItem> {
     Q_OBJECT
+    QML_ELEMENT
 
     Q_PROPERTY(qint32 currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY
                    currentIndexChanged FINAL)
