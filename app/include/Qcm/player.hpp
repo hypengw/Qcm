@@ -68,6 +68,7 @@ public:
     Q_SLOT void set_fadeTime(u32);
     Q_SLOT void seek(double pos);
 
+    Q_SLOT void toggle();
     Q_SLOT void play();
     Q_SLOT void pause();
     Q_SLOT void stop();

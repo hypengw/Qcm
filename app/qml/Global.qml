@@ -115,11 +115,7 @@ QA.GlobalWrapper {
         }
 
         function onToggle() {
-            const player = QA.Global.player;
-            if (player.playing)
-                player.pause();
-            else
-                player.play();
+            m_player.toggle();
         }
     }
 

@@ -112,6 +112,13 @@ auto Player::busy() const -> bool { return m_busy; }
 auto Player::playback_state() const -> Player::PlaybackState { return m_playback_state; }
 auto Player::cache_progress() const -> QVector2D { return m_cache_progress; }
 
+void Player::toggle() {
+    if (playing()) {
+        m_player->pause();
+    } else {
+        m_player->play();
+    }
+}
 void Player::play() {
     set_busy(true);
     m_player->play();
