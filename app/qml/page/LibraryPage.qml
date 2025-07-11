@@ -281,8 +281,7 @@ MD.Page {
         clip: false
 
         currentIndex: -1
-        highlightMoveDuration: 1000
-        highlightMoveVelocity: -1
+        highlightFollowsCurrentItem: false
         cacheBuffer: 300
         displayMarginBeginning: 300
         displayMarginEnd: 300
