@@ -132,8 +132,7 @@ void AlbumArtistsQuery::fetchMore(qint32) {
     });
 }
 
-ArtistQuery::ArtistQuery(QObject* parent): Query(parent) {
-}
+ArtistQuery::ArtistQuery(QObject* parent): Query(parent) {}
 auto ArtistQuery::itemId() const -> model::ItemId { return m_item_id; }
 void ArtistQuery::setItemId(model::ItemId in) {
     if (ycore::cmp_exchange(m_item_id, in)) {
@@ -178,6 +177,8 @@ void ArtistAlbumQuery::reload() {
     req.setId_proto(m_item_id.id());
     req.setPage(0);
     req.setPageSize((offset() + 1) * limit());
+    req.setSort((msg::model::AlbumSortGadget::AlbumSort)sort());
+    req.setSortAsc(asc());
     auto self = helper::QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
@@ -202,6 +203,9 @@ void ArtistAlbumQuery::fetchMore(qint32) {
     req.setId_proto(m_item_id.id());
     req.setPage(offset() + 1);
     req.setPageSize(limit());
+    req.setSort((msg::model::AlbumSortGadget::AlbumSort)sort());
+    req.setSortAsc(asc());
+
     auto self = helper::QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto offset = req.page();
