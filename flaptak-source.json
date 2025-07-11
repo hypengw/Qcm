@@ -12,7 +12,7 @@
     "url" : "https://github.com/hypengw/rstd.git"
   },
   {
-    "commit" : "2b07d64ef1f8f00988ad813662ecb40766dba4cc",
+    "commit" : "6983466aadd1173627b362ff1a297527d9842531",
     "dest" : "build/_flatpak_deps/random-src",
     "disable-shallow-clone" : false,
     "type" : "git",

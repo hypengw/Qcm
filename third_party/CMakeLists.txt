@@ -42,7 +42,7 @@ set(Random_BuildTests OFF)
 FetchContent_Declare(
   random
   GIT_REPOSITORY https://github.com/ilqvya/random.git
-  GIT_TAG 2b07d64ef1f8f00988ad813662ecb40766dba4cc
+  GIT_TAG 6983466aadd1173627b362ff1a297527d9842531
   GIT_SHALLOW 0
   GIT_PROGRESS 1
   EXCLUDE_FROM_ALL)
