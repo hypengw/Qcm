@@ -9,6 +9,7 @@ qt_add_protobuf(
   PROTO_FILES
   proto/message.proto
   proto/model.proto
+  proto/filter.proto
   OUTPUT_DIRECTORY
   "${output_dir}"
   OUTPUT_TARGETS

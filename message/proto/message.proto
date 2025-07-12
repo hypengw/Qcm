@@ -3,6 +3,8 @@ syntax = "proto3";
 package qcm.msg;
 
 import "google/protobuf/struct.proto";
+
+import "filter.proto";
 import "model.proto";
 
 enum MessageType {
@@ -176,7 +178,7 @@ message GetAlbumsReq {
   int32 page_size = 3;
   qcm.msg.model.AlbumSort sort = 4;
   bool sort_asc = 5;
-  // filter
+  repeated qcm.msg.filter.AlbumFilter filters = 6;
 }
 
 message GetAlbumsRsp {
@@ -201,7 +203,7 @@ message GetArtistsReq {
   int32 page_size = 3;
   qcm.msg.model.ArtistSort sort = 4;
   bool sort_asc = 5;
-  // filter
+  repeated qcm.msg.filter.AlbumFilter filters = 6;
 }
 
 message GetArtistsRsp {

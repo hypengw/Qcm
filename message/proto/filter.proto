@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+package qcm.msg.filter;
+
+enum FilterType {
+  FILTER_TYPE_UNSPECIFIED = 0;
+  FILTER_TYPE_TITLE = 1;
+  FILTER_TYPE_NAME = 2;
+  FILTER_TYPE_TRACK_COUNT = 3;
+
+  FILTER_TYPE_ALBUM_TITLE = 20;
+  FILTER_TYPE_ARTIST_NAME = 21;
+}
+
+enum StringCondition {
+  STRING_CONDITION_UNSPECIFIED = 0;
+  STRING_CONDITION_IS = 1;
+  STRING_CONDITION_CONTAINS = 2;
+}
+
+enum IntCondition {
+  INT_CONDITION_UNSPECIFIED = 0;
+  INT_CONDITION_EQUAL = 1;
+  INT_CONDITION_LESS = 2;
+  INT_CONDITION_LESS_EQUAL = 3;
+}
+
+message TitleFilter {
+  string value = 1;
+  StringCondition condition = 2;
+  bool not = 3;
+}
+
+message NameFilter {
+  string value = 1;
+  StringCondition condition = 2;
+  bool not = 3;
+}
+
+message AlbumTitleFilter {
+  string value = 1;
+  StringCondition condition = 2;
+  bool not = 3;
+}
+message ArtistNameFilter {
+  string value = 1;
+  StringCondition condition = 2;
+  bool not = 3;
+}
+
+message TrackCountFilter {
+  int32 value = 1;
+  IntCondition condition = 2;
+  bool not = 3;
+}
+
+message AlbumFilter {
+  FilterType type = 1;
+  oneof payload {
+    TitleFilter title_filter = 101;
+    TrackCountFilter track_filter = 102;
+    ArtistNameFilter artist_name_filter = 103;
+  }
+}
+
+message ArtistFilter {
+  FilterType type = 1;
+  oneof payload {
+    NameFilter name_filter = 101;
+    AlbumTitleFilter album_title_filter = 102;
+  }
+}
