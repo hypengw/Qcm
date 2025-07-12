@@ -16,7 +16,7 @@ void PageModel::init_main_pages(PageModel* self) {
                             .icon   = "search",
                             .source = "qrc:/Qcm/App/qml/page/SearchPage.qml" } };
     self->insert(0, arr);
-#ifndef NDEBUG
+#ifdef QCM_DEBUG_BUILD
     self->insert(self->rowCount(),
                  Page { .name   = "test",
                         .icon   = "bug_report",

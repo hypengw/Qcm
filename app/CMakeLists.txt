@@ -208,7 +208,9 @@ set_target_properties(app PROPERTIES CXX_SCAN_FOR_MODULES ON)
 
 target_compile_definitions(
   app PUBLIC "$<$<OR:$<BOOL:${QCM_QML_DEBUG}>,$<CONFIG:Debug>>:QT_QML_DEBUG>"
-             "$<$<NOT:$<TARGET_EXISTS:mpris>>:NODEBUS>")
+             "$<$<NOT:$<TARGET_EXISTS:mpris>>:NODEBUS>"
+             "$<$<CONFIG:Debug>:QCM_DEBUG_BUILD>>"
+             )
 
 target_compile_definitions(
   app
