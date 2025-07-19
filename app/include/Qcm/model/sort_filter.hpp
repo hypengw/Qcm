@@ -92,6 +92,7 @@ private:
 
     qint32 m_sort_type;
     bool   m_asc;
+    qint32 m_disc_role;
 };
 
 } // namespace qcm

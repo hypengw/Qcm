@@ -107,8 +107,15 @@ void AlbumQuery::reload() {
         co_await qcm::qexecutor_switch();
         self->inspect_set(rsp, [self](msg::GetAlbumRsp& el) {
             auto store = App::instance()->store();
-            self->tdata()->setAlbum(el.item());
-            self->tdata()->resetModel(el.songs());
+            auto t     = self->tdata();
+            t->setAlbum(el.item());
+
+            i64 disc = 1;
+            for (auto& el : el.songs()) {
+                disc = std::max<i64>(el.discNumber(), disc);
+            }
+            t->setDiscCount(disc);
+            t->resetModel(el.songs());
 
             merge_store_extra(store->albums, el.item().id_proto(), el.extra());
 

@@ -80,7 +80,7 @@ SongSortTypeModel::SongSortTypeModel(QObject* parent): SortTypeModel(parent) {
 }
 
 SongSortFilterModel::SongSortFilterModel(QObject* parent)
-    : QSortFilterProxyModel(parent), m_sort_type(0), m_asc(true) {
+    : QSortFilterProxyModel(parent), m_sort_type(0), m_asc(true), m_disc_role(-1) {
     connect(
         this, &SongSortFilterModel::sourceModelChanged, this, &SongSortFilterModel::freshSortType);
     connect(this, &SongSortFilterModel::sortTypeChanged, this, &SongSortFilterModel::freshSortType);
@@ -107,6 +107,11 @@ void SongSortFilterModel::freshSortType() {
             case E::SONG_SORT_TRACK_NUMBER:
             default: name = "trackNumber"; break;
             }
+
+            if (auto it = name_maps.find("discNumber"); it != name_maps.end()) {
+                m_disc_role = *it;
+            }
+
             if (auto it = name_maps.find(name.data()); it != name_maps.end()) {
                 setSortRole(*it);
             } else {
@@ -119,8 +124,20 @@ void SongSortFilterModel::freshSortType() {
 bool SongSortFilterModel::lessThan(const QModelIndex& source_left,
                                    const QModelIndex& source_right) const {
     using E = msg::model::SongSortGadget::SongSort;
-    if (m_sort_type == (qint32)E::SONG_SORT_TRACK_NUMBER) {
-        return source_left.data(sortRole()).toInt() < source_right.data(sortRole()).toInt();
+
+    auto disc_left  = 0;
+    auto disc_right = 0;
+    if (m_disc_role >= 0) {
+        disc_left  = source_left.data(m_disc_role).toInt();
+        disc_right = source_right.data(m_disc_role).toInt();
+    }
+
+    if (disc_left == disc_right) {
+        if (m_sort_type == (qint32)E::SONG_SORT_TRACK_NUMBER) {
+            return source_left.data(sortRole()).toInt() < source_right.data(sortRole()).toInt();
+        }
+    } else {
+        return disc_left < disc_right;
     }
     return QSortFilterProxyModel::lessThan(source_left, source_right);
 }

@@ -46,6 +46,7 @@ class AlbumSongListModel
 
     Q_PROPERTY(qcm::model::Album album READ album NOTIFY albumChanged)
     Q_PROPERTY(QQmlPropertyMap* extra READ extra NOTIFY albumChanged)
+    Q_PROPERTY(qint32 discCount READ discCount NOTIFY discCountChanged)
     using base_type = meta_model::QGadgetListModel<model::Song, meta_model::QMetaListStore::Share,
                                                    std::pmr::polymorphic_allocator<model::Song>>;
 
@@ -58,13 +59,17 @@ public:
 
     auto album() const -> album_type;
     auto extra() const -> QQmlPropertyMap*;
+    auto discCount() const -> qint32;
 
     void setAlbum(const album_type&);
+    void setDiscCount(qint32);
 
     Q_SIGNAL void albumChanged();
+    Q_SIGNAL void discCountChanged();
 
 private:
     model::AlbumStoreItem m_item;
+    qint32 m_disc_count;
 };
 
 class ArtistListModel

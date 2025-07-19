@@ -36,7 +36,7 @@ MD.Page {
             id: m_title
             maximumLineCount: 2
             text: root.album.name
-            typescale: (root.view?.single ?? false) ? MD.Token.typescale.headline_medium : MD.Token.typescale.headline_large
+            typescale: (root.viewHeaderItem?.single ?? false) ? MD.Token.typescale.headline_medium : MD.Token.typescale.headline_large
         }
         RowLayout {
             id: m_info
@@ -78,7 +78,7 @@ MD.Page {
             id: m_control_pane
             QA.SortOrderChip {
                 Layout.alignment: Qt.AlignVCenter
-                model:m_song_sort_type 
+                model: m_song_sort_type
             }
 
             Item {
@@ -126,6 +126,110 @@ MD.Page {
     }
 
     Component {
+        id: m_list_header_comp
+        Item {
+            id: m_header
+            readonly property bool single: width < m_cover.displaySize.width * (1.0 + 1.5) + 8
+            width: parent.width
+            implicitHeight: children[0].implicitHeight
+
+            Component.onCompleted: root.viewHeaderItem = this
+
+            ColumnLayout {
+                anchors.fill: parent
+                spacing: 16
+
+                MD.Pane {
+                    Layout.fillWidth: true
+                    radius: root.radius
+                    padding: 16
+
+                    ColumnLayout {
+                        width: parent.width
+                        spacing: 0
+                        RowLayout {
+                            spacing: 16
+                            visible: !m_header.single
+
+                            LayoutItemProxy {
+                                target: m_cover
+                            }
+
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                Layout.alignment: Qt.AlignTop
+                                spacing: 12
+                                LayoutItemProxy {
+                                    Layout.fillWidth: true
+                                    target: m_title
+                                }
+                                LayoutItemProxy {
+                                    target: m_info
+                                }
+                                LayoutItemProxy {
+                                    target: m_artist
+                                }
+                                LayoutItemProxy {
+                                    Layout.fillWidth: true
+                                    visible: !!m_desc.description
+                                    target: m_desc
+                                }
+                            }
+                        }
+                        ColumnLayout {
+                            spacing: 0
+                            Layout.fillWidth: true
+                            visible: m_header.single
+
+                            LayoutItemProxy {
+                                Layout.alignment: Qt.AlignHCenter
+                                target: m_cover
+                            }
+                            MD.Space {
+                                spacing: 16
+                            }
+                            ColumnLayout {
+                                Layout.alignment: Qt.AlignHCenter
+                                spacing: 12
+
+                                LayoutItemProxy {
+                                    Layout.alignment: Qt.AlignHCenter
+                                    Layout.maximumWidth: implicitWidth
+                                    Layout.fillWidth: true
+                                    target: m_title
+                                }
+                                LayoutItemProxy {
+                                    Layout.alignment: Qt.AlignHCenter
+                                    target: m_info
+                                }
+                                LayoutItemProxy {
+                                    Layout.alignment: Qt.AlignHCenter
+                                    Layout.maximumWidth: implicitWidth
+                                    Layout.fillWidth: true
+                                    target: m_artist
+                                }
+                                LayoutItemProxy {
+                                    Layout.alignment: Qt.AlignHCenter
+                                    Layout.fillWidth: true
+                                    visible: !!m_desc.description
+                                    target: m_desc
+                                }
+                            }
+                        }
+                    }
+                }
+
+                LayoutItemProxy {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: 16
+                    Layout.rightMargin: 16
+                    target: m_control_pane
+                }
+            }
+        }
+    }
+
+    Component {
         id: m_list_comp
 
         MD.VerticalListView {
@@ -138,106 +242,12 @@ MD.Page {
             bottomMargin: MD.MProp.size.verticalPadding * 2
 
             model: m_sort_filter_model
-            readonly property bool single: width < m_cover.displaySize.width * (1.0 + 1.5) + 8
 
-            header: Item {
-                width: parent.width
-                implicitHeight: children[0].implicitHeight
+            header: m_list_header_comp
 
-                Component.onCompleted: root.viewHeaderItem = this
-
-                ColumnLayout {
-                    anchors.fill: parent
-                    spacing: 16
-
-                    MD.Pane {
-                        Layout.fillWidth: true
-                        radius: root.radius
-                        padding: 16
-
-                        ColumnLayout {
-                            width: parent.width
-                            spacing: 0
-                            RowLayout {
-                                spacing: 16
-                                visible: !m_view.single
-
-                                LayoutItemProxy {
-                                    target: m_cover
-                                }
-
-                                ColumnLayout {
-                                    Layout.fillWidth: true
-                                    Layout.alignment: Qt.AlignTop
-                                    spacing: 12
-                                    LayoutItemProxy {
-                                        Layout.fillWidth: true
-                                        target: m_title
-                                    }
-                                    LayoutItemProxy {
-                                        target: m_info
-                                    }
-                                    LayoutItemProxy {
-                                        target: m_artist
-                                    }
-                                    LayoutItemProxy {
-                                        Layout.fillWidth: true
-                                        visible: !!m_desc.description
-                                        target: m_desc
-                                    }
-                                }
-                            }
-                            ColumnLayout {
-                                spacing: 0
-                                Layout.fillWidth: true
-                                visible: m_view.single
-
-                                LayoutItemProxy {
-                                    Layout.alignment: Qt.AlignHCenter
-                                    target: m_cover
-                                }
-                                MD.Space {
-                                    spacing: 16
-                                }
-                                ColumnLayout {
-                                    Layout.alignment: Qt.AlignHCenter
-                                    spacing: 12
-
-                                    LayoutItemProxy {
-                                        Layout.alignment: Qt.AlignHCenter
-                                        Layout.maximumWidth: implicitWidth
-                                        Layout.fillWidth: true
-                                        target: m_title
-                                    }
-                                    LayoutItemProxy {
-                                        Layout.alignment: Qt.AlignHCenter
-                                        target: m_info
-                                    }
-                                    LayoutItemProxy {
-                                        Layout.alignment: Qt.AlignHCenter
-                                        Layout.maximumWidth: implicitWidth
-                                        Layout.fillWidth: true
-                                        target: m_artist
-                                    }
-                                    LayoutItemProxy {
-                                        Layout.alignment: Qt.AlignHCenter
-                                        Layout.fillWidth: true
-                                        visible: !!m_desc.description
-                                        target: m_desc
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    LayoutItemProxy {
-                        Layout.fillWidth: true
-                        Layout.leftMargin: 16
-                        Layout.rightMargin: 16
-                        target: m_control_pane
-                    }
-                }
-            }
+            section.property: 'discNumber'
+            section.criteria: ViewSection.FullString
+            section.delegate: root.model.discCount > 1 ? m_list_section_comp : null
             delegate: QA.SongDelegate {
                 width: ListView.view.contentWidth
                 leftMargin: 16
@@ -257,6 +267,22 @@ MD.Page {
 
             Component.onCompleted: {
                 root.view = m_view;
+            }
+            Component {
+                id: m_list_section_comp
+                MD.Control {
+                    id: m_list_section_root
+                    required property string section
+                    width: ListView.view.contentWidth
+                    height: implicitHeight
+                    verticalPadding: 4
+                    leftPadding: 16 + 8
+
+                    contentItem: MD.Text {
+                        text: qsTr('Disc: ') + m_list_section_root.section
+                        typescale: MD.Token.typescale.title_medium
+                    }
+                }
             }
         }
     }

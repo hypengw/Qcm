@@ -30,7 +30,18 @@ MD.ListItem {
 
     rightPadding: rightMargin
 
-    corners: MD.Util.listCorners(index, count, 16)
+    corners: {
+        const c = MD.Util.listCorners(index, count, 16);
+        if (!prevSameSection) {
+            c.topLeft = 16;
+            c.topRight = 16;
+        }
+        if (!nextSameSection) {
+            c.bottomLeft = 16;
+            c.bottomRight = 16;
+        }
+        return c;
+    }
 
     mdState.backgroundColor: mdState.ctx.color.surface_container
 

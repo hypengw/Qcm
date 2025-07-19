@@ -22,12 +22,19 @@ QQmlPropertyMap* SongListModel::extra(i32 idx) const {
 }
 
 AlbumSongListModel::AlbumSongListModel(QObject* parent)
-    : base_type(parent, { mem_mgr().store_mem }) {
+    : base_type(parent, { mem_mgr().store_mem }), m_disc_count(1) {
     connect(&m_item, &model::AlbumStoreItem::itemChanged, this, &AlbumSongListModel::albumChanged);
 }
 AlbumSongListModel::~AlbumSongListModel() {}
 auto AlbumSongListModel::album() const -> album_type { return m_item.item(); }
+auto AlbumSongListModel::discCount() const -> qint32 { return m_disc_count; }
 void AlbumSongListModel::setAlbum(const album_type& album) { m_item.setItem(album); }
+void AlbumSongListModel::setDiscCount(qint32 c) {
+    if (c != m_disc_count) {
+        m_disc_count = c;
+        discCountChanged();
+    }
+}
 auto AlbumSongListModel::extra() const -> QQmlPropertyMap* { return m_item.extra(); }
 
 ArtistListModel::ArtistListModel(QObject* parent): base_type(parent, { mem_mgr().store_mem }) {}
