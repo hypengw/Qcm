@@ -92,6 +92,7 @@ private:
         FFmpegError err;
         {
             FFmpegDict opt;
+            opt.set("timeout", "5000000");
             opt.set("reconnect", 1);
             err = fmt_ctx.open_input(m_url.c_str(), std::move(opt));
         }
