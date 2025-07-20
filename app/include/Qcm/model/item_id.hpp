@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QUrl>
 #include <QQmlEngine>
+#include <QtProtobuf/qtprotobuftypes.h>
 
 #include "core/core.h"
 #include "Qcm/qml/enum.hpp"
@@ -15,6 +16,7 @@ namespace qcm::model
 class ItemId {
     Q_GADGET
     QML_VALUE_TYPE(item_id)
+    Q_PROPERTY(QtProtobuf::int64 id READ pid)
     Q_PROPERTY(qcm::enums::ItemType type MEMBER m_type)
     Q_PROPERTY(QString sid READ idStr)
     Q_PROPERTY(QString libraryId READ libraryIdStr)
@@ -39,6 +41,7 @@ public:
     auto libraryIdStr() const -> QString;
 
     auto id() const -> i64;
+    auto pid() const -> QtProtobuf::int64;
     auto libraryId() const -> i64;
 
     void setType(enums::ItemType);
