@@ -21,11 +21,12 @@ namespace qcm::qml
 Util::Util(): QObject(nullptr) {}
 Util::~Util() {}
 
+auto Util::albumArtistIdFilter() const -> msg::filter::AlbumArtistIdFilter { return {}; }
 auto Util::createItemid() const -> model::ItemId { return {}; }
 
 auto Util::mprisTrackid(model::ItemId id) const -> QString {
     static const auto dbus_path = QStringLiteral(APP_ID).replace('.', '/');
-    std::string track_id = "none";
+    std::string       track_id  = "none";
     if (id.id() >= 0) {
         track_id = std::to_string(id.id());
     }

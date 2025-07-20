@@ -6,6 +6,7 @@
 #include "Qcm/model/router_msg.hpp"
 #include "Qcm/model/item_id.hpp"
 #include "Qcm/qml/enum.hpp"
+#include "Qcm/message/filter.qpb.h"
 
 namespace qcm
 {
@@ -20,6 +21,7 @@ public:
     Util();
     ~Util() override;
 
+    Q_INVOKABLE msg::filter::AlbumArtistIdFilter albumArtistIdFilter() const;
     Q_INVOKABLE model::ItemId createItemid() const;
     Q_INVOKABLE model::RouteMsg create_route_msg(QVariantMap) const;
 

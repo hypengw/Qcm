@@ -11,11 +11,22 @@ class AlbumsQuery : public QueryList, public QueryExtra<model::AlbumListModel, A
     Q_OBJECT
     QML_ELEMENT
 
+    Q_PROPERTY(QList<qcm::msg::filter::AlbumFilter> filters READ filters WRITE setFilters NOTIFY
+                   filtersChanged FINAL)
+
 public:
     AlbumsQuery(QObject* parent = nullptr);
 
+    auto filters() const -> const QList<msg::filter::AlbumFilter>&;
+    void setFilters(const QList<msg::filter::AlbumFilter>&);
+
     void reload() override;
     void fetchMore(qint32) override;
+
+    Q_SIGNAL void filtersChanged();
+
+private:
+    QList<msg::filter::AlbumFilter> m_filters;
 };
 
 class AlbumQuery : public QueryList, public QueryExtra<model::AlbumSongListModel, AlbumQuery> {

@@ -9,49 +9,51 @@ enum FilterType {
   FILTER_TYPE_TRACK_COUNT = 3;
 
   FILTER_TYPE_ALBUM_TITLE = 20;
-  FILTER_TYPE_ARTIST_NAME = 21;
+  FILTER_TYPE_ALBUM_ARTIST_ID = 21;
+  FILTER_TYPE_ARTIST_NAME = 22;
 }
 
 enum StringCondition {
   STRING_CONDITION_UNSPECIFIED = 0;
   STRING_CONDITION_IS = 1;
-  STRING_CONDITION_CONTAINS = 2;
+  STRING_CONDITION_IS_NOT = 2;
+  STRING_CONDITION_CONTAINS = 3;
+  STRING_CONDITION_CONTAINS_NOT = 4;
 }
 
 enum IntCondition {
   INT_CONDITION_UNSPECIFIED = 0;
   INT_CONDITION_EQUAL = 1;
-  INT_CONDITION_LESS = 2;
-  INT_CONDITION_LESS_EQUAL = 3;
+  INT_CONDITION_EQUAL_NOT = 2;
+  INT_CONDITION_LESS = 3;
+  INT_CONDITION_LESS_EQUAL = 4;
+  INT_CONDITION_GREATER = 5;
+  INT_CONDITION_GREATER_EQUAL = 6;
 }
 
 message TitleFilter {
   string value = 1;
   StringCondition condition = 2;
-  bool not = 3;
 }
 
 message NameFilter {
   string value = 1;
   StringCondition condition = 2;
-  bool not = 3;
 }
 
 message AlbumTitleFilter {
   string value = 1;
   StringCondition condition = 2;
-  bool not = 3;
 }
 message ArtistNameFilter {
   string value = 1;
   StringCondition condition = 2;
-  bool not = 3;
 }
+message AlbumArtistIdFilter { int64 value = 1; }
 
 message TrackCountFilter {
   int32 value = 1;
   IntCondition condition = 2;
-  bool not = 3;
 }
 
 message AlbumFilter {
@@ -60,6 +62,7 @@ message AlbumFilter {
     TitleFilter title_filter = 101;
     TrackCountFilter track_filter = 102;
     ArtistNameFilter artist_name_filter = 103;
+    AlbumArtistIdFilter album_artist_id_filter = 104;
   }
 }
 

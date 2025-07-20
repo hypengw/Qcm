@@ -16,6 +16,13 @@ AlbumsQuery::AlbumsQuery(QObject* parent): QueryList(parent) {
     this->tdata()->set_store(this->tdata(), app->store()->albums);
     this->connectSyncFinished();
     this->connect_requet_reload(&LibraryStatus::activedIdsChanged, app->libraryStatus());
+    this->connect_requet_reload(&AlbumsQuery::filtersChanged, this);
+}
+
+auto AlbumsQuery::filters() const -> const QList<msg::filter::AlbumFilter>& { return m_filters; }
+void AlbumsQuery::setFilters(const QList<msg::filter::AlbumFilter>& filters) {
+    m_filters = filters;
+    filtersChanged();
 }
 
 void AlbumsQuery::reload() {
@@ -28,6 +35,7 @@ void AlbumsQuery::reload() {
     req.setPageSize((offset() + 1) * limit());
     req.setSort((msg::model::AlbumSortGadget::AlbumSort)sort());
     req.setSortAsc(asc());
+    req.setFilters(m_filters);
 
     auto self = helper::QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {

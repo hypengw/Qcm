@@ -28,6 +28,7 @@ auto ItemId::idStr() const -> QString { return QString::number(m_id); }
 auto ItemId::libraryIdStr() const -> QString { return QString::number(m_library_id); }
 
 auto ItemId::id() const -> i64 { return m_id; }
+auto ItemId::pid() const -> QtProtobuf::int64 { return m_id; }
 
 auto ItemId::libraryId() const -> i64 { return m_library_id; }
 

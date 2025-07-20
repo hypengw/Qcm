@@ -250,14 +250,19 @@ MD.Page {
         id: qr_artist
         Component.onCompleted: reload()
     }
-    QA.ArtistAlbumQuery {
+    QA.AlbumsQuery {
         id: qr_artist_albums
-        itemId: qr_artist.itemId
+        property QM.albumFilter filter1
+        filter1.albumArtistIdFilter: {
+            const f = QA.Util.albumArtistIdFilter();
+            f.value = qr_artist.itemId.id;
+            return f;
+        }
+        filters: [filter1]
         asc: m_album_sort_type.asc
         sort: m_album_sort_type.currentType
         onAscChanged: reload()
         onSortChanged: reload()
-        Component.onCompleted: reload()
     }
     Settings {
         id: m_album_setting

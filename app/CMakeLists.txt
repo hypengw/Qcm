@@ -138,6 +138,7 @@ set(QML_FILES
     qml/dialog/MixCreateDialog.qml
     qml/dialog/GoToArtistDialog.qml
     qml/dialog/AddToMixDialog.qml
+    qml/dialog/AlbumFilterDialog.qml
     qml/menu/SongMenu.qml
     qml/menu/AlbumMenu.qml
     qml/menu/ArtistMenu.qml
