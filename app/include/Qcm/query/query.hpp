@@ -18,7 +18,7 @@ public:
 
     static auto create(std::string_view) -> Query*;
 
-    Q_SLOT void   request_reload();
+    Q_SLOT void   delayReload();
     auto          delay() const -> bool;
     void          setDelay(bool v);
     Q_SIGNAL void delayChanged();
@@ -28,11 +28,11 @@ public:
 protected:
     template<typename T, typename R, typename... ARGS>
     void connect_requet_reload(R (T::*f)(ARGS...), T* obj) {
-        connect(obj, f, this, &Query::request_reload);
+        connect(obj, f, this, &Query::delayReload);
     }
     template<typename T, typename R, typename... ARGS>
     void connect_requet_reload(R (T::*f)(ARGS...)) {
-        connect(static_cast<T*>(this), f, this, &Query::request_reload);
+        connect(static_cast<T*>(this), f, this, &Query::delayReload);
     }
 
     auto last() const -> const QDateTime& { return m_last; }

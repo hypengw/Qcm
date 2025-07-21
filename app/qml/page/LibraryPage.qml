@@ -378,23 +378,25 @@ MD.Page {
         id: qr_albums
         asc: m_album_sort_type.asc
         sort: m_album_sort_type.currentType
-        onAscChanged: reload()
-        onSortChanged: reload()
-        Component.onCompleted: reload()
+        onAscChanged: delayReload()
+        onSortChanged: delayReload()
+        Component.onCompleted: delayReload()
     }
     QA.ArtistsQuery {
         id: qr_artists
         asc: m_artist_sort_type.asc
         sort: m_artist_sort_type.currentType
-        onAscChanged: reload()
-        onSortChanged: reload()
-        Component.onCompleted: reload()
+        onAscChanged: delayReload()
+        onSortChanged: delayReload()
+        Component.onCompleted: delayReload()
     }
     QA.AlbumArtistsQuery {
         id: qr_album_artists
         asc: m_album_artist_sort_type.asc
         sort: m_album_artist_sort_type.currentType
-        Component.onCompleted: reload()
+        onAscChanged: delayReload()
+        onSortChanged: delayReload()
+        Component.onCompleted: delayReload()
     }
     QA.MixesQuery {
         id: qr_mix

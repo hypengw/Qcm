@@ -18,7 +18,7 @@ auto Query::create(std::string_view name) -> Query* {
     return static_cast<Query*>(q);
 }
 
-void Query::request_reload() {
+void Query::delayReload() {
     if (delay()) {
         m_timer.setInterval(100);
         m_timer.start();
@@ -39,7 +39,7 @@ void Query::connectSyncFinished() {
             this,
             [this](bool syncing) {
                 if (syncing) return;
-                request_reload();
+                delayReload();
             });
 }
 
