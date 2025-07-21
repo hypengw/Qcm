@@ -66,6 +66,8 @@ public:
 
     Q_INVOKABLE ItemId clone() const noexcept;
 
+    QString toString() const { return toUrl().toString(); }
+
 private:
     enums::ItemType m_type;
     i64             m_library_id;

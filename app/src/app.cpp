@@ -149,7 +149,7 @@ App::App(QStringView backend_exe, std::monostate)
     : QObject(nullptr), d_ptr(make_box<Private>(this)) {
     C_D(App);
     app_instance(this);
-    // register_meta_type();
+    register_meta_type();
     connect_actions();
     {
         QGuiApplication::setDesktopFileName(APP_ID);
@@ -577,6 +577,10 @@ auto App::info() const -> const model::AppInfo& {
 auto App::app_state() const -> AppState* {
     C_D(const App);
     return d->app_state;
+}
+
+void App::register_meta_type() {
+    QMetaType::registerConverter<model::ItemId, QString>(&model::ItemId::toString);
 }
 
 } // namespace qcm
