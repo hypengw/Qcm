@@ -225,7 +225,9 @@ class Artist : public msg::model::Artist {
     Q_GADGET
     QML_VALUE_TYPE(artist)
 
-    QCM_MODEL_COMMON(Artist, ItemArtist)
+    // prefer album artist here
+    // and manually set to song artist if needed
+    QCM_MODEL_COMMON(Artist, ItemAlbumArtist)
 };
 
 class Mix : public msg::model::Mix {

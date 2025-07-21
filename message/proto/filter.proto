@@ -10,7 +10,8 @@ enum FilterType {
 
   FILTER_TYPE_ALBUM_TITLE = 20;
   FILTER_TYPE_ALBUM_ARTIST_ID = 21;
-  FILTER_TYPE_ARTIST_NAME = 22;
+  FILTER_TYPE_ARTIST_ID = 22;
+  FILTER_TYPE_ARTIST_NAME = 23;
 }
 
 enum StringCondition {
@@ -50,6 +51,7 @@ message ArtistNameFilter {
   StringCondition condition = 2;
 }
 message AlbumArtistIdFilter { int64 value = 1; }
+message ArtistIdFilter { int64 value = 1; }
 
 message TrackCountFilter {
   int32 value = 1;
@@ -62,7 +64,8 @@ message AlbumFilter {
     TitleFilter title_filter = 101;
     TrackCountFilter track_filter = 102;
     ArtistNameFilter artist_name_filter = 103;
-    AlbumArtistIdFilter album_artist_id_filter = 104;
+    ArtistIdFilter artist_id_filter = 104;
+    AlbumArtistIdFilter album_artist_id_filter = 105;
   }
 }
 

@@ -82,7 +82,7 @@ MD.Page {
                 busy: qr_album_artists.querying
                 displayMode: m_album_artist_setting.display_mode
                 model: qr_album_artists.data
-                type: 'artist'
+                type: 'albumartist'
                 delegate: {
                     const d = displayMode;
                     return [dg_artistlist, dg_artist_card, dg_artist_card][d];
@@ -205,7 +205,12 @@ MD.Page {
             widthProvider: m_wp
             mdState.backgroundOpacity: (ListView.view as BaseView).displayMode == QA.Enum.DGrid ? 0 : 1
             onClicked: {
-                m_content.route(model.itemId);
+                const itemId = model.itemId.clone();
+                const view = ListView.view as BaseView;
+                if (view?.type == "artist") {
+                    itemId.type = QA.Enum.ItemArtist;
+                }
+                m_content.route(itemId);
                 ListView.view.currentIndex = index;
             }
         }
@@ -297,7 +302,14 @@ MD.Page {
 
     component BaseItem: QA.ListItemDelegate {
         onClicked: {
-            m_content.route(itemId);
+            const view = ListView.view as BaseView;
+            if (view?.type == "artist") {
+                const itemId_ = itemId.clone();
+                itemId_.type = QA.Enum.ItemArtist;
+                m_content.route(itemId_);
+            } else {
+                m_content.route(itemId);
+            }
         }
     }
 

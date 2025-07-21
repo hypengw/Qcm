@@ -17,7 +17,7 @@ class ItemId {
     Q_GADGET
     QML_VALUE_TYPE(item_id)
     Q_PROPERTY(QtProtobuf::int64 id READ pid)
-    Q_PROPERTY(qcm::enums::ItemType type MEMBER m_type)
+    Q_PROPERTY(qcm::enums::ItemType type READ type WRITE setType)
     Q_PROPERTY(QString sid READ idStr)
     Q_PROPERTY(QString libraryId READ libraryIdStr)
     Q_PROPERTY(bool valid READ valid)
@@ -63,6 +63,8 @@ public:
     auto toUrl() const -> QUrl;
 
     auto toPageUrl() const -> QUrl;
+
+    Q_INVOKABLE ItemId clone() const noexcept;
 
 private:
     enums::ItemType m_type;

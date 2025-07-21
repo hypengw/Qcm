@@ -89,6 +89,8 @@ bool ItemId::operator==(QStringView b) const {
     return *this == url;
 }
 
+ItemId ItemId::clone() const noexcept { return *this; }
+
 QUrl ItemId::toPageUrl() const {
     QUrl url;
     using ItemType = enums::ItemType;
@@ -97,6 +99,7 @@ QUrl ItemId::toPageUrl() const {
         url = u"qrc:/Qcm/App/qml/page/detail/AlbumDetailPage.qml"_s;
         break;
     }
+    case ItemType::ItemAlbumArtist:
     case ItemType::ItemArtist: {
         url = u"qrc:/Qcm/App/qml/page/detail/ArtistDetailPage.qml"_s;
         break;

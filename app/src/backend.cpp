@@ -243,7 +243,9 @@ auto Backend::image(QStringView item_type, QStringView id, QStringView image_typ
     return ncrequest::Request { url };
 }
 auto Backend::image(model::ItemId id, enums::ImageType image_type) -> ncrequest::Request {
-    auto url = std::format("{0}/image/{1}/{2}/{3}", this->base(), id.type(), id.id(), image_type);
+    auto type = id.type();
+    if (type == enums::ItemType::ItemAlbumArtist) type = enums::ItemType::ItemArtist;
+    auto url = std::format("{0}/image/{1}/{2}/{3}", this->base(), type, id.id(), image_type);
     return ncrequest::Request { url };
 }
 

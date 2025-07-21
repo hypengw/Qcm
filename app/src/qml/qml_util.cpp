@@ -22,6 +22,7 @@ Util::Util(): QObject(nullptr) {}
 Util::~Util() {}
 
 auto Util::albumArtistIdFilter() const -> msg::filter::AlbumArtistIdFilter { return {}; }
+auto Util::artistIdFilter() const -> msg::filter::ArtistIdFilter { return {}; }
 auto Util::createItemid() const -> model::ItemId { return {}; }
 
 auto Util::mprisTrackid(model::ItemId id) const -> QString {
@@ -41,7 +42,9 @@ auto Util::create_route_msg(QVariantMap props) const -> model::RouteMsg {
 }
 
 auto Util::image_url(model::ItemId id, enums::ImageType image_type) const -> QUrl {
-    return rstd::into(std::format("image://qcm/{}/{}/{}", id.type(), id.id(), image_type));
+    auto type = id.type();
+    if(type == enums::ItemType::ItemAlbumArtist) type = enums::ItemType::ItemArtist;
+    return rstd::into(std::format("image://qcm/{}/{}/{}", type, id.id(), image_type));
 }
 
 auto Util::image_url(const QString& url) const -> QUrl {

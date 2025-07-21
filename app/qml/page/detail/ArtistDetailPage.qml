@@ -14,6 +14,7 @@ MD.Page {
     readonly property bool single: m_view.width < m_cover.displaySize.width * (1.0 + 1.5) + 8
     property Item viewHeaderItem: null
     property int displayMode: QA.Enum.DCardGrid
+    readonly property bool isAlbumArtistId: itemId.type == QA.Enum.ItemAlbumArtist
 
     title: qsTr("artist")
     padding: 0
@@ -258,7 +259,13 @@ MD.Page {
             f.value = qr_artist.itemId.id;
             return f;
         }
-        filters: [filter1]
+        property QM.albumFilter filter2
+        filter2.artistIdFilter: {
+            const f = QA.Util.artistIdFilter();
+            f.value = qr_artist.itemId.id;
+            return f;
+        }
+        filters: [root.isAlbumArtistId ? filter1 : filter2]
         asc: m_album_sort_type.asc
         sort: m_album_sort_type.currentType
         onAscChanged: reload()
