@@ -136,6 +136,8 @@ public:
 private:
     void load_plugins();
     void connect_actions();
+    void register_meta_type();
+
     class Private;
     C_DECLARE_PRIVATE(App, d_ptr);
 };

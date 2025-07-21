@@ -137,7 +137,7 @@ json: {}
 }
 
 auto Util::artistId(QString id) const -> model::ItemId {
-    return { enums::ItemType::ItemArtist, id.toLongLong() };
+    return { enums::ItemType::ItemAlbumArtist, id.toLongLong() };
 }
 
 QString Util::joinName(const QJSValue& v, const QString& sp) const {

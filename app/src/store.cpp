@@ -39,6 +39,7 @@ auto AppStore::extra(model::ItemId item_id) const -> QQmlPropertyMap* {
         }
         break;
     }
+    case ItemType::ItemAlbumArtist:
     case ItemType::ItemArtist: {
         if (auto extend = artists.query_extend(id)) {
             return extend->extra.get();
