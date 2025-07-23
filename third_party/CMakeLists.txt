@@ -13,16 +13,16 @@ FetchContent_MakeAvailable(rstd)
 
 add_subdirectory(qr_code)
 
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/meta_model")
-  add_subdirectory(meta_model)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/kstore")
+  add_subdirectory(kstore)
 else()
   FetchContent_Declare(
-    meta_model
-    GIT_REPOSITORY https://github.com/hypengw/MetaModel.git
+    kstore 
+    GIT_REPOSITORY https://github.com/hypengw/kstore.git
     GIT_TAG master
     GIT_SHALLOW 1
     GIT_PROGRESS 1)
-  FetchContent_MakeAvailable(meta_model)
+  FetchContent_MakeAvailable(kstore)
 endif()
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/qml_material")

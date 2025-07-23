@@ -237,7 +237,7 @@ target_link_libraries(
          rstd::rstd
          crypto
          qr_code
-         meta_model
+         kstore
          ctre::ctre
          player
          platform
