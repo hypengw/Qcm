@@ -1,6 +1,6 @@
 #pragma once
 
-#include "meta_model/qgadget_list_model.hpp"
+#include "kstore/qt/gadget_model.hpp"
 #include "Qcm/backend_msg.hpp"
 #include "Qcm/query/query.hpp"
 #include "Qcm/model/list_models.hpp"
@@ -15,7 +15,9 @@ public:
     GADGET_PROPERTY_DEF(qcm::enums::SearchType, type, type)
 };
 
-class SearchTypeModel : public meta_model::QGadgetListModel<SearchTypeItem> {
+class SearchTypeModel : public kstore::QGadgetListModel,
+                        public kstore::QMetaListModelCRTP<SearchTypeItem, SearchTypeModel,
+                                                      kstore::ListStoreType::Vector> {
     Q_OBJECT
     QML_ELEMENT
 
@@ -39,18 +41,6 @@ private:
 
 namespace model
 {
-
-class SearchSongModel : public meta_model::QGadgetListModel<Song> {
-public:
-    using base_type = meta_model::QGadgetListModel<Song>;
-    using base_type::base_type;
-};
-
-class SearchAlbumModel : public meta_model::QGadgetListModel<Album> {
-public:
-    using base_type = meta_model::QGadgetListModel<Album>;
-    using base_type::base_type;
-};
 
 class SearchModel : public QObject {
     Q_OBJECT

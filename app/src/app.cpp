@@ -25,7 +25,7 @@
 
 #include "crypto/crypto.h"
 #include "core/asio/sync_file.h"
-#include "meta_model/qgadget_helper.hpp"
+#include "kstore/qt/gadget_model.hpp"
 import platform;
 
 #include "Qcm/util/path.hpp"

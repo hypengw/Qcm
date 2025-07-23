@@ -10,7 +10,7 @@ namespace qcm
 {
 
 SearchTypeModel::SearchTypeModel(QObject* parent)
-    : meta_model::QGadgetListModel<SearchTypeItem>(parent), m_current_index(0) {
+    : kstore::QGadgetListModel(this, parent), m_current_index(0) {
     resetModel(std::array {
         SearchTypeItem { .name = "song", .type = enums::SearchType::SearchSong },
         SearchTypeItem { .name = "album", .type = enums::SearchType::SearchAlbum },

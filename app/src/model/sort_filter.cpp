@@ -6,7 +6,8 @@
 namespace qcm
 {
 
-SortTypeModel::SortTypeModel(QObject* parent): Base(parent), m_current_idx(0), m_asc(true) {}
+SortTypeModel::SortTypeModel(QObject* parent)
+    : kstore::QGadgetListModel(this, parent), m_current_idx(0), m_asc(true) {}
 
 auto SortTypeModel::currentIndex() const -> qint32 { return m_current_idx; }
 auto SortTypeModel::currentType() const -> qint32 {

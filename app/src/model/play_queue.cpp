@@ -192,7 +192,7 @@ void PlayIdProxyQueue::onSourceRowsMoved(const QModelIndex&, int, int, const QMo
 void PlayIdProxyQueue::onSourceRowsAboutToBeInserted(const QModelIndex&, int, int) {}
 
 PlayQueue::PlayQueue(QObject* parent)
-    : meta_model::QMetaModelBase<QIdentityProxyModel>(parent),
+    : QIdentityProxyModel(parent),
       m_proxy(new PlayIdProxyQueue(parent)),
       m_loop_mode(LoopMode::NoneLoop),
       m_can_next(false),
@@ -200,7 +200,7 @@ PlayQueue::PlayQueue(QObject* parent)
       m_can_jump(true),
       m_can_user_remove(true),
       m_random_mode(false) {
-    updateRoleNames(qcm::model::Song::staticMetaObject);
+    updateRoleNames(qcm::model::Song::staticMetaObject, this);
     connect(this, &PlayQueue::currentIndexChanged, this, [this](qint32 idx) {
         setCurrentSong(idx);
 
@@ -258,7 +258,7 @@ void PlayQueue::setSourceModel(QAbstractItemModel* source_model) {
 
     if (old == source_model) return;
 
-    base_type::setSourceModel(source_model);
+    QIdentityProxyModel::setSourceModel(source_model);
 #ifdef _WIN32
     connect(source_model, SIGNAL(currentIndexChanged(qint32)), this, SLOT(setCurrentIndex(qint32)));
 #else

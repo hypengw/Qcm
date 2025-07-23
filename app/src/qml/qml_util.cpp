@@ -9,7 +9,7 @@
 #include "crypto/crypto.h"
 #include "core/asio/basic.h"
 
-#include "meta_model/qgadget_helper.hpp"
+#include "kstore/qt/gadget_model.hpp"
 #include "Qcm/global.hpp"
 #include "Qcm/app.hpp"
 #include "Qcm/util/path.hpp"

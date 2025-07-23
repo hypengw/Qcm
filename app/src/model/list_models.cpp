@@ -6,14 +6,18 @@
 
 namespace qcm::model
 {
-AlbumListModel::AlbumListModel(QObject* parent): base_type(parent, { mem_mgr().store_mem }) {}
+AlbumListModel::AlbumListModel(QObject* parent)
+    : kstore::QGadgetListModel(this, parent),
+      list_crtp_t(list_crtp_t::allocator_type { mem_mgr().store_mem }) {}
 QQmlPropertyMap* AlbumListModel::extra(i32 idx) const {
     if (auto extend = AppStore::instance()->albums.query_extend(this->key_at(idx)); extend) {
         return extend->extra.get();
     }
     return nullptr;
 }
-SongListModel::SongListModel(QObject* parent): base_type(parent, { mem_mgr().store_mem }) {}
+SongListModel::SongListModel(QObject* parent)
+    : kstore::QGadgetListModel(this, parent),
+      list_crtp_t(list_crtp_t::allocator_type { mem_mgr().store_mem }) {}
 QQmlPropertyMap* SongListModel::extra(i32 idx) const {
     if (auto extend = AppStore::instance()->songs.query_extend(this->key_at(idx)); extend) {
         return extend->extra.get();
@@ -22,7 +26,9 @@ QQmlPropertyMap* SongListModel::extra(i32 idx) const {
 }
 
 AlbumSongListModel::AlbumSongListModel(QObject* parent)
-    : base_type(parent, { mem_mgr().store_mem }), m_disc_count(1) {
+    : kstore::QGadgetListModel(this, parent),
+      list_crtp_t(list_crtp_t::allocator_type { mem_mgr().store_mem }),
+      m_disc_count(1) {
     connect(&m_item, &model::AlbumStoreItem::itemChanged, this, &AlbumSongListModel::albumChanged);
 }
 AlbumSongListModel::~AlbumSongListModel() {}
@@ -37,9 +43,14 @@ void AlbumSongListModel::setDiscCount(qint32 c) {
 }
 auto AlbumSongListModel::extra() const -> QQmlPropertyMap* { return m_item.extra(); }
 
-ArtistListModel::ArtistListModel(QObject* parent): base_type(parent, { mem_mgr().store_mem }) {}
+ArtistListModel::ArtistListModel(QObject* parent)
+    : kstore::QGadgetListModel(this, parent),
+      list_crtp_t(list_crtp_t::allocator_type { mem_mgr().store_mem }) {}
 
-MixListModel::MixListModel(QObject* parent): base_type(parent) {}
+MixListModel::MixListModel(QObject* parent)
+    : kstore::QGadgetListModel(this, parent),
+      list_crtp_t(list_crtp_t::allocator_type { mem_mgr().store_mem }) {}
+
 } // namespace qcm::model
 
 #include <Qcm/model/moc_list_models.cpp>

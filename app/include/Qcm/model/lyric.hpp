@@ -2,7 +2,7 @@
 
 #include <QQmlEngine>
 #include "core/core.h"
-#include "meta_model/qgadget_list_model.hpp"
+#include "kstore/qt/gadget_model.hpp"
 
 namespace qcm
 {
@@ -17,7 +17,8 @@ public:
     QString   content;
 };
 
-class LyricModel : public meta_model::QGadgetListModel<LyricItem> {
+class LyricModel : public kstore::QGadgetListModel,
+                   public kstore::QMetaListModelCRTP<LyricItem, LyricModel, kstore::ListStoreType::Vector> {
     Q_OBJECT
     QML_ELEMENT
 

@@ -8,7 +8,7 @@
 #include "Qcm/message/message.qpb.h"
 #include "Qcm/model/share_store.hpp"
 #include "Qcm/model/item_id.hpp"
-#include "meta_model/item_trait.hpp"
+#include "kstore/item_trait.hpp"
 
 import qcm.core;
 
@@ -253,7 +253,7 @@ private:
 // -----------------------------------------
 
 template<>
-struct meta_model::ItemTrait<qcm::model::Album> {
+struct kstore::ItemTrait<qcm::model::Album> {
     using Self       = qcm::model::Album;
     using key_type   = i64;
     using store_type = ShareStore<Self, std::pmr::polymorphic_allocator<Self>, qcm::ShareStoreExt>;
@@ -261,7 +261,7 @@ struct meta_model::ItemTrait<qcm::model::Album> {
 };
 
 template<>
-struct meta_model::ItemTrait<qcm::model::Artist> {
+struct kstore::ItemTrait<qcm::model::Artist> {
     using Self       = qcm::model::Artist;
     using key_type   = i64;
     using store_type = ShareStore<Self, std::pmr::polymorphic_allocator<Self>, qcm::ShareStoreExt>;
@@ -269,7 +269,7 @@ struct meta_model::ItemTrait<qcm::model::Artist> {
 };
 
 template<>
-struct meta_model::ItemTrait<qcm::model::Song> {
+struct kstore::ItemTrait<qcm::model::Song> {
     using Self       = qcm::model::Song;
     using key_type   = i64;
     using store_type = ShareStore<Self, std::pmr::polymorphic_allocator<Self>, qcm::ShareStoreExt>;
@@ -277,7 +277,7 @@ struct meta_model::ItemTrait<qcm::model::Song> {
 };
 
 template<>
-struct meta_model::ItemTrait<qcm::model::Mix> {
+struct kstore::ItemTrait<qcm::model::Mix> {
     using Self       = qcm::model::Mix;
     using key_type   = i64;
     using store_type = ShareStore<Self, std::pmr::polymorphic_allocator<Self>, qcm::ShareStoreExt>;
@@ -285,7 +285,7 @@ struct meta_model::ItemTrait<qcm::model::Mix> {
 };
 
 template<>
-struct meta_model::ItemTrait<qcm::msg::model::ProviderMeta> {
+struct kstore::ItemTrait<qcm::msg::model::ProviderMeta> {
     using key_type = QString;
     static auto key(const qcm::msg::model::ProviderMeta& el) noexcept -> const key_type& {
         return el.typeName();
@@ -293,7 +293,7 @@ struct meta_model::ItemTrait<qcm::msg::model::ProviderMeta> {
 };
 
 template<>
-struct meta_model::ItemTrait<qcm::model::ProviderStatus> {
+struct kstore::ItemTrait<qcm::model::ProviderStatus> {
     using Self     = qcm::model::ProviderStatus;
     using key_type = i64;
     static auto key(const Self& el) noexcept -> i64 { return el.id_proto(); }

@@ -5,7 +5,7 @@
 #include <QtQml/QQmlPropertyMap>
 #include <QtQml/QJSEngine>
 
-#include "meta_model/share_store.hpp"
+#include "kstore/share_store.hpp"
 #include "core/core.h"
 
 namespace qcm
@@ -24,9 +24,9 @@ struct ShareStoreExt {
 
 template<typename T>
 class ShareStore
-    : public meta_model::ShareStore<T, std::pmr::polymorphic_allocator<T>, ShareStoreExt> {
+    : public kstore::ShareStore<T, std::pmr::polymorphic_allocator<T>, ShareStoreExt> {
 public:
-    using base_type = meta_model::ShareStore<T, std::pmr::polymorphic_allocator<T>, ShareStoreExt>;
+    using base_type = kstore::ShareStore<T, std::pmr::polymorphic_allocator<T>, ShareStoreExt>;
     ShareStore(): base_type() {}
 };
 

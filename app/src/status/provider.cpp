@@ -5,10 +5,13 @@
 
 namespace qcm
 {
-ProviderMetaStatusModel::ProviderMetaStatusModel(QObject* parent): Base(parent) {}
+ProviderMetaStatusModel::ProviderMetaStatusModel(QObject* parent)
+    : kstore::QGadgetListModel(this, parent) {}
 ProviderMetaStatusModel::~ProviderMetaStatusModel() {}
 ProviderStatusModel::ProviderStatusModel(QObject* parent)
-    : Base(parent), m_syncing(false), m_lib_status(new LibraryStatus(this)) {
+    : kstore::QGadgetListModel(this, parent),
+      m_syncing(false),
+      m_lib_status(new LibraryStatus(this)) {
     connect(m_lib_status,
             &LibraryStatus::activedChanged,
             this,

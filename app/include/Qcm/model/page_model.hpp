@@ -1,9 +1,8 @@
 #pragma once
 #include <QQmlEngine>
 #include "core/core.h"
-#include "meta_model/qgadget_list_model.hpp"
+#include "kstore/qt/gadget_model.hpp"
 #include "Qcm/macro.hpp"
-
 
 namespace qcm
 {
@@ -19,10 +18,10 @@ public:
     GADGET_PROPERTY_DEF(bool, primary, primary)
 };
 
-class PageModel : public meta_model::QGadgetListModel<Page> {
+class PageModel : public kstore::QGadgetListModel,
+                  public kstore::QMetaListModelCRTP<Page, PageModel, kstore::ListStoreType::Vector> {
     Q_OBJECT
     QML_ANONYMOUS
-    using base_type = meta_model::QGadgetListModel<Page>;
 
 public:
     PageModel(QObject* parent = nullptr);

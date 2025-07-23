@@ -1,18 +1,18 @@
 #pragma once
 
-#include "meta_model/qgadget_list_model.hpp"
+#include "kstore/qt/gadget_model.hpp"
 #include "Qcm/backend_msg.hpp"
 
 namespace qcm
 {
 class ProviderMetaStatusModel
-    : public meta_model::QGadgetListModel<msg::model::ProviderMeta,
-                                          meta_model::QMetaListStore::Map> {
+    : public kstore::QGadgetListModel,
+      public kstore::QMetaListModelCRTP<msg::model::ProviderMeta, ProviderMetaStatusModel,
+                                    kstore::ListStoreType::Map> {
     Q_OBJECT
     QML_ELEMENT
 
     using Model = msg::model::ProviderMeta;
-    using Base  = meta_model::QGadgetListModel<Model, meta_model::QMetaListStore::Map>;
 
 public:
     ProviderMetaStatusModel(QObject* parent = nullptr);
@@ -40,11 +40,11 @@ private:
 };
 
 class ProviderStatusModel
-    : public meta_model::QGadgetListModel<model::ProviderStatus, meta_model::QMetaListStore::Map> {
+    : public kstore::QGadgetListModel,
+      public kstore::QMetaListModelCRTP<model::ProviderStatus, ProviderStatusModel,
+                                    kstore::ListStoreType::Map> {
     Q_OBJECT
     QML_ELEMENT
-    using Base =
-        meta_model::QGadgetListModel<model::ProviderStatus, meta_model::QMetaListStore::Map>;
 
     Q_PROPERTY(bool syncing READ syncing NOTIFY syncingChanged FINAL)
     Q_PROPERTY(

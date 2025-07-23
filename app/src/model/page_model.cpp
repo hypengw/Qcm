@@ -23,7 +23,7 @@ void PageModel::init_main_pages(PageModel* self) {
                         .source = "qrc:/Qcm/Material/Example/Example.qml" });
 #endif
 }
-PageModel::PageModel(QObject* parent): base_type(parent) {}
+PageModel::PageModel(QObject* parent): kstore::QGadgetListModel(this, parent) {}
 PageModel::~PageModel() {}
 } // namespace qcm
 

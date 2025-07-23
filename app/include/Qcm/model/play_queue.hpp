@@ -6,7 +6,7 @@
 #include <QtCore/QSortFilterProxyModel>
 
 #include "core/core.h"
-#include "meta_model/qmeta_list_model.hpp"
+#include "kstore/qt/meta_list_model.hpp"
 #include "Qcm/model/id_queue.hpp"
 #include "Qcm/qml/enum.hpp"
 #include "Qcm/store.hpp"
@@ -74,7 +74,7 @@ private:
     Q_OBJECT_BINDABLE_PROPERTY(PlayIdProxyQueue, bool, m_shuffle, &PlayIdProxyQueue::shuffleChanged)
 };
 
-class PlayQueue : public meta_model::QMetaModelBase<QIdentityProxyModel> {
+class PlayQueue : public QIdentityProxyModel, public kstore::QMetaRoleNames {
     Q_OBJECT
     QML_ANONYMOUS
     Q_PROPERTY(qint32 currentIndex READ currentIndex NOTIFY currentIndexChanged BINDABLE
@@ -88,8 +88,6 @@ class PlayQueue : public meta_model::QMetaModelBase<QIdentityProxyModel> {
     Q_PROPERTY(bool canJump READ canJump NOTIFY canJumpChanged FINAL)
     Q_PROPERTY(bool canRemove READ canRemove NOTIFY canRemoveChanged FINAL)
     Q_PROPERTY(QString name READ name NOTIFY nameChanged FINAL)
-
-    using base_type = meta_model::QMetaModelBase<QIdentityProxyModel>;
 
 public:
     using LoopMode = enums::LoopMode;

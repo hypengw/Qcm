@@ -2,7 +2,7 @@
 
 #include <QQmlEngine>
 
-#include "meta_model/qgadget_list_model.hpp"
+#include "kstore/qt/gadget_model.hpp"
 #include "Qcm/query/query.hpp"
 #include "Qcm/model/list_models.hpp"
 

@@ -1,15 +1,15 @@
 #pragma once
 
 #include <QtQml/QQmlEngine>
-#include "meta_model/qtable_proxy_model.hpp"
+#include "kstore/qt/qtable_proxy_model.hpp"
 
 namespace qcm
 {
-class TableProxyModel : public meta_model::QTableProxyModel {
+class TableProxyModel : public kstore::QTableProxyModel {
     Q_OBJECT
     QML_ELEMENT
 public:
-    TableProxyModel(QObject* parent = nullptr): meta_model::QTableProxyModel(parent) {}
+    TableProxyModel(QObject* parent = nullptr): kstore::QTableProxyModel(parent) {}
 };
 
 

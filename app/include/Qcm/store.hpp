@@ -21,10 +21,10 @@ public:
 
     Q_INVOKABLE QQmlPropertyMap* extra(model::ItemId id) const;
 
-    using album_store  = meta_model::ItemTrait<qcm::model::Album>::store_type;
-    using song_store   = meta_model::ItemTrait<qcm::model::Song>::store_type;
-    using artist_store = meta_model::ItemTrait<qcm::model::Artist>::store_type;
-    using mix_store    = meta_model::ItemTrait<qcm::model::Mix>::store_type;
+    using album_store  = kstore::ItemTrait<qcm::model::Album>::store_type;
+    using song_store   = kstore::ItemTrait<qcm::model::Song>::store_type;
+    using artist_store = kstore::ItemTrait<qcm::model::Artist>::store_type;
+    using mix_store    = kstore::ItemTrait<qcm::model::Mix>::store_type;
 
     using album_item = album_store::store_item_type;
     using song_item  = song_store::store_item_type;

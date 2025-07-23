@@ -2,7 +2,7 @@
 #include <QQmlEngine>
 #include <QSortFilterProxyModel>
 
-#include "meta_model/qgadget_list_model.hpp"
+#include "kstore/qt/gadget_model.hpp"
 
 namespace qcm
 {
@@ -16,7 +16,9 @@ public:
     QString name;
 };
 
-class SortTypeModel : public meta_model::QGadgetListModel<SortTypeItem> {
+class SortTypeModel
+    : public kstore::QGadgetListModel,
+      public kstore::QMetaListModelCRTP<SortTypeItem, SortTypeModel, kstore::ListStoreType::Vector> {
     Q_OBJECT
     QML_ELEMENT
 
@@ -25,7 +27,6 @@ class SortTypeModel : public meta_model::QGadgetListModel<SortTypeItem> {
     Q_PROPERTY(
         qint32 currentType READ currentType WRITE setCurrentType NOTIFY currentTypeChanged FINAL)
     Q_PROPERTY(bool asc READ asc WRITE setAsc NOTIFY ascChanged FINAL)
-    using Base = meta_model::QGadgetListModel<SortTypeItem>;
 
 public:
     SortTypeModel(QObject* parent);

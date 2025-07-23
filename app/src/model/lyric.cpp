@@ -59,7 +59,7 @@ QList<LyricItem> parse_lrc(const QString& source) {
 } // namespace
 
 LyricModel::LyricModel(QObject* parent)
-    : meta_model::QGadgetListModel<LyricItem>(parent), m_cur_idx(-1), m_position(0) {
+    : kstore::QGadgetListModel(this, parent), m_cur_idx(-1), m_position(0) {
     // connect(this, &Lyric::sourceChanged, this, &Lyric::parseLrc);
     connect(this, &LyricModel::positionChanged, this, &LyricModel::refreshIndex);
 }

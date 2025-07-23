@@ -23,7 +23,7 @@ public:
         return {};
     }
     void setItem(const item_type& v) {
-        if (meta_model::ItemTrait<item_type>::key(v) != m_item.key()) {
+        if (kstore::ItemTrait<item_type>::key(v) != m_item.key()) {
             m_item = m_item.store().store_insert(v);
             static_cast<CRTP*>(this)->itemChanged();
             unreg();
@@ -53,43 +53,43 @@ private:
 };
 
 class SongStoreItem
-    : public StoreItem<meta_model::ItemTrait<qcm::model::Song>::store_type, SongStoreItem> {
+    : public StoreItem<kstore::ItemTrait<qcm::model::Song>::store_type, SongStoreItem> {
     Q_OBJECT
     Q_PROPERTY(qcm::model::Song item READ item NOTIFY itemChanged)
 public:
-    using base_type = StoreItem<meta_model::ItemTrait<qcm::model::Song>::store_type, SongStoreItem>;
+    using base_type = StoreItem<kstore::ItemTrait<qcm::model::Song>::store_type, SongStoreItem>;
     SongStoreItem(QObject* parent = nullptr);
     Q_SIGNAL void itemChanged();
 };
 
 class AlbumStoreItem
-    : public StoreItem<meta_model::ItemTrait<qcm::model::Album>::store_type, AlbumStoreItem> {
+    : public StoreItem<kstore::ItemTrait<qcm::model::Album>::store_type, AlbumStoreItem> {
     Q_OBJECT
     Q_PROPERTY(qcm::model::Album item READ item NOTIFY itemChanged)
 public:
     using base_type =
-        StoreItem<meta_model::ItemTrait<qcm::model::Album>::store_type, AlbumStoreItem>;
+        StoreItem<kstore::ItemTrait<qcm::model::Album>::store_type, AlbumStoreItem>;
     AlbumStoreItem(QObject* parent = nullptr);
     Q_SIGNAL void itemChanged();
 };
 
 class ArtistStoreItem
-    : public StoreItem<meta_model::ItemTrait<qcm::model::Artist>::store_type, ArtistStoreItem> {
+    : public StoreItem<kstore::ItemTrait<qcm::model::Artist>::store_type, ArtistStoreItem> {
     Q_OBJECT
     Q_PROPERTY(qcm::model::Artist item READ item NOTIFY itemChanged)
 public:
     using base_type =
-        StoreItem<meta_model::ItemTrait<qcm::model::Artist>::store_type, ArtistStoreItem>;
+        StoreItem<kstore::ItemTrait<qcm::model::Artist>::store_type, ArtistStoreItem>;
     ArtistStoreItem(QObject* parent = nullptr);
     Q_SIGNAL void itemChanged();
 };
 
 class MixStoreItem
-    : public StoreItem<meta_model::ItemTrait<qcm::model::Mix>::store_type, MixStoreItem> {
+    : public StoreItem<kstore::ItemTrait<qcm::model::Mix>::store_type, MixStoreItem> {
     Q_OBJECT
     Q_PROPERTY(qcm::model::Mix item READ item NOTIFY itemChanged)
 public:
-    using base_type = StoreItem<meta_model::ItemTrait<qcm::model::Mix>::store_type, MixStoreItem>;
+    using base_type = StoreItem<kstore::ItemTrait<qcm::model::Mix>::store_type, MixStoreItem>;
     MixStoreItem(QObject* parent = nullptr);
     Q_SIGNAL void itemChanged();
 };
