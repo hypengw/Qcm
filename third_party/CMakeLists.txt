@@ -5,7 +5,7 @@ find_package(PkgConfig REQUIRED)
 FetchContent_Declare(
   rstd
   GIT_REPOSITORY https://github.com/hypengw/rstd.git
-  GIT_TAG a37763b19444cc4e6e26eddda2512754594613c3
+  GIT_TAG dacb8a9e7492c2b6231957c05b8f6fa4152d49cd
   GIT_SHALLOW 0
   GIT_PROGRESS 1
   EXCLUDE_FROM_ALL)
