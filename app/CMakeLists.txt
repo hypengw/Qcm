@@ -179,6 +179,8 @@ qt_add_qml_module(
   URI
   Qcm.App
   STATIC
+  PLUGIN_TARGET
+  app
   DEPENDENCIES
   QtQuick
   Qcm.Material
@@ -209,10 +211,10 @@ set_source_files_properties(
 set_target_properties(app PROPERTIES CXX_SCAN_FOR_MODULES ON)
 
 target_compile_definitions(
-  app PUBLIC "$<$<OR:$<BOOL:${QCM_QML_DEBUG}>,$<CONFIG:Debug>>:QT_QML_DEBUG>"
-             "$<$<NOT:$<TARGET_EXISTS:mpris>>:NODEBUS>"
-             "$<$<CONFIG:Debug>:QCM_DEBUG_BUILD>"
-             )
+  app
+  PUBLIC "$<$<OR:$<BOOL:${QCM_QML_DEBUG}>,$<CONFIG:Debug>>:QT_QML_DEBUG>"
+         "$<$<NOT:$<TARGET_EXISTS:mpris>>:NODEBUS>"
+         "$<$<CONFIG:Debug>:QCM_DEBUG_BUILD>")
 
 target_compile_definitions(
   app
@@ -251,7 +253,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES CXX_SCAN_FOR_MODULES ON
 target_compile_definitions(${PROJECT_NAME} PRIVATE "${APP_INFO_MACROS}")
 
 target_link_libraries(
-  ${PROJECT_NAME} PRIVATE app appplugin kdsingleapplication
+  ${PROJECT_NAME} PRIVATE app kdsingleapplication
                           "$<LINK_GROUP:RESCAN,core,qcm.log>")
 
 set(APP_DESKTOP assets/Qcm.desktop)
