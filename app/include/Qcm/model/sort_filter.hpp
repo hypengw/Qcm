@@ -16,9 +16,9 @@ public:
     QString name;
 };
 
-class SortTypeModel
-    : public kstore::QGadgetListModel,
-      public kstore::QMetaListModelCRTP<SortTypeItem, SortTypeModel, kstore::ListStoreType::Vector> {
+class SortTypeModel : public kstore::QGadgetListModel,
+                      public kstore::QMetaListModelCRTP<SortTypeItem, SortTypeModel,
+                                                        kstore::ListStoreType::Vector> {
     Q_OBJECT
     QML_ELEMENT
 
@@ -29,7 +29,7 @@ class SortTypeModel
     Q_PROPERTY(bool asc READ asc WRITE setAsc NOTIFY ascChanged FINAL)
 
 public:
-    SortTypeModel(QObject* parent);
+    SortTypeModel(QObject* parent = nullptr);
 
     auto currentIndex() const -> qint32;
     auto currentType() const -> qint32;
