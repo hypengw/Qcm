@@ -302,15 +302,6 @@ void App::setVerifyCertificate(bool v) {
     d->m_global->session()->set_verify_certificate(v);
 }
 
-bool App::isItemId(const QJSValue& v) const {
-    auto var = v.toVariant();
-    if (var.isValid()) {
-        auto meta = var.metaType().metaObject();
-        return meta != nullptr && meta->inherits(&model::ItemId::staticMetaObject);
-    }
-    return false;
-}
-
 QVariant App::import_path_list() {
     C_D(App);
     return d->m_qml_engine->importPathList();
@@ -352,21 +343,6 @@ bool App::debug() const {
 #else
     return 0;
 #endif
-}
-
-QString App::itemIdPageUrl(const QJSValue& js) const {
-    // auto  itemId = js.toVariant().value<model::ItemId>();
-    // auto& type   = itemId.type();
-    // if (type == "album") {
-    //     return "qrc:/Qcm/App/qml/page/AlbumDetailPage.qml";
-    // } else if (type == "artist") {
-    //     return "qrc:/Qcm/App/qml/page/ArtistDetailPage.qml";
-    // } else if (type == "playlist") {
-    //     return "qrc:/Qcm/App/qml/page/MixDetailPage.qml";
-    // } else if (type == "radio") {
-    //     return "qrc:/Qcm/App/qml/page/RadioDetailPage.qml";
-    // }
-    return {};
 }
 
 auto App::engine() const -> QQmlApplicationEngine* {
@@ -464,6 +440,7 @@ qreal App::devicePixelRatio() const {
     return d->m_main_win ? d->m_main_win->effectiveDevicePixelRatio() : qApp->devicePixelRatio();
 }
 
+/*
 QSizeF App::image_size(QSizeF display, int quality, QQuickItem* item) const {
     C_D(const App);
     QSizeF out { -1, -1 };
@@ -486,6 +463,7 @@ QSizeF App::image_size(QSizeF display, int quality, QQuickItem* item) const {
     // }
     return out;
 }
+*/
 
 auto App::bound_image_size(QSizeF displaySize) const -> QSizeF {
     auto size = std::max(displaySize.width(), displaySize.height());

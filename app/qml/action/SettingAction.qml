@@ -8,6 +8,6 @@ MD.Action {
     text: qsTr('settings')
 
     onTriggered: {
-        QA.Action.popup_special(QA.Enum.SRSetting);
+        QA.Action.openPopup(QA.Enum.SRSetting);
     }
 }

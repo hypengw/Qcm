@@ -97,23 +97,14 @@ public:
 
     bool debug() const;
 
-    Q_INVOKABLE bool    isItemId(const QJSValue&) const;
-    Q_INVOKABLE QString itemIdPageUrl(const QJSValue&) const;
-
-    Q_INVOKABLE qreal  devicePixelRatio() const;
-    Q_INVOKABLE QSizeF image_size(QSizeF display, int quality, QQuickItem* = nullptr) const;
+    Q_INVOKABLE qreal devicePixelRatio() const;
+    // Q_INVOKABLE QSizeF image_size(QSizeF display, int quality, QQuickItem* = nullptr) const;
     Q_INVOKABLE QSizeF bound_image_size(QSizeF displaySize) const;
 
     Q_INVOKABLE QVariant import_path_list();
     Q_INVOKABLE void     test();
 
     Q_SIGNAL void instanceStarted();
-    Q_SIGNAL void songLiked(model::ItemId, bool);
-    Q_SIGNAL void artistLiked(model::ItemId, bool);
-    Q_SIGNAL void albumLiked(model::ItemId, bool);
-    Q_SIGNAL void playlistLiked(model::ItemId, bool);
-    Q_SIGNAL void djradioLiked(model::ItemId, bool);
-    Q_SIGNAL void programLiked(model::ItemId, bool);
     Q_SIGNAL void libraryStatusChanged();
 
     Q_SLOT void releaseResources(QQuickWindow*);
@@ -129,9 +120,8 @@ public:
     Q_SLOT void on_queue(const std::vector<model::ItemId>& songIds, model::ItemId sourceId);
     Q_SLOT void on_switch(const std::vector<model::ItemId>& songIds, model::ItemId sourceId);
     Q_SLOT void on_switch_queue(model::IdQueue*);
-    Q_SLOT void on_logout();
     Q_SLOT void on_record(enums::RecordAction);
-    Q_SLOT void on_route_by_id(const model::ItemId&, const QVariantMap&);
+    Q_SLOT void onRouteItem(const model::ItemId&, const QVariantMap&);
 
 private:
     void load_plugins();

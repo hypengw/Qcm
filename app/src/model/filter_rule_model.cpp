@@ -2,9 +2,10 @@
 
 namespace qcm
 {
-FilterRuleModel::FilterRuleModel(QObject* parent): QAbstractListModel(parent) {}
+FilterRuleModel::FilterRuleModel(kstore::QListInterface* list, QObject* parent)
+    : kstore::QGadgetListModel(list, parent) {}
 FilterRuleModel::~FilterRuleModel() {}
-AlbumFilterRuleModel::AlbumFilterRuleModel(QObject* parent): FilterRuleModel(parent) {}
+AlbumFilterRuleModel::AlbumFilterRuleModel(QObject* parent): FilterRuleModel(this, parent) {}
 AlbumFilterRuleModel::~AlbumFilterRuleModel() {}
 
 } // namespace qcm

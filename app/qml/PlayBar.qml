@@ -29,7 +29,7 @@ MD.Pane {
             hoverEnabled: true
 
             onClicked: {
-                QA.Action.toggle_playbar();
+                QA.Action.togglePlaybar();
             }
         }
 
@@ -86,7 +86,7 @@ MD.Pane {
                             hoverEnabled: true
 
                             onClicked: {
-                                QA.Action.route_by_id(root.currentSong.albumId);
+                                QA.Action.routeItem(root.currentSong.albumId);
                             }
                         }
                     }
@@ -163,7 +163,7 @@ MD.Pane {
                             icon.name: MD.Token.icon.playlist_play
 
                             onClicked: {
-                                QA.Action.popup_special(QA.Enum.SRQueue);
+                                QA.Action.openPopup(QA.Enum.SRQueue);
                             }
                         }
                         QA.VolumeButton {
@@ -234,7 +234,7 @@ MD.Pane {
                             icon.name: MD.Token.icon.playlist_play
 
                             onClicked: {
-                                QA.Action.popup_special(QA.Enum.SRQueue);
+                                QA.Action.openPopup(QA.Enum.SRQueue);
                             }
                         }
                     }

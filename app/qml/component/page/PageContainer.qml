@@ -5,9 +5,6 @@ import Qcm.Material as MD
 MD.StackView {
     id: root
 
-    readonly property alias current_page: root.m_current_page
-    property string m_current_page: ''
-
     readonly property bool canBack: currentItem?.canBack ?? false
 
     function back() {
@@ -16,12 +13,12 @@ MD.StackView {
 
     MD.Pool {
         id: m_pool
-        onObjectAdded: function (obj, is_cache) {
-            const item = root.replaceCurrentItem(obj);
-            if (!is_cache && item) {
-                (item as Item).T.StackView.removed.connect(function () {
+        onObjectAdded: function (obj, key) {
+            const item = root.replaceCurrentItem(obj) as Item;
+            if (!key && item) {
+                item.T.StackView.removed.connect(function () {
                     if (!m_pool.removeObject(obj)) {
-                        console.error('remove failed: ', obj);
+                        console.error(`remove failed(${obj}): ${key}`);
                     }
                 });
             }
@@ -29,13 +26,14 @@ MD.StackView {
     }
 
     function switchTo(page_url, props, is_cache = true) {
-        const key = JSON.stringify({
-            "url": page_url,
-            "props": props
-        });
-        if (key === m_current_page)
-            return;
-        m_current_page = key;
-        m_pool.addWithKey(key, page_url, props, is_cache);
+        if (is_cache) {
+            const key = JSON.stringify({
+                "url": page_url,
+                "props": props
+            });
+            m_pool.addWithKey(key, page_url, props);
+        } else {
+            m_pool.add(page_url, props);
+        }
     }
 }

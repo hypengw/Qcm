@@ -51,7 +51,7 @@ sudo pacman -S qcm
 #### Separated Libraries
 The following libraries were extracted and modularized during Qcm's development.  
 - [QmlMaterial](https://github.com/hypengw/QmlMaterial.git)
-- [MetaModel](https://github.com/hypengw/MetaModel.git)
+- [kstore](https://github.com/hypengw/kstore.git)
 - [ncrequest](https://github.com/hypengw/ncrequest.git)
 - [rstd](https://github.com/hypengw/rstd.git)
 
@@ -64,6 +64,7 @@ The following libraries were extracted and modularized during Qcm's development.
 - [cubeb](https://github.com/mozilla/cubeb)
 - [PEGTL](https://github.com/taocpp/PEGTL)
 - [ctre](https://github.com/hanickadot/compile-time-regular-expressions)
+- [qr_code](https://github.com/nayuki/QR-Code-generator/tree/master/cpp)
 
 ## Build
 ```shell

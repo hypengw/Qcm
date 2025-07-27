@@ -1,3 +1,4 @@
+pragma ValueTypeBehavior: Addressable
 import QtQuick
 import Qcm.App as QA
 import Qcm.Material as MD
@@ -22,8 +23,12 @@ MD.ListItem {
     }
 
     onClicked: {
-        QA.Action.popup_page('qrc:/Qcm/App/qml/page/DescriptionPage.qml', {
-                "text": description
-            });
+        const msg = {
+            dst: 'qrc:/Qcm/App/qml/page/DescriptionPage.qml',
+            props: {
+                text: description
+            }
+        } as QA.rmsg;
+        QA.Action.openPopup(msg);
     }
 }

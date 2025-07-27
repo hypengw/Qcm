@@ -1,3 +1,4 @@
+pragma ValueTypeBehavior: Addressable
 import QtQuick
 
 import Qcm.App as QA
@@ -9,8 +10,12 @@ MD.Action {
     icon.name: MD.Token.icon.comment
     text: qsTr('comment')
     onTriggered: {
-        QA.Action.popup_page('qrc:/Qcm/App/qml/page/CommentPage.qml', {
-                "itemId": root.itemId
-            });
+        const msg = {
+            dst: 'qrc:/Qcm/App/qml/page/CommentPage.qml',
+            props: {
+                itemId: root.itemId
+            }
+        } as QA.rmsg;
+        QA.Action.openPopup(msg);
     }
 }

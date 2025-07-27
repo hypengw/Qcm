@@ -96,7 +96,7 @@ enum class AudioQuality
 };
 Q_ENUM_NS(AudioQuality)
 
-enum class SpecialRoute
+enum SpecialRoute
 {
     SRQueue = 0,
     SRSetting,
@@ -106,6 +106,7 @@ enum class SpecialRoute
     SRStatus,
     SRSearch,
     SRSync,
+    SRMain,
 };
 Q_ENUM_NS(SpecialRoute)
 

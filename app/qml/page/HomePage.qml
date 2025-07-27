@@ -34,7 +34,7 @@ MD.Page {
                 picWidth: width
 
                 onClicked: {
-                    QA.Action.route_by_id(model.itemId);
+                    QA.Action.routeItem(model.itemId);
                 }
             }
 

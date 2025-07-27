@@ -121,7 +121,7 @@ MD.Page {
             }
             onClicked: {
                 ListView.view.currentIndex = index;
-                QA.Action.route_by_id(model.itemId);
+                QA.Action.routeItem(model.itemId);
             }
         }
     }
@@ -135,7 +135,7 @@ MD.Page {
             subText: QA.Util.formatDateTime(model.publishTime, 'yyyy')
             onClicked: {
                 ListView.view.currentIndex = index;
-                QA.Action.route_by_id(model.itemId);
+                QA.Action.routeItem(model.itemId);
             }
         }
     }

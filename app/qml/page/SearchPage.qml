@@ -183,7 +183,7 @@ MD.Page {
                                 }
                             }
                             onClicked: {
-                                QA.Action.route_by_id(model.itemId);
+                                QA.Action.routeItem(model.itemId);
                                 ListView.view.currentIndex = index;
                             }
                         }
@@ -204,7 +204,7 @@ MD.Page {
                                 sourceSize.width: 48
                             }
                             onClicked: {
-                                QA.Action.route_by_id(model.itemId);
+                                QA.Action.routeItem(model.itemId);
                                 ListView.view.currentIndex = index;
                             }
                         }

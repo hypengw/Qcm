@@ -28,21 +28,18 @@ public:
     Action() = delete;
 
 Q_SIGNALS:
-    void switch_user(model::ItemId userId);
-    void open_drawer();
-    void logout();
-    void route(const model::RouteMsg& msg);
-    void route_by_id(const model::ItemId& id, const QVariantMap& props = {});
-    void route_special(QVariant name_id);
-    void menu_by_id(const model::ItemId& id, QObject* parent, const QVariantMap& props = {});
-    void popup_special(QVariant name_id);
-    void popup_page(const QJSValue& url_or_comp, QVariantMap props, QVariantMap popup_props = {},
-                    const QJSValue& callback = {});
-    void switch_main_page(qint32 idx);
+    void route(const QVariant&);
+    void routeItem(const model::ItemId& id, const QVariantMap& props = {});
+    void routeMain(qint32 idx);
+
+    void openDrawer();
+    void openItemMenu(const model::ItemId& id, QObject* parent, const QVariantMap& props = {});
+    void openPopup(const QVariant&);
+
     void toast(QString text, qint32 duration = 3000, enums::ToastFlags flags = {},
                QObject* action = nullptr);
     void collect(model::ItemId itemId, bool act = true);
-    void toggle_playbar();
+    void togglePlaybar();
 
     void toggle();
     void next();

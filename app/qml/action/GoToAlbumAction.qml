@@ -14,6 +14,6 @@ MD.Action {
         return albumId.valid;
     }
     onTriggered: {
-        QA.Action.route_by_id(root.albumId);
+        QA.Action.routeItem(root.albumId);
     }
 }

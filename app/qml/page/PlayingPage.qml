@@ -65,7 +65,7 @@ MD.Page {
                         if (root.canBack) {
                             root.back();
                         } else {
-                            QA.Action.toggle_playbar();
+                            QA.Action.togglePlaybar();
                         }
                     }
                 }
@@ -236,7 +236,7 @@ MD.Page {
                         icon.name: MD.Token.icon.playlist_play
 
                         onClicked: {
-                            QA.Action.popup_special(QA.Enum.SRQueue);
+                            QA.Action.openPopup(QA.Enum.SRQueue);
                         }
                     }
                     MD.IconButton {

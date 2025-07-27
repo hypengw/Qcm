@@ -28,6 +28,8 @@ namespace log
 export auto level_from(std::string_view) -> LogLevel;
 
 export void log_loc_raw(LogLevel level, const std::source_location loc, std::string_view);
+export auto log_format(LogLevel level, std::string_view content, std::string_view filename,
+                       std::uint_least32_t line, std::uint_least32_t column) -> std::string;
 export void log_raw(LogLevel level, std::string_view);
 
 export template<typename... T>

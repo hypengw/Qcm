@@ -37,14 +37,13 @@ Action* Action::create(QQmlEngine*, QJSEngine*) {
 }
 
 void App::connect_actions() {
-    connect(Action::instance(), &Action::logout, this, &App::on_logout);
     connect(Action::instance(), &Action::queue, this, &App::on_queue);
     connect(Action::instance(), &Action::queue_next, this, &App::on_queue_next);
     connect(Action::instance(), &Action::switch_songs, this, &App::on_switch);
     connect(Action::instance(), &Action::play, this, &App::on_play);
     connect(Action::instance(), &Action::switch_queue, this, &App::on_switch_queue);
     connect(Action::instance(), &Action::record, this, &App::on_record);
-    connect(Action::instance(), &Action::route_by_id, this, &App::on_route_by_id);
+    connect(Action::instance(), &Action::routeItem, this, &App::onRouteItem);
 
     connect(
         Action::instance(), &Action::next, this->playqueue(), QOverload<>::of(&PlayQueue::next));
@@ -234,8 +233,6 @@ void App::on_switch(const std::vector<model::ItemId>& songIds, model::ItemId sou
     }
 }
 
-void App::on_logout() {}
-
 void App::on_record(enums::RecordAction) {}
 
 void App::on_switch_queue(model::IdQueue* queue) {
@@ -253,21 +250,18 @@ void App::on_switch_queue(model::IdQueue* queue) {
     }
 }
 
-void App::on_route_by_id(const model::ItemId& id, const QVariantMap& in_props) {
+void App::onRouteItem(const model::ItemId& id, const QVariantMap& in_props) {
+    Action::instance()->route(enums::SpecialRoute::SRMain);
+
     model::RouteMsg msg;
     auto            url = id.toPageUrl();
 
-    Action::instance()->route_special(u"main"_s);
-
     auto props      = in_props;
-    msg.url         = url;
+    msg.dst         = url.toString();
     props["itemId"] = QVariant::fromValue(id);
     msg.props       = std::move(props);
 
-    if (debug()) {
-        INFO_LOG("route to: {}", url.toString());
-    }
-    Action::instance()->route(msg);
+    Action::instance()->route(QVariant::fromValue(msg));
 }
 } // namespace qcm
 

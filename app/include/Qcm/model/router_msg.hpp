@@ -1,8 +1,8 @@
 #pragma once
 
-#include <QObject>
-#include <QUrl>
-#include <QVariantMap>
+#include <QtCore/QUrl>
+#include <QtCore/QVariantMap>
+#include <QtQml/QQmlEngine>
 #include "Qcm/macro.hpp"
 
 namespace qcm
@@ -12,10 +12,11 @@ namespace model
 
 class RouteMsg {
     Q_GADGET
+    QML_VALUE_TYPE(rmsg)
+    QML_STRUCTURED_VALUE
 public:
-    RouteMsg() {}
-    ~RouteMsg() {}
-    GADGET_PROPERTY_DEF(QUrl, url, url)
+
+    GADGET_PROPERTY_DEF(QString, dst, dst)
     GADGET_PROPERTY_DEF(QVariantMap, props, props)
 };
 

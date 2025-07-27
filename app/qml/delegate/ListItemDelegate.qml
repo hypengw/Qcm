@@ -26,7 +26,7 @@ MD.ListItem {
         MD.MProp.textColor: MD.Token.color.on_surface_variant
         icon.name: MD.Token.icon.more_vert
         onClicked: {
-            QA.Action.menu_by_id(root.itemId, this);
+            QA.Action.openItemMenu(root.itemId, this);
         }
     }
 }

@@ -1,3 +1,4 @@
+pragma ValueTypeBehavior: Assertable
 import QtCore
 import QtQuick
 import QtQml
@@ -17,7 +18,7 @@ MD.ApplicationWindow {
         icon.name: MD.Token.icon.menu
         text: qsTr('menu')
         onTriggered: {
-            QA.Action.open_drawer();
+            QA.Action.openDrawer();
         }
     }
 
@@ -93,7 +94,7 @@ MD.ApplicationWindow {
             target: QA.App.appState
         }
         Connections {
-            function onRoute_special(name) {
+            function onRoute(name) {
                 if (name === QA.Enum.SRLogin) {
                     m_win_stack.push(comp_welcome);
                 }
@@ -124,29 +125,28 @@ MD.ApplicationWindow {
 
     Connections {
         target: QA.Action
-        function onPopup_special(s) {
+        function onOpenPopup(s) {
             if (s === QA.Enum.SRQueue) {
                 m_queue_popup.open();
             } else if (s === QA.Enum.SRSync) {
                 m_sync_popup.open();
             } else if (typeof s == 'number') {
+                const purl = 'qrc:/Qcm/App/qml/component/page/PagePopup.qml';
                 const url = QA.Util.special_route_url(s);
-                if (url)
-                    QA.Action.popup_page(url, {});
+                if (url) {
+                    MD.Util.showPopup(purl, {
+                        'source': url
+                    }, win);
+                }
+            } else if (typeof s == 'string' || s as url) {
+                MD.Util.showPopup(s, {}, win);
+            } else if (s as QA.rmsg) {
+                const msg = s as QA.rmsg;
+                MD.Util.showPopup(msg.dst, msg.props, win);
             }
         }
 
-        function onPopup_page(url, props, popup_props, callback) {
-            const popup = MD.Util.showPopup('qrc:/Qcm/App/qml/component/page/PagePopup.qml', Object.assign({}, {
-                "source": url,
-                "props": props
-            }, popup_props), win);
-            if (callback) {
-                callback(popup);
-            }
-        }
-
-        function onMenu_by_id(id, parent, props) {
+        function onOpenItemMenu(id, parent, props) {
             let url = "";
             switch (id.type) {
             case QA.Enum.ItemAlbum:
@@ -236,18 +236,14 @@ MD.ApplicationWindow {
             }
 
             Connections {
-                function onRoute_special(name) {
-                    if (name === 'main') {
+                function onRoute(dst) {
+                    if (dst === Enum.SRMain) {
                         sv_main.pop(null);
-                    } else if (name === 'playing') {}
+                    }
                 }
 
                 target: QA.Action
             }
-            // Component {
-            //     id: comp_playing
-            //     QA.PlayingPage {}
-            // }
         }
     }
     Component {

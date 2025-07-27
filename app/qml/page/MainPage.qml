@@ -39,18 +39,12 @@ MD.Page {
 
     Connections {
         function onRoute(msg) {
-            m_page_stack.push_page(msg.url, msg.props);
+            m_page_stack.push_page(msg.dst, msg.props);
         }
 
-        function onSwitch_main_page(idx) {
+        function onRouteMain(idx) {
             root.pageIndex = idx;
         }
-        function onRoute_special(s) {
-            if (typeof s == 'number') {
-                QA.Action.route(QA.Util.route_msg(s));
-            }
-        }
-
         target: QA.Action
     }
 
@@ -67,7 +61,7 @@ MD.Page {
                     model: root.model
                     onClicked: function (model) {
                         m_page_stack.pop_page(null);
-                        QA.Action.switch_main_page(model.index);
+                        QA.Action.routeMain(model.index);
                     }
 
                     Behavior on implicitWidth {
@@ -94,7 +88,7 @@ MD.Page {
                             action: MD.Action {
                                 icon.name: MD.Token.icon.hard_drive
                                 onTriggered: {
-                                    QA.Action.popup_special(QA.Enum.SRSync);
+                                    QA.Action.openPopup(QA.Enum.SRSync);
                                 }
                             }
                         }
@@ -114,7 +108,7 @@ MD.Page {
                                     icon.name: MD.Token.icon.hard_drive
                                     text: qsTr('provider')
                                     onTriggered: {
-                                        QA.Action.popup_special(QA.Enum.SRSync);
+                                        QA.Action.openPopup(QA.Enum.SRSync);
                                         m_drawer.close();
                                     }
                                 }
@@ -134,7 +128,7 @@ MD.Page {
                                     text: qsTr('about')
 
                                     onTriggered: {
-                                        QA.Action.popup_special(QA.Enum.SRAbout);
+                                        QA.Action.openPopup(QA.Enum.SRAbout);
                                         m_drawer.close();
                                     }
                                 }
@@ -192,7 +186,7 @@ MD.Page {
                                 text: parent.model.name
                                 checked: root.pageIndex == parent.index
                                 onClicked: {
-                                    QA.Action.switch_main_page(parent.index);
+                                    QA.Action.routeMain(parent.index);
                                 }
                             }
                         }

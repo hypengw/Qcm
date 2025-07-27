@@ -111,7 +111,7 @@ Flickable {
     ]
 
     Connections {
-        function onToggle_playbar() {
+        function onTogglePlaybar() {
             if (root.state != 'drag') {
                 root.state = root.state == 'close' ? 'open' : 'close';
             }

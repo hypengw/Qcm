@@ -1,3 +1,8 @@
 import QtQuick
+import Qcm.Material as MD
 
-Item {}
+MD.Dialog {
+    title: qsTr('filter')
+
+    
+}

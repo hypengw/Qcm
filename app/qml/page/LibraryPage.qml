@@ -169,7 +169,7 @@ MD.Page {
                     "itemId": itemId
                 }, false);
             } else {
-                QA.Action.route_by_id(itemId);
+                QA.Action.routeItem(itemId);
             }
         }
         initialItem: Item {}

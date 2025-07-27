@@ -3,29 +3,29 @@
 #include <QtCore/QAbstractListModel>
 #include <QtQml/QQmlEngine>
 #include "Qcm/message/filter.qpb.h"
+#include "kstore/qt/gadget_model.hpp"
 
 namespace qcm
 {
 
-class FilterRuleModel : public QAbstractListModel {
+class FilterRuleModel : public kstore::QGadgetListModel {
     Q_OBJECT
 public:
-    FilterRuleModel(QObject* = nullptr);
+    FilterRuleModel(kstore::QListInterface* list, QObject* = nullptr);
     ~FilterRuleModel();
 
 private:
 };
 
-class AlbumFilterRuleModel : public FilterRuleModel {
+class AlbumFilterRuleModel
+    : public FilterRuleModel,
+      public kstore::QMetaListModelCRTP<msg::filter::AlbumFilter, AlbumFilterRuleModel,
+                                        kstore::ListStoreType::Vector> {
     Q_OBJECT
     QML_ELEMENT
 public:
-    using value_t = msg::filter::AlbumFilter;
-
     AlbumFilterRuleModel(QObject* = nullptr);
     ~AlbumFilterRuleModel();
-
-private:
-    std::vector<value_t> m_items;
 };
+
 } // namespace qcm

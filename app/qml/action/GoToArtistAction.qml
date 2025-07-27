@@ -15,7 +15,7 @@ MD.Action {
             return;
         const itemIds = root.getItemIds();
         if (itemIds.length === 1) {
-            QA.Action.route_by_id(itemIds[0]);
+            QA.Action.routeItem(itemIds[0]);
         } else {
             MD.Util.showPopup('qrc:/Qcm/App/qml/dialog/GoToArtistDialog.qml', {
                 "itemIds": itemIds

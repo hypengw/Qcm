@@ -36,7 +36,7 @@ auto Util::mprisTrackid(model::ItemId id) const -> QString {
 
 auto Util::create_route_msg(QVariantMap props) const -> model::RouteMsg {
     model::RouteMsg msg;
-    msg.url   = (props.value("url").toUrl());
+    msg.dst   = (props.value("url").toUrl()).toString();
     msg.props = (props.value("props").toMap());
     return msg;
 }
@@ -104,7 +104,7 @@ QUrl Util::special_route_url(enums::SpecialRoute r) const {
 }
 model::RouteMsg Util::route_msg(enums::SpecialRoute r) const {
     model::RouteMsg msg;
-    msg.url = (special_route_url(r));
+    msg.dst = special_route_url(r).toString();
     return msg;
 }
 

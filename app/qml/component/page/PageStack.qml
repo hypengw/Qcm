@@ -27,38 +27,40 @@ MD.StackView {
         }
     }
 
+    MD.Pool {
+        id: m_pool
+        onObjectAdded: function (obj, key) {
+            const item = root.push(obj) as Item;
+            if (item) {
+                item.T.StackView.removed.connect(function () {
+                    if (!m_pool.removeObject(obj)) {
+                        console.error('remove failed: ', obj);
+                    }
+                });
+            }
+        }
+    }
+
     function push_page(url, props = {}) {
         const key = JSON.stringify({
             "url": url,
             "props": MD.Util.paramsString(props)
         });
-        let item = pages.get(key);
+        const item = pages.get(key);
         if (item) {
             popup(item);
         } else {
-            item = MD.Util.createItem(url, props, null);
-            if (item) {
-                pages.set(key, item);
-                push(item);
-            }
+            m_pool.addWithKey(key, url, props);
         }
     }
 
     function pop_page(bottom) {
         if (bottom === null) {
             pop(null);
-            pages.forEach(v => {
-                return v.destroy(1000);
-            });
-            pages.clear();
+            m_pool.clear();
         } else {
             const item = pop();
-            Array.from(pages.entries()).filter(el => {
-                return el[1] === item;
-            }).map(el => {
-                pages.delete(el[0]);
-                item.destroy(1000);
-            });
+            m_pool.removeObject(item);
         }
     }
 
@@ -71,11 +73,5 @@ MD.StackView {
         const target = pop(T.StackView.Immediate);
         push(items, T.StackView.Immediate);
         push(target);
-    }
-
-    Component.onDestruction: {
-        pages.forEach(page => {
-            page?.destroy();
-        });
     }
 }

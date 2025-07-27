@@ -134,7 +134,8 @@ void        log::log_raw(LogLevel level, std::string_view content) {
     }
     std::fflush(out);
 };
-void log::log_loc_raw(LogLevel level, const std::source_location loc, std::string_view content) {
+auto log::log_format(LogLevel level, std::string_view content, std::string_view filename,
+                     std::uint_least32_t line, std::uint_least32_t column) -> std::string {
     using namespace std::chrono;
 #ifdef _LIBCPP_VERSION
     auto time_str = "";
@@ -143,14 +144,17 @@ void log::log_loc_raw(LogLevel level, const std::source_location loc, std::strin
     auto now_local = std::chrono::current_zone()->to_local(now_utc);
     auto time_str  = std::format("{:%Y-%m-%dT%H:%M:%S}", now_local);
 #endif
+    return std::format("{:.26s}Z {:>5} {}({},{}): {}  \n",
+                       time_str,
+                       to_sv(level),
+                       filename,
+                       line,
+                       column,
+                       content);
+};
+void log::log_loc_raw(LogLevel level, const std::source_location loc, std::string_view content) {
     log_raw(level,
-            std::format("{:.26s}Z {:>5} {}({},{}): {}  \n",
-                        time_str,
-                        to_sv(level),
-                        extract_last(loc.file_name(), 2),
-                        loc.line(),
-                        loc.column(),
-                        content));
+            log_format(level, content, extract_last(loc.file_name(), 2), loc.line(), loc.column()));
 }
 
 auto log::format_assert(std::string_view expr_str, const std::source_location& loc,
