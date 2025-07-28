@@ -138,11 +138,13 @@ MD.ApplicationWindow {
                         'source': url
                     }, win);
                 }
-            } else if (typeof s == 'string' || s as url) {
+            } else if (typeof s == 'string') {
                 MD.Util.showPopup(s, {}, win);
             } else if (s as QA.rmsg) {
                 const msg = s as QA.rmsg;
                 MD.Util.showPopup(msg.dst, msg.props, win);
+            } else {
+                console.error(s);
             }
         }
 

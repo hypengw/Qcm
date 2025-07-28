@@ -39,7 +39,9 @@ MD.Page {
 
     Connections {
         function onRoute(msg) {
-            m_page_stack.push_page(msg.dst, msg.props);
+            if (msg instanceof QA.rmsg) {
+                m_page_stack.push_page(msg.dst, msg.props);
+            }
         }
 
         function onRouteMain(idx) {

@@ -40,10 +40,11 @@ auto Util::create_route_msg(QVariantMap props) const -> model::RouteMsg {
     msg.props = (props.value("props").toMap());
     return msg;
 }
+model::RouteMsg Util::routeMsg() const { return {}; }
 
 auto Util::image_url(model::ItemId id, enums::ImageType image_type) const -> QUrl {
     auto type = id.type();
-    if(type == enums::ItemType::ItemAlbumArtist) type = enums::ItemType::ItemArtist;
+    if (type == enums::ItemType::ItemAlbumArtist) type = enums::ItemType::ItemArtist;
     return rstd::into(std::format("image://qcm/{}/{}/{}", type, id.id(), image_type));
 }
 

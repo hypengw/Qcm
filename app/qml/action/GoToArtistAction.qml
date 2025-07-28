@@ -17,9 +17,12 @@ MD.Action {
         if (itemIds.length === 1) {
             QA.Action.routeItem(itemIds[0]);
         } else {
-            MD.Util.showPopup('qrc:/Qcm/App/qml/dialog/GoToArtistDialog.qml', {
-                "itemIds": itemIds
-            }, QA.Global.main_win);
+            const msg = Util.routeMsg();
+            msg.dst = 'qrc:/Qcm/App/qml/dialog/GoToArtistDialog.qml';
+            msg.props = {
+                'itemIds': itemIds
+            };
+            QA.Action.openPopup(msg);
         }
     }
 }

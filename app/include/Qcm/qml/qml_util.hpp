@@ -25,6 +25,7 @@ public:
     Q_INVOKABLE msg::filter::ArtistIdFilter artistIdFilter() const;
     Q_INVOKABLE model::ItemId createItemid() const;
     Q_INVOKABLE model::RouteMsg create_route_msg(QVariantMap) const;
+    Q_INVOKABLE model::RouteMsg routeMsg() const;
 
     Q_INVOKABLE std::vector<model::ItemId> collect_ids(QAbstractItemModel* model) const;
     Q_INVOKABLE int  dyn_card_width(qint32 containerWidth, qint32 spacing = 0) const;
