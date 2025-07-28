@@ -18,7 +18,7 @@ MD.Action {
             QA.Action.routeItem(itemIds[0]);
         } else {
             const msg = Util.routeMsg();
-            msg.dst = 'qrc:/Qcm/App/qml/dialog/GoToArtistDialog.qml';
+            msg.dst = 'Qcm.App/GoToArtistDialog';
             msg.props = {
                 'itemIds': itemIds
             };

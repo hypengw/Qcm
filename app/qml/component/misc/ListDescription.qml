@@ -25,7 +25,7 @@ MD.ListItem {
         const msg = Util.routeMsg();
         msg.dst = 'Qcm.App/PagePopup';
         msg.props = {
-            source: 'qrc:/Qcm/App/qml/page/DescriptionPage.qml',
+            source: 'Qcm.App/DescriptionPage',
             props: {
                 text: description
             }
