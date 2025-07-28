@@ -49,7 +49,7 @@ public:
     Q_SIGNAL void currentIndexChanged(qint32);
 
 private:
-    Q_SLOT void   setCurrentIndexFromSource(qint32 idx);
+    Q_SLOT void setCurrentIndexFromSource(qint32 idx);
     auto        useShuffle() const -> bool;
     Q_SLOT void onSourceRowsAboutToBeInserted(const QModelIndex& parent, int first, int last);
     Q_SLOT void onSourceRowsInserted(const QModelIndex& parent, int first, int last);
@@ -100,6 +100,7 @@ public:
 
     auto data(const QModelIndex& index, int role) const -> QVariant override;
     void setSourceModel(QAbstractItemModel* sourceModel) override;
+    auto roleNames() const -> QHash<int, QByteArray> override;
 
     auto          name() const -> const QString&;
     auto          currentId() const -> rstd::Option<model::ItemId>;

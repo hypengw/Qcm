@@ -39,7 +39,10 @@ void PlayIdProxyQueue::setSourceModel(QAbstractItemModel* source_model) {
 
     QIdentityProxyModel::setSourceModel(source_model);
 #ifdef _WIN32
-    connect(source_model, SIGNAL(currentIndexChanged(qint32)), this, SLOT(setCurrentIndexFromSource(qint32)));
+    connect(source_model,
+            SIGNAL(currentIndexChanged(qint32)),
+            this,
+            SLOT(setCurrentIndexFromSource(qint32)));
 #else
     QBindable<qint32> source_idx(source_model, "currentIndex");
     m_current_index.setBinding([source_idx, this] {
@@ -221,6 +224,7 @@ PlayQueue::PlayQueue(QObject* parent)
 }
 PlayQueue::~PlayQueue() {}
 
+auto PlayQueue::roleNames() const -> QHash<int, QByteArray> { return roleNamesRef(); }
 auto PlayQueue::data(const QModelIndex& index, int role) const -> QVariant {
     auto row = index.row();
     auto id  = getId(row);
