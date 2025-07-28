@@ -32,7 +32,7 @@ MD.StackView {
         onObjectAdded: function (obj, key) {
             const item = root.push(obj) as Item;
             if (item) {
-                item.T.StackView.removed.connect(function () {
+                item.T.StackView.removed.connect(m_pool, function () {
                     if (!m_pool.removeObject(obj)) {
                         console.error('remove failed: ', obj);
                     }

@@ -16,7 +16,7 @@ MD.StackView {
         onObjectAdded: function (obj, key) {
             const item = root.replaceCurrentItem(obj) as Item;
             if (!key && item) {
-                item.T.StackView.removed.connect(function () {
+                item.T.StackView.removed.connect(m_pool, function () {
                     if (!m_pool.removeObject(obj)) {
                         console.error(`remove failed(${obj}): ${key}`);
                     }

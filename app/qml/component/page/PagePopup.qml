@@ -8,7 +8,7 @@ MD.Popup {
     id: root
     property bool fillHeight: false
     property bool fillWidth: false
-    property var props: Object()
+    property var props
     required property string source
 
     parent: T.Overlay.overlay
@@ -63,30 +63,52 @@ MD.Popup {
         }
     }
 
-    MD.MProp.page: m_page_context
+    MD.Pool {
+        id: m_pool
+        onObjectAdded: function (obj, key) {
+            const item = m_stack.push(obj, T.StackView.PushTransition) as Item;
+            if (item) {
+                const attach = item.T.StackView;
+                attach.removed.connect(m_pool, function () {
+                    if (!m_pool.removeObject(obj)) {
+                        console.error('remove failed: ', obj);
+                    }
+                });
+                attach.statusChanged.connect(item, function () {
+                    if (!attach || !m_stack)
+                        return;
+
+                    if (attach.status == T.StackView.Active) {
+                        m_stack.lastImplicitHeight = 0;
+                    } else if (attach.status == T.StackView.Deactivating) {
+                        m_stack.lastImplicitHeight = Qt.binding(function () {
+                            return item.implicitHeight;
+                        });
+                    }
+                });
+
+                m_stack.lastImplicitHeight = m_stack.implicitHeight;
+            }
+        }
+    }
 
     onSourceChanged: {
-        m_stack.replaceCurrentItem(source, props);
+        m_pool.add(source, props);
     }
 
     contentItem: MD.StackView {
         id: m_stack
-        implicitHeight: currentItem.implicitHeight
-        implicitWidth: currentItem.implicitWidth
+        property real lastImplicitHeight: 0
+        implicitHeight: Math.max(lastImplicitHeight, currentItem?.implicitHeight ?? 0)
 
-        // Behavior on implicitHeight {
-        //     NumberAnimation {
-        //         easing.type: Easing.InOutQuad
-        //         duration: 350
-        //     }
-        // }
-
+        MD.MProp.page: m_page_context
         Connections {
             function onPushItem(comp, props) {
-                m_stack.pushItem(comp, props, T.StackView.PushTransition);
+                m_pool.add(comp, props);
             }
             function onPop() {
-                m_stack.pop();
+                const item = m_stack.pop();
+                m_pool.removeObject(item);
             }
             target: m_page_context
         }
