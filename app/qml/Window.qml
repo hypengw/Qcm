@@ -143,6 +143,8 @@ MD.ApplicationWindow {
             } else if (s as QA.rmsg) {
                 const msg = s as QA.rmsg;
                 MD.Util.showPopup(msg.dst, msg.props, win);
+            } else if (s as Component) {
+                MD.Util.showPopup(s, {}, win);
             } else {
                 console.error(s);
             }

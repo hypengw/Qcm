@@ -121,6 +121,11 @@ set(QML_FILES
     qml/component/setting/SettingRow.qml
     qml/component/setting/SettingSection.qml
     qml/component/tag/SongTag.qml
+    qml/component/filter/BaseFilter.qml
+    qml/component/filter/FilterDelegateChooser.qml
+    qml/component/filter/IntFilter.qml
+    qml/component/filter/StringFilter.qml
+    qml/component/filter/AlbumFilter.qml
     qml/action/AppendListAction.qml
     qml/action/PlayAction.qml
     qml/action/PlaynextAction.qml
@@ -136,6 +141,7 @@ set(QML_FILES
     qml/action/MixCreateAction.qml
     qml/action/FavoriteAction.qml
     qml/action/SelectDisplayModeAction.qml
+    qml/action/FilterAction.qml
     qml/dialog/MixCreateDialog.qml
     qml/dialog/GoToArtistDialog.qml
     qml/dialog/AddToMixDialog.qml
@@ -148,6 +154,7 @@ set(QML_FILES
     qml/menu/ProgramMenu.qml
     qml/menu/SortMenu.qml
     qml/menu/DisplayModeMenu.qml
+    qml/menu/AlbumFilterMenu.qml
     qml/page/setting/SettingPage.qml
     qml/page/setting/AudioSetting.qml
     qml/page/setting/MiscSetting.qml
@@ -182,6 +189,7 @@ qt_add_qml_module(
   PLUGIN_TARGET
   app
   DEPENDENCIES
+  QtCore
   QtQuick
   Qcm.Material
   RESOURCE_PREFIX

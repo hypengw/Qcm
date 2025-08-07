@@ -41,6 +41,33 @@ void SortTypeModel::setAsc(bool v) {
     }
 }
 
+FilterTypeModel::FilterTypeModel(QObject* parent)
+    : kstore::QGadgetListModel(this, parent), m_current_idx(0) {}
+
+auto FilterTypeModel::currentIndex() const -> qint32 { return m_current_idx; }
+auto FilterTypeModel::currentType() const -> qint32 {
+    if (m_current_idx < 0 || m_current_idx > rowCount()) {
+        return 0;
+    }
+    return at(m_current_idx).type;
+}
+void FilterTypeModel::setCurrentIndex(qint32 v) {
+    if (m_current_idx != v) {
+        m_current_idx = v;
+        currentIndexChanged();
+        currentTypeChanged();
+    }
+}
+void FilterTypeModel::setCurrentType(qint32 t) {
+    for (usize i = 0; i < this->size(); i++) {
+        auto& el = at(i);
+        if (el.type == t) {
+            setCurrentIndex(i);
+            break;
+        }
+    }
+}
+
 AlbumSortTypeModel::AlbumSortTypeModel(QObject* parent): SortTypeModel(parent) {
     using E = msg::model::AlbumSortGadget::AlbumSort;
     this->insert(
@@ -157,6 +184,16 @@ void SongSortFilterModel::setSortType(qint32 v) {
         m_sort_type = v;
         sortTypeChanged();
     }
+}
+
+AlbumFilterTypeModel::AlbumFilterTypeModel(QObject* parent): FilterTypeModel(parent) {
+    using E = msg::filter::FilterTypeGadget::FilterType;
+    this->insert(
+        0,
+        std::array {
+            FilterTypeItem { .type = (qint32)E::FILTER_TYPE_TITLE, .name = "title" },
+            FilterTypeItem { .type = (qint32)E::FILTER_TYPE_TRACK_COUNT, .name = "track count" },
+        });
 }
 
 } // namespace qcm

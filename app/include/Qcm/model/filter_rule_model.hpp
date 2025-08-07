@@ -10,6 +10,8 @@ namespace qcm
 
 class FilterRuleModel : public kstore::QGadgetListModel {
     Q_OBJECT
+    QML_ELEMENT
+    QML_UNCREATABLE("")
 public:
     FilterRuleModel(kstore::QListInterface* list, QObject* = nullptr);
     ~FilterRuleModel();

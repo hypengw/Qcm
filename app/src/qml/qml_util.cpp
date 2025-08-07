@@ -21,8 +21,10 @@ namespace qcm::qml
 Util::Util(): QObject(nullptr) {}
 Util::~Util() {}
 
-auto Util::albumArtistIdFilter() const -> msg::filter::AlbumArtistIdFilter { return {}; }
-auto Util::artistIdFilter() const -> msg::filter::ArtistIdFilter { return {}; }
+auto Util::albumArtistIdFilter() const noexcept -> msg::filter::AlbumArtistIdFilter { return {}; }
+auto Util::artistIdFilter() const noexcept -> msg::filter::ArtistIdFilter { return {}; }
+auto Util::titleFilter() const noexcept -> msg::filter::TitleFilter { return {}; }
+auto Util::albumFilter() const noexcept -> msg::filter::AlbumFilter { return {}; }
 auto Util::createItemid() const -> model::ItemId { return {}; }
 
 auto Util::mprisTrackid(model::ItemId id) const -> QString {

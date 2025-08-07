@@ -21,8 +21,11 @@ public:
     Util();
     ~Util() override;
 
-    Q_INVOKABLE msg::filter::AlbumArtistIdFilter albumArtistIdFilter() const;
-    Q_INVOKABLE msg::filter::ArtistIdFilter artistIdFilter() const;
+    Q_INVOKABLE msg::filter::AlbumArtistIdFilter albumArtistIdFilter() const noexcept;
+    Q_INVOKABLE msg::filter::ArtistIdFilter artistIdFilter() const noexcept;
+    Q_INVOKABLE msg::filter::TitleFilter titleFilter() const noexcept;
+    Q_INVOKABLE msg::filter::AlbumFilter albumFilter() const noexcept;
+
     Q_INVOKABLE model::ItemId createItemid() const;
     Q_INVOKABLE model::RouteMsg create_route_msg(QVariantMap) const;
     Q_INVOKABLE model::RouteMsg routeMsg() const;

@@ -69,6 +69,48 @@ public:
     SongSortTypeModel(QObject* parent = nullptr);
 };
 
+struct FilterTypeItem {
+    Q_GADGET
+    Q_PROPERTY(QString name MEMBER name)
+    Q_PROPERTY(qint32 type MEMBER type)
+public:
+    qint32  type { 0 };
+    QString name;
+};
+
+class FilterTypeModel : public kstore::QGadgetListModel,
+                        public kstore::QMetaListModelCRTP<FilterTypeItem, FilterTypeModel,
+                                                          kstore::ListStoreType::Vector> {
+    Q_OBJECT
+    QML_ELEMENT
+
+    Q_PROPERTY(qint32 currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY
+                   currentIndexChanged FINAL)
+    Q_PROPERTY(
+        qint32 currentType READ currentType WRITE setCurrentType NOTIFY currentTypeChanged FINAL)
+
+public:
+    FilterTypeModel(QObject* parent = nullptr);
+
+    auto currentIndex() const -> qint32;
+    auto currentType() const -> qint32;
+    void setCurrentIndex(qint32);
+    void setCurrentType(qint32);
+
+    Q_SIGNAL void currentIndexChanged();
+    Q_SIGNAL void currentTypeChanged();
+
+private:
+    qint32 m_current_idx;
+};
+
+class AlbumFilterTypeModel : public FilterTypeModel {
+    Q_OBJECT
+    QML_ELEMENT
+public:
+    AlbumFilterTypeModel(QObject* parent = nullptr);
+};
+
 class SongSortFilterModel : public QSortFilterProxyModel {
     Q_OBJECT
     QML_ELEMENT

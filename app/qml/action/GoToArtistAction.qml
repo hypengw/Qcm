@@ -17,7 +17,7 @@ MD.Action {
         if (itemIds.length === 1) {
             QA.Action.routeItem(itemIds[0]);
         } else {
-            const msg = Util.routeMsg();
+            const msg = QA.Util.routeMsg();
             msg.dst = 'Qcm.App/GoToArtistDialog';
             msg.props = {
                 'itemIds': itemIds

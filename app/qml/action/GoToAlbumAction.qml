@@ -9,10 +9,7 @@ MD.Action {
     text: qsTr('go to album')
 
     property var albumId
-    enabled: {
-        console.error(albumId);
-        return albumId.valid;
-    }
+    enabled: albumId.valid
     onTriggered: {
         QA.Action.routeItem(root.albumId);
     }

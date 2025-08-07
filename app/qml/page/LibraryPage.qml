@@ -68,6 +68,7 @@ MD.Page {
                     model: m_album_sort_type
                     displayMode: m_view_album.displayMode
                     onSelectDisplayMode: m => m_album_setting.display_mode = m
+                    filterModel: m_album_filter_model
                 }
             }
 
@@ -319,6 +320,7 @@ MD.Page {
         horizontalPadding: 8
         property var model
         property int displayMode: 0
+        property QA.FilterRuleModel filterModel
         signal selectDisplayMode(int mode)
 
         QA.SortMenu {
@@ -355,7 +357,9 @@ MD.Page {
                 }
                 MD.SmallIconButton {
                     anchors.verticalCenter: parent.verticalCenter
-                    icon.name: MD.Token.icon.filter_list
+                    action: QA.FilterAction {
+                        model: m_header_bar.filterModel
+                    }
                 }
             }
         }
@@ -401,6 +405,10 @@ MD.Page {
     QA.MixesQuery {
         id: qr_mix
         Component.onCompleted: reload()
+    }
+
+    QA.AlbumFilterRuleModel {
+        id: m_album_filter_model
     }
 
     Settings {
