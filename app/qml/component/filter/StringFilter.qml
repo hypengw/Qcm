@@ -1,34 +1,57 @@
+pragma ComponentBehavior: Bound
 import QtQuick
+import QtQml.Models
+
 import Qcm.App as QA
 import Qcm.Material as MD
 import Qcm.Msg as QM
 
 QA.BaseFilter {
     id: root
-    property string value
-    onValueChanged: filterChanged()
+    property alias value: m_value.text
+
+    function fromFilter(filter) {
+        condition = filter.condition;
+        value = filter.value;
+    }
+    function toFilter(filter) {
+        filter.condition = condition;
+        filter.value = value;
+    }
+
+    conditionModel: [
+        {
+            name: qsTr('contains'),
+            value: QM.StringCondition.STRING_CONDITION_CONTAINS
+        },
+        {
+            name: qsTr('not contains'),
+            value: QM.StringCondition.STRING_CONDITION_CONTAINS_NOT
+        },
+        {
+            name: qsTr('is'),
+            value: QM.StringCondition.STRING_CONDITION_IS
+        },
+        {
+            name: qsTr('is not'),
+            value: QM.StringCondition.STRING_CONDITION_IS_NOT
+        },
+        {
+            name: qsTr('any'),
+            value: QM.StringCondition.STRING_CONDITION_UNSPECIFIED
+        }
+    ]
 
     MD.InputChip {
-        text: "title"
-        onClicked: root.clicked()
-    }
-    MD.InputChip {
-        text: {
-            switch (root.condition) {
-            case QM.StringCondition.STRING_CONDITION_CONTAINS_NOT:
-                return qsTr('not contains');
-            case QM.StringCondition.STRING_CONDITION_CONTAINS:
-                return qsTr('contains');
-            case QM.StringCondition.STRING_CONDITION_IS:
-                return qsTr('is');
-            case QM.StringCondition.STRING_CONDITION_IS_NOT:
-                return qsTr('is not');
-            default:
-                return qsTr('is');
+        id: m_value
+        visible: root.condition !== QM.StringCondition.STRING_CONDITION_UNSPECIFIED
+        onClicked: edit = true
+        editDelegate: MD.TextInput {
+            text: root.value
+            onAccepted: {
+                root.value = text;
+                m_value.edit = false;
             }
         }
-    }
-    MD.InputChip {
-        text: root.value
     }
 }

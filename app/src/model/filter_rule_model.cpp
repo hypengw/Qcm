@@ -5,7 +5,9 @@ namespace qcm
 FilterRuleModel::FilterRuleModel(kstore::QListInterface* list, QObject* parent)
     : kstore::QGadgetListModel(list, parent) {}
 FilterRuleModel::~FilterRuleModel() {}
-AlbumFilterRuleModel::AlbumFilterRuleModel(QObject* parent): FilterRuleModel(this, parent) {}
+AlbumFilterRuleModel::AlbumFilterRuleModel(QObject* parent): FilterRuleModel(this, parent) {
+    updateRoleNames(msg::filter::AlbumFilter::staticMetaObject, this);
+}
 AlbumFilterRuleModel::~AlbumFilterRuleModel() {}
 
 } // namespace qcm

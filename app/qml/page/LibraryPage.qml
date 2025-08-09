@@ -384,6 +384,7 @@ MD.Page {
         sort: m_album_sort_type.currentType
         onAscChanged: delayReload()
         onSortChanged: delayReload()
+        onFiltersChanged: delayReload()
         Component.onCompleted: delayReload()
     }
     QA.ArtistsQuery {
@@ -409,6 +410,10 @@ MD.Page {
 
     QA.AlbumFilterRuleModel {
         id: m_album_filter_model
+        onApply: {
+            const q = qr_albums;
+            q.filters = this.items();
+        }
     }
 
     Settings {

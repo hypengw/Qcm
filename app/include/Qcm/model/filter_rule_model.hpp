@@ -16,6 +16,8 @@ public:
     FilterRuleModel(kstore::QListInterface* list, QObject* = nullptr);
     ~FilterRuleModel();
 
+    Q_SIGNAL void apply();
+
 private:
 };
 

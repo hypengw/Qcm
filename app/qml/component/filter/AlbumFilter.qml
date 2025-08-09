@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import QtQuick.Layouts
 
 import Qcm.App as QA
 import Qcm.Msg as QM
@@ -16,16 +17,19 @@ MD.ItemDelegate {
         QA.Action.openPopup(m_menu_comp);
     }
 
-    contentItem: Row {
+    contentItem: RowLayout {
         Row {
-            anchors.verticalCenter: parent.verticalCenter
-            width: parent.width - m_act.width
+            id: m_loader_row
+            Layout.fillWidth: true
             spacing: 0
             MD.Loader {
+                width: parent.width
                 sourceComponent: {
                     switch (root.model.type) {
                     case QM.FilterType.FILTER_TYPE_TITLE:
                         return m_title_comp;
+                    case QM.FilterType.FILTER_TYPE_TRACK_COUNT:
+                        return m_track_comp;
                     default:
                         return m_empty_comp;
                     }
@@ -35,7 +39,6 @@ MD.ItemDelegate {
 
         MD.SmallIconButton {
             id: m_act
-            anchors.verticalCenter: parent.verticalCenter
             icon.name: MD.Token.icon.close
             onClicked: {
                 const v = root.ListView.view;
@@ -55,28 +58,50 @@ MD.ItemDelegate {
     Component {
         id: m_title_comp
         QA.StringFilter {
+            name: qsTr('title')
             onClicked: root.openMenu()
             property QM.titleFilter filter
-            onFilterChanged: {
-                filter.value = value;
-                filter.condition = condition;
+            function doCommit() {
+                toFilter(filter);
                 root.model.titleFilter = filter;
             }
             Component.onCompleted: {
                 if (!root.model.hasTitleFilter) {
                     root.model.titleFilter = filter;
-                } else {
-                    filter = root.model.titleFilter;
                 }
+                fromFilter(root.model.titleFilter);
+                commit.connect(doCommit);
+            }
+        }
+    }
+
+    Component {
+        id: m_track_comp
+        QA.IntFilter {
+            name: qsTr('track')
+            onClicked: root.openMenu()
+            property QM.trackCountFilter filter
+            function doCommit() {
+                toFilter(filter);
+                root.model.trackFilter = filter;
+            }
+            Component.onCompleted: {
+                if (!root.model.hasTrackFilter) {
+                    root.model.trackFilter = filter;
+                }
+                fromFilter(root.model.trackFilter);
+                commit.connect(doCommit);
             }
         }
     }
 
     Component {
         id: m_empty_comp
-        MD.InputChip {
-            text: qsTr('empty')
-            onClicked: root.openMenu()
+        Flow {
+            MD.InputChip {
+                text: qsTr('empty')
+                onClicked: root.openMenu()
+            }
         }
     }
 

@@ -19,6 +19,7 @@ set(SOURCES
     src/qml/qml_util.cpp
     src/qml/enum.cpp
     src/qml/duration.cpp
+    src/qml/foreign.cpp
     src/model/filter_rule_model.cpp
     src/model/lyric.cpp
     src/model/page_model.cpp

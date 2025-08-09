@@ -12,6 +12,7 @@ MD.Dialog {
     horizontalPadding: 16
 
     standardButtons: T.Dialog.Save | T.Dialog.Reset
+    onAccepted: model.apply()
 
     contentItem: ColumnLayout {
         RowLayout {
