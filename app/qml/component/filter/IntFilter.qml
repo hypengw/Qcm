@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import Qcm.App as QA
 import Qcm.Material as MD
@@ -48,7 +49,17 @@ QA.BaseFilter {
     ]
 
     MD.InputChip {
+        id: m_value
         visible: root.condition !== QM.IntCondition.INT_CONDITION_UNSPECIFIED
         text: root.value
+        onClicked: edit = true
+        editDelegate: MD.TextInput {
+            text: root.value
+            validator: IntValidator {}
+            onAccepted: {
+                root.value = parseInt(text);
+                m_value.edit = false;
+            }
+        }
     }
 }

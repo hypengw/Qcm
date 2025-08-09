@@ -413,6 +413,7 @@ MD.Page {
         onApply: {
             const q = qr_albums;
             q.filters = this.items();
+            m_album_setting.filter = toJson();
         }
     }
 
@@ -427,6 +428,10 @@ MD.Page {
         property int display_mode: 0
         property alias sort: m_album_sort_type.currentType
         property alias asc: m_album_sort_type.asc
+        property string filter
+        Component.onCompleted: {
+            m_album_filter_model.fromJson(filter);
+        }
     }
 
     Settings {

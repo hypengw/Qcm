@@ -11,8 +11,19 @@ MD.Dialog {
     property QA.AlbumFilterRuleModel model
     horizontalPadding: 16
 
-    standardButtons: T.Dialog.Save | T.Dialog.Reset
-    onAccepted: model.apply()
+    standardButtons: T.Dialog.Apply | T.Dialog.Reset
+    onApplied: {
+        model.apply();
+        accept();
+    }
+    onReset: {}
+
+    Component.onCompleted: {
+        let btn = standardButton(T.Dialog.Reset);
+        btn.enabled = Qt.binding(() => model.dirty);
+        btn = standardButton(T.Dialog.Apply);
+        btn.enabled = Qt.binding(() => model.dirty);
+    }
 
     contentItem: ColumnLayout {
         RowLayout {
