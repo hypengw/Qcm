@@ -16,7 +16,7 @@ MD.Dialog {
         model.apply();
         accept();
     }
-    onReset: {}
+    onReset: model.reset()
 
     Component.onCompleted: {
         let btn = standardButton(T.Dialog.Reset);

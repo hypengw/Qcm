@@ -150,6 +150,7 @@ App::App(QStringView backend_exe, std::monostate)
     C_D(App);
     app_instance(this);
     register_meta_type();
+    register_converters();
     connect_actions();
     {
         QGuiApplication::setDesktopFileName(APP_ID);

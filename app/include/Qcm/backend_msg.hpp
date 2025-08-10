@@ -55,6 +55,15 @@ auto get_msg(msg::QcmMessage& msg) -> Option<T> {
     return None();
 }
 
+template<typename T>
+struct FilterTraits {};
+
+#define QCM_FILTER_TRAITS(TYPE, FTYPE)                                              \
+    template<>                                                                      \
+    struct FilterTraits<TYPE> {                                                     \
+        constexpr static auto type { filter::FilterTypeGadget::FilterType::FTYPE }; \
+    };
+
 // Add these macros before template specializations
 #define QCM_MSG_TRAITS_COMMON(TYPE, GET)                       \
     static constexpr auto HasFn = &msg::QcmMessage::has##TYPE; \
@@ -132,9 +141,17 @@ struct MsgTraits<msg::Rsp> {
     QCM_MSG_TRAITS_COMMON(Rsp, rsp)
 };
 
+QCM_FILTER_TRAITS(filter::TitleFilter, FILTER_TYPE_TITLE)
+QCM_FILTER_TRAITS(filter::TrackCountFilter, FILTER_TYPE_TRACK_COUNT)
+QCM_FILTER_TRAITS(filter::AlbumArtistIdFilter, FILTER_TYPE_ALBUM_ARTIST_ID)
+QCM_FILTER_TRAITS(filter::AlbumTitleFilter, FILTER_TYPE_ALBUM_TITLE)
+QCM_FILTER_TRAITS(filter::ArtistIdFilter, FILTER_TYPE_ARTIST_ID)
+QCM_FILTER_TRAITS(filter::ArtistNameFilter, FILTER_TYPE_ARTIST_NAME)
+
 #undef QCM_MSG_TRAITS_COMMON
 #undef QCM_MSG_TRAITS_REQ
 #undef QCM_MSG_TRAITS_RSP
+#undef QCM_FILTER_TRAITS
 
 } // namespace qcm::msg
 

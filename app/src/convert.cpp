@@ -1,0 +1,96 @@
+#include "Qcm/app.hpp"
+#include "Qcm/message/filter.qpb.h"
+#include "kstore/qt/meta_utils.hpp"
+
+#include <QtCore/QJsonValue>
+#include <QtCore/QJsonObject>
+#include <QtCore/QVariant>
+
+namespace qcm
+{
+
+namespace
+{
+auto albumfilter_to_json(const msg::filter::AlbumFilter& f) -> QJsonObject {
+    auto obj = QJsonObject();
+
+    using M = msg::filter::AlbumFilter::PayloadFields;
+    switch (f.payloadField()) {
+    case M::UninitializedField: {
+        break;
+    }
+    case M::TitleFilter: {
+        auto val = kstore::qvariant_to_josn(QVariant::fromValue(f.titleFilter()));
+        obj.insert("titleFilter", val);
+        break;
+    }
+    case M::TrackFilter: {
+        auto val = kstore::qvariant_to_josn(QVariant::fromValue(f.trackFilter()));
+        obj.insert("trackFilter", val);
+        break;
+    }
+    case M::ArtistNameFilter: {
+        auto val = kstore::qvariant_to_josn(QVariant::fromValue(f.artistNameFilter()));
+        obj.insert("artistNameFilter", val);
+        break;
+    }
+    case M::ArtistIdFilter: {
+        auto val = kstore::qvariant_to_josn(QVariant::fromValue(f.artistIdFilter()));
+        obj.insert("artistIdFilter", val);
+        break;
+    }
+    case M::AlbumArtistIdFilter: {
+        auto val = kstore::qvariant_to_josn(QVariant::fromValue(f.albumArtistIdFilter()));
+        obj.insert("albumArtistIdFilter", val);
+        break;
+    }
+    default: {
+        qWarning() << "Unknown AlbumFilter payload field: " << f.payloadField();
+        break;
+    }
+    }
+
+    return obj;
+}
+
+auto albumfilter_from_json(const QJsonObject& obj) -> msg::filter::AlbumFilter {
+    auto f = msg::filter::AlbumFilter();
+
+    if (auto jval = obj.value("titleFilter"); jval.isObject()) {
+        if (auto val = kstore::qvariant_from_josn<msg::filter::TitleFilter>(jval)) {
+            f.setType(msg::FilterTraits<std::decay_t<decltype(*val)>>::type);
+            f.setTitleFilter(*val);
+        }
+    } else if (auto jval = obj.value("trackFilter"); jval.isObject()) {
+        if (auto val = kstore::qvariant_from_josn<msg::filter::TrackCountFilter>(jval)) {
+            f.setType(msg::FilterTraits<std::decay_t<decltype(*val)>>::type);
+            f.setTrackFilter(*val);
+        }
+    } else if (auto jval = obj.value("artistNameFilter"); jval.isObject()) {
+        if (auto val = kstore::qvariant_from_josn<msg::filter::ArtistNameFilter>(jval)) {
+            f.setType(msg::FilterTraits<std::decay_t<decltype(*val)>>::type);
+            f.setArtistNameFilter(*val);
+        }
+    } else if (auto jval = obj.value("artistIdFilter"); jval.isObject()) {
+        if (auto val = kstore::qvariant_from_josn<msg::filter::ArtistIdFilter>(jval)) {
+            f.setType(msg::FilterTraits<std::decay_t<decltype(*val)>>::type);
+            f.setArtistIdFilter(*val);
+        }
+    } else if (auto jval = obj.value("albumArtistIdFilter"); jval.isObject()) {
+        if (auto val = kstore::qvariant_from_josn<msg::filter::AlbumArtistIdFilter>(jval)) {
+            f.setType(msg::FilterTraits<std::decay_t<decltype(*val)>>::type);
+            f.setAlbumArtistIdFilter(*val);
+        }
+    } else {
+        qWarning() << "Unknown AlbumFilter payload field in JSON object";
+    }
+
+    return f;
+} // namespace
+} // namespace
+
+void App::register_converters() {
+    QMetaType::registerConverter<msg::filter::AlbumFilter, QJsonObject>(albumfilter_to_json);
+    QMetaType::registerConverter<QJsonObject, msg::filter::AlbumFilter>(albumfilter_from_json);
+} // namespace
+} // namespace qcm

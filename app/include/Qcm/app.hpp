@@ -69,6 +69,7 @@ public:
     App(QStringView backend_exe, std::monostate);
     virtual ~App();
     static App* create(QQmlEngine* qmlEngine, QJSEngine* jsEngine);
+    static void register_converters();
 
     // make qml prefer create
     App() = delete;

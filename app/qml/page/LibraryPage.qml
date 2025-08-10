@@ -410,10 +410,17 @@ MD.Page {
 
     QA.AlbumFilterRuleModel {
         id: m_album_filter_model
-        onApply: {
+        function doQuery() {
             const q = qr_albums;
             q.filters = this.items();
+        }
+        onApply: {
+            doQuery();
             m_album_setting.filter = toJson();
+            m_album_setting.sync();
+        }
+        onReset: {
+            fromJson(m_album_setting.filter);
         }
     }
 
@@ -430,7 +437,8 @@ MD.Page {
         property alias asc: m_album_sort_type.asc
         property string filter
         Component.onCompleted: {
-            m_album_filter_model.fromJson(filter);
+            m_album_filter_model.reset();
+            m_album_filter_model.doQuery();
         }
     }
 

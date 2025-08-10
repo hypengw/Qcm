@@ -15,6 +15,7 @@ set(SOURCES
     src/backend.cpp
     src/notifier.cpp
     src/global.cpp
+    src/convert.cpp
     src/qml/clipboard.cpp
     src/qml/qml_util.cpp
     src/qml/enum.cpp
