@@ -86,11 +86,18 @@ auto albumfilter_from_json(const QJsonObject& obj) -> msg::filter::AlbumFilter {
     }
 
     return f;
-} // namespace
+}
+
 } // namespace
 
 void App::register_converters() {
     QMetaType::registerConverter<msg::filter::AlbumFilter, QJsonObject>(albumfilter_to_json);
     QMetaType::registerConverter<QJsonObject, msg::filter::AlbumFilter>(albumfilter_from_json);
+    QMetaType::registerConverter<QtProtobuf::int32, QJsonValue>([](auto i) {
+        return QJsonValue(i);
+    });
+    QMetaType::registerConverter<QtProtobuf::int64, QJsonValue>([](auto i) {
+        return QJsonValue((qint64)i);
+    });
 } // namespace
 } // namespace qcm
