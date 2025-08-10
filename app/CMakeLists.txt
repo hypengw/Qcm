@@ -128,6 +128,9 @@ set(QML_FILES
     qml/component/filter/IntFilter.qml
     qml/component/filter/StringFilter.qml
     qml/component/filter/AlbumFilter.qml
+    qml/component/filter/ArtistNameFilter.qml
+    qml/component/filter/TitleFilter.qml
+    qml/component/filter/TrackFilter.qml
     qml/action/AppendListAction.qml
     qml/action/PlayAction.qml
     qml/action/PlaynextAction.qml

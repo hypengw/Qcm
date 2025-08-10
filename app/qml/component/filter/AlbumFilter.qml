@@ -23,16 +23,44 @@ MD.ItemDelegate {
             Layout.fillWidth: true
             spacing: 0
             MD.Loader {
+                id: m_loader
                 width: parent.width
-                sourceComponent: {
+
+                property string filterUrl: {
+                    const base = 'qrc:/Qcm/App/qml/component/filter/';
                     switch (root.model.type) {
                     case QM.FilterType.FILTER_TYPE_TITLE:
-                        return m_title_comp;
+                        return base + 'TitleFilter.qml';
                     case QM.FilterType.FILTER_TYPE_TRACK_COUNT:
-                        return m_track_comp;
+                        return base + 'TrackFilter.qml';
+                    case QM.FilterType.FILTER_TYPE_ARTIST_NAME:
+                        return base + 'ArtistNameFilter.qml';
                     default:
-                        return m_empty_comp;
+                        return '';
                     }
+                }
+
+                Component.onCompleted: {
+                    reload();
+                    filterUrlChanged.connect(reload);
+                }
+                function reload() {
+                    if (filterUrl) {
+                        setSource(m_loader.filterUrl, {
+                            filter: root.model
+                        });
+                    } else {
+                        sourceComponent = null;
+                        sourceComponent = m_empty_comp;
+                    }
+                }
+
+                Connections {
+                    function onClicked() {
+                        root.openMenu();
+                    }
+                    target: m_loader.item
+                    ignoreUnknownSignals: true
                 }
             }
         }
@@ -56,51 +84,13 @@ MD.ItemDelegate {
     }
 
     Component {
-        id: m_title_comp
-        QA.StringFilter {
-            name: qsTr('title')
-            onClicked: root.openMenu()
-            property QM.titleFilter filter
-            function doCommit() {
-                toFilter(filter);
-                root.model.titleFilter = filter;
-            }
-            Component.onCompleted: {
-                if (!root.model.hasTitleFilter) {
-                    root.model.titleFilter = filter;
-                }
-                fromFilter(root.model.titleFilter);
-                commit.connect(doCommit);
-            }
-        }
-    }
-
-    Component {
-        id: m_track_comp
-        QA.IntFilter {
-            name: qsTr('track')
-            onClicked: root.openMenu()
-            property QM.trackCountFilter filter
-            function doCommit() {
-                toFilter(filter);
-                root.model.trackFilter = filter;
-            }
-            Component.onCompleted: {
-                if (!root.model.hasTrackFilter) {
-                    root.model.trackFilter = filter;
-                }
-                fromFilter(root.model.trackFilter);
-                commit.connect(doCommit);
-            }
-        }
-    }
-
-    Component {
         id: m_empty_comp
         Flow {
             MD.InputChip {
                 text: qsTr('empty')
-                onClicked: root.openMenu()
+                onClicked: {
+                    root.openMenu();
+                }  
             }
         }
     }

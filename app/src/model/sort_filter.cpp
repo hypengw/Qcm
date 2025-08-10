@@ -193,6 +193,7 @@ AlbumFilterTypeModel::AlbumFilterTypeModel(QObject* parent): FilterTypeModel(par
         std::array {
             FilterTypeItem { .type = (qint32)E::FILTER_TYPE_TITLE, .name = "title" },
             FilterTypeItem { .type = (qint32)E::FILTER_TYPE_TRACK_COUNT, .name = "track count" },
+            FilterTypeItem { .type = (qint32)E::FILTER_TYPE_ARTIST_NAME, .name = "artist name" },
         });
 }
 
