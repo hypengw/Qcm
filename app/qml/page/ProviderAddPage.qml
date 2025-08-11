@@ -60,10 +60,7 @@ MD.Page {
                             });
                         }
                     }
-                    mdState: MD.StateListItem {
-                        item: parent
-                        backgroundColor: ctx.color.surface_container
-                    }
+                    mdState.backgroundColor: mdState.ctx.color.surface_container
                     divider: MD.Divider {
                         anchors.bottom: parent.bottom
                         orientation: Qt.Horizontal
