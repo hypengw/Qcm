@@ -56,10 +56,13 @@ private:
 
 class QueryList : public Query {
     Q_OBJECT
-    Q_PROPERTY(qint32 offset READ offset WRITE setOffset NOTIFY offsetChanged)
-    Q_PROPERTY(qint32 limit READ limit WRITE setLimit NOTIFY limitChanged)
+
+    Q_PROPERTY(qint32 offset READ offset WRITE setOffset NOTIFY offsetChanged FINAL)
+    Q_PROPERTY(qint32 limit READ limit WRITE setLimit NOTIFY limitChanged FINAL)
     Q_PROPERTY(qint32 sort READ sort WRITE setSort NOTIFY sortChanged FINAL)
     Q_PROPERTY(bool asc READ asc WRITE setAsc NOTIFY ascChanged FINAL)
+    Q_PROPERTY(bool noMore READ noMore WRITE setNoMore NOTIFY noMoreChanged FINAL)
+
 public:
     QueryList(QObject* parent = nullptr);
     ~QueryList();
@@ -71,6 +74,9 @@ public:
     auto asc() const -> bool;
     void setAsc(bool);
 
+    auto noMore() const -> bool;
+    void setNoMore(bool);
+
     Q_SLOT void setOffset(qint32 v);
     Q_SLOT void setLimit(qint32 v);
 
@@ -78,6 +84,7 @@ public:
     Q_SIGNAL void ascChanged();
     Q_SIGNAL void offsetChanged();
     Q_SIGNAL void limitChanged();
+    Q_SIGNAL void noMoreChanged();
 
     Q_SLOT virtual void fetchMore(qint32);
 
@@ -86,6 +93,7 @@ private:
     qint32 m_limit;
     qint32 m_sort;
     bool   m_asc;
+    bool   m_no_more;
 };
 
 namespace detail

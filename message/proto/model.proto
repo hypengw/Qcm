@@ -17,8 +17,7 @@ message Song {
   bool can_play = 10;
   google.protobuf.Timestamp publish_time = 11;
   double popularity = 12;
-  google.protobuf.Timestamp edit_time = 13;
-  repeated string tags = 14;
+  repeated string tags = 13;
 }
 
 message Radio {
@@ -29,8 +28,6 @@ message Radio {
   string sort_name = 5;
   string description = 6;
   int32 program_count = 7;
-  google.protobuf.Timestamp create_time = 8;
-  google.protobuf.Timestamp edit_time = 9;
 }
 
 message Program {
@@ -43,25 +40,18 @@ message Program {
   google.protobuf.Timestamp duration = 7;
   string cover_url = 8;
   string song_id = 9;
-  google.protobuf.Timestamp create_time = 10;
   int32 serial_number = 11;
   string radio_id = 12;
-  google.protobuf.Timestamp edit_time = 13;
 }
 
 message Mix {
   int64 id = 1;
-  string native_id = 2;
-  int64 provider_id = 3;
   string name = 4;
   string sort_name = 5;
   int32 track_count = 6;
-  int32 special_type = 7;
   string description = 8;
-  string tags = 9;
-  google.protobuf.Timestamp create_time = 10;
-  google.protobuf.Timestamp update_time = 11;
-  google.protobuf.Timestamp edit_time = 14;
+  google.protobuf.Timestamp create_at = 10;
+  google.protobuf.Timestamp update_at = 11;
 }
 
 message Library {
@@ -81,7 +71,17 @@ message Artist {
   string description = 6;
   int32 album_count = 7;
   int32 music_count = 8;
-  google.protobuf.Timestamp edit_time = 10;
+  google.protobuf.Timestamp added_at = 9;
+  google.protobuf.Timestamp update_at = 10;
+}
+
+enum AlbumType {
+  ALBUM_TYPE_ALBUM = 0;
+  ALBUM_TYPE_EP = 1;
+  ALBUM_TYPE_SINGLE = 2;
+  ALBUM_TYPE_SOUNDTRACK = 3;
+  ALBUM_TYPE_COMPILATION = 4;
+  ALBUM_TYPE_LIVE = 5;
 }
 
 message Album {
@@ -90,12 +90,16 @@ message Album {
   int64 library_id = 3;
   string name = 4;
   string sort_name = 5;
-  google.protobuf.Timestamp publish_time = 6;
-  int32 track_count = 7;
-  string description = 8;
-  string company = 9;
-  google.protobuf.Timestamp added_time = 10;
-  google.protobuf.Timestamp edit_time = 11;
+  AlbumType type = 6;
+  int64 duration = 7; 
+  int32 track_count = 8;
+  int32 disc_count = 9;
+  string description = 10;
+  string company = 12;
+  string language = 13;
+  google.protobuf.Timestamp publish_time = 14;
+  google.protobuf.Timestamp added_at = 15;
+  google.protobuf.Timestamp update_at = 16;
 }
 
 enum ItemType {

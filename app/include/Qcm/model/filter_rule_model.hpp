@@ -51,4 +51,17 @@ public:
     void fromVariantlist(const QVariantList& v) override;
 };
 
+class ArtistFilterRuleModel
+    : public FilterRuleModel,
+      public kstore::QMetaListModelCRTP<msg::filter::ArtistFilter, ArtistFilterRuleModel,
+                                        kstore::ListStoreType::Vector> {
+    Q_OBJECT
+    QML_ELEMENT
+public:
+    ArtistFilterRuleModel(QObject* = nullptr);
+    ~ArtistFilterRuleModel();
+
+    void fromVariantlist(const QVariantList& v) override;
+};
+
 } // namespace qcm

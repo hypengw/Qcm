@@ -63,6 +63,8 @@ MD.Page {
                     id: m_recent_query
                     sort: QM.AlbumSort.ALBUM_SORT_ADDED_TIME
                     asc: false
+                    limit: 20
+                    noMore: true
                     Component.onCompleted: reload()
                 }
             }

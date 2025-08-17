@@ -193,7 +193,20 @@ AlbumFilterTypeModel::AlbumFilterTypeModel(QObject* parent): FilterTypeModel(par
         std::array {
             FilterTypeItem { .type = (qint32)E::FILTER_TYPE_TITLE, .name = "title" },
             FilterTypeItem { .type = (qint32)E::FILTER_TYPE_TRACK_COUNT, .name = "track count" },
+            FilterTypeItem { .type = (qint32)E::FILTER_TYPE_YEAR, .name = "year" },
+            FilterTypeItem { .type = (qint32)E::FILTER_TYPE_DURATION, .name = "duration" },
             FilterTypeItem { .type = (qint32)E::FILTER_TYPE_ARTIST_NAME, .name = "artist name" },
+        });
+}
+
+ArtistFilterTypeModel::ArtistFilterTypeModel(QObject* parent): FilterTypeModel(parent) {
+    using E = msg::filter::FilterTypeGadget::FilterType;
+    this->insert(
+        0,
+        std::array {
+            FilterTypeItem { .type = (qint32)E::FILTER_TYPE_NAME, .name = "name" },
+            FilterTypeItem { .type = (qint32)E::FILTER_TYPE_YEAR, .name = "year" },
+            FilterTypeItem { .type = (qint32)E::FILTER_TYPE_ALBUM_TITLE, .name = "album title" },
         });
 }
 

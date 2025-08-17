@@ -27,6 +27,8 @@ void ArtistsQuery::reload() {
     req.setPageSize((offset() + 1) * limit());
     req.setSort((msg::model::ArtistSortGadget::ArtistSort)sort());
     req.setSortAsc(asc());
+    req.setFilters(m_filters);
+
     auto self = helper::QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
@@ -43,8 +45,15 @@ void ArtistsQuery::reload() {
         co_return;
     });
 }
+auto ArtistsQuery::filters() const -> const QList<msg::filter::ArtistFilter>& { return m_filters; }
+void ArtistsQuery::setFilters(const QList<msg::filter::ArtistFilter>& f) {
+    m_filters = f;
+    filtersChanged();
+}
 
 void ArtistsQuery::fetchMore(qint32) {
+    if (noMore()) return;
+
     setStatus(Status::Querying);
     auto app     = App::instance();
     auto backend = app->backend();

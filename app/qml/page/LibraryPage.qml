@@ -111,6 +111,7 @@ MD.Page {
                     model: m_artist_sort_type
                     displayMode: m_view_artist.displayMode
                     onSelectDisplayMode: m => m_artist_setting.display_mode = m
+                    filterModel: m_artist_filter_model
                 }
             }
         }
@@ -408,6 +409,22 @@ MD.Page {
         Component.onCompleted: reload()
     }
 
+    QA.ArtistFilterRuleModel {
+        id: m_artist_filter_model
+        function doQuery() {
+            const q = qr_artists;
+            q.filters = this.items();
+        }
+        onApply: {
+            doQuery();
+            m_artist_setting.filter = toJson();
+            m_artist_setting.sync();
+        }
+        onReset: {
+            fromJson(m_artist_setting.filter);
+        }
+    }
+
     QA.AlbumFilterRuleModel {
         id: m_album_filter_model
         function doQuery() {
@@ -448,6 +465,11 @@ MD.Page {
         property int display_mode: 0
         property alias sort: m_artist_sort_type.currentType
         property alias asc: m_artist_sort_type.asc
+        property string filter
+        Component.onCompleted: {
+            m_album_filter_model.reset();
+            m_album_filter_model.doQuery();
+        }
     }
 
     Settings {

@@ -29,16 +29,12 @@ MD.ItemDelegate {
                 property string filterUrl: {
                     const base = 'qrc:/Qcm/App/qml/component/filter/';
                     switch (root.model.type) {
-                    case QM.FilterType.FILTER_TYPE_TITLE:
-                        return base + 'TitleFilter.qml';
-                    case QM.FilterType.FILTER_TYPE_TRACK_COUNT:
-                        return base + 'TrackFilter.qml';
+                    case QM.FilterType.FILTER_TYPE_NAME:
+                        return base + 'NameFilter.qml';
                     case QM.FilterType.FILTER_TYPE_YEAR:
                         return base + 'YearFilter.qml';
-                    case QM.FilterType.FILTER_TYPE_DURATION:
-                        return base + 'DurationFilter.qml';
-                    case QM.FilterType.FILTER_TYPE_ARTIST_NAME:
-                        return base + 'ArtistNameFilter.qml';
+                    case QM.FilterType.FILTER_TYPE_ALBUM_TITLE:
+                        return base + 'AlbumTitleFilter.qml';
                     default:
                         return '';
                     }
@@ -94,14 +90,14 @@ MD.ItemDelegate {
                 text: qsTr('empty')
                 onClicked: {
                     root.openMenu();
-                }
+                }  
             }
         }
     }
 
     Component {
         id: m_menu_comp
-        QA.AlbumFilterMenu {
+        QA.ArtistFilterMenu {
             parent: root
             y: root.contentItem.y + root.contentItem.height
             onSelected: type => {

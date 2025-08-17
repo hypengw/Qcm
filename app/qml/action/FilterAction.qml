@@ -18,6 +18,10 @@ MD.Action {
         };
         if (model instanceof QA.AlbumFilterRuleModel) {
             msg.dst = 'Qcm.App/AlbumFilterDialog';
+        } else if (model instanceof QA.ArtistFilterRuleModel) {
+            msg.dst = 'Qcm.App/ArtistFilterDialog';
+        } else {
+            return;
         }
         QA.Action.openPopup(msg);
     }

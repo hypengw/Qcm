@@ -44,10 +44,8 @@ void Query::connectSyncFinished() {
 }
 
 QueryList::QueryList(QObject* parent)
-    : Query(parent), m_offset(0), m_limit(200), m_sort(0), m_asc(true) {
-    // connect_requet_reload(&QueryList::offsetChanged);
-    // connect_requet_reload(&QueryList::limitChanged);
-}
+    : Query(parent), m_offset(0), m_limit(200), m_sort(0), m_asc(true), m_no_more(false) {}
+
 QueryList::~QueryList() {}
 auto QueryList::offset() const -> qint32 { return m_offset; }
 auto QueryList::limit() const -> qint32 { return m_limit; }
@@ -58,7 +56,7 @@ void QueryList::setOffset(qint32 v) {
     }
 }
 void QueryList::setLimit(qint32 v) {
-    if (ycore::cmp_exchange(m_offset, v)) {
+    if (ycore::cmp_exchange(m_limit, v)) {
         limitChanged();
     }
 }
@@ -72,6 +70,14 @@ auto QueryList::asc() const -> bool { return m_asc; }
 void QueryList::setAsc(bool v) {
     if (ycore::cmp_exchange(m_asc, v)) {
         ascChanged();
+    }
+}
+
+auto QueryList::noMore() const -> bool { return m_no_more; }
+void QueryList::setNoMore(bool v) {
+    if (v != m_no_more) {
+        m_no_more = v;
+        noMoreChanged();
     }
 }
 

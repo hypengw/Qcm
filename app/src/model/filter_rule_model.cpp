@@ -71,6 +71,17 @@ void AlbumFilterRuleModel::fromVariantlist(const QVariantList& v) {
     });
     resetModel(view);
 }
+ArtistFilterRuleModel::ArtistFilterRuleModel(QObject* parent): FilterRuleModel(this, parent) {
+    updateRoleNames(msg::filter::ArtistFilter::staticMetaObject, this);
+}
+ArtistFilterRuleModel::~ArtistFilterRuleModel() {}
+
+void ArtistFilterRuleModel::fromVariantlist(const QVariantList& v) {
+    auto view = std::views::transform(v, [](const QVariant& v) {
+        return v.value<msg::filter::ArtistFilter>();
+    });
+    resetModel(view);
+}
 
 } // namespace qcm
 

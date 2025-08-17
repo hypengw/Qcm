@@ -124,13 +124,17 @@ set(QML_FILES
     qml/component/setting/SettingSection.qml
     qml/component/tag/SongTag.qml
     qml/component/filter/BaseFilter.qml
+    qml/component/filter/AlbumFilter.qml
+    qml/component/filter/ArtistFilter.qml
     qml/component/filter/FilterDelegateChooser.qml
     qml/component/filter/IntFilter.qml
     qml/component/filter/StringFilter.qml
-    qml/component/filter/AlbumFilter.qml
-    qml/component/filter/ArtistNameFilter.qml
     qml/component/filter/TitleFilter.qml
     qml/component/filter/TrackFilter.qml
+    qml/component/filter/YearFilter.qml
+    qml/component/filter/DurationFilter.qml
+    qml/component/filter/ArtistNameFilter.qml
+    qml/component/filter/AlbumTitleFilter.qml
     qml/action/AppendListAction.qml
     qml/action/PlayAction.qml
     qml/action/PlaynextAction.qml
@@ -151,6 +155,7 @@ set(QML_FILES
     qml/dialog/GoToArtistDialog.qml
     qml/dialog/AddToMixDialog.qml
     qml/dialog/AlbumFilterDialog.qml
+    qml/dialog/ArtistFilterDialog.qml
     qml/menu/SongMenu.qml
     qml/menu/AlbumMenu.qml
     qml/menu/ArtistMenu.qml
@@ -160,6 +165,7 @@ set(QML_FILES
     qml/menu/SortMenu.qml
     qml/menu/DisplayModeMenu.qml
     qml/menu/AlbumFilterMenu.qml
+    qml/menu/ArtistFilterMenu.qml
     qml/page/setting/SettingPage.qml
     qml/page/setting/AudioSetting.qml
     qml/page/setting/MiscSetting.qml

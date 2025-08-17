@@ -60,6 +60,8 @@ void AlbumsQuery::reload() {
 }
 
 void AlbumsQuery::fetchMore(qint32) {
+    if (noMore()) return;
+
     setStatus(Status::Querying);
     auto app     = App::instance();
     auto backend = app->backend();
@@ -69,6 +71,7 @@ void AlbumsQuery::fetchMore(qint32) {
     req.setPageSize(limit());
     req.setSort((msg::model::AlbumSortGadget::AlbumSort)sort());
     req.setSortAsc(asc());
+    req.setFilters(m_filters);
 
     auto self = helper::QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {

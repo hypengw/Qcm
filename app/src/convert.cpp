@@ -44,6 +44,16 @@ auto albumfilter_to_json(const msg::filter::AlbumFilter& f) -> QJsonObject {
         obj.insert("albumArtistIdFilter", val);
         break;
     }
+    case M::YearFilter: {
+        auto val = kstore::qvariant_to_josn(QVariant::fromValue(f.yearFilter()));
+        obj.insert("yearFilter", val);
+        break;
+    }
+    case M::DurationFilter: {
+        auto val = kstore::qvariant_to_josn(QVariant::fromValue(f.durationFilter()));
+        obj.insert("durationFilter", val);
+        break;
+    }
     default: {
         qWarning() << "Unknown AlbumFilter payload field: " << f.payloadField();
         break;
@@ -81,18 +91,97 @@ auto albumfilter_from_json(const QJsonObject& obj) -> msg::filter::AlbumFilter {
             f.setType(msg::FilterTraits<std::decay_t<decltype(*val)>>::type);
             f.setAlbumArtistIdFilter(*val);
         }
+    } else if (auto jval = obj.value("yearFilter"); jval.isObject()) {
+        if (auto val = kstore::qvariant_from_josn<msg::filter::YearFilter>(jval)) {
+            f.setType(msg::FilterTraits<std::decay_t<decltype(*val)>>::type);
+            f.setYearFilter(*val);
+        }
+    } else if (auto jval = obj.value("durationFilter"); jval.isObject()) {
+        if (auto val = kstore::qvariant_from_josn<msg::filter::DurationFilter>(jval)) {
+            f.setType(msg::FilterTraits<std::decay_t<decltype(*val)>>::type);
+            f.setDurationFilter(*val);
+        }
     } else {
-        qWarning() << "Unknown AlbumFilter payload field in JSON object";
+        qWarning() << "Unknown AlbumFilter payload field in JSON object" << obj;
     }
 
     return f;
 }
 
+auto artistfilter_to_json(const msg::filter::ArtistFilter& f) -> QJsonObject {
+    auto obj = QJsonObject();
+
+    using M = msg::filter::ArtistFilter::PayloadFields;
+    switch (f.payloadField()) {
+    case M::UninitializedField: {
+        break;
+    }
+    case M::NameFilter: {
+        auto val = kstore::qvariant_to_josn(QVariant::fromValue(f.nameFilter()));
+        obj.insert("nameFilter", val);
+        break;
+    }
+    case M::YearFilter: {
+        auto val = kstore::qvariant_to_josn(QVariant::fromValue(f.yearFilter()));
+        obj.insert("yearFilter", val);
+        break;
+    }
+    case M::AlbumTitleFilter: {
+        auto val = kstore::qvariant_to_josn(QVariant::fromValue(f.albumTitleFilter()));
+        obj.insert("albumTitleFilter", val);
+        break;
+    }
+    case M::AddedDateFilter: {
+        auto val = kstore::qvariant_to_josn(QVariant::fromValue(f.addedDateFilter()));
+        obj.insert("addedDateFilter", val);
+        break;
+    }
+    default: {
+        qWarning() << "Unknown ArtistFilter payload field: " << f.payloadField();
+        break;
+    }
+    }
+
+    return obj;
+}
+auto artistfilter_from_json(const QJsonObject& obj) -> msg::filter::ArtistFilter {
+    auto f = msg::filter::ArtistFilter();
+
+    if (auto jval = obj.value("nameFilter"); jval.isObject()) {
+        if (auto val = kstore::qvariant_from_josn<msg::filter::NameFilter>(jval)) {
+            f.setType(msg::FilterTraits<std::decay_t<decltype(*val)>>::type);
+            f.setNameFilter(*val);
+        }
+    } else if (auto jval = obj.value("yearFilter"); jval.isObject()) {
+        if (auto val = kstore::qvariant_from_josn<msg::filter::YearFilter>(jval)) {
+            f.setType(msg::FilterTraits<std::decay_t<decltype(*val)>>::type);
+            f.setYearFilter(*val);
+        }
+    } else if (auto jval = obj.value("albumTitleFilter"); jval.isObject()) {
+        if (auto val = kstore::qvariant_from_josn<msg::filter::AlbumTitleFilter>(jval)) {
+            f.setType(msg::FilterTraits<std::decay_t<decltype(*val)>>::type);
+            f.setAlbumTitleFilter(*val);
+        }
+    } else if (auto jval = obj.value("addedDateFilter"); jval.isObject()) {
+        if (auto val = kstore::qvariant_from_josn<msg::filter::AddedDateFilter>(jval)) {
+            f.setType(msg::FilterTraits<std::decay_t<decltype(*val)>>::type);
+            f.setAddedDateFilter(*val);
+        }
+    } else {
+        qWarning() << "Unknown AlbumFilter payload field in JSON object" << obj;
+    }
+
+    return f;
+}
 } // namespace
 
 void App::register_converters() {
     QMetaType::registerConverter<msg::filter::AlbumFilter, QJsonObject>(albumfilter_to_json);
     QMetaType::registerConverter<QJsonObject, msg::filter::AlbumFilter>(albumfilter_from_json);
+
+    QMetaType::registerConverter<msg::filter::ArtistFilter, QJsonObject>(artistfilter_to_json);
+    QMetaType::registerConverter<QJsonObject, msg::filter::ArtistFilter>(artistfilter_from_json);
+
     QMetaType::registerConverter<QtProtobuf::int32, QJsonValue>([](auto i) {
         return QJsonValue(i);
     });
