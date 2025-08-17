@@ -26,7 +26,7 @@ MD.Page {
         clip: true
 
         MD.FlickablePane {
-            corners: MD.Util.corners(0, MD.Token.shape.corner.large)
+            corners: MD.Util.corners(MD.Token.shape.corner.medium, MD.Token.shape.corner.large)
             view: {
                 const item = m_stack_layout.itemAt(m_stack_layout.currentIndex);
                 if (!item)
@@ -330,6 +330,8 @@ MD.Page {
             model: m_header_bar.model
         }
 
+        verticalPadding: 4
+
         contentItem: RowLayout {
             QA.OrderChip {
                 Layout.alignment: Qt.AlignVCenter
@@ -365,6 +367,8 @@ MD.Page {
             }
         }
         background: Rectangle {
+            topLeftRadius: MD.Token.shape.corner.medium
+            topRightRadius: MD.Token.shape.corner.medium
             color: MD.MProp.color.surface
         }
     }
