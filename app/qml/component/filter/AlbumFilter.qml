@@ -41,6 +41,8 @@ MD.ItemDelegate {
                         return base + 'ArtistNameFilter.qml';
                     case QM.FilterType.FILTER_TYPE_TYPE:
                         return base + 'AlbumTypeFilter.qml';
+                    case QM.FilterType.FILTER_TYPE_DISC_COUNT:
+                        return base + 'DiscCountFilter.qml';
                     default:
                         return base + 'EmptyFilter.qml';
                     }

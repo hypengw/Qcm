@@ -135,6 +135,7 @@ set(QML_FILES
     qml/component/filter/TitleFilter.qml
     qml/component/filter/NameFilter.qml
     qml/component/filter/TrackFilter.qml
+    qml/component/filter/DiscCountFilter.qml
     qml/component/filter/YearFilter.qml
     qml/component/filter/DurationFilter.qml
     qml/component/filter/ArtistNameFilter.qml

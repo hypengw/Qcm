@@ -59,6 +59,11 @@ auto albumfilter_to_json(const msg::filter::AlbumFilter& f) -> QJsonObject {
         obj.insert("typeFilter", val);
         break;
     }
+    case M::DiscCountFilter: {
+        auto val = kstore::qvariant_to_josn(QVariant::fromValue(f.discCountFilter()));
+        obj.insert("discCountFilter", val);
+        break;
+    }
     default: {
         qWarning() << "Unknown AlbumFilter payload field: " << f.payloadField();
         break;
@@ -110,6 +115,11 @@ auto albumfilter_from_json(const QJsonObject& obj) -> msg::filter::AlbumFilter {
         if (auto val = kstore::qvariant_from_josn<msg::filter::TypeFilter>(jval)) {
             f.setType(msg::FilterTraits<std::decay_t<decltype(*val)>>::type);
             f.setTypeFilter(*val);
+        }
+    } else if (auto jval = obj.value("discCountFilter"); jval.isObject()) {
+        if (auto val = kstore::qvariant_from_josn<msg::filter::DiscCountFilter>(jval)) {
+            f.setType(msg::FilterTraits<std::decay_t<decltype(*val)>>::type);
+            f.setDiscCountFilter(*val);
         }
     } else {
         qWarning() << "Unknown AlbumFilter payload field in JSON object" << obj;

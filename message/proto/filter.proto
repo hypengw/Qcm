@@ -11,6 +11,7 @@ enum FilterType {
   FILTER_TYPE_DURATION = 5;
   FILTER_TYPE_TYPE = 6;
   FILTER_TYPE_ADDED_DATE = 7;
+  FILTER_TYPE_DISC_COUNT = 8;
 
   FILTER_TYPE_ALBUM_TITLE = 20;
   FILTER_TYPE_ALBUM_ARTIST_ID = 21;
@@ -87,6 +88,11 @@ message TrackCountFilter {
   IntCondition condition = 2;
 }
 
+message DiscCountFilter {
+  int32 value = 1;
+  IntCondition condition = 2;
+}
+
 message TypeFilter {
   int32 value = 1;
   TypeCondition condition = 2;
@@ -104,6 +110,7 @@ message AlbumFilter {
     AddedDateFilter added_date_filter = 107;
     DurationFilter duration_filter = 108;
     TypeFilter type_filter = 109;
+    DiscCountFilter disc_count_filter = 110;
   }
 }
 
