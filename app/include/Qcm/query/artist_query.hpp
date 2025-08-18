@@ -33,10 +33,21 @@ class AlbumArtistsQuery : public QueryList,
                           public QueryExtra<model::ArtistListModel, AlbumArtistsQuery> {
     Q_OBJECT
     QML_ELEMENT
+    Q_PROPERTY(QList<qcm::msg::filter::ArtistFilter> filters READ filters WRITE setFilters NOTIFY
+                   filtersChanged FINAL)
+
 public:
     AlbumArtistsQuery(QObject* parent = nullptr);
+    auto filters() const -> const QList<msg::filter::ArtistFilter>&;
+    void setFilters(const QList<msg::filter::ArtistFilter>&);
+
+    Q_SIGNAL void filtersChanged();
+
     void reload() override;
     void fetchMore(qint32) override;
+
+private:
+    QList<msg::filter::ArtistFilter> m_filters;
 };
 
 class ArtistQuery : public Query, public QueryExtra<model::ArtistStoreItem, ArtistQuery> {

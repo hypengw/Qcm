@@ -76,12 +76,13 @@ message Artist {
 }
 
 enum AlbumType {
-  ALBUM_TYPE_ALBUM = 0;
-  ALBUM_TYPE_EP = 1;
-  ALBUM_TYPE_SINGLE = 2;
-  ALBUM_TYPE_SOUNDTRACK = 3;
-  ALBUM_TYPE_COMPILATION = 4;
-  ALBUM_TYPE_LIVE = 5;
+  ALBUM_TYPE_UNSPECIFIED = 0;
+  ALBUM_TYPE_ALBUM = 1;
+  ALBUM_TYPE_EP = 2;
+  ALBUM_TYPE_SINGLE = 3;
+  ALBUM_TYPE_SOUNDTRACK = 4;
+  ALBUM_TYPE_COMPILATION = 5;
+  ALBUM_TYPE_LIVE = 6;
 }
 
 message Album {
@@ -91,7 +92,7 @@ message Album {
   string name = 4;
   string sort_name = 5;
   AlbumType type = 6;
-  int64 duration = 7; 
+  int64 duration = 7;
   int32 track_count = 8;
   int32 disc_count = 9;
   string description = 10;

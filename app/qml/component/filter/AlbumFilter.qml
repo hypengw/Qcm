@@ -39,8 +39,10 @@ MD.ItemDelegate {
                         return base + 'DurationFilter.qml';
                     case QM.FilterType.FILTER_TYPE_ARTIST_NAME:
                         return base + 'ArtistNameFilter.qml';
+                    case QM.FilterType.FILTER_TYPE_TYPE:
+                        return base + 'AlbumTypeFilter.qml';
                     default:
-                        return '';
+                        return base + 'EmptyFilter.qml';
                     }
                 }
 
@@ -49,14 +51,9 @@ MD.ItemDelegate {
                     filterUrlChanged.connect(reload);
                 }
                 function reload() {
-                    if (filterUrl) {
-                        setSource(m_loader.filterUrl, {
-                            filter: root.model
-                        });
-                    } else {
-                        sourceComponent = null;
-                        sourceComponent = m_empty_comp;
-                    }
+                    setSource(m_loader.filterUrl, {
+                        filter: root.model
+                    });
                 }
 
                 Connections {
@@ -86,19 +83,6 @@ MD.ItemDelegate {
         }
         color: root.MD.MProp.color.surface
     }
-
-    Component {
-        id: m_empty_comp
-        Flow {
-            MD.InputChip {
-                text: qsTr('empty')
-                onClicked: {
-                    root.openMenu();
-                }
-            }
-        }
-    }
-
     Component {
         id: m_menu_comp
         QA.AlbumFilterMenu {

@@ -54,6 +54,11 @@ auto albumfilter_to_json(const msg::filter::AlbumFilter& f) -> QJsonObject {
         obj.insert("durationFilter", val);
         break;
     }
+    case M::TypeFilter: {
+        auto val = kstore::qvariant_to_josn(QVariant::fromValue(f.typeFilter()));
+        obj.insert("typeFilter", val);
+        break;
+    }
     default: {
         qWarning() << "Unknown AlbumFilter payload field: " << f.payloadField();
         break;
@@ -100,6 +105,11 @@ auto albumfilter_from_json(const QJsonObject& obj) -> msg::filter::AlbumFilter {
         if (auto val = kstore::qvariant_from_josn<msg::filter::DurationFilter>(jval)) {
             f.setType(msg::FilterTraits<std::decay_t<decltype(*val)>>::type);
             f.setDurationFilter(*val);
+        }
+    } else if (auto jval = obj.value("typeFilter"); jval.isObject()) {
+        if (auto val = kstore::qvariant_from_josn<msg::filter::TypeFilter>(jval)) {
+            f.setType(msg::FilterTraits<std::decay_t<decltype(*val)>>::type);
+            f.setTypeFilter(*val);
         }
     } else {
         qWarning() << "Unknown AlbumFilter payload field in JSON object" << obj;

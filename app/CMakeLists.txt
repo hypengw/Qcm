@@ -127,9 +127,13 @@ set(QML_FILES
     qml/component/filter/AlbumFilter.qml
     qml/component/filter/ArtistFilter.qml
     qml/component/filter/FilterDelegateChooser.qml
+    qml/component/filter/EmptyFilter.qml
     qml/component/filter/IntFilter.qml
     qml/component/filter/StringFilter.qml
+    qml/component/filter/TypeFilter.qml
+    qml/component/filter/AlbumTypeFilter.qml
     qml/component/filter/TitleFilter.qml
+    qml/component/filter/NameFilter.qml
     qml/component/filter/TrackFilter.qml
     qml/component/filter/YearFilter.qml
     qml/component/filter/DurationFilter.qml
@@ -158,6 +162,7 @@ set(QML_FILES
     qml/dialog/ArtistFilterDialog.qml
     qml/menu/SongMenu.qml
     qml/menu/AlbumMenu.qml
+    qml/menu/EnumMenu.qml
     qml/menu/ArtistMenu.qml
     qml/menu/RadioMenu.qml
     qml/menu/MixMenu.qml

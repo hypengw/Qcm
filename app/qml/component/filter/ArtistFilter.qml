@@ -36,7 +36,7 @@ MD.ItemDelegate {
                     case QM.FilterType.FILTER_TYPE_ALBUM_TITLE:
                         return base + 'AlbumTitleFilter.qml';
                     default:
-                        return '';
+                        return base + 'EmptyFilter.qml';
                     }
                 }
 
@@ -45,14 +45,9 @@ MD.ItemDelegate {
                     filterUrlChanged.connect(reload);
                 }
                 function reload() {
-                    if (filterUrl) {
-                        setSource(m_loader.filterUrl, {
-                            filter: root.model
-                        });
-                    } else {
-                        sourceComponent = null;
-                        sourceComponent = m_empty_comp;
-                    }
+                    setSource(m_loader.filterUrl, {
+                        filter: root.model
+                    });
                 }
 
                 Connections {
@@ -81,18 +76,6 @@ MD.ItemDelegate {
             return MD.Util.listCorners(root.index, v.count, 12);
         }
         color: root.MD.MProp.color.surface
-    }
-
-    Component {
-        id: m_empty_comp
-        Flow {
-            MD.InputChip {
-                text: qsTr('empty')
-                onClicked: {
-                    root.openMenu();
-                }  
-            }
-        }
     }
 
     Component {

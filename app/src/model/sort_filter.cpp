@@ -195,6 +195,7 @@ AlbumFilterTypeModel::AlbumFilterTypeModel(QObject* parent): FilterTypeModel(par
             FilterTypeItem { .type = (qint32)E::FILTER_TYPE_TRACK_COUNT, .name = "track count" },
             FilterTypeItem { .type = (qint32)E::FILTER_TYPE_YEAR, .name = "year" },
             FilterTypeItem { .type = (qint32)E::FILTER_TYPE_DURATION, .name = "duration" },
+            FilterTypeItem { .type = (qint32)E::FILTER_TYPE_TYPE, .name = "type" },
             FilterTypeItem { .type = (qint32)E::FILTER_TYPE_ARTIST_NAME, .name = "artist name" },
         });
 }

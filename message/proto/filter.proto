@@ -9,7 +9,8 @@ enum FilterType {
   FILTER_TYPE_TRACK_COUNT = 3;
   FILTER_TYPE_YEAR = 4;
   FILTER_TYPE_DURATION = 5;
-  FILTER_TYPE_ADDED_DATE = 6;
+  FILTER_TYPE_TYPE = 6;
+  FILTER_TYPE_ADDED_DATE = 7;
 
   FILTER_TYPE_ALBUM_TITLE = 20;
   FILTER_TYPE_ALBUM_ARTIST_ID = 21;
@@ -40,6 +41,12 @@ enum DateCondition {
   DATE_CONDITION_BEFORE = 1;
   DATE_CONDITION_AFTER = 2;
   DATE_CONDITION_NULL = 3;
+}
+
+enum TypeCondition {
+  TYPE_CONDITION_UNSPECIFIED = 0;
+  TYPE_CONDITION_IS = 1;
+  TYPE_CONDITION_IS_NOT = 2;
 }
 
 message TitleFilter {
@@ -80,6 +87,11 @@ message TrackCountFilter {
   IntCondition condition = 2;
 }
 
+message TypeFilter {
+  int32 value = 1;
+  TypeCondition condition = 2;
+}
+
 message AlbumFilter {
   FilterType type = 1;
   oneof payload {
@@ -91,6 +103,7 @@ message AlbumFilter {
     YearFilter year_filter = 106;
     AddedDateFilter added_date_filter = 107;
     DurationFilter duration_filter = 108;
+    TypeFilter type_filter = 109;
   }
 }
 

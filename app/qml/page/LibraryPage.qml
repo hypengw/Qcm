@@ -93,6 +93,7 @@ MD.Page {
                     model: m_album_artist_sort_type
                     displayMode: m_view_album_artist.displayMode
                     onSelectDisplayMode: m => m_album_artist_setting.display_mode = m
+                    filterModel: m_album_artist_filter_model
                 }
             }
 
@@ -398,6 +399,7 @@ MD.Page {
         sort: m_artist_sort_type.currentType
         onAscChanged: delayReload()
         onSortChanged: delayReload()
+        onFiltersChanged: delayReload()
         Component.onCompleted: delayReload()
     }
     QA.AlbumArtistsQuery {
@@ -406,11 +408,28 @@ MD.Page {
         sort: m_album_artist_sort_type.currentType
         onAscChanged: delayReload()
         onSortChanged: delayReload()
+        onFiltersChanged: delayReload()
         Component.onCompleted: delayReload()
     }
     QA.MixesQuery {
         id: qr_mix
         Component.onCompleted: reload()
+    }
+
+QA.ArtistFilterRuleModel {
+        id: m_album_artist_filter_model
+        function doQuery() {
+            const q = qr_album_artists;
+            q.filters = this.items();
+        }
+        onApply: {
+            doQuery();
+            m_album_artist_setting.filter = toJson();
+            m_album_artist_setting.sync();
+        }
+        onReset: {
+            fromJson(m_album_artist_setting.filter);
+        }
     }
 
     QA.ArtistFilterRuleModel {
@@ -471,8 +490,8 @@ MD.Page {
         property alias asc: m_artist_sort_type.asc
         property string filter
         Component.onCompleted: {
-            m_album_filter_model.reset();
-            m_album_filter_model.doQuery();
+            m_artist_filter_model.reset();
+            m_artist_filter_model.doQuery();
         }
     }
 
@@ -482,5 +501,10 @@ MD.Page {
         property int display_mode: 0
         property alias sort: m_album_artist_sort_type.currentType
         property alias asc: m_album_artist_sort_type.asc
+property string filter
+        Component.onCompleted: {
+            m_artist_filter_model.reset();
+            m_artist_filter_model.doQuery();
+        }
     }
 }
