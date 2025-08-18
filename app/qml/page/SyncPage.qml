@@ -113,8 +113,9 @@ MD.Page {
                         clip: true
                         visible: text
                         anchors.leftMargin: 12
-                        icon_name: MD.Token.icon.error
-                        icon_color: MD.Token.color.error
+                        icon.name: MD.Token.icon.error
+                        icon.color: MD.Token.color.error
+                        label.useTypescale: true
                         text: {
                             const state = model.syncStatus.state;
                             switch (state) {

@@ -157,7 +157,7 @@ void AlbumArtistsQuery::fetchMore(qint32) {
 ArtistQuery::ArtistQuery(QObject* parent): Query(parent) {}
 auto ArtistQuery::itemId() const -> model::ItemId { return m_item_id; }
 void ArtistQuery::setItemId(model::ItemId in) {
-    if (ycore::cmp_exchange(m_item_id, in)) {
+    if (ycore::cmp_set(m_item_id, in)) {
         itemIdChanged();
     }
 }
@@ -187,7 +187,7 @@ ArtistAlbumQuery::ArtistAlbumQuery(QObject* parent): QueryList(parent) {
 
 auto ArtistAlbumQuery::itemId() const -> model::ItemId { return m_item_id; }
 void ArtistAlbumQuery::setItemId(model::ItemId in) {
-    if (ycore::cmp_exchange(m_item_id, in)) {
+    if (ycore::cmp_set(m_item_id, in)) {
         itemIdChanged();
     }
 }

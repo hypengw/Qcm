@@ -77,8 +77,9 @@ AlbumSortTypeModel::AlbumSortTypeModel(QObject* parent): SortTypeModel(parent) {
             SortTypeItem { .type = (qint32)E::ALBUM_SORT_SORT_TITLE, .name = "sort title" },
             SortTypeItem { .type = (qint32)E::ALBUM_SORT_YEAR, .name = "year" },
             SortTypeItem { .type = (qint32)E::ALBUM_SORT_TRACK_COUNT, .name = "track count" },
+            SortTypeItem { .type = (qint32)E::ALBUM_SORT_DISC_COUNT, .name = "disc count" },
             SortTypeItem { .type = (qint32)E::ALBUM_SORT_PUBLISH_TIME, .name = "publish time" },
-            SortTypeItem { .type = (qint32)E::ALBUM_SORT_ADDED_TIME, .name = "added" },
+            SortTypeItem { .type = (qint32)E::ALBUM_SORT_ADDED_TIME, .name = "added time" },
         });
 }
 ArtistSortTypeModel::ArtistSortTypeModel(QObject* parent): SortTypeModel(parent) {

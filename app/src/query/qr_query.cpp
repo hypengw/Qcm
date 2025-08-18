@@ -24,7 +24,7 @@ void QrAuthUrlQuery::reload() {
 
 auto QrAuthUrlQuery::tmpProvider() const -> QString { return m_tmp_provider; }
 void QrAuthUrlQuery::setTmpProvider(const QString& v) {
-    if (ycore::cmp_exchange(m_tmp_provider, v)) {
+    if (ycore::cmp_set(m_tmp_provider, v)) {
         tmpProviderChanged();
     }
 }

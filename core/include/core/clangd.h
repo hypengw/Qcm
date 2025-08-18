@@ -133,7 +133,7 @@ concept has_equal_operator = requires(T a, U b) {
 };
 
 template<class T, class U = T>
-constexpr bool cmp_exchange(T&  obj,
+constexpr bool cmp_set(T&  obj,
                             U&& new_value) noexcept(std::is_nothrow_move_constructible<T>::value &&
                                                     std::is_nothrow_assignable<T&, U>::value) {
     if (obj != new_value) {

@@ -28,7 +28,7 @@ MD.Page {
                     text: 'provider manage'
                     supportText: ''
                     onClicked: {
-                        root.MD.MProp.page.pushItem('qrc:/Qcm/App/qml/page/setting/ProviderManagePage.qml');
+                        root.MD.MProp.page.pushItem('Qcm.App/ProviderManagePage');
                     }
                 }
             }
@@ -41,27 +41,35 @@ MD.Page {
                 horizontalPadding: 16
                 QA.SettingRow {
                     icon.name: MD.Token.icon.palette
-                    text: 'Theme'
+                    text: qsTr('Theme')
                     supportText: ''
                     onClicked: {
-                        root.MD.MProp.page.pushItem('qrc:/Qcm/App/qml/page/setting/ThemeSetting.qml');
+                        root.MD.MProp.page.pushItem('Qcm.App/ThemeSetting');
                     }
                 }
                 QA.SettingRow {
                     icon.name: MD.Token.icon.media_output
-                    text: 'Audio'
+                    text: qsTr('Audio')
                     supportText: ''
                     onClicked: {
-                        root.MD.MProp.page.pushItem('qrc:/Qcm/App/qml/page/setting/AudioSetting.qml');
+                        root.MD.MProp.page.pushItem('Qcm.App/AudioSetting');
                     }
                 }
                 QA.SettingRow {
                     icon.name: MD.Token.icon.router
-                    text: 'Network'
+                    text: qsTr('Network')
                     supportText: ''
-                    onClicked:
-                    // root.MD.MProp.page.pushItem('qrc:/Qcm/App/qml/page/setting/NetworkSetting.qml');
-                    {}
+                    onClicked: {
+                        QA.Action.toast(qsTr('Work in progress'));
+                    }
+                }
+                QA.SettingRow {
+                    icon.name: MD.Token.icon.storage
+                    text: qsTr('Storage')
+                    supportText: ''
+                    onClicked: {
+                        root.MD.MProp.page.pushItem('Qcm.App/StorageSetting');
+                    }
                 }
             }
         }

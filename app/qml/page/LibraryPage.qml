@@ -142,18 +142,6 @@ MD.Page {
         }
     }
 
-    readonly property MD.TabBar tabBar: MD.TabBar {
-        visible: false
-        corners: MD.Util.corners(root.radius, 0)
-        Repeater {
-            model: root.tabs
-            MD.TabButton {
-                required property string modelData
-                text: modelData
-            }
-        }
-    }
-
     readonly property Item pageView: QA.PageContainer {
         id: m_content
         visible: false
@@ -416,7 +404,7 @@ MD.Page {
         Component.onCompleted: reload()
     }
 
-QA.ArtistFilterRuleModel {
+    QA.ArtistFilterRuleModel {
         id: m_album_artist_filter_model
         function doQuery() {
             const q = qr_album_artists;
@@ -501,7 +489,8 @@ QA.ArtistFilterRuleModel {
         property int display_mode: 0
         property alias sort: m_album_artist_sort_type.currentType
         property alias asc: m_album_artist_sort_type.asc
-property string filter
+        property string filter
+
         Component.onCompleted: {
             m_artist_filter_model.reset();
             m_artist_filter_model.doQuery();

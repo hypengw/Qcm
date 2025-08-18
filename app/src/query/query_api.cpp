@@ -174,7 +174,7 @@ bool QAsyncResult::forwardError() const {
 }
 void QAsyncResult::setForwardError(bool v) {
     C_D(QAsyncResult);
-    if (ycore::cmp_exchange(d->m_forward_error, v)) {
+    if (ycore::cmp_set(d->m_forward_error, v)) {
         emit forwardErrorChanged();
     }
 }
@@ -212,7 +212,7 @@ auto QAsyncResult::data() -> QVariant& {
 
 void QAsyncResult::set_data(const QVariant& v) {
     C_D(QAsyncResult);
-    if (ycore::cmp_exchange(d->m_data, v)) {
+    if (ycore::cmp_set(d->m_data, v)) {
         dataChanged();
     }
     if (auto obj = d->m_data.value<QObject*>(); obj != nullptr) {

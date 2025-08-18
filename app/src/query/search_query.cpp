@@ -19,7 +19,7 @@ SearchTypeModel::SearchTypeModel(QObject* parent)
 }
 auto SearchTypeModel::currentIndex() const -> qint32 { return m_current_index; }
 void SearchTypeModel::setCurrentIndex(qint32 v) {
-    if (ycore::cmp_exchange(m_current_index, v)) {
+    if (ycore::cmp_set(m_current_index, v)) {
         currentIndexChanged();
     }
 }
@@ -62,17 +62,17 @@ auto SearchModel::albumQuery() const -> QString { return m_album_query; }
 auto SearchModel::artistQuery() const -> QString { return m_artist_query; }
 
 void SearchModel::setSongQuery(const QString& v) {
-    if (ycore::cmp_exchange(m_song_query, v)) {
+    if (ycore::cmp_set(m_song_query, v)) {
         songQueryChanged(m_song_query);
     }
 }
 void SearchModel::setAlbumQuery(const QString& v) {
-    if (ycore::cmp_exchange(m_album_query, v)) {
+    if (ycore::cmp_set(m_album_query, v)) {
         albumQueryChanged(m_album_query);
     }
 }
 void SearchModel::setArtistQuery(const QString& v) {
-    if (ycore::cmp_exchange(m_artist_query, v)) {
+    if (ycore::cmp_set(m_artist_query, v)) {
         artistQueryChanged(m_artist_query);
     }
 }
@@ -87,14 +87,14 @@ SearchQuery::SearchQuery(QObject* parent)
 
 auto SearchQuery::text() const -> QString { return m_text; }
 void SearchQuery::setText(QString v) {
-    if (ycore::cmp_exchange(m_text, v)) {
+    if (ycore::cmp_set(m_text, v)) {
         textChanged(m_text);
     }
 }
 
 auto SearchQuery::location() const -> enums::SearchLocation { return m_location; }
 void SearchQuery::setLocation(enums::SearchLocation v) {
-    if (ycore::cmp_exchange(m_location, v)) {
+    if (ycore::cmp_set(m_location, v)) {
         locationChanged(m_location);
     }
 };
@@ -103,7 +103,7 @@ void SearchQuery::setData(model::SearchModel* v) { return this->set_tdata(v); }
 
 auto SearchQuery::type() const -> enums::SearchType { return m_type; }
 void SearchQuery::setType(enums::SearchType v) {
-    if (ycore::cmp_exchange(m_type, v)) {
+    if (ycore::cmp_set(m_type, v)) {
         typeChanged(m_type);
     };
 }

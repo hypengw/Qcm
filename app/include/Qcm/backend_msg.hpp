@@ -136,6 +136,9 @@ QCM_MSG_TRAITS_REQ(GetSubtitleReq, GetSubtitleRsp, GET_SUBTITLE_REQ, getSubtitle
 QCM_MSG_TRAITS_RSP(GetSubtitleRsp, GetSubtitleReq, getSubtitleRsp)
 QCM_MSG_TRAITS_REQ(SetFavoriteReq, Rsp, SET_FAVORITE_REQ, setFavoriteReq)
 
+QCM_MSG_TRAITS_REQ(GetStorageInfoReq, GetStorageInfoRsp, GET_STORAGE_INFO_REQ, getStorageInfoReq)
+QCM_MSG_TRAITS_RSP(GetStorageInfoRsp, GetStorageInfoReq, getStorageInfoRsp)
+
 template<>
 struct MsgTraits<msg::Rsp> {
     QCM_MSG_TRAITS_COMMON(Rsp, rsp)

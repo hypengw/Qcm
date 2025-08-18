@@ -102,7 +102,7 @@ AlbumQuery::AlbumQuery(QObject* parent): QueryList(parent) {
 }
 auto AlbumQuery::itemId() const -> model::ItemId { return m_item_id; }
 void AlbumQuery::setItemId(model::ItemId in) {
-    if (ycore::cmp_exchange(m_item_id, in)) {
+    if (ycore::cmp_set(m_item_id, in)) {
         itemIdChanged();
     }
 }

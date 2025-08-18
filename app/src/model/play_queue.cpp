@@ -364,7 +364,7 @@ auto PlayQueue::currentData(int role) const -> QVariant {
 
 auto PlayQueue::loopMode() const -> enums::LoopMode { return m_loop_mode; }
 void PlayQueue::setLoopMode(enums::LoopMode mode) {
-    if (ycore::cmp_exchange(m_loop_mode, mode)) {
+    if (ycore::cmp_set(m_loop_mode, mode)) {
         loopModeChanged(m_loop_mode);
     }
 }
@@ -381,7 +381,7 @@ void PlayQueue::iterLoopMode() {
 }
 auto PlayQueue::randomMode() const -> bool { return m_random_mode; }
 void PlayQueue::setRandomMode(bool v) {
-    if (ycore::cmp_exchange(m_random_mode, v)) {
+    if (ycore::cmp_set(m_random_mode, v)) {
         randomModeChanged(m_random_mode);
     }
 }
@@ -392,22 +392,22 @@ auto PlayQueue::canJump() const -> bool { return m_can_jump; }
 auto PlayQueue::canRemove() const -> bool { return m_can_user_remove; }
 
 void PlayQueue::setCanNext(bool v) {
-    if (ycore::cmp_exchange(m_can_next, v)) {
+    if (ycore::cmp_set(m_can_next, v)) {
         canNextChanged();
     }
 }
 void PlayQueue::setCanPrev(bool v) {
-    if (ycore::cmp_exchange(m_can_prev, v)) {
+    if (ycore::cmp_set(m_can_prev, v)) {
         canPrevChanged();
     }
 }
 void PlayQueue::setCanJump(bool v) {
-    if (ycore::cmp_exchange(m_can_jump, v)) {
+    if (ycore::cmp_set(m_can_jump, v)) {
         canJumpChanged();
     }
 }
 void PlayQueue::setCanRemove(bool v) {
-    if (ycore::cmp_exchange(m_can_user_remove, v)) {
+    if (ycore::cmp_set(m_can_user_remove, v)) {
         canRemoveChanged();
     }
 }

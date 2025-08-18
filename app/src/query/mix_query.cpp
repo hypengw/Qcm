@@ -62,7 +62,7 @@ MixQuery::MixQuery(QObject* parent): Query(parent) {}
 auto MixQuery::itemId() const -> model::ItemId { return m_item_id; }
 
 void MixQuery::setItemId(model::ItemId in) {
-    if (ycore::cmp_exchange(m_item_id, in)) {
+    if (ycore::cmp_set(m_item_id, in)) {
         itemIdChanged();
     }
 }

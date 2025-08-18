@@ -154,7 +154,7 @@ void Global::set_copy_action_comp(QQmlComponent* val) {
 }
 void Global::set_uuid(const QUuid& val) {
     C_D(Global);
-    if (ycore::cmp_exchange(d->uuid, val)) {
+    if (ycore::cmp_set(d->uuid, val)) {
         uuidChanged();
     }
 }

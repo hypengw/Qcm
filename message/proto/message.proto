@@ -60,6 +60,9 @@ enum MessageType {
   SEARCH_REQ = 100;
   SEARCH_RSP = 101;
   SET_FAVORITE_REQ = 102;
+
+  GET_STORAGE_INFO_REQ = 200;
+  GET_STORAGE_INFO_RSP = 201;
 }
 
 message GetSongsByAlbumRequest {
@@ -312,6 +315,13 @@ message SetFavoriteReq {
   bool value = 3;
 }
 
+message GetStorageInfoReq {}
+message GetStorageInfoRsp {
+  int64 media_size = 1; // in bytes
+  int64 image_size = 2;
+  int64 database_size = 3;
+}
+
 message QcmMessage {
   MessageType type = 1;
   int32 id = 2;
@@ -368,5 +378,8 @@ message QcmMessage {
     SearchReq search_req = 200;
     SearchRsp search_rsp = 201;
     SetFavoriteReq set_favorite_req = 202;
+
+    GetStorageInfoReq get_storage_info_req = 300;
+    GetStorageInfoRsp get_storage_info_rsp = 301;
   }
 }

@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtCore
 import QtQuick
 import QtQuick.Layouts
@@ -7,16 +8,67 @@ import Qcm.Material as MD
 MD.Page {
     id: root
     font.capitalization: Font.Capitalize
-    title: qsTr('settings')
+    title: qsTr('storage')
     bottomPadding: radius
     scrolling: !m_flick.atYBeginning
 
     MD.VerticalFlickable {
         id: m_flick
         anchors.fill: parent
-        leftMargin: 0
-        rightMargin: 0
+        leftMargin: 16
+        rightMargin: 16
 
+        QA.StorageInfoQuery {
+            id: m_qr
+            Component.onCompleted: reload()
+        }
+
+        ColumnLayout {
+            spacing: 12
+            width: parent.width
+            height: implicitHeight
+
+            Column {
+                Layout.leftMargin: 4
+                MD.Label {
+                    text: qsTr('used space')
+                }
+                MD.Text {
+                    typescale: MD.Token.typescale.headline_small
+                    text: m_qr.querying ? qsTr('calculating...') : QA.Util.prettyBytes(m_qr.data.total, 1)
+                }
+            }
+            SizePane {
+                title: qsTr('media cache')
+                size: m_qr.data.media
+                action: MD.Button {
+                    type: MD.Enum.BtFilled
+                    text: qsTr('clear')
+                    background.implicitHeight: 36
+                    onClicked: {
+                        QA.Action.toast('work in progress');
+                    }
+                }
+            }
+            SizePane {
+                title: qsTr('image cache')
+                size: m_qr.data.image
+                action: MD.Button {
+                    type: MD.Enum.BtFilled
+                    text: qsTr('clear')
+                    background.implicitHeight: 36
+                    onClicked: {
+                        QA.Action.toast('work in progress');
+                    }
+                }
+            }
+            SizePane {
+                title: qsTr('database')
+                size: m_qr.data.database
+            }
+        }
+
+        /*
         Settings {
             id: settings_cache
 
@@ -40,6 +92,7 @@ MD.Page {
                 QA.App.triggerCacheLimit();
             }
         }
+
 
         ColumnLayout {
             height: implicitHeight
@@ -109,6 +162,57 @@ MD.Page {
                         }
                     }
                 }
+            }
+        }
+        */
+    }
+
+    component SizePane: MD.Pane {
+        id: m_root
+        Layout.fillWidth: true
+        backgroundColor: MD.Token.color.surface_container
+        property alias title: m_title.text
+        property real size: 0
+        property Item action: null
+
+        padding: 8
+        horizontalPadding: 12
+        radius: MD.Token.shape.corner.medium
+
+        RowLayout {
+            width: parent.width
+            Column {
+                Layout.fillWidth: true
+                spacing: 4
+                MD.Label {
+                    id: m_title
+                }
+                MD.Loader {
+                    sourceComponent: m_qr.querying ? m_comp_loading : m_comp_size
+                }
+                Component {
+                    id: m_comp_size
+                    MD.Text {
+                        typescale: MD.Token.typescale.title_medium
+                        text: QA.Util.prettyBytes(m_root.size, 1)
+                    }
+                }
+                Component {
+                    id: m_comp_loading
+                    MD.CircularIndicator {
+                        anchors.centerIn: parent
+                        running: true
+                        strokeWidth: 2
+                        padding: 0
+                        implicitWidth: 24
+                        implicitHeight: 24
+                        color: MD.Token.color.primary
+                    }
+                }
+            }
+
+            LayoutItemProxy {
+                target: m_root.action
             }
         }
     }

@@ -43,7 +43,7 @@ auto format_auth_res(const T& rsp) -> std::string {
 
 auto AuthProviderQuery::failed() const -> const QString& { return m_failed; }
 void AuthProviderQuery::setFailed(QStringView v) {
-    if (ycore::cmp_exchange(m_failed, v.toString())) {
+    if (ycore::cmp_set(m_failed, v.toString())) {
         failedChanged();
     }
 }
@@ -66,13 +66,13 @@ void AuthProviderQuery::reload() {
 }
 auto AuthProviderQuery::req() -> msg::AuthProviderReq& { return m_req; }
 void AuthProviderQuery::setReq(msg::AuthProviderReq& req) {
-    if (ycore::cmp_exchange(m_req, req)) {
+    if (ycore::cmp_set(m_req, req)) {
         reqChanged();
     }
 }
 auto AuthProviderQuery::tmpProvider() const -> QString { return m_tmp_provider; }
 void AuthProviderQuery::setTmpProvider(const QString& v) {
-    if (ycore::cmp_exchange(m_tmp_provider, v)) {
+    if (ycore::cmp_set(m_tmp_provider, v)) {
         tmpProviderChanged();
     }
 }
@@ -94,7 +94,7 @@ void ProviderMetasQuery::reload() {
 AddProviderQuery::AddProviderQuery(QObject* parent): Query(parent) { setForwardError(true); }
 auto AddProviderQuery::req() -> msg::AddProviderReq& { return m_req; }
 void AddProviderQuery::setReq(msg::AddProviderReq& req) {
-    if (ycore::cmp_exchange(m_req, req)) {
+    if (ycore::cmp_set(m_req, req)) {
         reqChanged();
     }
 }
@@ -115,13 +115,13 @@ UpdateProviderQuery::UpdateProviderQuery(QObject* parent): Query(parent) { setFo
 
 auto UpdateProviderQuery::req() -> msg::UpdateProviderReq& { return m_req; }
 void UpdateProviderQuery::setReq(const msg::UpdateProviderReq& req) {
-    if (ycore::cmp_exchange(m_req, req)) {
+    if (ycore::cmp_set(m_req, req)) {
         reqChanged();
     }
 }
 auto UpdateProviderQuery::providerId() const -> model::ItemId { return m_provider_id; }
 void UpdateProviderQuery::setProviderId(const model::ItemId& id) {
-    if (ycore::cmp_exchange(m_provider_id, id)) {
+    if (ycore::cmp_set(m_provider_id, id)) {
         providerIdChanged();
     }
 }
@@ -152,7 +152,7 @@ void UpdateProviderQuery::reload() {
 DeleteProviderQuery::DeleteProviderQuery(QObject* parent): Query(parent) { setForwardError(true); }
 auto DeleteProviderQuery::providerId() const -> model::ItemId { return m_provider_id; }
 void DeleteProviderQuery::setProviderId(const model::ItemId& id) {
-    if (ycore::cmp_exchange(m_provider_id, id)) {
+    if (ycore::cmp_set(m_provider_id, id)) {
         providerIdChanged();
     }
 }
@@ -175,7 +175,7 @@ ReplaceProviderQuery::ReplaceProviderQuery(QObject* parent): Query(parent) {
 
 auto ReplaceProviderQuery::providerId() const -> model::ItemId { return m_provider_id; }
 void ReplaceProviderQuery::setProviderId(const model::ItemId& id) {
-    if (ycore::cmp_exchange(m_provider_id, id)) {
+    if (ycore::cmp_set(m_provider_id, id)) {
         providerIdChanged();
     }
 }
@@ -218,7 +218,7 @@ CreateTmpProviderQuery::~CreateTmpProviderQuery() {
 }
 auto CreateTmpProviderQuery::typeName() const -> QString { return m_type_name; }
 void CreateTmpProviderQuery::setTypeName(const QString& v) {
-    if (ycore::cmp_exchange(m_type_name, v)) {
+    if (ycore::cmp_set(m_type_name, v)) {
         typeNameChanged();
     }
 }
@@ -241,7 +241,7 @@ DeleteTmpProviderQuery::DeleteTmpProviderQuery(QObject* parent): Query(parent) {
 }
 auto DeleteTmpProviderQuery::req() -> msg::DeleteTmpProviderReq& { return m_req; }
 void DeleteTmpProviderQuery::setReq(msg::DeleteTmpProviderReq& req) {
-    if (ycore::cmp_exchange(m_req, req)) {
+    if (ycore::cmp_set(m_req, req)) {
         reqChanged();
     }
 }

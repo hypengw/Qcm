@@ -48,7 +48,7 @@ void LyricQuery::reload() {
 
 auto LyricQuery::itemId() const -> model::ItemId { return m_item_id; }
 void LyricQuery::setItemId(model::ItemId id) {
-    if (ycore::cmp_exchange(m_item_id, id)) {
+    if (ycore::cmp_set(m_item_id, id)) {
         itemIdChanged();
     }
 }

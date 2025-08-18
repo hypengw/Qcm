@@ -5,6 +5,7 @@ module;
 #include <optional>
 #include <variant>
 #include <iterator>
+#include <cmath>
 #include <expected>
 
 export module qcm.core:basic;
@@ -146,6 +147,33 @@ constexpr bool cmp_exchange(T&  obj,
     return false;
 }
 
+export template<typename T>
+[[nodiscard]] constexpr bool fuzzy_equal(T a, T b) {
+    const T scale = std::same_as<T, double> ? T(1000000000000.) : T(100000.f);
+    return std::fabs(a - b) * scale <= std::min(std::fabs(a), std::fabs(b));
+}
+
+export template<typename T>
+using param_t = std::conditional_t < std::is_trivially_copyable_v<T> && sizeof(T) <= 32,
+      T, const T& > ;
+
+export template<typename T>
+constexpr auto cmp_set(T&         lhs,
+                       param_t<T> rhs) noexcept(std::is_nothrow_move_constructible<T>::value &&
+                                                std::is_nothrow_assignable<T&, T>::value) -> bool {
+    if constexpr (std::is_floating_point_v<T>) {
+        if (! fuzzy_equal(lhs, rhs)) {
+            lhs = rhs;
+            return true;
+        }
+    } else {
+        if (lhs != rhs) {
+            lhs = rhs;
+            return true;
+        }
+    }
+    return false;
+}
 export template<class ContainerType>
 concept ContainerConcept = requires(ContainerType a, const ContainerType b) {
     requires std::regular<ContainerType>;

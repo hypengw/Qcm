@@ -29,7 +29,7 @@ void Query::delayReload() {
 
 auto Query::delay() const -> bool { return m_delay; }
 void Query::setDelay(bool v) {
-    if (ycore::cmp_exchange(m_delay, v)) {
+    if (ycore::cmp_set(m_delay, v)) {
         delayChanged();
     }
 }
@@ -51,24 +51,24 @@ auto QueryList::offset() const -> qint32 { return m_offset; }
 auto QueryList::limit() const -> qint32 { return m_limit; }
 
 void QueryList::setOffset(qint32 v) {
-    if (ycore::cmp_exchange(m_offset, v)) {
+    if (ycore::cmp_set(m_offset, v)) {
         offsetChanged();
     }
 }
 void QueryList::setLimit(qint32 v) {
-    if (ycore::cmp_exchange(m_limit, v)) {
+    if (ycore::cmp_set(m_limit, v)) {
         limitChanged();
     }
 }
 auto QueryList::sort() const -> qint32 { return m_sort; }
 void QueryList::setSort(qint32 v) {
-    if (ycore::cmp_exchange(m_sort, v)) {
+    if (ycore::cmp_set(m_sort, v)) {
         sortChanged();
     }
 }
 auto QueryList::asc() const -> bool { return m_asc; }
 void QueryList::setAsc(bool v) {
-    if (ycore::cmp_exchange(m_asc, v)) {
+    if (ycore::cmp_set(m_asc, v)) {
         ascChanged();
     }
 }
