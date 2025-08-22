@@ -21,30 +21,32 @@ public:
     Util();
     ~Util() override;
 
-    Q_INVOKABLE msg::filter::AlbumArtistIdFilter albumArtistIdFilter() const noexcept;
-    Q_INVOKABLE msg::filter::ArtistIdFilter artistIdFilter() const noexcept;
-    Q_INVOKABLE msg::filter::TitleFilter titleFilter() const noexcept;
-    Q_INVOKABLE msg::filter::AlbumFilter albumFilter() const noexcept;
+    Q_INVOKABLE static msg::filter::AlbumArtistIdFilter albumArtistIdFilter() noexcept;
+    Q_INVOKABLE static msg::filter::ArtistIdFilter      artistIdFilter() noexcept;
+    Q_INVOKABLE static msg::filter::TitleFilter         titleFilter() noexcept;
+    Q_INVOKABLE static msg::filter::AlbumFilter         albumFilter() noexcept;
 
-    Q_INVOKABLE model::ItemId createItemid() const;
-    Q_INVOKABLE model::RouteMsg create_route_msg(QVariantMap) const;
-    Q_INVOKABLE model::RouteMsg routeMsg() const;
+    Q_INVOKABLE static model::ItemId   createItemid();
+    Q_INVOKABLE static model::RouteMsg create_route_msg(QVariantMap);
+    Q_INVOKABLE static model::RouteMsg routeMsg();
 
-    Q_INVOKABLE std::vector<model::ItemId> collect_ids(QAbstractItemModel* model) const;
-    Q_INVOKABLE int  dyn_card_width(qint32 containerWidth, qint32 spacing = 0) const;
-    Q_INVOKABLE void print(const QJSValue&) const;
-    Q_INVOKABLE QUrl special_route_url(enums::SpecialRoute) const;
-    Q_INVOKABLE model::RouteMsg route_msg(enums::SpecialRoute) const;
+    Q_INVOKABLE static std::vector<model::ItemId> collect_ids(QAbstractItemModel* model);
+    Q_INVOKABLE static int             dyn_card_width(qint32 containerWidth, qint32 spacing = 0);
+    Q_INVOKABLE static void            print(const QJSValue&);
+    Q_INVOKABLE static QUrl            special_route_url(enums::SpecialRoute);
+    Q_INVOKABLE static model::RouteMsg route_msg(enums::SpecialRoute);
 
-    Q_INVOKABLE QUrl image_url(model::ItemId    id,
-                               enums::ImageType image_type = enums::ImageType::ImagePrimary) const;
-    Q_INVOKABLE QUrl image_url(const QString&) const;
-    Q_INVOKABLE QUrl audio_url(model::ItemId id) const;
+    Q_INVOKABLE static QUrl image_url(model::ItemId    id,
+                                      enums::ImageType image_type = enums::ImageType::ImagePrimary);
+    Q_INVOKABLE static QUrl image_url(const QString&);
+    Q_INVOKABLE static QUrl audio_url(model::ItemId id);
 
-    Q_INVOKABLE model::ItemId artistId(QString) const;
-    Q_INVOKABLE QString       mprisTrackid(model::ItemId) const;
-    Q_INVOKABLE QString       joinName(const QJSValue&, const QString& = "/") const;
-    Q_INVOKABLE QString       formatDateTime(const QJSValue&, const QString&) const;
+    Q_INVOKABLE static model::ItemId artistId(QString);
+    Q_INVOKABLE static QString       mprisTrackid(model::ItemId);
+    Q_INVOKABLE static QString       joinName(const QJSValue&, const QString& = "/");
+    Q_INVOKABLE static QString       formatDateTime(const QJSValue&, const QString&);
+
+    Q_INVOKABLE static QString prettyBytes(qint64 bytes, int maxFrac = 0);
 };
 } // namespace qml
 

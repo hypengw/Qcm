@@ -21,13 +21,13 @@ namespace qcm::qml
 Util::Util(): QObject(nullptr) {}
 Util::~Util() {}
 
-auto Util::albumArtistIdFilter() const noexcept -> msg::filter::AlbumArtistIdFilter { return {}; }
-auto Util::artistIdFilter() const noexcept -> msg::filter::ArtistIdFilter { return {}; }
-auto Util::titleFilter() const noexcept -> msg::filter::TitleFilter { return {}; }
-auto Util::albumFilter() const noexcept -> msg::filter::AlbumFilter { return {}; }
-auto Util::createItemid() const -> model::ItemId { return {}; }
+auto Util::albumArtistIdFilter() noexcept -> msg::filter::AlbumArtistIdFilter { return {}; }
+auto Util::artistIdFilter() noexcept -> msg::filter::ArtistIdFilter { return {}; }
+auto Util::titleFilter() noexcept -> msg::filter::TitleFilter { return {}; }
+auto Util::albumFilter() noexcept -> msg::filter::AlbumFilter { return {}; }
+auto Util::createItemid() -> model::ItemId { return {}; }
 
-auto Util::mprisTrackid(model::ItemId id) const -> QString {
+auto Util::mprisTrackid(model::ItemId id) -> QString {
     static const auto dbus_path = QStringLiteral(APP_ID).replace('.', '/');
     std::string       track_id  = "none";
     if (id.id() >= 0) {
@@ -36,29 +36,27 @@ auto Util::mprisTrackid(model::ItemId id) const -> QString {
     return rstd::into(std::format("/{}/TrackId/{}", dbus_path, track_id));
 }
 
-auto Util::create_route_msg(QVariantMap props) const -> model::RouteMsg {
+auto Util::create_route_msg(QVariantMap props) -> model::RouteMsg {
     model::RouteMsg msg;
     msg.dst   = (props.value("url").toUrl()).toString();
     msg.props = (props.value("props").toMap());
     return msg;
 }
-model::RouteMsg Util::routeMsg() const { return {}; }
+model::RouteMsg Util::routeMsg() { return {}; }
 
-auto Util::image_url(model::ItemId id, enums::ImageType image_type) const -> QUrl {
+auto Util::image_url(model::ItemId id, enums::ImageType image_type) -> QUrl {
     auto type = id.type();
     if (type == enums::ItemType::ItemAlbumArtist) type = enums::ItemType::ItemArtist;
     return rstd::into(std::format("image://qcm/{}/{}/{}", type, id.id(), image_type));
 }
 
-auto Util::image_url(const QString& url) const -> QUrl {
+auto Util::image_url(const QString& url) -> QUrl {
     return rstd::into(std::format("image://qcm/{}", url));
 }
 
-auto Util::audio_url(model::ItemId id) const -> QUrl {
-    return App::instance()->backend()->audio_url(id);
-}
+auto Util::audio_url(model::ItemId id) -> QUrl { return App::instance()->backend()->audio_url(id); }
 
-auto Util::collect_ids(QAbstractItemModel* model) const -> std::vector<model::ItemId> {
+auto Util::collect_ids(QAbstractItemModel* model) -> std::vector<model::ItemId> {
     std::vector<model::ItemId> out;
     auto                       roleNames = model->roleNames();
     int                        id_role { -1 };
@@ -91,11 +89,11 @@ auto Util::collect_ids(QAbstractItemModel* model) const -> std::vector<model::It
     return out;
 }
 
-int Util::dyn_card_width(qint32 containerWidth, qint32 spacing) const {
+int Util::dyn_card_width(qint32 containerWidth, qint32 spacing) {
     return std::max<qint32>(160, containerWidth / 6.0 - spacing);
 }
 
-QUrl Util::special_route_url(enums::SpecialRoute r) const {
+QUrl Util::special_route_url(enums::SpecialRoute r) {
     using SR = enums::SpecialRoute;
     switch (r) {
     case SR::SRSetting: return u"qrc:/Qcm/App/qml/page/setting/SettingPage.qml"_s;
@@ -105,13 +103,13 @@ QUrl Util::special_route_url(enums::SpecialRoute r) const {
     default: return {};
     }
 }
-model::RouteMsg Util::route_msg(enums::SpecialRoute r) const {
+model::RouteMsg Util::route_msg(enums::SpecialRoute r) {
     model::RouteMsg msg;
     msg.dst = special_route_url(r).toString();
     return msg;
 }
 
-void Util::print(const QJSValue& val) const {
+void Util::print(const QJSValue& val) {
     if (val.isObject()) {
         QJsonDocument    jdoc;
         QJsonObject      j;
@@ -139,11 +137,11 @@ json: {}
     }
 }
 
-auto Util::artistId(QString id) const -> model::ItemId {
+auto Util::artistId(QString id) -> model::ItemId {
     return { enums::ItemType::ItemAlbumArtist, id.toLongLong() };
 }
 
-QString Util::joinName(const QJSValue& v, const QString& sp) const {
+QString Util::joinName(const QJSValue& v, const QString& sp) {
     auto to_name = [](const QJSValue& v) {
         if (v.hasProperty("name")) {
             return v.property("name").toString();
@@ -178,7 +176,7 @@ QString Util::joinName(const QJSValue& v, const QString& sp) const {
     return {};
 }
 
-QString Util::formatDateTime(const QJSValue& v, const QString& format) const {
+QString Util::formatDateTime(const QJSValue& v, const QString& format) {
     do {
         if (v.isDate()) {
             return v.toDateTime().toString(format);
@@ -200,6 +198,24 @@ QString Util::formatDateTime(const QJSValue& v, const QString& format) const {
         }
     } while (0);
     return {};
+}
+
+auto Util::prettyBytes(qint64 bytes, qint32 maxFrac) -> QString {
+    using namespace Qt::Literals::StringLiterals;
+
+    constexpr std::array UNITS = { "B"_L1,  "KB"_L1, "MB"_L1, "GB"_L1, "TB"_L1,
+                                   "PB"_L1, "EB"_L1, "ZB"_L1, "YB"_L1 };
+
+    const auto exponent =
+        bytes < 1 ? 0
+                  : std::min<qint32>(std::floor(std::log(std::abs(bytes)) / std::log(1024)),
+                                     UNITS.size() - 1);
+
+    const auto unit   = UNITS[exponent];
+    const auto prefix = bytes < 0 ? "-"_L1 : ""_L1;
+
+    const auto num = bytes / std::pow(1024, exponent);
+    return QString("%1%2 %3").arg(prefix).arg(num, 0, 'f', maxFrac).arg(unit);
 }
 } // namespace qcm::qml
 
