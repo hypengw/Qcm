@@ -208,10 +208,10 @@ MD.Page {
                     MD.Text {
                         Layout.preferredWidth: fm_time.rect("00:00").width + 2
                         horizontalAlignment: Qt.AlignHCenter
-                        readonly property date position: new Date(QA.Global.player.duration * slider.position)
+                        readonly property date position: new Date()
 
                         opacity: QA.Global.player.duration > 0 ? 1 : 0
-                        text: `${Qt.formatDateTime(position, 'mm:ss')}`
+                        text: QA.Util.formatDuration(QA.Global.player.duration * slider.position, 'mm:ss')
                     }
                     QA.PlaySlider {
                         id: slider
@@ -221,7 +221,7 @@ MD.Page {
                         Layout.preferredWidth: fm_time.rect("00:00").width + 2
                         horizontalAlignment: Qt.AlignHCenter
                         opacity: QA.Global.player.duration > 0 ? 1 : 0
-                        text: `${Qt.formatDateTime(QA.Global.player.durationDate, 'mm:ss')}`
+                        text: QA.Util.formatDuration(QA.Global.player.duration, 'mm:ss')
                     }
                 }
 

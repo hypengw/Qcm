@@ -52,10 +52,12 @@ Q_SIGNALS:
     void queue(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
     void switch_songs(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
 
-    void play_url(const QUrl& url, bool refresh = false);
+    void playUrl(const QUrl& url, bool refresh = false);
+
     void record(enums::RecordAction);
-    void playback_log(enums::PlaybackState state, model::ItemId item, model::ItemId souce,
-                      QVariantMap extra = {});
+    void playLog(qint32 action, model::ItemId songId, model::ItemId sourceId = {});
+    // void playback_log(enums::PlaybackState state, model::ItemId item, model::ItemId souce,
+    //                   QVariantMap extra = {});
 };
 
 } // namespace qcm

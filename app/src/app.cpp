@@ -102,7 +102,6 @@ public:
         m_qml_engine = nullptr;
 
         save_settings();
-        m_global->session()->about_to_stop();
         m_global->join();
     }
 
@@ -152,12 +151,13 @@ App::App(QStringView backend_exe, std::monostate)
     register_meta_type();
     register_converters();
     connect_actions();
+    connect_components();
     {
         QGuiApplication::setDesktopFileName(APP_ID);
         PageModel::init_main_pages(d->page_model);
-    }
-    d->m_playqueu->setSourceModel(d->m_play_id_queue);
-    {
+        d->m_playqueu->setSourceModel(d->m_play_id_queue);
+        d->m_global->set_metadata_impl(player::get_metadata);
+        set_player_sender(d->m_global->player()->sender());
     }
 
     log::debug("thread pool size: {}", get_pool_size());
@@ -192,16 +192,6 @@ App::App(QStringView backend_exe, std::monostate)
         format.setSamples(4);
         QSurfaceFormat::setDefaultFormat(format);
     }
-
-    // sql init
-    {
-        d->m_global->set_metadata_impl(player::get_metadata);
-    }
-
-    connect(provider_status(),
-            &ProviderStatusModel::libraryStatusChanged,
-            this,
-            &App::libraryStatusChanged);
 }
 App::~App() {}
 
@@ -209,7 +199,6 @@ void App::init() {
     C_D(App);
     auto engine = this->engine();
 
-    // qmlRegisterSingletonInstance("Qcm.App", 1, 0, "App", this);
     qcm::init_path(std::array { config_path() / "session", data_path() });
 
     // uuid
@@ -532,16 +521,32 @@ void App::load_settings() {
         QSettings s;
         s.setValue("play/random", v);
     });
-    // session proxy
     {
-        auto type        = s.value("network/proxy_type").value<enums::ProxyType>();
-        auto content     = s.value("network/proxy_content").toString();
-        auto ignore_cert = convert_from<std::optional<bool>>(s.value("network/ignore_certificate"))
-                               .value_or(false);
+        const auto player = d->m_global->player();
+        player->set_fadeTime(s.value("play/fade_time", player->fadeTime()).value<u32>());
+        connect(player, &Player::fadeTimeChanged, this, [](u32 v) {
+            QSettings s;
+            s.setValue("play/fade_time", v);
+        });
 
-        setProxy(type, content);
-        setVerifyCertificate(! ignore_cert);
+        player->set_volume(s.value("play/volume", player->volume()).value<float>());
+        connect(player, &Player::volumeChanged, this, [](float v) {
+            QSettings s;
+            s.setValue("play/volume", v);
+        });
     }
+
+    // session proxy
+    // {
+    //     auto type        = s.value("network/proxy_type").value<enums::ProxyType>();
+    //     auto content     = s.value("network/proxy_content").toString();
+    //     auto ignore_cert =
+    //     convert_from<std::optional<bool>>(s.value("network/ignore_certificate"))
+    //                            .value_or(false);
+
+    //     setProxy(type, content);
+    //     setVerifyCertificate(! ignore_cert);
+    // }
 }
 void App::save_settings() {
     C_D(App);

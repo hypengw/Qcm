@@ -96,7 +96,7 @@ Global::Private::Private(Global* p)
     : qt_ctx(make_arc<QtExecutionContext>(p, (QEvent::Type)QEvent::registerEventType())),
       pool(get_pool_size()),
       session(ncrequest::Session::make(pool.get_executor(), mem_mgr().session_mem)),
-      copy_action_comp(nullptr) {}
+      player(nullptr) {}
 Global::Private::~Private() {}
 
 auto Global::instance() -> Global* { return static_global(); }
@@ -110,6 +110,8 @@ Global::Global(): d_ptr(make_up<Private>(this)) {
         QCoreApplication::setApplicationName(APP_NAME);
         QCoreApplication::setOrganizationName(APP_NAME);
     }
+
+    d->player = new Player(this);
 }
 Global::~Global() {
     // delete child before private pointer
@@ -134,6 +136,11 @@ auto Global::uuid() const -> const QUuid& {
     return d->uuid;
 }
 
+auto Global::player() const -> Player* {
+    C_D(const Global);
+    return d->player;
+}
+
 auto Global::get_metadata(const std::filesystem::path& path) const -> Metadata {
     C_D(const Global);
     if (d->metadata_impl) {
@@ -142,16 +149,6 @@ auto Global::get_metadata(const std::filesystem::path& path) const -> Metadata {
     return {};
 }
 
-auto Global::copy_action_comp() const -> QQmlComponent* {
-    C_D(const Global);
-    return d->copy_action_comp;
-}
-void Global::set_copy_action_comp(QQmlComponent* val) {
-    C_D(Global);
-    if (std::exchange(d->copy_action_comp, val) != val) {
-        copyActionCompChanged();
-    }
-}
 void Global::set_uuid(const QUuid& val) {
     C_D(Global);
     if (ycore::cmp_set(d->uuid, val)) {
@@ -165,10 +162,16 @@ void Global::set_metadata_impl(const MetadataImpl& impl) {
 
 void Global::join() {
     C_D(Global);
+    session()->about_to_stop();
+    player()->close();
+
+    delete d->player;
+    d->player = nullptr;
+
     d->pool.join();
 }
 
-GlobalWrapper::GlobalWrapper(): m_g(Global::instance()) {
+GlobalWrapper::GlobalWrapper(): m_g(Global::instance()), m_toast_action_comp(nullptr) {
     connect_from_global(m_g, &Global::copyActionCompChanged, &GlobalWrapper::copyActionCompChanged);
     connect_from_global(m_g, &Global::errorOccurred, &GlobalWrapper::errorOccurred);
     connect_from_global(m_g, &Global::uuidChanged, &GlobalWrapper::uuidChanged);
@@ -178,7 +181,7 @@ GlobalWrapper::GlobalWrapper(): m_g(Global::instance()) {
     connect(this, &GlobalWrapper::errorOccurred, this, [this](const QString& error) {
         if (! error.endsWith("Operation aborted.")) {
             QObject* act { nullptr };
-            auto     comp = copy_action_comp();
+            auto     comp = toastActionComp();
             if (comp) {
                 QVariantMap map;
                 map.insert("error", error);
@@ -190,9 +193,17 @@ GlobalWrapper::GlobalWrapper(): m_g(Global::instance()) {
 }
 GlobalWrapper::~GlobalWrapper() {}
 auto GlobalWrapper::datas() -> QQmlListProperty<QObject> { return { this, &m_datas }; }
-auto GlobalWrapper::copy_action_comp() const -> QQmlComponent* { return m_g->copy_action_comp(); }
 auto GlobalWrapper::uuid() const -> QString { return m_g->uuid().toString(QUuid::WithoutBraces); }
-void GlobalWrapper::set_copy_action_comp(QQmlComponent* val) { m_g->set_copy_action_comp(val); }
+auto GlobalWrapper::toastActionComp() const noexcept -> QQmlComponent* {
+    return m_toast_action_comp;
+}
+void GlobalWrapper::setToastActionComp(QQmlComponent* val) {
+    if (m_toast_action_comp != val) {
+        m_toast_action_comp = val;
+        toastCompActionChanged();
+    }
+}
+auto GlobalWrapper::player() const -> Player* { return m_g->player(); }
 
 } // namespace qcm
 

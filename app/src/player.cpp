@@ -60,7 +60,6 @@ Player::Player(QObject* parent)
       m_duration(0),
       m_busy(false),
       m_playback_state(PlaybackState::StoppedState) {
-    App::instance()->set_player_sender(sender());
     connect(this, &Player::notify, this, &Player::processNotify, Qt::QueuedConnection);
 
     auto channel = m_channel->channel();
@@ -87,23 +86,34 @@ Player::Player(QObject* parent)
         helper::asio_detached_log_t {});
 }
 Player::~Player() {
+    if (! m_end) close();
+}
+
+void Player::close() {
     m_end = true;
     m_channel->cancel();
 }
 
 const QUrl& Player::source() const { return m_source; }
 void        Player::set_source(const QUrl& v) {
-    if (std::exchange(m_source, v) != v) {
+    if (ycore::cmp_set(m_source, v)) {
         set_busy(true);
         QString url = m_source.toString(QUrl::PreferLocalFile | QUrl::PrettyDecoded);
         m_player->set_source(url.toStdString());
 
-        emit sourceChanged();
+        sourceChanged();
 
         if (m_source.isLocalFile()) {
             set_cache_progress(QVector2D { 0.0f, 1.0f });
         }
     }
+}
+void Player::reset_source() {
+    if (! m_source.isEmpty()) {
+        m_source = QUrl();
+        sourceChanged();
+    }
+    m_player->set_source("");
 }
 
 auto Player::position() const -> int { return m_position; }
@@ -164,14 +174,14 @@ void Player::set_volume(float val) {
     auto cur = volume();
     if (! ycore::equal_within_ulps(cur, val, 4)) {
         m_player->set_volume(val);
-        volumeChanged();
+        volumeChanged(val);
     }
 }
 void Player::set_fadeTime(u32 val) {
     auto cur = m_player->fade_time();
     if (cur != val) {
         m_player->set_fade_time(val * 1000);
-        fadeTimeChanged();
+        fadeTimeChanged(val);
     }
 }
 

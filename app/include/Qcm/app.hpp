@@ -115,17 +115,18 @@ public:
     Q_SLOT void load_settings();
     Q_SLOT void save_settings();
 
+private:
     // process action
-    Q_SLOT void on_play(model::ItemId songId, model::ItemId sourceId);
-    Q_SLOT void on_queue_next(const std::vector<model::ItemId>& songIds, model::ItemId sourceId);
-    Q_SLOT void on_queue(const std::vector<model::ItemId>& songIds, model::ItemId sourceId);
-    Q_SLOT void on_switch(const std::vector<model::ItemId>& songIds, model::ItemId sourceId);
-    Q_SLOT void on_switch_queue(model::IdQueue*);
-    Q_SLOT void on_record(enums::RecordAction);
+    Q_SLOT void onPlay(model::ItemId songId, model::ItemId sourceId);
+    Q_SLOT void onQueueNext(const std::vector<model::ItemId>& songIds, model::ItemId sourceId);
+    Q_SLOT void onQueue(const std::vector<model::ItemId>& songIds, model::ItemId sourceId);
+    Q_SLOT void onSwitch(const std::vector<model::ItemId>& songIds, model::ItemId sourceId);
+    Q_SLOT void onSwitchQueue(model::IdQueue*);
+    Q_SLOT void onRecord(enums::RecordAction);
     Q_SLOT void onRouteItem(const model::ItemId&, const QVariantMap&);
 
-private:
     void load_plugins();
+    void connect_components();
     void connect_actions();
     void register_meta_type();
 

@@ -1,8 +1,10 @@
 #pragma once
-#include "Qcm/global.hpp"
 
 #include <mutex>
 #include <QUuid>
+
+#include "Qcm/global.hpp"
+#include "Qcm/player.hpp"
 
 namespace qcm
 {
@@ -15,16 +17,16 @@ public:
     ~Private();
 
     Arc<QtExecutionContext> qt_ctx;
-    asio::thread_pool  pool;
+    asio::thread_pool       pool;
 
     Arc<ncrequest::Session> session;
 
-    QUuid                     uuid;
+    QUuid uuid;
 
     MetadataImpl metadata_impl;
 
-    QQmlComponent*   copy_action_comp;
+    Player* player;
 
-    mutable std::mutex                     mutex;
+    mutable std::mutex mutex;
 };
 } // namespace qcm

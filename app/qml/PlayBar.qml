@@ -199,8 +199,7 @@ MD.Pane {
                                 horizontalAlignment: Qt.AlignHCenter
                                 verticalAlignment: Qt.AlignVCenter
                                 typescale: MD.Token.typescale.body_medium
-                                readonly property date position: new Date(QA.Global.player.duration * slider.position)
-                                text: `${Qt.formatDateTime(position, 'mm:ss')}`
+                                text: QA.Util.formatDuration(QA.Global.player.duration * slider.position)
                             }
                             MD.Text {
                                 verticalAlignment: Qt.AlignVCenter
@@ -212,7 +211,7 @@ MD.Pane {
                                 horizontalAlignment: Qt.AlignHCenter
                                 verticalAlignment: Qt.AlignVCenter
                                 typescale: MD.Token.typescale.body_medium
-                                text: `${Qt.formatDateTime(QA.Global.player.durationDate, 'mm:ss')}`
+                                text: QA.Util.formatDuration(QA.Global.player.duration)
                             }
                         }
                     }

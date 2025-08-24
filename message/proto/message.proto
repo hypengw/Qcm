@@ -63,6 +63,7 @@ enum MessageType {
 
   GET_STORAGE_INFO_REQ = 200;
   GET_STORAGE_INFO_RSP = 201;
+  PLAYLOG_REQ = 202;
 }
 
 message GetSongsByAlbumRequest {
@@ -322,6 +323,15 @@ message GetStorageInfoRsp {
   int64 database_size = 3;
 }
 
+message PlaylogReq {
+  int64 song_id = 1;
+  qcm.msg.model.PlaylogAction action = 2;
+  int32 position = 3;
+  int64 timestamp = 4;
+  int64 source_id = 5;
+  qcm.msg.model.ItemType source_type = 6;
+}
+
 message QcmMessage {
   MessageType type = 1;
   int32 id = 2;
@@ -381,5 +391,6 @@ message QcmMessage {
 
     GetStorageInfoReq get_storage_info_req = 300;
     GetStorageInfoRsp get_storage_info_rsp = 301;
+    PlaylogReq playlog_req = 302;
   }
 }

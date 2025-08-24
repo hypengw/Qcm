@@ -199,6 +199,12 @@ QString Util::formatDateTime(const QJSValue& v, const QString& format) {
     } while (0);
     return {};
 }
+QString Util::formatDuration(qint64 msec, const QString& format) {
+    const auto duration = msec;
+    if (duration < 0) return {};
+    auto d = QDateTime::fromMSecsSinceEpoch(duration);
+    return d.toString(format);
+}
 
 auto Util::prettyBytes(qint64 bytes, qint32 maxFrac) -> QString {
     using namespace Qt::Literals::StringLiterals;

@@ -139,6 +139,8 @@ QCM_MSG_TRAITS_REQ(SetFavoriteReq, Rsp, SET_FAVORITE_REQ, setFavoriteReq)
 QCM_MSG_TRAITS_REQ(GetStorageInfoReq, GetStorageInfoRsp, GET_STORAGE_INFO_REQ, getStorageInfoReq)
 QCM_MSG_TRAITS_RSP(GetStorageInfoRsp, GetStorageInfoReq, getStorageInfoRsp)
 
+QCM_MSG_TRAITS_REQ(PlaylogReq, Rsp, PLAYLOG_REQ, playlogReq)
+
 template<>
 struct MsgTraits<msg::Rsp> {
     QCM_MSG_TRAITS_COMMON(Rsp, rsp)

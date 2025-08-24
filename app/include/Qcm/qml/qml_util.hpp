@@ -47,6 +47,7 @@ public:
     Q_INVOKABLE static QString       formatDateTime(const QJSValue&, const QString&);
 
     Q_INVOKABLE static QString prettyBytes(qint64 bytes, int maxFrac = 0);
+    Q_INVOKABLE static QString formatDuration(qint64 msec, const QString& format = "mm:ss");
 };
 } // namespace qml
 

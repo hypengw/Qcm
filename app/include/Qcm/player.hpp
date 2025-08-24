@@ -14,7 +14,7 @@ class Player : public QObject {
     Q_OBJECT
     QML_NAMED_ELEMENT(QcmPlayer)
 
-    Q_PROPERTY(QUrl source READ source WRITE set_source NOTIFY sourceChanged FINAL)
+    Q_PROPERTY(QUrl source READ source WRITE set_source RESET reset_source NOTIFY sourceChanged FINAL)
     Q_PROPERTY(int position READ position WRITE set_position NOTIFY positionChanged FINAL)
     Q_PROPERTY(int duration READ duration NOTIFY durationChanged FINAL)
     Q_PROPERTY(float volume READ volume WRITE set_volume NOTIFY volumeChanged FINAL)
@@ -35,6 +35,8 @@ public:
     Player(QObject* = nullptr);
     ~Player();
 
+    void close();
+
     const QUrl& source() const;
     auto        position() const -> int;
     auto        duration() const -> int;
@@ -52,8 +54,8 @@ public:
     Q_SIGNAL void sourceChanged();
     Q_SIGNAL void positionChanged();
     Q_SIGNAL void durationChanged();
-    Q_SIGNAL void volumeChanged();
-    Q_SIGNAL void fadeTimeChanged();
+    Q_SIGNAL void volumeChanged(float);
+    Q_SIGNAL void fadeTimeChanged(u32);
     Q_SIGNAL void busyChanged();
     Q_SIGNAL void playbackStateChanged(PlaybackState old, PlaybackState new_);
     Q_SIGNAL void cacheProgressChanged();
@@ -62,6 +64,7 @@ public:
 
     Q_SLOT void processNotify(NotifyInfo);
     Q_SLOT void set_source(const QUrl&);
+    Q_SLOT void reset_source();
     Q_SLOT void set_position(int);
     Q_SLOT void set_busy(bool);
     Q_SLOT void set_volume(float);

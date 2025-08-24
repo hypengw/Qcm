@@ -15,9 +15,9 @@
 #include "Qcm/model/app_info.hpp"
 #include "Qcm/qml/enum.hpp"
 
-
 #include "player/metadata.h"
 #include "Qcm/status/app_state.hpp"
+Q_MOC_INCLUDE("Qcm/player.hpp")
 
 import ncrequest;
 
@@ -27,6 +27,7 @@ class App;
 class PluginModel;
 class QcmPluginInterface;
 class UserModel;
+class Player;
 
 namespace db
 {
@@ -43,9 +44,6 @@ auto parse_image_provider_url(const QUrl& url) -> std::tuple<QUrl, QString>;
 class GlobalWrapper;
 class Global : public QObject {
     Q_OBJECT
-    Q_PROPERTY(QQmlComponent* copy_action_comp READ copy_action_comp WRITE set_copy_action_comp
-                   NOTIFY copyActionCompChanged FINAL)
-
     friend class GlobalWrapper;
     friend class App;
     friend class PluginModel;
@@ -64,8 +62,8 @@ public:
     auto pool_executor() -> pool_executor_t;
     auto session() -> rc<ncrequest::Session>;
 
-    auto copy_action_comp() const -> QQmlComponent*;
     auto uuid() const -> const QUuid&;
+    auto player() const -> Player*;
 
     auto get_metadata(const std::filesystem::path&) const -> Metadata;
 
@@ -76,12 +74,9 @@ public:
     Q_SIGNAL void uuidChanged(StopSignal stop = {});
     Q_SIGNAL void sessionChanged(StopSignal stop = {});
 
-    Q_SLOT void set_copy_action_comp(QQmlComponent*);
-
 private:
     using MetadataImpl = std::function<Metadata(const std::filesystem::path&)>;
     void set_uuid(const QUuid&);
-
 
     void set_metadata_impl(const MetadataImpl&);
 
@@ -97,24 +92,29 @@ class GlobalWrapper : public QObject {
     QML_ELEMENT
 
     Q_PROPERTY(QQmlListProperty<QObject> datas READ datas FINAL)
-    Q_PROPERTY(QQmlComponent* copy_action_comp READ copy_action_comp WRITE set_copy_action_comp
-                   NOTIFY copyActionCompChanged FINAL)
+    Q_PROPERTY(QQmlComponent* toastActionComp READ toastActionComp WRITE setToastActionComp NOTIFY
+                   toastCompActionChanged FINAL)
     Q_PROPERTY(QString uuid READ uuid NOTIFY uuidChanged FINAL)
-
+    Q_PROPERTY(qcm::Player* player READ player CONSTANT FINAL)
 public:
     GlobalWrapper();
     ~GlobalWrapper();
 
     auto datas() -> QQmlListProperty<QObject>;
-    auto copy_action_comp() const -> QQmlComponent*;
     auto uuid() const -> QString;
 
+    auto toastActionComp() const noexcept -> QQmlComponent*;
+    void setToastActionComp(QQmlComponent* val);
+
+    auto player() const -> Player*;
+
+    Q_SIGNAL void toastCompActionChanged();
+
+    // forward singals
     Q_SIGNAL void errorOccurred(QString error, StopSignal stop = {});
     Q_SIGNAL void copyActionCompChanged(StopSignal stop = {});
     Q_SIGNAL void uuidChanged(StopSignal stop = {});
     Q_SIGNAL void sessionChanged(StopSignal stop = {});
-
-    Q_SLOT void set_copy_action_comp(QQmlComponent*);
 
 private:
     template<typename R, typename... ARGS>
@@ -127,6 +127,7 @@ private:
 
     Global*         m_g;
     QList<QObject*> m_datas;
+    QQmlComponent*  m_toast_action_comp;
 };
 
 } // namespace qcm
