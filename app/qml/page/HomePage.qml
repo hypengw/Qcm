@@ -12,6 +12,8 @@ MD.Page {
         id: m_block
         property string title
         property alias model: m_view.model
+        property alias delegate: m_view.delegate
+        property alias widthProvider: m_width_provider
         visible: m_view.count > 0
         spacing: 8
         QA.HorizontalItemBar {
@@ -25,22 +27,10 @@ MD.Page {
             width: parent.width
             spacing: 12
             highlightRangeMode: ListView.StrictlyEnforceRange
-            delegate: QA.ImagePlayCard {
-                required property var model
-                itemId: model.itemId
-                text: model.name
-                image.source: QA.Util.image_url(model.itemId)
-                width: m_width_provider.width
-                picWidth: width
-
-                onClicked: {
-                    QA.Action.routeItem(model.itemId);
-                }
-            }
 
             MD.WidthProvider {
                 id: m_width_provider
-                minimum: 160
+                minimum: 140
                 spacing: m_view.spacing
                 total: m_view.width
             }
@@ -56,9 +46,23 @@ MD.Page {
                 title: "Recommands"
             }
             Block {
+                id: m_recent_block
                 width: parent.width
                 title: "Recently Added"
                 model: m_recent_query.data
+                delegate: QA.ImagePlayCard {
+                    required property var model
+                    itemId: model.itemId
+                    text: model.name
+                    image.source: QA.Util.image_url(model.itemId)
+                    width: m_recent_block.widthProvider.width
+                    subText: QA.Util.joinName(model.extra?.artists)
+                    picWidth: width
+
+                    onClicked: {
+                        QA.Action.routeItem(model.itemId);
+                    }
+                }
                 QA.AlbumsQuery {
                     id: m_recent_query
                     sort: QM.AlbumSort.ALBUM_SORT_ADDED_TIME

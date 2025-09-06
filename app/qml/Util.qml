@@ -5,6 +5,10 @@ import Qcm.App as QA
 import Qcm.Material as MD
 
 QA.UtilCpp {
+    function join(arr, del) {
+        return arr.filter(e => !!e).join(del);
+    }
+
     function loopModeIcon(loopMode: int): string {
         switch (loopMode) {
         case QA.Enum.SingleLoop:

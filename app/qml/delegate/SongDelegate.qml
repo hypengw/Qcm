@@ -125,8 +125,8 @@ MD.ListItem {
                         }
                         if (!root.dgModel?.itemId)
                             return "";
-                        const ex = root.dgModel.extra;//QA.Store.extra(root.dgModel.itemId);
-                        return [QA.Util.joinName(ex?.artists), ex?.album?.name].filter(e => !!e).join(' - ');
+                        const ex = root.dgModel.extra;
+                        return QA.Util.join([QA.Util.joinName(ex?.artists), ex?.album?.name], ' - ');
                     }
                 }
             }

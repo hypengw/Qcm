@@ -10,6 +10,7 @@ MD.Card {
     property int picWidth: 160
     property MD.typescale typescale: MD.Token.typescale.body_medium
     property int labelSpacing: 4
+    property bool mipmap: false
     readonly property int subImplicitHeight: label_sub.implicitHeight
 
     horizontalPadding: 0
@@ -25,6 +26,7 @@ MD.Card {
             displaySize: Qt.size(root.picWidth, root.picWidth)
             fixedSize: false
             radius: root.mdState.radius
+            mipmap: root.mipmap
         }
 
         Column {
@@ -46,6 +48,7 @@ MD.Card {
                 id: label_sub
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: root.subText
+                width: Math.min(implicitWidth, parent.width)
                 visible: !!text
                 opacity: 0.6
                 typescale: root.typescale
