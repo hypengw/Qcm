@@ -163,6 +163,7 @@ public:
           m_stream(nullptr),
           m_channels(channels),
           m_volume(1.0f),
+          m_volume_gain(1.0f),
           m_paused(false),
           m_mark_pos(0),
           m_mark_serial(-1),
@@ -207,8 +208,21 @@ public:
         cubeb_stream_stop(m_stream.get());
     }
 
-    auto volume() const -> float { return m_volume; }
-    void set_volume(float v) { m_volume = v; }
+    auto volume() const noexcept -> float { return m_volume; }
+    auto volume_gain() const noexcept -> float { return m_volume_gain; }
+    void set_volume(float v) noexcept {
+        m_volume = v;
+        if (0) {
+            // db
+            float min_db  = -60.0f;
+            float max_db  = 0.0f;
+            float db      = min_db + m_volume * (max_db - min_db);
+            m_volume_gain = std::powf(10.0f, db / 20.0f);
+        } else {
+            // use x^3
+            m_volume_gain = std::powf(m_volume, 3);
+        }
+    }
 
     bool set_output_volume(float v) {
         return CUBEB_OK == cubeb_stream_set_volume(m_stream.get(), v);
@@ -301,7 +315,7 @@ private:
                                              CUBEB_SAMPLE_S16NE,
                                              output.subspan(0, copied),
                                              frame->data.subspan(0, copied),
-                                             self->volume() * self->fade_factor());
+                                             self->volume_gain() * self->fade_factor());
                 // std::copy_n(frame->data.begin(), copied, output.begin());
                 output      = output.subspan(copied);
                 frame->data = frame->data.subspan(copied);
@@ -344,6 +358,7 @@ private:
 
     i32                m_channels;
     std::atomic<float> m_volume;
+    std::atomic<float> m_volume_gain;
     struct FadeInfo {
         u32                       duration { 500 * 1000 }; // mill
         std::atomic<float>        elapsed_time { 0 };
