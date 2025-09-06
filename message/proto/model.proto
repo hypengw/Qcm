@@ -6,8 +6,6 @@ import "google/protobuf/timestamp.proto";
 
 message Song {
   int64 id = 1;
-  string native_id = 2;
-  int64 library_id = 3;
   string name = 4;
   string sort_name = 5;
   int64 album_id = 6;
@@ -22,8 +20,6 @@ message Song {
 
 message Radio {
   int64 id = 1;
-  string native_id = 2;
-  int64 library_id = 3;
   string name = 4;
   string sort_name = 5;
   string description = 6;
@@ -32,8 +28,6 @@ message Radio {
 
 message Program {
   int64 id = 1;
-  string native_id = 2;
-  int64 library_id = 3;
   string name = 4;
   string sort_name = 5;
   string description = 6;
@@ -50,8 +44,6 @@ message Mix {
   string sort_name = 5;
   int32 track_count = 6;
   string description = 8;
-  google.protobuf.Timestamp create_at = 10;
-  google.protobuf.Timestamp update_at = 11;
 }
 
 message Library {
@@ -64,15 +56,12 @@ message Library {
 
 message Artist {
   int64 id = 1;
-  string native_id = 2;
   string name = 3;
   string sort_name = 4;
-  int64 library_id = 5;
   string description = 6;
   int32 album_count = 7;
   int32 music_count = 8;
   google.protobuf.Timestamp added_at = 9;
-  google.protobuf.Timestamp update_at = 10;
 }
 
 enum AlbumType {
@@ -87,8 +76,6 @@ enum AlbumType {
 
 message Album {
   int64 id = 1;
-  string native_id = 2;
-  int64 library_id = 3;
   string name = 4;
   string sort_name = 5;
   AlbumType type = 6;
@@ -100,7 +87,6 @@ message Album {
   string language = 13;
   google.protobuf.Timestamp publish_time = 14;
   google.protobuf.Timestamp added_at = 15;
-  google.protobuf.Timestamp update_at = 16;
 }
 
 enum ItemType {
@@ -166,7 +152,9 @@ enum SyncState {
   SYNC_STATE_SYNCING = 1;
   SYNC_STATE_NOT_AUTH = 2;
   SYNC_STATE_NETWORK_ERROR = 3;
-  SYNC_STATE_UNKNOWN_ERROR = 4;
+  SYNC_STATE_DB_ERROR = 4;
+  SYNC_STATE_IO_ERROR = 5;
+  SYNC_STATE_UNKNOWN_ERROR = 6;
 }
 
 message ProviderSyncStatus {

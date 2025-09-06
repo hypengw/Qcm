@@ -89,4 +89,5 @@ compile_commands.json
 /qml_material
 /third_party/qml_material
 /third_party/meta_model
+/third_party/kstore
 /pmap.sh

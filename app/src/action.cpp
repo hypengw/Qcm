@@ -12,6 +12,7 @@
 #include "core/asio/watch_dog.h"
 
 #include "Qcm/model/play_queue.hpp"
+#include "Qcm/backend_msg.hpp"
 #include "Qcm/backend.hpp"
 #include "Qcm/global.hpp"
 #include "Qcm/player.hpp"
@@ -76,97 +77,93 @@ void App::connect_actions() {
 
         connect(Action::instance(), &Action::toggle, player, &Player::toggle);
 
-        connect(player,
-                &Player::playbackStateChanged,
-                player,
-                [p = player](Player::PlaybackState, Player::PlaybackState new_) {
-                    auto queue = App::instance()->playqueue();
-                    if (new_ == Player::PlaybackState::StoppedState && p->source().isValid()) {
-                        if (p->duration() > 0 && p->position() / (double)p->duration() > 0.98) {
-                            queue->next(queue->loopMode());
-                        }
+        connect(
+            player,
+            &Player::playbackStateChanged,
+            player,
+            [p = player](Player::PlaybackState, Player::PlaybackState new_) {
+                auto queue = App::instance()->playqueue();
+                if (new_ == Player::PlaybackState::StoppedState && p->source().isValid()) {
+                    if (p->duration() > 0 && p->position() / (double)p->duration() > 0.98) {
+                        queue->next(queue->loopMode());
                     }
-
-                    if (new_ != Player::PlaybackState::StoppedState) {
-                        // Action::instance()->playLog(new_, queue->currentId(), {});
-                    }
-                });
-    }
-
-    connect(Action::instance(),
-            &Action::record,
-            this,
-            [this,
-             old_id        = rstd::Option<model::ItemId> {},
-             old_source_id = rstd::Option<model::ItemId>()](enums::RecordAction act) mutable {
-                switch (act) {
-                case enums::RecordAction::RecordSwitch:
-                case enums::RecordAction::RecordNext:
-                case enums::RecordAction::RecordPrev: {
-                    // TODO:
-                    // if (old_id) {
-                    //     Action::instance()->playback_log(enums::PlaybackState::StoppedState,
-                    //                                     *old_id,
-                    //                                     old_source_id.value_or(model::ItemId
-                    //                                     {}));
-                    // }
-                    // old_id = this->playqueue()->currentId();
-                    // auto source_id_var =
-                    //     this->playqueue()->currentData(this->playqueue()->roleOf("sourceId"));
-                    // if (auto source_id_p = get_if<model::ItemId>(&source_id_var)) {
-                    //     old_source_id = *source_id_p;
-                    // } else {
-                    //     old_source_id.reset();
-                    // }
-                    break;
                 }
-                default: {
-                }
+
+                if (new_ == Player::PlaybackState::PlayingState) {
+                    auto cur = queue->currentId().unwrap_or(model::ItemId {});
+                    Action::instance()->playLog(
+                        (qint32)msg::model::PlaylogActionGadget::PlaylogAction::PLAYLOG_ACTION_PLAY,
+                        cur,
+                        {});
                 }
             });
+    }
 
-#if 0
+    // stop logger
+    connect(
+        Action::instance(),
+        &Action::record,
+        this,
+        [this,
+         old_id        = rstd::Option<model::ItemId> {},
+         old_source_id = rstd::Option<model::ItemId>()](enums::RecordAction act) mutable {
+            switch (act) {
+            case enums::RecordAction::RecordSwitch:
+            case enums::RecordAction::RecordNext:
+            case enums::RecordAction::RecordPrev: {
+                if (old_id) {
+                    Action::instance()->playLog(
+                        (qint32)msg::model::PlaylogActionGadget::PlaylogAction::PLAYLOG_ACTION_STOP,
+                        *old_id,
+                        old_source_id.unwrap_or(model::ItemId {}));
+                }
+                old_id = this->playqueue()->currentId();
+                auto source_id_var =
+                    this->playqueue()->currentData(this->playqueue()->roleOf("sourceId"));
+                if (auto source_id_p = get_if<model::ItemId>(&source_id_var)) {
+                    old_source_id = rstd::Some(*source_id_p);
+                } else {
+                    old_source_id = rstd::None();
+                }
+                break;
+            }
+            default: {
+            }
+            }
+        });
+
     {
+        using namespace std::chrono;
         struct Timer {
-            std::chrono::time_point<std::chrono::steady_clock> point;
-            std::chrono::milliseconds                          passed;
+            time_point<system_clock> point;
+            milliseconds             passed;
         };
 
-        auto t = make_rc<Timer>();
-
         connect(Action::instance(),
-                &Action::playback_log,
+                &Action::playLog,
                 this,
-                [t](enums::PlaybackState state,
-                    model::ItemId        item,
-                    model::ItemId        source,
-                    QVariantMap          extra) {
-                    std::chrono::milliseconds passed;
-                    if (state == enums::PlaybackState::PlayingState) {
-                        t->point = std::chrono::steady_clock::now();
-                    } else if (state == enums::PlaybackState::PausedState) {
-                        t->passed += std::chrono::duration_cast<std::chrono::milliseconds>(
-                            std::chrono::steady_clock::now() - t->point);
-                        t->point = std::chrono::steady_clock::now();
-                    } else {
-                        passed = t->passed + std::chrono::duration_cast<std::chrono::milliseconds>(
-                                                 std::chrono::steady_clock::now() - t->point);
-                        t->passed = {};
-                    }
-                    // auto session = Global::instance()->qsession();
-                    // if (session->user()->userId().provider() == item.provider()) {
-                    //     if (auto client = session->client()) {
-                    //         client->api->play_state(*(client->instance),
-                    //                                 state,
-                    //                                 item,
-                    //                                 source,
-                    //                                 passed.count() / 1000.0,
-                    //                                 extra);
-                    //     }
-                    // }
+                [this, t = make_rc<Timer>()](
+                    qint32 act_int, model::ItemId song_id, model::ItemId source) {
+                    using PlaylogAction = msg::model::PlaylogActionGadget::PlaylogAction;
+                    const auto act      = (PlaylogAction)act_int;
+                    auto       backend  = this->backend();
+                    auto       req      = msg::PlaylogReq {};
+                    const auto now      = system_clock::now();
+
+                    req.setSongId(song_id.id());
+                    req.setAction(act);
+                    req.setTimestamp(duration_cast<milliseconds>(now.time_since_epoch()).count());
+                    req.setSourceId(source.id());
+                    req.setSourceType((msg::model::ItemTypeGadget::ItemType)source.type());
+
+                    asio::co_spawn(
+                        qcm::strand_executor(),
+                        [backend, req] mutable -> task<void> {
+                            co_await backend->send(std::move(req));
+                        },
+                        helper::asio_detached_log_t {});
                 });
     }
-#endif
 
     connect(Action::instance(), &Action::record, this, [this](enums::RecordAction act) {
         switch (act) {

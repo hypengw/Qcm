@@ -12,21 +12,20 @@ namespace qcm::model
 {
 
 // itemid url
-// itemid://{id_type}:{library_id}/{id}
+// itemid://{id_type}/{id}
 class ItemId {
     Q_GADGET
     QML_VALUE_TYPE(item_id)
     Q_PROPERTY(QtProtobuf::int64 id READ pid)
     Q_PROPERTY(qcm::enums::ItemType type READ type WRITE setType)
     Q_PROPERTY(QString sid READ idStr)
-    Q_PROPERTY(QString libraryId READ libraryIdStr)
     Q_PROPERTY(bool valid READ valid)
     Q_PROPERTY(QUrl url READ toUrl)
     Q_PROPERTY(QUrl pageUrl READ toPageUrl)
 public:
     ItemId();
     ItemId(std::nullptr_t);
-    ItemId(enums::ItemType, i64 id, i64 library_id = -1);
+    ItemId(enums::ItemType, i64 id);
 
     explicit ItemId(const QUrl&);
     ItemId(const ItemId&)                = default;
@@ -38,20 +37,16 @@ public:
 
     auto type() const -> enums::ItemType;
     auto idStr() const -> QString;
-    auto libraryIdStr() const -> QString;
 
     auto id() const -> i64;
     auto pid() const -> QtProtobuf::int64;
-    auto libraryId() const -> i64;
 
     void setType(enums::ItemType);
     void setId(i64);
-    void setLibraryId(i64);
 
     void setType(QStringView);
     void setId(QStringView);
     void setUrl(const QUrl&);
-    void setLibraryId(QStringView);
 
     std::strong_ordering operator<=>(const ItemId&) const noexcept;
     bool                 operator==(const ItemId&) const noexcept;
@@ -70,7 +65,6 @@ public:
 
 private:
     enums::ItemType m_type;
-    i64             m_library_id;
     i64             m_id;
 };
 } // namespace qcm::model

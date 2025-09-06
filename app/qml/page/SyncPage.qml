@@ -45,7 +45,7 @@ MD.Page {
                 spacing: 0
 
                 MD.Control {
-                    height: syncing ? implicitHeight : 0
+                    height: m_item.syncing ? implicitHeight : 0
                     clip: true
                     width: parent.width
                     verticalPadding: 4
@@ -58,7 +58,7 @@ MD.Page {
 
                     contentItem: MD.Label {
                         text: {
-                            const s = model.syncStatus;
+                            const s = m_item.model.syncStatus;
                             return `album: ${s.album} artist: ${s.artist} song: ${s.song}`;
                         }
                         color: MD.MProp.color.on_primary
@@ -72,7 +72,7 @@ MD.Page {
                 }
 
                 MD.Space {
-                    spacing: syncing ? 8 : 12
+                    spacing: m_item.syncing ? 8 : 12
                 }
 
                 Column {
@@ -88,11 +88,11 @@ MD.Page {
                     RowLayout {
                         width: parent.width
                         MD.IconSvg {
-                            sourceData: QA.App.providerStatus.svg(index)
+                            sourceData: QA.App.providerStatus.svg(m_item.index)
                             size: 24
                         }
                         MD.Text {
-                            text: model.name
+                            text: m_item.model.name
                             typescale: MD.Token.typescale.title_medium
                         }
                         Item {
@@ -101,10 +101,10 @@ MD.Page {
                         MD.BusyButton {
                             type: MD.Enum.BtOutlined
                             text: qsTr('sync')
-                            busy: m_query.querying || syncing
+                            busy: m_query.querying || m_item.syncing
                             background.implicitHeight: 32
                             onClicked: {
-                                m_query.providerId = model.itemId;
+                                m_query.providerId = m_item.model.itemId;
                                 m_query.reload();
                             }
                         }
@@ -117,16 +117,21 @@ MD.Page {
                         icon.color: MD.Token.color.error
                         label.useTypescale: true
                         text: {
-                            const state = model.syncStatus.state;
+                            const state = m_item.model.syncStatus.state;
                             switch (state) {
+                            case QM.SyncState.SYNC_STATE_FINISHED:
+                            case QM.SyncState.SYNC_STATE_SYNCING:
+                                return ''
                             case QM.SyncState.SYNC_STATE_NOT_AUTH:
                                 return 'not auth';
                             case QM.SyncState.SYNC_STATE_NETWORK_ERROR:
                                 return 'network error';
+                            case QM.SyncState.SYNC_STATE_DB_ERROR:
+                                return 'database error';
                             case QM.SyncState.SYNC_STATE_UNKNOWN_ERROR:
+                            default:
                                 return 'unknown error';
                             }
-                            return '';
                         }
                         color: MD.Token.color.error
                     }

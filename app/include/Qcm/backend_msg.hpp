@@ -221,7 +221,7 @@ public:                                                                         
     T(msg::model::T&& o) noexcept: msg::model::T(std::move(o)) {}                      \
     auto extra() const noexcept -> QQmlPropertyMap* { return common_extra(itemId()); } \
     auto itemId() const -> qcm::model::ItemId {                                        \
-        return { enums::ItemType::_ItemType, this->id_proto(), this->libraryId() };    \
+        return { enums::ItemType::_ItemType, this->id_proto() };                       \
     }                                                                                  \
     void setItemId(const qcm::model::ItemId& v) { this->setId_proto(v.id()); }
 
@@ -241,9 +241,7 @@ class Song : public msg::model::Song {
 
 public:
     auto albumItemId() const -> ItemId {
-        return ItemId { enums::ItemType::ItemAlbum,
-                        msg::model::Song::albumId(),
-                        this->libraryId() };
+        return ItemId { enums::ItemType::ItemAlbum, msg::model::Song::albumId() };
     }
     void setAlbumItemId(ItemId id) { msg::model::Song::setAlbumId(id.id()); }
     auto albumName() const -> QString;
