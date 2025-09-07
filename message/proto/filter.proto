@@ -12,6 +12,7 @@ enum FilterType {
   FILTER_TYPE_TYPE = 6;
   FILTER_TYPE_ADDED_DATE = 7;
   FILTER_TYPE_DISC_COUNT = 8;
+  FILTER_TYPE_LAST_PLAYED_AT = 9;
 
   FILTER_TYPE_ALBUM_TITLE = 20;
   FILTER_TYPE_ALBUM_ARTIST_ID = 21;
@@ -42,6 +43,7 @@ enum DateCondition {
   DATE_CONDITION_BEFORE = 1;
   DATE_CONDITION_AFTER = 2;
   DATE_CONDITION_NULL = 3;
+  DATE_CONDITION_NOT_NULL = 4;
 }
 
 enum TypeCondition {
@@ -68,6 +70,10 @@ message DurationFilter {
   IntCondition condition = 2;
 }
 message AddedDateFilter {
+  int64 value = 1;
+  DateCondition condition = 2;
+}
+message LastPlayedAtFilter {
   int64 value = 1;
   DateCondition condition = 2;
 }
@@ -111,6 +117,7 @@ message AlbumFilter {
     DurationFilter duration_filter = 108;
     TypeFilter type_filter = 109;
     DiscCountFilter disc_count_filter = 110;
+    LastPlayedAtFilter last_played_at_filter = 111;
   }
 }
 

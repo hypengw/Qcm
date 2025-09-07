@@ -202,7 +202,7 @@ enum AlbumSort {
   ALBUM_SORT_TRACK_COUNT = 4;
   ALBUM_SORT_ADDED_TIME = 5;
   ALBUM_SORT_DISC_COUNT = 6;
-  // LAST_PLAY = 5;
+  ALBUM_SORT_LAST_PLAYED_AT = 7;
 }
 
 enum ArtistSort {
