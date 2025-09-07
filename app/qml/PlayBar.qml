@@ -77,6 +77,7 @@ MD.Pane {
                         MD.MProp.textColor: ma_name.containsMouse ? MD.Token.color.primary : MD.Token.color.on_background
                         verticalAlignment: Qt.AlignVCenter
                         typescale: MD.Token.typescale.body_medium
+                        maximumLineCount: 1
 
                         text: root.currentSong.name
                         MouseArea {
@@ -106,6 +107,7 @@ MD.Pane {
                             Layout.maximumWidth: implicitWidth + 10
                             opacity: 0.6
                             verticalAlignment: Qt.AlignVCenter
+                            maximumLineCount: 1
                             action: MD.Action {
                                 text: QA.Util.joinName(root.artists, '/')
                                 onTriggered: {
