@@ -4,9 +4,7 @@
 #include <cstdio>
 #include <fstream>
 
-#include <asio/bind_allocator.hpp>
-#include <asio/recycling_allocator.hpp>
-#include <asio/detached.hpp>
+#include "core/asio/async_limit.h"
 
 #include <QtCore/QRegularExpression>
 #include <QtCore/QPointer>
@@ -64,17 +62,10 @@ public:
     executor_type& get_executor() { return m_ex; }
 
     QcmImageProviderInner()
-        : m_thread(make_box<QThread>(new QThread())),
-          m_context(make_box<QtExecutionContext>(m_thread.get(),
-                                                 (QEvent::Type)QEvent::registerEventType())),
-          m_ex(Global::instance()->pool_executor()),
-          m_session(Global::instance()->session()) {
-        m_thread->start();
-    }
-    ~QcmImageProviderInner() {
-        m_thread->quit();
-        m_thread->wait();
-    }
+        : m_ex(Global::instance()->pool_executor()),
+          m_session(Global::instance()->session()),
+          m_limit(m_ex, 8) {}
+    ~QcmImageProviderInner() {}
 
     task<ncrequest::HttpHeader> dl_image(const ncrequest::Request& req, std::filesystem::path p) {
         helper::SyncFile file { std::fstream(p, std::ios::out | std::ios::binary) };
@@ -92,8 +83,6 @@ public:
         auto rsp_http = (co_await m_session->get(req)).unwrap();
         auto bytes    = co_await rsp_http->bytes();
 
-        co_await asio::post(asio::bind_executor(m_context->get_executor(), asio::use_awaitable));
-
         QImage img;
         if (bytes) {
             img.loadFromData((uchar*)bytes->data(), (int)bytes->size());
@@ -108,16 +97,16 @@ public:
 
     task<void> handle_request(rc<QcmAsyncImageResponse> rsp, const ncrequest::Request& req,
                               QSize req_size) {
+        auto block = co_await m_limit.async_block(asio::use_awaitable);
         auto img   = co_await request_image(req, req_size);
         rsp->image = img;
         co_return;
     }
 
 private:
-    Box<QThread>            m_thread;
-    Box<QtExecutionContext> m_context;
-    executor_type           m_ex;
-    rc<ncrequest::Session>  m_session;
+    executor_type                     m_ex;
+    rc<ncrequest::Session>            m_session;
+    helper::AsyncLimit<executor_type> m_limit;
 };
 } // namespace qcm
 
