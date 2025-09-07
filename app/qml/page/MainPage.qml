@@ -213,7 +213,7 @@ MD.Page {
 
             MD.InputBlock {
                 target: m_play_bar_flick
-                acceptWheel: !m_play_bar_flick.closed
+                acceptWheel: false
                 acceptHover: true
                 acceptTouch: true
                 acceptMouseButtons: Qt.LeftButton
