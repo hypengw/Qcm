@@ -12,20 +12,6 @@
     "url" : "https://github.com/hypengw/rstd.git"
   },
   {
-    "commit" : "6983466aadd1173627b362ff1a297527d9842531",
-    "dest" : "build/_flatpak_deps/random-src",
-    "disable-shallow-clone" : false,
-    "type" : "git",
-    "url" : "https://github.com/ilqvya/random.git"
-  },
-  {
-    "commit" : "631237acd4e20251c7f702db5e5434c83f0e336d",
-    "dest" : "build/_flatpak_deps/KDSingleApplication-src",
-    "disable-shallow-clone" : false,
-    "type" : "git",
-    "url" : "https://github.com/KDAB/KDSingleApplication.git"
-  },
-  {
     "dest" : "build/_flatpak_deps/asio-src",
     "disable-shallow-clone" : false,
     "tag" : "asio-1-34-0",
@@ -40,11 +26,25 @@
     "url" : "https://github.com/taocpp/PEGTL.git"
   },
   {
-    "commit" : "e0f36500bc941fe447718ab625490728790c933f",
-    "dest" : "build/_flatpak_deps/ctre-src",
+    "commit" : "b919f0ad9a85dc006392ebf8802eb4c7df7584a2",
+    "dest" : "build/_flatpak_deps/ncrequest-src",
     "disable-shallow-clone" : false,
     "type" : "git",
-    "url" : "https://github.com/hanickadot/compile-time-regular-expressions.git"
+    "url" : "https://github.com/hypengw/ncrequest.git"
+  },
+  {
+    "commit" : "6983466aadd1173627b362ff1a297527d9842531",
+    "dest" : "build/_flatpak_deps/random-src",
+    "disable-shallow-clone" : false,
+    "type" : "git",
+    "url" : "https://github.com/ilqvya/random.git"
+  },
+  {
+    "commit" : "631237acd4e20251c7f702db5e5434c83f0e336d",
+    "dest" : "build/_flatpak_deps/KDSingleApplication-src",
+    "disable-shallow-clone" : false,
+    "type" : "git",
+    "url" : "https://github.com/KDAB/KDSingleApplication.git"
   },
   {
     "commit" : "78b2bce70e0d1c21d3c175b72f322c50801b2e94",
@@ -52,26 +52,5 @@
     "disable-shallow-clone" : false,
     "type" : "git",
     "url" : "https://github.com/mozilla/cubeb.git"
-  },
-  {
-    "commit" : "f518c28caceec1a91ee88cc88d843ba22dc0dbba",
-    "dest" : "build/_flatpak_deps/ncrequest-src",
-    "disable-shallow-clone" : false,
-    "type" : "git",
-    "url" : "https://github.com/hypengw/ncrequest.git"
-  },
-  {
-    "dest" : "build/_flatpak_deps/pegtl-src",
-    "disable-shallow-clone" : false,
-    "tag" : "3.2.8",
-    "type" : "git",
-    "url" : "https://github.com/taocpp/PEGTL.git"
-  },
-  {
-    "commit" : "dacb8a9e7492c2b6231957c05b8f6fa4152d49cd",
-    "dest" : "build/_flatpak_deps/rstd-src",
-    "disable-shallow-clone" : false,
-    "type" : "git",
-    "url" : "https://github.com/hypengw/rstd.git"
   }
 ]
