@@ -136,7 +136,7 @@ Flickable {
             QA.PlayBar {
                 id: m_bar
                 width: parent.width
-                opacity: 1 - root.contentYRadio
+                opacity: Math.max(1 - root.contentYRadio * 2, 0)
             }
         }
     }
