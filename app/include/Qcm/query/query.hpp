@@ -110,9 +110,9 @@ public:
         }
         auto self = static_cast<Self*>(this);
         if constexpr (std::is_base_of_v<QObject, T>) {
-            detail::try_connect_fetch_more(self, this->tdata());
             if constexpr (std::constructible_from<T, QObject*>) {
                 this->set_tdata(new T(self));
+                detail::try_connect_fetch_more(self, this->tdata());
             } else {
                 this->set_tdata(nullptr);
             }
