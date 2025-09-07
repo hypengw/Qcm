@@ -265,7 +265,6 @@ target_link_libraries(
          crypto
          qr_code
          kstore
-         ctre::ctre
          player
          platform
          "message"

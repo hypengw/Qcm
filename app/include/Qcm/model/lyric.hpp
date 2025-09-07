@@ -44,7 +44,6 @@ public:
     Q_SLOT void setCurrentIndex(qlonglong);
 
 private:
-    Q_SLOT void parseLrc();
     Q_SLOT void refreshIndex();
 
 private:

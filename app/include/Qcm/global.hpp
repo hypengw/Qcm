@@ -38,9 +38,6 @@ struct StopSignal {
     bool val { false };
 };
 
-auto image_provider_url(const QUrl& url, const QString& provider) -> QUrl;
-auto parse_image_provider_url(const QUrl& url) -> std::tuple<QUrl, QString>;
-
 class GlobalWrapper;
 class Global : public QObject {
     Q_OBJECT

@@ -5,7 +5,6 @@
 #include <QPluginLoader>
 #include <QCoreApplication>
 #include <QtQuick/QQuickItem>
-#include <ctre.hpp>
 
 #include <asio/bind_executor.hpp>
 
@@ -205,28 +204,6 @@ void GlobalWrapper::setToastActionComp(QQmlComponent* val) {
 }
 auto GlobalWrapper::player() const -> Player* { return m_g->player(); }
 
-} // namespace qcm
-
-namespace qcm
-{
-auto image_provider_url(const QUrl& url, const QString& provider) -> QUrl {
-    return QStringLiteral("image://qcm/%1/%2")
-        .arg(provider)
-        .arg(url.toString().toUtf8().toBase64());
-}
-
-auto parse_image_provider_url(const QUrl& url) -> std::tuple<QUrl, QString> {
-    constexpr auto ImageProviderRe = ctll::fixed_string { "image://qcm/([^/]+?)/(.*)" };
-
-    auto input = url.toString(QUrl::FullyEncoded).toStdString();
-    if (auto match = ctre::match<ImageProviderRe>(input)) {
-        return { QString::fromUtf8(
-                     QByteArray::fromBase64(QByteArray::fromStdString(match.get<2>().to_string()))),
-                 QString::fromStdString(match.get<1>().to_string()) };
-    } else {
-        return {};
-    }
-}
 } // namespace qcm
 
 #include <Qcm/moc_global.cpp>

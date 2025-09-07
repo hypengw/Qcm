@@ -8,7 +8,7 @@
 #include <asio/recycling_allocator.hpp>
 #include <asio/detached.hpp>
 
-#include <ctre.hpp>
+#include <QtCore/QRegularExpression>
 #include <QtCore/QPointer>
 
 #include "Qcm/util/path.hpp"
@@ -32,14 +32,14 @@ struct ImageParam {
     QString image_type;
 };
 
-auto parse_image_url(QUrl url) -> ImageParam {
-    constexpr auto ImageProviderRe = ctll::fixed_string { "image://qcm/([^/]+?)/([^/]+?)/(.*)" };
+auto parse_image_url(const QUrl& url) -> ImageParam {
+    static const QRegularExpression re(R"(image://qcm/([^/]+?)/([^/]+?)/(.*))");
 
-    auto input = url.toString(QUrl::FullyEncoded).toStdString();
-    if (auto match = ctre::match<ImageProviderRe>(input)) {
-        return { rstd::into(match.get<1>().to_string()),
-                 rstd::into(match.get<2>().to_string()),
-                 rstd::into(match.get<3>().to_string()) };
+    const QString           input = url.toString(QUrl::FullyEncoded);
+    QRegularExpressionMatch match = re.match(input);
+
+    if (match.hasMatch()) {
+        return { match.captured(1), match.captured(2), match.captured(3) };
     } else {
         return {};
     }
@@ -160,8 +160,8 @@ QQuickImageResponse* QcmImageProvider::requestImageResponse(const QString& id,
 QcmImageProvider
     id: {}
     error: {})",
-                                                                        id,
-                                                                        e.what()));
+                                                                       id,
+                                                                       e.what()));
                                          }
                                      }
                                  }),
