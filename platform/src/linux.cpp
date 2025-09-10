@@ -1,13 +1,15 @@
-#ifdef __linux__
 module;
+#ifdef __linux__
 #    include <cstdio>
 #    include <pthread.h>
 #    include <unistd.h>
 #    include <cstdlib>
 #    include <string_view>
 #    include <optional>
+#endif
 module platform;
 
+#ifdef __linux__
 namespace
 {
 auto get_env_var(std::string_view var_name) -> std::optional<std::string_view> {

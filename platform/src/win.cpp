@@ -1,12 +1,13 @@
-#ifdef _WIN32
 module;
 
+#ifdef _WIN32
 #    include <windows.h>
 #    include <io.h>
 #    include <string>
-
+#endif
 module platform;
 
+#ifdef _WIN32
 std::wstring utf8_to_wstring(const std::string& str) {
     int size_needed = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.length(), NULL, 0);
     std::wstring wstr(size_needed, 0);
