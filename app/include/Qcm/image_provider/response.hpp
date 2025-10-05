@@ -14,9 +14,9 @@ public:
     auto errorString() const -> QString;
     void setError(QAnyStringView error);
 
-    template<typename T>
-    static auto make_rc() {
-        return rc<T>(new T, rc_deleter);
+    template<typename T, typename... Args>
+    static auto make_rc(Args&&... args) {
+        return rc<T>(new T(std::forward<Args>(args)...), rc_deleter);
     }
 
 protected:

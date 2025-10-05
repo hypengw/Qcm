@@ -183,6 +183,14 @@ void App::connect_actions() {
         auto b = this->backend();
         Action::instance()->playUrl(b->audio_url(*curId), true);
     });
+
+    connect(Action::instance(), &Action::scheduleRenderJob, qApp, [](QRunnable* job, qint32 stage) {
+        if (QWindowList wins = qApp->allWindows(); ! wins.isEmpty()) {
+            if (auto win = qobject_cast<QQuickWindow*>(wins.front())) {
+                win->scheduleRenderJob(job, (QQuickWindow::RenderStage)stage);
+            }
+        }
+    });
 }
 
 void App::onPlay(model::ItemId songId, model::ItemId sourceId) {

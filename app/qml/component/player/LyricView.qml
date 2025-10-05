@@ -92,8 +92,9 @@ MD.VerticalListView {
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
                 text: m_lyric_item.model.content
-                color: m_lyric_item.current ? root.MD.MProp.color.on_primary : root.MD.MProp.textColor
+                color: root.MD.MProp.textColor
                 maximumLineCount: -1
+                opacity: m_lyric_item.current ? 1 : 0.8
             }
         }
 

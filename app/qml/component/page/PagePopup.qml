@@ -8,7 +8,7 @@ MD.Popup {
     id: root
     property bool fillHeight: false
     property bool fillWidth: false
-    property var props: {}
+    property var props: ({})
     required property string source
 
     parent: T.Overlay.overlay

@@ -66,6 +66,7 @@ MD.Pane {
                     sourceSize.height: 48
                     sourceSize.width: 48
                     radius: 8
+
                 }
                 ColumnLayout {
                     Layout.leftMargin: 4

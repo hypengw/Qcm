@@ -1,6 +1,8 @@
 #pragma once
 
-#include <QQmlEngine>
+#include <QtQml/QQmlEngine>
+#include <QtGui/QImage>
+
 #include "core/core.h"
 #include "Qcm/model/item_id.hpp"
 #include "Qcm/qml/enum.hpp"
@@ -21,9 +23,6 @@ public:
     Notifier() = delete;
 
 Q_SIGNALS:
-    void collected(const model::ItemId&, bool);
-    void collection_synced(enums::CollectionType type, model::ItemId userId, QDateTime time);
-    void itemChanged(const model::ItemId&);
-    void providerAdded(const QString& name);
+    void specialImageLoaded(const QString& name, QImage img);
 };
 } // namespace qcm

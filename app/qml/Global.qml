@@ -21,6 +21,8 @@ QA.GlobalWrapper {
     property color primary_color: MD.Token.color.accentColor
     property int palette_type: MD.Token.color.paletteType
 
+    property color playing_color: m_picker.color
+
     property int cover_quality: -1
 
     toastActionComp: Component {
@@ -75,5 +77,17 @@ QA.GlobalWrapper {
         id: m_mpris
         player: root.player
         playlist: QA.App.playqueue
+    }
+
+    MD.ColorPicker {
+        id: m_picker
+    }
+
+    Connections {
+        target: QA.Notifier
+        function onSpecialImageLoaded(name, img) {
+            m_picker.image = img;
+            m_picker.pick();
+        }
     }
 }

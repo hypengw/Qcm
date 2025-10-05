@@ -92,8 +92,6 @@ void detail::try_connect_fetch_more(QObject* query, QObject* model) {
     auto slotIdx   = query->metaObject()->indexOfSlot(slot);
     if (signalIdx != -1 && slotIdx != -1) {
         QObject::connect(model, SIGNAL(reqFetchMore(qint32)), query, SLOT(fetchMore(qint32)));
-    } else if (signalIdx != -1 || slotIdx != -1) {
-        log::warn("reqFetchMore not connected");
     }
 }
 

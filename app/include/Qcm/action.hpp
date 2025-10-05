@@ -1,7 +1,9 @@
 #pragma once
 
-#include <QPointer>
-#include <QQmlEngine>
+#include <QtCore/QPointer>
+#include <QtCore/QRunnable>
+#include <QtQml/QQmlEngine>
+
 #include "core/core.h"
 #include "Qcm/qml/enum.hpp"
 #include "Qcm/model/router_msg.hpp"
@@ -56,8 +58,8 @@ Q_SIGNALS:
 
     void record(enums::RecordAction);
     void playLog(qint32 action, model::ItemId songId, model::ItemId sourceId = {});
-    // void playback_log(enums::PlaybackState state, model::ItemId item, model::ItemId souce,
-    //                   QVariantMap extra = {});
+
+    void scheduleRenderJob(QRunnable* job, qint32 stage);
 };
 
 } // namespace qcm

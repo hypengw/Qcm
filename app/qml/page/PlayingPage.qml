@@ -7,7 +7,7 @@ import Qcm.Material as MD
 MD.Page {
     id: root
     showBackground: true
-    backgroundColor: MD.MProp.color.primary
+    backgroundColor: QA.Global.playing_color
     readonly property var song: QA.App.playqueue.currentSong
     readonly property list<var> artists: {
         const ex = QA.Store.extra(song.itemId);
@@ -16,7 +16,7 @@ MD.Page {
 
     background: Rectangle {
         id: m_background
-        color: m_color_mgr.accentColor
+        color: root.backgroundColor //m_color_mgr.accentColor
         border.width: 0
         MD.Shape {
             MD.RectPath {
@@ -32,7 +32,7 @@ MD.Page {
                     }
                     GradientStop {
                         position: 1.0
-                        color: Qt.alpha("#000000", 0.33)
+                        color: Qt.alpha("#000000", 0.5)
                     }
                 }
             }
@@ -44,6 +44,7 @@ MD.Page {
     MD.MProp.color: MD.MdColorMgr {
         id: m_color_mgr
         useSysColorSM: false
+        accentColor: QA.Global.playing_color
         mode: MD.Enum.Dark
     }
 
@@ -79,17 +80,6 @@ MD.Page {
         m_small.switch_pane();
     }
 
-    // QNcm.SongLyricQuerier {
-    //     id: querier_lyric
-
-    //     readonly property string combined_lrc: {
-    //         return data.lrc + data.transLrc;
-    //     }
-
-    //     autoReload: songId.valid
-    //     songId: root.song.itemId
-    // }
-
     Item {
         visible: false
         MD.Pane {
@@ -124,14 +114,22 @@ MD.Page {
                     displaySize: Qt.size(size, size)
                     fixedSize: false
                     readonly property real size: Math.max(240, (root.Window.window?.width ?? 8) / 4.0)
+                    property url lastPickSource
 
-                    onStatusChanged: {
-                        if (status == Image.Ready) {
-                            grabToImage(function (result) {
-                                m_color_mgr.selectFromImage(result.image);
-                            });
+                    function pickColor() {
+                        const src = source;
+                        if (lastPickSource != src) {
+                            if (status == Image.Ready && visible) {
+                                inner.grabToImage(function (res) {
+                                    QA.Notifier.specialImageLoaded('playing', res.image);
+                                    lastPickSource = src;
+                                });
+                            }
                         }
                     }
+
+                    onStatusChanged: pickColor()
+                    onVisibleChanged: pickColor()
                 }
                 MD.Text {
                     Layout.alignment: Qt.AlignHCenter
