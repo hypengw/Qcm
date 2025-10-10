@@ -123,11 +123,9 @@ void        log::log_raw(LogLevel level, std::string_view content) {
     std::fflush(out);
 };
 void log::log_loc_raw(LogLevel level, const std::source_location loc, std::string_view content) {
-    std::time_t t = std::time(nullptr);
     log_raw(level,
-            fmt::format("{:<7} [{:%H:%M:%S}] {} [{}:{},{}] \n",
+            fmt::format("{:<7} {} [{}:{},{}] \n",
                         to_sv(level),
-                        fmt::localtime(t),
                         content,
                         extract_last(loc.file_name(), 2),
                         loc.line(),
