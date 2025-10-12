@@ -31,6 +31,7 @@
 #include <QQuickWindow>
 #include <QString>
 #include <QVector>
+#include <QtQml/private/qv4stackframe_p.h>
 #include <QtQml/private/qqmlengine_p.h>
 
 extern "C" char *qt_v4StackTrace(void *executionContext);
