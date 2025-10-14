@@ -21,6 +21,7 @@ public:
 
 class LibraryStatus : public QObject {
     Q_OBJECT
+    QML_ANONYMOUS
 
     Q_PROPERTY(QtProtobuf::int64List activedIds READ activedIds NOTIFY activedIdsChanged)
 public:

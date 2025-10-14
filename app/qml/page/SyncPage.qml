@@ -12,7 +12,6 @@ MD.Page {
     title: qsTr('provider')
     bottomPadding: radius
     scrolling: !m_view.atYBeginning
-    readonly property var libStatus: QA.App.providerStatus.libraryStatus
 
     MD.VerticalListView {
         id: m_view
@@ -144,9 +143,13 @@ MD.Page {
                                 required property var modelData
                                 text: modelData.name
                                 checkable: false
-                                checked: root.libStatus.actived(modelData.libraryId)
+                                checked: {
+                                    const s = QA.App.providerStatus.libraryStatus;
+                                    return s.actived(modelData.libraryId)
+                                }
                                 onClicked: {
-                                    root.libStatus.setActived(modelData.libraryId, !checked);
+                                    const s = QA.App.providerStatus.libraryStatus;
+                                    s.setActived(modelData.libraryId, !checked);
                                 }
                             }
                         }
