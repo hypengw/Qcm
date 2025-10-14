@@ -65,7 +65,7 @@ MD.Page {
             QA.GoToArtistAction {
                 id: m_go_to_artist_act
                 getItemIds: function () {
-                    return root.model.extra?.artists.map(el => QA.Util.artistId(el.id));
+                    return root.model.extra?.artists.map(el => QA.Util.albumArtistId(el.id));
                 }
             }
         }
