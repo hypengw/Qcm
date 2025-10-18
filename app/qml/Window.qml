@@ -191,7 +191,7 @@ MD.ApplicationWindow {
         onActivated: win.back()
     }
     Shortcut {
-        sequence: StandardKey.Quit
+        sequences: [StandardKey.Quit]
         context: Qt.ApplicationShortcut
         onActivated: Qt.quit()
     }
