@@ -36,6 +36,12 @@ enum MessageType {
   GET_MIXS_RSP = 31;
   GET_MIX_REQ = 32;
   GET_MIX_RSP = 33;
+  CREATE_MIX_REQ = 34;
+  CREATE_MIX_RSP = 35;
+  DELETE_MIX_REQ = 36;
+  ADD_TO_MIX_REQ = 37;
+  REMOVE_FROM_MIX_REQ = 38;
+  
 
   GET_SUBTITLE_REQ = 40;
   GET_SUBTITLE_RSP = 41;
@@ -332,6 +338,34 @@ message PlaylogReq {
   qcm.msg.model.ItemType source_type = 6;
 }
 
+message CreateMixReq {
+  string name = 1;
+  repeated int64 song_ids = 2;
+}
+
+message CreateMixRsp {
+  int64 id = 1;
+}
+
+message DeleteMixReq {
+  int64 id = 1;
+}
+
+message AddToMixReq {
+  int64 id = 1;
+  repeated int64 song_ids = 2;
+}
+
+message RemoveFromMixReq {
+  int64 id = 1;
+  repeated int64 song_ids = 2;
+}
+
+message UpdateMixReq {
+  int64 id = 1;
+  string name = 2;
+}
+
 message QcmMessage {
   MessageType type = 1;
   int32 id = 2;
@@ -364,6 +398,11 @@ message QcmMessage {
     GetMixsRsp get_mixs_rsp = 131;
     GetMixReq get_mix_req = 132;
     GetMixRsp get_mix_rsp = 133;
+    CreateMixReq create_mix_req = 134;
+    CreateMixRsp create_mix_rsp = 135;
+    DeleteMixReq delete_mix_req = 136;
+    AddToMixReq add_to_mix_req = 137;
+    RemoveFromMixReq remove_from_mix_req = 138;
 
     GetSubtitleReq get_subtitle_req = 140;
     GetSubtitleRsp get_subtitle_rsp = 141;

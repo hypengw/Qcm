@@ -85,6 +85,12 @@ void MixQuery::reload() {
     });
 }
 
+auto MixesQuery::filters() const -> const QList<msg::filter::MixFilter>& { return m_filters; }
+void MixesQuery::setFilters(const QList<msg::filter::MixFilter>& filters) {
+    m_filters = filters;
+    filtersChanged();
+}
+
 } // namespace qcm
 
 #include <Qcm/query/moc_mix_query.cpp>

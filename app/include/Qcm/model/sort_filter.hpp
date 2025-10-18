@@ -69,6 +69,13 @@ public:
     SongSortTypeModel(QObject* parent = nullptr);
 };
 
+class MixSortTypeModel : public SortTypeModel {
+    Q_OBJECT
+    QML_ELEMENT
+public:
+    MixSortTypeModel(QObject* parent = nullptr);
+};
+
 struct FilterTypeItem {
     Q_GADGET
     Q_PROPERTY(QString name MEMBER name)

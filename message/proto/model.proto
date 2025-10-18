@@ -221,6 +221,11 @@ enum SongSort {
   SONG_SORT_POPULARITY = 5;
 }
 
+enum MixSort {
+  MIX_SORT_NAME = 0;
+  MIX_SORT_TRACK_NUMBER = 1;
+}
+
 enum PlaylogAction {
   PLAYLOG_ACTION_UNSPECIFIED = 0;
   PLAYLOG_ACTION_PLAY = 1;

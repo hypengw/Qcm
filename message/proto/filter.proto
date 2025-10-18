@@ -130,3 +130,14 @@ message ArtistFilter {
     AddedDateFilter added_date_filter = 104;
   }
 }
+
+message MixFilter {
+  FilterType type = 1;
+  oneof payload {
+    NameFilter name_filter = 101;
+    TrackCountFilter track_filter = 102;
+    YearFilter year_filter = 103;
+    AddedDateFilter added_date_filter = 104;
+    LastPlayedAtFilter last_played_at_filter = 105;
+  }
+}

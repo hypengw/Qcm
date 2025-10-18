@@ -108,6 +108,16 @@ SongSortTypeModel::SongSortTypeModel(QObject* parent): SortTypeModel(parent) {
         });
 }
 
+MixSortTypeModel::MixSortTypeModel(QObject* parent): SortTypeModel(parent) {
+    using E = msg::model::MixSortGadget::MixSort;
+    this->insert(
+        0,
+        std::array {
+            SortTypeItem { .type = (qint32)E::MIX_SORT_NAME, .name = "name" },
+            SortTypeItem { .type = (qint32)E::MIX_SORT_TRACK_NUMBER, .name = "track number" },
+        });
+}
+
 SongSortFilterModel::SongSortFilterModel(QObject* parent)
     : QSortFilterProxyModel(parent), m_sort_type(0), m_asc(true), m_disc_role(-1) {
     connect(

@@ -77,6 +77,13 @@ MD.Page {
                 busy: qr_mix.querying
                 delegate: dg_playlist
                 model: qr_mix.data
+
+                header: HeaderToolBar {
+                    model: m_mix_sort_type
+                    displayMode: m_view_mix.displayMode
+                    onSelectDisplayMode: m => m_mix_setting.display_mode = m
+                    filterModel: m_mix_filter_model
+                }
             }
             BaseView {
                 id: m_view_album_artist
@@ -365,6 +372,9 @@ MD.Page {
     QA.AlbumSortTypeModel {
         id: m_album_sort_type
     }
+    QA.MixSortTypeModel {
+        id: m_mix_sort_type
+    }
     QA.ArtistSortTypeModel {
         id: m_artist_sort_type
     }
@@ -401,6 +411,11 @@ MD.Page {
     }
     QA.MixesQuery {
         id: qr_mix
+        asc: m_mix_sort_type.asc
+        sort: m_mix_sort_type.currentType
+        onAscChanged: delayReload()
+        onSortChanged: delayReload()
+        onFiltersChanged: delayReload()
         Component.onCompleted: reload()
     }
 
@@ -452,6 +467,22 @@ MD.Page {
         }
     }
 
+    QA.AlbumFilterRuleModel {
+        id: m_mix_filter_model
+        function doQuery() {
+            const q = qr_mix;
+            q.filters = this.items();
+        }
+        onApply: {
+            doQuery();
+            m_mix_setting.filter = toJson();
+            m_mix_setting.sync();
+        }
+        onReset: {
+            fromJson(m_mix_setting.filter);
+        }
+    }
+
     Settings {
         category: "library"
         property alias index: root.currentIndex
@@ -467,6 +498,19 @@ MD.Page {
         Component.onCompleted: {
             m_album_filter_model.reset();
             m_album_filter_model.doQuery();
+        }
+    }
+
+   Settings {
+        id: m_mix_setting
+        category: "library.mix"
+        property int display_mode: 0
+        property alias sort: m_mix_sort_type.currentType
+        property alias asc: m_mix_sort_type.asc
+        property string filter
+        Component.onCompleted: {
+            m_mix_filter_model.reset();
+            m_mix_filter_model.doQuery();
         }
     }
 
