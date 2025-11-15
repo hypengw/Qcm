@@ -7,6 +7,9 @@ MD.Action {
     icon.name: MD.Token.icon.add
     text: qsTr('create mix')
     onTriggered: {
-        MD.Util.showPopup('qrc:/Qcm/App/qml/dialog/MixCreateDialog.qml', {}, QA.Global.main_win.Overlay.overlay);
+        const msg = QA.Util.routeMsg();
+        msg.dst = 'Qcm.App/MixCreateDialog';
+        msg.props = {};
+        QA.Action.openPopup(msg);
     }
 }

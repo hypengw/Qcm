@@ -75,14 +75,22 @@ MD.Page {
             BaseView {
                 id: m_view_mix
                 busy: qr_mix.querying
-                delegate: dg_playlist
                 model: qr_mix.data
+
+                delegate: {
+                    const d = displayMode;
+                    return [dg_mixlist, dg_mix_card, dg_mix_card][d];
+                }
 
                 header: HeaderToolBar {
                     model: m_mix_sort_type
                     displayMode: m_view_mix.displayMode
                     onSelectDisplayMode: m => m_mix_setting.display_mode = m
                     filterModel: m_mix_filter_model
+                    actions: [
+                        QA.MixCreateAction {
+                        }
+                    ]
                 }
             }
             BaseView {
@@ -198,6 +206,17 @@ MD.Page {
         }
     }
     Component {
+        id: dg_mix_card
+        QA.MixCardDelegate {
+            widthProvider: m_wp
+            mdState.backgroundOpacity: (ListView.view as BaseView).displayMode == QA.Enum.DGrid ? 0 : 1
+            onClicked: {
+                m_content.route(model.itemId);
+                ListView.view.currentIndex = index;
+            }
+        }
+    }
+    Component {
         id: dg_artist_card
         QA.ArtistCardDelegate {
             widthProvider: m_wp
@@ -222,7 +241,7 @@ MD.Page {
         }
     }
     Component {
-        id: dg_playlist
+        id: dg_mixlist
         BaseItem {
             image: QA.Util.image_url(model.itemId)
             text: model.name
@@ -328,6 +347,17 @@ MD.Page {
 
         verticalPadding: 4
 
+        property list<MD.Action> actions
+        readonly property list<MD.Action> preActions: [
+            QA.SelectDisplayModeAction {
+                displayMode: m_header_bar.displayMode
+                onSelectDisplayMode: m => m_header_bar.selectDisplayMode(m)
+            },
+            QA.FilterAction {
+                model: m_header_bar.filterModel
+            }
+        ]
+
         contentItem: RowLayout {
             QA.OrderChip {
                 Layout.alignment: Qt.AlignVCenter
@@ -345,19 +375,19 @@ MD.Page {
             }
             Row {
                 Layout.alignment: Qt.AlignVCenter
-                MD.SmallIconButton {
-                    id: m_display_mode_btn
-                    anchors.verticalCenter: parent.verticalCenter
-                    action: QA.SelectDisplayModeAction {
-                        menuParent: m_display_mode_btn
-                        displayMode: m_header_bar.displayMode
-                        onSelectDisplayMode: m => m_header_bar.selectDisplayMode(m)
-                    }
-                }
-                MD.SmallIconButton {
-                    anchors.verticalCenter: parent.verticalCenter
-                    action: QA.FilterAction {
-                        model: m_header_bar.filterModel
+
+                Repeater {
+                    model: [...m_header_bar.actions, ...m_header_bar.preActions]
+                    MD.SmallIconButton {
+                        id: m_item
+                        required property MD.Action modelData
+                        anchors.verticalCenter: parent.verticalCenter
+                        action: modelData
+                        Component.onCompleted: {
+                            if (modelData.hasOwnProperty('menuParent')) {
+                                modelData.menuParent = m_item;
+                            }
+                        }
                     }
                 }
             }
@@ -409,6 +439,7 @@ MD.Page {
         onFiltersChanged: delayReload()
         Component.onCompleted: delayReload()
     }
+
     QA.MixesQuery {
         id: qr_mix
         asc: m_mix_sort_type.asc
@@ -417,6 +448,15 @@ MD.Page {
         onSortChanged: delayReload()
         onFiltersChanged: delayReload()
         Component.onCompleted: reload()
+    }
+    Connections {
+        target: QA.Notifier
+        function onMixDeleted() {
+            qr_mix.delayReload();
+        }
+        function onMixCreated() {
+            qr_mix.delayReload();
+        }
     }
 
     QA.ArtistFilterRuleModel {
@@ -501,7 +541,7 @@ MD.Page {
         }
     }
 
-   Settings {
+    Settings {
         id: m_mix_setting
         category: "library.mix"
         property int display_mode: 0

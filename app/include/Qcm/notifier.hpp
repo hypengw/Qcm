@@ -24,5 +24,7 @@ public:
 
 Q_SIGNALS:
     void specialImageLoaded(const QString& name, QImage img);
+    void mixCreated(const QString& name);
+    void mixDeleted();
 };
 } // namespace qcm

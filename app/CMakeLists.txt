@@ -93,6 +93,7 @@ set(QML_FILES
     qml/delegate/ProgramDelegate.qml
     qml/delegate/AlbumCardDelegate.qml
     qml/delegate/ArtistCardDelegate.qml
+    qml/delegate/MixCardDelegate.qml
     qml/component/auth/AuthEmail.qml
     qml/component/auth/AuthQr.qml
     qml/component/auth/AuthUsername.qml
@@ -154,6 +155,7 @@ set(QML_FILES
     qml/action/GoToArtistAction.qml
     qml/action/AddToMixAction.qml
     qml/action/MixCreateAction.qml
+    qml/action/MixDeleteAction.qml
     qml/action/FavoriteAction.qml
     qml/action/SelectDisplayModeAction.qml
     qml/action/FilterAction.qml

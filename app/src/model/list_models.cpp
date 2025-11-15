@@ -51,6 +51,24 @@ MixListModel::MixListModel(QObject* parent)
     : kstore::QGadgetListModel(this, parent),
       list_crtp_t(list_crtp_t::allocator_type { mem_mgr().store_mem }) {}
 
+MixSongListModel::MixSongListModel(QObject* parent)
+    : kstore::QGadgetListModel(this, parent),
+      list_crtp_t(list_crtp_t::allocator_type { mem_mgr().store_mem }),
+      m_disc_count(1) {
+    connect(&m_item, &model::MixStoreItem::itemChanged, this, &MixSongListModel::mixChanged);
+}
+MixSongListModel::~MixSongListModel() {}
+auto MixSongListModel::mix() const -> mix_type { return m_item.item(); }
+auto MixSongListModel::discCount() const -> qint32 { return m_disc_count; }
+void MixSongListModel::setMix(const mix_type& album) { m_item.setItem(album); }
+void MixSongListModel::setDiscCount(qint32 c) {
+    if (c != m_disc_count) {
+        m_disc_count = c;
+        discCountChanged();
+    }
+}
+auto MixSongListModel::extra() const -> QQmlPropertyMap* { return m_item.extra(); }
+
 } // namespace qcm::model
 
 #include <Qcm/model/moc_list_models.cpp>

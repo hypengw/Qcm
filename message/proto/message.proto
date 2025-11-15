@@ -41,10 +41,8 @@ enum MessageType {
   DELETE_MIX_REQ = 36;
   ADD_TO_MIX_REQ = 37;
   REMOVE_FROM_MIX_REQ = 38;
-  
-
-  GET_SUBTITLE_REQ = 40;
-  GET_SUBTITLE_RSP = 41;
+  GET_MIX_SONGS_REQ = 39;
+  GET_MIX_SONGS_RSP = 40;
 
   SYNC_REQ = 50;
   SYNC_RSP = 51;
@@ -62,6 +60,9 @@ enum MessageType {
   GET_ARTIST_RSP = 75;
   GET_ARTIST_ALBUM_REQ = 76;
   GET_ARTIST_ALBUM_RSP = 77;
+
+  GET_SUBTITLE_REQ = 90;
+  GET_SUBTITLE_RSP = 91;
 
   SEARCH_REQ = 100;
   SEARCH_RSP = 101;
@@ -261,6 +262,21 @@ message GetArtistAlbumRsp {
   bool has_more = 4;
 }
 
+message GetMixSongsReq {
+  int64 id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  qcm.msg.model.SongSort sort = 4;
+  bool sort_asc = 5;
+}
+
+message GetMixSongsRsp {
+  repeated qcm.msg.model.Song items = 1;
+  repeated google.protobuf.Struct extras = 2;
+  int32 total = 3;
+  bool has_more = 4;
+}
+
 message GetMixsReq {
   repeated int64 library_id = 1;
   int32 page = 2;
@@ -343,13 +359,9 @@ message CreateMixReq {
   repeated int64 song_ids = 2;
 }
 
-message CreateMixRsp {
-  int64 id = 1;
-}
+message CreateMixRsp { int64 id = 1; }
 
-message DeleteMixReq {
-  int64 id = 1;
-}
+message DeleteMixReq { repeated int64 ids = 1; }
 
 message AddToMixReq {
   int64 id = 1;
@@ -403,9 +415,8 @@ message QcmMessage {
     DeleteMixReq delete_mix_req = 136;
     AddToMixReq add_to_mix_req = 137;
     RemoveFromMixReq remove_from_mix_req = 138;
-
-    GetSubtitleReq get_subtitle_req = 140;
-    GetSubtitleRsp get_subtitle_rsp = 141;
+    GetMixSongsReq get_mix_songs_req = 139;
+    GetMixSongsRsp get_mix_songs_rsp = 140;
 
     SyncReq sync_req = 150;
     SyncRsp sync_rsp = 151;
@@ -423,6 +434,9 @@ message QcmMessage {
     GetArtistRsp get_artist_rsp = 175;
     GetArtistAlbumReq get_artist_album_req = 176;
     GetArtistAlbumRsp get_artist_album_rsp = 177;
+
+    GetSubtitleReq get_subtitle_req = 190;
+    GetSubtitleRsp get_subtitle_rsp = 191;
 
     SearchReq search_req = 200;
     SearchRsp search_rsp = 201;

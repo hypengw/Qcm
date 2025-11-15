@@ -154,11 +154,14 @@ MD.ApplicationWindow {
             let url = "";
             switch (id.type) {
             case QA.Enum.ItemAlbum:
-                url = 'qrc:/Qcm/App/qml/menu/AlbumMenu.qml';
+                url = 'Qcm.App/AlbumMenu';
                 break;
             case QA.Enum.ItemArtist:
             case QA.Enum.ItemAlbumArtist:
-                url = 'qrc:/Qcm/App/qml/menu/ArtistMenu.qml';
+                url = 'Qcm.App/ArtistMenu';
+                break;
+            case QA.Enum.ItemMix:
+                url = 'Qcm.App/MixMenu';
                 break;
             }
             if (!url)

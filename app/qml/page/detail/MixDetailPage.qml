@@ -7,7 +7,7 @@ import Qcm.Material as MD
 MD.Page {
     id: root
 
-    property alias mix: qr_pl.data.item
+    readonly property var mix: qr_pl.data.item
     property alias itemId: qr_pl.itemId
 
     title: qsTr("Mix")
@@ -22,7 +22,7 @@ MD.Page {
         bottomMargin: MD.MProp.size.verticalPadding
     }
 
-   MD.VerticalListView {
+    MD.VerticalListView {
         id: m_view
         anchors.fill: parent
         reuseItems: true
@@ -31,7 +31,7 @@ MD.Page {
         topMargin: MD.MProp.size.verticalPadding
         bottomMargin: MD.MProp.size.verticalPadding * 2
 
-        // model: root.mix
+        model: qr_songs.data
         readonly property bool single: width < m_cover.displaySize.width * (1.0 + 1.5) + 8
         readonly property bool canDelete: root.mix.info.userId == QA.Global.session.user.userId
 
@@ -52,7 +52,7 @@ MD.Page {
                 id: m_title
                 Layout.fillWidth: true
                 maximumLineCount: 2
-                text: root.mix.info.name
+                text: root.mix.name
                 typescale: m_view.single ? MD.Token.typescale.headline_medium : MD.Token.typescale.headline_large
             }
 
@@ -61,16 +61,16 @@ MD.Page {
                 spacing: 12
                 MD.Text {
                     typescale: MD.Token.typescale.body_medium
-                    text: `${root.mix.info.trackCount} tracks`
+                    text: `${root.mix.trackCount} tracks`
                 }
                 MD.Text {
                     typescale: MD.Token.typescale.body_medium
-                    text: Qt.formatDateTime(root.mix.info.updateTime, 'yyyy.MM.dd')
+                    text: Qt.formatDateTime(root.mix.updateTime, 'yyyy.MM.dd')
                 }
             }
             QA.ListDescription {
                 id: m_desc
-                description: root.mix.info.description.trim()
+                description: root.mix.description.trim()
             }
 
             RowLayout {
@@ -203,7 +203,7 @@ MD.Page {
         anchors.rightMargin: 16
         anchors.bottomMargin: 16
         flickable: m_view
-        action:MD.Action {
+        action: MD.Action {
             icon.name: MD.Token.icon.play_arrow
             onTriggered: {
                 const songs = QA.Util.collect_ids(qr_pl.data);
@@ -214,6 +214,10 @@ MD.Page {
 
     QA.MixQuery {
         id: qr_pl
-        // querySong: true
+        Component.onCompleted: reload()
+    }
+
+    QA.MixSongsQuery {
+        id: qr_songs
     }
 }
