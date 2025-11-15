@@ -33,7 +33,7 @@ MD.Page {
 
         model: qr_songs.data
         readonly property bool single: width < m_cover.displaySize.width * (1.0 + 1.5) + 8
-        readonly property bool canDelete: root.mix.info.userId == QA.Global.session.user.userId
+        readonly property bool canDelete: false
 
         Item {
             visible: false
@@ -61,7 +61,7 @@ MD.Page {
                 spacing: 12
                 MD.Text {
                     typescale: MD.Token.typescale.body_medium
-                    text: `${root.mix.trackCount} tracks`
+                    text: `${root.mix.trackCount} songs`
                 }
                 MD.Text {
                     typescale: MD.Token.typescale.body_medium
@@ -219,5 +219,7 @@ MD.Page {
 
     QA.MixSongsQuery {
         id: qr_songs
+        itemId: qr_pl.itemId
+        Component.onCompleted: delayReload()
     }
 }

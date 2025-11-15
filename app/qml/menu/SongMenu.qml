@@ -31,7 +31,7 @@ MD.Menu {
     }
 
     QA.AddToMixAction {
-        songId: root._itemId
+        songIds: [root._itemId]
     }
 
     QA.GoToAlbumAction {

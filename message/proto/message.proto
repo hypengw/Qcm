@@ -39,8 +39,8 @@ enum MessageType {
   CREATE_MIX_REQ = 34;
   CREATE_MIX_RSP = 35;
   DELETE_MIX_REQ = 36;
-  ADD_TO_MIX_REQ = 37;
-  REMOVE_FROM_MIX_REQ = 38;
+  MIX_MANIPULATE_REQ = 37;
+  MIX_MANIPULATE_RSP = 38;
   GET_MIX_SONGS_REQ = 39;
   GET_MIX_SONGS_RSP = 40;
 
@@ -111,6 +111,7 @@ enum ErrorCode {
 
   ERROR_CODE_UNSUPPORTED_ITEM_TYPE = 200;
   ERROR_CODE_NOT_FOUND = 210;
+  ERROR_CODE_NOT_IMPLEMENTED = 211;
 }
 
 message Rsp {
@@ -363,14 +364,16 @@ message CreateMixRsp { int64 id = 1; }
 
 message DeleteMixReq { repeated int64 ids = 1; }
 
-message AddToMixReq {
+message MixManipulateReq {
   int64 id = 1;
-  repeated int64 song_ids = 2;
+  qcm.msg.model.MixManipulateOper oper = 2;
+  repeated int64 song_ids = 3;
 }
 
-message RemoveFromMixReq {
+message MixManipulateRsp {
   int64 id = 1;
-  repeated int64 song_ids = 2;
+  qcm.msg.model.MixManipulateOper oper = 2;
+  repeated int64 song_ids = 3;
 }
 
 message UpdateMixReq {
@@ -413,8 +416,8 @@ message QcmMessage {
     CreateMixReq create_mix_req = 134;
     CreateMixRsp create_mix_rsp = 135;
     DeleteMixReq delete_mix_req = 136;
-    AddToMixReq add_to_mix_req = 137;
-    RemoveFromMixReq remove_from_mix_req = 138;
+    MixManipulateReq mix_manipulate_req = 137;
+    MixManipulateRsp mix_manipulate_rsp = 138;
     GetMixSongsReq get_mix_songs_req = 139;
     GetMixSongsRsp get_mix_songs_rsp = 140;
 

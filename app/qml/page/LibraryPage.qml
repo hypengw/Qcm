@@ -88,8 +88,8 @@ MD.Page {
                     onSelectDisplayMode: m => m_mix_setting.display_mode = m
                     filterModel: m_mix_filter_model
                     actions: [
-                        QA.MixCreateAction {
-                        }
+                        QA.MixCreateAction {},
+                        QA.MixLinkAction {}
                     ]
                 }
             }

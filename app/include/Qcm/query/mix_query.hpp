@@ -104,20 +104,37 @@ private:
     std::vector<model::ItemId> m_ids;
 };
 
-class AddToMixQuery : public Query, public QueryExtra<msg::Rsp, DeleteMixQuery> {
+class MixManipulateQuery : public Query,
+                           public QueryExtra<msg::MixManipulateRsp, MixManipulateQuery> {
     Q_OBJECT
     QML_ELEMENT
-public:
-    AddToMixQuery(QObject* parent = nullptr);
-    void reload() override;
-};
 
-class RemoveFromMixQuery : public Query, public QueryExtra<msg::Rsp, DeleteMixQuery> {
-    Q_OBJECT
-    QML_ELEMENT
+    Q_PROPERTY(qcm::model::ItemId mixId READ mixId WRITE setMixId NOTIFY mixIdChanged FINAL)
+    Q_PROPERTY(qcm::msg::model::MixManipulateOperGadget::MixManipulateOper oper READ oper WRITE
+                   setOper NOTIFY operChanged FINAL)
+    Q_PROPERTY(std::vector<qcm::model::ItemId> songIds READ songIds WRITE setSongIds NOTIFY
+                   songIdsChanged FINAL)
 public:
-    RemoveFromMixQuery(QObject* parent = nullptr);
+    MixManipulateQuery(QObject* parent = nullptr);
     void reload() override;
+
+    auto mixId() const -> model::ItemId;
+    void setMixId(const model::ItemId&);
+
+    auto songIds() const -> std::vector<model::ItemId>;
+    void setSongIds(const std::vector<model::ItemId>&);
+
+    auto oper() const -> msg::model::MixManipulateOperGadget::MixManipulateOper;
+    void setOper(msg::model::MixManipulateOperGadget::MixManipulateOper);
+
+    Q_SIGNAL void mixIdChanged();
+    Q_SIGNAL void songIdsChanged();
+    Q_SIGNAL void operChanged();
+
+private:
+    model::ItemId                                          m_mix_id;
+    msg::model::MixManipulateOperGadget::MixManipulateOper m_oper;
+    std::vector<model::ItemId>                             m_song_ids;
 };
 
 } // namespace qcm

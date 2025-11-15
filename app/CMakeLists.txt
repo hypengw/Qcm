@@ -156,10 +156,12 @@ set(QML_FILES
     qml/action/AddToMixAction.qml
     qml/action/MixCreateAction.qml
     qml/action/MixDeleteAction.qml
+    qml/action/MixLinkAction.qml
     qml/action/FavoriteAction.qml
     qml/action/SelectDisplayModeAction.qml
     qml/action/FilterAction.qml
     qml/dialog/MixCreateDialog.qml
+    qml/dialog/MixLinkDialog.qml
     qml/dialog/GoToArtistDialog.qml
     qml/dialog/AddToMixDialog.qml
     qml/dialog/AlbumFilterDialog.qml

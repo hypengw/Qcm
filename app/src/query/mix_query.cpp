@@ -20,7 +20,7 @@ void MixesQuery::reload() {
     auto backend = App::instance()->backend();
     auto req     = msg::GetMixsReq {};
     req.setPage(0);
-    req.setPageSize((offset() + 1) * limit());
+    req.setPageSize(endOffset());
     auto self = helper::QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
@@ -106,8 +106,8 @@ void MixSongsQuery::reload() {
     auto backend = App::instance()->backend();
     auto req     = msg::GetMixSongsReq {};
     req.setId_proto(m_item_id.id());
-    req.setPage(offset() + 1);
-    req.setPageSize(limit());
+    req.setPage(0);
+    req.setPageSize(endOffset());
     req.setSort((msg::model::SongSortGadget::SongSort)sort());
     req.setSortAsc(asc());
 
@@ -196,11 +196,47 @@ void DeleteMixQuery::reload() {
     });
 }
 
-AddToMixQuery::AddToMixQuery(QObject* parent): Query(parent) {}
-void AddToMixQuery::reload() {}
+MixManipulateQuery::MixManipulateQuery(QObject* parent): Query(parent) {}
+void MixManipulateQuery::reload() {
+    setStatus(Status::Querying);
+    auto backend = App::instance()->backend();
+    auto req     = msg::MixManipulateReq {};
+    req.setId_proto(m_mix_id.id());
+    req.setOper(m_oper);
+    auto view = std::views::transform(m_song_ids, [](const auto& el) {
+        return el.id();
+    });
+    req.setSongIds({ view.begin(), view.end() });
+    auto self = helper::QWatcher { this };
+    spawn([self, backend, req] mutable -> task<void> {
+        auto rsp = co_await backend->send(std::move(req));
+        co_await qcm::qexecutor_switch();
 
-RemoveFromMixQuery::RemoveFromMixQuery(QObject* parent): Query(parent) {}
-void RemoveFromMixQuery::reload() {}
+        self->inspect_set(rsp, [self](auto&) {
+        });
+
+        co_return;
+    });
+}
+auto MixManipulateQuery::mixId() const -> model::ItemId { return m_mix_id; }
+void MixManipulateQuery::setMixId(const model::ItemId& id) {
+    if (ycore::cmp_set(m_mix_id, id)) {
+        mixIdChanged();
+    }
+}
+auto MixManipulateQuery::songIds() const -> std::vector<model::ItemId> { return m_song_ids; }
+void MixManipulateQuery::setSongIds(const std::vector<model::ItemId>& ids) {
+    m_song_ids = ids;
+    songIdsChanged();
+}
+auto MixManipulateQuery::oper() const -> msg::model::MixManipulateOperGadget::MixManipulateOper {
+    return m_oper;
+}
+void MixManipulateQuery::setOper(msg::model::MixManipulateOperGadget::MixManipulateOper oper) {
+    if (ycore::cmp_set(m_oper, oper)) {
+        operChanged();
+    }
+}
 
 } // namespace qcm
 

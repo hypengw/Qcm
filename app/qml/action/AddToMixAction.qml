@@ -7,10 +7,13 @@ MD.Action {
     id: root
     icon.name: MD.Token.icon.queue
     text: qsTr('add to mix')
-    required property QA.item_id songId
+    property list<QA.item_id> songIds
     onTriggered: {
-        MD.Util.showPopup('qrc:/Qcm/App/qml/dialog/AddToMixDialog.qml', {
-            "songId": root.songId
-        }, QA.Global.main_win.Overlay.overlay);
+        const msg = QA.Util.routeMsg();
+        msg.dst = 'Qcm.App/AddToMixDialog';
+        msg.props = {
+            songIds: root.songIds
+        };
+        QA.Action.openPopup(msg);
     }
 }

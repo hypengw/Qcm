@@ -30,27 +30,27 @@ public:
     Q_DECLARE_FLAGS(Options, Option)
 
     struct Item {
-        model::ItemId id;
-        QVariant      extra;
+        ItemId   id;
+        QVariant extra;
     };
 
     auto rowCount(const QModelIndex& parent = QModelIndex()) const -> int override;
     auto data(const QModelIndex& index, int role) const -> QVariant override;
 
     auto          options() const -> Options;
-    auto          currentId() const -> std::optional<model::ItemId>;
+    auto          currentId() const -> std::optional<ItemId>;
     auto          currentExtra() const -> std::optional<QVariant>;
     auto          currentOrFirstExtra() const -> std::optional<QVariant>;
     auto          currentIndex() const -> qint32;
     Q_SLOT void   setCurrentIndex(qint32 idx);
-    void          setCurrentIndex(const model::ItemId&);
+    void          setCurrentIndex(const ItemId&);
     auto          bindableCurrentIndex() -> QBindable<qint32>;
     Q_SIGNAL void currentIndexChanged(qint32 idx);
     Q_SIGNAL void requestNext();
-    auto          contains(const model::ItemId&) const -> bool;
-    auto          insert(qint32 pos, std::span<const model::ItemId>) -> int;
+    auto          contains(const ItemId&) const -> bool;
+    auto          insert(qint32 pos, std::span<const ItemId>) -> int;
     auto          insert(qint32 pos, std::span<const Item>) -> int;
-    void          remove(const model::ItemId&);
+    void          remove(const ItemId&);
     bool removeRows(int row, int count, const QModelIndex& parent = QModelIndex()) override;
     bool moveRows(const QModelIndex& sourceParent, int sourceRow, int count,
                   const QModelIndex& destinationParent, int destinationChild) override;

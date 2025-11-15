@@ -47,8 +47,9 @@ QueryList::QueryList(QObject* parent)
     : Query(parent), m_offset(0), m_limit(200), m_sort(0), m_asc(true), m_no_more(false) {}
 
 QueryList::~QueryList() {}
-auto QueryList::offset() const -> qint32 { return m_offset; }
-auto QueryList::limit() const -> qint32 { return m_limit; }
+auto QueryList::offset() const noexcept -> qint32 { return m_offset; }
+auto QueryList::limit() const noexcept -> qint32 { return m_limit; }
+auto QueryList::endOffset() const noexcept -> qint32 { return (m_offset + 1) * m_limit; }
 
 void QueryList::setOffset(qint32 v) {
     if (ycore::cmp_set(m_offset, v)) {
@@ -60,20 +61,20 @@ void QueryList::setLimit(qint32 v) {
         limitChanged();
     }
 }
-auto QueryList::sort() const -> qint32 { return m_sort; }
+auto QueryList::sort() const noexcept -> qint32 { return m_sort; }
 void QueryList::setSort(qint32 v) {
     if (ycore::cmp_set(m_sort, v)) {
         sortChanged();
     }
 }
-auto QueryList::asc() const -> bool { return m_asc; }
+auto QueryList::asc() const noexcept -> bool { return m_asc; }
 void QueryList::setAsc(bool v) {
     if (ycore::cmp_set(m_asc, v)) {
         ascChanged();
     }
 }
 
-auto QueryList::noMore() const -> bool { return m_no_more; }
+auto QueryList::noMore() const noexcept -> bool { return m_no_more; }
 void QueryList::setNoMore(bool v) {
     if (v != m_no_more) {
         m_no_more = v;

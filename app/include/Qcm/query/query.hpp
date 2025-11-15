@@ -66,15 +66,16 @@ class QueryList : public Query {
 public:
     QueryList(QObject* parent = nullptr);
     ~QueryList();
-    auto offset() const -> qint32;
-    auto limit() const -> qint32;
+    auto offset() const noexcept -> qint32;
+    auto limit() const noexcept -> qint32;
+    auto endOffset() const noexcept -> qint32;
 
-    auto sort() const -> qint32;
+    auto sort() const noexcept -> qint32;
     void setSort(qint32);
-    auto asc() const -> bool;
+    auto asc() const noexcept -> bool;
     void setAsc(bool);
 
-    auto noMore() const -> bool;
+    auto noMore() const noexcept -> bool;
     void setNoMore(bool);
 
     Q_SLOT void setOffset(qint32 v);
