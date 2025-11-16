@@ -25,8 +25,7 @@ MD.Dialog {
             MD.TextField {
                 id: item_input
                 Layout.fillWidth: true
-                font.capitalization: Font.Capitalize
-                placeholderText: qsTr('mix name')
+                placeholderText: qsTr('Mix Name')
             }
         }
         RegularExpressionValidator {
