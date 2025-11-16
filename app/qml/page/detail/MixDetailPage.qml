@@ -187,6 +187,7 @@ MD.Page {
             leftMargin: 16
             rightMargin: 16
             canDelete: ListView.view.canDelete
+            useTracknumber: false
 
             onClicked: {
                 QA.Action.play(dgModel.itemId);

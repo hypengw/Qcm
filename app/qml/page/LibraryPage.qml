@@ -449,15 +449,6 @@ MD.Page {
         onFiltersChanged: delayReload()
         Component.onCompleted: reload()
     }
-    Connections {
-        target: QA.Notifier
-        function onMixDeleted() {
-            qr_mix.delayReload();
-        }
-        function onMixCreated() {
-            qr_mix.delayReload();
-        }
-    }
 
     QA.ArtistFilterRuleModel {
         id: m_album_artist_filter_model

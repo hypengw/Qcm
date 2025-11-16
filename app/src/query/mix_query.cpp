@@ -13,6 +13,9 @@ MixesQuery::MixesQuery(QObject* parent): QueryList(parent) {
     auto app = App::instance();
     this->tdata()->set_store(this->tdata(), app->store()->mixes);
     this->connectSyncFinished();
+
+    connect(Notifier::instance(), &Notifier::mixCreated, this, &MixesQuery::delayReload);
+    connect(Notifier::instance(), &Notifier::mixDeleted, this, &MixesQuery::delayReload);
 }
 
 void MixesQuery::reload() {
