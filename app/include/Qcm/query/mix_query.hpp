@@ -114,6 +114,8 @@ class MixManipulateQuery : public Query,
                    setOper NOTIFY operChanged FINAL)
     Q_PROPERTY(std::vector<qcm::model::ItemId> songIds READ songIds WRITE setSongIds NOTIFY
                    songIdsChanged FINAL)
+    Q_PROPERTY(std::vector<qcm::model::ItemId> albumIds READ albumIds WRITE setAlbumIds NOTIFY
+                   albumIdsChanged FINAL)
 public:
     MixManipulateQuery(QObject* parent = nullptr);
     void reload() override;
@@ -123,18 +125,22 @@ public:
 
     auto songIds() const -> std::vector<model::ItemId>;
     void setSongIds(const std::vector<model::ItemId>&);
+    auto albumIds() const -> std::vector<model::ItemId>;
+    void setAlbumIds(const std::vector<model::ItemId>&);
 
     auto oper() const -> msg::model::MixManipulateOperGadget::MixManipulateOper;
     void setOper(msg::model::MixManipulateOperGadget::MixManipulateOper);
 
     Q_SIGNAL void mixIdChanged();
     Q_SIGNAL void songIdsChanged();
+    Q_SIGNAL void albumIdsChanged();
     Q_SIGNAL void operChanged();
 
 private:
     model::ItemId                                          m_mix_id;
     msg::model::MixManipulateOperGadget::MixManipulateOper m_oper;
     std::vector<model::ItemId>                             m_song_ids;
+    std::vector<model::ItemId>                             m_album_ids;
 };
 
 } // namespace qcm

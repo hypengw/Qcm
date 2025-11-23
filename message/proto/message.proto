@@ -368,6 +368,7 @@ message MixManipulateReq {
   int64 id = 1;
   qcm.msg.model.MixManipulateOper oper = 2;
   repeated int64 song_ids = 3;
+  repeated int64 album_ids = 4;
 }
 
 message MixManipulateRsp {

@@ -80,21 +80,8 @@ MD.Page {
                 MD.IconButton {
                     action: QA.AppendListAction {
                         getSongIds: function () {
-                            return QA.Util.collect_ids(root.mix);
+                            return QA.Util.collect_ids(qr_songs.data);
                         }
-                    }
-                }
-
-                MD.IconButton {
-                    id: btn_fav
-                    action: QA.CollectAction {
-                        itemId: root.itemId
-                    }
-                }
-                MD.IconButton {
-                    id: btn_comment
-                    action: QA.CommentAction {
-                        itemId: root.itemId
                     }
                 }
             }

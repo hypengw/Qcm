@@ -206,10 +206,18 @@ void MixManipulateQuery::reload() {
     auto req     = msg::MixManipulateReq {};
     req.setId_proto(m_mix_id.id());
     req.setOper(m_oper);
-    auto view = std::views::transform(m_song_ids, [](const auto& el) {
-        return el.id();
-    });
-    req.setSongIds({ view.begin(), view.end() });
+    {
+        auto view = std::views::transform(m_song_ids, [](const auto& el) {
+            return el.id();
+        });
+        req.setSongIds({ view.begin(), view.end() });
+    }
+    {
+        auto view = std::views::transform(m_album_ids, [](const auto& el) {
+            return el.id();
+        });
+        req.setAlbumIds({ view.begin(), view.end() });
+    }
     auto self = helper::QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
@@ -230,6 +238,11 @@ void MixManipulateQuery::setMixId(const model::ItemId& id) {
 auto MixManipulateQuery::songIds() const -> std::vector<model::ItemId> { return m_song_ids; }
 void MixManipulateQuery::setSongIds(const std::vector<model::ItemId>& ids) {
     m_song_ids = ids;
+    songIdsChanged();
+}
+auto MixManipulateQuery::albumIds() const -> std::vector<model::ItemId> { return m_album_ids; }
+void MixManipulateQuery::setAlbumIds(const std::vector<model::ItemId>& ids) {
+    m_album_ids = ids;
     songIdsChanged();
 }
 auto MixManipulateQuery::oper() const -> msg::model::MixManipulateOperGadget::MixManipulateOper {

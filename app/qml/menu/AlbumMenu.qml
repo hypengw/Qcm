@@ -1,6 +1,7 @@
 import QtQuick
 import Qcm.App as QA
 import Qcm.Material as MD
+import Qcm.Msg as QM
 
 MD.Menu {
     id: root
@@ -17,7 +18,11 @@ MD.Menu {
     QA.FavoriteAction {
         id: m_favorite_action
         itemId: root.itemId
-        
+    }
+
+    QA.AddToMixAction {
+        oper: QM.MixManipulateOper.MIX_MANIPULATE_OPER_ADD_ALBUMS
+        albumIds: [root.itemId]
     }
 
     // QA.CommentAction {

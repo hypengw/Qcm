@@ -520,6 +520,8 @@ void PlayQueue::onSourceRowsInserted(const QModelIndex&, int first, int last) {
             if (m_songs.contains(*id)) continue;
             if (auto song_item = store->songs.store_item(id->id())) {
                 m_songs.insert_or_assign(*id, *song_item);
+            } else {
+                ids.push_back(*id);
             }
         }
     }

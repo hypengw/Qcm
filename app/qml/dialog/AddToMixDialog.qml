@@ -10,7 +10,9 @@ MD.Dialog {
     padding: 0
     standardButtons: MD.Dialog.Cancel
 
+    property int oper: QM.MixManipulateOper.MIX_MANIPULATE_OPER_ADD_SONGS
     property list<QA.item_id> songIds
+    property list<QA.item_id> albumIds
 
     QA.MixesQuery {
         id: m_qr_mixes
@@ -19,8 +21,9 @@ MD.Dialog {
 
     QA.MixManipulateQuery {
         id: m_qr
-        oper: QM.MixManipulateOper.MIX_MANIPULATE_OPER_ADD_SONGS
+        oper: root.oper
         songIds: root.songIds
+        albumIds: root.albumIds
 
         onFinished: {
             MD.Util.closePopup(root);
