@@ -38,12 +38,19 @@ message Program {
   string radio_id = 12;
 }
 
+enum MixType {
+  MIX_TYPE_NORMAL = 0;
+  MIX_TYPE_LINK = 1;
+  MIX_TYPE_CACHE = 2;
+}
+
 message Mix {
   int64 id = 1;
   string name = 4;
   string sort_name = 5;
   int32 track_count = 6;
   string description = 8;
+  MixType mix_type = 9;
 }
 
 message Library {
@@ -103,6 +110,7 @@ enum ItemType {
   ITEM_TYPE_SONG = 101;
   ITEM_TYPE_PROGRAM = 102;
 }
+
 
 message UsernameAuth {
   string username = 1;

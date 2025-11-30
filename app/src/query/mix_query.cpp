@@ -3,6 +3,7 @@
 #include "Qcm/backend.hpp"
 #include "Qcm/app.hpp"
 #include "Qcm/store.hpp"
+#include "Qcm/status/provider_status.hpp"
 
 #include "Qcm/util/async.inl"
 
@@ -13,6 +14,7 @@ MixesQuery::MixesQuery(QObject* parent): QueryList(parent) {
     auto app = App::instance();
     this->tdata()->set_store(this->tdata(), app->store()->mixes);
     this->connectSyncFinished();
+    this->connect_requet_reload(&MixesQuery::filtersChanged, this);
 
     connect(Notifier::instance(), &Notifier::mixCreated, this, &MixesQuery::delayReload);
     connect(Notifier::instance(), &Notifier::mixDeleted, this, &MixesQuery::delayReload);
@@ -20,7 +22,8 @@ MixesQuery::MixesQuery(QObject* parent): QueryList(parent) {
 
 void MixesQuery::reload() {
     setStatus(Status::Querying);
-    auto backend = App::instance()->backend();
+    auto app     = App::instance();
+    auto backend = app->backend();
     auto req     = msg::GetMixsReq {};
     req.setPage(0);
     req.setPageSize(endOffset());
@@ -39,8 +42,11 @@ void MixesQuery::reload() {
 }
 
 void MixesQuery::fetchMore(qint32) {
+    if (noMore()) return;
+
     setStatus(Status::Querying);
-    auto backend = App::instance()->backend();
+    auto app     = App::instance();
+    auto backend = app->backend();
     auto req     = msg::GetMixsReq {};
     req.setPage(offset() + 1);
     req.setPageSize(limit());
@@ -243,7 +249,7 @@ void MixManipulateQuery::setSongIds(const std::vector<model::ItemId>& ids) {
 auto MixManipulateQuery::albumIds() const -> std::vector<model::ItemId> { return m_album_ids; }
 void MixManipulateQuery::setAlbumIds(const std::vector<model::ItemId>& ids) {
     m_album_ids = ids;
-    songIdsChanged();
+    albumIdsChanged();
 }
 auto MixManipulateQuery::oper() const -> msg::model::MixManipulateOperGadget::MixManipulateOper {
     return m_oper;
