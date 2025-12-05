@@ -61,6 +61,22 @@ MD.Page {
             Block {
                 width: parent.width
                 title: "Recommands"
+
+                QA.RemoteMixesQuery {
+                    id: m_recommand_query
+                    asc: false
+                    limit: 20
+                    noMore: true
+                    property QM.remoteMixFilter filter1
+                    filter1.typeFilter: {
+                        const f = QA.Util.typeStringFilter();
+                        f.value = "recommand";
+                        f.condition = QM.TypeCondition.TYPE_CONDITION_IS;
+                        return f;
+                    }
+                    filters: [filter1]
+                    Component.onCompleted: reload()
+                }
             }
             Block {
                 id: m_recent_block

@@ -26,6 +26,7 @@ public:
     Q_INVOKABLE static msg::filter::TitleFilter         titleFilter() noexcept;
     Q_INVOKABLE static msg::filter::AlbumFilter         albumFilter() noexcept;
     Q_INVOKABLE static msg::filter::LastPlayedAtFilter  lastPlayedAtFilter() noexcept;
+    Q_INVOKABLE static msg::filter::TypeStringFilter    typeStringFilter() noexcept;
 
     Q_INVOKABLE static model::ItemId   createItemid();
     Q_INVOKABLE static model::RouteMsg create_route_msg(QVariantMap);

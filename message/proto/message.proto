@@ -64,6 +64,9 @@ enum MessageType {
   GET_SUBTITLE_REQ = 90;
   GET_SUBTITLE_RSP = 91;
 
+  GET_REMOTE_MIXS_REQ = 95;
+  GET_REMOTE_MIXS_RSP = 96;
+
   SEARCH_REQ = 100;
   SEARCH_RSP = 101;
   SET_FAVORITE_REQ = 102;
@@ -282,11 +285,27 @@ message GetMixsReq {
   repeated int64 library_id = 1;
   int32 page = 2;
   int32 page_size = 3;
-  // sort
-  // filter
+  qcm.msg.model.MixSort sort = 4;
+  bool sort_asc = 5;
+  repeated qcm.msg.filter.MixFilter filters = 6;
 }
 
 message GetMixsRsp {
+  repeated qcm.msg.model.Mix items = 1;
+  repeated google.protobuf.Struct extras = 2;
+  int32 total = 3;
+  bool has_more = 4;
+}
+
+message GetRemoteMixsReq {
+  int32 page = 1;
+  int32 page_size = 2;
+  qcm.msg.model.MixSort sort = 3;
+  bool sort_asc = 4;
+  repeated qcm.msg.filter.RemoteMixFilter filters = 6;
+}
+
+message GetRemoteMixsRsp {
   repeated qcm.msg.model.Mix items = 1;
   repeated google.protobuf.Struct extras = 2;
   int32 total = 3;
@@ -441,6 +460,9 @@ message QcmMessage {
 
     GetSubtitleReq get_subtitle_req = 190;
     GetSubtitleRsp get_subtitle_rsp = 191;
+
+    GetRemoteMixsReq get_remote_mixs_req = 195;
+    GetRemoteMixsRsp get_remote_mixs_rsp = 196;
 
     SearchReq search_req = 200;
     SearchRsp search_rsp = 201;

@@ -9,6 +9,27 @@
 namespace qcm
 {
 
+class RemoteMixesQuery : public QueryList,
+                         public QueryExtra<model::MixListModel, RemoteMixesQuery> {
+    Q_OBJECT
+    QML_ELEMENT
+
+    Q_PROPERTY(QList<qcm::msg::filter::RemoteMixFilter> filters READ filters WRITE setFilters NOTIFY
+                   filtersChanged FINAL)
+public:
+    RemoteMixesQuery(QObject* parent = nullptr);
+    auto filters() const -> const QList<msg::filter::RemoteMixFilter>&;
+    void setFilters(const QList<msg::filter::RemoteMixFilter>&);
+
+    void reload() override;
+    void fetchMore(qint32) override;
+
+    Q_SIGNAL void filtersChanged();
+
+private:
+    QList<msg::filter::RemoteMixFilter> m_filters;
+};
+
 class MixesQuery : public QueryList, public QueryExtra<model::MixListModel, MixesQuery> {
     Q_OBJECT
     QML_ELEMENT

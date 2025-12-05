@@ -27,6 +27,7 @@ void MixesQuery::reload() {
     auto req     = msg::GetMixsReq {};
     req.setPage(0);
     req.setPageSize(endOffset());
+    req.setFilters(m_filters);
     auto self = helper::QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
@@ -66,6 +67,35 @@ void MixesQuery::fetchMore(qint32) {
         co_return;
     });
 }
+
+RemoteMixesQuery::RemoteMixesQuery(QObject* parent): QueryList(parent) {
+    auto app = App::instance();
+    this->tdata()->set_store(this->tdata(), app->store()->mixes);
+    this->connectSyncFinished();
+    this->connect_requet_reload(&RemoteMixesQuery::filtersChanged, this);
+}
+void RemoteMixesQuery::reload() {
+    setStatus(Status::Querying);
+    auto app     = App::instance();
+    auto backend = app->backend();
+    auto req     = msg::GetRemoteMixsReq {};
+    req.setPage(0);
+    req.setPageSize(endOffset());
+    req.setFilters(m_filters);
+    auto self = helper::QWatcher { this };
+    spawn([self, backend, req] mutable -> task<void> {
+        auto rsp = co_await backend->send(std::move(req));
+        co_await qcm::qexecutor_switch();
+        self->inspect_set(rsp, [self](msg::GetRemoteMixsRsp& el) {
+            auto t = self->tdata();
+            t->setHasMore(false);
+            t->resetModel(el.items());
+            t->setHasMore(el.hasMore());
+        });
+        co_return;
+    });
+}
+void RemoteMixesQuery::fetchMore(qint32) {}
 
 MixQuery::MixQuery(QObject* parent): Query(parent) {}
 
@@ -144,6 +174,13 @@ void MixSongsQuery::reload() {
     });
 }
 
+auto RemoteMixesQuery::filters() const -> const QList<msg::filter::RemoteMixFilter>& {
+    return m_filters;
+}
+void RemoteMixesQuery::setFilters(const QList<msg::filter::RemoteMixFilter>& filters) {
+    m_filters = filters;
+    filtersChanged();
+}
 auto MixesQuery::filters() const -> const QList<msg::filter::MixFilter>& { return m_filters; }
 void MixesQuery::setFilters(const QList<msg::filter::MixFilter>& filters) {
     m_filters = filters;
