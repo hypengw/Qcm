@@ -39,18 +39,23 @@ MD.Page {
             }
         }
     }
-    component AlbumCard: QA.ImagePlayCard {
+
+    component MImagePlayCard: QA.ImagePlayCard {
         required property var model
         itemId: model.itemId
         text: model.name
         image.source: QA.Util.image_url(model.itemId)
-        subText: QA.Util.joinName(model.extra?.artists)
         picWidth: width
 
         onClicked: {
             QA.Action.routeItem(model.itemId);
         }
     }
+
+    component AlbumCard: MImagePlayCard {
+        subText: QA.Util.joinName(model.extra?.artists)
+    }
+    component MixCard: MImagePlayCard {}
 
     MD.VerticalFlickable {
         anchors.fill: parent
@@ -59,9 +64,13 @@ MD.Page {
             spacing: 0
             width: parent.width
             Block {
+                id: m_recommand_block
                 width: parent.width
-                title: "Recommands"
-
+                title: "Recommand Mixes"
+                model: m_recommand_query.data
+                delegate: MixCard {
+                    width: m_recommand_block.widthProvider.width
+                }
                 QA.RemoteMixesQuery {
                     id: m_recommand_query
                     asc: false
@@ -75,7 +84,6 @@ MD.Page {
                         return f;
                     }
                     filters: [filter1]
-                    Component.onCompleted: reload()
                 }
             }
             Block {
