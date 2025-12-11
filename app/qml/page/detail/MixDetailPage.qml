@@ -41,7 +41,7 @@ MD.Page {
             QA.Image {
                 id: m_cover
                 elevation: MD.Token.elevation.level2
-                source: QA.Util.image_url(root.mix.info.picUrl)
+                source: QA.Util.image_url(root.mix.itemId)
                 radius: 16
 
                 Layout.preferredWidth: displaySize.width
