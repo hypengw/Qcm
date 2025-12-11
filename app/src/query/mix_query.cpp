@@ -160,6 +160,8 @@ void MixSongsQuery::reload() {
                 return model::Song(el);
             });
 
+            self->tdata()->setMix(el.mix());
+
             self->tdata()->extend(view);
             auto store = AppStore::instance();
 

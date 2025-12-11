@@ -7,7 +7,7 @@ import Qcm.Material as MD
 MD.Page {
     id: root
 
-    readonly property var mix: qr_pl.data.item
+    readonly property var mix: qr_pl.data.mix
     property alias itemId: qr_pl.itemId
 
     title: qsTr("Mix")
@@ -31,7 +31,7 @@ MD.Page {
         topMargin: MD.MProp.size.verticalPadding
         bottomMargin: MD.MProp.size.verticalPadding * 2
 
-        model: qr_songs.data
+        model: qr_pl.data
         readonly property bool single: width < m_cover.displaySize.width * (1.0 + 1.5) + 8
         readonly property bool canDelete: false
 
@@ -80,7 +80,7 @@ MD.Page {
                 MD.IconButton {
                     action: QA.AppendListAction {
                         getSongIds: function () {
-                            return QA.Util.collect_ids(qr_songs.data);
+                            return QA.Util.collect_ids(qr_pl.data);
                         }
                     }
                 }
@@ -200,14 +200,8 @@ MD.Page {
         }
     }
 
-    QA.MixQuery {
-        id: qr_pl
-        Component.onCompleted: reload()
-    }
-
     QA.MixSongsQuery {
-        id: qr_songs
-        itemId: qr_pl.itemId
+        id: qr_pl
         Component.onCompleted: delayReload()
     }
 }

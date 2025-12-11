@@ -60,7 +60,7 @@ MixSongListModel::MixSongListModel(QObject* parent)
 MixSongListModel::~MixSongListModel() {}
 auto MixSongListModel::mix() const -> mix_type { return m_item.item(); }
 auto MixSongListModel::discCount() const -> qint32 { return m_disc_count; }
-void MixSongListModel::setMix(const mix_type& album) { m_item.setItem(album); }
+void MixSongListModel::setMix(const mix_type& mix) { m_item.setItem(mix); }
 void MixSongListModel::setDiscCount(qint32 c) {
     if (c != m_disc_count) {
         m_disc_count = c;

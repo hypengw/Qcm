@@ -275,10 +275,11 @@ message GetMixSongsReq {
 }
 
 message GetMixSongsRsp {
-  repeated qcm.msg.model.Song items = 1;
-  repeated google.protobuf.Struct extras = 2;
-  int32 total = 3;
-  bool has_more = 4;
+  qcm.msg.model.Mix mix = 1;
+  repeated qcm.msg.model.Song items = 2;
+  repeated google.protobuf.Struct extras = 3;
+  int32 total = 4;
+  bool has_more = 5;
 }
 
 message GetMixsReq {
