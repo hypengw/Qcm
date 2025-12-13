@@ -60,7 +60,7 @@ MD.Page {
                 Layout.topMargin: 12
 
                 action: MD.Action {
-                    icon.name: MD.Token.icon.arrow_back
+                    icon.name: MD.Token.icon.expand_more
 
                     onTriggered: {
                         if (root.canBack) {

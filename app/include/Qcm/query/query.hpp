@@ -78,6 +78,29 @@ public:
     auto noMore() const noexcept -> bool;
     void setNoMore(bool);
 
+    template<typename Req>
+    void initReqForReload(Req& req) const noexcept {
+        req.setPage(0);
+        req.setPageSize((offset() + 1) * limit());
+        if constexpr (requires { req.setSort({}); }) {
+            req.setSort(rstd::into(sort()));
+        }
+        if constexpr (requires { req.setSortAsc({}); }) {
+            req.setSortAsc(asc());
+        }
+    }
+    template<typename Req>
+    void initReqForFetchMore(Req& req) const noexcept {
+        req.setPage(offset() + 1);
+        req.setPageSize(limit());
+        if constexpr (requires { req.setSort({}); }) {
+            req.setSort(rstd::into(sort()));
+        }
+        if constexpr (requires { req.setSortAsc({}); }) {
+            req.setSortAsc(asc());
+        }
+    }
+
     Q_SLOT void setOffset(qint32 v);
     Q_SLOT void setLimit(qint32 v);
 

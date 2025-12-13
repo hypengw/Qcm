@@ -30,11 +30,8 @@ void AlbumsQuery::reload() {
     auto app     = App::instance();
     auto backend = app->backend();
     auto req     = msg::GetAlbumsReq {};
+    initReqForReload(req);
     req.setLibraryId(app->libraryStatus()->activedIds());
-    req.setPage(0);
-    req.setPageSize((offset() + 1) * limit());
-    req.setSort((msg::model::AlbumSortGadget::AlbumSort)sort());
-    req.setSortAsc(asc());
     req.setFilters(m_filters);
 
     auto self = helper::QWatcher { this };
@@ -66,11 +63,8 @@ void AlbumsQuery::fetchMore(qint32) {
     auto app     = App::instance();
     auto backend = app->backend();
     auto req     = msg::GetAlbumsReq {};
+    initReqForFetchMore(req);
     req.setLibraryId(app->libraryStatus()->activedIds());
-    req.setPage(offset() + 1);
-    req.setPageSize(limit());
-    req.setSort((msg::model::AlbumSortGadget::AlbumSort)sort());
-    req.setSortAsc(asc());
     req.setFilters(m_filters);
 
     auto self = helper::QWatcher { this };

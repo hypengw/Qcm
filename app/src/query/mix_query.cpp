@@ -26,8 +26,7 @@ void MixesQuery::reload() {
     auto app     = App::instance();
     auto backend = app->backend();
     auto req     = msg::GetMixsReq {};
-    req.setPage(0);
-    req.setPageSize(endOffset());
+    initReqForReload(req);
     req.setFilters(m_filters);
     auto self = helper::QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
@@ -50,8 +49,7 @@ void MixesQuery::fetchMore(qint32) {
     auto app     = App::instance();
     auto backend = app->backend();
     auto req     = msg::GetMixsReq {};
-    req.setPage(offset() + 1);
-    req.setPageSize(limit());
+    initReqForFetchMore(req);
     auto self = helper::QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto offset = req.page();
@@ -80,9 +78,9 @@ void RemoteMixesQuery::reload() {
     auto app     = App::instance();
     auto backend = app->backend();
     auto req     = msg::GetRemoteMixsReq {};
-    req.setPage(0);
-    req.setPageSize(endOffset());
+    initReqForReload(req);
     req.setFilters(m_filters);
+
     auto self = helper::QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
@@ -145,11 +143,8 @@ void MixSongsQuery::reload() {
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::GetMixSongsReq {};
+    initReqForReload(req);
     req.setId_proto(m_item_id.id());
-    req.setPage(0);
-    req.setPageSize(endOffset());
-    req.setSort((msg::model::SongSortGadget::SongSort)sort());
-    req.setSortAsc(asc());
 
     auto self = helper::QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
