@@ -125,6 +125,24 @@ private:
     std::vector<model::ItemId> m_ids;
 };
 
+class LinkMixQuery : public Query, public QueryExtra<msg::Rsp, LinkMixQuery> {
+    Q_OBJECT
+    QML_ELEMENT
+
+    Q_PROPERTY(std::vector<model::ItemId> ids READ ids WRITE setIds NOTIFY idsChanged FINAL)
+public:
+    LinkMixQuery(QObject* parent = nullptr);
+    void reload() override;
+
+    auto ids() const -> std::vector<model::ItemId>;
+    void setIds(const std::vector<model::ItemId>&);
+
+    Q_SIGNAL void idsChanged();
+
+private:
+    std::vector<model::ItemId> m_ids;
+};
+
 class MixManipulateQuery : public Query,
                            public QueryExtra<msg::MixManipulateRsp, MixManipulateQuery> {
     Q_OBJECT

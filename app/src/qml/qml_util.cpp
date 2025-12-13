@@ -27,6 +27,7 @@ auto Util::titleFilter() noexcept -> msg::filter::TitleFilter { return {}; }
 auto Util::albumFilter() noexcept -> msg::filter::AlbumFilter { return {}; }
 auto Util::lastPlayedAtFilter() noexcept -> msg::filter::LastPlayedAtFilter { return {}; }
 auto Util::typeStringFilter() noexcept -> msg::filter::TypeStringFilter { return {}; }
+auto Util::typeFilter() noexcept -> msg::filter::TypeFilter { return {}; }
 auto Util::createItemid() -> model::ItemId { return {}; }
 
 auto Util::mprisTrackid(model::ItemId id) -> QString {

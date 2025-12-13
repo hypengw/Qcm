@@ -43,6 +43,7 @@ enum MessageType {
   MIX_MANIPULATE_RSP = 38;
   GET_MIX_SONGS_REQ = 39;
   GET_MIX_SONGS_RSP = 40;
+  LINK_MIX_REQ = 41;
 
   SYNC_REQ = 50;
   SYNC_RSP = 51;
@@ -383,6 +384,7 @@ message CreateMixReq {
 message CreateMixRsp { int64 id = 1; }
 
 message DeleteMixReq { repeated int64 ids = 1; }
+message LinkMixReq { repeated int64 ids = 1; }
 
 message MixManipulateReq {
   int64 id = 1;
@@ -441,6 +443,7 @@ message QcmMessage {
     MixManipulateRsp mix_manipulate_rsp = 138;
     GetMixSongsReq get_mix_songs_req = 139;
     GetMixSongsRsp get_mix_songs_rsp = 140;
+    LinkMixReq link_mix_req = 141;
 
     SyncReq sync_req = 150;
     SyncRsp sync_rsp = 151;

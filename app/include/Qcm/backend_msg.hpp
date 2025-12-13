@@ -133,6 +133,7 @@ QCM_MSG_TRAITS_RSP(GetMixSongsRsp, GetMixSongsReq, getMixSongsRsp)
 QCM_MSG_TRAITS_REQ(DeleteMixReq, Rsp, DELETE_MIX_REQ, deleteMixReq)
 QCM_MSG_TRAITS_REQ(MixManipulateReq, MixManipulateRsp, MIX_MANIPULATE_REQ, mixManipulateReq)
 QCM_MSG_TRAITS_RSP(MixManipulateRsp, MixManipulateReq,  mixManipulateRsp)
+QCM_MSG_TRAITS_REQ(LinkMixReq, Rsp, LINK_MIX_REQ, linkMixReq)
 
 QCM_MSG_TRAITS_REQ(GetRemoteMixsReq, GetRemoteMixsRsp, GET_REMOTE_MIXS_REQ, getRemoteMixsReq)
 QCM_MSG_TRAITS_RSP(GetRemoteMixsRsp, GetRemoteMixsReq, getRemoteMixsRsp)

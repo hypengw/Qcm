@@ -18,6 +18,7 @@ MixesQuery::MixesQuery(QObject* parent): QueryList(parent) {
 
     connect(Notifier::instance(), &Notifier::mixCreated, this, &MixesQuery::delayReload);
     connect(Notifier::instance(), &Notifier::mixDeleted, this, &MixesQuery::delayReload);
+    connect(Notifier::instance(), &Notifier::mixLinked, this, &MixesQuery::delayReload);
 }
 
 void MixesQuery::reload() {
@@ -238,6 +239,33 @@ void DeleteMixQuery::reload() {
 
         self->inspect_set(rsp, [self](auto&) {
             Notifier::instance()->mixDeleted();
+        });
+
+        co_return;
+    });
+}
+
+LinkMixQuery::LinkMixQuery(QObject* parent): Query(parent) {}
+auto LinkMixQuery::ids() const -> std::vector<model::ItemId> { return m_ids; }
+void LinkMixQuery::setIds(const std::vector<model::ItemId>& ids) {
+    m_ids = ids;
+    idsChanged();
+}
+void LinkMixQuery::reload() {
+    setStatus(Status::Querying);
+    auto backend = App::instance()->backend();
+    auto req     = msg::LinkMixReq {};
+    auto view    = std::views::transform(m_ids, [](const auto& el) {
+        return el.id();
+    });
+    req.setIds({ view.begin(), view.end() });
+    auto self = helper::QWatcher { this };
+    spawn([self, backend, req] mutable -> task<void> {
+        auto rsp = co_await backend->send(std::move(req));
+        co_await qcm::qexecutor_switch();
+
+        self->inspect_set(rsp, [self](auto&) {
+            Notifier::instance()->mixLinked();
         });
 
         co_return;

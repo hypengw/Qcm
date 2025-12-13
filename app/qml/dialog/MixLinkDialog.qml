@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Qcm.App as QA
@@ -15,14 +16,29 @@ MD.Dialog {
         id: m_qr_mixes
         asc: false
         property QM.remoteMixFilter filter1
+        property QM.remoteMixFilter filter2
         filter1.typeFilter: {
             const f = QA.Util.typeStringFilter();
             f.value = "user";
             f.condition = QM.TypeCondition.TYPE_CONDITION_IS;
             return f;
         }
-        filters: [filter1]
+        filter2.localTypeFilter: {
+            const f = QA.Util.typeFilter();
+            f.value = QM.MixType.MIX_TYPE_LINK;
+            f.condition = QM.TypeCondition.TYPE_CONDITION_IS_NOT;
+            return f;
+        }
+        filters: [filter1, filter2]
     }
+
+    QA.LinkMixQuery {
+        id: m_qr_link
+        onFinished: {
+            root.accept();
+        }
+    }
+
     MD.VerticalListView {
         id: m_view
         anchors.fill: parent
@@ -55,7 +71,10 @@ MD.Dialog {
                 const v = ListView.view;
                 v.implicitWidth = Math.max(v.implicitWidth, implicitWidth);
             }
-            onClicked: {}
+            onClicked: {
+                m_qr_link.ids = [model.itemId];
+                m_qr_link.reload();
+            }
         }
     }
 }
