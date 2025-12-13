@@ -193,6 +193,85 @@ auto artistfilter_from_json(const QJsonObject& obj) -> msg::filter::ArtistFilter
 
     return f;
 }
+
+auto mixfilter_to_json(const msg::filter::MixFilter& f) -> QJsonObject {
+    auto obj = QJsonObject();
+
+    using M = msg::filter::MixFilter::PayloadFields;
+    switch (f.payloadField()) {
+    case M::UninitializedField: {
+        break;
+    }
+
+    case M::NameFilter: {
+        auto val = kstore::qvariant_to_josn(QVariant::fromValue(f.nameFilter()));
+        obj.insert("nameFilter", val);
+        break;
+    }
+    case M::TrackFilter: {
+        auto val = kstore::qvariant_to_josn(QVariant::fromValue(f.trackFilter()));
+        obj.insert("trackFilter", val);
+        break;
+    }
+    case M::YearFilter: {
+        auto val = kstore::qvariant_to_josn(QVariant::fromValue(f.yearFilter()));
+        obj.insert("yearFilter", val);
+        break;
+    }
+    case M::AddedDateFilter: {
+        auto val = kstore::qvariant_to_josn(QVariant::fromValue(f.addedDateFilter()));
+        obj.insert("addedDateFilter", val);
+        break;
+    }
+    case M::TypeFilter: {
+        auto val = kstore::qvariant_to_josn(QVariant::fromValue(f.typeFilter()));
+        obj.insert("typeFilter", val);
+        break;
+    }
+    default: {
+        qWarning() << "Unknown MixFilter payload field: " << f.payloadField();
+        break;
+    }
+    }
+
+    return obj;
+}
+auto mixfilter_from_json(const QJsonObject& obj) -> msg::filter::MixFilter {
+    auto f = msg::filter::MixFilter();
+
+    if (auto jval = obj.value("nameFilter"); jval.isObject()) {
+        if (auto val = kstore::qvariant_from_josn<msg::filter::NameFilter>(jval)) {
+            f.setType(msg::FilterTraits<std::decay_t<decltype(*val)>>::type);
+            f.setNameFilter(*val);
+        }
+    } else if (auto jval = obj.value("trackFilter"); jval.isObject()) {
+        if (auto val = kstore::qvariant_from_josn<msg::filter::TrackCountFilter>(jval)) {
+            f.setType(msg::FilterTraits<std::decay_t<decltype(*val)>>::type);
+            f.setTrackFilter(*val);
+        }
+    } else if (auto jval = obj.value("yearFilter"); jval.isObject()) {
+        if (auto val = kstore::qvariant_from_josn<msg::filter::YearFilter>(jval)) {
+            f.setType(msg::FilterTraits<std::decay_t<decltype(*val)>>::type);
+            f.setYearFilter(*val);
+        }
+    } else if (auto jval = obj.value("addedDateFilter"); jval.isObject()) {
+        if (auto val = kstore::qvariant_from_josn<msg::filter::AddedDateFilter>(jval)) {
+            f.setType(msg::FilterTraits<std::decay_t<decltype(*val)>>::type);
+            f.setAddedDateFilter(*val);
+        }
+
+    } else if (auto jval = obj.value("typeFilter"); jval.isObject()) {
+        if (auto val = kstore::qvariant_from_josn<msg::filter::TypeFilter>(jval)) {
+            f.setType(msg::FilterTraits<std::decay_t<decltype(*val)>>::type);
+            f.setTypeFilter(*val);
+        }
+    } else {
+        qWarning() << "Unknown MixFilter payload field in JSON object" << obj;
+    }
+
+    return f;
+}
+
 } // namespace
 
 void App::register_converters() {
@@ -201,6 +280,9 @@ void App::register_converters() {
 
     QMetaType::registerConverter<msg::filter::ArtistFilter, QJsonObject>(artistfilter_to_json);
     QMetaType::registerConverter<QJsonObject, msg::filter::ArtistFilter>(artistfilter_from_json);
+
+    QMetaType::registerConverter<msg::filter::MixFilter, QJsonObject>(mixfilter_to_json);
+    QMetaType::registerConverter<QJsonObject, msg::filter::MixFilter>(mixfilter_from_json);
 
     QMetaType::registerConverter<QtProtobuf::int32, QJsonValue>([](auto i) {
         return QJsonValue(i);

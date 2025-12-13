@@ -8,7 +8,7 @@ import Qcm.Material as MD
 MD.Dialog {
     id: root
     title: qsTr('filter')
-    property QA.AlbumFilterRuleModel model
+    property QA.FilterRuleModel model
     horizontalPadding: 16
 
     standardButtons: T.Dialog.Apply | T.Dialog.Reset
@@ -56,13 +56,41 @@ MD.Dialog {
             Layout.rightMargin: -16
 
             model: root.model
-            delegate: QA.AlbumFilter {
-                width: ListView.view.contentWidth
+            delegate: {
+                if (root.model instanceof QA.AlbumFilterRuleModel) {
+                    return m_dg_album;
+                } else if (root.model instanceof QA.ArtistFilterRuleModel) {
+                    return m_dg_artist;
+                } else if (root.model instanceof QA.MixFilterRuleModel) {
+                    return m_dg_mix;
+                }
+                return null;
             }
             implicitHeight: contentHeight
             spacing: 2
             leftMargin: 16
             rightMargin: 16
+        }
+    }
+
+    Component {
+        id: m_dg_album
+        QA.AlbumFilter {
+            width: ListView.view.contentWidth
+        }
+    }
+
+    Component {
+        id: m_dg_artist
+        QA.ArtistFilter {
+            width: ListView.view.contentWidth
+        }
+    }
+
+    Component {
+        id: m_dg_mix
+        QA.MixFilter {
+            width: ListView.view.contentWidth
         }
     }
 }

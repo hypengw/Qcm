@@ -223,6 +223,18 @@ ArtistFilterTypeModel::ArtistFilterTypeModel(QObject* parent): FilterTypeModel(p
         });
 }
 
+MixFilterTypeModel::MixFilterTypeModel(QObject* parent): FilterTypeModel(parent) {
+    using E = msg::filter::FilterTypeGadget::FilterType;
+    this->insert(
+        0,
+        std::array {
+            FilterTypeItem { .type = (qint32)E::FILTER_TYPE_NAME, .name = "name" },
+            FilterTypeItem { .type = (qint32)E::FILTER_TYPE_TRACK_COUNT, .name = "track count" },
+            FilterTypeItem { .type = (qint32)E::FILTER_TYPE_YEAR, .name = "year" },
+            FilterTypeItem { .type = (qint32)E::FILTER_TYPE_TYPE, .name = "type" },
+        });
+}
+
 } // namespace qcm
 
 #include "Qcm/model/moc_sort_filter.cpp"

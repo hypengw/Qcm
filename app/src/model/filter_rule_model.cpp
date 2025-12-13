@@ -83,6 +83,18 @@ void ArtistFilterRuleModel::fromVariantlist(const QVariantList& v) {
     resetModel(view);
 }
 
+MixFilterRuleModel::MixFilterRuleModel(QObject* parent): FilterRuleModel(this, parent) {
+    updateRoleNames(msg::filter::MixFilter::staticMetaObject, this);
+}
+MixFilterRuleModel::~MixFilterRuleModel() {}
+
+void MixFilterRuleModel::fromVariantlist(const QVariantList& v) {
+    auto view = std::views::transform(v, [](const QVariant& v) {
+        return v.value<msg::filter::MixFilter>();
+    });
+    resetModel(view);
+}
+
 } // namespace qcm
 
 #include "Qcm/model/moc_filter_rule_model.cpp"

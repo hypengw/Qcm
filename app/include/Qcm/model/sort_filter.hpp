@@ -117,11 +117,19 @@ class AlbumFilterTypeModel : public FilterTypeModel {
 public:
     AlbumFilterTypeModel(QObject* parent = nullptr);
 };
+
 class ArtistFilterTypeModel : public FilterTypeModel {
     Q_OBJECT
     QML_ELEMENT
 public:
     ArtistFilterTypeModel(QObject* parent = nullptr);
+};
+
+class MixFilterTypeModel : public FilterTypeModel {
+    Q_OBJECT
+    QML_ELEMENT
+public:
+    MixFilterTypeModel(QObject* parent = nullptr);
 };
 
 class SongSortFilterModel : public QSortFilterProxyModel {

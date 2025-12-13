@@ -16,11 +16,10 @@ MD.Action {
         msg.props = {
             model: root.model
         };
-        if (model instanceof QA.AlbumFilterRuleModel) {
-            msg.dst = 'Qcm.App/AlbumFilterDialog';
-        } else if (model instanceof QA.ArtistFilterRuleModel) {
-            msg.dst = 'Qcm.App/ArtistFilterDialog';
-        } else {
+        msg.dst = 'Qcm.App/FilterDialog';
+        if (model instanceof QA.AlbumFilterRuleModel || model instanceof QA.ArtistFilterRuleModel || model instanceof QA.MixFilterRuleModel)
+        // valid
+        {} else {
             return;
         }
         QA.Action.openPopup(msg);

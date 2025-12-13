@@ -498,7 +498,7 @@ MD.Page {
         }
     }
 
-    QA.AlbumFilterRuleModel {
+    QA.MixFilterRuleModel {
         id: m_mix_filter_model
         function doQuery() {
             const q = qr_mix;

@@ -64,4 +64,17 @@ public:
     void fromVariantlist(const QVariantList& v) override;
 };
 
+class MixFilterRuleModel
+    : public FilterRuleModel,
+      public kstore::QMetaListModelCRTP<msg::filter::MixFilter, MixFilterRuleModel,
+                                        kstore::ListStoreType::Vector> {
+    Q_OBJECT
+    QML_ELEMENT
+public:
+    MixFilterRuleModel(QObject* = nullptr);
+    ~MixFilterRuleModel();
+
+    void fromVariantlist(const QVariantList& v) override;
+};
+
 } // namespace qcm
