@@ -40,7 +40,7 @@ MD.Page {
         id: m_add_query
         onStatusChanged: {
             if (status == QA.Enum.Finished) {
-                QA.Notifier.providerAdded(m_tf_name.text);
+                Action.toast(`added provider ${req.name}`);
                 root.MD.MProp.page.pop();
             }
         }
