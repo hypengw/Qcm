@@ -102,6 +102,7 @@ public:
         m_qml_engine = nullptr;
 
         save_settings();
+        m_playqueu->drop_global();
         m_global->join();
     }
 

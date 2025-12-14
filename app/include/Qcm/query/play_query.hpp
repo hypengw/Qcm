@@ -21,8 +21,6 @@ public:
     Q_SIGNAL void itemIdChanged(model::ItemId);
 
 private:
-    void          setSubQuery(Query* sub_query);
-    Query*        m_sub_query;
     model::ItemId m_item_id;
 };
 } // namespace qcm

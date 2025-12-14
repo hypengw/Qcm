@@ -109,7 +109,7 @@ QUrl ItemId::toPageUrl() const {
 
 } // namespace qcm::model
 
-std::size_t std::hash<qcm::model::ItemId>::operator()(const qcm::model::ItemId& k) const {
+std::size_t std::hash<qcm::model::ItemId>::operator()(const qcm::model::ItemId& k) const noexcept {
     usize s = 0;
     ycore::hash_combine(s, static_cast<int>(k.type()));
     ycore::hash_combine(s, k.id());

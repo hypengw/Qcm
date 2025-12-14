@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QtQml/QQmlEngine>
+#include <QtCore/QTimer>
 #include <QtCore/QAbstractListModel>
 #include <QtCore/QIdentityProxyModel>
 #include <QtCore/QSortFilterProxyModel>
@@ -98,6 +99,8 @@ public:
     PlayQueue(QObject* parent = nullptr);
     ~PlayQueue();
 
+    void drop_global();
+
     auto data(const QModelIndex& index, int role) const -> QVariant override;
     void setSourceModel(QAbstractItemModel* sourceModel) override;
     auto roleNames() const -> QHash<int, QByteArray> override;
@@ -116,19 +119,19 @@ public:
     Q_SLOT void   setCurrentSong(qint32 idx);
     Q_SIGNAL void currentSongChanged();
 
-    auto          loopMode() const -> enums::LoopMode;
+    auto          loopMode() const noexcept -> enums::LoopMode;
     void          setLoopMode(enums::LoopMode mode);
     Q_SLOT void   iterLoopMode();
     Q_SIGNAL void loopModeChanged(enums::LoopMode);
 
-    auto          randomMode() const -> bool;
+    auto          randomMode() const noexcept -> bool;
     void          setRandomMode(bool);
     Q_SIGNAL void randomModeChanged(bool);
 
-    auto          canNext() const -> bool;
-    auto          canPrev() const -> bool;
-    auto          canJump() const -> bool;
-    auto          canRemove() const -> bool;
+    auto          canNext() const noexcept -> bool;
+    auto          canPrev() const noexcept -> bool;
+    auto          canJump() const noexcept -> bool;
+    auto          canRemove() const noexcept -> bool;
     void          setCanNext(bool);
     void          setCanPrev(bool);
     void          setCanJump(bool);
@@ -154,10 +157,15 @@ public:
     void updateSourceId(std::span<const model::ItemId> songIds, const model::ItemId& sourceId);
 
 private:
+    Q_SIGNAL void pendingIdsChanged();
+
     Q_SLOT void onSourceRowsInserted(const QModelIndex& parent, int first, int last);
     Q_SLOT void onSourceRowsAboutToBeRemoved(const QModelIndex& parent, int first, int last);
     Q_SLOT void onSourceRowsRemoved(const QModelIndex& parent, int first, int last);
     Q_SLOT void checkCanMove();
+
+    Q_SLOT void addChangedId(std::span<const model::ItemId> ids);
+    Q_SLOT void fetchSongs();
 
 private:
     PlayIdProxyQueue*       m_proxy;
@@ -166,6 +174,8 @@ private:
     enums::LoopMode         m_loop_mode;
     model::IdQueue::Options m_options;
 
+    mutable std::unordered_set<model::ItemId>                m_pending_ids;
+    mutable std::unordered_set<model::ItemId>                m_changed_ids;
     mutable std::unordered_map<model::ItemId, SongItem>      m_songs;
     mutable std::unordered_map<model::ItemId, model::ItemId> m_source_map;
 
@@ -175,6 +185,9 @@ private:
     bool    m_can_user_remove;
     bool    m_random_mode;
     QString m_name;
+
+    i64     m_notify_handle;
+    QTimer* m_changed_timer;
 
     Q_OBJECT_BINDABLE_PROPERTY(PlayQueue, int, m_current_index, &PlayQueue::currentIndexChanged)
 };

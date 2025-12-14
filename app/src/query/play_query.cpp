@@ -3,56 +3,14 @@
 
 #include "Qcm/query/album_query.hpp"
 #include "Qcm/action.hpp"
+#include "Qcm/backend.hpp"
+#include "Qcm/app.hpp"
 
 namespace qcm
 {
-namespace
-{
-auto createSubQuery(QObject* parent, model::ItemId id) -> Query* {
-    switch (id.type()) {
-    case enums::ItemType::ItemAlbum: {
-        auto query = new AlbumQuery(parent);
-        query->setItemId(id);
-        QObject::connect(query, &Query::finished, query, [query]() {
-            auto&                      list = *(query->tdata());
-            std::vector<model::ItemId> ids;
-            for (usize i = 0; i < list.size(); ++i) {
-                auto& item = list.at(i);
-                ids.push_back(item.itemId());
-            }
-            Action::instance()->switch_songs(ids);
-        });
-        return query;
-    }
-    default: {
-        return nullptr;
-    }
-    }
-}
-} // namespace
 
-PlayQuery::PlayQuery(QObject* parent): Query(parent), m_sub_query(nullptr) {}
+PlayQuery::PlayQuery(QObject* parent): Query(parent) {}
 
-void PlayQuery::setSubQuery(Query* sub_query) {
-    if (m_sub_query == sub_query) {
-        return;
-    }
-
-    if (m_sub_query) {
-        m_sub_query->cancel();
-        QObject::disconnect(m_sub_query);
-        m_sub_query->deleteLater();
-    }
-    m_sub_query = sub_query;
-    if (m_sub_query) {
-        m_sub_query->setParent(this);
-        connect(m_sub_query, &Query::dataChanged, this, [this]() {
-            set_data(m_sub_query->data());
-        });
-        connect(m_sub_query, &Query::errorOccurred, this, &PlayQuery::setError);
-        connect(m_sub_query, &Query::statusChanged, this, &PlayQuery::setStatus);
-    }
-}
 auto PlayQuery::itemId() const -> model::ItemId { return m_item_id; }
 void PlayQuery::setItemId(model::ItemId v) {
     if (m_item_id == v) {
@@ -64,15 +22,41 @@ void PlayQuery::setItemId(model::ItemId v) {
 
 void PlayQuery::reload() {
     if (m_item_id.type() == enums::ItemType::ItemSong) {
+        cancel();
         setStatus(Status::Finished);
-        setSubQuery(nullptr);
         Action::instance()->play(m_item_id);
     } else {
-        auto query = createSubQuery(this, m_item_id);
-        if (! query) return;
         setStatus(Status::Querying);
-        setSubQuery(query);
-        query->reload();
+        auto backend = App::instance()->backend();
+        auto req     = msg::GetSongIdsReq {};
+        auto self    = helper::QWatcher { this };
+
+        {
+            msg::filter::SongFilter filter;
+            if (m_item_id.type() == enums::ItemType::ItemAlbum) {
+                msg::filter::AlbumIdFilter sub_filter;
+                sub_filter.setValue(m_item_id.id());
+                filter.setAlbumIdFilter(sub_filter);
+            } else if (m_item_id.type() == enums::ItemType::ItemMix) {
+                msg::filter::MixIdFilter sub_filter;
+                sub_filter.setValue(m_item_id.id());
+                filter.setMixIdFilter(sub_filter);
+            }
+            req.setFilters({ filter });
+        }
+
+        spawn([self, backend, req] mutable -> task<void> {
+            auto rsp = co_await backend->send(std::move(req));
+            co_await qcm::qexecutor_switch();
+            if (rsp) {
+                std::vector<model::ItemId> ids;
+                for (auto id : rsp->ids()) {
+                    ids.push_back(model::ItemId(enums::ItemType::ItemSong, id));
+                }
+                Action::instance()->switch_songs(ids);
+            }
+            co_return;
+        });
     }
 }
 } // namespace qcm

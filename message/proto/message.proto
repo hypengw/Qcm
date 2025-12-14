@@ -75,16 +75,11 @@ enum MessageType {
   GET_STORAGE_INFO_REQ = 200;
   GET_STORAGE_INFO_RSP = 201;
   PLAYLOG_REQ = 202;
-}
 
-message GetSongsByAlbumRequest {
-  string album_id = 1;
-  int32 library_id = 2;
-}
-
-message GetSongsByAlbumResponse {
-  repeated qcm.msg.model.Song songs = 1;
-  qcm.msg.model.Album album = 2;
+  GET_SONGS_BY_ID_REQ = 400;
+  GET_SONGS_BY_ID_RSP = 401;
+  GET_SONG_IDS_REQ = 402;
+  GET_SONG_IDS_RSP = 403;
 }
 
 enum ErrorCode {
@@ -321,6 +316,17 @@ message GetMixRsp {
   google.protobuf.Struct extra = 2;
 }
 
+message GetSongsByIdReq { repeated int64 ids = 1; }
+message GetSongsByIdRsp {
+  repeated qcm.msg.model.Song items = 1;
+  repeated google.protobuf.Struct extras = 2;
+  int32 total = 3;
+}
+message GetSongIdsReq {
+  repeated qcm.msg.filter.SongFilter filters = 6;
+}
+message GetSongIdsRsp { repeated int64 ids = 1; }
+
 message SyncReq { int64 provider_id = 1; }
 message SyncRsp { int64 handle = 1; }
 
@@ -475,5 +481,10 @@ message QcmMessage {
     GetStorageInfoReq get_storage_info_req = 300;
     GetStorageInfoRsp get_storage_info_rsp = 301;
     PlaylogReq playlog_req = 302;
+
+    GetSongsByIdReq get_songs_by_id_req = 400;
+    GetSongsByIdRsp get_songs_by_id_rsp = 401;
+    GetSongIdsReq get_song_ids_req = 402;
+    GetSongIdsRsp get_song_ids_rsp = 403;
   }
 }

@@ -12,6 +12,7 @@ import qcm.random;
 #include "Qcm/util/ex.hpp"
 #include "Qcm/action.hpp"
 #include "Qcm/app.hpp"
+#include "Qcm/backend.hpp"
 
 namespace qcm
 {
@@ -202,7 +203,8 @@ PlayQueue::PlayQueue(QObject* parent)
       m_can_prev(false),
       m_can_jump(true),
       m_can_user_remove(true),
-      m_random_mode(false) {
+      m_random_mode(false),
+      m_changed_timer(new QTimer(this)) {
     updateRoleNames(qcm::model::Song::staticMetaObject, this);
     connect(this, &PlayQueue::currentIndexChanged, this, [this](qint32 idx) {
         setCurrentSong(idx);
@@ -220,9 +222,49 @@ PlayQueue::PlayQueue(QObject* parent)
         m_proxy->setShuffle(loopMode() == LoopMode::ShuffleLoop);
         checkCanMove();
     });
+    connect(this, &PlayQueue::pendingIdsChanged, this, &PlayQueue::fetchSongs);
+    connect(m_changed_timer, &QTimer::timeout, this, [this]() {
+        auto source_model = sourceModel();
+        if (! source_model) return;
+        if (m_changed_ids.empty()) return;
+
+        std::unordered_set<model::ItemId> ids { m_changed_ids.begin(), m_changed_ids.end() };
+        m_changed_ids.clear();
+        std::vector<qint32> rows_to_update;
+
+        for (auto i = 0; i < rowCount(); i++) {
+            if (auto id = getId(i); ids.contains(*id)) {
+                rows_to_update.push_back(i);
+            }
+        }
+        for (auto row : rows_to_update) {
+            auto idx = index(row, 0);
+            dataChanged(idx, idx);
+            if (row == m_current_index) {
+                setCurrentSong(currentIndex());
+            }
+        }
+    });
+
+    m_changed_timer->setSingleShot(true);
+    m_changed_timer->setInterval(200);
+    m_notify_handle =
+        AppStore::instance()->songs.store_reg_notify([this](std::span<const i64> ids) {
+            std::vector<model::ItemId> changed_ids;
+            for (auto id : ids) {
+                auto item_id = model::ItemId { enums::ItemType::ItemSong, id };
+                changed_ids.push_back(item_id);
+            }
+            addChangedId(changed_ids);
+        });
+
     loopModeChanged(m_loop_mode);
 }
 PlayQueue::~PlayQueue() {}
+void PlayQueue::drop_global() {
+    AppStore::instance()->songs.store_unreg_notify(m_notify_handle);
+    m_songs.clear();
+}
 
 auto PlayQueue::roleNames() const -> QHash<int, QByteArray> { return roleNamesRef(); }
 auto PlayQueue::data(const QModelIndex& index, int role) const -> QVariant {
@@ -362,7 +404,7 @@ auto PlayQueue::currentData(int role) const -> QVariant {
     return data(index(currentIndex(), 0), role);
 }
 
-auto PlayQueue::loopMode() const -> enums::LoopMode { return m_loop_mode; }
+auto PlayQueue::loopMode() const noexcept -> enums::LoopMode { return m_loop_mode; }
 void PlayQueue::setLoopMode(enums::LoopMode mode) {
     if (ycore::cmp_set(m_loop_mode, mode)) {
         loopModeChanged(m_loop_mode);
@@ -379,17 +421,17 @@ void PlayQueue::iterLoopMode() {
     }
     setLoopMode(mode);
 }
-auto PlayQueue::randomMode() const -> bool { return m_random_mode; }
+auto PlayQueue::randomMode() const noexcept -> bool { return m_random_mode; }
 void PlayQueue::setRandomMode(bool v) {
     if (ycore::cmp_set(m_random_mode, v)) {
         randomModeChanged(m_random_mode);
     }
 }
 
-auto PlayQueue::canNext() const -> bool { return m_can_next; }
-auto PlayQueue::canPrev() const -> bool { return m_can_prev; }
-auto PlayQueue::canJump() const -> bool { return m_can_jump; }
-auto PlayQueue::canRemove() const -> bool { return m_can_user_remove; }
+auto PlayQueue::canNext() const noexcept -> bool { return m_can_next; }
+auto PlayQueue::canPrev() const noexcept -> bool { return m_can_prev; }
+auto PlayQueue::canJump() const noexcept -> bool { return m_can_jump; }
+auto PlayQueue::canRemove() const noexcept -> bool { return m_can_user_remove; }
 
 void PlayQueue::setCanNext(bool v) {
     if (ycore::cmp_set(m_can_next, v)) {
@@ -513,30 +555,19 @@ void PlayQueue::updateSourceId(std::span<const model::ItemId> songIds,
 }
 
 void PlayQueue::onSourceRowsInserted(const QModelIndex&, int first, int last) {
-    auto                       store = AppStore::instance();
-    std::vector<model::ItemId> ids;
+    auto store = AppStore::instance();
     for (int i = first; i <= last; i++) {
         if (auto id = getId(i)) {
             if (m_songs.contains(*id)) continue;
             if (auto song_item = store->songs.store_item(id->id())) {
                 m_songs.insert_or_assign(*id, *song_item);
             } else {
-                ids.push_back(*id);
+                m_pending_ids.insert(*id);
             }
         }
     }
-
-    auto ex = asio::make_strand(qcm::pool_executor());
-    // TODO
-    // asio::co_spawn(
-    //     ex,
-    //     [ids, this] -> task<void> {
-    //         co_await querySongs(ids);
-    //         co_return;
-    //     },
-    //     helper::asio_detached_log_t {});
-
     checkCanMove();
+    pendingIdsChanged();
 }
 
 void PlayQueue::onSourceRowsAboutToBeRemoved(const QModelIndex&, int first, int last) {
@@ -581,6 +612,56 @@ void PlayQueue::checkCanMove() {
 bool PlayQueue::move(qint32 src, qint32 dst, qint32 count) {
     auto parent = this->index(-1, 0);
     return moveRows(parent, src, count, parent, dst);
+}
+
+void PlayQueue::addChangedId(std::span<const model::ItemId> ids) {
+    m_changed_ids.insert(ids.begin(), ids.end());
+    m_changed_timer->start();
+}
+void PlayQueue::fetchSongs() {
+    if (m_pending_ids.empty()) return;
+
+    auto ex      = asio::make_strand(qcm::pool_executor());
+    auto backend = App::instance()->backend();
+
+    auto req  = msg::GetSongsByIdReq {};
+    auto view = std::views::transform(m_pending_ids, [](const auto& id) {
+        return id.id();
+    });
+    req.setIds({ view.begin(), view.end() });
+    m_pending_ids.clear();
+
+    auto self = helper::QWatcher { this };
+    asio::co_spawn(
+        ex,
+        [self, backend, req = std::move(req)] mutable -> task<void> {
+            auto rsp = co_await backend->send(std::move(req));
+            co_await qcm::qexecutor_switch();
+
+            if (rsp) {
+                std::vector<model::ItemId> fetched_ids;
+                std::vector<i64>           id_list;
+
+                auto store  = AppStore::instance();
+                auto handle = self->m_notify_handle;
+                for (auto& song_proto : rsp->items()) {
+                    auto song = model::Song { song_proto };
+                    fetched_ids.push_back(song.itemId());
+                    id_list.push_back(song.id_proto());
+                    auto [item, _] = store->songs.store_insert(song);
+                    self->m_songs.insert_or_assign(song.itemId(), item);
+                }
+                for (qsizetype i = 0; i < rsp->extras().size(); i++) {
+                    auto id = rsp->items().at(i).id_proto();
+                    merge_store_extra(store->songs, id, rsp->extras().at(i));
+                }
+                store->songs.store_changed_callback(id_list, handle);
+                self->addChangedId(fetched_ids);
+            }
+
+            co_return;
+        },
+        helper::asio_detached_log_t {});
 }
 
 } // namespace qcm

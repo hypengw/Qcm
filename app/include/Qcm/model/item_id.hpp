@@ -71,5 +71,5 @@ private:
 
 template<>
 struct std::hash<qcm::model::ItemId> {
-    std::size_t operator()(const qcm::model::ItemId& k) const;
+    std::size_t operator()(const qcm::model::ItemId& k) const noexcept;
 };

@@ -70,7 +70,7 @@ else()
   FetchContent_Declare(
     kstore
     GIT_REPOSITORY https://github.com/hypengw/kstore.git
-    GIT_TAG master
+    GIT_TAG d6f32d1a04be01328e1e528c0539e37b359c87e3
     GIT_SHALLOW 1
     GIT_PROGRESS 1)
   FetchContent_MakeAvailable(kstore)

@@ -113,7 +113,8 @@ typename Wrapper::element_type* GetPtrHelper(const Wrapper& p) {
 }
 
 export template<class T>
-void hash_combine(std::size_t& seed, const T& v) {
+void hash_combine(std::size_t& seed,
+                  const T&     v) noexcept(std::is_nothrow_invocable_v<std::hash<T>, const T&>) {
     std::hash<T> hasher;
     seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }

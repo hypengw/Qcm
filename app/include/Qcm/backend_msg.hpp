@@ -132,7 +132,7 @@ QCM_MSG_TRAITS_REQ(GetMixSongsReq, GetMixSongsRsp, GET_MIX_SONGS_REQ, getMixSong
 QCM_MSG_TRAITS_RSP(GetMixSongsRsp, GetMixSongsReq, getMixSongsRsp)
 QCM_MSG_TRAITS_REQ(DeleteMixReq, Rsp, DELETE_MIX_REQ, deleteMixReq)
 QCM_MSG_TRAITS_REQ(MixManipulateReq, MixManipulateRsp, MIX_MANIPULATE_REQ, mixManipulateReq)
-QCM_MSG_TRAITS_RSP(MixManipulateRsp, MixManipulateReq,  mixManipulateRsp)
+QCM_MSG_TRAITS_RSP(MixManipulateRsp, MixManipulateReq, mixManipulateRsp)
 QCM_MSG_TRAITS_REQ(LinkMixReq, Rsp, LINK_MIX_REQ, linkMixReq)
 
 QCM_MSG_TRAITS_REQ(GetRemoteMixsReq, GetRemoteMixsRsp, GET_REMOTE_MIXS_REQ, getRemoteMixsReq)
@@ -151,6 +151,10 @@ QCM_MSG_TRAITS_REQ(GetStorageInfoReq, GetStorageInfoRsp, GET_STORAGE_INFO_REQ, g
 QCM_MSG_TRAITS_RSP(GetStorageInfoRsp, GetStorageInfoReq, getStorageInfoRsp)
 
 QCM_MSG_TRAITS_REQ(PlaylogReq, Rsp, PLAYLOG_REQ, playlogReq)
+QCM_MSG_TRAITS_REQ(GetSongsByIdReq, GetSongsByIdRsp, GET_SONGS_BY_ID_REQ, getSongsByIdReq)
+QCM_MSG_TRAITS_RSP(GetSongsByIdRsp, GetSongsByIdReq, getSongsByIdRsp)
+QCM_MSG_TRAITS_REQ(GetSongIdsReq, GetSongIdsRsp, GET_SONG_IDS_REQ, getSongIdsReq)
+QCM_MSG_TRAITS_RSP(GetSongIdsRsp, GetSongIdsReq, getSongIdsRsp)
 
 template<>
 struct MsgTraits<msg::Rsp> {

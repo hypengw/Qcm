@@ -23,9 +23,12 @@ public:
         return {};
     }
     void setItem(const item_type& v) {
-        if (kstore::ItemTrait<item_type>::key(v) != m_item.key()) {
-            m_item = m_item.store().store_insert(v);
+        auto key = kstore::ItemTrait<item_type>::key(v);
+        if (key != m_item.key()) {
+            m_item = m_item.store().store_insert(v).first;
+            m_item.store().store_changed_callback(std::span { &key, 1 }, m_handle ? *m_handle : 0);
             static_cast<CRTP*>(this)->itemChanged();
+
             unreg();
             m_handle = Some(m_item.store().store_reg_notify([this](auto) {
                 static_cast<CRTP*>(this)->itemChanged();
@@ -67,8 +70,7 @@ class AlbumStoreItem
     Q_OBJECT
     Q_PROPERTY(qcm::model::Album item READ item NOTIFY itemChanged)
 public:
-    using base_type =
-        StoreItem<kstore::ItemTrait<qcm::model::Album>::store_type, AlbumStoreItem>;
+    using base_type = StoreItem<kstore::ItemTrait<qcm::model::Album>::store_type, AlbumStoreItem>;
     AlbumStoreItem(QObject* parent = nullptr);
     Q_SIGNAL void itemChanged();
 };
@@ -78,8 +80,7 @@ class ArtistStoreItem
     Q_OBJECT
     Q_PROPERTY(qcm::model::Artist item READ item NOTIFY itemChanged)
 public:
-    using base_type =
-        StoreItem<kstore::ItemTrait<qcm::model::Artist>::store_type, ArtistStoreItem>;
+    using base_type = StoreItem<kstore::ItemTrait<qcm::model::Artist>::store_type, ArtistStoreItem>;
     ArtistStoreItem(QObject* parent = nullptr);
     Q_SIGNAL void itemChanged();
 };
