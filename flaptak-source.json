@@ -33,6 +33,20 @@
     "url" : "https://github.com/hypengw/ncrequest.git"
   },
   {
+    "commit" : "d6f32d1a04be01328e1e528c0539e37b359c87e3",
+    "dest" : "build/_flatpak_deps/kstore-src",
+    "disable-shallow-clone" : false,
+    "type" : "git",
+    "url" : "https://github.com/hypengw/kstore.git"
+  },
+  {
+    "commit" : "8a6ee40f27cb1bd9e2c65498c28a210529115109",
+    "dest" : "build/_flatpak_deps/qml_material-src",
+    "disable-shallow-clone" : false,
+    "type" : "git",
+    "url" : "https://github.com/hypengw/QmlMaterial.git"
+  },
+  {
     "commit" : "6983466aadd1173627b362ff1a297527d9842531",
     "dest" : "build/_flatpak_deps/random-src",
     "disable-shallow-clone" : false,
