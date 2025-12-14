@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QObjectBindableProperty>
+#include <QtQml/QQmlEngine>
 
 #include "core/core.h"
 #include "core/qasio/qt_executor.h"
@@ -21,6 +22,7 @@ namespace qcm
 
 class QAsyncResult : public QObject {
     Q_OBJECT
+    QML_ANONYMOUS
 
     Q_PROPERTY(QString error READ error NOTIFY errorChanged BINDABLE bindableError FINAL)
     Q_PROPERTY(Status status READ status WRITE setStatus NOTIFY statusChanged
