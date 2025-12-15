@@ -115,7 +115,10 @@ namespace qcm
 LogManager* LogManager::init() { return the_log_manager(); }
 
 LogManager* LogManager::instance() { return the_log_manager(); }
-void        log::log_raw(LogLevel level, std::string_view content) {
+
+bool log::log_check(LogLevel level) noexcept { return level >= LogManager::instance()->level(); }
+
+void log::log_raw(LogLevel level, std::string_view content) {
     FILE* out = nullptr;
     switch (level) {
         using enum LogLevel;

@@ -41,7 +41,7 @@ public:
 
     void stop() {
         if (m_thread.joinable()) m_thread.join();
-        DEBUG_LOG("decoder stopped");
+        LOG_DEBUG("decoder stopped");
     }
 
     void decoder_thread(AVCodecContext* ctx, PacketQueue& pkt_queue, AudioFrameQueue& queue) {
@@ -73,19 +73,19 @@ private:
 
         FFmpegError err = avcodec_parameters_to_context(ctx, st->codecpar);
         if (err) {
-            ERROR_LOG("{}", err.what());
+            LOG_ERROR("{}", err.what());
             return nullptr;
         }
 
         ctx->pkt_timebase = st->time_base;
         auto codec        = avcodec_find_decoder(ctx->codec_id);
         if (! codec) {
-            ERROR_LOG("can not find decoder for {}", avcodec_get_name(ctx->codec_id));
+            LOG_ERROR("can not find decoder for {}", avcodec_get_name(ctx->codec_id));
             return nullptr;
         }
         ctx->codec_id = codec->id;
         if (err = avcodec_open2(ctx, codec, NULL); err) {
-            ERROR_LOG("{}", err.what());
+            LOG_ERROR("{}", err.what());
             return nullptr;
         }
         return codec;
@@ -102,7 +102,7 @@ private:
         };
         do {
             if (! err_skip(err)) {
-                ERROR_LOG("{}", err.what());
+                LOG_ERROR("{}", err.what());
             }
             if (pkt_queue.serial() != queue.serial()) {
                 queue.clear();
@@ -134,7 +134,7 @@ private:
         } while (err_skip(err));
 
         if (err && err != FFmpegError::EABORTED) {
-            ERROR_LOG("{}", err.what());
+            LOG_ERROR("{}", err.what());
         }
         return;
     }
@@ -167,7 +167,7 @@ private:
                     if (! err)
                         break;
                     else {
-                        ERROR_LOG("{}", err.what());
+                        LOG_ERROR("{}", err.what());
                     }
                 } else if (pkt_queue.aborted()) {
                     err = FFmpegError::EABORTED;

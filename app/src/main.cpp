@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
 
     KDSingleApplication single;
     if (! single.isPrimaryInstance()) {
-        WARN_LOG("another qcm running, triggering");
+        LOG_WARN("another qcm running, triggering");
         single.sendMessageWithTimeout("hello", 5);
         exit(0);
     }

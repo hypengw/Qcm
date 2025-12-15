@@ -340,10 +340,10 @@ private:
     static void state_cb(cubeb_stream* stream, void*, cubeb_state state) {
         if (! stream) return;
         switch (state) {
-        case CUBEB_STATE_STARTED: INFO_LOG("stream started"); break;
-        case CUBEB_STATE_STOPPED: INFO_LOG("stream stopped"); break;
-        case CUBEB_STATE_DRAINED: INFO_LOG("stream drained"); break;
-        default: INFO_LOG("unknown stream state {}", (int)state);
+        case CUBEB_STATE_STARTED: LOG_INFO("stream started"); break;
+        case CUBEB_STATE_STOPPED: LOG_INFO("stream stopped"); break;
+        case CUBEB_STATE_DRAINED: LOG_INFO("stream drained"); break;
+        default: LOG_INFO("unknown stream state {}", (int)state);
         }
     }
 

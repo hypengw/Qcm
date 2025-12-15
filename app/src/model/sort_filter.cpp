@@ -154,7 +154,7 @@ void SongSortFilterModel::freshSortType() {
             if (auto it = name_maps.find(name.data()); it != name_maps.end()) {
                 setSortRole(*it);
             } else {
-                log::error("{}", name.data());
+                LOG_ERROR("{}", name.data());
             }
         }
     }

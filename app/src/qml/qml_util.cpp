@@ -122,10 +122,10 @@ void Util::print(const QJSValue& val) {
             j[it.name()] = it.value().toString();
         }
         jdoc.setObject(j);
-        DEBUG_LOG("print: {}", jdoc.toJson(QJsonDocument::JsonFormat::Indented).toStdString());
+        LOG_DEBUG("print: {}", jdoc.toJson(QJsonDocument::JsonFormat::Indented).toStdString());
     } else if (auto var = val.toVariant(); var.isValid()) {
         auto meta = var.metaType();
-        DEBUG_LOG(R"(print
+        LOG_DEBUG(R"(print
 metaType: {}
 metaId: {}
 isNull: {}
@@ -136,7 +136,7 @@ json: {}
                   var.toJsonDocument().toJson(QJsonDocument::JsonFormat::Indented).toStdString(),
                   var.isNull());
     } else {
-        DEBUG_LOG("print: {}", val.toString());
+        LOG_DEBUG("print: {}", val.toString());
     }
 }
 
@@ -179,7 +179,7 @@ QString Util::joinName(const QJSValue& v, const QString& sp) {
     } else if (v.isNull() || v.isUndefined()) {
         return {};
     }
-    log::error("{}", v.toString());
+    LOG_ERROR("{}", v.toString());
     return {};
 }
 
@@ -188,7 +188,7 @@ QString Util::formatDateTime(const QJSValue& v, const QString& format) {
         if (v.isDate()) {
             return v.toDateTime().toString(format);
         } else if (v.isQObject()) {
-            log::error("{}", v.toString());
+            LOG_ERROR("{}", v.toString());
             break;
         } else if (v.isNumber()) {
             auto d = QDateTime::fromMSecsSinceEpoch(v.toNumber() / 1e3);
@@ -198,10 +198,10 @@ QString Util::formatDateTime(const QJSValue& v, const QString& format) {
             if (auto t = get_if<google::protobuf::Timestamp>(&var)) {
                 return t->toDateTime().toString(format);
             }
-            log::error("{}", v.toString());
+            LOG_ERROR("{}", v.toString());
             break;
         } else {
-            log::error("{}", v.toString());
+            LOG_ERROR("{}", v.toString());
         }
     } while (0);
     return {};

@@ -43,12 +43,12 @@ public:
         m_url     = url;
         m_aborted = false;
         m_thread  = std::thread([this, pkt_queue] {
-            DEBUG_LOG("ffmpeg read thread start, url: {}", m_url);
+            LOG_DEBUG("ffmpeg read thread start, url: {}", m_url);
             auto fmt_ctx = make_rc<FFmpegFormatContext>();
             read_thread(fmt_ctx, *pkt_queue);
             fmt_ctx->set_aborted(true);
             reset_promise();
-            DEBUG_LOG("ffmpeg read thread end");
+            LOG_DEBUG("ffmpeg read thread end");
         });
     }
 
@@ -63,7 +63,7 @@ public:
         m_waiter.notify_all();
         if (m_thread.joinable()) m_thread.join();
         reset_promise();
-        DEBUG_LOG("stream reader stopped");
+        LOG_DEBUG("stream reader stopped");
     }
 
     std::optional<StreamInfo> wait_stream_info() {
@@ -97,12 +97,12 @@ private:
             err = fmt_ctx.open_input(m_url.c_str(), std::move(opt));
         }
         if (err) {
-            ERROR_LOG("{}, url: {}", err.what(), m_url);
+            LOG_ERROR("{}, url: {}", err.what(), m_url);
             return;
         }
         err = fmt_ctx.find_stream_info(NULL);
         if (err) {
-            ERROR_LOG("{}", err.what());
+            LOG_ERROR("{}", err.what());
             return;
         }
 
@@ -152,7 +152,7 @@ private:
 
                 FFmpegError err = fmt_ctx.seek_file(audio_idx, INT64_MIN, target, INT64_MAX, 0);
                 if (err) {
-                    ERROR_LOG("{}", err.what());
+                    LOG_ERROR("{}", err.what());
                 }
                 pkt_queue.clear();
                 pkt_queue.refresh_serial();
@@ -162,16 +162,16 @@ private:
                 FFmpegError err = fmt_ctx.read_frame(pkt.raw());
                 if (err) {
                     if (err == AVERROR_EOF) {
-                        INFO_LOG("stream eof");
+                        LOG_INFO("stream eof");
                         m_eof = true;
                         pkt.set_eof();
                     } else if (fmt_ctx->pb && fmt_ctx->pb->error) {
-                        ERROR_LOG("error");
+                        LOG_ERROR("error");
                         break;
                     } else {
                         // wait cond
                         pkt.unref();
-                        ERROR_LOG("e: {}", err.what());
+                        LOG_ERROR("e: {}", err.what());
                         continue;
                     }
                 } else {
@@ -199,7 +199,7 @@ private:
                 }
             } else {
                 pkt_ref.inspect_err([](auto& err) {
-                    log::error("{}", err);
+                    LOG_ERROR("{}", err);
                 });
             }
             pkt.unref();

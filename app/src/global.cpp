@@ -102,7 +102,7 @@ auto Global::instance() -> Global* { return static_global(); }
 
 Global::Global(): d_ptr(make_up<Private>(this)) {
     C_D(Global);
-    DEBUG_LOG("init Global");
+    LOG_DEBUG("init Global");
     _assert_rel_(static_global(this) == this);
 
     {

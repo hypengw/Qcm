@@ -249,7 +249,7 @@ void App::onRecord(enums::RecordAction) {}
 
 void App::onSwitchQueue(model::IdQueue* queue) {
     if (queue == nullptr) {
-        INFO_LOG("queue is null");
+        LOG_INFO("queue is null");
     } else {
         this->playqueue()->setSourceModel(queue);
         if (queue->rowCount()) {

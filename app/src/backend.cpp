@@ -71,7 +71,7 @@ Backend::Backend(Arc<ncrequest::Session> session)
     m_process->setWorkingDirectory(QCoreApplication::applicationDirPath());
     m_process->setProcessChannelMode(QProcess::ProcessChannelMode::ForwardedErrorChannel);
     m_client->set_on_error_callback([](std::string_view err) {
-        log::error("{}", err);
+        LOG_ERROR("{}", err);
     });
     m_client->set_on_connected_callback([this]() {
         Q_EMIT this->connected(m_port);
@@ -90,7 +90,7 @@ Backend::Backend(Arc<ncrequest::Session> session)
                     cache->clear();
                 }
                 if (msg.type() != msg::MessageTypeGadget::MessageType::PROVIDER_SYNC_STATUS_MSG) {
-                    log::info("ws recv: {}", msg.type());
+                    LOG_INFO("ws recv: {}", msg.type());
                 }
 
                 if (auto it = m_handlers.find(msg.id_proto()); it != m_handlers.end()) {
@@ -131,7 +131,7 @@ Backend::Backend(Arc<ncrequest::Session> session)
 Backend::~Backend() {
     QMetaObject::invokeMethod(m_process, [self = m_process] {
         self->waitForFinished();
-        log::warn("backend stopped");
+        LOG_WARN("backend stopped");
         self->thread()->quit();
     });
     m_client.reset();
@@ -175,7 +175,7 @@ auto Backend::start(QStringView exe_, QStringView data_dir_, QStringView cache_d
                             auto doc  = QJsonDocument::fromJson(line);
                             if (auto jport = doc.object().value("port"); ! jport.isUndefined()) {
                                 auto port = jport.toVariant().value<i32>();
-                                log::info("backend port: {}", port);
+                                LOG_INFO("backend port: {}", port);
                                 Q_EMIT this->started(port);
                             } else {
                                 this->error("Read port from backend failed");
@@ -196,7 +196,7 @@ auto Backend::start(QStringView exe_, QStringView data_dir_, QStringView cache_d
     }
 
     m_context->post([this, exe = m_exe, data_dir = m_data_dir, cache_dir = m_cache_dir] {
-        log::debug("starting backend: {}", exe);
+        LOG_DEBUG("starting backend: {}", exe);
         m_process->start(exe, { u"--data"_s, data_dir, u"--cache"_s, cache_dir });
     });
     return true;
@@ -206,7 +206,7 @@ void Backend::on_retry() { start(m_exe, m_data_dir, m_cache_dir); }
 
 void Backend::on_error(QString) {
     m_context->post([this] {
-        log::debug("kill backend");
+        LOG_DEBUG("kill backend");
         m_process->kill();
     });
 }
@@ -276,7 +276,7 @@ void msg::merge_extra(QQmlPropertyMap& extra, const google::protobuf::Struct& in
                 auto json = QJsonDocument::fromJson(it.value().stringValue().toUtf8());
                 val       = json.toVariant();
             } else {
-                log::warn("wrong field");
+                LOG_WARN("wrong field");
             }
         } else {
             val = rstd::into(it.value());

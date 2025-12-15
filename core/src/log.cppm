@@ -31,11 +31,12 @@ export void log_loc_raw(LogLevel level, const std::source_location loc, std::str
 export auto log_format(LogLevel level, std::string_view content, std::string_view filename,
                        std::uint_least32_t line, std::uint_least32_t column) -> std::string;
 export void log_raw(LogLevel level, std::string_view);
+export bool log_check(LogLevel level) noexcept;
 
 export template<typename... T>
 void log(LogLevel level, const std::source_location loc, std::format_string<T...> fmt,
          T&&... args) {
-    if (level < LogManager::instance()->level()) return;
+    if (! log_check(level)) return;
     log_loc_raw(level, loc, std::vformat(fmt.get(), std::make_format_args(args...)));
 }
 
@@ -43,7 +44,7 @@ export template<typename... T>
 struct error {
     error(std::format_string<T...>   fmt, T&&... args,
           const std::source_location loc = std::source_location::current()) {
-        if (LogLevel::ERROR < LogManager::instance()->level()) return;
+        if (! log_check(LogLevel::ERROR)) return;
         log_loc_raw(LogLevel::ERROR, loc, std::vformat(fmt.get(), std::make_format_args(args...)));
     }
 };
@@ -54,7 +55,7 @@ export template<typename... T>
 struct warn {
     warn(std::format_string<T...>   fmt, T&&... args,
          const std::source_location loc = std::source_location::current()) {
-        if (LogLevel::WARN < LogManager::instance()->level()) return;
+        if (! log_check(LogLevel::WARN)) return;
         log_loc_raw(LogLevel::WARN, loc, std::vformat(fmt.get(), std::make_format_args(args...)));
     }
 };
@@ -65,7 +66,7 @@ export template<typename... T>
 struct info {
     info(std::format_string<T...>   fmt, T&&... args,
          const std::source_location loc = std::source_location::current()) {
-        if (LogLevel::INFO < LogManager::instance()->level()) return;
+        if (! log_check(LogLevel::INFO)) return;
         log_loc_raw(LogLevel::INFO, loc, std::vformat(fmt.get(), std::make_format_args(args...)));
     }
 };
@@ -76,7 +77,7 @@ export template<typename... T>
 struct debug {
     debug(std::format_string<T...>   fmt, T&&... args,
           const std::source_location loc = std::source_location::current()) {
-        if (LogLevel::DEBUG < LogManager::instance()->level()) return;
+        if (! log_check(LogLevel::DEBUG)) return;
         log_loc_raw(LogLevel::DEBUG, loc, std::vformat(fmt.get(), std::make_format_args(args...)));
     }
 };

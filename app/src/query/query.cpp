@@ -82,7 +82,7 @@ void QueryList::setNoMore(bool v) {
     }
 }
 
-void QueryList::fetchMore(qint32) { log::warn("fetchMore not impl"); }
+void QueryList::fetchMore(qint32) { LOG_WARN("fetchMore not impl"); }
 
 void detail::try_connect_fetch_more(QObject* query, QObject* model) {
     if (model == nullptr) return;

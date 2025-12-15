@@ -176,7 +176,9 @@ MD.ApplicationWindow {
         running: !win.active
         interval: 10 * 1000
         onTriggered: {
-            QA.App.releaseResources(win);
+            QA.App.releaseResources(win, {
+                pool_obj: MD.Util.poolObjectCount()
+            });
         }
     }
 

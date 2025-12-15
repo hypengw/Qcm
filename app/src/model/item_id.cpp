@@ -101,7 +101,7 @@ QUrl ItemId::toPageUrl() const {
         break;
     }
     default: {
-        log::warn("no page url for item type: {}", type());
+        LOG_WARN("no page url for item type: {}", type());
     }
     }
     return url;

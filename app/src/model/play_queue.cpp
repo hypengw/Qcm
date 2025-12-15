@@ -209,7 +209,7 @@ PlayQueue::PlayQueue(QObject* parent)
     connect(this, &PlayQueue::currentIndexChanged, this, [this](qint32 idx) {
         setCurrentSong(idx);
 
-        log::debug("queue: current index changed to {}, id {}",
+        LOG_DEBUG("queue: current index changed to {}, id {}",
                    idx,
                    m_current_song.as_ref()
                        .and_then([](auto& el) -> rstd::Option<i64> {
@@ -354,7 +354,7 @@ auto PlayQueue::currentSong() const -> model::Song {
         if (auto ptr = m_current_song->item()) {
             return *ptr;
         } else {
-            log::error("no such song: {}", m_current_song->key().value_or(-1));
+            LOG_ERROR("no such song: {}", m_current_song->key().value_or(-1));
         }
     }
 

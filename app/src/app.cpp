@@ -60,7 +60,7 @@ void cache_clean_cb(const std::filesystem::path& cache_dir, std::string_view key
     std::error_code ec;
     auto            file = cache_dir / (key.size() >= 2 ? key.substr(0, 2) : "no"sv) / key;
     std::filesystem::remove(file, ec);
-    log::debug("cache remove {}", file.string());
+    LOG_DEBUG("cache remove {}", file.string());
 }
 
 auto get_pool_size() -> std::size_t {
@@ -161,7 +161,7 @@ App::App(QStringView backend_exe, std::monostate)
         set_player_sender(d->m_global->player()->sender());
     }
 
-    log::debug("thread pool size: {}", get_pool_size());
+    LOG_DEBUG("thread pool size: {}", get_pool_size());
     {
         d->m_backend = ::make_box<Backend>(d->m_global->session());
         {
@@ -362,9 +362,9 @@ auto App::play_id_queue() const -> PlayIdQueue* {
 }
 
 // #include <private/qquickpixmapcache_p.h>
-void App::releaseResources(QQuickWindow*) {
+void App::releaseResources(QQuickWindow*, const QJSValue& extra) {
     C_D(const App);
-    log::info("gc");
+    LOG_INFO("gc");
     // win->releaseResources();
     d->m_qml_engine->trimComponentCache();
     d->m_qml_engine->collectGarbage();
@@ -383,7 +383,7 @@ void App::releaseResources(QQuickWindow*) {
 
     auto store = AppStore::instance();
 
-    log::debug(R"(
+    LOG_DEBUG(R"(
 --- store ---
 albums: {}
 songs: {}
@@ -394,12 +394,12 @@ artists: {}
                store->artists.size());
 
     auto info = plt::mem_info();
-    log::debug(R"(
+    LOG_DEBUG(R"(
 --- memory ---
 heap: {}
 mmap({}): {}
 in use: {}
-dyn create: {}
+pool obj: {}
 img rsp: {}
 
 pool:
@@ -417,7 +417,7 @@ store:
                info.mmap_num,
                as_mb(info.mmap),
                as_mb(info.totle_in_use),
-               0,
+               extra.property("pool_obj").toInt(),
                image_response_count().load(),
                print_mem_stat(mem_mgr().pool_stat),
                print_mem_stat(mem_mgr().session_mem),

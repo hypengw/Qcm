@@ -19,7 +19,7 @@ void qcm::process_msg(msg::QcmMessage&& msg) {
         asio::post(qcm::qexecutor(), [msg = std::move(msg)] {
             auto p = App::instance()->provider_status();
             for (auto& s : msg.providerStatusMsg().statuses()) {
-                log::info("{}", s.name());
+                LOG_INFO("{}", s.name());
             }
             auto view = std::views::transform(msg.providerStatusMsg().statuses(), [](auto&& el) {
                 return qcm::model::ProviderStatus { el };
