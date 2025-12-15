@@ -10,7 +10,7 @@ The backend process is managed by Qcm, you can use `--backend <path>` to set the
 A backend implementation can be found at [QcmBackend](https://github.com/hypengw/QcmBackend), which supports the following music services:
 
 - **Jellyfin**
-- **Netease Cloud Music**(wip)
+- **Netease Cloud Music**
 
 ### Screenshots
 

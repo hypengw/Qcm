@@ -10,9 +10,9 @@
   <project_license>GPL-2.0</project_license>
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
   <description>
-    <p>Material3 cloud music player</p>
+    <p>Material You cloud music player. </p>
     <p>  Music Service:</p>
-    <p>   Jellyfin(wip)</p>
+    <p>   Jellyfin</p>
     <p>   Netease Cloud Music(网易云音乐)</p>
   </description>
   <url type="homepage">https://github.com/hypengw/Qcm</url>
