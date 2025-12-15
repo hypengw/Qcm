@@ -82,7 +82,7 @@ else()
   FetchContent_Declare(
     qml_material
     GIT_REPOSITORY https://github.com/hypengw/QmlMaterial.git
-    GIT_TAG 8a6ee40f27cb1bd9e2c65498c28a210529115109
+    GIT_TAG a7c8c52dba5e908427e0dcb8f5b1cf9e95bb63a5
     GIT_SHALLOW 1
     GIT_PROGRESS 1
     FIND_PACKAGE_ARGS GLOBAL)

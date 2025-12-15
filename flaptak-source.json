@@ -40,7 +40,7 @@
     "url" : "https://github.com/hypengw/kstore.git"
   },
   {
-    "commit" : "8a6ee40f27cb1bd9e2c65498c28a210529115109",
+    "commit" : "a7c8c52dba5e908427e0dcb8f5b1cf9e95bb63a5",
     "dest" : "build/_flatpak_deps/qml_material-src",
     "disable-shallow-clone" : false,
     "type" : "git",
