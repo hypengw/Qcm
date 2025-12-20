@@ -1,7 +1,7 @@
 include(FetchContent)
 
 set(FLATPAK_SOURCE_OUTPUT
-    "${CMAKE_BINARY_DIR}/flatpak_source.json"
+    "${CMAKE_BINARY_DIR}/flatpak_sources.json"
     CACHE STRING "")
 
 function(init_flatpak_source_file)
