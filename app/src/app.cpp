@@ -431,31 +431,6 @@ qreal App::devicePixelRatio() const {
     return d->m_main_win ? d->m_main_win->effectiveDevicePixelRatio() : qApp->devicePixelRatio();
 }
 
-/*
-QSizeF App::image_size(QSizeF display, int quality, QQuickItem* item) const {
-    C_D(const App);
-    QSizeF out { -1, -1 };
-    auto   dpr =
-        (item && item->window() ? item->window()->effectiveDevicePixelRatio() : devicePixelRatio());
-
-    // if (quality == ImgOrigin) {
-    // } else if (quality == ImgAuto) {
-    //     constexpr std::array sizes { Img400px, Img800px, Img1200px };
-    //     auto                 size = std::max(display.width(), display.height()) * dpr;
-    //     auto                 it   = std::upper_bound(sizes.begin(), sizes.end(), size);
-    //     if (it != sizes.end()) {
-    //         size = ((int)*it / dpr);
-    //         out  = display.scaled(size, size, Qt::AspectRatioMode::KeepAspectRatio);
-    //     }
-    // } else {
-    //     qreal qualityF = quality / dpr;
-    //     out            = display.scaled(qualityF, qualityF,
-    //     Qt::AspectRatioMode::KeepAspectRatio);
-    // }
-    return out;
-}
-*/
-
 auto App::bound_image_size(QSizeF displaySize) const -> QSizeF {
     auto size = std::max(displaySize.width(), displaySize.height());
     if (size == 0) return { 0.0f, 0.0f };
