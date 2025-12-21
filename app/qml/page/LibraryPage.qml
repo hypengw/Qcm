@@ -69,6 +69,9 @@ MD.Page {
                     displayMode: m_view_album.displayMode
                     onSelectDisplayMode: m => m_album_setting.display_mode = m
                     filterModel: m_album_filter_model
+                    actions: [
+                        QA.PlayAllAction {}
+                    ]
                 }
             }
 
@@ -109,6 +112,9 @@ MD.Page {
                     displayMode: m_view_album_artist.displayMode
                     onSelectDisplayMode: m => m_album_artist_setting.display_mode = m
                     filterModel: m_album_artist_filter_model
+                    actions: [
+                        QA.PlayAllAction {}
+                    ]
                 }
             }
 
@@ -128,6 +134,9 @@ MD.Page {
                     displayMode: m_view_artist.displayMode
                     onSelectDisplayMode: m => m_artist_setting.display_mode = m
                     filterModel: m_artist_filter_model
+                    actions: [
+                        QA.PlayAllAction {}
+                    ]
                 }
             }
         }
@@ -370,25 +379,23 @@ MD.Page {
                     m_header_sort_menu.open();
                 }
             }
-            Item {
-                Layout.fillWidth: true
-            }
-            Row {
+            MD.ActionToolBar {
+                id: m_tool_bar
                 Layout.alignment: Qt.AlignVCenter
-
-                Repeater {
-                    model: [...m_header_bar.actions, ...m_header_bar.preActions]
-                    MD.SmallIconButton {
-                        id: m_item
-                        required property MD.Action modelData
-                        anchors.verticalCenter: parent.verticalCenter
-                        action: modelData
-                        Component.onCompleted: {
-                            if (modelData.hasOwnProperty('menuParent')) {
-                                modelData.menuParent = m_item;
-                            }
+                Layout.fillWidth: true
+                actions: [...m_header_bar.actions, ...m_header_bar.preActions]
+                iconDelegate: MD.SmallIconButton {
+                    id: m_item
+                    anchors.verticalCenter: parent.verticalCenter
+                    action: MD.ToolBarLayout.action as MD.Action
+                    Component.onCompleted: {
+                        if (action.hasOwnProperty('menuParent')) {
+                            action.menuParent = m_item;
                         }
                     }
+                }
+                moreDelegate: MD.SmallIconButton {
+                    action: m_tool_bar.moreAction
                 }
             }
         }

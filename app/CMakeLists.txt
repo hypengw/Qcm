@@ -146,6 +146,7 @@ set(QML_FILES
     qml/component/filter/AlbumTitleFilter.qml
     qml/action/AppendListAction.qml
     qml/action/PlayAction.qml
+    qml/action/PlayAllAction.qml
     qml/action/PlaynextAction.qml
     qml/action/CommentAction.qml
     qml/action/CollectAction.qml
