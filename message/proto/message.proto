@@ -322,9 +322,16 @@ message GetSongsByIdRsp {
   repeated google.protobuf.Struct extras = 2;
   int32 total = 3;
 }
+
 message GetSongIdsReq {
-  repeated qcm.msg.filter.SongFilter filters = 6;
+  qcm.msg.model.SongSort sort = 1;
+  qcm.msg.model.AlbumSort album_sort = 2;
+
+  repeated int64 library_ids = 3;
+  repeated qcm.msg.filter.SongFilter filters = 4;
+  repeated qcm.msg.filter.AlbumFilter album_filters = 5;
 }
+
 message GetSongIdsRsp { repeated int64 ids = 1; }
 
 message SyncReq { int64 provider_id = 1; }

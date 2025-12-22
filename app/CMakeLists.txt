@@ -147,7 +147,8 @@ set(QML_FILES
     qml/action/AppendListAction.qml
     qml/action/PlayAction.qml
     qml/action/PlayAllAction.qml
-    qml/action/PlaynextAction.qml
+    qml/action/ShuffleAllAction.qml
+    qml/action/PlayNextAction.qml
     qml/action/CommentAction.qml
     qml/action/CollectAction.qml
     qml/action/CopyAction.qml

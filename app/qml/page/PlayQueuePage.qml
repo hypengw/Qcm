@@ -35,6 +35,7 @@ MD.Page {
         model: QA.App.playqueue
         topMargin: 8
         bottomMargin: 8
+        cacheBuffer: 32
 
         MD.FontMetrics {
             id: item_font_metrics
@@ -110,7 +111,7 @@ MD.Page {
                             drag.target: m_item
                             drag.axis: Drag.YAxis
                             drag.threshold: 0
-                            cursorShape: pressed ? Qt.ClosedHandCursor : Qt.OpenHandCursor 
+                            cursorShape: pressed ? Qt.ClosedHandCursor : Qt.OpenHandCursor
                         }
                     }
 

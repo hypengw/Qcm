@@ -23,4 +23,24 @@ public:
 private:
     model::ItemId m_item_id;
 };
+
+class PlayAllQuery : public Query {
+    Q_OBJECT
+    QML_ELEMENT
+
+    Q_PROPERTY(QList<qcm::msg::filter::AlbumFilter> filters READ filters WRITE setFilters NOTIFY
+                   filtersChanged FINAL)
+
+public:
+    PlayAllQuery(QObject* parent = nullptr);
+    void reload() override;
+
+    auto          filters() const -> const QList<msg::filter::AlbumFilter>&;
+    void          setFilters(const QList<msg::filter::AlbumFilter>&);
+    Q_SIGNAL void filtersChanged();
+
+private:
+    QList<msg::filter::AlbumFilter> m_filters;
+};
+
 } // namespace qcm

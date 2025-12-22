@@ -211,6 +211,7 @@ enum AlbumSort {
   ALBUM_SORT_ADDED_TIME = 5;
   ALBUM_SORT_DISC_COUNT = 6;
   ALBUM_SORT_LAST_PLAYED_AT = 7;
+  ALBUM_SORT_RANDOM = 99;
 }
 
 enum ArtistSort {
@@ -227,6 +228,7 @@ enum SongSort {
   SONG_SORT_PUBLISH_TIME = 3;
   SONG_SORT_DURATION = 4;
   SONG_SORT_POPULARITY = 5;
+  SONG_SORT_RANDOM = 99;
 }
 
 enum MixSort {

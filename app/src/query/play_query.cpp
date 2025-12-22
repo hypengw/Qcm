@@ -5,6 +5,7 @@
 #include "Qcm/action.hpp"
 #include "Qcm/backend.hpp"
 #include "Qcm/app.hpp"
+#include "Qcm/status/provider_status.hpp"
 
 namespace qcm
 {
@@ -55,10 +56,47 @@ void PlayQuery::reload() {
                 }
                 Action::instance()->switch_songs(ids);
             }
+            self->setStatus(Status::Finished);
             co_return;
         });
     }
 }
+
+PlayAllQuery::PlayAllQuery(QObject* parent): Query(parent) {}
+
+auto PlayAllQuery::filters() const -> const QList<msg::filter::AlbumFilter>& { return m_filters; }
+void PlayAllQuery::setFilters(const QList<msg::filter::AlbumFilter>& in) {
+    if (m_filters == in) {
+        return;
+    }
+    m_filters = in;
+    filtersChanged();
+}
+
+void PlayAllQuery::reload() {
+    setStatus(Status::Querying);
+    auto app = App::instance();
+    auto backend = app->backend();
+    auto req     = msg::GetSongIdsReq {};
+    auto self    = helper::QWatcher { this };
+    req.setAlbumFilters(m_filters);
+    req.setLibraryIds(app->libraryStatus()->activedIds());
+
+    spawn([self, backend, req] mutable -> task<void> {
+        auto rsp = co_await backend->send(std::move(req));
+        co_await qcm::qexecutor_switch();
+        if (rsp) {
+            std::vector<model::ItemId> ids;
+            for (auto id : rsp->ids()) {
+                ids.push_back(model::ItemId(enums::ItemType::ItemSong, id));
+            }
+            Action::instance()->switch_songs(ids);
+        }
+        self->setStatus(Status::Finished);
+        co_return;
+    });
+}
+
 } // namespace qcm
 
 #include "Qcm/query/moc_play_query.cpp"

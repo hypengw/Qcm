@@ -12,7 +12,7 @@ MD.Menu {
     font.capitalization: Font.Capitalize
     modal: true
 
-    QA.PlaynextAction {
+    QA.PlayNextAction {
         song: root.song
     }
     QA.CommentAction {

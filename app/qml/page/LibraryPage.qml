@@ -70,7 +70,12 @@ MD.Page {
                     onSelectDisplayMode: m => m_album_setting.display_mode = m
                     filterModel: m_album_filter_model
                     actions: [
-                        QA.PlayAllAction {}
+                        QA.PlayAllAction {
+                            filters: qr_albums.filters
+                        }
+                        // QA.ShuffleAllAction {}
+
+
                     ]
                 }
             }
@@ -112,9 +117,7 @@ MD.Page {
                     displayMode: m_view_album_artist.displayMode
                     onSelectDisplayMode: m => m_album_artist_setting.display_mode = m
                     filterModel: m_album_artist_filter_model
-                    actions: [
-                        QA.PlayAllAction {}
-                    ]
+                    actions: []
                 }
             }
 
@@ -134,9 +137,7 @@ MD.Page {
                     displayMode: m_view_artist.displayMode
                     onSelectDisplayMode: m => m_artist_setting.display_mode = m
                     filterModel: m_artist_filter_model
-                    actions: [
-                        QA.PlayAllAction {}
-                    ]
+                    actions: []
                 }
             }
         }

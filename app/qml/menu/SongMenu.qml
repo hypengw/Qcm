@@ -26,7 +26,7 @@ MD.Menu {
         itemId: root._itemId
     }
 
-    QA.PlaynextAction {
+    QA.PlayNextAction {
         itemId: root._itemId
     }
 
