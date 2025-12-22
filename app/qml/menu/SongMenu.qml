@@ -72,14 +72,14 @@ MD.Menu {
             text: qsTr('album')
             icon.name: MD.Token.icon.album
             getCopyString: function () {
-                return root.song.album.name;
+                return root.song.albumName;
             }
         }
         QA.CopyAction {
             text: qsTr('url')
             icon.name: MD.Token.icon.link
             getCopyString: function () {
-                return QA.Global.server_url(root.song.itemId);
+                return '';//QA.Global.server_url(root.song.itemId);
             }
         }
     }
