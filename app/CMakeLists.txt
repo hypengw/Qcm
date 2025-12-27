@@ -123,6 +123,7 @@ set(QML_FILES
     qml/component/page/PageContainer.qml
     qml/component/page/PagePopup.qml
     qml/component/page/PageStack.qml
+    qml/component/page/SettingBasePage.qml
     qml/component/setting/SettingRow.qml
     qml/component/setting/SettingSection.qml
     qml/component/tag/SongTag.qml
@@ -188,6 +189,7 @@ set(QML_FILES
     qml/page/setting/NetworkSetting.qml
     qml/page/setting/StorageSetting.qml
     qml/page/setting/ThemeSetting.qml
+    qml/page/setting/QueueSetting.qml
     qml/page/setting/ProviderManagePage.qml)
 set(RESOURCES assets/Qcm.svg)
 

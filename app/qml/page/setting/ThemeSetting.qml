@@ -5,161 +5,151 @@ import QtQuick.Templates as T
 import Qcm.App as QA
 import Qcm.Material as MD
 
-MD.Page {
+QA.SettingBasePage {
     id: root
-    font.capitalization: Font.Capitalize
     title: qsTr('theme')
-    bottomPadding: radius
-    scrolling: !m_flick.atYBeginning
 
-    MD.VerticalFlickable {
-        id: m_flick
-        anchors.fill: parent
-        leftMargin: 0
-        rightMargin: 0
-        contentHeight: m_theme_section.implicitHeight
+    flickable.contentHeight: m_theme_section.height
 
-        QA.SettingSection {
-            id: m_theme_section
-            width: parent.width
-            height: implicitHeight
-            spacing: 2
-            horizontalPadding: 16
+    QA.SettingSection {
+        id: m_theme_section
+        width: parent.width
+        height: implicitHeight
+        spacing: 2
 
-            QA.SettingRow {
-                canInput: false
-                text: qsTr('theme mode')
-                below: MD.HorizontalListView {
-                    id: m_theme_mode_view
-                    expand: true
-                    spacing: 8
-                    implicitHeight: 40
-                    model: ListModel {
-                        ListElement {
-                            name: qsTr("system")
-                        }
-                        ListElement {
-                            name: qsTr("light")
-                        }
-                        ListElement {
-                            name: qsTr("dark")
-                        }
+        QA.SettingRow {
+            canInput: false
+            text: qsTr('theme mode')
+            below: MD.HorizontalListView {
+                id: m_theme_mode_view
+                expand: true
+                spacing: 8
+                implicitHeight: 40
+                model: ListModel {
+                    ListElement {
+                        name: qsTr("system")
                     }
-                    currentIndex: {
-                        const g = QA.Global;
-                        if (g.use_system_color_scheme) {
-                            return 0;
-                        } else {
-                            return g.color_scheme == MD.Enum.Light ? 1 : 2;
-                        }
+                    ListElement {
+                        name: qsTr("light")
                     }
-                    MD.ActionGroup {
-                        id: m_theme_mode_group
-                    }
-                    delegate: MD.InputChip {
-                        required property int index
-                        required property var model
-                        action: MD.Action {
-                            T.ActionGroup.group: m_theme_mode_group
-                            icon.name: ''
-                            checkable: false
-                            checked: m_theme_mode_view.currentIndex == index
-                            text: model.name
-                            onTriggered: {
-                                m_theme_mode_view.currentIndex = index;
-                                const g = QA.Global;
-                                if (index == 1) {
-                                    g.color_scheme = MD.Enum.Light;
-                                } else if (index == 2) {
-                                    g.color_scheme = MD.Enum.Dark;
-                                }
-                                g.use_system_color_scheme = index == 0;
-                            }
-                        }
+                    ListElement {
+                        name: qsTr("dark")
                     }
                 }
-            }
-            QA.SettingRow {
-                canInput: false
-                text: qsTr('accent color')
-                below: MD.HorizontalListView {
-                    id: m_accent_color_view
-                    expand: true
-                    spacing: 8
-                    implicitHeight: 40
-                    model: ListModel {
-                        ListElement {
-                            name: "system"
-                        }
-                        ListElement {
-                            name: "custom"
-                        }
+                currentIndex: {
+                    const g = QA.Global;
+                    if (g.use_system_color_scheme) {
+                        return 0;
+                    } else {
+                        return g.color_scheme == MD.Enum.Light ? 1 : 2;
                     }
-                    currentIndex: {
-                        const g = QA.Global;
-                        if (g.use_system_accent_color) {
-                            return 0;
-                        } else {
-                            return 1;
-                        }
-                    }
-                    MD.ActionGroup {
-                        id: m_color_group
-                        onTriggered: act => {
+                }
+                MD.ActionGroup {
+                    id: m_theme_mode_group
+                }
+                delegate: MD.InputChip {
+                    required property int index
+                    required property var model
+                    action: MD.Action {
+                        T.ActionGroup.group: m_theme_mode_group
+                        icon.name: ''
+                        checkable: false
+                        checked: m_theme_mode_view.currentIndex == index
+                        text: model.name
+                        onTriggered: {
+                            m_theme_mode_view.currentIndex = index;
                             const g = QA.Global;
-                            g.use_system_accent_color = actions[0] == act;
-                            m_theme_section.columnChanged();
-                        }
-                    }
-                    delegate: MD.InputChip {
-                        required property int index
-                        required property var model
-                        action: MD.Action {
-                            T.ActionGroup.group: m_color_group
-                            icon.name: ''
-                            checkable: true
-                            checked: m_accent_color_view.currentIndex == index
-                            text: model.name
+                            if (index == 1) {
+                                g.color_scheme = MD.Enum.Light;
+                            } else if (index == 2) {
+                                g.color_scheme = MD.Enum.Dark;
+                            }
+                            g.use_system_color_scheme = index == 0;
                         }
                     }
                 }
             }
-            QA.SettingRow {
-                canInput: false
-                visible: !QA.Global.use_system_accent_color
-                text: qsTr('custom accent color')
-                below: ColorSelectRow {}
-            }
-
-            QA.SettingRow {
-                canInput: false
-                text: qsTr('palette')
-                below: MD.HorizontalListView {
-                    id: m_palette_view
-                    expand: true
-                    spacing: 8
-                    implicitHeight: 40
-                    model: MD.PaletteModel {}
-                    currentIndex: QA.Global.palette_type
-                    MD.ActionGroup {
-                        id: m_palette_group
+        }
+        QA.SettingRow {
+            canInput: false
+            text: qsTr('accent color')
+            below: MD.HorizontalListView {
+                id: m_accent_color_view
+                expand: true
+                spacing: 8
+                implicitHeight: 40
+                model: ListModel {
+                    ListElement {
+                        name: "system"
                     }
-                    delegate: MD.InputChip {
-                        required property int index
-                        required property var model
-                        action: MD.Action {
-                            T.ActionGroup.group: m_palette_group
-                            icon.name: ''
-                            checkable: true
-                            checked: m_palette_view.currentIndex == index
-                            onCheckedChanged: function (c) {
-                                if (c) {
-                                    const g = QA.Global;
-                                    g.palette_type = index;
-                                }
+                    ListElement {
+                        name: "custom"
+                    }
+                }
+                currentIndex: {
+                    const g = QA.Global;
+                    if (g.use_system_accent_color) {
+                        return 0;
+                    } else {
+                        return 1;
+                    }
+                }
+                MD.ActionGroup {
+                    id: m_color_group
+                    onTriggered: act => {
+                        const g = QA.Global;
+                        g.use_system_accent_color = actions[0] == act;
+                        m_theme_section.columnChanged();
+                    }
+                }
+                delegate: MD.InputChip {
+                    required property int index
+                    required property var model
+                    action: MD.Action {
+                        T.ActionGroup.group: m_color_group
+                        icon.name: ''
+                        checkable: true
+                        checked: m_accent_color_view.currentIndex == index
+                        text: model.name
+                    }
+                }
+            }
+        }
+        QA.SettingRow {
+            canInput: false
+            visible: !QA.Global.use_system_accent_color
+            text: qsTr('custom accent color')
+            below: ColorSelectRow {}
+        }
+
+        QA.SettingRow {
+            canInput: false
+            text: qsTr('palette')
+            below: MD.HorizontalListView {
+                id: m_palette_view
+                expand: true
+                spacing: 8
+                implicitHeight: 40
+                model: MD.PaletteModel {}
+                currentIndex: QA.Global.palette_type
+                MD.ActionGroup {
+                    id: m_palette_group
+                }
+                delegate: MD.InputChip {
+                    required property int index
+                    required property var model
+                    action: MD.Action {
+                        T.ActionGroup.group: m_palette_group
+                        icon.name: ''
+                        checkable: true
+                        checked: m_palette_view.currentIndex == index
+                        onCheckedChanged: function (c) {
+                            if (c) {
+                                const g = QA.Global;
+                                g.palette_type = index;
                             }
-                            text: model.name
                         }
+                        text: model.name
                     }
                 }
             }

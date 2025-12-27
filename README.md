@@ -56,7 +56,7 @@ The following libraries were extracted and modularized during Qcm's development.
 - [rstd](https://github.com/hypengw/rstd.git)
 
 #### Third Libraries
-- [Qt](https://www.qt.io/)
+- [Qt](https://www.qt.io/) 6.10
 - [ffmpeg](https://www.ffmpeg.org/)
 - [curl](https://curl.se/)
 - [openssl](https://www.openssl.org/)
