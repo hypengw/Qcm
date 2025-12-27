@@ -14,6 +14,14 @@ QA.SettingBasePage {
         spacing: 2
 
         QA.SettingRow {
+            text: qsTr('Random Playback Mode')
+            supportText: qsTr('Truly random playback instead of shuffle')
+            trailing: MD.Switch {
+                checked: QA.App.playqueue.randomMode
+                onCheckedChanged: {
+                    QA.App.playqueue.randomMode = checked;
+                }
+            }
         }
     }
 }
