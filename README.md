@@ -106,7 +106,5 @@ cmake --install build
 
 ### Todo:
 - [ ] mac/win
-- [ ] offline mode
-- [ ] playing page colorpick
-- [ ] playing page blur
 - [ ] android
+- [ ] offline mode
