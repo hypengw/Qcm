@@ -9,6 +9,11 @@ MD.Action {
     text: qsTr('play all')
 
     property alias filters: m_qr.filters
+    property alias sort: m_qr.sort
+    property alias albumSort: m_qr.albumSort
+    property alias asc: m_qr.asc
+    property alias albumAsc: m_qr.albumAsc
+
     busy: m_qr.querying
 
     QA.PlayAllQuery {

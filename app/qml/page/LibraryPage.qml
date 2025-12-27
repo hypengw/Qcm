@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import Qcm.App as QA
 import Qcm.Material as MD
+import Qcm.Msg as QM
 
 MD.Page {
     id: root
@@ -71,11 +72,17 @@ MD.Page {
                     filterModel: m_album_filter_model
                     actions: [
                         QA.PlayAllAction {
+                            albumSort: qr_albums.sort
+                            albumAsc: qr_albums.asc
+                            filters: qr_albums.filters
+                        },
+                        QA.PlayAllAction {
+                            icon.name: MD.Token.icon.shuffle
+                            text: qsTr('shuffle all')
+                            albumSort: QM.AlbumSort.ALBUM_SORT_RANDOM
+                            albumAsc: qr_albums.asc
                             filters: qr_albums.filters
                         }
-                        // QA.ShuffleAllAction {}
-
-
                     ]
                 }
             }

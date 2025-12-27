@@ -62,7 +62,8 @@ void PlayQuery::reload() {
     }
 }
 
-PlayAllQuery::PlayAllQuery(QObject* parent): Query(parent) {}
+PlayAllQuery::PlayAllQuery(QObject* parent)
+    : Query(parent), m_sort(0), m_asc(true), m_album_sort(0), m_album_asc(true) {}
 
 auto PlayAllQuery::filters() const -> const QList<msg::filter::AlbumFilter>& { return m_filters; }
 void PlayAllQuery::setFilters(const QList<msg::filter::AlbumFilter>& in) {
@@ -75,10 +76,15 @@ void PlayAllQuery::setFilters(const QList<msg::filter::AlbumFilter>& in) {
 
 void PlayAllQuery::reload() {
     setStatus(Status::Querying);
-    auto app = App::instance();
+    auto app     = App::instance();
     auto backend = app->backend();
     auto req     = msg::GetSongIdsReq {};
     auto self    = helper::QWatcher { this };
+
+    req.setSort(rstd::into(m_sort));
+    req.setAlbumSort(rstd::into(m_album_sort));
+    req.setAsc(m_asc);
+    req.setAlbumAsc(m_album_asc);
     req.setAlbumFilters(m_filters);
     req.setLibraryIds(app->libraryStatus()->activedIds());
 
@@ -95,6 +101,35 @@ void PlayAllQuery::reload() {
         self->setStatus(Status::Finished);
         co_return;
     });
+}
+
+auto PlayAllQuery::asc() const noexcept -> bool { return m_asc; }
+auto PlayAllQuery::sort() const noexcept -> qint32 { return m_sort; }
+auto PlayAllQuery::albumSort() const noexcept -> qint32 { return m_album_sort; }
+auto PlayAllQuery::albumAsc() const noexcept -> bool { return m_album_asc; }
+
+void PlayAllQuery::setAsc(bool v) {
+    if (ycore::cmp_set(m_asc, v)) {
+        ascChanged();
+    }
+}
+
+void PlayAllQuery::setSort(qint32 v) {
+    if (ycore::cmp_set(m_sort, v)) {
+        sortChanged();
+    }
+}
+
+void PlayAllQuery::setAlbumSort(qint32 v) {
+    if (ycore::cmp_set(m_album_sort, v)) {
+        albumSortChanged();
+    }
+}
+
+void PlayAllQuery::setAlbumAsc(bool v) {
+    if (ycore::cmp_set(m_album_asc, v)) {
+        albumAscChanged();
+    }
 }
 
 } // namespace qcm

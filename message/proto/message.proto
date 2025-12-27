@@ -327,9 +327,12 @@ message GetSongIdsReq {
   qcm.msg.model.SongSort sort = 1;
   qcm.msg.model.AlbumSort album_sort = 2;
 
-  repeated int64 library_ids = 3;
-  repeated qcm.msg.filter.SongFilter filters = 4;
-  repeated qcm.msg.filter.AlbumFilter album_filters = 5;
+  bool asc = 3;
+  bool album_asc = 4;
+
+  repeated int64 library_ids = 5;
+  repeated qcm.msg.filter.SongFilter filters = 6;
+  repeated qcm.msg.filter.AlbumFilter album_filters = 7;
 }
 
 message GetSongIdsRsp { repeated int64 ids = 1; }
