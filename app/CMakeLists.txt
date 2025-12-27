@@ -4,7 +4,8 @@ set(APP_VERSION ${PROJECT_VERSION})
 set(APP_SUMMARY ${PROJECT_DESCRIPTION})
 set(APP_AUTHOR "hypengw")
 
-find_package(Qt6 REQUIRED COMPONENTS Quick ProtobufQuick ProtobufWellKnownTypes QuickPrivate)
+find_package(Qt6 REQUIRED COMPONENTS Quick ProtobufQuick ProtobufWellKnownTypes
+                                     QuickPrivate)
 
 qt_standard_project_setup()
 
@@ -341,6 +342,10 @@ elseif(LINUX)
     FILES "${CMAKE_CURRENT_BINARY_DIR}/${APP_METAINFO}"
     RENAME ${APP_ID}.metainfo.xml
     DESTINATION share/metainfo)
+  install(
+    FILES "assets/Qcm.releases.xml"
+    RENAME ${APP_ID}.releases.xml
+    DESTINATION share/metainfo/releases)
   install(
     FILES ${APP_SVG}
     RENAME ${APP_ID}.svg
