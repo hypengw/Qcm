@@ -165,6 +165,7 @@ set(QML_FILES
     qml/action/MixLinkAction.qml
     qml/action/FavoriteAction.qml
     qml/action/SelectDisplayModeAction.qml
+    qml/action/SyncItemAction.qml
     qml/action/FilterAction.qml
     qml/dialog/MixCreateDialog.qml
     qml/dialog/MixLinkDialog.qml

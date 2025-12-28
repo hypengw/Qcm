@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Layouts
 import Qcm.App as QA
 import Qcm.Material as MD
+import Qcm.Msg as QM
 
 MD.Page {
     id: root
@@ -83,6 +84,16 @@ MD.Page {
                             return QA.Util.collect_ids(qr_pl.data);
                         }
                     }
+                }
+                MD.BusyIconButton {
+                    action: QA.SyncItemAction {
+                        itemId: root.itemId
+                        enabled: root.mix.mixType !== QM.MixType.MIX_TYPE_NORMAL
+                        onFinished: {
+                            qr_pl.reload();
+                        }
+                    }
+                    visible: action.enabled
                 }
             }
         }

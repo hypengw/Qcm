@@ -155,6 +155,7 @@ QCM_MSG_TRAITS_REQ(GetSongsByIdReq, GetSongsByIdRsp, GET_SONGS_BY_ID_REQ, getSon
 QCM_MSG_TRAITS_RSP(GetSongsByIdRsp, GetSongsByIdReq, getSongsByIdRsp)
 QCM_MSG_TRAITS_REQ(GetSongIdsReq, GetSongIdsRsp, GET_SONG_IDS_REQ, getSongIdsReq)
 QCM_MSG_TRAITS_RSP(GetSongIdsRsp, GetSongIdsReq, getSongIdsRsp)
+QCM_MSG_TRAITS_REQ(SyncItemReq, Rsp, SYNC_ITEM_REQ, syncItemReq)
 
 template<>
 struct MsgTraits<msg::Rsp> {

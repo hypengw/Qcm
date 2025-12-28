@@ -80,6 +80,8 @@ enum MessageType {
   GET_SONGS_BY_ID_RSP = 401;
   GET_SONG_IDS_REQ = 402;
   GET_SONG_IDS_RSP = 403;
+
+  SYNC_ITEM_REQ = 500;
 }
 
 enum ErrorCode {
@@ -420,6 +422,8 @@ message UpdateMixReq {
   string name = 2;
 }
 
+message SyncItemReq { int64 id = 1; }
+
 message QcmMessage {
   MessageType type = 1;
   int32 id = 2;
@@ -496,5 +500,7 @@ message QcmMessage {
     GetSongsByIdRsp get_songs_by_id_rsp = 401;
     GetSongIdsReq get_song_ids_req = 402;
     GetSongIdsRsp get_song_ids_rsp = 403;
+
+    SyncItemReq sync_item_req = 500;
   }
 }
