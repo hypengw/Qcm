@@ -1,4 +1,13 @@
 <releases>
+  <release version="1.3.4" date="2025-12-28">
+    <description>
+      <p>fix playing all album order</p>
+      <p>support shuffle all album</p>
+      <p>support jellyfin mix</p>
+      <p>support random queue</p>
+      <p>support refreshing remote mix</p>
+    </description>
+  </release>
   <release version="1.3.3" date="2025-12-22"/>
   <release version="1.3.2" date="2025-12-14"/>
   <release version="1.1.2" date="2024-10-17"/>

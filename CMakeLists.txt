@@ -4,7 +4,7 @@ message(STATUS "PATH: $ENV{PATH}")
 
 project(
   Qcm
-  VERSION 1.3.3
+  VERSION 1.3.4
   LANGUAGES CXX
   HOMEPAGE_URL "https://github.com/hypengw/Qcm"
   DESCRIPTION "Material You cloud music player")
