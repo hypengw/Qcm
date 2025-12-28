@@ -296,6 +296,7 @@ target_link_libraries(
 set(APP_DESKTOP assets/Qcm.desktop)
 set(APP_METAINFO assets/Qcm.metainfo.xml)
 set(APP_SVG assets/Qcm.svg)
+file(READ assets/Qcm.releases.xml APP_RELEASES)
 configure_file(${APP_DESKTOP}.in ${APP_DESKTOP} @ONLY)
 configure_file(${APP_METAINFO}.in ${APP_METAINFO} @ONLY)
 
@@ -345,10 +346,6 @@ elseif(LINUX)
     FILES "${CMAKE_CURRENT_BINARY_DIR}/${APP_METAINFO}"
     RENAME ${APP_ID}.metainfo.xml
     DESTINATION share/metainfo)
-  install(
-    FILES "assets/Qcm.releases.xml"
-    RENAME ${APP_ID}.releases.xml
-    DESTINATION share/metainfo/releases)
   install(
     FILES ${APP_SVG}
     RENAME ${APP_ID}.svg
