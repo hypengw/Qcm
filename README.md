@@ -10,6 +10,7 @@ The backend process is managed by Qcm, you can use `--backend <path>` to set the
 A backend implementation can be found at [QcmBackend](https://github.com/hypengw/QcmBackend), which supports the following music services:
 
 - **Jellyfin**
+- **Subsonic(WIP)**
 - **Netease Cloud Music**
 
 ### Screenshots
@@ -105,6 +106,6 @@ cmake --install build
   ```
 
 ### Todo:
-- [ ] mac/win
+- [ ] mac
 - [ ] android
 - [ ] offline mode

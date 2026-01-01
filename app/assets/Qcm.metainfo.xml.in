@@ -31,7 +31,8 @@
     <category>Audio</category>
   </categories>
   <keywords>
-    <keyword>Netease</keyword>
+    <keyword>netease</keyword>
+    <keyword>jellyfin</keyword>
   </keywords>
   <content_rating type="oars-1.1"/>
 @APP_RELEASES@
