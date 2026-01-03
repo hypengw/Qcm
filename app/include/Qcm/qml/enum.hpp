@@ -184,7 +184,7 @@ Q_ENUM_NS(ProxyType)
 // DECLARE_CONVERT(std::string_view, qcm::enums::CollectionType, QCM_INTERFACE_API);
 
 template<>
-struct rstd::Impl<rstd::str::FromStr, qcm::enums::ItemType> {
+struct rstd::Impl<rstd::str_::FromStr, qcm::enums::ItemType> {
     using Err  = int;
     using Self = qcm::enums::ItemType;
     static auto from_str(ref_str str) -> rstd::Result<Self, Err> {
@@ -202,7 +202,7 @@ struct rstd::Impl<rstd::str::FromStr, qcm::enums::ItemType> {
 };
 
 template<>
-struct rstd::Impl<rstd::str::FromStr, qcm::enums::ImageType> {
+struct rstd::Impl<rstd::str_::FromStr, qcm::enums::ImageType> {
     using Err  = int;
     using Self = qcm::enums::ImageType;
     static auto from_str(ref_str str) -> rstd::Result<Self, Err> {
