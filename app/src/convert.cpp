@@ -1,10 +1,12 @@
-#include "Qcm/app.hpp"
-#include "Qcm/message/filter.qpb.h"
-#include "kstore/qt/meta_utils.hpp"
-
 #include <QtCore/QJsonValue>
 #include <QtCore/QJsonObject>
 #include <QtCore/QVariant>
+
+#include "Qcm/message/filter.qpb.h"
+#include "kstore/qt/meta_utils.hpp"
+
+#include "Qcm/app.hpp"
+
 
 namespace qcm
 {

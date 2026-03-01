@@ -8,7 +8,7 @@ else()
   FetchContent_Declare(
     rstd
     GIT_REPOSITORY https://github.com/hypengw/rstd.git
-    GIT_TAG e5425b0f50f300091bc990b66c13b1990c10ac74
+    GIT_TAG ab0209522447b0d5a9ae344c218e379b2ba8342c
     GIT_SHALLOW 0
     GIT_PROGRESS 1
     EXCLUDE_FROM_ALL)
@@ -24,7 +24,7 @@ if(NOT ASIO_FOUND)
   FetchContent_Declare(
     asio
     GIT_REPOSITORY https://github.com/chriskohlhoff/asio.git
-    GIT_TAG asio-1-34-0
+    GIT_TAG asio-1-36-0
     GIT_SHALLOW 1
     GIT_PROGRESS 1
     EXCLUDE_FROM_ALL)
@@ -57,7 +57,7 @@ else()
   FetchContent_Declare(
     ncrequest
     GIT_REPOSITORY https://github.com/hypengw/ncrequest.git
-    GIT_TAG f6d6c9cf7650731411708628f34ee422267c8e30
+    GIT_TAG 1a998fe03a0c808e015200706b557b75eee3191a
     GIT_SHALLOW 0
     GIT_PROGRESS 1
     EXCLUDE_FROM_ALL)
@@ -83,7 +83,7 @@ else()
     qml_material
     GIT_REPOSITORY https://github.com/hypengw/QmlMaterial.git
     GIT_TAG 872085dd6ffbb66b1e09549b12f8dc862d8619d7
-    GIT_SHALLOW 1
+    GIT_SHALLOW 0
     GIT_PROGRESS 1
     FIND_PACKAGE_ARGS GLOBAL)
   FetchContent_MakeAvailable(qml_material)

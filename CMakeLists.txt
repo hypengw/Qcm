@@ -53,6 +53,7 @@ endif()
 include(GNUInstallDirs)
 
 find_package(PkgConfig REQUIRED)
+find_package(Threads REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Core Quick ShaderTools)
 
 if(QT_KNOWN_POLICY_QTP0002)

@@ -46,7 +46,7 @@ private:
 };
 
 template<typename T>
-    requires rstd::meta::special_of<T, rstd::result::Result> &&
+    requires rstd::mtp::special_of<T, rstd::result::Result> &&
              requires(T::error_type err, std::source_location loc) {
                  { err.record(loc) };
              }

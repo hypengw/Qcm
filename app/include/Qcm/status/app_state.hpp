@@ -1,10 +1,10 @@
 #pragma once
 
-#include "core/core.h"
-
 #include <variant>
 #include <QQmlEngine>
 #include "Qcm/util/async.hpp"
+
+#include "core/core.h"
 
 namespace qcm
 {

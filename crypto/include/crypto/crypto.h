@@ -1,8 +1,10 @@
-#include "core/core.h"
+#pragma once
 
 #include <optional>
 #include <span>
 #include <functional>
+
+#include "core/core.h"
 
 struct evp_cipher_st;
 struct evp_md_st;

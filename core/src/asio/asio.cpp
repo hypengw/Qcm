@@ -1,4 +1,3 @@
-#include "core/core.h"
 
 // #ifdef __linux__
 // #    define ASIO_DECL C_DECL_EXPORT
@@ -7,11 +6,13 @@
 // #undef ASIO_DISABLE_VISIBILITY
 // 
 // #include <asio/impl/src.hpp>
-#include <asio/error.hpp>
 
-#include "core/log.h"
+#include <asio/error.hpp>
 #include "core/asio/detached_log.h"
 #include "core/asio/error.h"
+
+#include "core/core.h"
+#include "core/log.h"
 
 namespace helper
 {

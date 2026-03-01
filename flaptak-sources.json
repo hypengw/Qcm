@@ -5,7 +5,7 @@
     "type" : "inline"
   },
   {
-    "commit" : "e5425b0f50f300091bc990b66c13b1990c10ac74",
+    "commit" : "ab0209522447b0d5a9ae344c218e379b2ba8342c",
     "dest" : "build/_flatpak_deps/rstd-src",
     "disable-shallow-clone" : false,
     "type" : "git",
@@ -14,7 +14,7 @@
   {
     "dest" : "build/_flatpak_deps/asio-src",
     "disable-shallow-clone" : false,
-    "tag" : "asio-1-34-0",
+    "tag" : "asio-1-36-0",
     "type" : "git",
     "url" : "https://github.com/chriskohlhoff/asio.git"
   },
@@ -26,7 +26,7 @@
     "url" : "https://github.com/taocpp/PEGTL.git"
   },
   {
-    "commit" : "f6d6c9cf7650731411708628f34ee422267c8e30",
+    "commit" : "1a998fe03a0c808e015200706b557b75eee3191a",
     "dest" : "build/_flatpak_deps/ncrequest-src",
     "disable-shallow-clone" : false,
     "type" : "git",

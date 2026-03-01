@@ -1,4 +1,3 @@
-#include "Qcm/backend.hpp"
 
 #include <filesystem>
 #include <QtCore/QJsonDocument>
@@ -24,9 +23,9 @@ using stream_type = asio::posix::basic_stream_descriptor<T>;
 #include "Qcm/store.hpp"
 #include "Qcm/util/mem.hpp"
 #include "Qcm/store.hpp"
+#include "Qcm/backend.hpp"
 
 import ncrequest.event;
-import rstd.rc;
 import platform;
 
 namespace qcm
@@ -70,7 +69,7 @@ Backend::Backend(Arc<ncrequest::Session> session)
       m_port(0) {
     m_process->setWorkingDirectory(QCoreApplication::applicationDirPath());
     m_process->setProcessChannelMode(QProcess::ProcessChannelMode::ForwardedErrorChannel);
-    m_client->set_on_error_callback([](std::string_view err) {
+    m_client->set_on_error_callback([](auto err) {
         LOG_ERROR("{}", err);
     });
     m_client->set_on_connected_callback([this]() {

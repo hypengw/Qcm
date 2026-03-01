@@ -1,4 +1,3 @@
-#include "crypto.h"
 
 #include <openssl/conf.h>
 #include <openssl/evp.h>
@@ -11,6 +10,8 @@
 #include <string_view>
 #include <memory>
 #include <utility>
+
+#include "crypto.h"
 
 import qcm.helper;
 

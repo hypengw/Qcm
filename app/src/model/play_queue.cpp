@@ -130,7 +130,11 @@ auto PlayIdProxyQueue::mapToSource(int row) const -> int {
 auto PlayIdProxyQueue::mapFromSource(int row) const -> int {
     int proxy_row { -1 };
     if (useShuffle()) {
-        proxy_row = helper::to_optional(m_source_to_proxy, row).value_or(-1);
+        if (auto it = m_source_to_proxy.find(row); it != m_source_to_proxy.end()) {
+            proxy_row = it->second;
+        } else {
+            proxy_row = -1;
+        }
     } else {
         proxy_row = row;
     }
@@ -210,12 +214,12 @@ PlayQueue::PlayQueue(QObject* parent)
         setCurrentSong(idx);
 
         LOG_DEBUG("queue: current index changed to {}, id {}",
-                   idx,
-                   m_current_song.as_ref()
-                       .and_then([](auto& el) -> rstd::Option<i64> {
-                           return rstd::into(el.key());
-                       })
-                       .unwrap_or(-1));
+                  idx,
+                  m_current_song.as_ref()
+                      .and_then([](auto& el) -> rstd::Option<i64> {
+                          return rstd::into(el.key());
+                      })
+                      .unwrap_or(-1));
     });
     connect(m_proxy, &PlayIdProxyQueue::currentIndexChanged, this, &PlayQueue::checkCanMove);
     connect(this, &PlayQueue::loopModeChanged, m_proxy, [this] {

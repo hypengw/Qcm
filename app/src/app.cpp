@@ -1,4 +1,3 @@
-#include "Qcm/app.hpp"
 
 #include <cmath>
 #include <array>
@@ -46,6 +45,8 @@ import platform;
 #    include "mpris/mpris.h"
 #    include "mpris/mediaplayer2.h"
 #endif
+
+#include "Qcm/app.hpp"
 
 using namespace qcm;
 
@@ -389,9 +390,9 @@ albums: {}
 songs: {}
 artists: {}
 )",
-               store->albums.size(),
-               store->songs.size(),
-               store->artists.size());
+              store->albums.size(),
+              store->songs.size(),
+              store->artists.size());
 
     auto info = plt::mem_info();
     LOG_DEBUG(R"(
@@ -413,17 +414,17 @@ player:
 store:
   {}
 )",
-               as_mb(info.heap),
-               info.mmap_num,
-               as_mb(info.mmap),
-               as_mb(info.totle_in_use),
-               extra.property("pool_obj").toInt(),
-               image_response_count().load(),
-               print_mem_stat(mem_mgr().pool_stat),
-               print_mem_stat(mem_mgr().session_mem),
-               print_mem_stat(mem_mgr().backend_mem),
-               print_mem_stat(mem_mgr().player_mem),
-               print_mem_stat(mem_mgr().store_mem));
+              as_mb(info.heap),
+              info.mmap_num,
+              as_mb(info.mmap),
+              as_mb(info.totle_in_use),
+              extra.property("pool_obj").toInt(),
+              image_response_count().load(),
+              print_mem_stat(mem_mgr().pool_stat),
+              print_mem_stat(mem_mgr().session_mem),
+              print_mem_stat(mem_mgr().backend_mem),
+              print_mem_stat(mem_mgr().player_mem),
+              print_mem_stat(mem_mgr().store_mem));
 }
 
 qreal App::devicePixelRatio() const {

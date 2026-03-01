@@ -7,23 +7,24 @@
 #include <QString>
 
 using path = std::filesystem::path;
+namespace cppstd = rstd::cppstd;
 
 std::filesystem::path qcm::config_path() {
     auto locs = QStandardPaths::standardLocations(QStandardPaths::AppConfigLocation);
     _assert_(locs.size() > 0);
-    return std::filesystem::path(rstd::to_string(locs[0]));
+    return std::filesystem::path(locs[0].toStdString());
 }
 
 std::filesystem::path qcm::data_path() {
     auto locs = QStandardPaths::standardLocations(QStandardPaths::AppDataLocation);
     _assert_(locs.size() > 0);
-    return std::filesystem::path(rstd::to_string(locs[0]));
+    return std::filesystem::path(locs[0].toStdString());
 }
 
 std::filesystem::path qcm::cache_path() {
     auto locs = QStandardPaths::standardLocations(QStandardPaths::CacheLocation);
     _assert_(locs.size() > 0);
-    return std::filesystem::path(rstd::to_string(locs[0]));
+    return std::filesystem::path(locs[0].toStdString());
 }
 
 bool qcm::init_path(std::span<const std::filesystem::path> pathes) {
