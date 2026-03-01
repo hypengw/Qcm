@@ -90,4 +90,6 @@ compile_commands.json
 /third_party/qml_material
 /third_party/meta_model
 /third_party/kstore
+/third_party/rstd
+/third_party/ncrequest
 /pmap.sh

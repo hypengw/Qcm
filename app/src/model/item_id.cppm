@@ -1,6 +1,88 @@
-#include "Qcm/model/item_id.hpp"
-#include "core/qstr_helper.h"
+module;
+#include <QObject>
+#include <QUrl>
+#include <QQmlEngine>
+#include <QtProtobuf/qtprotobuftypes.h>
+
 #include "core/log.h"
+#include "core/qstr_helper.h"
+#include "Qcm/model/item_id.moc.h"
+
+#ifdef Q_MOC_RUN
+#include "Qcm/model/item_id.moc"
+#endif
+export module qcm.model.item_id;
+export import qcm.qml.enums;
+export import qcm.core;
+
+export namespace qcm::model
+{
+
+// itemid url
+// itemid://{id_type}/{id}
+class ItemId {
+    Q_GADGET
+    QML_VALUE_TYPE(item_id)
+    Q_PROPERTY(QtProtobuf::int64 id READ pid)
+    Q_PROPERTY(qcm::enums::ItemType type READ type WRITE setType)
+    Q_PROPERTY(QString sid READ idStr)
+    Q_PROPERTY(bool valid READ valid)
+    Q_PROPERTY(QUrl url READ toUrl)
+    Q_PROPERTY(QUrl pageUrl READ toPageUrl)
+public:
+    ItemId();
+    ItemId(std::nullptr_t);
+    ItemId(enums::ItemType, i64 id);
+
+    explicit ItemId(const QUrl&);
+    ItemId(const ItemId&)                = default;
+    ItemId& operator=(const ItemId&)     = default;
+    ItemId(ItemId&&) noexcept            = default;
+    ItemId& operator=(ItemId&&) noexcept = default;
+
+    ItemId& operator=(const QUrl&);
+
+    auto type() const -> enums::ItemType;
+    auto idStr() const -> QString;
+
+    auto id() const -> i64;
+    auto pid() const -> QtProtobuf::int64;
+
+    void setType(enums::ItemType);
+    void setId(i64);
+
+    void setType(QStringView);
+    void setId(QStringView);
+    void setUrl(const QUrl&);
+
+    std::strong_ordering operator<=>(const ItemId&) const noexcept;
+    bool                 operator==(const ItemId&) const noexcept;
+    bool                 operator==(const QUrl&) const;
+    bool                 operator==(std::string_view) const;
+    bool                 operator==(QStringView) const;
+
+    bool valid() const;
+    auto toUrl() const -> QUrl;
+
+    auto toPageUrl() const -> QUrl;
+
+    Q_INVOKABLE ItemId clone() const noexcept;
+
+    QString toString() const { return toUrl().toString(); }
+
+private:
+    enums::ItemType m_type;
+    i64             m_id;
+};
+} // namespace qcm::model
+
+template<>
+struct std::hash<qcm::model::ItemId> {
+    std::size_t operator()(const qcm::model::ItemId& k) const noexcept;
+};
+
+
+module :private;
 
 namespace qcm::model
 {
@@ -116,4 +198,4 @@ std::size_t std::hash<qcm::model::ItemId>::operator()(const qcm::model::ItemId& 
     return s;
 }
 
-#include <Qcm/model/moc_item_id.cpp>
+#include "Qcm/model/item_id.moc.cpp"

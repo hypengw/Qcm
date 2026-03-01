@@ -5,7 +5,7 @@
 
 #include "Qcm/model/router_msg.hpp"
 #include "Qcm/model/item_id.hpp"
-#include "Qcm/qml/enum.hpp"
+import qcm.qml.enums;
 #include "Qcm/message/filter.qpb.h"
 
 namespace qcm

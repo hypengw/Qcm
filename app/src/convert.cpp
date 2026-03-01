@@ -1,3 +1,4 @@
+module;
 #include <QtCore/QJsonValue>
 #include <QtCore/QJsonObject>
 #include <QtCore/QVariant>
@@ -6,7 +7,8 @@
 #include "kstore/qt/meta_utils.hpp"
 
 #include "Qcm/app.hpp"
-
+#include "Qcm/backend_msg.hpp"
+module qcm.app;
 
 namespace qcm
 {

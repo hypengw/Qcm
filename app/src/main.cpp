@@ -6,15 +6,18 @@
 #include <QDir>
 #include <QThread>
 
-#include "Qcm/app.hpp"
-#include "core/log.h"
-import platform;
-import qcm.log;
-
 #include <QtQml/QQmlExtensionPlugin>
 Q_IMPORT_QML_PLUGIN(Qcm_AppPlugin)
 
 #include <kdsingleapplication.h>
+
+#include "core/log.h"
+
+import qcm.app;
+import platform;
+import qcm.log;
+import ncrequest;
+
 
 namespace qcm
 {

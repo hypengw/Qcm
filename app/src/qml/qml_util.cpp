@@ -4,7 +4,7 @@
 #include <QtCore/QJsonObject>
 #include <QtQml/QJSValueIterator>
 
-#include "core/core.h"
+#include "core/log.h"
 #include "core/qstr_helper.h"
 #include "crypto/crypto.h"
 #include "core/asio/basic.h"

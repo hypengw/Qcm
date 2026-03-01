@@ -1,0 +1,139 @@
+module;
+#include <QQmlEngine>
+#include "Qcm/qml/enum.hpp"
+
+#include "core/log.h"
+
+#undef Q_ENUM_NS_IMPL
+#define Q_ENUM_NS_IMPL(ENUM)                                                         \
+    export inline constexpr const QMetaObject* qt_getEnumMetaObject(ENUM) noexcept { \
+        return &staticMetaObject;                                                    \
+    }                                                                                \
+    export inline constexpr const char* qt_getEnumName(ENUM) noexcept { return #ENUM; }
+
+export module qcm.qml.enums;
+export import qcm.core;
+export import qcm.helper;
+
+export namespace qcm::enums
+{
+using qcm::enums::ToastFlags;
+
+using qcm::enums::qt_getEnumMetaObject;
+using qcm::enums::qt_getEnumName;
+
+using qcm::enums::SpecialRoute;
+using qcm::enums::ApiStatus;
+using qcm::enums::AudioQuality;
+using qcm::enums::CollectionType;
+using qcm::enums::DisplayMode;
+using qcm::enums::ImageQuality;
+using qcm::enums::ImageType;
+using qcm::enums::ItemType;
+using qcm::enums::LoopMode;
+using qcm::enums::ManipulateMixAction;
+using qcm::enums::PlaybackState;
+using qcm::enums::PluginBasicPage;
+using qcm::enums::ProxyType;
+using qcm::enums::RecordAction;
+using qcm::enums::SearchLocation;
+using qcm::enums::SearchType;
+using qcm::enums::SyncListType;
+using qcm::enums::ToastFlag;
+
+} // namespace qcm::enums
+
+template<>
+struct rstd::Impl<rstd::str_::FromStr, qcm::enums::ItemType> {
+    using Err  = int;
+    using Self = qcm::enums::ItemType;
+    static auto from_str(ref_str str) -> rstd::Result<Self, Err> {
+        if (str == "Provider") return Ok(Self::ItemProvider);
+        if (str == "Library") return Ok(Self::ItemLibrary);
+        if (str == "Album") return Ok(Self::ItemAlbum);
+        if (str == "AlbumArtist") return Ok(Self::ItemAlbumArtist);
+        if (str == "Artist") return Ok(Self::ItemArtist);
+        if (str == "Mix") return Ok(Self::ItemMix);
+        if (str == "Radio") return Ok(Self::ItemRadio);
+        if (str == "Song") return Ok(Self::ItemSong);
+        if (str == "Program") return Ok(Self::ItemProgram);
+        return Ok(Self::ItemInvalid);
+    }
+};
+
+template<>
+struct rstd::Impl<rstd::str_::FromStr, qcm::enums::ImageType> {
+    using Err  = int;
+    using Self = qcm::enums::ImageType;
+    static auto from_str(ref_str str) -> rstd::Result<Self, Err> {
+        if (str == "Primary") return Ok(Self::ImagePrimary);
+        if (str == "Backdrop") return Ok(Self::ImageBackdrop);
+        if (str == "Banner") return Ok(Self::ImageBanner);
+        if (str == "Thumb") return Ok(Self::ImageThumb);
+        if (str == "Logo") return Ok(Self::ImageLogo);
+        return Ok(Self::ImagePrimary);
+    }
+};
+
+template<>
+struct std::formatter<qcm::enums::ItemType> : std::formatter<std::string_view> {
+    template<class FmtContext>
+    FmtContext::iterator format(qcm::enums::ItemType e, FmtContext& ctx) const {
+        std::string_view name;
+        using ItemType = qcm::enums::ItemType;
+        switch (e) {
+        case ItemType::ItemInvalid: name = "Invalid"; break;
+        case ItemType::ItemProvider: name = "Provider"; break;
+        case ItemType::ItemLibrary: name = "Library"; break;
+        case ItemType::ItemAlbum: name = "Album"; break;
+        case ItemType::ItemAlbumArtist: name = "AlbumArtist"; break;
+        case ItemType::ItemArtist: name = "Artist"; break;
+        case ItemType::ItemMix: name = "Mix"; break;
+        case ItemType::ItemRadio: name = "Radio"; break;
+        case ItemType::ItemSong: name = "Song"; break;
+        case ItemType::ItemProgram: name = "Program"; break;
+        }
+        return std::formatter<std::string_view>::format(name, ctx);
+    }
+};
+
+template<>
+struct std::formatter<qcm::enums::ImageType> : std::formatter<std::string_view> {
+    template<class FmtContext>
+    FmtContext::iterator format(qcm::enums::ImageType e, FmtContext& ctx) const {
+        std::string_view name;
+        using ImageType = qcm::enums::ImageType;
+        switch (e) {
+        case ImageType::ImagePrimary: name = "Primary"; break;
+        case ImageType::ImageBackdrop: name = "Backdrop"; break;
+        case ImageType::ImageBanner: name = "Banner"; break;
+        case ImageType::ImageThumb: name = "Thumb"; break;
+        case ImageType::ImageLogo: name = "Logo"; break;
+        }
+        return std::formatter<std::string_view>::format(name, ctx);
+    }
+};
+
+// IMPL_CONVERT(std::string_view, qcm::enums::CollectionType) {
+//     switch (in) {
+//     case in_type::CTAlbum: {
+//         out = "album"sv;
+//         break;
+//     }
+//     case in_type::CTArtist: {
+//         out = "artist"sv;
+//         break;
+//     }
+//     case in_type::CTPlaylist: {
+//         out = "playlist"sv;
+//         break;
+//     }
+//     case in_type::CTRadio: {
+//         out = "djradio"sv;
+//         break;
+//     }
+//     default: {
+//         _assert_rel_(false);
+//     }
+//     }
+// }

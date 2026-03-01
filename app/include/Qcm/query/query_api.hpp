@@ -6,7 +6,7 @@
 
 #include "Qcm/util/async.inl"
 #include "Qcm/macro.hpp"
-#include "Qcm/qml/enum.hpp"
+import qcm.qml.enums;
 #include "core/core.h"
 
 namespace qcm

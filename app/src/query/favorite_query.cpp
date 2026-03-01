@@ -1,7 +1,7 @@
 #include "Qcm/query/favorite_query.hpp"
 #include "Qcm/util/async.inl"
 #include "Qcm/app.hpp"
-#include "Qcm/store.hpp"
+import qcm.msg;
 #include "Qcm/backend.hpp"
 
 namespace qcm

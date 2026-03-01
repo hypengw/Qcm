@@ -1,13 +1,25 @@
-#pragma once
+module;
+#include <QtQml/QQmlEngine>
+#include <QtQml/QQmlPropertyMap>
 
-#include "Qcm/model/share_store.hpp"
+#include "google/protobuf/struct.qpb.h"
+#include "kstore/item_trait.hpp"
 
-#include "Qcm/backend_msg.hpp"
+#include "Qcm/util/mem.hpp"
+
+#ifdef Q_MOC_RUN
+#include "Qcm/msg/store.moc"
+#endif
+
+export module qcm.msg:store;
+export import :backend;
+export import qcm.model.share_store;
+export import qcm.util.global_static;
 
 namespace qcm
 {
 
-class AppStore : public QObject {
+export class AppStore : public QObject {
     Q_OBJECT
     QML_NAMED_ELEMENT(Store)
     QML_SINGLETON
@@ -43,7 +55,7 @@ extern const std::set<QStringView> MixJsonFields;
 extern const std::set<QStringView> SongJsonFields;
 } // namespace model
 
-template<typename T>
+export template<typename T>
 auto merge_store_extra(T& store, i64 key, const google::protobuf::Struct& in) {
     if (auto extend = store.query_extend(key); extend) {
         std::set<QStringView> const* json_fields { nullptr };

@@ -1,9 +1,11 @@
 #pragma once
 
 #include "kstore/qt/gadget_model.hpp"
-#include "Qcm/backend_msg.hpp"
+#include "Qcm/macro.hpp"
 #include "Qcm/query/query.hpp"
 #include "Qcm/model/list_models.hpp"
+
+import qcm.app;
 
 namespace qcm
 {

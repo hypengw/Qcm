@@ -1,6 +1,7 @@
-#include "Qcm/player.hpp"
-#include "Qcm/app.hpp"
-
+module;
+#include <chrono>
+#include <QVector2D>
+#include <QQmlEngine>
 #include <asio/use_future.hpp>
 
 #include <asio/thread_pool.hpp>
@@ -8,10 +9,120 @@
 #include "core/asio/basic.h"
 
 #include "core/qasio/qt_executor.h"
-#include "Qcm/util/ex.hpp"
-#include "Qcm/util/mem.hpp"
 #include "core/math.h"
 
+#include "player/player.h"
+#include "player/notify.h"
+
+#include "Qcm/player.moc.h"
+#ifdef Q_MOC_RUN
+#    include "Qcm/player.moc"
+#endif
+
+export module qcm.player;
+export import qcm.util.mem;
+export import qcm.qml.enums;
+
+namespace qcm
+{
+
+export class Player : public QObject {
+    Q_OBJECT
+    QML_NAMED_ELEMENT(QcmPlayer)
+
+    Q_PROPERTY(
+        QUrl source READ source WRITE set_source RESET reset_source NOTIFY sourceChanged FINAL)
+    Q_PROPERTY(int position READ position WRITE set_position NOTIFY positionChanged FINAL)
+    Q_PROPERTY(int duration READ duration NOTIFY durationChanged FINAL)
+    Q_PROPERTY(float volume READ volume WRITE set_volume NOTIFY volumeChanged FINAL)
+    Q_PROPERTY(uint fadeTime READ fadeTime WRITE set_fadeTime NOTIFY fadeTimeChanged FINAL)
+    Q_PROPERTY(qcm::enums::PlaybackState playbackState READ playback_state NOTIFY
+                   playbackStateChanged FINAL)
+    Q_PROPERTY(bool busy READ busy NOTIFY busyChanged FINAL)
+    Q_PROPERTY(QVector2D cacheProgress READ cache_progress NOTIFY cacheProgressChanged FINAL)
+
+    Q_PROPERTY(bool seekable READ seekable CONSTANT FINAL)
+    Q_PROPERTY(bool playing READ playing NOTIFY playbackStateChanged FINAL)
+
+public:
+    using NotifyInfo = player::notify::info;
+    class NotifyChannel;
+    using PlaybackState = enums::PlaybackState;
+    using executor_type = asio::thread_pool::executor_type;
+    using channel_type =
+        asio::experimental::concurrent_channel<executor_type, void(asio::error_code, NotifyInfo)>;
+
+    explicit Player(executor_type ex, MemResourceMgr*, QObject* = nullptr);
+    ~Player();
+
+    void close();
+
+    const QUrl& source() const;
+    auto        position() const -> int;
+    auto        duration() const -> int;
+    auto        busy() const -> bool;
+    auto        playback_state() const -> PlaybackState;
+    auto        volume() const -> float;
+    auto        fadeTime() const -> u32;
+    auto        cache_progress() const -> QVector2D;
+
+    auto seekable() const -> bool;
+    auto playing() const -> bool;
+
+    auto sender() const -> Sender<NotifyInfo>;
+    auto is_end() const noexcept -> bool { return m_end; }
+    auto process_msg() -> task<void>;
+
+    Q_SIGNAL void sourceChanged();
+    Q_SIGNAL void positionChanged();
+    Q_SIGNAL void durationChanged();
+    Q_SIGNAL void volumeChanged(float);
+    Q_SIGNAL void fadeTimeChanged(u32);
+    Q_SIGNAL void busyChanged();
+    Q_SIGNAL void playbackStateChanged(PlaybackState old, PlaybackState new_);
+    Q_SIGNAL void cacheProgressChanged();
+    Q_SIGNAL void seeked(double position);
+    Q_SIGNAL void notify(NotifyInfo);
+
+    Q_SLOT void processNotify(NotifyInfo);
+    Q_SLOT void set_source(const QUrl&);
+    Q_SLOT void reset_source();
+    Q_SLOT void set_position(int);
+    Q_SLOT void set_busy(bool);
+    Q_SLOT void set_volume(float);
+    Q_SLOT void set_fadeTime(u32);
+    Q_SLOT void seek(double pos);
+
+    Q_SLOT void toggle();
+    Q_SLOT void play();
+    Q_SLOT void pause();
+    Q_SLOT void stop();
+
+    void set_position_raw(int);
+
+private:
+    void set_playback_state(PlaybackState);
+    void set_duration(int);
+    void set_cache_progress(QVector2D);
+
+private:
+    up<player::Player> m_player;
+    QUrl               m_source;
+    rc<NotifyChannel>  m_channel;
+    bool               m_end;
+
+    std::atomic<std::chrono::steady_clock::time_point> m_last_time;
+
+    std::atomic<int> m_position;
+    int              m_duration;
+    bool             m_busy;
+    PlaybackState    m_playback_state;
+    QVector2D        m_cache_progress;
+};
+
+} // namespace qcm
+
+module :private;
 using namespace qcm;
 using NotifyInfo = player::notify::info;
 
@@ -23,9 +134,6 @@ constexpr usize MaxChannelSize { 64 };
 
 class Player::NotifyChannel : public detail::Sender<NotifyInfo> {
 public:
-    using channel_type = asio::experimental::concurrent_channel<asio::thread_pool::executor_type,
-                                                                void(asio::error_code, NotifyInfo)>;
-
     NotifyChannel(rc<channel_type> ch): m_channel(ch), m_strand(ch->get_executor()) {}
     virtual ~NotifyChannel() {}
 
@@ -50,10 +158,24 @@ private:
     asio::strand<channel_type::executor_type> m_strand;
 };
 
-Player::Player(QObject* parent)
+auto Player::process_msg() -> task<void> {
+    auto channel = m_channel->channel();
+    while (! is_end()) {
+        auto [ec, info] = co_await channel->async_receive(asio::as_tuple(asio::use_awaitable));
+        if (! ec) {
+            if (const auto* pos = std::get_if<player::notify::position>(&info)) {
+                set_position_raw(pos->value);
+            } else {
+                emit notify(info);
+            }
+        }
+    }
+    co_return;
+}
+
+Player::Player(executor_type ex, MemResourceMgr* mem, QObject* parent)
     : QObject(parent),
-      m_channel(make_rc<NotifyChannel>(
-          make_rc<NotifyChannel::channel_type>(qcm::pool_executor(), MaxChannelSize))),
+      m_channel(make_rc<NotifyChannel>(make_rc<channel_type>(ex, MaxChannelSize))),
       m_end(false),
       m_last_time(std::chrono::steady_clock::now()),
       m_position(0),
@@ -62,33 +184,12 @@ Player::Player(QObject* parent)
       m_playback_state(PlaybackState::StoppedState) {
     connect(this, &Player::notify, this, &Player::processNotify, Qt::QueuedConnection);
 
-    auto channel = m_channel->channel();
-    m_player     = std::make_unique<player::Player>(
-        APP_NAME, player::Notifier(m_channel), qcm::pool_executor(), mem_mgr().player_mem);
-
-    auto qt_exec = qcm::qexecutor();
-    asio::co_spawn(
-        asio::strand<NotifyChannel::channel_type::executor_type>(channel->get_executor()),
-        [this, channel]() -> asio::awaitable<void> {
-            while (! m_end) {
-                auto [ec, info] =
-                    co_await channel->async_receive(asio::as_tuple(asio::use_awaitable));
-                if (! ec) {
-                    if (const auto* pos = std::get_if<player::notify::position>(&info)) {
-                        set_position_raw(pos->value);
-                    } else {
-                        emit notify(info);
-                    }
-                }
-            }
-            co_return;
-        },
-        helper::asio_detached_log_t {});
+    m_player = std::make_unique<player::Player>(
+        APP_NAME, player::Notifier(m_channel), ex, mem->player_mem);
 }
 Player::~Player() {
     if (! m_end) close();
 }
-
 void Player::close() {
     m_end = true;
     m_channel->cancel();
@@ -250,4 +351,4 @@ void Player::processNotify(NotifyInfo info) {
                info);
 }
 
-#include <Qcm/moc_player.cpp>
+#include "Qcm/player.moc.cpp"

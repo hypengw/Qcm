@@ -7,36 +7,21 @@ set(APP_AUTHOR "hypengw")
 find_package(Qt6 REQUIRED COMPONENTS Quick ProtobufQuick ProtobufWellKnownTypes
                                      QuickPrivate)
 
+include(${CMAKE_SOURCE_DIR}/cmake/SplitMocFiles.cmake)
+
 qt_standard_project_setup()
 
+set(SOURCES2 src/backend.cpp src/msg/mod.cpp)
+
 set(SOURCES
-    src/action.cpp
-    src/app.cpp
-    src/store.cpp
-    src/player.cpp
-    src/backend.cpp
-    src/notifier.cpp
-    src/global.cpp
+    include/Qcm/qml/enum.hpp
+    src/qml_register.cpp
     src/convert.cpp
     src/qml/clipboard.cpp
     src/qml/qml_util.cpp
-    src/qml/enum.cpp
     src/qml/duration.cpp
     src/qml/foreign.cpp
-    src/model/filter_rule_model.cpp
     src/model/lyric.cpp
-    src/model/page_model.cpp
-    src/model/play_queue.cpp
-    src/model/id_queue.cpp
-    src/model/router_msg.cpp
-    src/model/app_info.cpp
-    src/model/empty_model.cpp
-    src/model/item_id.cpp
-    src/model/store_item.cpp
-    src/model/list_models.cpp
-    src/model/sort_filter.cpp
-    src/model/table_proxy.cpp
-    src/util/global_static.cpp
     src/util/path.cpp
     src/query/album_query.cpp
     src/query/artist_query.cpp
@@ -54,11 +39,39 @@ set(SOURCES
     src/image_provider/response.cpp
     src/image_provider/http.cpp
     src/image_provider/qr.cpp
-    src/status/provider.cpp
-    src/status/process.cpp
-    src/status/app_state.cpp)
+    src/status/process.cpp)
 
-set(MODULES src/mod.cppm)
+set(MOC_SOURCE_FILES
+    src/model/app_info.cppm
+    src/model/empty_model.cppm
+    src/model/item_id.cppm
+    src/model/page_model.cppm
+    src/model/router_msg.cppm
+    src/model/play_queue.cppm
+    src/model/table_proxy.cppm
+    src/model/id_queue.cppm
+    src/model/store_item.cppm
+    src/model/list_models.cppm
+    src/model/filter_rule_model.cppm
+    src/model/sort_filter.cppm
+    src/status/provider.cppm
+    src/status/app_state.cppm
+    src/msg/backend_msg.cppm
+    src/msg/store.cppm
+    src/backend.cppm
+    src/notifier.cppm
+    src/app.cppm
+    src/global.cppm
+    src/player.cppm
+    src/action.cppm)
+set(MODULES
+    src/mod.cppm
+    src/model/share_store.cppm
+    src/msg/mod.cppm
+    src/util/global_static.cppm
+    src/util/mem.cppm
+    src/qml/enum.cppm
+    src/qt.cppm)
 
 set(QML_FILES
     qml/PlayBar.qml
@@ -200,12 +213,9 @@ set_source_files_properties(qml/Global.qml PROPERTIES QT_QML_SINGLETON_TYPE
                                                       TRUE)
 
 set(QML_REG_INCLUDE_DIRS
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm/qml"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm/model"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm/query"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm/status"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/qcm_interface")
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/Qcm/register")
 
 set(APP_INFO_MACROS
     APP_ID="${APP_ID}" APP_VERSION="${APP_VERSION}" APP_AUTHOR="${APP_AUTHOR}"
@@ -235,18 +245,32 @@ qt_add_qml_module(
   NO_PLUGIN_OPTIONAL)
 
 target_sources(app PRIVATE $<$<CONFIG:Debug>:src/util/QmlStackTraceHelper.cpp>)
-target_sources(app PRIVATE FILE_SET CXX_MODULES FILES ${MODULES})
+target_sources(app PRIVATE ${SOURCES2})
+target_sources(app PUBLIC FILE_SET CXX_MODULES FILES ${MODULES}
+                          ${MOC_SOURCE_FILES})
 
 set_source_files_properties(
   "${CMAKE_CURRENT_BINARY_DIR}/app_qmltyperegistrations.cpp" TARGET_DIRECTORY
   app PROPERTIES INCLUDE_DIRECTORIES "${QML_REG_INCLUDE_DIRS}")
 
+set_source_files_properties(${SOURCES2} PROPERTIES SKIP_AUTOMOC ON)
+
 set_source_files_properties(
-  src/player.cpp src/global.cpp src/app.cpp src/qml/qml_util.cpp
+  src/player.cppm src/global.cppm src/app.cppm src/qml/qml_util.cpp
   src/model/app_info.cpp PROPERTIES COMPILE_DEFINITIONS "${APP_INFO_MACROS}")
 
 # QT_QMLCACHEGEN_ARGUMENTS "--only-bytecode"
 set_target_properties(app PROPERTIES CXX_SCAN_FOR_MODULES ON)
+
+split_moc_files(
+  TARGET
+  app
+  BASE_DIR
+  src
+  PREFIX
+  Qcm
+  MOC_SOURCE_FILES
+  ${MOC_SOURCE_FILES})
 
 target_compile_definitions(
   app
@@ -266,7 +290,8 @@ target_link_libraries(qcm.log PUBLIC core)
 target_include_directories(
   app
   PUBLIC include
-  PRIVATE src/)
+  PRIVATE . # src/
+)
 target_link_libraries(
   app
   PUBLIC Qt6::Core

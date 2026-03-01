@@ -1,7 +1,93 @@
-#include "Qcm/model/filter_rule_model.hpp"
-
+module;
 #include "kstore/qt/meta_utils.hpp"
 #include <QtCore/QJsonArray>
+#include <QtCore/QAbstractListModel>
+#include <QtQml/QQmlEngine>
+
+#include "Qcm/model/filter_rule_model.moc.h"
+#ifdef Q_MOC_RUN
+#include "Qcm/model/filter_rule_model.moc"
+#endif
+
+#include "Qcm/message/filter.qpb.h"
+#include "kstore/qt/gadget_model.hpp"
+
+export module qcm.model.filter_rule_model;
+export namespace qcm
+{
+
+class FilterRuleModel : public kstore::QGadgetListModel {
+    Q_OBJECT
+    QML_ELEMENT
+    QML_UNCREATABLE("")
+
+    Q_PROPERTY(bool dirty READ dirty NOTIFY dirtyChanged FINAL)
+public:
+    FilterRuleModel(kstore::QListInterface* list, QObject* = nullptr);
+    ~FilterRuleModel();
+
+    Q_SIGNAL void apply();
+    Q_SIGNAL void reset();
+
+    Q_INVOKABLE QString toJson() const;
+    Q_SLOT void         fromJson(const QString&);
+
+    auto toJsonDocument() const -> QJsonDocument;
+    void fromJsonDocument(const QJsonDocument&);
+
+    auto          dirty() const noexcept -> bool { return m_dirty; }
+    void          setDirty(bool v);
+    Q_SIGNAL void dirtyChanged();
+
+private:
+    virtual void fromVariantlist(const QVariantList& v) = 0;
+
+    Q_SLOT void markDirty();
+    bool        m_dirty;
+};
+
+class AlbumFilterRuleModel
+    : public FilterRuleModel,
+      public kstore::QMetaListModelCRTP<msg::filter::AlbumFilter, AlbumFilterRuleModel,
+                                        kstore::ListStoreType::Vector> {
+    Q_OBJECT
+    QML_ELEMENT
+public:
+    AlbumFilterRuleModel(QObject* = nullptr);
+    ~AlbumFilterRuleModel();
+
+    void fromVariantlist(const QVariantList& v) override;
+};
+
+class ArtistFilterRuleModel
+    : public FilterRuleModel,
+      public kstore::QMetaListModelCRTP<msg::filter::ArtistFilter, ArtistFilterRuleModel,
+                                        kstore::ListStoreType::Vector> {
+    Q_OBJECT
+    QML_ELEMENT
+public:
+    ArtistFilterRuleModel(QObject* = nullptr);
+    ~ArtistFilterRuleModel();
+
+    void fromVariantlist(const QVariantList& v) override;
+};
+
+class MixFilterRuleModel
+    : public FilterRuleModel,
+      public kstore::QMetaListModelCRTP<msg::filter::MixFilter, MixFilterRuleModel,
+                                        kstore::ListStoreType::Vector> {
+    Q_OBJECT
+    QML_ELEMENT
+public:
+    MixFilterRuleModel(QObject* = nullptr);
+    ~MixFilterRuleModel();
+
+    void fromVariantlist(const QVariantList& v) override;
+};
+
+} // namespace qcm
+
+module :private;
 
 namespace qcm
 {
@@ -97,4 +183,4 @@ void MixFilterRuleModel::fromVariantlist(const QVariantList& v) {
 
 } // namespace qcm
 
-#include "Qcm/model/moc_filter_rule_model.cpp"
+#include "Qcm/model/filter_rule_model.moc.cpp"

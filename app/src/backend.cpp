@@ -1,32 +1,48 @@
-
+module;
+#include <set>
 #include <filesystem>
-#include <QtCore/QJsonDocument>
-#include <QtCore/QJsonObject>
-#include <QtCore/QMetaEnum>
-#include <QtCore/QTextStream>
+#include <QQmlPropertyMap>
+#include <QVariant>
+#include <QStringView>
+#include <QJsonDocument>
+#include <QProcess>
+#include <QProtobufSerializer>
+#include <QSettings>
 
-#include <asio/dispatch.hpp>
+#include "Qcm/status/provider.moc.h"
+#include "Qcm/status/process.hpp"
+
+#include "kstore/qt/gadget_model.hpp"
+
+#include "core/asio/task.h"
+#include "core/asio/basic.h"
+#include "core/qasio/qt_execution_context.h"
+#include "core/qasio/qt_watcher.h"
+#include "std23/move_only_function.h"
 
 #ifdef _WIN32
 #    include <asio/generic/stream_protocol.hpp>
-template<typename T>
-using stream_type = asio::basic_stream_socket<asio::generic::stream_protocol, T>;
 #else
 #    include <asio/posix/stream_descriptor.hpp>
-template<typename T>
-using stream_type = asio::posix::basic_stream_descriptor<T>;
 #endif
 
 #include "core/log.h"
-#include "core/qstr_helper.h"
-#include "Qcm/status/process.hpp"
-#include "Qcm/store.hpp"
-#include "Qcm/util/mem.hpp"
-#include "Qcm/store.hpp"
-#include "Qcm/backend.hpp"
 
-import ncrequest.event;
-import platform;
+module qcm.app;
+import :status.provider;
+import :backend;
+import qcm.msg;
+
+using namespace qcm;
+using namespace Qt::Literals::StringLiterals;
+
+#ifdef _WIN32
+template<typename T>
+using stream_type = asio::basic_stream_socket<asio::generic::stream_protocol, T>;
+#else
+template<typename T>
+using stream_type = asio::posix::basic_stream_descriptor<T>;
+#endif
 
 namespace qcm
 {
@@ -263,86 +279,808 @@ auto Backend::serial() -> i32 {
     return cur;
 }
 
-void msg::merge_extra(QQmlPropertyMap& extra, const google::protobuf::Struct& in,
-                      const std::set<QStringView>& is_json_field) {
-    auto it  = in.fields().cbegin();
-    auto end = in.fields().cend();
-    for (; it != end; it++) {
-        auto     key = it.key();
-        QVariant val;
-        if (is_json_field.contains(key)) {
-            if (it.value().hasStringValue()) {
-                auto json = QJsonDocument::fromJson(it.value().stringValue().toUtf8());
-                val       = json.toVariant();
-            } else {
-                LOG_WARN("wrong field");
-            }
+} // namespace qcm
+
+namespace qcm
+{
+ProviderMetaStatusModel::ProviderMetaStatusModel(QObject* parent)
+    : kstore::QGadgetListModel(this, parent) {}
+ProviderMetaStatusModel::~ProviderMetaStatusModel() {}
+ProviderStatusModel::ProviderStatusModel(QObject* parent)
+    : kstore::QGadgetListModel(this, parent),
+      m_syncing(false),
+      m_lib_status(new LibraryStatus(this)) {
+    connect(m_lib_status,
+            &LibraryStatus::activedChanged,
+            this,
+            &ProviderStatusModel::libraryStatusChanged);
+}
+ProviderStatusModel::~ProviderStatusModel() {}
+
+void ProviderStatusModel::updateSyncStatus(const msg::model::ProviderSyncStatus& s) {
+    static auto role = Qt::UserRole + 1 +
+                       msg::model::ProviderStatus::staticMetaObject.indexOfProperty("syncStatus");
+    auto id = s.id_proto();
+    if (auto v = this->query(id); v) {
+        auto& value = *v;
+        value.setSyncStatus(s);
+
+        if (s.state() == msg::model::SyncStateGadget::SyncState::SYNC_STATE_SYNCING) {
+            setSyncing(true);
         } else {
-            val = rstd::into(it.value());
+            checkSyncing();
         }
-        extra.insert(key, std::move(val));
+
+        if (auto idx = this->query_idx(id); idx) {
+            auto qidx = this->index(*idx);
+            dataChanged(qidx, qidx, { role });
+        }
+    }
+}
+
+auto ProviderStatusModel::metaById(const model::ItemId& item_id) const -> QVariant {
+    auto p = this->query(item_id.id());
+    if (p) {
+        auto metas = App::instance()->provider_meta_status();
+        if (auto m = metas->query(p->typeName())) {
+            return QVariant::fromValue(*m);
+        }
+    }
+    return {};
+}
+
+auto ProviderStatusModel::svg(qint32 idx) const -> QString {
+    if (this->rowCount() > idx && idx >= 0) {
+        auto& p     = this->at(idx);
+        auto  metas = App::instance()->provider_meta_status();
+        if (auto m = metas->query(p.typeName())) {
+            return m->svg();
+        }
+    }
+    return "";
+}
+
+auto ProviderStatusModel::svg(const model::ItemId& item_id) const -> QString {
+    auto p = this->query(item_id.id());
+    if (p) {
+        auto metas = App::instance()->provider_meta_status();
+        if (auto m = metas->query(p->typeName())) {
+            return m->svg();
+        }
+    }
+    return "";
+}
+
+QVariant ProviderStatusModel::itemById(const model::ItemId& item_id) const {
+    auto p = this->query(item_id.id());
+    if (p) return QVariant::fromValue(*p);
+    return {};
+}
+
+auto ProviderStatusModel::syncing() const -> bool { return m_syncing; }
+
+void ProviderStatusModel::setSyncing(bool v) {
+    if (m_syncing != v) {
+        m_syncing = v;
+        syncingChanged(v);
+    }
+}
+void ProviderStatusModel::checkSyncing() {
+    bool out = false;
+    for (auto i = 0; i < rowCount(); i++) {
+        auto& p = this->at(i);
+        if (p.syncStatus().state() == msg::model::SyncStateGadget::SyncState::SYNC_STATE_SYNCING) {
+            out = true;
+            break;
+        }
+    }
+    setSyncing(out);
+}
+
+auto ProviderStatusModel::libraryStatus() const -> LibraryStatus* { return m_lib_status; }
+
+static constexpr std::string_view inactived_library_key { "provider/inactived_libraries" };
+LibraryStatus::LibraryStatus(QObject* parent): QObject(parent) {
+    QSettings s;
+    for (const auto& v : s.value(inactived_library_key).toStringList()) {
+        m_inactived.insert(v.toLongLong());
+    }
+
+    connect(this, &LibraryStatus::activedChanged, this, &LibraryStatus::activedIdsChanged);
+    connect(this, &LibraryStatus::activedChanged, this, [this](i64, bool) {
+        QSettings   s;
+        QStringList list;
+        for (auto el : m_inactived) list.emplaceBack(QString::number(el));
+        s.setValue(inactived_library_key, list);
+    });
+}
+LibraryStatus::~LibraryStatus() {}
+
+auto LibraryStatus::activedIds() -> const QtProtobuf::int64List& {
+    m_ids.clear();
+    auto p = App::instance()->provider_status();
+    for (auto i = 0; i < p->rowCount(); i++) {
+        auto& provider = p->at(i);
+        for (auto& l : provider.libraries()) {
+            auto id = l.libraryId();
+            if (actived(id)) m_ids.emplaceBack(id);
+        }
+    }
+    return m_ids;
+}
+
+bool LibraryStatus::actived(i64 id) const { return ! m_inactived.contains(id); }
+void LibraryStatus::setActived(i64 id, bool v) {
+    bool has = ! m_inactived.contains(id);
+    if (has != v) {
+        if (has) {
+            m_inactived.insert(id);
+        } else {
+            m_inactived.erase(id);
+        }
+        activedChanged(id, v);
     }
 }
 } // namespace qcm
 
-auto rstd::Impl<rstd::convert::From<google::protobuf::Value>, QVariant>::from(
-    google::protobuf::Value val) -> QVariant {
-    using KindFields = google::protobuf::Value::KindFields;
-    switch (val.kindField()) {
-    case KindFields::ListValue: {
-        QVariantList list;
-        for (auto& el : val.listValue().values()) {
-            list.push_back(rstd::into(el));
-        }
-        return list;
-    }
-    case KindFields::StructValue: {
-        QVariantMap map;
-        auto        it  = val.structValue().fields().cbegin();
-        auto        end = val.structValue().fields().cend();
-        for (; it != end; it++) {
-            map.insert(it.key(), rstd::into(it.value()));
-        }
-        return map;
-    }
-    case KindFields::NumberValue: {
-        return val.numberValue();
-    }
-    case KindFields::StringValue: {
-        return val.stringValue();
-    }
-    case KindFields::BoolValue: {
-        return val.boolValue();
-    }
-    case KindFields::NullValue:
-    default: {
-        return {};
-    }
-    }
-}
 
-auto rstd::Impl<rstd::convert::From<qcm::enums::ItemType>,
-                qcm::msg::model::ItemTypeGadget::ItemType>::from(in_t t) -> out_t {
-    return (out_t)(i32)(t);
-}
 
-namespace qcm::model
+namespace qcm
 {
 
-auto Song::albumName() const -> QString {
-    auto ex = AppStore::instance()->extra(itemId());
-    if (ex) {
-        auto al  = ex->value("album");
-        auto map = al.toMap();
-        return map.value("name", {}).toString();
+namespace
+{
+auto get_hash(const model::ItemId& id) -> usize { return std::hash<model::ItemId> {}(id); }
+} // namespace
+
+PlayIdQueue::PlayIdQueue(QObject* parent): model::IdQueue(parent) { setOptions(Options(~0)); }
+PlayIdQueue::~PlayIdQueue() {}
+
+PlayIdProxyQueue::PlayIdProxyQueue(QObject* parent)
+    : QIdentityProxyModel(parent), m_support_shuffle(true), m_current_index(-1), m_shuffle(true) {
+    connect(this, &PlayIdProxyQueue::shuffleChanged, this, &PlayIdProxyQueue::reShuffle);
+    connect(this, &PlayIdProxyQueue::layoutChanged, this, [this] {
+        if (m_shuffle.hasBinding()) m_shuffle.notify();
+    });
+}
+
+PlayIdProxyQueue::~PlayIdProxyQueue() {}
+void PlayIdProxyQueue::setSourceModel(QAbstractItemModel* source_model) {
+    auto old = sourceModel();
+    if (old == source_model) return;
+
+    QIdentityProxyModel::setSourceModel(source_model);
+#ifdef _WIN32
+    connect(source_model,
+            SIGNAL(currentIndexChanged(qint32)),
+            this,
+            SLOT(setCurrentIndexFromSource(qint32)));
+#else
+    QBindable<qint32> source_idx(source_model, "currentIndex");
+    m_current_index.setBinding([source_idx, this] {
+        auto source = source_idx.value();
+        return m_shuffle.value() && m_support_shuffle.value() ? mapFromSource(source) : source;
+    });
+#endif
+
+    shuffleSync();
+
+    auto options      = source_model->property("options").value<model::IdQueue::Options>();
+    m_support_shuffle = options.testFlag(model::IdQueue::Option::SupportShuffle);
+    if (old) {
+        disconnect(
+            old, &QAbstractItemModel::rowsInserted, this, &PlayIdProxyQueue::onSourceRowsInserted);
+        disconnect(
+            old, &QAbstractItemModel::rowsRemoved, this, &PlayIdProxyQueue::onSourceRowsRemoved);
+        disconnect(old, &QAbstractItemModel::rowsMoved, this, &PlayIdProxyQueue::onSourceRowsMoved);
+        disconnect(old,
+                   &QAbstractItemModel::rowsAboutToBeInserted,
+                   this,
+                   &PlayIdProxyQueue::onSourceRowsAboutToBeInserted);
     }
+    connect(source_model,
+            &QAbstractItemModel::rowsInserted,
+            this,
+            &PlayIdProxyQueue::onSourceRowsInserted);
+    connect(source_model,
+            &QAbstractItemModel::rowsAboutToBeInserted,
+            this,
+            &PlayIdProxyQueue::onSourceRowsAboutToBeInserted);
+    connect(source_model,
+            &QAbstractItemModel::rowsRemoved,
+            this,
+            &PlayIdProxyQueue::onSourceRowsRemoved);
+    connect(
+        source_model, &QAbstractItemModel::rowsMoved, this, &PlayIdProxyQueue::onSourceRowsMoved);
+}
+
+auto PlayIdProxyQueue::shuffle() const -> bool { return m_shuffle.value(); }
+void PlayIdProxyQueue::setShuffle(bool v) { m_shuffle = v; }
+auto PlayIdProxyQueue::bindableShuffle() -> QBindable<bool> { return &m_shuffle; }
+auto PlayIdProxyQueue::useShuffle() const -> bool { return m_support_shuffle && shuffle(); }
+
+auto PlayIdProxyQueue::currentIndex() const -> qint32 { return m_current_index.value(); }
+void PlayIdProxyQueue::setCurrentIndex(qint32 idx) {
+    sourceModel()->setProperty("currentIndex", mapToSource(idx));
+}
+void PlayIdProxyQueue::setCurrentIndexFromSource(qint32 source) {
+    m_current_index =
+        m_shuffle.value() && m_support_shuffle.value() ? mapFromSource(source) : source;
+}
+auto PlayIdProxyQueue::bindableCurrentIndex() -> const QBindable<qint32> {
+    return &m_current_index;
+}
+auto PlayIdProxyQueue::randomIndex() -> int {
+    auto cur   = currentIndex();
+    auto count = rowCount();
+    if (count <= 1) return cur;
+
+    int out = cur;
+    while (out == cur) {
+        out = Random::get(0, count - 1);
+    }
+    setCurrentIndex(out);
+    return out;
+}
+
+auto PlayIdProxyQueue::mapToSource(const QModelIndex& proxy_index) const -> QModelIndex {
+    if (! proxy_index.isValid()) return QModelIndex();
+    return sourceModel()->index(mapToSource(proxy_index.row()), proxy_index.column());
+}
+
+auto PlayIdProxyQueue::mapFromSource(const QModelIndex& sourc_index) const -> QModelIndex {
+    if (! sourc_index.isValid()) return QModelIndex();
+    return index(mapFromSource(sourc_index.row()), sourc_index.column());
+}
+
+auto PlayIdProxyQueue::mapToSource(int row) const -> int {
+    if (row < 0 || row >= (int)m_shuffle_list.size()) return -1;
+    return useShuffle() ? m_shuffle_list[row] : row;
+}
+
+auto PlayIdProxyQueue::mapFromSource(int row) const -> int {
+    int proxy_row { -1 };
+    if (useShuffle()) {
+        if (auto it = m_source_to_proxy.find(row); it != m_source_to_proxy.end()) {
+            proxy_row = it->second;
+        } else {
+            proxy_row = -1;
+        }
+    } else {
+        proxy_row = row;
+    }
+    return proxy_row;
+}
+
+void PlayIdProxyQueue::reShuffle() {
+    layoutAboutToBeChanged();
+    if (useShuffle()) {
+        Random::shuffle(m_shuffle_list.begin(), m_shuffle_list.end());
+        if (auto it = std::find(m_shuffle_list.begin(), m_shuffle_list.end(), 0);
+            it != m_shuffle_list.end()) {
+            std::swap(*it, m_shuffle_list.front());
+        }
+        refreshFromSource();
+    }
+    layoutChanged();
+}
+
+void PlayIdProxyQueue::shuffleSync() {
+    layoutAboutToBeChanged();
+    auto count = sourceModel()->rowCount();
+    auto old   = (int)m_shuffle_list.size();
+    if (old < count) {
+        while ((int)m_shuffle_list.size() < count) m_shuffle_list.push_back(m_shuffle_list.size());
+
+        auto cur = m_current_index.value();
+        Random::shuffle(m_shuffle_list.begin() + cur + 1, m_shuffle_list.end());
+        refreshFromSource();
+
+    } else if (old > count) {
+        for (int i = 0, k = 1; i < count; i++) {
+            if (m_shuffle_list[i] >= count) {
+                std::swap(m_shuffle_list[i], m_shuffle_list[old - k]);
+                k++;
+            }
+        }
+        m_shuffle_list.resize(count);
+        refreshFromSource();
+
+        // do not need check cur here
+        // let upstream check later
+        // if upstream no change, cur is ok
+    }
+    layoutChanged();
+}
+
+void PlayIdProxyQueue::refreshFromSource() {
+    int rowCount = sourceModel()->rowCount();
+    m_source_to_proxy.clear();
+    for (int proxyRow = 0; proxyRow < rowCount; ++proxyRow) {
+        int sourceRow                = m_shuffle_list[proxyRow];
+        m_source_to_proxy[sourceRow] = proxyRow;
+    }
+}
+
+void PlayIdProxyQueue::onSourceRowsInserted(const QModelIndex&, int, int) { shuffleSync(); }
+void PlayIdProxyQueue::onSourceRowsRemoved(const QModelIndex&, int, int) { shuffleSync(); }
+void PlayIdProxyQueue::onSourceRowsMoved(const QModelIndex&, int, int, const QModelIndex&, int) {
+    shuffleSync();
+}
+
+void PlayIdProxyQueue::onSourceRowsAboutToBeInserted(const QModelIndex&, int, int) {}
+
+PlayQueue::PlayQueue(QObject* parent)
+    : QIdentityProxyModel(parent),
+      m_proxy(new PlayIdProxyQueue(parent)),
+      m_loop_mode(LoopMode::NoneLoop),
+      m_can_next(false),
+      m_can_prev(false),
+      m_can_jump(true),
+      m_can_user_remove(true),
+      m_random_mode(false),
+      m_changed_timer(new QTimer(this)) {
+    updateRoleNames(qcm::model::Song::staticMetaObject, this);
+    connect(this, &PlayQueue::currentIndexChanged, this, [this](qint32 idx) {
+        setCurrentSong(idx);
+
+        LOG_DEBUG("queue: current index changed to {}, id {}",
+                  idx,
+                  m_current_song.as_ref()
+                      .and_then([](auto& el) -> rstd::Option<i64> {
+                          return rstd::into(el.key());
+                      })
+                      .unwrap_or(-1));
+    });
+    connect(m_proxy, &PlayIdProxyQueue::currentIndexChanged, this, &PlayQueue::checkCanMove);
+    connect(this, &PlayQueue::loopModeChanged, m_proxy, [this] {
+        m_proxy->setShuffle(loopMode() == LoopMode::ShuffleLoop);
+        checkCanMove();
+    });
+    connect(this, &PlayQueue::pendingIdsChanged, this, &PlayQueue::fetchSongs);
+    connect(m_changed_timer, &QTimer::timeout, this, [this]() {
+        auto source_model = sourceModel();
+        if (! source_model) return;
+        if (m_changed_ids.empty()) return;
+
+        std::unordered_set<model::ItemId> ids { m_changed_ids.begin(), m_changed_ids.end() };
+        m_changed_ids.clear();
+        std::vector<qint32> rows_to_update;
+
+        for (auto i = 0; i < rowCount(); i++) {
+            if (auto id = getId(i); ids.contains(*id)) {
+                rows_to_update.push_back(i);
+            }
+        }
+        for (auto row : rows_to_update) {
+            auto idx = index(row, 0);
+            dataChanged(idx, idx);
+            if (row == m_current_index) {
+                setCurrentSong(currentIndex());
+            }
+        }
+    });
+
+    m_changed_timer->setSingleShot(true);
+    m_changed_timer->setInterval(200);
+    m_notify_handle =
+        AppStore::instance()->songs.store_reg_notify([this](std::span<const i64> ids) {
+            std::vector<model::ItemId> changed_ids;
+            for (auto id : ids) {
+                auto item_id = model::ItemId { enums::ItemType::ItemSong, id };
+                changed_ids.push_back(item_id);
+            }
+            addChangedId(changed_ids);
+        });
+
+    loopModeChanged(m_loop_mode);
+}
+PlayQueue::~PlayQueue() {}
+void PlayQueue::drop_global() {
+    AppStore::instance()->songs.store_unreg_notify(m_notify_handle);
+    m_songs.clear();
+}
+
+auto PlayQueue::roleNames() const -> QHash<int, QByteArray> { return roleNamesRef(); }
+auto PlayQueue::data(const QModelIndex& index, int role) const -> QVariant {
+    auto row = index.row();
+    auto id  = getId(row);
+    do {
+        if (! id) break;
+        auto it    = m_songs.find(*id);
+        bool it_ok = it != m_songs.end();
+
+        if (auto prop = this->propertyOfRole(role); prop) {
+            if (it_ok) {
+                auto* song = it->second.item();
+                if (song) {
+                    return prop.value().readOnGadget(song);
+                } else {
+                    return prop.value().readOnGadget(&m_placeholder);
+                }
+            } else if (prop->name() == "itemId"sv) {
+                return QVariant::fromValue(*id);
+            } else if (prop->name() == "sourceId"sv) {
+                // if (auto it = m_source_map.find(hash); it != m_source_map.end()) {
+                //     return QVariant::fromValue(it->second);
+                // } else {
+                //     return prop.value().readOnGadget(&m_placeholder);
+                // }
+            } else {
+                return prop.value().readOnGadget(&m_placeholder);
+            }
+        }
+    } while (0);
     return {};
 }
-} // namespace qcm::model
 
-auto qcm::model::common_extra(model::ItemId id) -> QQmlPropertyMap* {
-    return AppStore::instance()->extra(id);
+void PlayQueue::setSourceModel(QAbstractItemModel* source_model) {
+    auto old = sourceModel();
+
+    if (old == source_model) return;
+
+    QIdentityProxyModel::setSourceModel(source_model);
+#ifdef _WIN32
+    connect(source_model, SIGNAL(currentIndexChanged(qint32)), this, SLOT(setCurrentIndex(qint32)));
+#else
+    QBindable<qint32> source_idx(source_model, "currentIndex");
+    m_current_index.setBinding([source_idx] {
+        return source_idx.value();
+    });
+#endif
+
+    if (old) {
+        disconnect(old, &QAbstractItemModel::rowsInserted, this, &PlayQueue::onSourceRowsInserted);
+        disconnect(old, &QAbstractItemModel::rowsRemoved, this, &PlayQueue::onSourceRowsRemoved);
+        disconnect(old,
+                   &QAbstractItemModel::rowsAboutToBeRemoved,
+                   this,
+                   &PlayQueue::onSourceRowsAboutToBeRemoved);
+        disconnect(this, SIGNAL(requestNext()), old, SIGNAL(requestNext()));
+    }
+    connect(this, SIGNAL(requestNext()), source_model, SIGNAL(requestNext()));
+    connect(
+        source_model, &QAbstractItemModel::rowsInserted, this, &PlayQueue::onSourceRowsInserted);
+    connect(source_model, &QAbstractItemModel::rowsRemoved, this, &PlayQueue::onSourceRowsRemoved);
+    connect(source_model,
+            &QAbstractItemModel::rowsAboutToBeRemoved,
+            this,
+            &PlayQueue::onSourceRowsAboutToBeRemoved);
+
+    m_options = source_model->property("options").value<model::IdQueue::Options>();
+    m_proxy->setSourceModel(source_model);
+    checkCanMove();
+
+    if (old) {
+        this->onSourceRowsInserted({}, 0, source_model->rowCount());
+    }
+
+    if (auto p = source_model->property("name"); p.isValid()) {
+        m_name = p.toString();
+        nameChanged();
+    }
+
+    setCanJump(m_options & Option::SupportJump);
+    setCanRemove(m_options & Option::SupportUserRemove);
 }
 
-#include <Qcm/moc_backend_msg.cpp>
-#include <Qcm/moc_backend.cpp>
+auto PlayQueue::currentSong() const -> model::Song {
+    if (m_current_song) {
+        if (auto ptr = m_current_song->item()) {
+            return *ptr;
+        } else {
+            LOG_ERROR("no such song: {}", m_current_song->key().value_or(-1));
+        }
+    }
+
+    model::Song s {};
+    if (auto id = currentId()) {
+        s.setItemId(*id);
+        if (auto it = m_source_map.find(*id); it != m_source_map.end()) {
+            // s.sourceId = it->second;
+        }
+    }
+    return s;
+}
+
+void PlayQueue::setCurrentSong(rstd::Option<SongItem> s) {
+    if (m_current_song != s) {
+        m_current_song = std::move(s);
+        currentSongChanged();
+    }
+}
+void PlayQueue::setCurrentSong(qint32 idx) {
+    setCurrentSong(getId(idx).and_then([this](const auto& id) -> rstd::Option<SongItem> {
+        if (auto it = m_songs.find(id); it != m_songs.end()) {
+            return Some(SongItem { it->second });
+        }
+        return None();
+    }));
+}
+
+auto PlayQueue::name() const -> const QString& { return m_name; }
+auto PlayQueue::currentId() const -> rstd::Option<model::ItemId> { return getId(currentIndex()); }
+
+auto PlayQueue::getId(qint32 idx) const -> rstd::Option<model::ItemId> {
+    if (auto source = sourceModel()) {
+        auto val = source->data(source->index(idx, 0));
+        if (auto pval = get_if<model::ItemId>(&val)) {
+            return Some(*pval);
+        }
+    }
+    return None();
+}
+
+auto PlayQueue::currentIndex() const -> qint32 { return m_current_index.value(); }
+void PlayQueue::setCurrentIndex(qint32 source) { m_current_index = source; }
+auto PlayQueue::bindableCurrentIndex() -> const QBindable<qint32> { return &m_current_index; }
+
+auto PlayQueue::currentData(int role) const -> QVariant {
+    return data(index(currentIndex(), 0), role);
+}
+
+auto PlayQueue::loopMode() const noexcept -> enums::LoopMode { return m_loop_mode; }
+void PlayQueue::setLoopMode(enums::LoopMode mode) {
+    if (ycore::cmp_set(m_loop_mode, mode)) {
+        loopModeChanged(m_loop_mode);
+    }
+}
+void PlayQueue::iterLoopMode() {
+    using M   = LoopMode;
+    auto mode = loopMode();
+    switch (mode) {
+    case M::NoneLoop: mode = M::SingleLoop; break;
+    case M::SingleLoop: mode = M::ListLoop; break;
+    case M::ListLoop: mode = M::ShuffleLoop; break;
+    case M::ShuffleLoop: mode = M::NoneLoop; break;
+    }
+    setLoopMode(mode);
+}
+auto PlayQueue::randomMode() const noexcept -> bool { return m_random_mode; }
+void PlayQueue::setRandomMode(bool v) {
+    if (ycore::cmp_set(m_random_mode, v)) {
+        randomModeChanged(m_random_mode);
+    }
+}
+
+auto PlayQueue::canNext() const noexcept -> bool { return m_can_next; }
+auto PlayQueue::canPrev() const noexcept -> bool { return m_can_prev; }
+auto PlayQueue::canJump() const noexcept -> bool { return m_can_jump; }
+auto PlayQueue::canRemove() const noexcept -> bool { return m_can_user_remove; }
+
+void PlayQueue::setCanNext(bool v) {
+    if (ycore::cmp_set(m_can_next, v)) {
+        canNextChanged();
+    }
+}
+void PlayQueue::setCanPrev(bool v) {
+    if (ycore::cmp_set(m_can_prev, v)) {
+        canPrevChanged();
+    }
+}
+void PlayQueue::setCanJump(bool v) {
+    if (ycore::cmp_set(m_can_jump, v)) {
+        canJumpChanged();
+    }
+}
+void PlayQueue::setCanRemove(bool v) {
+    if (ycore::cmp_set(m_can_user_remove, v)) {
+        canRemoveChanged();
+    }
+}
+
+void PlayQueue::next() {
+    auto mode = loopMode();
+    if (mode == LoopMode::SingleLoop) mode = LoopMode::ListLoop;
+    next(mode);
+}
+void PlayQueue::prev() {
+    auto mode = loopMode();
+    if (mode == LoopMode::SingleLoop) mode = LoopMode::ListLoop;
+    prev(mode);
+}
+void PlayQueue::next(LoopMode mode) {
+    bool support_loop = m_options.testFlag(Option::SupportLoop);
+    auto count        = m_proxy->rowCount();
+    if (count == 0) return;
+    auto cur = m_proxy->currentIndex();
+
+    switch (mode) {
+    case LoopMode::NoneLoop: {
+        if (cur + 1 < count) {
+            m_proxy->setCurrentIndex(cur + 1);
+        } else {
+            return;
+        }
+        break;
+    }
+    case LoopMode::ListLoop: {
+        m_proxy->setCurrentIndex((cur + 1) % count);
+        break;
+    }
+    case LoopMode::ShuffleLoop: {
+        if (m_random_mode) {
+            m_proxy->randomIndex();
+        } else {
+            m_proxy->setCurrentIndex((cur + 1) % count);
+        }
+        break;
+    }
+    case LoopMode::SingleLoop: {
+    }
+    }
+    requestNext();
+    Action::instance()->record(enums::RecordAction::RecordNext);
+}
+void PlayQueue::prev(LoopMode mode) {
+    bool support_loop = m_options.testFlag(Option::SupportLoop);
+    auto count        = m_proxy->rowCount();
+    if (count == 0) return;
+    auto cur = m_proxy->currentIndex();
+
+    switch (mode) {
+    case LoopMode::NoneLoop: {
+        if (cur >= 1) {
+            m_proxy->setCurrentIndex(cur - 1);
+        } else {
+            return;
+        }
+        break;
+    }
+    case LoopMode::ListLoop:
+    case LoopMode::ShuffleLoop: {
+        m_proxy->setCurrentIndex(cur <= 0 ? std::max(count, 1) - 1 : cur - 1);
+        break;
+    }
+    case LoopMode::SingleLoop: {
+    }
+    }
+    Action::instance()->record(enums::RecordAction::RecordPrev);
+}
+
+void PlayQueue::startIfNoCurrent() {
+    if (rowCount() > 0 && currentIndex() < 0) {
+        m_proxy->setCurrentIndex(0);
+        Action::instance()->record(enums::RecordAction::RecordSwitch);
+    }
+}
+
+void PlayQueue::clear() { removeRows(0, rowCount()); }
+
+auto PlayQueue::update(std::span<const model::Song> in) -> void {
+    auto store = AppStore::instance();
+    for (auto& el : in) {
+        auto item = store->songs.store_item(el.id_proto());
+        if (item) {
+            m_songs.insert_or_assign(el.itemId(), *item);
+        }
+    }
+}
+
+void PlayQueue::updateSourceId(std::span<const model::ItemId> songIds,
+                               const model::ItemId&           sourceId) {
+    for (auto& el : songIds) {
+        if (auto it = m_songs.find(el); it != m_songs.end()) {
+            // TODO
+            // it->second.sourceId = sourceId;
+        } else {
+            m_source_map.insert_or_assign(el, sourceId);
+        }
+    }
+}
+
+void PlayQueue::onSourceRowsInserted(const QModelIndex&, int first, int last) {
+    auto store = AppStore::instance();
+    for (int i = first; i <= last; i++) {
+        if (auto id = getId(i)) {
+            if (m_songs.contains(*id)) continue;
+            if (auto song_item = store->songs.store_item(id->id())) {
+                m_songs.insert_or_assign(*id, *song_item);
+            } else {
+                m_pending_ids.insert(*id);
+            }
+        }
+    }
+    checkCanMove();
+    pendingIdsChanged();
+}
+
+void PlayQueue::onSourceRowsAboutToBeRemoved(const QModelIndex&, int first, int last) {
+    for (int i = first; i <= last; i++) {
+        auto id = getId(i);
+        if (id) {
+            m_songs.erase(*id);
+            m_source_map.erase(*id);
+        }
+    }
+}
+void PlayQueue::onSourceRowsRemoved(const QModelIndex&, int, int) { checkCanMove(); }
+void PlayQueue::checkCanMove() {
+    auto count              = rowCount();
+    bool support_prev       = m_options.testFlag(Option::SupportPrev);
+    bool support_loop       = m_options.testFlag(Option::SupportLoop);
+    auto check_on_none_loop = [this, support_prev, count] {
+        setCanPrev(m_proxy->currentIndex() > 0 && support_prev && count);
+        setCanNext(count > m_proxy->currentIndex() + 1 && count);
+    };
+    switch (m_loop_mode) {
+    case LoopMode::NoneLoop: {
+        check_on_none_loop();
+        break;
+    }
+    case LoopMode::ShuffleLoop:
+    case LoopMode::ListLoop: {
+        if (support_loop) {
+            setCanPrev(support_prev && count);
+            setCanNext(count);
+        } else {
+            check_on_none_loop();
+        }
+        break;
+    }
+    default: {
+        setCanPrev(support_prev && count);
+        setCanNext(count);
+    }
+    }
+}
+bool PlayQueue::move(qint32 src, qint32 dst, qint32 count) {
+    auto parent = this->index(-1, 0);
+    return moveRows(parent, src, count, parent, dst);
+}
+
+void PlayQueue::addChangedId(std::span<const model::ItemId> ids) {
+    m_changed_ids.insert(ids.begin(), ids.end());
+    m_changed_timer->start();
+}
+void PlayQueue::fetchSongs() {
+    if (m_pending_ids.empty()) return;
+
+    auto ex      = asio::make_strand(qcm::pool_executor());
+    auto backend = App::instance()->backend();
+
+    auto req  = msg::GetSongsByIdReq {};
+    auto view = std::views::transform(m_pending_ids, [](const auto& id) {
+        return id.id();
+    });
+    req.setIds({ view.begin(), view.end() });
+    m_pending_ids.clear();
+
+    auto self = helper::QWatcher { this };
+    asio::co_spawn(
+        ex,
+        [self, backend, req = std::move(req)] mutable -> task<void> {
+            auto rsp = co_await backend->send(std::move(req));
+            co_await qcm::qexecutor_switch();
+
+            if (rsp) {
+                std::vector<model::ItemId> fetched_ids;
+                std::vector<i64>           id_list;
+
+                auto store  = AppStore::instance();
+                auto handle = self->m_notify_handle;
+                for (auto& song_proto : rsp->items()) {
+                    auto song = model::Song { song_proto };
+                    fetched_ids.push_back(song.itemId());
+                    id_list.push_back(song.id_proto());
+                    auto [item, _] = store->songs.store_insert(song);
+                    self->m_songs.insert_or_assign(song.itemId(), item);
+                }
+                for (qsizetype i = 0; i < rsp->extras().size(); i++) {
+                    auto id = rsp->items().at(i).id_proto();
+                    merge_store_extra(store->songs, id, rsp->extras().at(i));
+                }
+                store->songs.store_changed_callback(id_list, handle);
+                self->addChangedId(fetched_ids);
+            }
+
+            co_return;
+        },
+        helper::asio_detached_log_t {});
+}
+
+} // namespace qcm
+
+#include "Qcm/model/play_queue.moc.cpp"
+#include "Qcm/status/provider.moc.cpp"
+#include "Qcm/backend.moc"

@@ -6,9 +6,9 @@
 
 #include "core/core.h"
 #include "core/qasio/qt_executor.h"
-#include "Qcm/qml/enum.hpp"
-#include "Qcm/util/ex.hpp"
+import qcm.qml.enums;
 #include "core/qasio/qt_watcher.h"
+#include "core/asio/basic.h"
 #include "core/asio/task.h"
 #include "core/qstr_helper.h"
 

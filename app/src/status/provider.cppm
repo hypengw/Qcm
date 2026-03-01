@@ -1,0 +1,86 @@
+module;
+#include <QtCore/QSettings>
+#include <QtQml/QQmlEngine>
+#ifdef Q_MOC_RUN
+#    include "Qcm/status/provider.moc"
+#endif
+
+#include "kstore/qt/gadget_model.hpp"
+
+export module qcm.app:status.provider;
+export import qcm.msg;
+export import qcm.model.item_id;
+
+namespace qcm
+{
+export class ProviderMetaStatusModel
+    : public kstore::QGadgetListModel,
+      public kstore::QMetaListModelCRTP<msg::model::ProviderMeta, ProviderMetaStatusModel,
+                                        kstore::ListStoreType::Map> {
+    Q_OBJECT
+    QML_ELEMENT
+
+    using Model = msg::model::ProviderMeta;
+
+public:
+    ProviderMetaStatusModel(QObject* parent = nullptr);
+    ~ProviderMetaStatusModel();
+};
+
+export class LibraryStatus : public QObject {
+    Q_OBJECT
+    QML_ANONYMOUS
+
+    Q_PROPERTY(QtProtobuf::int64List activedIds READ activedIds NOTIFY activedIdsChanged)
+public:
+    LibraryStatus(QObject* parent = nullptr);
+    ~LibraryStatus();
+    auto activedIds() -> const QtProtobuf::int64List&;
+
+    Q_INVOKABLE bool actived(i64 id) const;
+    Q_INVOKABLE void setActived(i64 id, bool);
+
+    Q_SIGNAL void activedChanged(i64, bool);
+    Q_SIGNAL void activedIdsChanged();
+
+private:
+    std::set<i64>         m_inactived;
+    QtProtobuf::int64List m_ids;
+};
+
+export class ProviderStatusModel
+    : public kstore::QGadgetListModel,
+      public kstore::QMetaListModelCRTP<model::ProviderStatus, ProviderStatusModel,
+                                        kstore::ListStoreType::Map> {
+    Q_OBJECT
+    QML_ELEMENT
+
+    Q_PROPERTY(bool syncing READ syncing NOTIFY syncingChanged FINAL)
+    Q_PROPERTY(
+        qcm::LibraryStatus* libraryStatus READ libraryStatus NOTIFY libraryStatusChanged FINAL)
+
+public:
+    ProviderStatusModel(QObject* parent = nullptr);
+    ~ProviderStatusModel();
+
+    void updateSyncStatus(const msg::model::ProviderSyncStatus&);
+    auto syncing() const -> bool;
+    auto libraryStatus() const -> LibraryStatus*;
+
+    Q_INVOKABLE QVariant itemById(const model::ItemId&) const;
+    Q_INVOKABLE QVariant metaById(const model::ItemId&) const;
+    Q_INVOKABLE QString  svg(qint32) const;
+    Q_INVOKABLE QString  svg(const model::ItemId&) const;
+
+    Q_SIGNAL void syncingChanged(bool);
+    Q_SIGNAL void libraryStatusChanged();
+
+private:
+    void setSyncing(bool);
+    void checkSyncing();
+
+    bool           m_syncing;
+    LibraryStatus* m_lib_status;
+};
+
+} // namespace qcm
