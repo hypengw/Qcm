@@ -17,24 +17,24 @@ module;
 
 #include "core/log.h"
 #include "core/qstr_helper.h"
-#include "Qcm/status/process.hpp"
-#include "core/asio/task.h"
-#include "core/qasio/qt_execution_context.h"
 #include "std23/move_only_function.h"
 
-
-#include "Qcm/backend.moc.h"
 
 #ifdef Q_MOC_RUN
 #include "Qcm/backend.moc"
 #endif
 
-export module qcm.app:backend;
-export import qcm.msg;
-export import qcm.util.mem;
+export module qcm:backend;
+export import :msg;
+export import :status.process;
+export import :util.mem;
+export import qcm.asio;
 import ncrequest.event;
 import platform;
 import ncrequest;
+
+using rstd::sync::Arc;
+using rstd::alloc::boxed::Box;
 
 export namespace qcm
 {
@@ -49,7 +49,7 @@ class Backend : public QObject {
     friend class detail::BackendHelper;
 
 public:
-    Backend(Arc<ncrequest::Session>);
+    Backend(rc<ncrequest::Session>);
     ~Backend();
 
     auto start(QStringView exe, QStringView data_dir, QStringView cache_dir) -> bool;
@@ -99,7 +99,7 @@ private:
     Box<ncrequest::WebSocketClient> m_client;
     Box<QProtobufSerializer>        m_serializer;
 
-    Arc<ncrequest::Session> m_session;
+    rc<ncrequest::Session> m_session;
 
     std::map<i32, std23::move_only_function<void(asio::error_code, msg::QcmMessage)>> m_handlers;
 

@@ -1,17 +1,8 @@
 module;
-#include <QQmlEngine>
 #include "Qcm/qml/enum.hpp"
-
 #include "core/log.h"
 
-#undef Q_ENUM_NS_IMPL
-#define Q_ENUM_NS_IMPL(ENUM)                                                         \
-    export inline constexpr const QMetaObject* qt_getEnumMetaObject(ENUM) noexcept { \
-        return &staticMetaObject;                                                    \
-    }                                                                                \
-    export inline constexpr const char* qt_getEnumName(ENUM) noexcept { return #ENUM; }
-
-export module qcm.qml.enums;
+export module qcm:qml.enums;
 export import qcm.core;
 export import qcm.helper;
 

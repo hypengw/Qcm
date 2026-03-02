@@ -1,18 +1,13 @@
-module;
-#include <memory_resource>
+export module qcm:model.share_store;
+export import qcm.qt;
 
-#include <QtQml/QQmlPropertyMap>
-#include <QtQml/QJSEngine>
-#include "kstore/share_store.hpp"
 
-export module qcm.model.share_store;
-export import qcm.core;
-
+namespace cppstd = rstd::cppstd;
 namespace qcm
 {
 
 export struct ShareStoreExt {
-    using ptr = std::unique_ptr<QQmlPropertyMap, void (*)(QQmlPropertyMap*)>;
+    using ptr = up<QQmlPropertyMap, void (*)(QQmlPropertyMap*)>;
     ShareStoreExt()
         : extra(ptr(new QQmlPropertyMap(), [](QQmlPropertyMap* p) {
               p->deleteLater();
@@ -23,9 +18,9 @@ export struct ShareStoreExt {
 };
 
 export template<typename T>
-class ShareStore : public kstore::ShareStore<T, std::pmr::polymorphic_allocator<T>, ShareStoreExt> {
+class ShareStore : public kstore::ShareStore<T, cppstd::pmr::polymorphic_allocator<T>, ShareStoreExt> {
 public:
-    using base_type = kstore::ShareStore<T, std::pmr::polymorphic_allocator<T>, ShareStoreExt>;
+    using base_type = kstore::ShareStore<T, cppstd::pmr::polymorphic_allocator<T>, ShareStoreExt>;
     ShareStore(): base_type() {}
 };
 

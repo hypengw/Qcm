@@ -9,7 +9,8 @@ extern "C" {
 
 #include <limits>
 #include "error/error.h"
-#include "core/core.h"
+
+import qcm.log;
 
 namespace player
 {

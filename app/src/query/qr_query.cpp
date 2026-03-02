@@ -1,20 +1,21 @@
-#include "Qcm/query/qr_query.hpp"
-#include "Qcm/app.hpp"
-#include "Qcm/util/async.inl"
+module;
+#include "Qcm/query/qr_query.moc.h"
+module qcm;
+import :query.qr;
 
 namespace qcm
 {
+
 QrAuthUrlQuery::QrAuthUrlQuery(QObject* parent): Query(parent) {}
 void QrAuthUrlQuery::reload() {
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::QrAuthUrlReq {};
     req.setTmpProvider(m_tmp_provider);
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
-        // ignore error
         if (rsp) {
             self->set(std::move(rsp));
         }
@@ -28,6 +29,7 @@ void QrAuthUrlQuery::setTmpProvider(const QString& v) {
         tmpProviderChanged();
     }
 }
+
 } // namespace qcm
 
-#include <Qcm/query/moc_qr_query.cpp>
+#include "Qcm/query/qr_query.moc.cpp"

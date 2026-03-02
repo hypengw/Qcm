@@ -1,17 +1,18 @@
-#include "Qcm/query/sync_query.hpp"
-#include "Qcm/backend.hpp"
-#include "Qcm/app.hpp"
-#include "Qcm/util/async.inl"
+module;
+#include "Qcm/query/sync_query.moc.h"
+module qcm;
+import :query.sync;
 
 namespace qcm
 {
+
 SyncQuery::SyncQuery(QObject* parent): Query(parent) {}
 void SyncQuery::reload() {
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::SyncReq {};
     req.setProviderId(m_provider_id.id());
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
@@ -35,7 +36,7 @@ void SyncItemQuery::reload() {
     auto req     = msg::SyncItemReq {};
     req.setId_proto(m_item_id.id());
 
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
@@ -54,4 +55,4 @@ void SyncItemQuery::setItemId(const model::ItemId& v) {
 
 } // namespace qcm
 
-#include <Qcm/query/moc_sync_query.cpp>
+#include "Qcm/query/sync_query.moc.cpp"

@@ -1,6 +1,6 @@
 module;
 #include <memory_resource>
-export module qcm.util.mem;
+export module qcm:util.mem;
 export import qcm.core;
 
 namespace qcm

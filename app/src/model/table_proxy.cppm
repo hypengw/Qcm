@@ -2,12 +2,11 @@ module;
 #include <QtQml/QQmlEngine>
 #include "kstore/qt/qtable_proxy_model.hpp"
 
-#include "Qcm/model/table_proxy.moc.h"
 #ifdef Q_MOC_RUN
 #    include "Qcm/model/table_proxy.moc"
 #endif
 
-export module qcm.model.table_proxy;
+export module qcm:model.table_proxy;
 namespace qcm
 {
 export class TableProxyModel : public kstore::QTableProxyModel {
@@ -18,6 +17,3 @@ public:
 };
 
 } // namespace qcm
-module :private;
-
-#include "Qcm/model/table_proxy.moc.cpp"

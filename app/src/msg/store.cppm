@@ -5,16 +5,15 @@ module;
 #include "google/protobuf/struct.qpb.h"
 #include "kstore/item_trait.hpp"
 
-#include "Qcm/util/mem.hpp"
 
 #ifdef Q_MOC_RUN
 #include "Qcm/msg/store.moc"
 #endif
 
-export module qcm.msg:store;
-export import :backend;
-export import qcm.model.share_store;
-export import qcm.util.global_static;
+export module qcm:msg.store;
+export import :msg.backend;
+export import :model.share_store;
+export import :util.global_static;
 
 namespace qcm
 {

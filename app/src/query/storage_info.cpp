@@ -1,10 +1,7 @@
-#include "Qcm/query/storage_info.hpp"
-#include "Qcm/util/async.inl"
-#include "Qcm/global.hpp"
-#include "Qcm/app.hpp"
-#include "Qcm/backend.hpp"
-
-#include "core/asio/basic.h"
+module;
+#include "Qcm/query/storage_info.moc.h"
+module qcm;
+import :query.storage_info;
 
 namespace qcm::qml
 {
@@ -42,7 +39,7 @@ void StorageInfoQuery::reload() {
     setStatus(Status::Querying);
 
     auto backend = App::instance()->backend();
-    auto self    = helper::QWatcher { this };
+    auto self    = QWatcher { this };
     this->spawn([backend, self]() -> task<void> {
         auto req = msg::GetStorageInfoReq {};
         auto rsp = co_await backend->send(std::move(req));
@@ -56,6 +53,7 @@ void StorageInfoQuery::reload() {
         });
     });
 }
+
 } // namespace qcm::qml
 
-#include <Qcm/query/moc_storage_info.cpp>
+#include "Qcm/query/storage_info.moc.cpp"

@@ -1,13 +1,12 @@
 module;
 #include <QQmlEngine>
-#include "Qcm/model/empty_model.moc.h"
 
 #ifdef Q_MOC_RUN
 #include "Qcm/model/empty_model.moc"
 #endif
 
-export module qcm.model.empty_model;
-export import qcm.msg;
+export module qcm:model.empty_model;
+export import :msg;
 
 namespace qcm::model
 {
@@ -26,6 +25,3 @@ private:
     model::Song m_song;
 };
 } // namespace qcm::model
-
-module :private;
-#include "Qcm/model/empty_model.moc.cpp"

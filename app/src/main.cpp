@@ -13,9 +13,9 @@ Q_IMPORT_QML_PLUGIN(Qcm_AppPlugin)
 
 #include "core/log.h"
 
-import qcm.app;
-import platform;
+import qcm;
 import qcm.log;
+import platform;
 import ncrequest;
 
 

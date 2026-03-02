@@ -7,9 +7,10 @@ module;
 
 #include "core/log.h"
 
-module qcm.msg;
-import qcm.global;
-import :store;
+module qcm;
+import :msg;
+import :global;
+import qcm.log;
 
 namespace qcm
 {

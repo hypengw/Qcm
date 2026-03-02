@@ -1,4 +1,5 @@
-#include "Qcm/image_provider/http.hpp"
+module;
+#include "Qcm/image_provider/http.moc.h"
 
 #include <filesystem>
 #include <cstdio>
@@ -8,15 +9,13 @@
 
 #include <QtCore/QRegularExpression>
 #include <QtCore/QPointer>
-
-#include "Qcm/util/path.hpp"
-#include "Qcm/global.hpp"
-
-#include "core/asio/sync_file.h"
 #include "crypto/crypto.h"
-#include "Qcm/app.hpp"
-#include "Qcm/backend.hpp"
 
+module qcm;
+import :image_provider.http;
+import :util.path;
+import :app;
+import :global;
 import platform;
 
 using namespace qcm;
@@ -68,7 +67,7 @@ public:
     ~QcmImageProviderInner() {}
 
     task<ncrequest::HttpHeader> dl_image(const ncrequest::Request& req, std::filesystem::path p) {
-        helper::SyncFile file { std::fstream(p, std::ios::out | std::ios::binary) };
+        SyncFile file { std::fstream(p, std::ios::out | std::ios::binary) };
         file.handle().exceptions(std::ios_base::failbit | std::ios_base::badbit);
 
         auto rsp_http = (co_await m_session->get(req)).unwrap();
@@ -146,9 +145,9 @@ QQuickImageResponse* QcmImageProvider::requestImageResponse(const QString& id,
                                              std::rethrow_exception(p);
                                          } catch (const std::exception& e) {
                                              rsp->setError(std::format(R"(
-QcmImageProvider
-    id: {}
-    error: {})",
+ QcmImageProvider
+     id: {}
+     error: {})",
                                                                        id,
                                                                        e.what()));
                                          }
@@ -162,4 +161,4 @@ QcmImageProvider
     return rsp.get();
 }
 
-#include <Qcm/image_provider/moc_http.cpp>
+#include "Qcm/image_provider/http.moc.cpp"

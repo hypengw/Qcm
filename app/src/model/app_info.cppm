@@ -1,11 +1,11 @@
 module;
-#include <QtQmlIntegration/QtQmlIntegration>
-#include "Qcm/model/app_info.moc.h"
+#include "Qcm/macro_qt.hpp"
 
 #ifdef Q_MOC_RUN
 #include "Qcm/model/app_info.moc"
 #endif
-export module qcm.model.app_info;
+export module qcm:model.app_info;
+export import qcm.qt;
 
 export namespace qcm::model
 {
@@ -32,19 +32,3 @@ private:
 
 
 } // namespace qcm::model
-
-module :private;
-
-namespace qcm::model
-{
-AppInfo::AppInfo() {
-    this->name    = APP_NAME;
-    this->id      = APP_ID;
-    this->author  = APP_AUTHOR;
-    this->summary = APP_SUMMARY;
-    this->version = APP_VERSION;
-}
-AppInfo::~AppInfo() {}
-} // namespace qcm::model
-
-#include "Qcm/model/app_info.moc.cpp"

@@ -6,9 +6,8 @@ module;
 #include "Qcm/message/filter.qpb.h"
 #include "kstore/qt/meta_utils.hpp"
 
-#include "Qcm/app.hpp"
-#include "Qcm/backend_msg.hpp"
-module qcm.app;
+module qcm;
+import :app;
 
 namespace qcm
 {

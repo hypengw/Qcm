@@ -1,17 +1,16 @@
 module;
-#include <QObject>
-#include <QQmlPropertyMap>
+#include "Qcm/macro_qt.hpp"
 
-#include "kstore/item_trait.hpp"
-
-#include "Qcm/model/store_item.moc.h"
 #ifdef Q_MOC_RUN
 #    include "Qcm/model/store_item.moc"
 #endif
 
-export module qcm.model.store_item;
-export import qcm.model.share_store;
-export import qcm.msg;
+export module qcm:model.store_item;
+export import :model.share_store;
+export import :msg;
+export import qcm.qt;
+
+namespace cppstd = rstd::cppstd;
 
 export namespace qcm::model
 {
@@ -36,7 +35,7 @@ public:
         auto key = kstore::ItemTrait<item_type>::key(v);
         if (key != m_item.key()) {
             m_item = m_item.store().store_insert(v).first;
-            m_item.store().store_changed_callback(std::span { &key, 1 }, m_handle ? *m_handle : 0);
+            m_item.store().store_changed_callback(cppstd::span { &key, 1 }, m_handle ? *m_handle : 0);
             static_cast<CRTP*>(this)->itemChanged();
 
             unreg();
@@ -106,18 +105,3 @@ public:
 };
 
 } // namespace qcm::model
-
-module :private;
-
-namespace qcm::model
-{
-
-SongStoreItem::SongStoreItem(QObject* parent): base_type(AppStore::instance()->songs, parent) {}
-AlbumStoreItem::AlbumStoreItem(QObject* parent): base_type(AppStore::instance()->albums, parent) {}
-ArtistStoreItem::ArtistStoreItem(QObject* parent)
-    : base_type(AppStore::instance()->artists, parent) {}
-MixStoreItem::MixStoreItem(QObject* parent): base_type(AppStore::instance()->mixes, parent) {}
-
-} // namespace qcm::model
-
-#include "Qcm/model/store_item.moc.cpp"

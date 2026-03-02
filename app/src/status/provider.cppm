@@ -7,9 +7,9 @@ module;
 
 #include "kstore/qt/gadget_model.hpp"
 
-export module qcm.app:status.provider;
-export import qcm.msg;
-export import qcm.model.item_id;
+export module qcm:status.provider;
+export import :msg;
+export import :model.item_id;
 
 namespace qcm
 {

@@ -12,10 +12,13 @@ extern "C" {
 
 #include "ffmpeg_format_context.h"
 #include "core/log.h"
-import platform;
 #include "ffmpeg_error.h"
 #include "packet_queue.h"
 #include "player/notify.h"
+
+
+import platform;
+import qcm.log;
 
 namespace player
 {

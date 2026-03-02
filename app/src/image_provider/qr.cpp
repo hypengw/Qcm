@@ -1,10 +1,14 @@
-#include "Qcm/image_provider/qr.hpp"
+module;
 
 #include <QPointer>
 
 #include "qr_code/qrcodegen.hpp"
 
-#include "Qcm/app.hpp"
+
+module qcm;
+import :image_provider.qr;
+import :app;
+import :global;
 
 namespace qcm
 {
@@ -29,8 +33,7 @@ QQuickImageResponse* QrImageProvider::requestImageResponse(const QString& id,
             rsp->setError(std::format("{} ({})", e.what(), id));
             return;
         }
-        auto& qr = *qr_;
-        // 创建二维码画布
+        auto&  qr     = *qr_;
         QImage qr_img = QImage(qr.getSize(), qr.getSize(), QImage::Format_RGB888);
 
         for (int y = 0; y < qr.getSize(); y++) {

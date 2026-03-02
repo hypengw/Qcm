@@ -6,17 +6,16 @@ module;
 #include <QSettings>
 #include <QVariant>
 
-#include "Qcm/action.moc.h"
 #ifdef Q_MOC_RUN
 #include "Qcm/action.moc"
 #endif
 Q_MOC_INCLUDE("src/model/id_queue.cppm")
 
-export module qcm.action;
-export import qcm.qml.enums;
-export import qcm.util.global_static;
-export import qcm.model.id_queue;
-export import qcm.model.router_msg;
+export module qcm:action;
+export import :qml.enums;
+export import :util.global_static;
+export import :model.id_queue;
+export import :model.router_msg;
 
 namespace qcm
 {
@@ -67,28 +66,3 @@ Q_SIGNALS:
 };
 
 } // namespace qcm
-module :private;
-
-namespace qcm
-{
-auto Action::instance() -> Action* {
-    static auto the =
-        GlobalStatic::instance()->add<Action>("action", new Action(nullptr), [](Action* p) {
-            delete p;
-        });
-    return the;
-};
-
-Action::Action(QObject* parent): QObject(parent) {}
-Action::~Action() {}
-
-Action* Action::create(QQmlEngine*, QJSEngine*) {
-    auto act = instance();
-    // not delete on qml
-    QJSEngine::setObjectOwnership(act, QJSEngine::CppOwnership);
-    return act;
-}
-
-} // namespace qcm
-
-#include "Qcm/action.moc.cpp"

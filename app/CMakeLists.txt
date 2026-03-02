@@ -11,37 +11,52 @@ include(${CMAKE_SOURCE_DIR}/cmake/SplitMocFiles.cmake)
 
 qt_standard_project_setup()
 
-set(SOURCES2 src/backend.cpp src/msg/mod.cpp)
+set(SOURCES2
+    src/backend.cpp
+    src/msg/mod.cpp
+    src/model/mod.cpp
+    src/global.cpp
+    src/action.cpp
+    src/qml/util.cpp
+    src/query/query.cpp
+    src/query/query_api.cpp
+    src/query/artist_query.cpp
+    src/query/album_query.cpp
+    src/query/favorite_query.cpp
+    src/query/lyric_query.cpp
+    src/query/mix_query.cpp
+    src/query/play_query.cpp
+    src/query/provider_query.cpp
+    src/query/qr_query.cpp
+    src/query/search_query.cpp
+    src/query/storage_info.cpp
+    src/query/sync_query.cpp
+    src/model/filter_rule_model.cpp
+    src/model/sort_filter.cpp
+    src/model/item_id.cpp
+    src/status/app_state.cpp
+    src/util/global_static.cpp
+    src/model/id_queue.cpp
+    src/mod.cpp
+    src/app.cpp
+    src/player.cpp)
 
 set(SOURCES
     include/Qcm/qml/enum.hpp
     src/qml_register.cpp
     src/convert.cpp
     src/qml/clipboard.cpp
-    src/qml/qml_util.cpp
     src/qml/duration.cpp
     src/qml/foreign.cpp
     src/model/lyric.cpp
     src/util/path.cpp
-    src/query/album_query.cpp
-    src/query/artist_query.cpp
-    src/query/mix_query.cpp
-    src/query/provider_query.cpp
-    src/query/lyric_query.cpp
-    src/query/favorite_query.cpp
-    src/query/search_query.cpp
-    src/query/sync_query.cpp
-    src/query/qr_query.cpp
-    src/query/query.cpp
-    src/query/storage_info.cpp
-    src/query/query_api.cpp
-    src/query/play_query.cpp
     src/image_provider/response.cpp
     src/image_provider/http.cpp
     src/image_provider/qr.cpp
     src/status/process.cpp)
 
 set(MOC_SOURCE_FILES
+    src/image_provider/http.cppm
     src/model/app_info.cppm
     src/model/empty_model.cppm
     src/model/item_id.cppm
@@ -54,24 +69,49 @@ set(MOC_SOURCE_FILES
     src/model/list_models.cppm
     src/model/filter_rule_model.cppm
     src/model/sort_filter.cppm
+    src/model/lyric.cppm
     src/status/provider.cppm
     src/status/app_state.cppm
     src/msg/backend_msg.cppm
     src/msg/store.cppm
+    src/util/async.cppm
+    src/qml/util.cppm
     src/backend.cppm
     src/notifier.cppm
     src/app.cppm
     src/global.cppm
     src/player.cppm
-    src/action.cppm)
+    src/action.cppm
+    src/query/query_api.cppm
+    src/query/query.cppm
+    src/query/album_query.cppm
+    src/query/artist_query.cppm
+    src/query/favorite_query.cppm
+    src/query/lyric_query.cppm
+    src/query/mix_query.cppm
+    src/query/play_query.cppm
+    src/query/provider_query.cppm
+    src/query/qr_query.cppm
+    src/query/search_query.cppm
+    src/query/storage_info.cppm
+    src/query/sync_query.cppm)
 set(MODULES
     src/mod.cppm
+    src/image_provider/mod.cppm
+    src/image_provider/qr.cppm
+    src/image_provider/response.cppm
+    src/query/mod.cppm
+    src/model/mod.cppm
     src/model/share_store.cppm
+    src/status/process.cppm
     src/msg/mod.cppm
     src/util/global_static.cppm
     src/util/mem.cppm
+    src/util/path.cppm
     src/qml/enum.cppm
-    src/qt.cppm)
+    src/qml/mod.cppm
+    src/util/mod.cppm
+    src/status/mod.cppm)
 
 set(QML_FILES
     qml/PlayBar.qml
@@ -256,7 +296,7 @@ set_source_files_properties(
 set_source_files_properties(${SOURCES2} PROPERTIES SKIP_AUTOMOC ON)
 
 set_source_files_properties(
-  src/player.cppm src/global.cppm src/app.cppm src/qml/qml_util.cpp
+  src/player.cppm src/global.cppm src/app.cppm src/qml/util.cpp
   src/model/app_info.cpp PROPERTIES COMPILE_DEFINITIONS "${APP_INFO_MACROS}")
 
 # QT_QMLCACHEGEN_ARGUMENTS "--only-bytecode"
@@ -294,10 +334,8 @@ target_include_directories(
 )
 target_link_libraries(
   app
-  PUBLIC Qt6::Core
-         Qt6::Quick
+  PUBLIC qt
          "$<$<CONFIG:Debug>:Qt6::QuickPrivate>"
-         core.qasio
          ncrequest::ncrequest
          rstd::rstd
          crypto

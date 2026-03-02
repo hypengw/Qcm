@@ -1,13 +1,7 @@
-#include "Qcm/query/mix_query.hpp"
-
-#include "Qcm/backend.hpp"
-#include "Qcm/app.hpp"
-import qcm.msg;
-#include "Qcm/status/provider_status.hpp"
-
-#include "Qcm/util/async.inl"
-
-import qcm.notifier;
+module;
+#include "Qcm/query/mix_query.moc.h"
+module qcm;
+import :query.mix;
 
 namespace qcm
 {
@@ -30,7 +24,7 @@ void MixesQuery::reload() {
     auto req     = msg::GetMixsReq {};
     initReqForReload(req);
     req.setFilters(m_filters);
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
@@ -52,7 +46,7 @@ void MixesQuery::fetchMore(qint32) {
     auto backend = app->backend();
     auto req     = msg::GetMixsReq {};
     initReqForFetchMore(req);
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto offset = req.page();
         auto rsp    = co_await backend->send(std::move(req));
@@ -83,7 +77,7 @@ void RemoteMixesQuery::reload() {
     initReqForReload(req);
     req.setFilters(m_filters);
 
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
@@ -113,7 +107,7 @@ void MixQuery::reload() {
     auto backend = App::instance()->backend();
     auto req     = msg::GetMixReq {};
     req.setId_proto(m_item_id.id());
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
@@ -148,7 +142,7 @@ void MixSongsQuery::reload() {
     initReqForReload(req);
     req.setId_proto(m_item_id.id());
 
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto offset = req.page();
         auto rsp    = co_await backend->send(std::move(req));
@@ -195,7 +189,7 @@ void CreateMixQuery::reload() {
     auto backend = App::instance()->backend();
     auto req     = msg::CreateMixReq {};
     req.setName(m_name);
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto name = req.name();
         auto rsp  = co_await backend->send(std::move(req));
@@ -229,7 +223,7 @@ void DeleteMixQuery::reload() {
         return el.id();
     });
     req.setIds({ view.begin(), view.end() });
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
@@ -256,7 +250,7 @@ void LinkMixQuery::reload() {
         return el.id();
     });
     req.setIds({ view.begin(), view.end() });
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
@@ -288,7 +282,7 @@ void MixManipulateQuery::reload() {
         });
         req.setAlbumIds({ view.begin(), view.end() });
     }
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
@@ -326,4 +320,4 @@ void MixManipulateQuery::setOper(msg::model::MixManipulateOperGadget::MixManipul
 
 } // namespace qcm
 
-#include <Qcm/query/moc_mix_query.cpp>
+#include "Qcm/query/mix_query.moc.cpp"

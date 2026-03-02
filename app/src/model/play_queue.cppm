@@ -19,15 +19,13 @@ module;
 
 #include "core/log.h"
 #include "core/optional_helper.h"
-#include "core/asio/basic.h"
-#include "core/qasio/qt_watcher.h"
 
-export module qcm.app:queue;
-export import qcm.model.id_queue;
-export import qcm.action;
-export import qcm.global;
-export import qcm.msg;
-export import qcm.core;
+export module qcm:queue;
+export import :model.id_queue;
+export import :action;
+export import :global;
+export import :msg;
+export import qcm.qt;
 import qcm.random;
 
 export namespace qcm

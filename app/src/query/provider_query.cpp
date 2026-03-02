@@ -1,8 +1,7 @@
-#include "Qcm/query/provider_query.hpp"
-
-#include "Qcm/util/async.inl"
-
-#include "Qcm/app.hpp"
+module;
+#include "Qcm/query/provider_query.moc.h"
+module qcm;
+import :query.provider;
 
 namespace qcm
 {
@@ -51,7 +50,7 @@ AuthProviderQuery::AuthProviderQuery(QObject* parent): Query(parent) { setForwar
 void AuthProviderQuery::reload() {
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
-    auto self    = helper::QWatcher { this };
+    auto self    = QWatcher { this };
     m_req.setTmpProvider(m_tmp_provider);
     spawn([self, backend, req = m_req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
@@ -81,7 +80,7 @@ ProviderMetasQuery::ProviderMetasQuery(QObject* parent): Query(parent) { setForw
 void ProviderMetasQuery::reload() {
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
-    auto self    = helper::QWatcher { this };
+    auto self    = QWatcher { this };
     spawn([self, backend] -> task<void> {
         auto rsp = co_await backend->send(msg::GetProviderMetasReq {});
         co_await qcm::qexecutor_switch();
@@ -102,7 +101,7 @@ void AddProviderQuery::setReq(msg::AddProviderReq& req) {
 void AddProviderQuery::reload() {
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
-    auto self    = helper::QWatcher { this };
+    auto self    = QWatcher { this };
     spawn([self, backend, req = m_req]() mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
@@ -129,7 +128,7 @@ void UpdateProviderQuery::setProviderId(const model::ItemId& id) {
 void UpdateProviderQuery::reload() {
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
-    auto self    = helper::QWatcher { this };
+    auto self    = QWatcher { this };
     m_req.setProviderId(m_provider_id.id());
     spawn([self, backend, req = m_req]() mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
@@ -159,7 +158,7 @@ void DeleteProviderQuery::setProviderId(const model::ItemId& id) {
 void DeleteProviderQuery::reload() {
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
-    auto self    = helper::QWatcher { this };
+    auto self    = QWatcher { this };
     m_req.setProviderId(m_provider_id.id());
     spawn([self, backend, req = m_req]() mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
@@ -190,7 +189,7 @@ void ReplaceProviderQuery::setTmpProvider(const QString& v) {
 void ReplaceProviderQuery::reload() {
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
-    auto self    = helper::QWatcher { this };
+    auto self    = QWatcher { this };
     auto req     = msg::ReplaceProviderReq {};
     req.setProviderId(m_provider_id.id());
     req.setTmpProvider(m_tmp_provider);
@@ -225,7 +224,7 @@ void CreateTmpProviderQuery::setTypeName(const QString& v) {
 void CreateTmpProviderQuery::reload() {
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
-    auto self    = helper::QWatcher { this };
+    auto self    = QWatcher { this };
     spawn([self, backend, t = m_type_name]() mutable -> task<void> {
         auto req = msg::CreateTmpProviderReq {};
         req.setTypeName(t);
@@ -248,7 +247,7 @@ void DeleteTmpProviderQuery::setReq(msg::DeleteTmpProviderReq& req) {
 void DeleteTmpProviderQuery::reload() {
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
-    auto self    = helper::QWatcher { this };
+    auto self    = QWatcher { this };
     spawn([self, backend, req = m_req]() mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
@@ -259,4 +258,4 @@ void DeleteTmpProviderQuery::reload() {
 
 } // namespace qcm
 
-#include <Qcm/query/moc_provider_query.cpp>
+#include "Qcm/query/provider_query.moc.cpp"

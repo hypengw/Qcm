@@ -82,3 +82,9 @@ public:                                                                         
     _PARSE_DECLARE_FUNC(_prop_, _type_, __VA_ARGS__)
 
 #define DECLARE_MODEL(Class, ...) public:
+
+#if defined(qApp)
+#undef qApp
+#endif
+#define qApp (static_cast<QGuiApplication *>(QCoreApplication::instance()))
+

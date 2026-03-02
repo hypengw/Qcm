@@ -1,10 +1,11 @@
-#include "Qcm/query/lyric_query.hpp"
-#include "Qcm/app.hpp"
-#include "Qcm/backend.hpp"
-#include "Qcm/util/async.inl"
+module;
+#include "Qcm/query/lyric_query.moc.h"
+module qcm;
+import :query.lyric;
 
 namespace qcm
 {
+
 LyricQuery::LyricQuery(QObject* parent): Query(parent) {
     connect_requet_reload(&LyricQuery::itemIdChanged);
 }
@@ -17,14 +18,14 @@ void LyricQuery::reload() {
     if (m_item_id.valid()) {
         req.setSongId(m_item_id.id());
 
-        auto self = helper::QWatcher { this };
+        auto self = QWatcher { this };
         spawn([self, backend, req] mutable -> task<void> {
             auto rsp = co_await backend->send(std::move(req));
             co_await qcm::qexecutor_switch();
             auto t = self->tdata();
             if (rsp) {
                 msg::GetSubtitleRsp& el = *rsp;
-                auto view = std::views::transform(el.subtitle().items(), [](auto& el) {
+                auto view = rstd::cppstd::views::transform(el.subtitle().items(), [](auto& el) {
                     return LyricItem { .milliseconds = el.start(), .content = el.text() };
                 });
                 t->setCurrentIndex(-1);
@@ -52,6 +53,7 @@ void LyricQuery::setItemId(model::ItemId id) {
         itemIdChanged();
     }
 }
+
 } // namespace qcm
 
-#include "Qcm/query/moc_lyric_query.cpp"
+#include "Qcm/query/lyric_query.moc.cpp"

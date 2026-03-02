@@ -143,6 +143,7 @@ add_subdirectory(platform)
 add_subdirectory(core)
 add_subdirectory(error)
 add_subdirectory(crypto)
+add_subdirectory(qt)
 
 add_subdirectory(message)
 

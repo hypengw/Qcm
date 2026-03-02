@@ -1,11 +1,7 @@
-#include "Qcm/query/play_query.hpp"
-#include "Qcm/util/async.inl"
-
-#include "Qcm/query/album_query.hpp"
-#include "Qcm/action.hpp"
-#include "Qcm/backend.hpp"
-#include "Qcm/app.hpp"
-#include "Qcm/status/provider_status.hpp"
+module;
+#include "Qcm/query/play_query.moc.h"
+module qcm;
+import :query.play;
 
 namespace qcm
 {
@@ -30,7 +26,7 @@ void PlayQuery::reload() {
         setStatus(Status::Querying);
         auto backend = App::instance()->backend();
         auto req     = msg::GetSongIdsReq {};
-        auto self    = helper::QWatcher { this };
+        auto self    = QWatcher { this };
 
         {
             msg::filter::SongFilter filter;
@@ -79,7 +75,7 @@ void PlayAllQuery::reload() {
     auto app     = App::instance();
     auto backend = app->backend();
     auto req     = msg::GetSongIdsReq {};
-    auto self    = helper::QWatcher { this };
+    auto self    = QWatcher { this };
 
     req.setSort(rstd::into(m_sort));
     req.setAlbumSort(rstd::into(m_album_sort));
@@ -134,4 +130,4 @@ void PlayAllQuery::setAlbumAsc(bool v) {
 
 } // namespace qcm
 
-#include "Qcm/query/moc_play_query.cpp"
+#include "Qcm/query/play_query.moc.cpp"

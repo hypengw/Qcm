@@ -4,12 +4,11 @@ module;
 #include <QtQml/QQmlEngine>
 #include "Qcm/macro.hpp"
 
-#include "Qcm/model/router_msg.moc.h"
 #ifdef Q_MOC_RUN
 #    include "Qcm/model/router_msg.moc"
 #endif
 
-export module qcm.model.router_msg;
+export module qcm:model.router_msg;
 namespace qcm
 {
 namespace model
@@ -26,6 +25,3 @@ public:
 
 } // namespace model
 } // namespace qcm
-
-module :private;
-#include "Qcm/model/router_msg.moc.cpp"

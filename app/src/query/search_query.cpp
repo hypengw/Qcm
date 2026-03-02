@@ -1,10 +1,7 @@
-#include "Qcm/query/search_query.hpp"
-
-#include "Qcm/util/async.inl"
-#include "Qcm/app.hpp"
-#include "Qcm/backend.hpp"
-import qcm.msg;
-#include "Qcm/status/provider_status.hpp"
+module;
+#include "Qcm/query/search_query.moc.h"
+module qcm;
+import :query.search;
 
 namespace qcm
 {
@@ -133,7 +130,7 @@ void SearchQuery::reload() {
                 auto el = rsp.albums();
                 auto t  = self->tdata()->albums();
                 t->setHasMore(false);
-                auto view = std::views::transform(el.items(), [](auto& el) {
+                auto view = rstd::cppstd::views::transform(el.items(), [](auto& el) {
                     return model::Album { el };
                 });
                 t->sync(view);
@@ -150,7 +147,7 @@ void SearchQuery::reload() {
                 auto el = rsp.songs();
                 auto t  = self->tdata()->songs();
                 t->setHasMore(false);
-                auto view = std::views::transform(el.items(), [](auto& el) {
+                auto view = rstd::cppstd::views::transform(el.items(), [](auto& el) {
                     return model::Song { el };
                 });
                 t->sync(view);
@@ -167,7 +164,7 @@ void SearchQuery::reload() {
                 auto el = rsp.artists();
                 auto t  = self->tdata()->artists();
                 t->setHasMore(false);
-                auto view = std::views::transform(el.items(), [](auto& el) {
+                auto view = rstd::cppstd::views::transform(el.items(), [](auto& el) {
                     return model::Artist { el };
                 });
                 t->sync(view);
@@ -182,4 +179,4 @@ void SearchQuery::reload() {
 
 } // namespace qcm
 
-#include "Qcm/query/moc_search_query.cpp"
+#include "Qcm/query/search_query.moc.cpp"

@@ -1,0 +1,64 @@
+module;
+#include <limits>
+#include <QQmlEngine>
+
+#include "core/core.h"
+#include "kstore/qt/gadget_model.hpp"
+
+#ifdef Q_MOC_RUN
+#include "Qcm/model/lyric.moc"
+#endif
+
+export module qcm:model.lyric;
+export import :global;
+export import :util.async;
+
+namespace qcm
+{
+
+export class LyricItem {
+    Q_GADGET
+public:
+    Q_PROPERTY(qlonglong milliseconds MEMBER milliseconds FINAL)
+    Q_PROPERTY(QString content MEMBER content FINAL)
+
+    qlonglong milliseconds;
+    QString   content;
+};
+
+export class LyricModel : public kstore::QGadgetListModel,
+                          public kstore::QMetaListModelCRTP<LyricItem, LyricModel, kstore::ListStoreType::Vector> {
+    Q_OBJECT
+    QML_ELEMENT
+
+    Q_PROPERTY(qlonglong currentIndex READ currentIndex NOTIFY currentIndexChanged FINAL)
+    Q_PROPERTY(qlonglong position READ position WRITE setPosition NOTIFY positionChanged FINAL)
+    Q_PROPERTY(QString source READ source WRITE setSource NOTIFY sourceChanged FINAL)
+public:
+    LyricModel(QObject* = nullptr);
+    ~LyricModel();
+
+    QString source() const;
+    void    setSource(QString);
+
+    qlonglong position() const;
+    void      setPosition(qlonglong);
+
+    qlonglong currentIndex() const;
+
+    Q_SIGNAL void currentIndexChanged(qlonglong);
+    Q_SIGNAL void positionChanged();
+    Q_SIGNAL void sourceChanged();
+
+    Q_SLOT void setCurrentIndex(qlonglong);
+
+private:
+    Q_SLOT void refreshIndex();
+
+private:
+    qlonglong m_cur_idx;
+    qlonglong m_position;
+    QString   m_source;
+};
+
+} // namespace qcm

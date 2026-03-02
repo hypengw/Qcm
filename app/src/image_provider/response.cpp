@@ -1,12 +1,12 @@
-#include "Qcm/image_provider/response.hpp"
-
-#include <atomic>
+module;
+module qcm;
+import :image_provider.response;
 
 namespace qcm
 {
 
-auto image_response_count() -> std::atomic<i32>& {
-    static std::atomic<i32> count { 0 };
+auto image_response_count() -> Atomic<i32>& {
+    static Atomic<i32> count { 0 };
     return count;
 }
 

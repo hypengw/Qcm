@@ -1,8 +1,10 @@
+module;
+#include <cmath>
 export module qcm.core:basic;
 export import rstd;
 
 namespace cppstd = rstd::cppstd;
-namespace mtp   = rstd::mtp;
+namespace mtp    = rstd::mtp;
 
 export using rstd::i8;
 export using rstd::i16;
@@ -29,12 +31,6 @@ using weak = cppstd::weak_ptr<T>;
 
 export template<typename T, typename D = cppstd::default_delete<T>>
 using up = cppstd::unique_ptr<T, D>;
-
-export template<typename T>
-using Arc = cppstd::shared_ptr<T>;
-
-export template<typename T, typename D = cppstd::default_delete<T>>
-using Box = cppstd::unique_ptr<T, D>;
 
 export using rstd::Option;
 export using rstd::Result;
@@ -93,8 +89,7 @@ typename Wrapper::element_type* GetPtrHelper(const Wrapper& p) {
 }
 
 export template<class T>
-void hash_combine(cppstd::size_t& seed,
-                  const T& v) {
+void hash_combine(cppstd::size_t& seed, const T& v) {
     cppstd::hash<T> hasher;
     seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
@@ -135,8 +130,7 @@ export template<typename T>
 }
 
 export template<typename T>
-using param_t =
-    mtp::conditional_t<mtp::is_trivially_copyable_v<T> && sizeof(T) <= 32, T, const T&>;
+using param_t = mtp::conditional_t<mtp::is_trivially_copyable_v<T> && sizeof(T) <= 32, T, const T&>;
 
 export template<typename T>
 constexpr auto cmp_set(T&         lhs,
@@ -252,3 +246,28 @@ struct rstd::Impl<T, A> {
         }
     }
 };
+
+namespace ycore
+{
+export template<class T>
+    requires(! std::numeric_limits<T>::is_integer)
+constexpr auto equal_within_ulps(T x, T y, std::size_t n) -> bool {
+    // Since `epsilon()` is the gap size (ULP, unit in the last place)
+    // of floating-point numbers in interval [1, 2), we can scale it to
+    // the gap size in interval [2^e, 2^{e+1}), where `e` is the exponent
+    // of `x` and `y`.
+
+    // If `x` and `y` have different gap sizes (which means they have
+    // different exponents), we take the smaller one. Taking the bigger
+    // one is also reasonable, I guess.
+    const T m = std::min(std::fabs(x), std::fabs(y));
+
+    // Subnormal numbers have fixed exponent, which is `min_exponent - 1`.
+    const int exp = m < std::numeric_limits<T>::min() ? std::numeric_limits<T>::min_exponent - 1
+                                                      : std::ilogb(m);
+
+    // We consider `x` and `y` equal if the difference between them is
+    // within `n` ULPs.
+    return std::fabs(x - y) <= n * std::ldexp(std::numeric_limits<T>::epsilon(), exp);
+}
+} // namespace ycore

@@ -1,7 +1,12 @@
-#include "Qcm/query/query_api.hpp"
-#include "Qcm/global.hpp"
+module;
+#include "Qcm/macro.hpp"
 
-#include "core/qobject_bindable_property_p.h"
+#include "Qcm/query/query_api.moc.h"
+module qcm;
+import :query.api;
+import qcm.log;
+
+namespace cppstd = rstd::cppstd;
 
 namespace qcm
 {
@@ -17,17 +22,17 @@ public:
           m_querying(false, p),
           m_status(Status::Uninitialized, p),
           m_error(p) {}
-    QAsyncResult*         m_p;
-    bool                  m_forward_error;
-    QVariant              m_data;
-    std::function<void()> m_cb;
+    QAsyncResult*            m_p;
+    bool                     m_forward_error;
+    QVariant                 m_data;
+    cppstd::function<void()> m_cb;
 
-    helper::WatchDog                         m_wdog;
-    std::map<QString, QObject*, std::less<>> m_hold;
+    WatchDog                                       m_wdog;
+    cppstd::map<QString, QObject*, cppstd::less<>> m_hold;
 
-    bool                                                                      m_use_queue;
-    bool                                                                      m_queue_exec_mark;
-    std::deque<std::tuple<std::function<task<void>()>, std::source_location>> m_queue;
+    bool m_use_queue;
+    bool m_queue_exec_mark;
+    cppstd::deque<cppstd::tuple<cppstd::function<task<void>()>, cppstd::source_location>> m_queue;
 
     ObjectBindableProperty<QAsyncResult, bool, &QAsyncResult ::queryingChanged> m_querying;
     ObjectBindableProperty<QAsyncResult, Status, &QAsyncResult ::statusChanged> m_status;
@@ -39,10 +44,10 @@ public:
         auto [f, loc] = m_queue.front();
         m_queue.pop_front();
 
-        auto                           ex = asio::make_strand(m_p->pool_executor());
-        helper::QWatcher<QAsyncResult> self { m_p };
-        auto                           main_ex { m_p->get_executor() };
-        auto                           alloc = asio::recycling_allocator<void>();
+        auto                   ex = asio::make_strand(m_p->pool_executor());
+        QWatcher<QAsyncResult> self { m_p };
+        auto                   main_ex { m_p->get_executor() };
+        auto                   alloc = asio::recycling_allocator<void>();
 
         m_p->setStatus(Status::Querying);
         m_queue_exec_mark = true;
@@ -195,7 +200,7 @@ void QAsyncResult::set_use_queue(bool v) {
     d->m_use_queue = v;
 }
 
-auto QAsyncResult::watch_dog() -> helper::WatchDog& {
+auto QAsyncResult::watch_dog() -> WatchDog& {
     C_D(QAsyncResult);
     return d->m_wdog;
 }
@@ -221,7 +226,7 @@ void QAsyncResult::set_data(const QVariant& v) {
         }
     }
 }
-void QAsyncResult::push(std::function<task<void>()> in, const std::source_location& loc) {
+void QAsyncResult::push(std::function<task<void>()> in, const cppstd::source_location& loc) {
     C_D(QAsyncResult);
     d->m_queue.emplace_back(in, loc);
 
@@ -242,7 +247,6 @@ public:
     bool m_auto_reload;
     bool m_qml_parsing;
     bool m_dirty;
-
 };
 
 ApiQueryBase::ApiQueryBase(QObject* parent): QAsyncResult(parent), d_ptr(make_up<Private>()) {
@@ -304,5 +308,4 @@ void ApiQueryBase::query() { reload(); }
 
 } // namespace qcm
 
-#include <Qcm/util/moc_async.cpp>
-#include <Qcm/query/moc_query_api.cpp>
+#include "Qcm/query/query_api.moc.cpp"

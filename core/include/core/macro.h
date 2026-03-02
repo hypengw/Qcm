@@ -1,6 +1,7 @@
 #pragma once
 
-#define YCORE_BREAK_ON(x) if(x) break
+#define YCORE_BREAK_ON(x) \
+    if (x) break
 
 #define YCORE_EMPTY_OBJ
 #define YCORE_EMPTY(...)
@@ -45,7 +46,7 @@
     }
 
 #define C_DECLARE_PRIVATE(Class, DName) \
-    Box<Private> DName;                  \
+    up<Private> DName;                  \
     C_DECLARE_PRIVATE_FUNC(Class, DName)
 
 #define C_D(Class)       Class::Private* const d = d_func()
@@ -83,4 +84,3 @@
 #define STATIC_CAST_CONVERT(Ta, Tb)                             \
     DEFINE_CONVERT(Ta, Tb) { out = static_cast<out_type>(in); } \
     DEFINE_CONVERT(Tb, Ta) { out = static_cast<out_type>(in); }
-

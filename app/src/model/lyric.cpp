@@ -1,17 +1,17 @@
-#include "Qcm/model/lyric.hpp"
-
+module;
+#include "Qcm/model/lyric.moc.h"
 #include <limits>
-
-#include "core/core.h"
 #include "core/log.h"
 
-import qcm.helper;
+module qcm;
+import :model.lyric;
+import :util.async;
+import :global;
 
 using namespace qcm;
 
 LyricModel::LyricModel(QObject* parent)
     : kstore::QGadgetListModel(this, parent), m_cur_idx(-1), m_position(0) {
-    // connect(this, &Lyric::sourceChanged, this, &Lyric::parseLrc);
     connect(this, &LyricModel::positionChanged, this, &LyricModel::refreshIndex);
 }
 LyricModel::~LyricModel() {}
@@ -57,12 +57,10 @@ void LyricModel::refreshIndex() {
                 return it->milliseconds;
         };
 
-        // check left
         while (milli(it) > pos) {
             it--;
         }
 
-        // check right
         while (milli(it + 1) <= pos) {
             it++;
         }
@@ -75,4 +73,4 @@ void LyricModel::refreshIndex() {
     }
 }
 
-#include <Qcm/model/moc_lyric.cpp>
+#include "Qcm/model/lyric.moc.cpp"

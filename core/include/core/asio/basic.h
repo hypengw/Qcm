@@ -8,6 +8,3 @@
 #include <asio/error_code.hpp>
 #include <asio/any_completion_handler.hpp>
 #include <asio/thread_pool.hpp>
-
-#include "core/asio/detached_log.h"
-#include "core/asio/task.h"

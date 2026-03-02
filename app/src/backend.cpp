@@ -1,37 +1,18 @@
 module;
-#include <set>
-#include <filesystem>
-#include <QQmlPropertyMap>
-#include <QVariant>
-#include <QStringView>
-#include <QJsonDocument>
-#include <QProcess>
-#include <QProtobufSerializer>
-#include <QSettings>
+#include "Qcm/backend.moc.h"
 
 #include "Qcm/status/provider.moc.h"
-#include "Qcm/status/process.hpp"
-
-#include "kstore/qt/gadget_model.hpp"
-
-#include "core/asio/task.h"
-#include "core/asio/basic.h"
-#include "core/qasio/qt_execution_context.h"
-#include "core/qasio/qt_watcher.h"
 #include "std23/move_only_function.h"
 
-#ifdef _WIN32
-#    include <asio/generic/stream_protocol.hpp>
-#else
-#    include <asio/posix/stream_descriptor.hpp>
-#endif
-
 #include "core/log.h"
+#include <rstd/macro.hpp>
 
-module qcm.app;
+module qcm;
 import :status.provider;
-import :backend;
-import qcm.msg;
+import :status.process;
+import :app;
+import qcm.qt;
+import qcm.log;
 
 using namespace qcm;
 using namespace Qt::Literals::StringLiterals;
@@ -71,15 +52,15 @@ public:
 };
 } // namespace detail
 
-Backend::Backend(Arc<ncrequest::Session> session)
-    : m_thread(make_box<QThread>(new QThread())),
+Backend::Backend(rc<ncrequest::Session> session)
+    : m_thread(Box<QThread>::make()),
       m_context(
-          make_box<QtExecutionContext>(m_thread.get(), (QEvent::Type)QEvent::registerEventType())),
+          Box<QtExecutionContext>::make(m_thread.get(), (QEvent::Type)QEvent::registerEventType())),
       m_process(new QProcess()),
-      m_client(make_box<ncrequest::WebSocketClient>(
+      m_client(Box<ncrequest::WebSocketClient>::make(
           ncrequest::event::create<stream_type>(m_context->get_executor()), None(),
           mem_mgr().backend_mem)),
-      m_serializer(make_box<QProtobufSerializer>()),
+      m_serializer(Box<QProtobufSerializer>::make()),
       m_session(session),
       m_serial(1), // start from 1, as 0 is none
       m_port(0) {
@@ -121,7 +102,7 @@ Backend::Backend(Arc<ncrequest::Session> session)
         QObject::connect(m_thread.get(), &QThread::finished, m_process, &QObject::deleteLater);
         m_thread->start();
         bool ok = m_process->moveToThread(m_thread.get());
-        _assert_(ok);
+        debug_assert(ok);
     }
     // connect signal
     {
@@ -160,10 +141,10 @@ auto Backend::start(QStringView exe_, QStringView data_dir_, QStringView cache_d
 
     {
         std::error_code ec;
-        auto            path = std::filesystem::path(m_exe.toStdString());
+        auto            path = rstd::cppstd::filesystem::path(m_exe.toStdString());
 
-        if (! std::filesystem::exists(path, ec)) {
-            error(rstd::into(std::format("Not found:\n {}", path.string())));
+        if (! rstd::cppstd::filesystem::exists(path, ec)) {
+            error(rstd::into(rstd::cppstd::format("Not found:\n {}", path.string())));
             return false;
         }
     }
@@ -423,8 +404,6 @@ void LibraryStatus::setActived(i64 id, bool v) {
 }
 } // namespace qcm
 
-
-
 namespace qcm
 {
 
@@ -643,9 +622,10 @@ PlayQueue::PlayQueue(QObject* parent)
         if (! source_model) return;
         if (m_changed_ids.empty()) return;
 
-        std::unordered_set<model::ItemId> ids { m_changed_ids.begin(), m_changed_ids.end() };
+        rstd::cppstd::unordered_set<model::ItemId> ids { m_changed_ids.begin(),
+                                                         m_changed_ids.end() };
         m_changed_ids.clear();
-        std::vector<qint32> rows_to_update;
+        rstd::cppstd::vector<qint32> rows_to_update;
 
         for (auto i = 0; i < rowCount(); i++) {
             if (auto id = getId(i); ids.contains(*id)) {
@@ -1040,13 +1020,13 @@ void PlayQueue::fetchSongs() {
     auto backend = App::instance()->backend();
 
     auto req  = msg::GetSongsByIdReq {};
-    auto view = std::views::transform(m_pending_ids, [](const auto& id) {
+    auto view = rstd::cppstd::views::transform(m_pending_ids, [](const auto& id) {
         return id.id();
     });
     req.setIds({ view.begin(), view.end() });
     m_pending_ids.clear();
 
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     asio::co_spawn(
         ex,
         [self, backend, req = std::move(req)] mutable -> task<void> {
@@ -1076,11 +1056,10 @@ void PlayQueue::fetchSongs() {
 
             co_return;
         },
-        helper::asio_detached_log_t {});
+        asio_detached_log_t {});
 }
 
 } // namespace qcm
 
-#include "Qcm/model/play_queue.moc.cpp"
 #include "Qcm/status/provider.moc.cpp"
 #include "Qcm/backend.moc"

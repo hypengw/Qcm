@@ -1,0 +1,12 @@
+export module qcm:query2;
+export import :query.album;
+export import :query.artist;
+export import :query.favorite;
+export import :query.lyric;
+export import :query.mix;
+export import :query.play;
+export import :query.provider;
+export import :query.sync;
+export import :query.storage_info;
+export import :query.search;
+export import :query.qr;

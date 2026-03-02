@@ -1,19 +1,12 @@
-#include "Qcm/query/album_query.hpp"
-
-#include "Qcm/backend.hpp"
-#include "Qcm/app.hpp"
-import qcm.msg;
-
-#include "Qcm/util/async.inl"
-#include "Qcm/status/provider_status.hpp"
-
-import qcm.msg;
+module;
+#include "Qcm/query/album_query.moc.h"
+module qcm;
+import :query.album;
 
 namespace qcm
 {
 
 AlbumsQuery::AlbumsQuery(QObject* parent): QueryList(parent) {
-    // set_use_queue(true);
     auto app = App::instance();
     this->tdata()->set_store(this->tdata(), app->store()->albums);
     this->connectSyncFinished();
@@ -36,7 +29,7 @@ void AlbumsQuery::reload() {
     req.setLibraryId(app->libraryStatus()->activedIds());
     req.setFilters(m_filters);
 
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
@@ -69,7 +62,7 @@ void AlbumsQuery::fetchMore(qint32) {
     req.setLibraryId(app->libraryStatus()->activedIds());
     req.setFilters(m_filters);
 
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto offset = req.page();
         auto rsp    = co_await backend->send(std::move(req));
@@ -108,7 +101,7 @@ void AlbumQuery::reload() {
     auto backend = App::instance()->backend();
     auto req     = msg::GetAlbumReq {};
     req.setId_proto(m_item_id.id());
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
@@ -134,6 +127,6 @@ void AlbumQuery::reload() {
         co_return;
     });
 }
-} // namespace qcm
 
-#include <Qcm/query/moc_album_query.cpp>
+} // namespace qcm
+#include "Qcm/query/album_query.moc.cpp"

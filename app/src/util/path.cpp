@@ -1,37 +1,41 @@
-#include "Qcm/util/path.hpp"
+module;
 #include "core/log.h"
 #include "core/qstr_helper.h"
 
 #include <cstdlib>
-#include <QStandardPaths>
-#include <QString>
 
-using path = std::filesystem::path;
+#include <rstd/macro.hpp>
+module qcm;
+import :util.path;
+import qcm.log;
+
 namespace cppstd = rstd::cppstd;
 
-std::filesystem::path qcm::config_path() {
+using path = cppstd::filesystem::path;
+
+path qcm::config_path() {
     auto locs = QStandardPaths::standardLocations(QStandardPaths::AppConfigLocation);
-    _assert_(locs.size() > 0);
-    return std::filesystem::path(locs[0].toStdString());
+    debug_assert(locs.size() > 0);
+    return path(locs[0].toStdString());
 }
 
-std::filesystem::path qcm::data_path() {
+path qcm::data_path() {
     auto locs = QStandardPaths::standardLocations(QStandardPaths::AppDataLocation);
-    _assert_(locs.size() > 0);
-    return std::filesystem::path(locs[0].toStdString());
+    debug_assert(locs.size() > 0);
+    return path(locs[0].toStdString());
 }
 
-std::filesystem::path qcm::cache_path() {
+path qcm::cache_path() {
     auto locs = QStandardPaths::standardLocations(QStandardPaths::CacheLocation);
-    _assert_(locs.size() > 0);
-    return std::filesystem::path(locs[0].toStdString());
+    debug_assert(locs.size() > 0);
+    return path(locs[0].toStdString());
 }
 
-bool qcm::init_path(std::span<const std::filesystem::path> pathes) {
+bool qcm::init_path(std::span<const path> pathes) {
     for (auto& p : pathes) {
         std::error_code ec;
-        std::filesystem::create_directories(p, ec);
-        _assert_msg_(! ec, "path: {}, info: {}({})", p.string(), ec.message(), ec.value());
+        cppstd::filesystem::create_directories(p, ec);
+        debug_assert(! ec, "path: {}, info: {}({})", p.string(), ec.message(), ec.value());
     }
     return true;
 }

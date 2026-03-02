@@ -1,15 +1,9 @@
 #pragma once
-#include <string_view>
-#include <source_location>
-#include <cstdlib>
 
-#include "core/fmt.h"
 #include "core/macro.h"
 
-import qcm.log;
-
 // clang-format off
-#define GENERIC_LOG(lv, ...) if(qcm::log::log_check(lv)) qcm::log::log(lv, std::source_location::current(), __VA_ARGS__);
+#define GENERIC_LOG(lv, ...) if(qcm::log::log_check(lv)) qcm::log::log(lv, rstd::cppstd::source_location::current(), __VA_ARGS__);
 
 #define LOG_ERROR(...)   GENERIC_LOG(qcm::LogLevel::ERROR,   __VA_ARGS__)
 #define LOG_WARN(...)    GENERIC_LOG(qcm::LogLevel::WARN, __VA_ARGS__)

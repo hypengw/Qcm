@@ -1,3 +1,3 @@
-export module qcm.msg;
-export import :backend;
-export import :store;
+export module qcm:msg;
+export import :msg.backend;
+export import :msg.store;

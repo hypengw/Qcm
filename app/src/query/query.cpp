@@ -1,6 +1,14 @@
-#include "Qcm/query/query.hpp"
-#include "Qcm/status/provider_status.hpp"
-#include "Qcm/app.hpp"
+module;
+#include <rstd/macro.hpp>
+#include "core/log.h"
+#include "Qcm/query/query.moc.h"
+module qcm;
+import qcm.log;
+import :query.query;
+import :global;
+import :action;
+import :notifier;
+import :util.async;
 
 namespace qcm
 {
@@ -14,7 +22,7 @@ Query::~Query() {}
 
 auto Query::create(std::string_view name) -> Query* {
     auto q = QMetaType::fromName(name).create();
-    _assert_rel_(q);
+    assert(q);
     return static_cast<Query*>(q);
 }
 
@@ -98,4 +106,4 @@ void detail::try_connect_fetch_more(QObject* query, QObject* model) {
 
 } // namespace qcm
 
-#include <Qcm/query/moc_query.cpp>
+#include "Qcm/query/query.moc.cpp"

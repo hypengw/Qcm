@@ -1,21 +1,17 @@
 module;
-#include <string>
-#include <set>
-#include <QtQml/QQmlPropertyMap>
-#include <QJsonDocument>
 #include "Qcm/message/message.qpb.h"
-#include "kstore/item_trait.hpp"
-#include "kstore/share_store.hpp"
+
 #include "core/log.h"
 
 #ifdef Q_MOC_RUN
 #    include "Qcm/msg/backend_msg.moc"
 #endif
 
-export module qcm.msg:backend;
-export import qcm.model.item_id;
-export import qcm.model.share_store;
-export import qcm.qml.enums;
+export module qcm:msg.backend;
+export import :model.item_id;
+export import :model.share_store;
+export import :qml.enums;
+export import qcm.qt;
 
 export namespace google::protobuf
 {
@@ -23,12 +19,6 @@ using google::protobuf::Timestamp;
 using google::protobuf::Value;
 using google::protobuf::Struct;
 } // namespace google::protobuf
-
-namespace QtProtobuf
-{
-export using QtProtobuf::int64List;
-export using QtProtobuf::int32;
-}
 
 namespace m = qcm::msg::model;
 export namespace qcm::msg::model
@@ -88,6 +78,12 @@ using f::RemoteMixFilter;
 using f::SongFilter;
 using f::AlbumIdFilter;
 using f::MixIdFilter;
+using f::TypeFilter;
+using f::TypeStringFilter;
+using f::LastPlayedAtFilter;
+using f::AlbumArtistIdFilter;
+using f::ArtistIdFilter;
+using f::TitleFilter;
 
 namespace FilterTypeGadget
 {

@@ -1,17 +1,12 @@
-#include "Qcm/query/artist_query.hpp"
-
-#include "Qcm/backend.hpp"
-#include "Qcm/app.hpp"
-import qcm.msg;
-
-#include "Qcm/util/async.inl"
-#include "Qcm/status/provider_status.hpp"
+module;
+#include "Qcm/query/artist_query.moc.h"
+module qcm;
+import :query.artist;
 
 namespace qcm
 {
 
 ArtistsQuery::ArtistsQuery(QObject* parent): QueryList(parent) {
-    // set_use_queue(true);
     auto app = App::instance();
     this->tdata()->set_store(this->tdata(), AppStore::instance()->artists);
     this->connectSyncFinished();
@@ -26,7 +21,7 @@ void ArtistsQuery::reload() {
     req.setLibraryId(app->libraryStatus()->activedIds());
     req.setFilters(m_filters);
 
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
@@ -59,7 +54,7 @@ void ArtistsQuery::fetchMore(qint32) {
     req.setLibraryId(app->libraryStatus()->activedIds());
     req.setFilters(m_filters);
 
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto offset = req.page();
         auto rsp    = co_await backend->send(std::move(req));
@@ -77,7 +72,6 @@ void ArtistsQuery::fetchMore(qint32) {
 }
 
 AlbumArtistsQuery::AlbumArtistsQuery(QObject* parent): QueryList(parent) {
-    // set_use_queue(true);
     auto app = App::instance();
     this->tdata()->set_store(this->tdata(), AppStore::instance()->artists);
     this->connectSyncFinished();
@@ -92,7 +86,7 @@ void AlbumArtistsQuery::reload() {
     req.setLibraryId(app->libraryStatus()->activedIds());
     req.setFilters(m_filters);
 
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
@@ -108,14 +102,16 @@ void AlbumArtistsQuery::reload() {
         co_return;
     });
 }
-auto AlbumArtistsQuery::filters() const -> const QList<msg::filter::ArtistFilter>& { return m_filters; }
+auto AlbumArtistsQuery::filters() const -> const QList<msg::filter::ArtistFilter>& {
+    return m_filters;
+}
 void AlbumArtistsQuery::setFilters(const QList<msg::filter::ArtistFilter>& f) {
     m_filters = f;
     filtersChanged();
 }
 
 void AlbumArtistsQuery::fetchMore(qint32) {
-    if(noMore()) return;
+    if (noMore()) return;
 
     setStatus(Status::Querying);
     auto app     = App::instance();
@@ -125,7 +121,7 @@ void AlbumArtistsQuery::fetchMore(qint32) {
     req.setLibraryId(app->libraryStatus()->activedIds());
     req.setFilters(m_filters);
 
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto offset = req.page();
         auto rsp    = co_await backend->send(std::move(req));
@@ -155,7 +151,7 @@ void ArtistQuery::reload() {
     auto backend = App::instance()->backend();
     auto req     = msg::GetArtistReq {};
     req.setId_proto(m_item_id.id());
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
@@ -169,7 +165,6 @@ void ArtistQuery::reload() {
 }
 
 ArtistAlbumQuery::ArtistAlbumQuery(QObject* parent): QueryList(parent) {
-    // set_use_queue(true);
     this->tdata()->set_store(this->tdata(), AppStore::instance()->albums);
 }
 
@@ -187,7 +182,7 @@ void ArtistAlbumQuery::reload() {
     initReqForReload(req);
     req.setId_proto(m_item_id.id());
 
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
@@ -211,7 +206,7 @@ void ArtistAlbumQuery::fetchMore(qint32) {
     initReqForFetchMore(req);
     req.setId_proto(m_item_id.id());
 
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto offset = req.page();
         auto rsp    = co_await backend->send(std::move(req));
@@ -237,4 +232,4 @@ void ArtistAlbumQuery::fetchMore(qint32) {
 
 } // namespace qcm
 
-#include <Qcm/query/moc_artist_query.cpp>
+#include "Qcm/query/artist_query.moc.cpp"

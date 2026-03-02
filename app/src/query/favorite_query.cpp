@@ -1,8 +1,7 @@
-#include "Qcm/query/favorite_query.hpp"
-#include "Qcm/util/async.inl"
-#include "Qcm/app.hpp"
-import qcm.msg;
-#include "Qcm/backend.hpp"
+module;
+#include "Qcm/query/favorite_query.moc.h"
+module qcm;
+import :query.favorite;
 
 namespace qcm
 {
@@ -35,7 +34,7 @@ void SetFavoriteQuery::reload() {
     req.setId_proto(m_item_id.id());
     req.setItemType(rstd::into(m_item_id.type()));
 
-    auto self = helper::QWatcher { this };
+    auto self = QWatcher { this };
     spawn([self, backend, req, value = m_favorite, item_id = m_item_id] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
@@ -53,4 +52,4 @@ void SetFavoriteQuery::reload() {
 
 } // namespace qcm
 
-#include "Qcm/query/moc_favorite_query.cpp"
+#include "Qcm/query/favorite_query.moc.cpp"

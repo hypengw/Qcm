@@ -1,0 +1,41 @@
+export module qcm.asio:sync_file;
+export import qcm.core;
+export import asio;
+
+namespace qcm
+{
+
+export template<typename F>
+class SyncFile {
+public:
+    SyncFile(F&& f): m_f(rstd::forward<F>(f)) {}
+
+    SyncFile(SyncFile&& o) noexcept: m_f(rstd::exchange(o.m_f, {})) {}
+    SyncFile& operator=(SyncFile&& o) noexcept {
+        m_f = rstd::exchange(o.m_f, {});
+        return *this;
+    }
+
+    F& handle() { return m_f; }
+
+    template<typename MB>
+        requires asio::is_mutable_buffer_sequence<MB>::value
+    auto read_some(MB buffer) {
+        auto size = buffer.size();
+        m_f.read((char*)buffer.data(), size);
+        return size;
+    }
+
+    template<typename MB>
+        requires asio::is_const_buffer_sequence<MB>::value
+    auto write_some(const MB& buffer) {
+        auto size = buffer.size();
+        m_f.write((const char*)buffer.data(), size);
+        return size;
+    }
+
+private:
+    F m_f;
+};
+
+} // namespace qcm
