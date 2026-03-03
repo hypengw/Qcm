@@ -8,7 +8,6 @@ extern "C" {
 }
 
 #include <limits>
-#include "error/error.h"
 
 import qcm.log;
 

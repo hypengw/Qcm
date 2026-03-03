@@ -1,6 +1,5 @@
 module;
-#include <variant>
-#include <QQmlEngine>
+#include "Qcm/macro_qt.hpp"
 #include "core/helper.h"
 
 #ifdef Q_MOC_RUN
@@ -36,7 +35,7 @@ public:
     };
 
     using StateTypelist = ycore::type_list<Loading, Welcome, Main, Error>;
-    using State         = StateTypelist::to<std::variant>;
+    using State         = StateTypelist::to<rstd::cppstd::variant>;
 
     template<typename T>
     auto is_state() const -> bool {

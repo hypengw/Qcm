@@ -1,7 +1,6 @@
 module;
 #include "Qcm/macro_qt.hpp"
 #include "core/log.h"
-#include "core/qstr_helper.h"
 
 #ifdef Q_MOC_RUN
 #include "Qcm/model/item_id.moc"
@@ -53,7 +52,7 @@ public:
     std::strong_ordering operator<=>(const ItemId&) const noexcept;
     bool                 operator==(const ItemId&) const noexcept;
     bool                 operator==(const QUrl&) const;
-    bool                 operator==(std::string_view) const;
+    bool                 operator==(rstd::cppstd::string_view) const;
     bool                 operator==(QStringView) const;
 
     bool valid() const;
@@ -72,8 +71,8 @@ private:
 } // namespace qcm::model
 
 template<>
-struct std::hash<qcm::model::ItemId> {
-    std::size_t operator()(const qcm::model::ItemId& k) const noexcept;
+struct rstd::cppstd::hash<qcm::model::ItemId> {
+    usize operator()(const qcm::model::ItemId& k) const noexcept;
 };
 
 

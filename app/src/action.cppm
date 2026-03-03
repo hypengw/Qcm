@@ -1,11 +1,5 @@
 module;
-#include <QtCore/QPointer>
-#include <QtCore/QRunnable>
-#include <QtQml/QQmlEngine>
-
-#include <QSettings>
-#include <QVariant>
-
+#include "Qcm/macro_qt.hpp"
 #ifdef Q_MOC_RUN
 #include "Qcm/action.moc"
 #endif
@@ -16,6 +10,8 @@ export import :qml.enums;
 export import :util.global_static;
 export import :model.id_queue;
 export import :model.router_msg;
+
+namespace cppstd = rstd::cppstd;
 
 namespace qcm
 {
@@ -53,9 +49,9 @@ Q_SIGNALS:
     void switch_queue(model::IdQueue*);
 
     void play(model::ItemId songId, model::ItemId sourceId = {});
-    void queue_next(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
-    void queue(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
-    void switch_songs(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
+    void queue_next(const cppstd::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
+    void queue(const cppstd::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
+    void switch_songs(const cppstd::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
 
     void playUrl(const QUrl& url, bool refresh = false);
 

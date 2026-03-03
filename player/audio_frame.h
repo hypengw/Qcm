@@ -2,6 +2,7 @@
 
 #include <chrono>
 
+#include <rstd/macro.hpp>
 #include "ffmpeg_frame.h"
 #include "audio_stream_params.h"
 #include "ffmpeg_error.h"
@@ -55,7 +56,7 @@ struct AudioFrame : NoCopy {
     }
 
     auto channel_data(i32 idx) const {
-        _assert_msg_(idx < ff->ch_layout.nb_channels, "not such channel: {}", idx);
+        debug_assert(idx < ff->ch_layout.nb_channels, "not such channel: {}", idx);
         usize buffer_size_ = buffer_size().unwrap_or(0);
         return std::span<const byte>((const byte*)ff->extended_data[idx], buffer_size_);
     }

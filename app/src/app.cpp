@@ -1,11 +1,11 @@
 module;
 #include "Qcm/macro.hpp"
 #include "core/log.h"
-#include "Qcm/app.moc.h"
 #include "mpris/mpris.h"
 #include "core/sender.h"
 #include "player/player.h"
 
+#include "Qcm/app.moc.h"
 #include <rstd/macro.hpp>
 
 module qcm;

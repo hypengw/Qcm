@@ -1,50 +1,14 @@
 module;
-#include <cmath>
-#include <array>
-#include <thread>
-
-#include <QtCore/QGlobalStatic>
-#include <qapplicationstatic.h>
-#include <QtCore/QSettings>
-#include <QtCore/QUuid>
-#include <QtCore/QDir>
-#include <QtCore/QLibrary>
-#include <QtCore/QPluginLoader>
-
-#include <QtQuick/QQuickWindow>
-#include <QtQuick/QQuickItem>
-#include <QtQml/QJSValueIterator>
-#include <QtQml/QQmlEngineExtensionPlugin>
-#include <QQmlContext>
-#include <QtCore/QObject>
-#include <QtGui/QGuiApplication>
-#include <QtQml/QQmlApplicationEngine>
-#include <QtQuick/QQuickItem>
-#include <QtQuick/QQuickWindow>
-
 #ifdef Q_MOC_RUN
 #    include "Qcm/app.moc"
 #endif
 
-#include <vector>
-
-#include <asio/thread_pool.hpp>
-#include <asio/steady_timer.hpp>
-
-
-
-#include "core/helper.h"
+#include "Qcm/macro_qt.hpp"
 #include "core/log.h"
-#include "core/qvariant_helper.h"
 
 #include "crypto/crypto.h"
-#include "kstore/qt/gadget_model.hpp"
-
-
-#include "core/helper.h"
 #include "player/notify.h"
 #include "player/player.h"
-
 
 #ifndef NODEBUS
 #    include "mpris/mpris.h"
@@ -163,4 +127,3 @@ private:
     C_DECLARE_PRIVATE(App, d_ptr);
 };
 } // namespace qcm
-

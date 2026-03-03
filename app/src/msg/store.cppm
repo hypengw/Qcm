@@ -1,15 +1,10 @@
 module;
-#include <QtQml/QQmlEngine>
-#include <QtQml/QQmlPropertyMap>
-
-#include "google/protobuf/struct.qpb.h"
-#include "kstore/item_trait.hpp"
-
+#include "Qcm/macro_qt.hpp"
+#include "Qcm/macro.hpp"
 
 #ifdef Q_MOC_RUN
 #include "Qcm/msg/store.moc"
 #endif
-
 export module qcm:msg.store;
 export import :msg.backend;
 export import :model.share_store;
@@ -48,16 +43,16 @@ public:
 
 namespace model
 {
-extern const std::set<QStringView> AlbumJsonFields;
-extern const std::set<QStringView> ArtistJsonFields;
-extern const std::set<QStringView> MixJsonFields;
-extern const std::set<QStringView> SongJsonFields;
+extern const rstd::cppstd::set<QStringView> AlbumJsonFields;
+extern const rstd::cppstd::set<QStringView> ArtistJsonFields;
+extern const rstd::cppstd::set<QStringView> MixJsonFields;
+extern const rstd::cppstd::set<QStringView> SongJsonFields;
 } // namespace model
 
 export template<typename T>
 auto merge_store_extra(T& store, i64 key, const google::protobuf::Struct& in) {
     if (auto extend = store.query_extend(key); extend) {
-        std::set<QStringView> const* json_fields { nullptr };
+        rstd::cppstd::set<QStringView> const* json_fields { nullptr };
         if constexpr (std::same_as<T, AppStore::album_store>) {
             json_fields = &model::AlbumJsonFields;
         } else if constexpr (std::same_as<T, AppStore::song_store>) {

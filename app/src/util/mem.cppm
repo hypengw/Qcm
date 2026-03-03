@@ -1,12 +1,11 @@
 module;
-#include <memory_resource>
 export module qcm:util.mem;
 export import qcm.core;
 
 namespace qcm
 {
 export struct MemResourceMgr {
-    using pmr_sync_pool = std::pmr::synchronized_pool_resource;
+    using pmr_sync_pool = rstd::cppstd::pmr::synchronized_pool_resource;
     MemoryStatResource* pool_stat { new MemoryStatResource {} };
     pmr_sync_pool*      pool { new pmr_sync_pool { pool_stat } };
 

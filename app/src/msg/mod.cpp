@@ -1,7 +1,4 @@
 module;
-#include <QString>
-#include <QQmlPropertyMap>
-#include <QQmlEngine>
 #include "Qcm/msg/backend_msg.moc.h"
 #include "Qcm/msg/store.moc.h"
 
@@ -15,7 +12,7 @@ import qcm.log;
 namespace qcm
 {
 void msg::merge_extra(QQmlPropertyMap& extra, const google::protobuf::Struct& in,
-                      const std::set<QStringView>& is_json_field) {
+                      const rstd::cppstd::set<QStringView>& is_json_field) {
     auto it  = in.fields().cbegin();
     auto end = in.fields().cend();
     for (; it != end; it++) {
@@ -148,10 +145,10 @@ auto AppStore::extra(model::ItemId item_id) const -> QQmlPropertyMap* {
     return nullptr;
 }
 
-const std::set<QStringView> model::AlbumJsonFields { u"artists", u"dynamic" };
-const std::set<QStringView> model::ArtistJsonFields {};
-const std::set<QStringView> model::MixJsonFields {};
-const std::set<QStringView> model::SongJsonFields { u"artists", u"album", u"dynamic" };
+const rstd::cppstd::set<QStringView> model::AlbumJsonFields { u"artists", u"dynamic" };
+const rstd::cppstd::set<QStringView> model::ArtistJsonFields {};
+const rstd::cppstd::set<QStringView> model::MixJsonFields {};
+const rstd::cppstd::set<QStringView> model::SongJsonFields { u"artists", u"album", u"dynamic" };
 
 } // namespace qcm
 

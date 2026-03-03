@@ -1,8 +1,6 @@
 module;
 #include "Qcm/backend.moc.h"
-
 #include "Qcm/status/provider.moc.h"
-#include "std23/move_only_function.h"
 
 #include "core/log.h"
 #include <rstd/macro.hpp>
@@ -42,7 +40,7 @@ public:
                     [&backend, msg = std::move(msg), handler = std::move(handler)] mutable {
                         msg.setId_proto(backend.serial());
                         backend.m_handlers.insert_or_assign(
-                            msg.id_proto(), std23::move_only_function<ret> { std::move(handler) });
+                            msg.id_proto(), rstd::cppstd::move_only_function<ret> { std::move(handler) });
                         auto bytes = msg.serialize(backend.m_serializer.get());
                         backend.m_client->send({ bytes.constData(), (std::size_t)bytes.size() });
                     });

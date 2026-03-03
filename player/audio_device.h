@@ -12,6 +12,8 @@
 #include <functional>
 #include <memory>
 
+#include <rstd/macro.hpp>
+
 #include "audio_frame_queue.h"
 #include "player/notify.h"
 
@@ -39,7 +41,7 @@ namespace details
 
 template<typename Tout, typename Tin>
 inline auto as_span(std::span<Tin> in) -> std::span<Tout> {
-    _assert_((in.size() * sizeof(Tin)) % sizeof(Tout) == 0);
+    debug_assert((in.size() * sizeof(Tin)) % sizeof(Tout) == 0);
     return { (Tout*)in.data(), in.size() * sizeof(Tin) / sizeof(Tout) };
 }
 
@@ -259,7 +261,7 @@ private:
                 if (f_.eof()) {
                     return Frame { .frame = std::move(f_), .data = {} };
                 } else {
-                    _assert_rel_(! f_.is_planar());
+                    assert(! f_.is_planar());
                     auto data     = f_.channel_data(0);
                     auto duration = (float)f_.ff->nb_samples / f_.ff->sample_rate;
                     auto pts      = duration_cast<milliseconds>(f_.pts_duration()).count();

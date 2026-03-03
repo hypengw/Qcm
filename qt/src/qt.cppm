@@ -13,6 +13,8 @@ module;
 #include <QtCore/QStandardPaths>
 #include <QtCore/QDir>
 #include <QtCore/QLibrary>
+#include <QtCore/QRegularExpression>
+#include <QtCore/QGlobalStatic>
 
 #include <QtProtobuf/QtProtobuf>
 #include <QtProtobuf/QProtobufSerializer>
@@ -26,13 +28,23 @@ module;
 #include <QtQml/QQmlApplicationEngine>
 
 #include <QtQuick/QQuickItem>
+#include <QtQuick/QQuickWindow>
 #include <QtQuick/QQuickImageProvider>
 #include <QtQuick/QQuickAsyncImageProvider>
+
+#include <QtCore/QApplicationStatic>
+#include <QtQml/QQmlEngineExtensionPlugin>
+#include <QtQml/QQmlContext>
+#include <QtQml/QQmlApplicationEngine>
+
+
 export module qt;
 
 export using ::QString;
 export using ::QAnyStringView;
 export using ::QStringView;
+export using ::QUtf8StringView;
+export using ::QLatin1String;
 export using ::QSize;
 export using ::qint32;
 export using ::qint64;
@@ -45,11 +57,21 @@ export using ::QUrlTwoFlags;
 export using ::QDir;
 export using ::QLibrary;
 export using ::QVector2D;
+export using ::QVariant;
+export using ::QPointer;
 
+export using ::QRegularExpression;
+export using ::QList;
+export using ::QHash;
+export using ::QMap;
+export using ::QHashIterator;
+
+export using ::QGlobalStatic;
 export using ::QTimer;
 export using ::QEvent;
 export using ::QThread;
 export using ::QObject;
+export using ::QMetaType;
 export using ::QMetaObject;
 export using ::QObjectBindableProperty;
 export using ::QPluginLoader;
@@ -80,6 +102,8 @@ export using ::QQmlEngine;
 export using ::QJSEngine;
 export using ::QQmlComponent;
 export using ::QQmlListProperty;
+export using ::QQmlEngineExtensionPlugin;
+export using ::QQmlContext;
 export using ::qmlRegisterUncreatableType;
 
 export using ::QQuickItem;
@@ -125,6 +149,18 @@ export using ::QQuickImageResponse;
 export using ::QQuickTextureFactory;
 export using ::QQuickImageProvider;
 export using ::QQuickAsyncImageProvider;
+
+namespace Qt
+{
+inline namespace Literals
+{
+inline namespace StringLiterals
+{
+export using Qt::StringLiterals::operator""_L1;
+export using Qt::StringLiterals::operator""_s;
+} // namespace StringLiterals
+} // namespace Literals
+} // namespace Qt
 
 namespace QtProtobuf
 {

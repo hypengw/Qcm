@@ -1,6 +1,4 @@
 module;
-#include <ranges>
-
 #include "core/log.h"
 
 export module qcm:status.process;

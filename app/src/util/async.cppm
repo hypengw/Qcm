@@ -2,14 +2,11 @@ module;
 #include "Qcm/macro_qt.hpp"
 #include "Qcm/macro.hpp"
 
-#include "core/qstr_helper.h"
-
 #include "Qcm/util/async.moc.h"
 
 #ifdef Q_MOC_RUN
 #include "Qcm/util/async.moc"
 #endif
-
 export module qcm:util.async;
 export import :qml.enums;
 export import qcm.qt;

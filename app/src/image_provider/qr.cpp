@@ -1,10 +1,5 @@
 module;
-
-#include <QPointer>
-
 #include "qr_code/qrcodegen.hpp"
-
-
 module qcm;
 import :image_provider.qr;
 import :app;
@@ -27,10 +22,10 @@ QQuickImageResponse* QrImageProvider::requestImageResponse(const QString& id,
         auto                  bs = id.toUtf8();
         up<qrcodegen::QrCode> qr_;
         try {
-            qr_ = std::make_unique<qrcodegen::QrCode>(qrcodegen::QrCode::encodeBinary(
+            qr_ = rstd::cppstd::make_unique<qrcodegen::QrCode>(qrcodegen::QrCode::encodeBinary(
                 std::vector<u8> { bs.begin(), bs.end() }, qrcodegen::QrCode::Ecc::MEDIUM));
         } catch (const std::exception& e) {
-            rsp->setError(std::format("{} ({})", e.what(), id));
+            rsp->setError(rstd::cppstd::format("{} ({})", e.what(), id));
             return;
         }
         auto&  qr     = *qr_;

@@ -1,16 +1,9 @@
 module;
-#include <map>
-#include <atomic>
-#include <string>
-#include <string_view>
-#include <functional>
-#include <atomic>
-#include <string_view>
-
 #include "core/log.h"
 export module qcm:util.global_static;
 export import qcm.core;
 
+namespace cppstd = rstd::cppstd;
 namespace qcm
 {
 export class GlobalStatic {
@@ -33,7 +26,7 @@ public:
     };
 
     template<typename T>
-    auto add(std::string_view name, T* instance, std::function<void(T*)> deleter) -> Holder<T> {
+    auto add(cppstd::string_view name, T* instance, cppstd::function<void(T*)> deleter) -> Holder<T> {
         return add_impl(name, static_cast<voidp>(instance), [deleter](voidp p) {
             deleter(static_cast<T*>(p));
         });
@@ -42,7 +35,7 @@ public:
     void reset();
 
 private:
-    auto add_impl(std::string_view name, voidp instance, std::function<void(voidp)> deleter)
+    auto add_impl(cppstd::string_view name, voidp instance, cppstd::function<void(voidp)> deleter)
         -> rc<HolderImpl>;
     static auto data(HolderImpl&) -> voidp;
 
@@ -50,4 +43,3 @@ private:
     C_DECLARE_PRIVATE(GlobalStatic, d_ptr);
 };
 } // namespace qcm
-

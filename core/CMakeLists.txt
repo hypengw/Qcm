@@ -13,12 +13,13 @@ target_sources(
          src/log.cppm
          src/core.cppm
          src/mem.cppm
+         src/error.cppm
          src/lambda.cppm
          src/fmt.cppm
          src/helper/mod.cppm
          src/helper/str.cppm
          src/helper/container.cppm)
-target_sources(core PRIVATE include/core/callable.h include/core/log.h
+target_sources(core PRIVATE include/core/log.h
                             src/log.cpp src/mem.cpp)
 
 target_compile_definitions(core PUBLIC ${WIN_DEFS})

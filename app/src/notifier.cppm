@@ -1,14 +1,8 @@
 module;
-
-
-#include <QtQml/QQmlEngine>
-#include <QtGui/QImage>
-
-
+#include "Qcm/macro_qt.hpp"
 #ifdef Q_MOC_RUN
 #include "Qcm/notifier.moc"
 #endif
-
 export module qcm:notifier;
 export import :global;
 export import :model.item_id;

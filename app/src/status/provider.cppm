@@ -1,11 +1,8 @@
 module;
-#include <QtCore/QSettings>
-#include <QtQml/QQmlEngine>
+#include "Qcm/macro_qt.hpp"
 #ifdef Q_MOC_RUN
 #    include "Qcm/status/provider.moc"
 #endif
-
-#include "kstore/qt/gadget_model.hpp"
 
 export module qcm:status.provider;
 export import :msg;
@@ -44,7 +41,7 @@ public:
     Q_SIGNAL void activedIdsChanged();
 
 private:
-    std::set<i64>         m_inactived;
+    rstd::cppstd::set<i64>         m_inactived;
     QtProtobuf::int64List m_ids;
 };
 

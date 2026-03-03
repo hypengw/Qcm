@@ -12,6 +12,7 @@ target_sources(
          src/mod.cppm
          src/qt.cppm
          src/kstore.cppm
+         src/helper.cppm
          src/qobject_bindable_property_p.cppm
          src/asio/mod.cppm
          src/asio/forward.cppm

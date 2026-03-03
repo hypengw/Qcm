@@ -1,5 +1,4 @@
 #pragma once
-#include <future>
 
 import qcm.core;
 
@@ -15,7 +14,7 @@ public:
     Sender()                 = default;
     virtual ~Sender()        = default;
     virtual bool try_send(T) = 0;
-    virtual std::future<void> send(T) = 0;
+    virtual rstd::cppstd::future<void> send(T) = 0;
     virtual void reset()     = 0;
 };
 
@@ -30,7 +29,7 @@ public:
     Sender(rc<Inner> in): m_impl(in) {}
 
     bool try_send(T t) { return m_impl->try_send(t); }
-    std::future<void> send(T t) { return m_impl->send(t); }
+    rstd::cppstd::future<void> send(T t) { return m_impl->send(t); }
     void reset() { m_impl->reset(); }
 
 private:

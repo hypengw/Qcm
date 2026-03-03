@@ -1,7 +1,5 @@
 module;
-
 #include "core/log.h"
-#include "core/qstr_helper.h"
 #include "crypto/crypto.h"
 
 #include "Qcm/qml/util.moc.h"
@@ -13,6 +11,8 @@ import :qml.util;
 import :global;
 import :app;
 import qcm.log;
+
+using namespace Qt::Literals::StringLiterals;
 
 namespace qcm::qml
 {

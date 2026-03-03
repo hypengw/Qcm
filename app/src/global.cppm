@@ -1,5 +1,4 @@
 module;
-
 #include "Qcm/macro_qt.hpp"
 
 #ifdef Q_MOC_RUN
