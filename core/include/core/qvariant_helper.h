@@ -3,7 +3,7 @@
 #include <QVariant>
 #include <optional>
 
-#include "core/core.h"
+import qcm.core;
 
 template<typename T>
 struct Convert<std::optional<T>, QVariant> {

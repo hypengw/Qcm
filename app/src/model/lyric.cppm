@@ -2,9 +2,6 @@ module;
 #include <limits>
 #include <QQmlEngine>
 
-#include "core/core.h"
-#include "kstore/qt/gadget_model.hpp"
-
 #ifdef Q_MOC_RUN
 #include "Qcm/model/lyric.moc"
 #endif
@@ -12,6 +9,7 @@ module;
 export module qcm:model.lyric;
 export import :global;
 export import :util.async;
+export import qcm.qt;
 
 namespace qcm
 {

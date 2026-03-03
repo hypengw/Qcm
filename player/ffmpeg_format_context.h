@@ -5,9 +5,10 @@ extern "C" {
 }
 #include <atomic>
 
-#include "core/core.h"
 #include "ffmpeg_error.h"
 #include "ffmpeg_dict.h"
+
+import qcm.core;
 
 namespace player
 {

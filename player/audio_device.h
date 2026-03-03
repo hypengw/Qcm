@@ -12,8 +12,6 @@
 #include <functional>
 #include <memory>
 
-#include "core/core.h"
-#include "core/log.h"
 #include "audio_frame_queue.h"
 #include "player/notify.h"
 

@@ -9,8 +9,6 @@
 #include "audio_frame.h"
 #include "audio_stream_params.h"
 
-#include "core/core.h"
-#include "core/log.h"
 #include "core/queue_concurrent.h"
 
 namespace player

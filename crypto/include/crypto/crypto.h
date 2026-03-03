@@ -4,7 +4,7 @@
 #include <span>
 #include <functional>
 
-#include "core/core.h"
+import qcm.core;
 
 struct evp_cipher_st;
 struct evp_md_st;

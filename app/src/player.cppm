@@ -1,13 +1,5 @@
 module;
-#include <chrono>
-#include <QVector2D>
-#include <QQmlEngine>
-#include <asio/use_future.hpp>
-
-#include <asio/thread_pool.hpp>
-#include <asio/as_tuple.hpp>
-
-#include "core/math.h"
+#include "Qcm/macro_qt.hpp"
 
 #include "player/player.h"
 #include "player/notify.h"

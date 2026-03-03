@@ -1,7 +1,7 @@
 #pragma once
 
 #include <optional>
-#include "core/core.h"
+import qcm.core;
 
 namespace helper
 {

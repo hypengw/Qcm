@@ -1,15 +1,11 @@
 module;
-#include <QObject>
-#include <QObjectBindableProperty>
-#include <QtQml/QQmlEngine>
-
-#include <asio/recycling_allocator.hpp>
-#include <asio/bind_executor.hpp>
-#include <asio/strand.hpp>
+#include "Qcm/macro_qt.hpp"
+#include "Qcm/macro.hpp"
 
 #include "core/qstr_helper.h"
 
 #include "Qcm/util/async.moc.h"
+
 #ifdef Q_MOC_RUN
 #include "Qcm/util/async.moc"
 #endif

@@ -1,5 +1,7 @@
-#include "Qcm/qml/clipboard.hpp"
-#include <QGuiApplication>
+module;
+#include "Qcm/qml/clipboard.moc.h"
+module qcm;
+import :qml;
 
 namespace qcm
 {
@@ -20,4 +22,4 @@ void             Clipboard::setMode(QClipboard::Mode m) {
 void Clipboard::clear() { QGuiApplication::clipboard()->clear(m_mode); }
 } // namespace qcm
 
-#include <Qcm/qml/moc_clipboard.cpp>
+#include "Qcm/qml/clipboard.moc.cpp"

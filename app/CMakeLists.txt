@@ -18,6 +18,7 @@ set(SOURCES2
     src/global.cpp
     src/action.cpp
     src/qml/util.cpp
+    src/qml/mod.cpp
     src/query/query.cpp
     src/query/query_api.cpp
     src/query/artist_query.cpp
@@ -36,6 +37,7 @@ set(SOURCES2
     src/model/item_id.cpp
     src/status/app_state.cpp
     src/util/global_static.cpp
+    src/qml/clipboard.cpp
     src/model/id_queue.cpp
     src/mod.cpp
     src/app.cpp
@@ -45,8 +47,6 @@ set(SOURCES
     include/Qcm/qml/enum.hpp
     src/qml_register.cpp
     src/convert.cpp
-    src/qml/clipboard.cpp
-    src/qml/duration.cpp
     src/qml/foreign.cpp
     src/model/lyric.cpp
     src/util/path.cpp
@@ -76,6 +76,8 @@ set(MOC_SOURCE_FILES
     src/msg/store.cppm
     src/util/async.cppm
     src/qml/util.cppm
+    src/qml/duration.cppm
+    src/qml/clipboard.cppm
     src/backend.cppm
     src/notifier.cppm
     src/app.cppm

@@ -4,9 +4,10 @@
 #include <vector>
 #include <source_location>
 
-#include "core/core.h"
-#include "core/fmt.h"
 #include "core/log.h"
+
+import qcm.core;
+import qcm.log;
 
 #define EC_RET(_RES_, _R_) ERR_RET(_RES_, error::Error::expected_chain(helper::to_expected(_R_)))
 #define EC_RET_CO(_RES_, _R_) \

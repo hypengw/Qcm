@@ -1,6 +1,7 @@
 #pragma once
 #include <future>
-#include "core/core.h"
+
+import qcm.core;
 
 namespace qcm
 {

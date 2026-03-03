@@ -82,4 +82,4 @@ file(WRITE "${SOURCE_FILE}" "${SOURCE_CONTENT}")
 # Write the header file
 file(WRITE "${HEADER_FILE}" "${HEADER_CONTENT}")
 
-message(STATUS "Split ${MOC_BASE}.moc -> ${MOC_BASE}.moc.h + ${MOC_BASE}.moc")
+message(STATUS "Split ${MOC_BASE}.moc -> ${MOC_BASE}.moc.h + ${MOC_BASE}.moc.cpp")

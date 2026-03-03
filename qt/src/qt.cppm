@@ -18,6 +18,7 @@ module;
 #include <QtProtobuf/QProtobufSerializer>
 
 #include <QtGui/QSurfaceFormat>
+#include <QtGui/QClipboard>
 
 #include <QtQml/QJSValueIterator>
 #include <QtQml/QQmlPropertyMap>
@@ -43,6 +44,7 @@ export using ::QUuid;
 export using ::QUrlTwoFlags;
 export using ::QDir;
 export using ::QLibrary;
+export using ::QVector2D;
 
 export using ::QTimer;
 export using ::QEvent;
@@ -58,6 +60,7 @@ export using ::QProcess;
 export using ::QGuiApplication;
 export using ::QSurfaceFormat;
 export using ::QWindowList;
+export using ::QClipboard;
 
 export using ::QApplication;
 

@@ -1,13 +1,15 @@
-#pragma once
+module;
 
-#include <QQmlEngine>
-
-#include <QClipboard>
-#include <QString>
+#include "Qcm/macro_qt.hpp"
+#ifdef Q_MOC_RUN
+#include "Qcm/qml/clipboard.moc"
+#endif
+export module qcm:qml.clipboard;
+export import qcm.qt;
 
 namespace qcm
 {
-class Clipboard : public QObject {
+export class Clipboard : public QObject {
     Q_OBJECT
     QML_ELEMENT
     QML_SINGLETON

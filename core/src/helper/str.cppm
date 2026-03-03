@@ -8,7 +8,7 @@ module;
 #include <span>
 #include <format>
 
-#include "core/fmt.h"
+import qcm.core;
 
 export module qcm.helper:str;
 export import qcm.core;

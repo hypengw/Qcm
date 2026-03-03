@@ -7,8 +7,8 @@ extern "C" {
 #include <utility>
 #include <ranges>
 
-#include "core/core.h"
 #include "core/helper.h"
+import qcm.core;
 
 namespace player
 {

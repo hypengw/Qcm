@@ -12,9 +12,9 @@
 #include <numeric>
 #include <memory_resource>
 
-#include "core/core.h"
-#include "core/log.h"
 
+import qcm.core;
+import qcm.log;
 namespace qcm
 {
 

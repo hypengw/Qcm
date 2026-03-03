@@ -4,8 +4,7 @@
 #include <QVariant>
 #include <QUrl>
 
-#include "core/core.h"
-#include "core/fmt.h"
+import qcm.core;
 
 using namespace Qt::StringLiterals;
 

@@ -1,12 +1,13 @@
 #include "mpris/mediaplayer2.h"
 #include "mpris/mediaplayer2_adaptor.h"
-#include "core/core.h"
 
 #include <span>
 
 #include <QDBusConnection>
 #include <QDBusMessage>
 #include <QUrl>
+
+import qcm.core;
 
 using namespace mpris;
 using namespace Qt::Literals::StringLiterals;

@@ -96,7 +96,7 @@ public:
 
     task<void> handle_request(rc<QcmAsyncImageResponse> rsp, const ncrequest::Request& req,
                               QSize req_size) {
-        auto block = co_await m_limit.async_block(asio::use_awaitable);
+        auto block = co_await m_limit.async_block(use_task);
         auto img   = co_await request_image(req, req_size);
         rsp->image = img;
         co_return;

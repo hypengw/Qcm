@@ -6,8 +6,8 @@ extern "C" {
 
 #include <utility>
 
-#include "core/core.h"
 #include "ffmpeg_error.h"
+import qcm.core;
 
 namespace player
 {

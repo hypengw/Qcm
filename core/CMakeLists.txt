@@ -18,8 +18,8 @@ target_sources(
          src/helper/mod.cppm
          src/helper/str.cppm
          src/helper/container.cppm)
-target_sources(core PRIVATE include/core/core.h include/core/callable.h
-                            include/core/log.h src/log.cpp src/mem.cpp)
+target_sources(core PRIVATE include/core/callable.h include/core/log.h
+                            src/log.cpp src/mem.cpp)
 
 target_compile_definitions(core PUBLIC ${WIN_DEFS})
 target_compile_features(core PUBLIC cxx_std_23)

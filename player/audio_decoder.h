@@ -7,12 +7,12 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
-#include "core/core.h"
-import platform;
 #include "ffmpeg_frame.h"
 #include "stream_reader.h"
 #include "audio_frame_queue.h"
 #include "resampler.h"
+
+import platform;
 
 namespace player
 {

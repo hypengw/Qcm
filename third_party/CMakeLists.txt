@@ -57,7 +57,7 @@ else()
   FetchContent_Declare(
     ncrequest
     GIT_REPOSITORY https://github.com/hypengw/ncrequest.git
-    GIT_TAG efcea14f97170a810ab5b64091e7f281dd4cbc71
+    GIT_TAG 2db77e3ad32cb7efaaee63760568f29034f8e330
     GIT_SHALLOW 0
     GIT_PROGRESS 1
     EXCLUDE_FROM_ALL)

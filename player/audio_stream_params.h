@@ -4,8 +4,7 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
-#include "core/core.h"
-
+import qcm.core;
 namespace player
 {
 

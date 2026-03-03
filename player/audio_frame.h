@@ -6,7 +6,7 @@
 #include "audio_stream_params.h"
 #include "ffmpeg_error.h"
 
-#include "core/core.h"
+import qcm.core;
 
 namespace player
 {

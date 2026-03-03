@@ -6,10 +6,12 @@
 #include <asio/experimental/concurrent_channel.hpp>
 #include <asio/thread_pool.hpp>
 #include <asio/strand.hpp>
+#include "core/macro.h"
 
-#include "core/core.h"
 #include "player/notify.h"
 #include "player/metadata.h"
+
+import qcm.core;
 
 namespace player
 {
