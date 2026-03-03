@@ -84,7 +84,7 @@ void GlobalWrapper::connect_to_global(Global* g, R (Global::*g_func)(ARGS...),
 }
 
 Global::Private::Private(Global* p)
-    : qt_ctx(Arc<QtExecutionContext>::make_emplace(p, (QEvent::Type)QEvent::registerEventType())),
+    : qt_ctx(Arc<QtExecutionContext>::make(p, (QEvent::Type)QEvent::registerEventType())),
       pool(get_pool_size()),
       session(ncrequest::Session::make(pool.get_executor(), mem_mgr().session_mem)),
       player(nullptr) {}
