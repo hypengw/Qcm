@@ -5,7 +5,7 @@ module qcm;
 import :util.path;
 import qcm.log;
 
-namespace cppstd = rstd::cppstd;
+
 
 using path = cppstd::filesystem::path;
 

@@ -16,12 +16,12 @@ public:
 
     bool is_running() const {
         if (m_timer) {
-            return rstd::cppstd::chrono::operator>(m_timer->expiry(), clock::now());
+            return cppstd::chrono::operator>(m_timer->expiry(), clock::now());
         }
         return false;
     }
 
-    template<typename Ex, typename F, typename Allocator = rstd::cppstd::allocator<void>>
+    template<typename Ex, typename F, typename Allocator = cppstd::allocator<void>>
         requires(! rstd::mtp::same_as<duration, rstd::mtp::remove_cvref_t<Allocator>>)
     auto watch(Ex&& ex, F&& f, const duration& t = asio::chrono::minutes(5), Allocator&& alloc = {})
         -> asio::awaitable<void> {
@@ -39,7 +39,7 @@ public:
     }
 
     template<typename Ex, typename F, typename CT,
-             typename Allocator = rstd::cppstd::allocator<void>>
+             typename Allocator = cppstd::allocator<void>>
     auto spawn(Ex&& ex, F&& f, CT&& ct, const duration& t = asio::chrono::minutes(5),
                Allocator&& alloc = {}) {
         asio::co_spawn(ex, watch(ex, rstd::forward<F>(f), t, alloc), rstd::forward<CT>(ct));
@@ -59,7 +59,7 @@ private:
 
         timer->expires_after(asio::chrono::seconds(0));
 
-        if (exp) rstd::cppstd::rethrow_exception(exp);
+        if (exp) cppstd::rethrow_exception(exp);
         co_return;
     }
 

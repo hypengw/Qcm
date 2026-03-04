@@ -4,7 +4,7 @@ export module qcm.qt:helper;
 export import qcm.helper;
 export import qt;
 
-namespace cppstd = rstd::cppstd;
+
 using namespace Qt::StringLiterals;
 
 export namespace helper

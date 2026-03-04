@@ -2,7 +2,7 @@ export module qcm.asio:detached_log;
 export import qcm.core;
 export import asio;
 
-namespace cppstd = rstd::cppstd;
+
 
 namespace qcm
 {

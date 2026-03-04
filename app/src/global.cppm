@@ -18,7 +18,7 @@ export import qcm.qt;
 import ncrequest;
 
 using rstd::sync::Arc;
-namespace cppstd = rstd::cppstd;
+
 
 namespace qcm
 {
@@ -68,7 +68,7 @@ public:
     Q_SIGNAL void uuidChanged(StopSignal stop = {});
     Q_SIGNAL void sessionChanged(StopSignal stop = {});
 
-    using MetadataImpl = rstd::cppstd::function<Metadata(const rstd::cppstd::filesystem::path&)>;
+    using MetadataImpl = cppstd::function<Metadata(const cppstd::filesystem::path&)>;
     void        set_uuid(const QUuid&);
     void        set_metadata_impl(const MetadataImpl&);
     static void setInstance(Global*);
@@ -150,6 +150,6 @@ public:
 
     Player* player;
 
-    mutable rstd::cppstd::mutex mutex;
+    mutable cppstd::mutex mutex;
 };
 } // namespace qcm

@@ -37,7 +37,7 @@ public:
     Q_INVOKABLE static model::RouteMsg create_route_msg(QVariantMap);
     Q_INVOKABLE static model::RouteMsg routeMsg();
 
-    Q_INVOKABLE static rstd::cppstd::vector<model::ItemId> collect_ids(QAbstractItemModel* model);
+    Q_INVOKABLE static cppstd::vector<model::ItemId> collect_ids(QAbstractItemModel* model);
     Q_INVOKABLE static int             dyn_card_width(qint32 containerWidth, qint32 spacing = 0);
     Q_INVOKABLE static void            print(const QJSValue&);
     Q_INVOKABLE static QUrl            special_route_url(enums::SpecialRoute);

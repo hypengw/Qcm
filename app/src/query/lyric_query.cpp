@@ -25,7 +25,7 @@ void LyricQuery::reload() {
             auto t = self->tdata();
             if (rsp) {
                 msg::GetSubtitleRsp& el = *rsp;
-                auto view = rstd::cppstd::views::transform(el.subtitle().items(), [](auto& el) {
+                auto view = cppstd::views::transform(el.subtitle().items(), [](auto& el) {
                     return LyricItem { .milliseconds = el.start(), .content = el.text() };
                 });
                 t->setCurrentIndex(-1);

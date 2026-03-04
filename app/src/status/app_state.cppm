@@ -35,7 +35,7 @@ public:
     };
 
     using StateTypelist = ycore::type_list<Loading, Welcome, Main, Error>;
-    using State         = StateTypelist::to<rstd::cppstd::variant>;
+    using State         = StateTypelist::to<cppstd::variant>;
 
     template<typename T>
     auto is_state() const -> bool {

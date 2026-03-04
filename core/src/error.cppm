@@ -7,7 +7,7 @@ module;
 export module qcm.core:error;
 import :basic;
 
-namespace cppstd = rstd::cppstd;
+
 
 export namespace error
 {

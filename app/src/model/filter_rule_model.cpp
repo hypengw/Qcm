@@ -66,7 +66,7 @@ AlbumFilterRuleModel::AlbumFilterRuleModel(QObject* parent): FilterRuleModel(thi
 AlbumFilterRuleModel::~AlbumFilterRuleModel() {}
 
 void AlbumFilterRuleModel::fromVariantlist(const QVariantList& v) {
-    auto view = rstd::cppstd::views::transform(v, [](const QVariant& v) {
+    auto view = cppstd::views::transform(v, [](const QVariant& v) {
         return v.value<msg::filter::AlbumFilter>();
     });
     resetModel(view);
@@ -77,7 +77,7 @@ ArtistFilterRuleModel::ArtistFilterRuleModel(QObject* parent): FilterRuleModel(t
 ArtistFilterRuleModel::~ArtistFilterRuleModel() {}
 
 void ArtistFilterRuleModel::fromVariantlist(const QVariantList& v) {
-    auto view = rstd::cppstd::views::transform(v, [](const QVariant& v) {
+    auto view = cppstd::views::transform(v, [](const QVariant& v) {
         return v.value<msg::filter::ArtistFilter>();
     });
     resetModel(view);
@@ -89,7 +89,7 @@ MixFilterRuleModel::MixFilterRuleModel(QObject* parent): FilterRuleModel(this, p
 MixFilterRuleModel::~MixFilterRuleModel() {}
 
 void MixFilterRuleModel::fromVariantlist(const QVariantList& v) {
-    auto view = rstd::cppstd::views::transform(v, [](const QVariant& v) {
+    auto view = cppstd::views::transform(v, [](const QVariant& v) {
         return v.value<msg::filter::MixFilter>();
     });
     resetModel(view);

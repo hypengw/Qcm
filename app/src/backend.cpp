@@ -40,7 +40,7 @@ public:
                     [&backend, msg = std::move(msg), handler = std::move(handler)] mutable {
                         msg.setId_proto(backend.serial());
                         backend.m_handlers.insert_or_assign(
-                            msg.id_proto(), rstd::cppstd::move_only_function<ret> { std::move(handler) });
+                            msg.id_proto(), cppstd::move_only_function<ret> { std::move(handler) });
                         auto bytes = msg.serialize(backend.m_serializer.get());
                         backend.m_client->send({ bytes.constData(), (std::size_t)bytes.size() });
                     });
@@ -139,10 +139,10 @@ auto Backend::start(QStringView exe_, QStringView data_dir_, QStringView cache_d
 
     {
         std::error_code ec;
-        auto            path = rstd::cppstd::filesystem::path(m_exe.toStdString());
+        auto            path = cppstd::filesystem::path(m_exe.toStdString());
 
-        if (! rstd::cppstd::filesystem::exists(path, ec)) {
-            error(rstd::into(rstd::cppstd::format("Not found:\n {}", path.string())));
+        if (! cppstd::filesystem::exists(path, ec)) {
+            error(rstd::into(cppstd::format("Not found:\n {}", path.string())));
             return false;
         }
     }
@@ -620,10 +620,10 @@ PlayQueue::PlayQueue(QObject* parent)
         if (! source_model) return;
         if (m_changed_ids.empty()) return;
 
-        rstd::cppstd::unordered_set<model::ItemId> ids { m_changed_ids.begin(),
+        cppstd::unordered_set<model::ItemId> ids { m_changed_ids.begin(),
                                                          m_changed_ids.end() };
         m_changed_ids.clear();
-        rstd::cppstd::vector<qint32> rows_to_update;
+        cppstd::vector<qint32> rows_to_update;
 
         for (auto i = 0; i < rowCount(); i++) {
             if (auto id = getId(i); ids.contains(*id)) {
@@ -1018,7 +1018,7 @@ void PlayQueue::fetchSongs() {
     auto backend = App::instance()->backend();
 
     auto req  = msg::GetSongsByIdReq {};
-    auto view = rstd::cppstd::views::transform(m_pending_ids, [](const auto& id) {
+    auto view = cppstd::views::transform(m_pending_ids, [](const auto& id) {
         return id.id();
     });
     req.setIds({ view.begin(), view.end() });

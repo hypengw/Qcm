@@ -3,7 +3,7 @@ module;
 export module qcm.core:basic;
 export import rstd;
 
-namespace cppstd = rstd::cppstd;
+
 namespace mtp    = rstd::mtp;
 
 export using rstd::i8;

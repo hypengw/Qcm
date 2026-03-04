@@ -11,7 +11,7 @@ export import :util.global_static;
 export import :model.id_queue;
 export import :model.router_msg;
 
-namespace cppstd = rstd::cppstd;
+
 
 namespace qcm
 {

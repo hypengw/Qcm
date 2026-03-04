@@ -1,7 +1,7 @@
 export module qcm:util.path;
 export import qcm.core;
 
-namespace cppstd = rstd::cppstd;
+
 export namespace qcm
 {
 auto config_path() -> cppstd::filesystem::path;

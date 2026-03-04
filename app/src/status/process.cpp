@@ -26,7 +26,7 @@ void qcm::process_msg(msg::QcmMessage&& msg) {
                 LOG_INFO("{}", s.name());
             }
             auto view =
-                rstd::cppstd::views::transform(msg.providerStatusMsg().statuses(), [](auto&& el) {
+                cppstd::views::transform(msg.providerStatusMsg().statuses(), [](auto&& el) {
                     return qcm::model::ProviderStatus { el };
                 });
             auto size = view.size();

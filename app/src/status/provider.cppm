@@ -41,7 +41,7 @@ public:
     Q_SIGNAL void activedIdsChanged();
 
 private:
-    rstd::cppstd::set<i64>         m_inactived;
+    cppstd::set<i64>         m_inactived;
     QtProtobuf::int64List m_ids;
 };
 

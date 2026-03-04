@@ -54,7 +54,7 @@ bool ItemId::valid() const { return m_type != enums::ItemType::ItemInvalid && m_
 QUrl ItemId::toUrl() const {
     QUrl url;
     url.setScheme("itemid");
-    url.setUserName(QString::fromUtf8(rstd::cppstd::format("{}", type())));
+    url.setUserName(QString::fromUtf8(cppstd::format("{}", type())));
     url.setPath(QString("/%1").arg(m_id));
     return url;
 }
@@ -73,7 +73,7 @@ bool ItemId::operator==(const QUrl& url) const {
     return o == *this;
 }
 
-bool ItemId::operator==(rstd::cppstd::string_view b) const {
+bool ItemId::operator==(cppstd::string_view b) const {
     QUrl url(convert_from<QString>(b));
     return *this == url;
 }

@@ -8,7 +8,7 @@ module;
 module qcm;
 import :player;
 
-namespace cppstd = rstd::cppstd;
+
 using namespace qcm;
 using NotifyInfo = player::notify::info;
 

@@ -6,7 +6,7 @@ module qcm;
 import :query.api;
 import qcm.log;
 
-namespace cppstd = rstd::cppstd;
+
 
 namespace qcm
 {

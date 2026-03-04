@@ -7,7 +7,7 @@ module qcm;
 import :global;
 import qcm.log;
 
-namespace cppstd = rstd::cppstd;
+
 
 namespace
 {
@@ -39,7 +39,7 @@ namespace qcm
 {
 
 auto get_pool_size() -> std::size_t {
-    return std::clamp<u32>(rstd::cppstd::thread::hardware_concurrency(), 4, 8);
+    return std::clamp<u32>(cppstd::thread::hardware_concurrency(), 4, 8);
 }
 
 namespace

@@ -10,7 +10,7 @@ export module qcm:query.query;
 export import :util.async;
 export import qcm.asio;
 
-namespace cppstd = rstd::cppstd;
+
 
 namespace qcm
 {
@@ -23,7 +23,7 @@ public:
     Query(QObject* parent = nullptr);
     ~Query();
 
-    static auto create(rstd::cppstd::string_view) -> Query*;
+    static auto create(cppstd::string_view) -> Query*;
 
     Q_SLOT void   delayReload();
     auto          delay() const -> bool;
@@ -44,7 +44,7 @@ protected:
 
     auto last() const -> const QDateTime& { return m_last; }
     void setLast(const QDateTime& t, const QDateTime& last = QDateTime::currentDateTime()) {
-        m_last = rstd::cppstd::min<QDateTime>(t, last);
+        m_last = cppstd::min<QDateTime>(t, last);
     }
     void resetLast() { m_last = QDateTime::fromSecsSinceEpoch(0); }
     auto record() {

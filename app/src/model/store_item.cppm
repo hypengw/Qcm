@@ -10,7 +10,7 @@ export import :model.share_store;
 export import :msg;
 export import qcm.qt;
 
-namespace cppstd = rstd::cppstd;
+
 
 export namespace qcm::model
 {

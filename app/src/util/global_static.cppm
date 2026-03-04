@@ -3,7 +3,7 @@ module;
 export module qcm:util.global_static;
 export import qcm.core;
 
-namespace cppstd = rstd::cppstd;
+
 namespace qcm
 {
 export class GlobalStatic {

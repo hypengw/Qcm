@@ -13,7 +13,7 @@ import platform;
 
 using namespace qcm;
 
-namespace cppstd = rstd::cppstd;
+
 
 namespace
 {

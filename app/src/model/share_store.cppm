@@ -2,7 +2,7 @@ export module qcm:model.share_store;
 export import qcm.qt;
 
 
-namespace cppstd = rstd::cppstd;
+
 namespace qcm
 {
 

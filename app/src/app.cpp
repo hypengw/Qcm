@@ -12,7 +12,7 @@ module qcm;
 import :app;
 import qcm.log;
 
-namespace cppstd = rstd::cppstd;
+
 using namespace qcm;
 using namespace Qt::Literals::StringLiterals;
 

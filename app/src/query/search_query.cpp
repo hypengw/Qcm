@@ -130,7 +130,7 @@ void SearchQuery::reload() {
                 auto el = rsp.albums();
                 auto t  = self->tdata()->albums();
                 t->setHasMore(false);
-                auto view = rstd::cppstd::views::transform(el.items(), [](auto& el) {
+                auto view = cppstd::views::transform(el.items(), [](auto& el) {
                     return model::Album { el };
                 });
                 t->sync(view);
@@ -147,7 +147,7 @@ void SearchQuery::reload() {
                 auto el = rsp.songs();
                 auto t  = self->tdata()->songs();
                 t->setHasMore(false);
-                auto view = rstd::cppstd::views::transform(el.items(), [](auto& el) {
+                auto view = cppstd::views::transform(el.items(), [](auto& el) {
                     return model::Song { el };
                 });
                 t->sync(view);
@@ -164,7 +164,7 @@ void SearchQuery::reload() {
                 auto el = rsp.artists();
                 auto t  = self->tdata()->artists();
                 t->setHasMore(false);
-                auto view = rstd::cppstd::views::transform(el.items(), [](auto& el) {
+                auto view = cppstd::views::transform(el.items(), [](auto& el) {
                     return model::Artist { el };
                 });
                 t->sync(view);

@@ -9,7 +9,7 @@ export import qcm.core;
 export import qcm.helper;
 export import asio;
 
-namespace cppstd = rstd::cppstd;
+
 
 DEFINE_CONVERT(cppstd::vector<byte>, asio::streambuf) {
     out.clear();

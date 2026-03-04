@@ -52,7 +52,7 @@ public:
     std::strong_ordering operator<=>(const ItemId&) const noexcept;
     bool                 operator==(const ItemId&) const noexcept;
     bool                 operator==(const QUrl&) const;
-    bool                 operator==(rstd::cppstd::string_view) const;
+    bool                 operator==(cppstd::string_view) const;
     bool                 operator==(QStringView) const;
 
     bool valid() const;
@@ -71,7 +71,7 @@ private:
 } // namespace qcm::model
 
 template<>
-struct rstd::cppstd::hash<qcm::model::ItemId> {
+struct cppstd::hash<qcm::model::ItemId> {
     usize operator()(const qcm::model::ItemId& k) const noexcept;
 };
 
