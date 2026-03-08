@@ -1,10 +1,8 @@
 module;
-#include <QtQml/QQmlEngine>
-#include <QtQml/QQmlPropertyMap>
+#include "Qcm/macro_qt.hpp"
 #ifdef Q_MOC_RUN
 #include "Qcm/model/list_models.moc"
 #endif
-#include "kstore/qt/gadget_model.hpp"
 
 export module qcm:model.list_models;
 export import :model.store_item;
@@ -15,7 +13,7 @@ export namespace qcm::model
 
 template<typename TItem, typename CRTP>
 using MetaListCRTP = kstore::QMetaListModelCRTP<TItem, CRTP, kstore::ListStoreType::Share,
-                                                std::pmr::polymorphic_allocator<TItem>>;
+                                                cppstd::pmr::polymorphic_allocator<TItem>>;
 
 class AlbumListModel : public kstore::QGadgetListModel,
                        public MetaListCRTP<model::Album, AlbumListModel> {

@@ -1,6 +1,5 @@
 module;
-#include <limits>
-#include <QQmlEngine>
+#include "Qcm/macro_qt.hpp"
 
 #ifdef Q_MOC_RUN
 #include "Qcm/model/lyric.moc"

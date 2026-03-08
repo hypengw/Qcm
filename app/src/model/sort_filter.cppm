@@ -1,15 +1,11 @@
 module;
-#include <array>
-#include <QQmlEngine>
-#include <QSortFilterProxyModel>
-
+#include "Qcm/macro_qt.hpp"
 
 #ifdef Q_MOC_RUN
-#include "Qcm/model/sort_filter.moc"
+#    include "Qcm/model/sort_filter.moc"
 #endif
 
 #include "core/log.h"
-#include "kstore/qt/gadget_model.hpp"
 
 export module qcm:model.sort_filter;
 export import :msg;

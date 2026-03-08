@@ -1,5 +1,6 @@
 module;
 #include "core/log.h"
+#undef assert
 #include <rstd/macro.hpp>
 module qcm;
 import :util.path;

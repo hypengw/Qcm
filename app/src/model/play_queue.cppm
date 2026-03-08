@@ -1,21 +1,8 @@
 module;
-#include <ranges>
-#include <variant>
-#include <unordered_set>
-
-#include <QtQml/QQmlEngine>
-#include <QtCore/QTimer>
-#include <QtCore/QAbstractListModel>
-#include <QtCore/QIdentityProxyModel>
-#include <QtCore/QSortFilterProxyModel>
-#include <QtCore/QProperty>
-
-#include "Qcm/model/play_queue.moc.h"
+#include "Qcm/macro_qt.hpp"
 #ifdef Q_MOC_RUN
 #    include "Qcm/model/play_queue.moc"
 #endif
-
-#include "kstore/qt/meta_list_model.hpp"
 
 #include "core/log.h"
 #include "core/optional_helper.h"
@@ -83,9 +70,9 @@ private:
 
     PlayIdQueue*        m_source;
     QProperty<bool>     m_support_shuffle;
-    std::vector<qint32> m_shuffle_list;
+    cppstd::vector<qint32> m_shuffle_list;
 
-    std::unordered_map<qint32, qint32> m_source_to_proxy;
+    cppstd::unordered_map<qint32, qint32> m_source_to_proxy;
     Q_OBJECT_BINDABLE_PROPERTY(PlayIdProxyQueue, int, m_current_index,
                                &PlayIdProxyQueue::currentIndexChanged)
     Q_OBJECT_BINDABLE_PROPERTY(PlayIdProxyQueue, bool, m_shuffle, &PlayIdProxyQueue::shuffleChanged)
@@ -169,8 +156,8 @@ public:
 
     Q_INVOKABLE bool move(qint32 src, qint32 dst, qint32 count = 1);
 
-    auto update(std::span<const model::Song>) -> void;
-    void updateSourceId(std::span<const model::ItemId> songIds, const model::ItemId& sourceId);
+    auto update(cppstd::span<const model::Song>) -> void;
+    void updateSourceId(cppstd::span<const model::ItemId> songIds, const model::ItemId& sourceId);
 
 private:
     Q_SIGNAL void pendingIdsChanged();
@@ -180,7 +167,7 @@ private:
     Q_SLOT void onSourceRowsRemoved(const QModelIndex& parent, int first, int last);
     Q_SLOT void checkCanMove();
 
-    Q_SLOT void addChangedId(std::span<const model::ItemId> ids);
+    Q_SLOT void addChangedId(cppstd::span<const model::ItemId> ids);
     Q_SLOT void fetchSongs();
 
 private:
@@ -190,10 +177,10 @@ private:
     enums::LoopMode         m_loop_mode;
     model::IdQueue::Options m_options;
 
-    mutable std::unordered_set<model::ItemId>                m_pending_ids;
-    mutable std::unordered_set<model::ItemId>                m_changed_ids;
-    mutable std::unordered_map<model::ItemId, SongItem>      m_songs;
-    mutable std::unordered_map<model::ItemId, model::ItemId> m_source_map;
+    mutable cppstd::unordered_set<model::ItemId>                m_pending_ids;
+    mutable cppstd::unordered_set<model::ItemId>                m_changed_ids;
+    mutable cppstd::unordered_map<model::ItemId, SongItem>      m_songs;
+    mutable cppstd::unordered_map<model::ItemId, model::ItemId> m_source_map;
 
     bool    m_can_next;
     bool    m_can_prev;

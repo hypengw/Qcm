@@ -1,7 +1,9 @@
 #pragma once
 
+#include <qcompilerdetection.h>
 #include <QtCore/qtclasshelpermacros.h>
 
+// clang-format off 
 #ifndef Q_MOC_OUTPUT_REVISION
 // This number should be in sync with moc's outputrevision.h
 #define Q_MOC_OUTPUT_REVISION 69
@@ -390,3 +392,31 @@ QT_END_NAMESPACE
     using QmlUsing ## ORIGINAL = ORIGINAL; \
     Q_CLASSINFO("QML.Using", #ORIGINAL)
 
+#ifndef Q_MOC_RUN
+#    define Q_DECLARE_FLAGS(Flags, Enum) typedef QFlags<Enum> Flags;
+#endif
+
+#define Q_DECLARE_INCOMPATIBLE_FLAGS(Flags)                                              \
+    constexpr inline QIncompatibleFlag operator|(Flags::enum_type f1, int f2) noexcept { \
+        return QIncompatibleFlag(int(f1) | f2);                                          \
+    }
+#define Q_DECLARE_OPERATORS_FOR_FLAGS(Flags)                                            \
+    constexpr inline QFlags<Flags::enum_type> operator|(Flags::enum_type f1,            \
+                                                        Flags::enum_type f2) noexcept { \
+        return QFlags<Flags::enum_type>(f1) | f2;                                       \
+    }                                                                                   \
+    constexpr inline QFlags<Flags::enum_type> operator|(                                \
+        Flags::enum_type f1, QFlags<Flags::enum_type> f2) noexcept {                    \
+        return f2 | f1;                                                                 \
+    }                                                                                   \
+    Q_DECLARE_INCOMPATIBLE_FLAGS(Flags)
+
+#define Q_OBJECT_BINDABLE_PROPERTY(Class, Type, name, Signal) \
+    static constexpr usize _qt_property_##name##_offset() { \
+        QT_WARNING_PUSH QT_WARNING_DISABLE_INVALID_OFFSETOF \
+        return __builtin_offsetof(Class, name); \
+        QT_WARNING_POP \
+    } \
+    QObjectBindableProperty<Class, Type, Class::_qt_property_##name##_offset, Signal> name;
+
+// clang-format on

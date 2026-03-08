@@ -1,4 +1,5 @@
 module;
+#include "Qcm/model/play_queue.moc.h"
 #include "Qcm/model/app_info.moc.h"
 #include "Qcm/model/id_queue.moc.h"
 #include "Qcm/model/item_id.moc.h"

@@ -1,14 +1,14 @@
 module;
-#include <QtCore/QUrl>
-#include <QtCore/QVariantMap>
-#include <QtQml/QQmlEngine>
 #include "Qcm/macro.hpp"
+#include "Qcm/macro_qt.hpp"
 
 #ifdef Q_MOC_RUN
 #    include "Qcm/model/router_msg.moc"
 #endif
 
 export module qcm:model.router_msg;
+export import qt;
+
 namespace qcm
 {
 namespace model

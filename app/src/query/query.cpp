@@ -1,4 +1,5 @@
 module;
+#undef assert
 #include <rstd/macro.hpp>
 #include "core/log.h"
 #include "Qcm/query/query.moc.h"

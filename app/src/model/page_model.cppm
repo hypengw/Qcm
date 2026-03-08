@@ -1,7 +1,6 @@
 module;
-#include <QQmlEngine>
-#include "kstore/qt/gadget_model.hpp"
 #include "Qcm/macro.hpp"
+#include "Qcm/macro_qt.hpp"
 
 
 #ifdef Q_MOC_RUN
@@ -9,7 +8,7 @@ module;
 #endif
 
 export module qcm:model.page_model;
-export import qcm.core;
+export import qcm.qt;
 
 namespace qcm
 {

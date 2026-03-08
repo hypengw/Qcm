@@ -1,4 +1,5 @@
 module;
+#undef assert
 #include <rstd/macro.hpp>
 #include "Qcm/macro.hpp"
 module qcm;

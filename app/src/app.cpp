@@ -6,6 +6,7 @@ module;
 #include "player/player.h"
 
 #include "Qcm/app.moc.h"
+#undef assert
 #include <rstd/macro.hpp>
 
 module qcm;

@@ -3,6 +3,7 @@ module;
 #include "Qcm/status/provider.moc.h"
 
 #include "core/log.h"
+#undef assert
 #include <rstd/macro.hpp>
 
 module qcm;

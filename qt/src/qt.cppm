@@ -15,6 +15,8 @@ module;
 #include <QtCore/QLibrary>
 #include <QtCore/QRegularExpression>
 #include <QtCore/QGlobalStatic>
+#include <QtCore/QSortFilterProxyModel>
+#include <QtCore/QIdentityProxyModel>
 
 #include <QtProtobuf/QtProtobuf>
 #include <QtProtobuf/QProtobufSerializer>
@@ -37,9 +39,10 @@ module;
 #include <QtQml/QQmlContext>
 #include <QtQml/QQmlApplicationEngine>
 
-
 export module qt;
 
+export using ::QFlags;
+export using ::QIncompatibleFlag;
 export using ::QString;
 export using ::QAnyStringView;
 export using ::QStringView;
@@ -48,6 +51,7 @@ export using ::QLatin1String;
 export using ::QSize;
 export using ::qint32;
 export using ::qint64;
+export using ::qlonglong;
 export using ::QDateTime;
 export using ::qRgb;
 export using ::QImage;
@@ -59,6 +63,8 @@ export using ::QLibrary;
 export using ::QVector2D;
 export using ::QVariant;
 export using ::QPointer;
+export using ::QVariantList;
+export using ::QByteArray;
 
 export using ::QRegularExpression;
 export using ::QList;
@@ -122,9 +128,14 @@ export using ::QPropertyChangeHandler;
 export using ::QUntypedPropertyBinding;
 export using ::QBindingStorage;
 export using ::qGetBindingStorage;
+export using ::QProperty;
 
 export using ::QVariantMap;
 export using ::QAbstractItemModel;
+export using ::QSortFilterProxyModel;
+export using ::QAbstractListModel;
+export using ::QIdentityProxyModel;
+export using ::QModelIndex;
 
 export namespace Qt
 {

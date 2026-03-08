@@ -1,6 +1,7 @@
 module;
 #include <QString>
 #include "core/log.h"
+#undef assert
 #include <rstd/macro.hpp>
 module qcm;
 import qcm.log;

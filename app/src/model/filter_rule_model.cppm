@@ -1,17 +1,14 @@
 module;
-#include "kstore/qt/meta_utils.hpp"
-#include <QtCore/QJsonArray>
-#include <QtCore/QAbstractListModel>
-#include <QtQml/QQmlEngine>
+#include "Qcm/macro_qt.hpp"
 
 #ifdef Q_MOC_RUN
 #include "Qcm/model/filter_rule_model.moc"
 #endif
 
-#include "Qcm/message/filter.qpb.h"
-#include "kstore/qt/gadget_model.hpp"
-
 export module qcm:model.filter_rule;
+export import :msg;
+export import qcm.qt;
+
 export namespace qcm
 {
 

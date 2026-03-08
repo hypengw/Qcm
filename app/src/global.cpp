@@ -2,6 +2,7 @@ module;
 #include "core/log.h"
 #include "Qcm/global.moc.h"
 #include "Qcm/macro.hpp"
+#undef assert
 #include <rstd/macro.hpp>
 module qcm;
 import :global;

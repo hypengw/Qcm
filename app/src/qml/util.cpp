@@ -5,6 +5,7 @@ module;
 #include "Qcm/qml/util.moc.h"
 #include "Qcm/macro.hpp"
 
+#undef assert
 #include <rstd/macro.hpp>
 module qcm;
 import :qml.util;
