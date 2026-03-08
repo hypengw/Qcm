@@ -14,7 +14,7 @@ import ncrequest.event;
 import platform;
 import ncrequest;
 
-using rstd::alloc::boxed::Box;
+using rstd::boxed::Box;
 using rstd::sync::Arc;
 using rstd::sync::atomic::Atomic;
 
@@ -83,8 +83,7 @@ private:
 
     rc<ncrequest::Session> m_session;
 
-    cppstd::map<i32,
-                      cppstd::move_only_function<void(asio::error_code, msg::QcmMessage)>>
+    cppstd::map<i32, cppstd::move_only_function<void(asio::error_code, msg::QcmMessage)>>
         m_handlers;
 
     Atomic<i32> m_serial;

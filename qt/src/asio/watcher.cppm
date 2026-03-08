@@ -34,7 +34,7 @@ public:
     QWatcher& operator=(QWatcher&&)      = default;
 
     T*   operator->() const { return get(); }
-         operator bool() const { return m_ptr && m_ptr->pointer; }
+         operator bool() const { return m_ptr && m_ptr->pointer.load(); }
     auto get() const -> T* {
         if (m_ptr) {
             return m_ptr->pointer.load();
@@ -67,7 +67,7 @@ private:
                 &QObject::destroyed,
                 this,
                 [this] {
-                    pointer = nullptr;
+                    pointer.store(nullptr);
                 },
                 Qt::DirectConnection);
         }

@@ -10,8 +10,8 @@ auto image_response_count() -> Atomic<i32>& {
     return count;
 }
 
-QcmImageResponse::QcmImageResponse() { image_response_count()++; }
-QcmImageResponse::~QcmImageResponse() { image_response_count()--; }
+QcmImageResponse::QcmImageResponse() { image_response_count().fetch_add(1); }
+QcmImageResponse::~QcmImageResponse() { image_response_count().fetch_sub(1); }
 auto QcmImageResponse::errorString() const -> QString { return m_error; }
 void QcmImageResponse::setError(QAnyStringView error) { m_error = error.toString(); }
 void QcmImageResponse::done() { QMetaObject::invokeMethod(this, "finished", Qt::QueuedConnection); }

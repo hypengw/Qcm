@@ -3,8 +3,7 @@ module;
 export module qcm.core:basic;
 export import rstd;
 
-
-namespace mtp    = rstd::mtp;
+namespace mtp = rstd::mtp;
 
 export using rstd::i8;
 export using rstd::i16;
@@ -130,12 +129,13 @@ export template<typename T>
 }
 
 export template<typename T>
-using param_t = mtp::conditional_t<mtp::is_trivially_copyable_v<T> && sizeof(T) <= 32, T, const T&>;
+using param_t = mtp::cond<mtp::triv_copy<T> && sizeof(T) <= 32, T, const T&>;
 
 export template<typename T>
 constexpr auto cmp_set(T&         lhs,
-                       param_t<T> rhs) noexcept(mtp::is_nothrow_move_constructible<T>::value &&
-                                                mtp::is_nothrow_assignable<T&, T>::value) -> bool {
+                       param_t<T> rhs) noexcept(cppstd::is_nothrow_move_constructible<T>::value &&
+                                                cppstd::is_nothrow_assignable<T&, T>::value)
+    -> bool {
     if constexpr (mtp::is_floating_point_v<T>) {
         if (! fuzzy_equal(lhs, rhs)) {
             lhs = rhs;

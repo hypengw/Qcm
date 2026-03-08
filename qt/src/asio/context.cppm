@@ -4,7 +4,7 @@ export import qcm.core;
 export import qcm.asio;
 export import qt;
 
-using rstd::alloc::boxed::Box;
+using rstd::boxed::Box;
 
 class QtExecEvent : public QEvent {
 public:

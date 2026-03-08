@@ -114,7 +114,7 @@ public:
     QPropertyBinding<T> setBinding(
         Functor&&                             f,
         const QPropertyBindingSourceLocation& location = QT_PROPERTY_DEFAULT_BINDING_LOCATION,
-        rstd::mtp::enable_if_t<rstd::mtp::is_invocable_v<Functor>>* = nullptr) {
+        cppstd::enable_if_t<rstd::mtp::is_invocable_v<Functor>>* = nullptr) {
         return setBinding(Qt::makePropertyBinding(rstd::forward<Functor>(f), location));
     }
 

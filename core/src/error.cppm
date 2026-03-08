@@ -75,7 +75,7 @@ public:
 
     template<typename Fmt>
         requires(! rstd::mtp::same_as<rstd::mtp::decay_t<Fmt>, Error>) &&
-                (cppstd::formattable<cppstd::decay_t<Fmt>, char> ||
+                (rstd::fmt::formattable<cppstd::decay_t<Fmt>, char> ||
                  rstd::mtp::same_as<cppstd::decay_t<Fmt>, cppstd::nullopt_t>)
     static Error push(Fmt&&                         f,
                       const cppstd::source_location loc = cppstd::source_location::current()) {
@@ -83,7 +83,7 @@ public:
         Error e;
         Msg   msg;
         msg.loc = loc;
-        if constexpr (cppstd::formattable<T, char>) {
+        if constexpr (rstd::fmt::formattable<T, char>) {
             msg.what = cppstd::format("{}", f);
         } else {
             msg.what = "nullopt";
