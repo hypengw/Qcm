@@ -29,7 +29,7 @@ private:
 };
 
 template<typename T>
-    requires rstd::mtp::special_of<T, rstd::result::Result> &&
+    requires rstd::mtp::spec_of<T, rstd::result::Result> &&
              requires(T::error_type err, cppstd::source_location loc) {
                  { err.record(loc) };
              }
@@ -63,7 +63,7 @@ public:
     cppstd::string what() const;
 
     template<typename TErr>
-        requires rstd::mtp::same_as<rstd::mtp::decay_t<TErr>, Error>
+        requires rstd::mtp::same_as<rstd::mtp::decay<TErr>, Error>
     static Error push(TErr&& err, cppstd::string_view what = {},
                       const cppstd::source_location loc = cppstd::source_location::current()) {
         Msg msg;
@@ -74,12 +74,12 @@ public:
     }
 
     template<typename Fmt>
-        requires(! rstd::mtp::same_as<rstd::mtp::decay_t<Fmt>, Error>) &&
+        requires(! rstd::mtp::same_as<rstd::mtp::decay<Fmt>, Error>) &&
                 (rstd::fmt::formattable<cppstd::decay_t<Fmt>, char> ||
                  rstd::mtp::same_as<cppstd::decay_t<Fmt>, cppstd::nullopt_t>)
     static Error push(Fmt&&                         f,
                       const cppstd::source_location loc = cppstd::source_location::current()) {
-        using T = rstd::mtp::decay_t<Fmt>;
+        using T = rstd::mtp::decay<Fmt>;
         Error e;
         Msg   msg;
         msg.loc = loc;

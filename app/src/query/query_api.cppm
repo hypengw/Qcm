@@ -4,12 +4,11 @@ module;
 #include <QObject>
 #include <QQmlParserStatus>
 
-
 #include "core/log.h"
 #include "core/helper.h"
 
 #ifdef Q_MOC_RUN
-#include "Qcm/query/query_api.moc"
+#    include "Qcm/query/query_api.moc"
 #endif
 
 export module qcm:query.api;
@@ -26,7 +25,7 @@ namespace detail
 template<typename M, typename A>
 concept modelable =
     requires(M t, typename A::out_type out, typename A::in_type in) { t.handle_output(out, in); };
-} 
+} // namespace detail
 
 template<typename M, typename A>
 concept modelable =
@@ -64,7 +63,7 @@ public:
 protected:
     template<typename TProp, typename TIn>
     TProp prop(const TIn& in) const {
-        if constexpr (ycore::is_specialization_of_v<TIn, std::optional>) {
+        if constexpr (rstd::mtp::spec_of<TIn, std::optional>) {
             if (in)
                 return convert_from<TProp>(in.value());
             else {
@@ -89,7 +88,7 @@ protected:
         };
         if constexpr (std::same_as<out_type, TProp>) {
             set(out, v);
-        } else if constexpr (ycore::is_specialization_of_v<out_type, std::optional>) {
+        } else if constexpr (rstd::mtp::spec_of<out_type, std::optional>) {
             set(out, convert_from<typename out_type::value_type>(v));
         } else {
             set(out, convert_from<out_type>(v));
@@ -101,5 +100,4 @@ private:
     C_DECLARE_PRIVATE(ApiQueryBase, d_ptr);
 };
 
-} 
-
+} // namespace qcm

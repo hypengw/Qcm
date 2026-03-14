@@ -17,7 +17,7 @@ MD.IconButton {
             height: 120
             width: slider.handle.width * 1.5
             property alias value: slider.value
-            contentItem: MD.Slider {
+            contentItem: MD.SliderM2 {
                 id: slider
                 orientation: Qt.Vertical
                 signal volumeSeted(volume: real)

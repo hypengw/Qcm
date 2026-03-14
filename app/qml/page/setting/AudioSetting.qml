@@ -28,7 +28,7 @@ QA.SettingBasePage {
             text: `${qsTr('Fade When Play/Pause')}: ${m_slider_fade.value} ms`
             font.capitalization: Font.MixedCase
             canInput: false
-            below: MD.Slider {
+            below: MD.SliderM2 {
                 id: m_slider_fade
                 Layout.fillWidth: true
                 from: 0

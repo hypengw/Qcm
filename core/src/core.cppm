@@ -62,7 +62,7 @@ auto make_arc(Args&&... args) {
 
 export template<typename T>
 decltype(auto) as_ref(T&& value) {
-    if constexpr (mtp::is_pointer_v<mtp::remove_reference_t<T>>) {
+    if constexpr (mtp::is_ptr<mtp::rm_ref<T>>) {
         return *rstd::forward<T>(value);
     } else {
         return rstd::forward<T>(value);
@@ -93,18 +93,11 @@ void hash_combine(cppstd::size_t& seed, const T& v) {
     seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
 
-export template<class T, template<class...> class Primary>
-struct is_specialization_of : mtp::false_type {};
-export template<template<class...> class Primary, class... Args>
-struct is_specialization_of<Primary<Args...>, Primary> : mtp::true_type {};
-export template<class T, template<class...> class Primary>
-constexpr bool is_specialization_of_v = is_specialization_of<T, Primary>::value;
-
 export template<typename T, typename... Ts>
 concept convertible_to_any = (mtp::convertible_to<T, Ts> || ...);
 
 export template<typename T, typename F>
-concept extra_cvt = (! mtp::same_as<mtp::decay_t<T>, mtp::decay_t<F>>);
+concept extra_cvt = (! mtp::same_as<mtp::decay<T>, mtp::decay<F>>);
 
 export template<typename T, typename U = T>
 concept has_equal_operator = requires(T a, U b) {
@@ -113,8 +106,7 @@ concept has_equal_operator = requires(T a, U b) {
 
 export template<class T, class U = T>
 constexpr bool cmp_exchange(T&  obj,
-                            U&& new_value) noexcept(mtp::is_nothrow_move_constructible<T>::value &&
-                                                    mtp::is_nothrow_assignable<T&, U>::value) {
+                            U&& new_value) noexcept(mtp::noex_move<T> && mtp::noex_assign<T&, U>) {
     if (obj != new_value) {
         obj = cppstd::forward<U>(new_value);
         return true;
@@ -136,7 +128,7 @@ constexpr auto cmp_set(T&         lhs,
                        param_t<T> rhs) noexcept(cppstd::is_nothrow_move_constructible<T>::value &&
                                                 cppstd::is_nothrow_assignable<T&, T>::value)
     -> bool {
-    if constexpr (mtp::is_floating_point_v<T>) {
+    if constexpr (mtp::is_float<T>) {
         if (! fuzzy_equal(lhs, rhs)) {
             lhs = rhs;
             return true;
@@ -154,13 +146,13 @@ namespace detail
 {
 template<typename T>
 class is_tuple_like_ {
-    template<typename U, typename V = typename mtp::remove_cv_t<U>>
-    static auto check(U* p) -> decltype(cppstd::tuple_size<V>::value, 0);
+    template<typename U, typename V = typename mtp::rm_cv<U>>
+    static auto check(U* p) -> decltype(mtp::tuple_size<V>, 0);
     template<typename>
     static void check(...);
 
 public:
-    static constexpr const bool value = ! mtp::is_void<decltype(check<T>(nullptr))>::value;
+    static constexpr const bool value = ! mtp::is_void<decltype(check<T>(nullptr))>;
 };
 } // namespace detail
 export template<typename T>
@@ -185,20 +177,20 @@ struct Convert;
 
 export template<typename Tout, typename Fin>
 concept convertable = requires(Tout& t, Fin&& f) {
-    { Convert<mtp::decay_t<Tout>, mtp::decay_t<Fin>>::from(t, rstd::forward<Fin>(f)) };
+    { Convert<mtp::decay<Tout>, mtp::decay<Fin>>::from(t, rstd::forward<Fin>(f)) };
 };
 
 export template<typename Tout, typename Tin>
     requires convertable<Tout, Tin>
 void convert(Tout& out, Tin&& in) {
-    Convert<mtp::decay_t<Tout>, mtp::decay_t<Tin>>::from(out, rstd::forward<Tin>(in));
+    Convert<mtp::decay<Tout>, mtp::decay<Tin>>::from(out, rstd::forward<Tin>(in));
 }
 
 export template<typename Tout, typename Tin>
     requires convertable<Tout, Tin>
 Tout convert_from(Tin&& in) {
     Tout out;
-    Convert<mtp::decay_t<Tout>, mtp::decay_t<Tin>>::from(out, rstd::forward<Tin>(in));
+    Convert<mtp::decay<Tout>, mtp::decay<Tin>>::from(out, rstd::forward<Tin>(in));
     return out;
 }
 
@@ -207,13 +199,13 @@ struct Convert<T, T> {
     static void from(T& out, const T& in) { out = in; }
 };
 
-export template<mtp::integral T, mtp::integral F>
+export template<mtp::is_int T, mtp::is_int F>
     requires(! mtp::same_as<T, bool> && ycore::extra_cvt<T, F>) // && (sizeof(T) >= sizeof(F))
 struct Convert<T, F> {
     static void from(T& out, F in) { out = (T)in; }
 };
 
-export template<mtp::integral T>
+export template<mtp::is_int T>
     requires ycore::extra_cvt<bool, T>
 struct Convert<bool, T> {
     static void from(bool& out, T i) { out = (bool)(i); }
@@ -232,9 +224,9 @@ protected:
     const IMPL& crtp_impl() const { return *static_cast<const IMPL*>(this); }
 };
 
-export template<rstd::mtp::special_of<rstd::convert::From>  T,
-                rstd::mtp::special_of<rstd::option::Option> A>
-    requires rstd::mtp::special_of<typename T::from_t, cppstd::optional> &&
+export template<rstd::mtp::spec_of<rstd::convert::From>  T,
+                rstd::mtp::spec_of<rstd::option::Option> A>
+    requires rstd::mtp::spec_of<typename T::from_t, cppstd::optional> &&
              rstd::mtp::same_as<typename T::from_t::value_type, typename A::value_type>
 struct rstd::Impl<T, A> {
     using Self = A;

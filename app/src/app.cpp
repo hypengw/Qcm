@@ -18,7 +18,7 @@ using namespace qcm;
 using namespace Qt::Literals::StringLiterals;
 
 DEFINE_CONVERT(ncrequest::req_opt::Proxy::Type, enums::ProxyType) {
-    out = static_cast<rstd::mtp::decay_t<decltype(out)>>(in);
+    out = static_cast<rstd::mtp::decay<decltype(out)>>(in);
 }
 
 namespace

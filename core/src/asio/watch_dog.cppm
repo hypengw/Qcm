@@ -22,13 +22,13 @@ public:
     }
 
     template<typename Ex, typename F, typename Allocator = cppstd::allocator<void>>
-        requires(! rstd::mtp::same_as<duration, rstd::mtp::remove_cvref_t<Allocator>>)
+        requires(! rstd::mtp::same_as<duration, rstd::mtp::rm_cvf<Allocator>>)
     auto watch(Ex&& ex, F&& f, const duration& t = asio::chrono::minutes(5), Allocator&& alloc = {})
         -> asio::awaitable<void> {
         cancel();
         m_timer = std::make_shared<asio::steady_timer>(ex);
         m_timer->expires_after(t);
-        return watch_impl<rstd::mtp::decay_t<F>>(m_timer, rstd::move(f), alloc);
+        return watch_impl<rstd::mtp::decay<F>>(m_timer, rstd::move(f), alloc);
     }
 
     void cancel() {

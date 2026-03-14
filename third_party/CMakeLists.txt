@@ -8,7 +8,7 @@ else()
   FetchContent_Declare(
     rstd
     GIT_REPOSITORY https://github.com/hypengw/rstd.git
-    GIT_TAG 24c22638780dfe934b4d0078a64f72bfdf937077
+    GIT_TAG 6c685dde5605586dd6b0439f85149836c972d1ed
     GIT_SHALLOW 0
     GIT_PROGRESS 1
     EXCLUDE_FROM_ALL)
@@ -57,7 +57,7 @@ else()
   FetchContent_Declare(
     ncrequest
     GIT_REPOSITORY https://github.com/hypengw/ncrequest.git
-    GIT_TAG 0f766a3bf4e332c1b1666003a3405e25f55f7762
+    GIT_TAG 609e63b801a9f96d1d7a5f9b71d34158640bbfa1
     GIT_SHALLOW 0
     GIT_PROGRESS 1
     EXCLUDE_FROM_ALL)
@@ -82,7 +82,7 @@ else()
   FetchContent_Declare(
     qml_material
     GIT_REPOSITORY https://github.com/hypengw/QmlMaterial.git
-    GIT_TAG 872085dd6ffbb66b1e09549b12f8dc862d8619d7
+    GIT_TAG f8e53dfc6e340b817edccc7b7c56d7b1544052ba
     GIT_SHALLOW 0
     GIT_PROGRESS 1
     FIND_PACKAGE_ARGS GLOBAL)

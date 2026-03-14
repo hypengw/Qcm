@@ -155,14 +155,14 @@ struct Convert<T, F> {
 };
 
 export template<typename T, typename F>
-    requires std::same_as<T, std::string> && ycore::is_specialization_of_v<F, rc> &&
+    requires std::same_as<T, std::string> && rstd::mtp::spec_of<F, rc> &&
              convertable<std::string, typename F::element_type>
 struct Convert<T, F> {
     static void from(std::string& out, const F& in) { convert(out, *in); }
 };
 
 export template<typename T, typename F>
-    requires std::same_as<T, std::string> && ycore::is_specialization_of_v<F, up> &&
+    requires std::same_as<T, std::string> && rstd::mtp::spec_of<F, up> &&
              convertable<std::string, typename F::element_type>
 struct Convert<T, F> {
     static void from(std::string& out, const F& in) { convert(out, *in); }

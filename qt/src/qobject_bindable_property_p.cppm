@@ -53,7 +53,7 @@ public:
     arrow_operator_result operator->() const {
         if constexpr (QTypeTraits::is_dereferenceable_v<T>) {
             return value();
-        } else if constexpr (rstd::mtp::is_pointer_v<T>) {
+        } else if constexpr (rstd::mtp::is_ptr<T>) {
             value();
             return this->val;
         } else {

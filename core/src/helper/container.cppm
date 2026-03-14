@@ -33,7 +33,7 @@ struct Convert<T, F> {
 };
 
 export template<typename T, typename F>
-    requires ycore::is_specialization_of_v<T, std::vector> && ycore::range<F> &&
+    requires rstd::mtp::spec_of<T, std::vector> && ycore::range<F> &&
              convertable<ycore::range_value_t<T>, ycore::range_value_t<F>>
 struct Convert<T, F> {
     static void from(T& out, const F& f) {

@@ -2,7 +2,7 @@ import QtQuick
 import Qcm.App as QA
 import Qcm.Material as MD
 
-MD.Slider {
+MD.SliderM2 {
     id: root
 
     property double playing_pos: 0

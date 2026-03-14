@@ -9,16 +9,14 @@ export import qcm.core;
 export import qcm.helper;
 export import asio;
 
-
-
 DEFINE_CONVERT(cppstd::vector<byte>, asio::streambuf) {
     out.clear();
     cppstd::transform(asio::buffers_begin(in.data()),
-                   asio::buffers_end(in.data()),
-                   cppstd::back_inserter(out),
-                   [](unsigned char c) {
-                       return byte { c };
-                   });
+                      asio::buffers_end(in.data()),
+                      cppstd::back_inserter(out),
+                      [](unsigned char c) {
+                          return byte { c };
+                      });
 }
 
 template<>
@@ -33,7 +31,7 @@ struct cppstd::formatter<asio::streambuf> : cppstd::formatter<cppstd::string_vie
 namespace helper
 {
 template<typename T>
-concept is_awaitable = ycore::is_specialization_of_v<T, asio::awaitable>;
+concept is_awaitable = rstd::mtp::spec_of<T, asio::awaitable>;
 
 template<typename T>
 concept is_sync_stream = requires(T s, asio::const_buffer buf) {
@@ -42,9 +40,10 @@ concept is_sync_stream = requires(T s, asio::const_buffer buf) {
 
 template<typename Ex, typename ExWork, typename F, typename... Args>
 void post_via(const Ex& exec, const ExWork& work_exec, F&& handler, Args&&... args) {
-    asio::post(exec,
-               asio::bind_executor(
-                   work_exec, cppstd::bind(rstd::forward<F>(handler), rstd::forward<Args>(args)...)));
+    asio::post(
+        exec,
+        asio::bind_executor(work_exec,
+                            cppstd::bind(rstd::forward<F>(handler), rstd::forward<Args>(args)...)));
 }
 
 template<typename Ex, typename F, typename... Args>
