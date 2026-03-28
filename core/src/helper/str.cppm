@@ -130,9 +130,10 @@ concept convert_formatable = (! requires() {
 export template<typename T>
     requires convertable<std::string, T> && ycore::extra_cvt<std::string, T> &&
              helper::convert_formatable<T>
-struct std::formatter<T> : std::formatter<std::string> {
-    auto format(const T& t, format_context& ctx) const -> format_context::iterator {
-        return std::formatter<std::string>::format(convert_from<std::string>(t), ctx);
+struct rstd::Impl<rstd::fmt::Display, T> : rstd::ImplBase<T> {
+    auto fmt(rstd::fmt::Formatter& f) const -> bool {
+        auto s = convert_from<std::string>(this->self());
+        return f.write_raw((const u8*)s.data(), s.size());
     }
 };
 

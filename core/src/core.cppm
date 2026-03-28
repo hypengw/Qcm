@@ -2,6 +2,7 @@ module;
 #include <cmath>
 export module qcm.core:basic;
 export import rstd;
+export import rstd.cppstd;
 
 namespace mtp = rstd::mtp;
 

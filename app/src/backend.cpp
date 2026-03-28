@@ -230,22 +230,24 @@ auto Backend::send(msg::QcmMessage&& msg) -> task<Result<msg::QcmMessage, msg::E
     co_return Ok(var);
 }
 
-auto Backend::base() const -> std::string { return std::format("http://127.0.0.1:{}", m_port); }
+auto Backend::base() const -> std::string {
+    return rstd::into(rstd::format("http://127.0.0.1:{}", m_port));
+}
 
 auto Backend::image(QStringView item_type, QStringView id, QStringView image_type)
     -> ncrequest::Request {
-    auto url = std::format("{0}/image/{1}/{2}/{3}", this->base(), item_type, id, image_type);
-    return ncrequest::Request { url };
+    auto url = rstd::format("{}/image/{}/{}/{}", this->base(), item_type, id, image_type);
+    return ncrequest::Request { std::string_view(url) };
 }
 auto Backend::image(model::ItemId id, enums::ImageType image_type) -> ncrequest::Request {
     auto type = id.type();
     if (type == enums::ItemType::ItemAlbumArtist) type = enums::ItemType::ItemArtist;
-    auto url = std::format("{0}/image/{1}/{2}/{3}", this->base(), type, id.id(), image_type);
-    return ncrequest::Request { url };
+    auto url = rstd::format("{}/image/{}/{}/{}", this->base(), type, id.id(), image_type);
+    return ncrequest::Request { std::string_view(url) };
 }
 
 auto Backend::audio_url(model::ItemId id) -> QUrl {
-    return rstd::into(std::format("{0}/audio/{1}/{2}", this->base(), id.type(), id.id()));
+    return rstd::into(rstd::format("{}/audio/{}/{}", this->base(), id.type(), id.id()));
 }
 
 auto Backend::serial() -> i32 {
@@ -280,7 +282,7 @@ ProviderStatusModel::~ProviderStatusModel() {}
 void ProviderStatusModel::updateSyncStatus(const msg::model::ProviderSyncStatus& s) {
     static auto role = Qt::UserRole + 1 +
                        msg::model::ProviderStatus::staticMetaObject.indexOfProperty("syncStatus");
-    auto id = s.id_proto();
+    auto        id   = s.id_proto();
     if (auto v = this->query(id); v) {
         auto& value = *v;
         value.setSyncStatus(s);
@@ -621,8 +623,7 @@ PlayQueue::PlayQueue(QObject* parent)
         if (! source_model) return;
         if (m_changed_ids.empty()) return;
 
-        cppstd::unordered_set<model::ItemId> ids { m_changed_ids.begin(),
-                                                         m_changed_ids.end() };
+        cppstd::unordered_set<model::ItemId> ids { m_changed_ids.begin(), m_changed_ids.end() };
         m_changed_ids.clear();
         cppstd::vector<qint32> rows_to_update;
 

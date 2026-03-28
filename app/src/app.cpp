@@ -2,6 +2,7 @@ module;
 #include "Qcm/macro.hpp"
 #include "core/log.h"
 #include "mpris/mpris.h"
+#include "mpris/mediaplayer2.h"
 #include "core/sender.h"
 #include "player/player.h"
 

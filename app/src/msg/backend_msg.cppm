@@ -275,21 +275,25 @@ QCM_FILTER_TRAITS(filter::DiscCountFilter, FILTER_TYPE_DISC_COUNT)
 } // namespace qcm::msg
 
 template<>
-struct std::formatter<qcm::msg::Error> : std::formatter<std::string_view> {
-    template<typename Ctx>
-    auto format(qcm::msg::Error err, Ctx& ctx) const -> typename Ctx::iterator {
-        return std::formatter<std::string_view>::format(
-            std::format("{}({})", err.message, err.code), ctx);
+struct rstd::Impl<rstd::fmt::Display, qcm::msg::Error> : rstd::ImplBase<qcm::msg::Error> {
+    auto fmt(rstd::fmt::Formatter& f) const -> bool {
+        auto& err = this->self();
+        auto  s   = rstd::format("{}({})", err.message, err.code);
+        return f.write_raw((const u8*)s.begin(), s.size());
     }
 };
 
 template<>
-struct std::formatter<qcm::msg::MessageTypeGadget::MessageType> : std::formatter<std::string_view> {
+struct rstd::Impl<rstd::fmt::Display, qcm::msg::MessageTypeGadget::MessageType>
+    : rstd::ImplBase<qcm::msg::MessageTypeGadget::MessageType> {
     using MessageType = qcm::msg::MessageTypeGadget::MessageType;
-    template<typename Ctx>
-    auto format(MessageType type, Ctx& ctx) const -> typename Ctx::iterator {
-        return std::formatter<std::string_view>::format(
-            std::string_view { QMetaEnum::fromType<MessageType>().valueToKey((int)type) }, ctx);
+    auto fmt(rstd::fmt::Formatter& f) const -> bool {
+        auto type = this->self();
+        auto s    = QMetaEnum::fromType<MessageType>().valueToKey((int)type);
+        if (s) {
+            return f.write_raw((const u8*)s, rstd::strlen(s));
+        }
+        return true;
     }
 };
 

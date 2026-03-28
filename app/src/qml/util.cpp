@@ -36,7 +36,7 @@ auto Util::mprisTrackid(model::ItemId id) -> QString {
     if (id.id() >= 0) {
         track_id = std::to_string(id.id());
     }
-    return rstd::into(std::format("/{}/TrackId/{}", dbus_path, track_id));
+    return rstd::into(rstd::format("/{}/TrackId/{}", dbus_path, track_id));
 }
 
 auto Util::create_route_msg(QVariantMap props) -> model::RouteMsg {
@@ -50,11 +50,11 @@ model::RouteMsg Util::routeMsg() { return {}; }
 auto Util::image_url(model::ItemId id, enums::ImageType image_type) -> QUrl {
     auto type = id.type();
     if (type == enums::ItemType::ItemAlbumArtist) type = enums::ItemType::ItemArtist;
-    return rstd::into(std::format("image://qcm/{}/{}/{}", type, id.id(), image_type));
+    return rstd::into(rstd::format("image://qcm/{}/{}/{}", type, id.id(), image_type));
 }
 
 auto Util::image_url(const QString& url) -> QUrl {
-    return rstd::into(std::format("image://qcm/{}", url));
+    return rstd::into(rstd::format("image://qcm/{}", url));
 }
 
 auto Util::audio_url(model::ItemId id) -> QUrl { return App::instance()->backend()->audio_url(id); }

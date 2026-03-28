@@ -3,7 +3,22 @@ module;
 #include <string>
 #include <source_location>
 #include <format>
+
+#define LOG_FUNC(name, NAME)                                                         \
+    export template<typename... T>                                                   \
+    struct name {                                                                    \
+        name(rstd::fmt::format_string<T...> fmt, T&&... args,                        \
+             const std::source_location     loc = std::source_location::current()) { \
+            if (! log_check(LogLevel::NAME)) return;                                 \
+            auto msg = rstd::format(fmt, rstd::forward<T>(args)...);                 \
+            log_loc_raw(LogLevel::NAME, loc, { msg.data(), msg.size() });            \
+        }                                                                            \
+    };                                                                               \
+    export template<typename... T>                                                   \
+    name(rstd::fmt::format_string<T...>, T&&...) -> name<T...>;
+
 export module qcm.log;
+export import qcm.core;
 
 namespace qcm
 {
@@ -34,55 +49,17 @@ export void log_raw(LogLevel level, std::string_view);
 export bool log_check(LogLevel level) noexcept;
 
 export template<typename... T>
-void log(LogLevel level, const std::source_location loc, std::format_string<T...> fmt,
+void log(LogLevel level, const std::source_location loc, rstd::fmt::format_string<T...> fmt,
          T&&... args) {
     if (! log_check(level)) return;
-    log_loc_raw(level, loc, std::vformat(fmt.get(), std::make_format_args(args...)));
+    auto msg = rstd::format(fmt, rstd::forward<T>(args)...);
+    log_loc_raw(level, loc, { msg.data(), msg.size() });
 }
 
-export template<typename... T>
-struct error {
-    error(std::format_string<T...>   fmt, T&&... args,
-          const std::source_location loc = std::source_location::current()) {
-        if (! log_check(LogLevel::ERROR)) return;
-        log_loc_raw(LogLevel::ERROR, loc, std::vformat(fmt.get(), std::make_format_args(args...)));
-    }
-};
-export template<typename... T>
-error(std::format_string<T...>, T&&...) -> error<T...>;
-
-export template<typename... T>
-struct warn {
-    warn(std::format_string<T...>   fmt, T&&... args,
-         const std::source_location loc = std::source_location::current()) {
-        if (! log_check(LogLevel::WARN)) return;
-        log_loc_raw(LogLevel::WARN, loc, std::vformat(fmt.get(), std::make_format_args(args...)));
-    }
-};
-export template<typename... T>
-warn(std::format_string<T...>, T&&...) -> warn<T...>;
-
-export template<typename... T>
-struct info {
-    info(std::format_string<T...>   fmt, T&&... args,
-         const std::source_location loc = std::source_location::current()) {
-        if (! log_check(LogLevel::INFO)) return;
-        log_loc_raw(LogLevel::INFO, loc, std::vformat(fmt.get(), std::make_format_args(args...)));
-    }
-};
-export template<typename... T>
-info(std::format_string<T...>, T&&...) -> info<T...>;
-
-export template<typename... T>
-struct debug {
-    debug(std::format_string<T...>   fmt, T&&... args,
-          const std::source_location loc = std::source_location::current()) {
-        if (! log_check(LogLevel::DEBUG)) return;
-        log_loc_raw(LogLevel::DEBUG, loc, std::vformat(fmt.get(), std::make_format_args(args...)));
-    }
-};
-export template<typename... T>
-debug(std::format_string<T...>, T&&...) -> debug<T...>;
+LOG_FUNC(debug, DEBUG);
+LOG_FUNC(info, INFO);
+LOG_FUNC(warn, WARN);
+LOG_FUNC(error, ERROR);
 
 export inline constexpr void             noop() {}
 export inline constexpr std::string_view noop_str() { return {}; }

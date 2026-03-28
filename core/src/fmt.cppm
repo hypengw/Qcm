@@ -39,38 +39,21 @@ auto join(Range&& r, std::string_view sep)
 
 } // namespace helper
 export template<typename It, typename Sentinel, typename Char>
-struct std::formatter<helper::join_view<It, Sentinel, Char>, Char> {
-private:
-    using value_type = typename std::iterator_traits<It>::value_type;
-    std::formatter<remove_cvref_t<value_type>, Char> value_formatter_;
+struct rstd::Impl<rstd::fmt::Display, helper::join_view<It, Sentinel, Char>>
+    : rstd::ImplBase<helper::join_view<It, Sentinel, Char>> {
+    auto fmt(rstd::fmt::Formatter& f) const -> bool {
+        auto& value = this->self();
+        auto  it    = value.begin;
+        if (it == value.end) return true;
 
-    using view = std::conditional_t<std::is_copy_constructible<It>::value,
-                                    const helper::join_view<It, Sentinel, Char>,
-                                    helper::join_view<It, Sentinel, Char>>;
-
-public:
-    using nonlocking = void;
-
-    constexpr auto parse(std::basic_format_parse_context<Char>& ctx) -> const Char* {
-        return value_formatter_.parse(ctx);
-    }
-
-    template<typename FormatContext>
-    auto format(view& value, FormatContext& ctx) const -> decltype(ctx.out()) {
-        using iter = conditional_t<std::is_copy_constructible<view>::value, It, It&>;
-        iter it    = value.begin;
-        auto out   = ctx.out();
-        if (it == value.end) return out;
-        out = value_formatter_.format(*it, ctx);
+        if (! rstd::as<rstd::fmt::Display>(*it).fmt(f)) return false;
         ++it;
         while (it != value.end) {
-            out.append(value.sep.begin(), value.sep.end());
-            // out = fmt::detail::copy<Char>(value.sep.begin(), value.sep.end(), out);
-            ctx.advance_to(out);
-            out = value_formatter_.format(*it, ctx);
+            if (! f.write_raw((const u8*)value.sep.data(), value.sep.size())) return false;
+            if (! rstd::as<rstd::fmt::Display>(*it).fmt(f)) return false;
             ++it;
         }
-        return out;
+        return true;
     }
 };
 /*

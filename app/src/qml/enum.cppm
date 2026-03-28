@@ -67,12 +67,12 @@ struct rstd::Impl<rstd::str_::FromStr, qcm::enums::ImageType> {
 };
 
 template<>
-struct std::formatter<qcm::enums::ItemType> : std::formatter<std::string_view> {
-    template<class FmtContext>
-    FmtContext::iterator format(qcm::enums::ItemType e, FmtContext& ctx) const {
+struct rstd::Impl<rstd::fmt::Display, qcm::enums::ItemType>
+    : rstd::ImplBase<qcm::enums::ItemType> {
+    auto fmt(rstd::fmt::Formatter& f) const -> bool {
         std::string_view name;
         using ItemType = qcm::enums::ItemType;
-        switch (e) {
+        switch (this->self()) {
         case ItemType::ItemInvalid: name = "Invalid"; break;
         case ItemType::ItemProvider: name = "Provider"; break;
         case ItemType::ItemLibrary: name = "Library"; break;
@@ -84,24 +84,24 @@ struct std::formatter<qcm::enums::ItemType> : std::formatter<std::string_view> {
         case ItemType::ItemSong: name = "Song"; break;
         case ItemType::ItemProgram: name = "Program"; break;
         }
-        return std::formatter<std::string_view>::format(name, ctx);
+        return f.write_raw((const u8*)name.data(), name.size());
     }
 };
 
 template<>
-struct std::formatter<qcm::enums::ImageType> : std::formatter<std::string_view> {
-    template<class FmtContext>
-    FmtContext::iterator format(qcm::enums::ImageType e, FmtContext& ctx) const {
+struct rstd::Impl<rstd::fmt::Display, qcm::enums::ImageType>
+    : rstd::ImplBase<qcm::enums::ImageType> {
+    auto fmt(rstd::fmt::Formatter& f) const -> bool {
         std::string_view name;
         using ImageType = qcm::enums::ImageType;
-        switch (e) {
+        switch (this->self()) {
         case ImageType::ImagePrimary: name = "Primary"; break;
         case ImageType::ImageBackdrop: name = "Backdrop"; break;
         case ImageType::ImageBanner: name = "Banner"; break;
         case ImageType::ImageThumb: name = "Thumb"; break;
         case ImageType::ImageLogo: name = "Logo"; break;
         }
-        return std::formatter<std::string_view>::format(name, ctx);
+        return f.write_raw((const u8*)name.data(), name.size());
     }
 };
 

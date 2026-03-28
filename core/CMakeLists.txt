@@ -27,7 +27,7 @@ target_compile_features(core PUBLIC cxx_std_23)
 target_include_directories(core PUBLIC include)
 target_link_libraries(
   core
-  PUBLIC random rstd::rstd
+  PUBLIC random rstd::rstd rstd.cppstd
   PRIVATE platform)
 
 # core.asio

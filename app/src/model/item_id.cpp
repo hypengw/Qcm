@@ -55,7 +55,7 @@ bool ItemId::valid() const { return m_type != enums::ItemType::ItemInvalid && m_
 QUrl ItemId::toUrl() const {
     QUrl url;
     url.setScheme("itemid");
-    url.setUserName(QString::fromUtf8(cppstd::format("{}", type())));
+    url.setUserName(rstd::into(rstd::format("{}", type())));
     url.setPath(QString("/%1").arg(m_id));
     return url;
 }

@@ -20,11 +20,11 @@ DEFINE_CONVERT(cppstd::vector<byte>, asio::streambuf) {
 }
 
 template<>
-struct cppstd::formatter<asio::streambuf> : cppstd::formatter<cppstd::string_view> {
-    template<typename CTX>
-    auto format(const asio::streambuf& buf, CTX& ctx) const -> CTX::iterator {
+struct rstd::Impl<rstd::fmt::Display, asio::streambuf> : rstd::ImplBase<asio::streambuf> {
+    auto fmt(rstd::fmt::Formatter& f) const -> bool {
+        auto& buf = this->self();
         cppstd::string out { asio::buffers_begin(buf.data()), asio::buffers_end(buf.data()) };
-        return cppstd::formatter<cppstd::string_view>::format(out, ctx);
+        return f.write_raw((const u8*)out.data(), out.size());
     }
 };
 

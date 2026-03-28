@@ -31,8 +31,6 @@ struct QtExecutionEventRunner : QObject {
     auto         event(QEvent* event) -> bool override;
 };
 
-class QtExecutor;
-
 export class QtExecutionContext : public asio::execution_context, NoCopy {
 public:
     QtExecutionContext(QObject*, QEvent::Type);

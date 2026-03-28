@@ -4,7 +4,6 @@ export module qcm.qt:helper;
 export import qcm.helper;
 export import qt;
 
-
 using namespace Qt::StringLiterals;
 
 export namespace helper
@@ -64,8 +63,8 @@ struct Convert<QList<T>, F> {
 };
 
 template<typename T>
-    requires rstd::mtp::convertible_to<T, cppstd::string_view> || convertable<cppstd::string_view, T> ||
-             convertable<cppstd::string, T>
+    requires rstd::mtp::convertible_to<T, cppstd::string_view> ||
+             convertable<cppstd::string_view, T> || convertable<cppstd::string, T>
 struct Convert<QString, T> {
     static void from(QString& out, const T& in) {
         if constexpr (rstd::mtp::convertible_to<T, cppstd::string_view>) {
@@ -112,51 +111,51 @@ struct Convert<cppstd::string, QAnyStringView> {
 };
 
 template<>
-struct cppstd::formatter<QString> : cppstd::formatter<cppstd::string_view> {
-    template<typename CTX>
-    auto format(const QString& qs, CTX& ctx) const -> CTX::iterator {
-        return cppstd::formatter<cppstd::string_view>::format(qs.toStdString(), ctx);
+struct rstd::Impl<rstd::fmt::Display, QString> : rstd::ImplBase<QString> {
+    auto fmt(rstd::fmt::Formatter& f) const -> bool {
+        auto str = this->self().toStdString();
+        return f.write_raw((const u8*)str.data(), str.size());
     }
 };
 
 template<>
-struct cppstd::formatter<QStringView> : cppstd::formatter<cppstd::string_view> {
-    template<typename CTX>
-    auto format(QStringView qs, CTX& ctx) const
-        -> CTX::iterator {
-        return cppstd::formatter<cppstd::string_view>::format(qs.toString().toStdString(), ctx);
+struct rstd::Impl<rstd::fmt::Display, QStringView> : rstd::ImplBase<QStringView> {
+    auto fmt(rstd::fmt::Formatter& f) const -> bool {
+        auto str = this->self().toString().toStdString();
+        return f.write_raw((const u8*)str.data(), str.size());
     }
 };
 
 template<>
-struct cppstd::formatter<QLatin1String> : cppstd::formatter<cppstd::string_view> {
-    template<typename CTX>
-    auto format(QLatin1String qs, CTX& ctx) const
-        -> CTX::iterator {
-        return cppstd::formatter<cppstd::string_view>::format(qs.toString().toStdString(), ctx);
+struct rstd::Impl<rstd::fmt::Display, QLatin1String> : rstd::ImplBase<QLatin1String> {
+    auto fmt(rstd::fmt::Formatter& f) const -> bool {
+        auto str = this->self().toString().toStdString();
+        return f.write_raw((const u8*)str.data(), str.size());
     }
 };
 
 template<>
-struct cppstd::formatter<QUtf8StringView> : cppstd::formatter<cppstd::string_view> {
-    template<typename CTX>
-    auto format(QUtf8StringView qs, CTX& ctx) const
-        -> CTX::iterator {
-        return cppstd::formatter<cppstd::string_view>::format({ qs.data(), (usize)qs.size() }, ctx);
+struct rstd::Impl<rstd::fmt::Display, QUtf8StringView> : rstd::ImplBase<QUtf8StringView> {
+    auto fmt(rstd::fmt::Formatter& f) const -> bool {
+        return f.write_raw((const u8*)this->self().data(), this->self().size());
     }
 };
 
 template<>
-struct cppstd::formatter<QAnyStringView> : cppstd::formatter<cppstd::string_view> {
-    template<typename CTX>
-    auto format(QAnyStringView qs, CTX& ctx) const
-        -> CTX::iterator {
+struct rstd::Impl<rstd::fmt::Display, QAnyStringView> : rstd::ImplBase<QAnyStringView> {
+    auto fmt(rstd::fmt::Formatter& f) const -> bool {
         cppstd::string out;
-        Convert<cppstd::string, QAnyStringView>::from(out, qs);
-        return cppstd::formatter<cppstd::string_view>::format(out, ctx);
+        Convert<cppstd::string, QAnyStringView>::from(out, this->self());
+        return f.write_raw((const u8*)out.data(), out.size());
     }
 };
 
+template<>
+struct rstd::Impl<rstd::convert::From<rstd::string::String>, QString> {
+    static auto from(const rstd::string::String& str) {
+        return QString::fromUtf8(str.data(), str.size());
+    }
+};
 template<>
 struct rstd::Impl<rstd::convert::From<cppstd::string>, QString> {
     static auto from(cppstd::string str) { return QString::fromStdString(rstd::move(str)); }
@@ -169,6 +168,13 @@ struct rstd::Impl<rstd::convert::From<cppstd::string>, QUrl> {
 template<>
 struct rstd::Impl<rstd::convert::From<cppstd::string>, QStringView> {
     static auto from(cppstd::string str) { return QString::fromStdString(rstd::move(str)); }
+};
+
+template<>
+struct rstd::Impl<rstd::convert::From<rstd::string::String>, QUrl> {
+    static auto from(const rstd::string::String& str) -> QUrl {
+        return QString::fromUtf8(str.data(), str.size());
+    }
 };
 
 #if (QT_VERSION < QT_VERSION_CHECK(6, 8, 0))

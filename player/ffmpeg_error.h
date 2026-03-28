@@ -42,9 +42,9 @@ using FFmpegResult = rstd::Result<T, FFmpegError>;
 } // namespace player
 
 template<>
-struct std::formatter<player::FFmpegError> : std::formatter<std::string_view> {
-    template<typename FormatContext>
-    auto format(const player::FFmpegError& e, FormatContext& ctx) const {
-        return std::formatter<std::string_view>::format(e.what(), ctx);
+struct rstd::Impl<rstd::fmt::Display, player::FFmpegError> : rstd::ImplBase<player::FFmpegError> {
+    auto fmt(rstd::fmt::Formatter& f) const -> bool {
+        auto s = this->self().what();
+        return f.write_raw((const u8*)s.data(), s.size());
     }
 };

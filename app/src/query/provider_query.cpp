@@ -14,7 +14,7 @@ auto format_auth_res(const T& rsp) -> std::string {
     using R = qcm::msg::model::AuthResultGadget::AuthResult;
     switch (rsp.code()) {
     case R::Failed: {
-        out = std::format("Failed: {}", rsp.message());
+        out = rstd::into(rstd::format("Failed: {}", rsp.message()));
         break;
     }
     case R::NoSuchEmail: {

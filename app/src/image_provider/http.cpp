@@ -13,8 +13,6 @@ import platform;
 
 using namespace qcm;
 
-
-
 namespace
 {
 
@@ -61,7 +59,8 @@ public:
           m_limit(m_ex, 8) {}
     ~QcmImageProviderInner() {}
 
-    task<ncrequest::HttpHeader> dl_image(const ncrequest::Request& req, cppstd::filesystem::path p) {
+    task<ncrequest::HttpHeader> dl_image(const ncrequest::Request& req,
+                                         cppstd::filesystem::path  p) {
         SyncFile file { cppstd::fstream(p, cppstd::ios_base::out | cppstd::ios_base::binary) };
         file.handle().exceptions(cppstd::ios_base::failbit | cppstd::ios_base::badbit);
 
@@ -120,7 +119,7 @@ QQuickImageResponse* QcmImageProvider::requestImageResponse(const QString& id,
         if (id.startsWith("http")) {
             req = rstd::Some(ncrequest::Request { id.toStdString() });
         } else {
-            ImageParam p = parse_image_url(rstd::into(std::format("image://qcm/{}", id)));
+            ImageParam p = parse_image_url(rstd::into(rstd::format("image://qcm/{}", id)));
             auto       b = App::instance()->backend();
             req          = rstd::Some(b->image(p.item_type, p.item_id, p.image_type));
         }
@@ -139,12 +138,12 @@ QQuickImageResponse* QcmImageProvider::requestImageResponse(const QString& id,
                                          try {
                                              std::rethrow_exception(p);
                                          } catch (const std::exception& e) {
-                                             rsp->setError(std::format(R"(
+                                             rsp->setError(rstd::into(rstd::format(R"(
  QcmImageProvider
      id: {}
      error: {})",
-                                                                       id,
-                                                                       e.what()));
+                                                                                   id,
+                                                                                   e.what())));
                                          }
                                      }
                                  }),

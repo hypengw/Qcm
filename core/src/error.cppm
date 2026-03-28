@@ -45,8 +45,7 @@ struct Msg {
 };
 
 class Error {
-    friend struct cppstd::formatter<Error>;
-    friend struct cppstd::formatter<Error>;
+    friend struct rstd::Impl<rstd::fmt::Display, Error>;
 
 public:
     Error()  = default;
@@ -120,42 +119,43 @@ Error push(Fmt&& f, const cppstd::source_location loc = cppstd::source_location:
 } // namespace error
 
 template<>
-struct cppstd::formatter<error::Msg> : cppstd::formatter<cppstd::string> {
-    template<typename FormatContext>
-    auto format(const error::Msg& msg, FormatContext& ctx) const {
-        auto out = (cppstd::format("{} at {} {}({}:{})",
-                                   msg.what,
-                                   msg.loc.function_name(),
-                                   msg.loc.file_name(),
-                                   msg.loc.line(),
-                                   msg.loc.column()));
-        return cppstd::formatter<cppstd::string>::format(out, ctx);
+struct rstd::Impl<rstd::fmt::Display, error::Msg> : rstd::ImplBase<error::Msg> {
+    auto fmt(rstd::fmt::Formatter& f) const -> bool {
+        auto& msg = this->self();
+        auto out = rstd::format("{} at {} {}({}:{})",
+                                msg.what,
+                                msg.loc.function_name(),
+                                msg.loc.file_name(),
+                                msg.loc.line(),
+                                msg.loc.column());
+        return f.write_raw((const u8*)out.data(), out.size());
     }
 };
 
 template<>
-struct cppstd::formatter<cppstd::error_code> : cppstd::formatter<cppstd::string> {
-    template<typename FormatContext>
-    auto format(const cppstd::error_code& e, FormatContext& ctx) const {
-        return cppstd::formatter<cppstd::string>::format(
-            cppstd::format("{}({}:{})", e.message(), e.value(), e.category().name()), ctx);
+struct rstd::Impl<rstd::fmt::Display, cppstd::error_code> : rstd::ImplBase<cppstd::error_code> {
+    auto fmt(rstd::fmt::Formatter& f) const -> bool {
+        auto& e = this->self();
+        auto out = rstd::format("{}({}:{})", e.message(), e.value(), e.category().name());
+        return f.write_raw((const u8*)out.data(), out.size());
     }
 };
 
 template<>
-struct cppstd::formatter<error::Error> : cppstd::formatter<cppstd::string> {
-    template<typename FormatContext>
-    auto format(const error::Error& e, FormatContext& ctx) const {
+struct rstd::Impl<rstd::fmt::Display, error::Error> : rstd::ImplBase<error::Error> {
+    auto fmt(rstd::fmt::Formatter& f) const -> bool {
+        auto& e = this->self();
         cppstd::string out { "err stack:\n" };
         if (e.m_msg_stack.empty()) {
             out.append("    error stack empty");
         } else {
             cppstd::size_t i { 0 };
             for (auto& msg : e.m_msg_stack) {
-                out.append(cppstd::format("   {}# {}\n", i++, msg));
+                auto s = rstd::format("   {}# {}\n", i++, msg);
+                out.append((const char*)s.begin(), s.size());
             }
         }
-        return cppstd::formatter<cppstd::string>::format(out, ctx);
+        return f.write_raw((const u8*)out.data(), out.size());
     }
 };
 

@@ -10,7 +10,7 @@ export import qcm.core;
 
 using rstd::sync::Arc;
 
-export class QtExecutor {
+class QtExecutor {
 public:
     explicit QtExecutor(Arc<QtExecutionContext> ctx): m_ctx(ctx.as_ptr()) { debug_assert(m_ctx); }
     explicit QtExecutor(QtExecutionContext* ctx): m_ctx(ctx) { debug_assert(m_ctx); }

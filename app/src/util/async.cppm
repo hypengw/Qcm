@@ -5,7 +5,7 @@ module;
 #include "Qcm/util/async.moc.h"
 
 #ifdef Q_MOC_RUN
-#include "Qcm/util/async.moc"
+#    include "Qcm/util/async.moc"
 #endif
 export module qcm:util.async;
 export import :qml.enums;
@@ -19,8 +19,8 @@ export class QAsyncResult : public QObject {
     QML_ANONYMOUS
 
     Q_PROPERTY(QString error READ error NOTIFY errorChanged BINDABLE bindableError FINAL)
-    Q_PROPERTY(Status status READ status WRITE setStatus NOTIFY statusChanged
-                   BINDABLE bindableStatus FINAL)
+    Q_PROPERTY(Status status READ status WRITE setStatus NOTIFY statusChanged BINDABLE
+                   bindableStatus FINAL)
     Q_PROPERTY(bool querying READ querying NOTIFY queryingChanged BINDABLE bindableQuerying FINAL)
     Q_PROPERTY(QVariant data READ data NOTIFY dataChanged)
     Q_PROPERTY(
@@ -147,7 +147,7 @@ public:
             set_tdata(*res);
             self->setStatus(QAsyncResult::Status::Finished);
         } else {
-            self->setError(rstd::into(std::format("{}", res.unwrap_err_unchecked())));
+            self->setError(rstd::into(rstd::format("{}", res.unwrap_err_unchecked())));
             self->setStatus(QAsyncResult::Status::Error);
         }
     }
@@ -159,22 +159,21 @@ public:
             res.inspect(std::forward<F>(f));
             self->setStatus(QAsyncResult::Status::Finished);
         } else {
-            self->setError(rstd::into(std::format("{}", res.unwrap_err_unchecked())));
+            self->setError(rstd::into(rstd::format("{}", res.unwrap_err_unchecked())));
             self->setStatus(QAsyncResult::Status::Error);
         }
     }
 };
 } // namespace qcm
 
-
 namespace qcm
 {
 template<typename Fn>
 void QAsyncResult::spawn(Fn&& f, const std::source_location loc) {
     QWatcher<QAsyncResult> self { this };
-    auto                           main_ex { get_executor() };
-    auto                           ex    = asio::make_strand(pool_executor());
-    auto                           alloc = asio::recycling_allocator<void>();
+    auto                   main_ex { get_executor() };
+    auto                   ex    = asio::make_strand(pool_executor());
+    auto                   alloc = asio::recycling_allocator<void>();
     if (use_queue()) {
         push(f, loc);
     } else {
