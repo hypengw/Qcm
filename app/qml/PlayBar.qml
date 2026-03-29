@@ -144,9 +144,9 @@ MD.Pane {
                             onClicked: QA.App.playqueue.prev()
                         }
                         MD.IconButton {
-                            type: MD.Enum.IBtFilled
-                            icon.name: QA.Global.player.playing ? MD.Token.icon.pause : MD.Token.icon.play_arrow
-
+                            mdState.type: MD.Enum.IBtFilled
+                            checked: QA.Global.player.playing
+                            icon.name: checked ? MD.Token.icon.pause : MD.Token.icon.play_arrow
                             onClicked: QA.Action.toggle()
                         }
                         MD.IconButton {

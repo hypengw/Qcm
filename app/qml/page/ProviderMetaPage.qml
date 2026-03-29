@@ -147,7 +147,7 @@ MD.Page {
                 Layout.fillWidth: true
                 // enabled: qr_login.status !== QA.Enum.Querying
                 visible: m_auth_loader.sourceComponent != m_comp_qr
-                type: MD.Enum.BtFilled
+                mdState.type: MD.Enum.BtFilled
                 font.capitalization: Font.Capitalize
                 highlighted: true
                 text: qsTr('connect')

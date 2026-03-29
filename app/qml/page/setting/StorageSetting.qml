@@ -86,7 +86,7 @@ QA.SettingBasePage {
             title: qsTr('media cache')
             size: m_qr.data.media
             action: MD.Button {
-                type: MD.Enum.BtFilled
+                mdState.type: MD.Enum.BtFilled
                 text: qsTr('clear')
                 background.implicitHeight: 36
                 onClicked: {
@@ -98,7 +98,7 @@ QA.SettingBasePage {
             title: qsTr('image cache')
             size: m_qr.data.image
             action: MD.Button {
-                type: MD.Enum.BtFilled
+                mdState.type: MD.Enum.BtFilled
                 text: qsTr('clear')
                 background.implicitHeight: 36
                 onClicked: {
@@ -161,7 +161,7 @@ QA.SettingBasePage {
                     }
 
                     actionItem: MD.Button {
-                        type: MD.Enum.BtText
+                        mdState.type: MD.Enum.BtText
                         text: qsTr('clear all')
                         onClicked: {
                             QA.Action.toast('work in progress');

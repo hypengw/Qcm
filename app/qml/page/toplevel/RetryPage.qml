@@ -26,7 +26,7 @@ MD.Page {
 
         MD.Button {
             Layout.alignment: Qt.AlignHCenter
-            type: MD.Enum.BtText
+            mdState.type: MD.Enum.BtText
             action:MD.Action {
                 icon.name: MD.Token.icon.refresh
                 text: 'retry'

@@ -98,7 +98,7 @@ MD.Page {
                             Layout.fillWidth: true
                         }
                         MD.BusyButton {
-                            type: MD.Enum.BtOutlined
+                            mdState.type: MD.Enum.BtOutlined
                             text: qsTr('sync')
                             busy: m_query.querying || m_item.syncing
                             background.implicitHeight: 32

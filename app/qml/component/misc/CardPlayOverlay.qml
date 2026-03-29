@@ -17,6 +17,6 @@ QA.CardOverlay {
         }
         padding: 14
         checked: true
-        type: MD.Enum.BtFilled
+        mdState.type: MD.Enum.BtFilled
     }
 }

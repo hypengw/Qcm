@@ -62,7 +62,7 @@ MD.Page {
             }
             MD.Button {
                 Layout.alignment: Qt.AlignRight
-                type: MD.Enum.BtElevated
+                mdState.type: MD.Enum.BtElevated
                 action: MD.Action {
                     text: qsTr('add')
                     onTriggered: {
