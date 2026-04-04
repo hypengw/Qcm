@@ -47,6 +47,12 @@ auto Util::create_route_msg(QVariantMap props) -> model::RouteMsg {
 }
 model::RouteMsg Util::routeMsg() { return {}; }
 
+model::IdQueue* Util::dynamicQueue(qint64 queueId) {
+    auto q = new model::DynamicIdQueue(queueId);
+    QQmlEngine::setObjectOwnership(q, QQmlEngine::JavaScriptOwnership);
+    return q;
+}
+
 auto Util::image_url(model::ItemId id, enums::ImageType image_type) -> QUrl {
     auto type = id.type();
     if (type == enums::ItemType::ItemAlbumArtist) type = enums::ItemType::ItemArtist;

@@ -128,6 +128,36 @@ void PlayAllQuery::setAlbumAsc(bool v) {
     }
 }
 
+RadioQueuesQuery::RadioQueuesQuery(QObject* parent): QueryList(parent) {}
+
+auto RadioQueuesQuery::providerId() const -> qint64 { return m_provider_id; }
+void RadioQueuesQuery::setProviderId(qint64 v) {
+    if (ycore::cmp_set(m_provider_id, v)) {
+        providerIdChanged();
+    }
+}
+
+void RadioQueuesQuery::reload() {
+    setStatus(Status::Querying);
+    auto backend = App::instance()->backend();
+    auto req     = msg::GetRadioQueuesReq {};
+    req.setProviderId(m_provider_id);
+    auto self = QWatcher { this };
+
+    spawn([self, backend, req] mutable -> task<void> {
+        auto rsp = co_await backend->send(std::move(req));
+        co_await qexecutor_switch();
+        self->inspect_set(rsp, [self](auto& el) {
+            auto t    = self->tdata();
+            auto view = std::views::transform(el.queues(), [](auto&& el) {
+                return model::RadioQueue(el);
+            });
+            t->resetModel(view);
+        });
+        co_return;
+    });
+}
+
 } // namespace qcm
 
 #include "Qcm/query/play_query.moc.cpp"

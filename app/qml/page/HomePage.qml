@@ -56,6 +56,36 @@ MD.Page {
         subText: QA.Util.joinName(model.extra?.artists)
     }
     component MixCard: MImagePlayCard {}
+    component RadioQueueCard: QA.ImageCard {
+        required property var model
+        text: model.name
+        subText: model.description
+        image.source: QA.Util.image_url("queue/" + model.queueId + "/primary")
+        picWidth: width
+
+        onClicked: {
+            QA.Action.switch_queue(QA.Util.dynamicQueue(model.queueId));
+        }
+
+        QA.CardOverlay {
+            id: m_overlay
+            height: parent.picWidth
+            width: parent.picWidth
+            corners: MD.Util.corners(parent.mdState.radius)
+            opacity: parent.hovered ? 1 : 0
+
+            MD.IconButton {
+                anchors.centerIn: parent
+                mdState.type: MD.Enum.BtFilled
+                action: MD.Action {
+                    icon.name: MD.Token.icon.play_arrow
+                    onTriggered: {
+                        QA.Action.switch_queue(QA.Util.dynamicQueue(model.queueId));
+                    }
+                }
+            }
+        }
+    }
 
     MD.VerticalFlickable {
         anchors.fill: parent
@@ -63,6 +93,19 @@ MD.Page {
         Column {
             spacing: 0
             width: parent.width
+            Block {
+                id: m_for_you_block
+                width: parent.width
+                title: "For You"
+                model: m_for_you_query.data
+                delegate: RadioQueueCard {
+                    width: m_for_you_block.widthProvider.width
+                }
+                QA.RadioQueuesQuery {
+                    id: m_for_you_query
+                    Component.onCompleted: reload()
+                }
+            }
             Block {
                 id: m_recommand_block
                 width: parent.width

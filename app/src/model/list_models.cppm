@@ -98,6 +98,18 @@ public:
     MixListModel(QObject* parent = nullptr);
 };
 
+class RadioQueueListModel : public kstore::QGadgetListModel,
+                            public kstore::QMetaListModelCRTP<model::RadioQueue, RadioQueueListModel, kstore::ListStoreType::Vector> {
+    Q_OBJECT
+    QML_ANONYMOUS
+
+    using list_crtp_t = kstore::QMetaListModelCRTP<model::RadioQueue, RadioQueueListModel, kstore::ListStoreType::Vector>;
+    using value_type  = model::RadioQueue;
+
+public:
+    RadioQueueListModel(QObject* parent = nullptr);
+};
+
 class MixSongListModel : public kstore::QGadgetListModel,
                          public MetaListCRTP<model::Song, MixSongListModel> {
     Q_OBJECT

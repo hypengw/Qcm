@@ -29,6 +29,7 @@ using m::Mix;
 using m::ProviderMeta;
 using m::ProviderStatus;
 using m::ProviderSyncStatus;
+using m::RadioQueue;
 using m::Song;
 namespace MixManipulateOperGadget
 {
@@ -247,6 +248,12 @@ QCM_MSG_TRAITS_REQ(GetSongsByIdReq, GetSongsByIdRsp, GET_SONGS_BY_ID_REQ, getSon
 QCM_MSG_TRAITS_RSP(GetSongsByIdRsp, GetSongsByIdReq, getSongsByIdRsp)
 QCM_MSG_TRAITS_REQ(GetSongIdsReq, GetSongIdsRsp, GET_SONG_IDS_REQ, getSongIdsReq)
 QCM_MSG_TRAITS_RSP(GetSongIdsRsp, GetSongIdsReq, getSongIdsRsp)
+
+QCM_MSG_TRAITS_REQ(GetQueueNextReq, GetQueueNextRsp, GET_QUEUE_NEXT_REQ, getQueueNextReq)
+QCM_MSG_TRAITS_RSP(GetQueueNextRsp, GetQueueNextReq, getQueueNextRsp)
+QCM_MSG_TRAITS_REQ(GetRadioQueuesReq, GetRadioQueuesRsp, GET_RADIO_QUEUES_REQ, getRadioQueuesReq)
+QCM_MSG_TRAITS_RSP(GetRadioQueuesRsp, GetRadioQueuesReq, getRadioQueuesRsp)
+
 QCM_MSG_TRAITS_REQ(SyncItemReq, Rsp, SYNC_ITEM_REQ, syncItemReq)
 
 template<>
@@ -375,6 +382,18 @@ class Mix : public msg::model::Mix {
     QCM_MODEL_COMMON(Mix, ItemMix)
 private:
     auto libraryId() const -> i64 { return -1; }
+};
+
+class RadioQueue : public msg::model::RadioQueue {
+    Q_GADGET
+    QML_VALUE_TYPE(radio_queue)
+    Q_PROPERTY(qint64 queueId READ queueId CONSTANT FINAL)
+
+public:
+    RadioQueue() = default;
+    RadioQueue(const msg::model::RadioQueue& o): msg::model::RadioQueue(o) {}
+
+    auto queueId() const -> qint64 { return id_proto(); }
 };
 
 class ProviderStatus : public msg::model::ProviderStatus {

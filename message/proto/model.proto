@@ -44,6 +44,17 @@ enum MixType {
   MIX_TYPE_CACHE = 2;
 }
 
+enum QueueMode {
+  QUEUE_MODE_NORMAL = 0;
+  QUEUE_MODE_ROAMING = 1;
+}
+
+message RadioQueue {
+  int64 id = 1;
+  string name = 2;
+  string description = 3;
+}
+
 message Mix {
   int64 id = 1;
   string name = 4;

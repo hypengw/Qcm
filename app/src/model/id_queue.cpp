@@ -2,6 +2,9 @@ module;
 #include "Qcm/model/id_queue.moc.h"
 module qcm;
 import :model.id_queue;
+import :global;
+import :app;
+import :msg.backend;
 
 namespace qcm::model
 {
@@ -171,4 +174,53 @@ bool IdQueue::move(qint32 src, qint32 dst, qint32 count) {
     auto p = index(-1);
     return moveRows(p, src, count, p, dst);
 }
+
+DynamicIdQueue::DynamicIdQueue(qint64 queue_id, QObject* parent)
+    : IdQueue(parent), m_queue_id(queue_id) {
+    setName(QString::number(queue_id));
+    setOptions(SupportShuffle | SupportLoop | SupportPrev | SupportJump);
+
+    connect(this, &IdQueue::requestNext, this, &DynamicIdQueue::on_request_next);
+    connect(this, &IdQueue::currentIndexChanged, this, [this](qint32 idx) {
+        constexpr int k_prefetch_threshold = 3;
+        if (idx >= rowCount() - k_prefetch_threshold) {
+            on_request_next();
+        }
+    });
+
+    QMetaObject::invokeMethod(this, &DynamicIdQueue::on_request_next, Qt::QueuedConnection);
+}
+
+auto DynamicIdQueue::queueId() const -> qint64 { return m_queue_id; }
+
+void DynamicIdQueue::on_request_next() {
+    if (m_querying) return;
+    m_querying   = true;
+    auto backend = App::instance()->backend();
+    auto req     = msg::GetQueueNextReq {};
+    req.setQueueId(m_queue_id);
+
+    auto self  = QWatcher { this };
+    auto ex    = asio::make_strand(pool_executor());
+    auto alloc = asio::recycling_allocator<void>();
+    asio::co_spawn(
+        ex,
+        [self, backend, req]() mutable -> task<void> {
+            auto rsp = co_await backend->send(std::move(req));
+            co_await qexecutor_switch();
+            if (rsp && self) {
+                std::vector<model::ItemId> ids;
+                for (auto& s : rsp->songs()) {
+                    ids.push_back(model::ItemId(enums::ItemType::ItemSong, s.id_proto()));
+                }
+                self->insert(self->rowCount(), ids);
+            }
+            if (self) self->m_querying = false;
+            co_return;
+        },
+        asio::bind_allocator(alloc, [self](std::exception_ptr p) {
+            if (p && self) self->m_querying = false;
+        }));
+}
+
 } // namespace qcm::model

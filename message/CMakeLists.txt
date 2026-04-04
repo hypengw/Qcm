@@ -15,6 +15,9 @@ qt_add_protobuf(
   OUTPUT_TARGETS
     message_targets
   QML
+  GENERATE_NON_FINAL_MESSAGES
+  HEADER_GUARD
+    pragma
   QML_URI
   "Qcm.Msg")
 target_include_directories(message PUBLIC "${output_inc_dir}")

@@ -83,6 +83,9 @@ MixListModel::MixListModel(QObject* parent)
     : kstore::QGadgetListModel(this, parent),
       list_crtp_t(list_crtp_t::allocator_type { mem_mgr().store_mem }) {}
 
+RadioQueueListModel::RadioQueueListModel(QObject* parent)
+    : kstore::QGadgetListModel(this, parent) {}
+
 MixSongListModel::MixSongListModel(QObject* parent)
     : kstore::QGadgetListModel(this, parent),
       list_crtp_t(list_crtp_t::allocator_type { mem_mgr().store_mem }),

@@ -75,6 +75,21 @@ private:
     QString                      m_name;
 };
 
+export class DynamicIdQueue : public IdQueue {
+    Q_OBJECT
+    QML_ELEMENT
+public:
+    DynamicIdQueue(qint64 queue_id, QObject* parent = nullptr);
+
+    auto queueId() const -> qint64;
+
+private:
+    void on_request_next();
+
+    qint64 m_queue_id;
+    bool   m_querying { false };
+};
+
 Q_DECLARE_OPERATORS_FOR_FLAGS(IdQueue::Options)
 
 } // namespace qcm::model

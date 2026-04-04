@@ -286,7 +286,6 @@ qt_add_qml_module(
   ${RESOURCES}
   NO_PLUGIN_OPTIONAL)
 
-target_sources(app PRIVATE $<$<CONFIG:Debug>:src/util/QmlStackTraceHelper.cpp>)
 target_sources(app PRIVATE ${SOURCES2})
 target_sources(app PUBLIC FILE_SET CXX_MODULES FILES ${MODULES}
                           ${MOC_SOURCE_FILES})

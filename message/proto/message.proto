@@ -81,6 +81,11 @@ enum MessageType {
   GET_SONG_IDS_REQ = 402;
   GET_SONG_IDS_RSP = 403;
 
+  GET_QUEUE_NEXT_REQ = 410;
+  GET_QUEUE_NEXT_RSP = 411;
+  GET_RADIO_QUEUES_REQ = 413;
+  GET_RADIO_QUEUES_RSP = 414;
+
   SYNC_ITEM_REQ = 500;
 }
 
@@ -392,6 +397,25 @@ message PlaylogReq {
   int64 timestamp = 4;
   int64 source_id = 5;
   qcm.msg.model.ItemType source_type = 6;
+  string source_id_str = 7;
+}
+
+message GetQueueNextReq {
+  int64 queue_id = 1;
+  repeated int64 current_song_ids = 2;
+}
+
+message GetQueueNextRsp {
+  repeated qcm.msg.model.Song songs = 1;
+  repeated google.protobuf.Struct extras = 2;
+}
+
+message GetRadioQueuesReq {
+  int64 provider_id = 1;
+}
+
+message GetRadioQueuesRsp {
+  repeated qcm.msg.model.RadioQueue queues = 1;
 }
 
 message CreateMixReq {
@@ -500,6 +524,11 @@ message QcmMessage {
     GetSongsByIdRsp get_songs_by_id_rsp = 401;
     GetSongIdsReq get_song_ids_req = 402;
     GetSongIdsRsp get_song_ids_rsp = 403;
+
+    GetQueueNextReq get_queue_next_req = 410;
+    GetQueueNextRsp get_queue_next_rsp = 411;
+    GetRadioQueuesReq get_radio_queues_req = 413;
+    GetRadioQueuesRsp get_radio_queues_rsp = 414;
 
     SyncItemReq sync_item_req = 500;
   }
