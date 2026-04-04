@@ -8,7 +8,7 @@ else()
   FetchContent_Declare(
     rstd
     GIT_REPOSITORY https://github.com/hypengw/rstd.git
-    GIT_TAG 6c685dde5605586dd6b0439f85149836c972d1ed
+    GIT_TAG b964b7e6cb1d3c80a8110e2e0ed8d76cbab88432
     GIT_SHALLOW 0
     GIT_PROGRESS 1
     EXCLUDE_FROM_ALL)

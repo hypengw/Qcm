@@ -5,6 +5,13 @@
     "type" : "inline"
   },
   {
+    "commit" : "b964b7e6cb1d3c80a8110e2e0ed8d76cbab88432",
+    "dest" : "build/_flatpak_deps/rstd-src",
+    "disable-shallow-clone" : false,
+    "type" : "git",
+    "url" : "https://github.com/hypengw/rstd.git"
+  },
+  {
     "dest" : "build/_flatpak_deps/asio-src",
     "disable-shallow-clone" : false,
     "tag" : "asio-1-36-0",
