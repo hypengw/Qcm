@@ -92,3 +92,5 @@ compile_commands.json
 /third_party/kstore
 /third_party/ncrequest
 /pmap.sh
+*.md
+!README.md
