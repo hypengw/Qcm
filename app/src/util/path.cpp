@@ -2,6 +2,7 @@ module;
 #include "core/log.h"
 #undef assert
 #include <rstd/macro.hpp>
+#include <iterator>
 module qcm;
 import :util.path;
 import qcm.log;

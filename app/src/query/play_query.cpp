@@ -130,18 +130,12 @@ void PlayAllQuery::setAlbumAsc(bool v) {
 
 RadioQueuesQuery::RadioQueuesQuery(QObject* parent): QueryList(parent) {}
 
-auto RadioQueuesQuery::providerId() const -> qint64 { return m_provider_id; }
-void RadioQueuesQuery::setProviderId(qint64 v) {
-    if (ycore::cmp_set(m_provider_id, v)) {
-        providerIdChanged();
-    }
-}
-
 void RadioQueuesQuery::reload() {
     setStatus(Status::Querying);
-    auto backend = App::instance()->backend();
+    auto app     = App::instance();
+    auto backend = app->backend();
     auto req     = msg::GetRadioQueuesReq {};
-    req.setProviderId(m_provider_id);
+    req.setProviderIds(app->provider_status()->activedIds());
     auto self = QWatcher { this };
 
     spawn([self, backend, req] mutable -> task<void> {

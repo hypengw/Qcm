@@ -268,14 +268,29 @@ namespace qcm
 ProviderMetaStatusModel::ProviderMetaStatusModel(QObject* parent)
     : kstore::QGadgetListModel(this, parent) {}
 ProviderMetaStatusModel::~ProviderMetaStatusModel() {}
+static constexpr std::string_view inactived_provider_key { "provider/inactived_providers" };
 ProviderStatusModel::ProviderStatusModel(QObject* parent)
     : kstore::QGadgetListModel(this, parent),
       m_syncing(false),
       m_lib_status(new LibraryStatus(this)) {
+    QSettings s;
+    for (const auto& v : s.value(inactived_provider_key).toStringList()) {
+        m_inactived.insert(v.toLongLong());
+    }
+
     connect(m_lib_status,
             &LibraryStatus::activedChanged,
             this,
             &ProviderStatusModel::libraryStatusChanged);
+    connect(this, &ProviderStatusModel::activedChanged, this, &ProviderStatusModel::activedIdsChanged);
+    connect(this, &ProviderStatusModel::activedChanged, this, [this](i64, bool) {
+        QSettings   s;
+        QStringList list;
+        for (auto el : m_inactived) list.emplaceBack(QString::number(el));
+        s.setValue(inactived_provider_key, list);
+        // provider active 状态变化也影响 library 的 activedIds
+        m_lib_status->activedIdsChanged();
+    });
 }
 ProviderStatusModel::~ProviderStatusModel() {}
 
@@ -361,6 +376,28 @@ void ProviderStatusModel::checkSyncing() {
 
 auto ProviderStatusModel::libraryStatus() const -> LibraryStatus* { return m_lib_status; }
 
+auto ProviderStatusModel::activedIds() -> const QtProtobuf::int64List& {
+    m_actived_ids.clear();
+    for (auto i = 0; i < rowCount(); i++) {
+        auto id = this->at(i).id_proto();
+        if (actived(id)) m_actived_ids.emplaceBack(id);
+    }
+    return m_actived_ids;
+}
+
+bool ProviderStatusModel::actived(i64 id) const { return ! m_inactived.contains(id); }
+void ProviderStatusModel::setActived(i64 id, bool v) {
+    bool has = ! m_inactived.contains(id);
+    if (has != v) {
+        if (has) {
+            m_inactived.insert(id);
+        } else {
+            m_inactived.erase(id);
+        }
+        activedChanged(id, v);
+    }
+}
+
 static constexpr std::string_view inactived_library_key { "provider/inactived_libraries" };
 LibraryStatus::LibraryStatus(QObject* parent): QObject(parent) {
     QSettings s;
@@ -383,6 +420,7 @@ auto LibraryStatus::activedIds() -> const QtProtobuf::int64List& {
     auto p = App::instance()->provider_status();
     for (auto i = 0; i < p->rowCount(); i++) {
         auto& provider = p->at(i);
+        if (! p->actived(provider.id_proto())) continue;
         for (auto& l : provider.libraries()) {
             auto id = l.libraryId();
             if (actived(id)) m_ids.emplaceBack(id);

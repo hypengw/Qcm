@@ -411,7 +411,7 @@ message GetQueueNextRsp {
 }
 
 message GetRadioQueuesReq {
-  int64 provider_id = 1;
+  repeated int64 provider_ids = 1;
 }
 
 message GetRadioQueuesRsp {

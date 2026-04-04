@@ -78,18 +78,9 @@ export class RadioQueuesQuery
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(qint64 providerId READ providerId WRITE setProviderId NOTIFY providerIdChanged FINAL)
 public:
     RadioQueuesQuery(QObject* parent = nullptr);
     void reload() override;
-
-    auto providerId() const -> qint64;
-    void setProviderId(qint64);
-
-    Q_SIGNAL void providerIdChanged();
-
-private:
-    qint64 m_provider_id { 0 };
 };
 
 } // namespace qcm
