@@ -15,6 +15,7 @@ export class IdQueue : public QAbstractListModel {
     Q_OBJECT
     Q_PROPERTY(qint32 currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY
                    currentIndexChanged BINDABLE bindableCurrentIndex FINAL)
+    Q_PROPERTY(qcm::model::ItemId currentId READ currentId NOTIFY currentIdChanged FINAL)
     Q_PROPERTY(Options options READ options CONSTANT FINAL)
     Q_PROPERTY(QString name READ name CONSTANT FINAL)
 public:
@@ -29,6 +30,7 @@ public:
         SupportPrev       = 1 << 2,
         SupportJump       = 1 << 3,
         SupportUserRemove = 1 << 4,
+        Dynamic           = 1 << 5,
     };
     Q_DECLARE_FLAGS(Options, Option)
 
@@ -41,7 +43,8 @@ public:
     auto data(const QModelIndex& index, int role) const -> QVariant override;
 
     auto          options() const -> Options;
-    auto          currentId() const -> cppstd::optional<ItemId>;
+    auto          currentId() const -> ItemId;
+    Q_SIGNAL void currentIdChanged();
     auto          currentExtra() const -> cppstd::optional<QVariant>;
     auto          currentOrFirstExtra() const -> cppstd::optional<QVariant>;
     auto          currentIndex() const -> qint32;
@@ -85,9 +88,13 @@ public:
 
 private:
     void on_request_next();
+    void on_query_finished();
+    void on_current_index_changed(qint32 idx);
 
-    qint64 m_queue_id;
-    bool   m_querying { false };
+    qint64   m_queue_id;
+    QObject* m_query;
+    qint32   m_last_idx;
+    bool     m_auto_removing;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(IdQueue::Options)

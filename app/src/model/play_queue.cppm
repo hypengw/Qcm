@@ -156,6 +156,8 @@ public:
 
     Q_INVOKABLE bool move(qint32 src, qint32 dst, qint32 count = 1);
 
+    Q_INVOKABLE qcm::model::IdQueue* dynamicQueue(qint64 queueId);
+
     auto update(cppstd::span<const model::Song>) -> void;
     void updateSourceId(cppstd::span<const model::ItemId> songIds, const model::ItemId& sourceId);
 
@@ -169,6 +171,10 @@ private:
 
     Q_SLOT void addChangedId(cppstd::span<const model::ItemId> ids);
     Q_SLOT void fetchSongs();
+    void        notifyRowsForIds(const cppstd::unordered_set<model::ItemId>& ids);
+    auto        isDynamic() const -> bool;
+    void        schedulePendingAdvance();
+    void        cancelPendingAdvance();
 
 private:
     PlayIdProxyQueue*       m_proxy;
@@ -191,6 +197,10 @@ private:
 
     i64     m_notify_handle;
     QTimer* m_changed_timer;
+    QTimer* m_pending_advance_timer;
+    bool    m_pending_advance;
+
+    cppstd::unordered_map<qint64, model::DynamicIdQueue*> m_dynamic_queues;
 
     Q_OBJECT_BINDABLE_PROPERTY(PlayQueue, int, m_current_index, &PlayQueue::currentIndexChanged)
 };

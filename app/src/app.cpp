@@ -724,7 +724,9 @@ void App::onSwitchQueue(model::IdQueue* queue) {
         LOG_INFO("queue is null");
     } else {
         this->playqueue()->setSourceModel(queue);
-        if (queue->rowCount()) {
+        // preserve queue's existing position (e.g. resumed dynamic queue);
+        // only jump to the first row when the queue has no current item
+        if (queue->rowCount() && queue->currentIndex() < 0) {
             queue->setCurrentIndex(0);
         }
         if (queue->rowCount() <= 1) {

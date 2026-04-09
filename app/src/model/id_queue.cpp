@@ -4,12 +4,14 @@ module qcm;
 import :model.id_queue;
 import :global;
 import :app;
-import :msg.backend;
+import :query.play;
 
 namespace qcm::model
 {
 IdQueue::IdQueue(QObject* parent)
-    : QAbstractListModel(parent), m_current_index(-1), m_name("Queue") {}
+    : QAbstractListModel(parent), m_current_index(-1), m_name("Queue") {
+    connect(this, &IdQueue::currentIndexChanged, this, &IdQueue::currentIdChanged);
+}
 IdQueue::~IdQueue() {}
 
 auto IdQueue::rowCount(const QModelIndex&) const -> int { return m_queue.size(); }
@@ -22,10 +24,10 @@ void IdQueue::setName(QStringView name) { m_name = name.toString(); }
 
 auto IdQueue::options() const -> Options { return m_opts; }
 void IdQueue::setOptions(Options opts) { m_opts = opts; }
-auto IdQueue::currentId() const -> std::optional<model::ItemId> {
+auto IdQueue::currentId() const -> model::ItemId {
     auto cur = currentIndex();
-    if (cur < 0 || cur > rowCount()) {
-        return std::nullopt;
+    if (cur < 0 || cur >= rowCount()) {
+        return {};
     }
     return m_queue.at(cur).id;
 }
@@ -176,51 +178,71 @@ bool IdQueue::move(qint32 src, qint32 dst, qint32 count) {
 }
 
 DynamicIdQueue::DynamicIdQueue(qint64 queue_id, QObject* parent)
-    : IdQueue(parent), m_queue_id(queue_id) {
+    : IdQueue(parent),
+      m_queue_id(queue_id),
+      m_query(new QueueNextQuery(this)),
+      m_last_idx(-1),
+      m_auto_removing(false) {
     setName(QString::number(queue_id));
-    setOptions(SupportShuffle | SupportLoop | SupportPrev | SupportJump);
+    setOptions(SupportPrev | Dynamic);
+
+    auto query = static_cast<QueueNextQuery*>(m_query);
+    query->setQueueId(m_queue_id);
+    connect(query, &QueueNextQuery::statusChanged, this, &DynamicIdQueue::on_query_finished);
 
     connect(this, &IdQueue::requestNext, this, &DynamicIdQueue::on_request_next);
-    connect(this, &IdQueue::currentIndexChanged, this, [this](qint32 idx) {
-        constexpr int k_prefetch_threshold = 3;
-        if (idx >= rowCount() - k_prefetch_threshold) {
-            on_request_next();
-        }
-    });
+    connect(this,
+            &IdQueue::currentIndexChanged,
+            this,
+            &DynamicIdQueue::on_current_index_changed);
 
     QMetaObject::invokeMethod(this, &DynamicIdQueue::on_request_next, Qt::QueuedConnection);
 }
 
 auto DynamicIdQueue::queueId() const -> qint64 { return m_queue_id; }
 
-void DynamicIdQueue::on_request_next() {
-    if (m_querying) return;
-    m_querying   = true;
-    auto backend = App::instance()->backend();
-    auto req     = msg::GetQueueNextReq {};
-    req.setQueueId(m_queue_id);
+void DynamicIdQueue::on_current_index_changed(qint32 idx) {
+    if (m_auto_removing) return;
+    on_request_next();
+    // only auto-drop history when moving forward
+    if (idx > m_last_idx && idx >= 2) {
+        m_auto_removing = true;
+        removeRows(idx - 2, 1);
+        m_auto_removing = false;
+        // after removing row (idx-2), current shifts down by 1
+        m_last_idx = idx - 1;
+    } else {
+        m_last_idx = idx;
+    }
+}
 
-    auto self  = QWatcher { this };
-    auto ex    = asio::make_strand(pool_executor());
-    auto alloc = asio::recycling_allocator<void>();
-    asio::co_spawn(
-        ex,
-        [self, backend, req]() mutable -> task<void> {
-            auto rsp = co_await backend->send(std::move(req));
-            co_await qexecutor_switch();
-            if (rsp && self) {
-                std::vector<model::ItemId> ids;
-                for (auto& s : rsp->songs()) {
-                    ids.push_back(model::ItemId(enums::ItemType::ItemSong, s.id_proto()));
-                }
-                self->insert(self->rowCount(), ids);
-            }
-            if (self) self->m_querying = false;
-            co_return;
-        },
-        asio::bind_allocator(alloc, [self](std::exception_ptr p) {
-            if (p && self) self->m_querying = false;
-        }));
+void DynamicIdQueue::on_request_next() {
+    constexpr int k_prefetch_threshold = 3;
+    auto query = static_cast<QueueNextQuery*>(m_query);
+    if (query->querying()) return;
+    // skip when there are still enough rows ahead of the current item
+    if (currentIndex() < rowCount() - k_prefetch_threshold) return;
+    query->reload();
+}
+
+void DynamicIdQueue::on_query_finished() {
+    auto query = static_cast<QueueNextQuery*>(m_query);
+    if (query->status() != QAsyncResult::Status::Finished) return;
+    const bool was_empty = rowCount() == 0;
+    std::vector<model::ItemId> ids;
+    for (auto& s : query->tdata()) {
+        ids.push_back(model::ItemId(enums::ItemType::ItemSong, s.id_proto()));
+    }
+    insert(rowCount(), ids);
+    // expose a current id on the first batch so cards can show a cover even
+    // before playback ever starts; guard auto_removing so the resulting
+    // on_current_index_changed won't trigger a chained prefetch
+    if (was_empty && currentIndex() < 0 && rowCount() > 0) {
+        m_auto_removing = true;
+        setCurrentIndex(0);
+        m_auto_removing = false;
+        m_last_idx = 0;
+    }
 }
 
 } // namespace qcm::model

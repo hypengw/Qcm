@@ -39,6 +39,7 @@ set(SOURCES2
     src/util/global_static.cpp
     src/qml/clipboard.cpp
     src/model/id_queue.cpp
+    src/model/play_queue.cpp
     src/mod.cpp
     src/app.cpp
     src/player.cpp)

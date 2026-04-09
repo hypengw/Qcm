@@ -5,7 +5,7 @@
     "type" : "inline"
   },
   {
-    "commit" : "b964b7e6cb1d3c80a8110e2e0ed8d76cbab88432",
+    "commit" : "e058e8e7b14da54420b63379fb7c920dfad6fac8",
     "dest" : "build/_flatpak_deps/rstd-src",
     "disable-shallow-clone" : false,
     "type" : "git",

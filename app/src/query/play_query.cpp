@@ -152,6 +152,32 @@ void RadioQueuesQuery::reload() {
     });
 }
 
+QueueNextQuery::QueueNextQuery(QObject* parent): Query(parent) {}
+
+auto QueueNextQuery::queueId() const -> qint64 { return m_queue_id; }
+void QueueNextQuery::setQueueId(qint64 v) {
+    if (ycore::cmp_set(m_queue_id, v)) {
+        queueIdChanged();
+    }
+}
+
+void QueueNextQuery::reload() {
+    setStatus(Status::Querying);
+    auto backend = App::instance()->backend();
+    auto req     = msg::GetQueueNextReq {};
+    req.setQueueId(m_queue_id);
+    auto self = QWatcher { this };
+
+    spawn([self, backend, req] mutable -> task<void> {
+        auto rsp = co_await backend->send(std::move(req));
+        co_await qexecutor_switch();
+        self->inspect_set(rsp, [self](msg::GetQueueNextRsp& el) {
+            self->set_tdata(el.songs());
+        });
+        co_return;
+    });
+}
+
 } // namespace qcm
 
 #include "Qcm/query/play_query.moc.cpp"

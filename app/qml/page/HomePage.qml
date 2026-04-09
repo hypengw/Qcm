@@ -57,14 +57,19 @@ MD.Page {
     }
     component MixCard: MImagePlayCard {}
     component RadioQueueCard: QA.ImageCard {
+        id: m_card
         required property var model
+        readonly property var dynamicQueue: QA.App.playqueue.dynamicQueue(model.queueId)
+        readonly property var currentId: dynamicQueue?.currentId ?? null
         text: model.name
         subText: model.description
-        image.source: QA.Util.image_url("queue/" + model.queueId + "/primary")
+        image.source: (currentId && currentId.id)
+            ? QA.Util.image_url(currentId)
+            : QA.Util.image_url("queue/" + model.queueId + "/primary")
         picWidth: width
 
         onClicked: {
-            QA.Action.switch_queue(QA.Util.dynamicQueue(model.queueId));
+            QA.Action.switch_queue(m_card.dynamicQueue);
         }
 
         QA.CardOverlay {
@@ -80,7 +85,7 @@ MD.Page {
                 action: MD.Action {
                     icon.name: MD.Token.icon.play_arrow
                     onTriggered: {
-                        QA.Action.switch_queue(QA.Util.dynamicQueue(model.queueId));
+                        QA.Action.switch_queue(m_card.dynamicQueue);
                     }
                 }
             }

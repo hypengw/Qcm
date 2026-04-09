@@ -83,4 +83,22 @@ public:
     void reload() override;
 };
 
+export class QueueNextQuery : public Query,
+                              public QueryExtra<QList<msg::model::Song>, QueueNextQuery> {
+    Q_OBJECT
+
+    Q_PROPERTY(qint64 queueId READ queueId WRITE setQueueId NOTIFY queueIdChanged FINAL)
+public:
+    QueueNextQuery(QObject* parent = nullptr);
+    void reload() override;
+
+    auto queueId() const -> qint64;
+    void setQueueId(qint64);
+
+    Q_SIGNAL void queueIdChanged();
+
+private:
+    qint64 m_queue_id { 0 };
+};
+
 } // namespace qcm
