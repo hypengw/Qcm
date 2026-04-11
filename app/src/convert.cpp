@@ -293,5 +293,9 @@ void App::register_converters() {
     QMetaType::registerConverter<QtProtobuf::int64, QJsonValue>([](auto i) {
         return QJsonValue((qint64)i);
     });
+
+    QMetaType::registerConverter<model::ItemId, QVariant>([](auto i) {
+        return QVariant::fromValue(i);
+    });
 } // namespace
 } // namespace qcm

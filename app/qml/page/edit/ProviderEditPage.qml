@@ -10,7 +10,7 @@ import Qcm.Msg as QM
 MD.Page {
     id: root
 
-    required property QA.item_id itemId
+    required property QM.item_id itemId
     readonly property var model: QA.App.providerStatus.itemById(itemId)
     readonly property var meta: QA.App.providerStatus.metaById(itemId)
     readonly property bool modified: model.name != m_tf_name.text || authInfoModified

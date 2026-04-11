@@ -1,5 +1,4 @@
 module;
-#include "Qcm/msg/backend_msg.moc.h"
 #include "Qcm/msg/store.moc.h"
 
 #include "core/log.h"
@@ -75,23 +74,7 @@ auto rstd::Impl<rstd::convert::From<qcm::enums::ItemType>,
     return (out_t)(i32)(t);
 }
 
-namespace qcm::model
-{
 
-auto Song::albumName() const -> QString {
-    auto ex = AppStore::instance()->extra(itemId());
-    if (ex) {
-        auto al  = ex->value("album");
-        auto map = al.toMap();
-        return map.value("name", {}).toString();
-    }
-    return {};
-}
-} // namespace qcm::model
-
-auto qcm::model::common_extra(model::ItemId id) -> QQmlPropertyMap* {
-    return AppStore::instance()->extra(id);
-}
 
 namespace qcm
 {
@@ -152,5 +135,4 @@ const cppstd::set<QStringView> model::SongJsonFields { u"artists", u"album", u"d
 
 } // namespace qcm
 
-#include "Qcm/msg/backend_msg.moc.cpp"
 #include "Qcm/msg/store.moc.cpp"

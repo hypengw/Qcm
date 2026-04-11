@@ -1,5 +1,8 @@
 #pragma once
+
 #include <QQmlEngine>
+
+#include "Qcm/message/item_type.hpp"
 namespace qcm
 {
 namespace enums
@@ -38,24 +41,6 @@ enum class PluginBasicPage
     BPageLogin
 };
 Q_ENUM_NS(PluginBasicPage);
-
-enum class ItemType
-{
-    ItemInvalid = 0,
-
-    ItemProvider = 1,
-    ItemLibrary  = 2,
-
-    ItemAlbum       = 51,
-    ItemAlbumArtist = 52,
-    ItemArtist      = 53,
-    ItemMix         = 54,
-    ItemRadio       = 55,
-
-    ItemSong    = 101,
-    ItemProgram = 102,
-};
-Q_ENUM_NS(ItemType)
 
 enum class ImageType
 {

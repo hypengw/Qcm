@@ -9,7 +9,7 @@ MD.Pane {
 
     readonly property var currentSong: QA.App.playqueue.currentSong
     readonly property var artists: {
-        const ex = QA.Store.extra(root.currentSong.itemId);
+        const ex = QA.Store.extra(root.currentSong.itemId());
         return ex?.artists ?? [];
     }
 
@@ -62,7 +62,7 @@ MD.Pane {
                 Layout.topMargin: 8
 
                 MD.Image {
-                    source: QA.Util.image_url(root.currentSong.itemId)
+                    source: QA.Util.image_url(root.currentSong.itemId())
                     sourceSize.height: 48
                     sourceSize.width: 48
                     radius: 8
@@ -132,9 +132,9 @@ MD.Pane {
                     id: comp_ctl
                     RowLayout {
                         MD.BusyIconButton {
-                            enabled: root.currentSong.itemId.valid
+                            enabled: root.currentSong.itemId().valid
                             action: QA.FavoriteAction {
-                                itemId: root.currentSong.itemId
+                                itemId: root.currentSong.itemId()
                             }
                         }
                         MD.IconButton {

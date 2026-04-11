@@ -15,16 +15,17 @@ qt_add_protobuf(
   OUTPUT_TARGETS
     message_targets
   QML
-  GENERATE_NON_FINAL_MESSAGES
+  #GENERATE_NON_FINAL_MESSAGES
   HEADER_GUARD
     pragma
   QML_URI
   "Qcm.Msg")
 target_include_directories(message PUBLIC
   "${output_inc_dir}"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include"
-  "${CMAKE_SOURCE_DIR}/app/include")
+  "include"
+  )
 target_link_libraries(message PUBLIC Qt6::ProtobufWellKnownTypes Qt6::ProtobufQuick)
+target_sources(message PRIVATE src/item_id.cpp)
 
 # ----------------------------------------------------------------------------
 # Post-process generated protobuf headers: inject custom Q_PROPERTY/methods by

@@ -10,8 +10,8 @@ MD.Action {
     text: qsTr('add to mix')
 
     property int oper: QM.MixManipulateOper.MIX_MANIPULATE_OPER_ADD_SONGS
-    property list<QA.item_id> songIds
-    property list<QA.item_id> albumIds
+    property list<QM.item_id> songIds
+    property list<QM.item_id> albumIds
 
     onTriggered: {
         const msg = QA.Util.routeMsg();

@@ -11,8 +11,8 @@ MD.Dialog {
     standardButtons: MD.Dialog.Cancel
 
     property int oper: QM.MixManipulateOper.MIX_MANIPULATE_OPER_ADD_SONGS
-    property list<QA.item_id> songIds
-    property list<QA.item_id> albumIds
+    property list<QM.item_id> songIds
+    property list<QM.item_id> albumIds
 
     QA.MixesQuery {
         id: m_qr_mixes

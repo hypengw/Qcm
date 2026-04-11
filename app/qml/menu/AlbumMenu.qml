@@ -5,7 +5,7 @@ import Qcm.Msg as QM
 
 MD.Menu {
     id: root
-    required property QA.item_id itemId
+    required property QM.item_id itemId
     font.capitalization: Font.Capitalize
     dim: false
     modal: true

@@ -3,12 +3,13 @@ import QtCore
 import QtQml
 import QtQuick
 import Qcm.App as QA
+import Qcm.Msg as QM
 import Qcm.Material as MD
 
 QA.GlobalWrapper {
     id: root
 
-    readonly property QA.song cur_song: QA.App.playqueue.currentSong
+    readonly property QM.song cur_song: QA.App.playqueue.currentSong
 
     property Window main_win: null
     property alias category: m_category

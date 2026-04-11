@@ -204,7 +204,7 @@ MD.Page {
             image: QA.Util.image_url(model.itemId)
             text: model.name
             supportText: {
-                const ex = model.extra;
+                const ex = model.extra();
                 const tc = model.trackCount;
                 const trackInfo = tc > 0 ? qsTr(`${tc} tracks`) : qsTr('no track');
                 return [QA.Util.joinName(ex?.artists, '/'), trackInfo].filter(e => !!e).join(' - ');

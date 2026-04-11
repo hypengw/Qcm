@@ -10,7 +10,7 @@ MD.Page {
     backgroundColor: QA.Global.playing_color
     readonly property var song: QA.App.playqueue.currentSong
     readonly property list<var> artists: {
-        const ex = QA.Store.extra(song.itemId);
+        const ex = QA.Store.extra(song.itemId());
         return ex?.artists ?? [];
     }
 
@@ -106,7 +106,7 @@ MD.Page {
                 QA.Image {
                     Layout.alignment: Qt.AlignHCenter
                     elevation: MD.Token.elevation.level2
-                    source: QA.Util.image_url(root.song.itemId)
+                    source: QA.Util.image_url(root.song.itemId())
                     radius: 16
 
                     Layout.preferredWidth: displaySize.width
@@ -161,7 +161,7 @@ MD.Page {
 
                     MD.IconButton {
                         action: QA.FavoriteAction {
-                            itemId: root.song.itemId
+                            itemId: root.song.itemId()
                         }
                     }
                     MD.IconButton {
@@ -240,7 +240,7 @@ MD.Page {
                     }
                     MD.IconButton {
                         action: QA.CommentAction {
-                            itemId: root.song.itemId
+                            itemId: root.song.itemId()
                         }
                     }
                     MD.IconButton {
@@ -270,7 +270,7 @@ MD.Page {
 
             QA.LyricQuery {
                 id: m_query
-                itemId: root.song.itemId
+                itemId: root.song.itemId()
             }
 
             Connections {

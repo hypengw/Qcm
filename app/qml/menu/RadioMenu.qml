@@ -1,11 +1,12 @@
 import QtQuick
 import Qcm.App as QA
 import Qcm.Material as MD
+import Qcm.Msg as QM
 
 MD.Menu {
     id: root
 
-    required property QA.item_id itemId
+    required property QM.item_id itemId
 
     dim: false
     font.capitalization: Font.Capitalize

@@ -53,13 +53,13 @@ MD.Page {
     }
 
     component AlbumCard: MImagePlayCard {
-        subText: QA.Util.joinName(model.extra?.artists)
+        subText: QA.Util.joinName(model.extra()?.artists)
     }
     component MixCard: MImagePlayCard {}
     component RadioQueueCard: QA.ImagePlayCard {
         id: m_card
         required property var model
-        readonly property var dynamicQueue: QA.App.playqueue.dynamicQueue(model.queueId)
+        readonly property var dynamicQueue: QA.App.playqueue.dynamicQueue(model.itemId)
         text: model.name
         subText: model.description
         image.source: QA.Util.image_url(dynamicQueue?.currentId)

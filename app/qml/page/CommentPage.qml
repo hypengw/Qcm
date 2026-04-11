@@ -1,6 +1,7 @@
 import QtQuick
 import Qcm.App as QA
 import Qcm.Material as MD
+import Qcm.Msg as QM
 
 MD.Page {
     id: root
@@ -9,7 +10,7 @@ MD.Page {
     bottomPadding: radius
     scrolling: !m_view.atYBeginning
 
-    property QA.item_id itemId
+    property QM.item_id itemId
 
    MD.VerticalListView {
         id: m_view

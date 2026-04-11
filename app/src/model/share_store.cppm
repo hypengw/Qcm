@@ -9,7 +9,7 @@ namespace qcm
 export struct ShareStoreExt {
     using ptr = up<QQmlPropertyMap, void (*)(QQmlPropertyMap*)>;
     ShareStoreExt()
-        : extra(ptr(new QQmlPropertyMap(), [](QQmlPropertyMap* p) {
+        : extra(ptr(QQmlPropertyMap::create(), [](QQmlPropertyMap* p) {
               p->deleteLater();
           })) {
         QJSEngine::setObjectOwnership(extra.get(), QJSEngine::ObjectOwnership::CppOwnership);

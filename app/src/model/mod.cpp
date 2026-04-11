@@ -38,7 +38,7 @@ MixStoreItem::MixStoreItem(QObject* parent): base_type(AppStore::instance()->mix
 namespace qcm::model
 {
 AlbumListModel::AlbumListModel(QObject* parent)
-    : kstore::QGadgetListModel(this, parent),
+    : kstore::QGadgetListModel(this, parent, kstore::QMetaRoleNames::WithMethod),
       list_crtp_t(list_crtp_t::allocator_type { mem_mgr().store_mem }) {}
 QQmlPropertyMap* AlbumListModel::extra(i32 idx) const {
     if (auto extend = AppStore::instance()->albums.query_extend(this->key_at(idx)); extend) {
@@ -47,7 +47,7 @@ QQmlPropertyMap* AlbumListModel::extra(i32 idx) const {
     return nullptr;
 }
 SongListModel::SongListModel(QObject* parent)
-    : kstore::QGadgetListModel(this, parent),
+    : kstore::QGadgetListModel(this, parent, kstore::QMetaRoleNames::WithMethod),
       list_crtp_t(list_crtp_t::allocator_type { mem_mgr().store_mem }) {}
 QQmlPropertyMap* SongListModel::extra(i32 idx) const {
     if (auto extend = AppStore::instance()->songs.query_extend(this->key_at(idx)); extend) {
@@ -57,7 +57,7 @@ QQmlPropertyMap* SongListModel::extra(i32 idx) const {
 }
 
 AlbumSongListModel::AlbumSongListModel(QObject* parent)
-    : kstore::QGadgetListModel(this, parent),
+    : kstore::QGadgetListModel(this, parent, kstore::QMetaRoleNames::WithMethod),
       list_crtp_t(list_crtp_t::allocator_type { mem_mgr().store_mem }),
       m_disc_count(1) {
     connect(&m_item, &model::AlbumStoreItem::itemChanged, this, &AlbumSongListModel::albumChanged);
@@ -75,18 +75,18 @@ void AlbumSongListModel::setDiscCount(qint32 c) {
 auto AlbumSongListModel::extra() const -> QQmlPropertyMap* { return m_item.extra(); }
 
 ArtistListModel::ArtistListModel(QObject* parent)
-    : kstore::QGadgetListModel(this, parent),
+    : kstore::QGadgetListModel(this, parent, kstore::QMetaRoleNames::WithMethod),
       list_crtp_t(list_crtp_t::allocator_type { mem_mgr().store_mem }) {}
 
 MixListModel::MixListModel(QObject* parent)
-    : kstore::QGadgetListModel(this, parent),
+    : kstore::QGadgetListModel(this, parent, kstore::QMetaRoleNames::WithMethod),
       list_crtp_t(list_crtp_t::allocator_type { mem_mgr().store_mem }) {}
 
 RadioQueueListModel::RadioQueueListModel(QObject* parent)
-    : kstore::QGadgetListModel(this, parent) {}
+    : kstore::QGadgetListModel(this, parent, kstore::QMetaRoleNames::WithMethod) {}
 
 MixSongListModel::MixSongListModel(QObject* parent)
-    : kstore::QGadgetListModel(this, parent),
+    : kstore::QGadgetListModel(this, parent, kstore::QMetaRoleNames::WithMethod),
       list_crtp_t(list_crtp_t::allocator_type { mem_mgr().store_mem }),
       m_disc_count(1) {
     connect(&m_item, &model::MixStoreItem::itemChanged, this, &MixSongListModel::mixChanged);

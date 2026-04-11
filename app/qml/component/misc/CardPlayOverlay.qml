@@ -1,10 +1,11 @@
 import QtQuick
 import Qcm.Material as MD
 import Qcm.App as QA
+import Qcm.Msg as QM
 
 QA.CardOverlay {
     id: root
-    property QA.item_id itemId
+    property QM.item_id itemId
 
     MD.IconButton {
         anchors.centerIn: parent

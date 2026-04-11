@@ -40,7 +40,7 @@ MD.Page {
             id: m_cover
             z: 1
             elevation: MD.Token.elevation.level2
-            source: QA.Util.image_url(root.artist.itemId)
+            source: QA.Util.image_url(root.artist.itemId())
             radius: width / 2
 
             Layout.preferredWidth: displaySize.width
@@ -114,7 +114,7 @@ MD.Page {
             image: QA.Util.image_url(model.itemId)
             text: model.name
             supportText: {
-                const ex = model.extra;
+                const ex = model.extra();
                 const tc = model.trackCount;
                 const trackInfo = tc > 0 ? qsTr(`${tc} tracks`) : qsTr('no track');
                 return [QA.Util.joinName(ex?.artists, '/'), trackInfo].filter(e => !!e).join(' - ');

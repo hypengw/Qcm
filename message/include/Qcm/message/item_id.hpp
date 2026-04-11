@@ -1,10 +1,11 @@
 #pragma once
 
-#include "Qcm/qml/enum.hpp"
+#include "Qcm/message/item_type.hpp"
 
 #include <QtCore/qstring.h>
 #include <QtCore/qurl.h>
 #include <QtProtobuf/qtprotobuftypes.h>
+#include <QQmlEngine>
 
 #include <compare>
 #include <functional>
@@ -64,7 +65,6 @@ public:
     Q_INVOKABLE ItemId clone() const noexcept;
 
     QString toString() const { return toUrl().toString(); }
-
 private:
     qcm::enums::ItemType m_type;
     qint64               m_id;

@@ -60,20 +60,20 @@ Item {
             const meta = {};
             const song = playlist.currentSong;
 
-            meta[key(QA.MprisMediaPlayer.MetaTrackId)] = QA.Util.mprisTrackid(song.itemId);
+            meta[key(QA.MprisMediaPlayer.MetaTrackId)] = QA.Util.mprisTrackid(song.itemId());
             if (root.song_cover)
                 meta[key(QA.MprisMediaPlayer.MetaArtUrl)] = root.song_cover;
             meta[key(QA.MprisMediaPlayer.MetaTitle)] = song.name;
-            meta[key(QA.MprisMediaPlayer.MetaAlbum)] = song.albumName;
+            meta[key(QA.MprisMediaPlayer.MetaAlbum)] = song.albumName();
             {
-                const ex = QA.Store.extra(song.itemId);
+                const ex = QA.Store.extra(song.itemId());
                 const artist = ex?.artists.map(a => {
                     return a.name;
                 }) ?? [];
                 meta[key(QA.MprisMediaPlayer.MetaArtist)] = artist;
             }
             {
-                const ex = QA.Store.extra(song.albumId);
+                const ex = QA.Store.extra(song.albumItemId());
                 const artist = ex?.artists.map(a => {
                     return a.name;
                 }) ?? [];

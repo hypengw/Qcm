@@ -14,6 +14,7 @@ qt_standard_project_setup()
 set(SOURCES2
     src/backend.cpp
     src/msg/mod.cpp
+    src/msg/mod_g.cpp
     src/model/mod.cpp
     src/global.cpp
     src/action.cpp
@@ -34,7 +35,6 @@ set(SOURCES2
     src/query/sync_query.cpp
     src/model/filter_rule_model.cpp
     src/model/sort_filter.cpp
-    src/model/item_id.cpp
     src/status/app_state.cpp
     src/util/global_static.cpp
     src/qml/clipboard.cpp
@@ -46,7 +46,6 @@ set(SOURCES2
 
 set(SOURCES
     include/Qcm/qml/enum.hpp
-    include/Qcm/model/item_id.hpp
     src/qml_register.cpp
     src/convert.cpp
     src/qml/foreign.cpp
@@ -71,9 +70,9 @@ set(MOC_SOURCE_FILES
     src/model/filter_rule_model.cppm
     src/model/sort_filter.cppm
     src/model/lyric.cppm
+    src/model/item_id.cppm
     src/status/provider.cppm
     src/status/app_state.cppm
-    src/msg/backend_msg.cppm
     src/msg/store.cppm
     src/util/async.cppm
     src/qml/util.cppm
@@ -100,7 +99,6 @@ set(MOC_SOURCE_FILES
     src/query/sync_query.cppm)
 set(MODULES
     src/mod.cppm
-    src/model/item_id.cppm
     src/image_provider/mod.cppm
     src/image_provider/qr.cppm
     src/image_provider/response.cppm
@@ -109,6 +107,7 @@ set(MODULES
     src/model/share_store.cppm
     src/status/process.cppm
     src/msg/mod.cppm
+    src/msg/backend_msg.cppm
     src/util/global_static.cppm
     src/util/mem.cppm
     src/util/path.cppm
@@ -276,6 +275,7 @@ qt_add_qml_module(
   QtCore
   QtQuick
   Qcm.Material
+  Qcm.Msg
   RESOURCE_PREFIX
   /
   VERSION

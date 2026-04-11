@@ -11,7 +11,7 @@ set(_files
   "${HEADERS_DIR}/model.qpb.h"
 )
 
-set(_inject_types album song artist mix providerStatus)
+set(_inject_types album song artist mix radioQueue providerStatus)
 
 foreach(_f ${_files})
   if(NOT EXISTS "${_f}")

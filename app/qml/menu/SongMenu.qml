@@ -1,16 +1,17 @@
 import QtQuick
 import Qcm.App as QA
 import Qcm.Material as MD
+import Qcm.Msg as QM
 
 MD.Menu {
     id: root
 
-    property QA.item_id itemId
-    property QA.item_id sourceId
+    property QM.item_id itemId
+    property QM.item_id sourceId
     property bool canDelete: false
     // no aot, it's bugly
     property var song: QA.App.empty.song
-    readonly property QA.item_id _itemId: {
+    readonly property QM.item_id _itemId: {
         return itemId.valid ? itemId : song.itemId;
     }
     readonly property list<var> artists: {

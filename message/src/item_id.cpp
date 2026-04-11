@@ -1,12 +1,6 @@
-#include "Qcm/model/item_id.hpp"
-
+#include "Qcm/message/item_id.hpp"
 #include <QString>
-#include "core/log.h"
-#undef assert
-#include <rstd/macro.hpp>
-
-import qcm;
-import qcm.log;
+#include <QHashFunctions>
 
 using namespace Qt::Literals::StringLiterals;
 
@@ -40,13 +34,13 @@ void ItemId::setType(enums::ItemType type) { m_type = type; }
 void ItemId::setId(qint64 id) { m_id = id; }
 
 void ItemId::setType(QStringView v) {
-    m_type = rstd::from_str<enums::ItemType>(v.toString().toStdString()).unwrap();
+    m_type = enums::item_type_from_str(v.toString().toStdString());
 }
 
 void ItemId::setId(QStringView v) { m_id = v.toLongLong(); }
 
 void ItemId::setUrl(const QUrl& u) {
-    debug_assert(u.scheme() == "itemid" || u.scheme().isEmpty());
+    // debug_assert(u.scheme() == "itemid" || u.scheme().isEmpty());
     setType(u.userName());
     setId(u.path().sliced(1));
 }
@@ -56,7 +50,7 @@ bool ItemId::valid() const { return m_type != enums::ItemType::ItemInvalid && m_
 QUrl ItemId::toUrl() const {
     QUrl url;
     url.setScheme("itemid");
-    url.setUserName(rstd::into(rstd::format("{}", type())));
+    url.setUserName(QString::fromUtf8(enums::item_type_to_str(m_type)));
     url.setPath(QString("/%1").arg(m_id));
     return url;
 }
@@ -76,7 +70,7 @@ bool ItemId::operator==(const QUrl& url) const {
 }
 
 bool ItemId::operator==(std::string_view b) const {
-    QUrl url(convert_from<QString>(b));
+    QUrl url(QString::fromUtf8(b));
     return *this == url;
 }
 
@@ -109,7 +103,7 @@ QUrl ItemId::toPageUrl() const {
         break;
     }
     default: {
-        LOG_WARN("no page url for item type: {}", type());
+        // LOG_WARN("no page url for item type: {}", type());
     }
     }
     return url;
@@ -119,7 +113,43 @@ QUrl ItemId::toPageUrl() const {
 
 std::size_t std::hash<qcm::model::ItemId>::operator()(const qcm::model::ItemId& k) const noexcept {
     std::size_t s = 0;
-    ycore::hash_combine(s, static_cast<int>(k.type()));
-    ycore::hash_combine(s, k.id());
-    return s;
+    return qHashMulti(s, static_cast<int>(k.type()), k.id());
 }
+
+namespace qcm
+{
+auto enums::item_type_to_str(ItemType t) -> std::string_view {
+    std::string_view name;
+    switch (t) {
+    case ItemType::ItemInvalid: name = "Invalid"; break;
+    case ItemType::ItemProvider: name = "Provider"; break;
+    case ItemType::ItemLibrary: name = "Library"; break;
+    case ItemType::ItemAlbum: name = "Album"; break;
+    case ItemType::ItemAlbumArtist: name = "AlbumArtist"; break;
+    case ItemType::ItemArtist: name = "Artist"; break;
+    case ItemType::ItemMix: name = "Mix"; break;
+    case ItemType::ItemRadio: name = "Radio"; break;
+    case ItemType::ItemRadioQueue: name = "RadioQueue"; break;
+    case ItemType::ItemSong: name = "Song"; break;
+    case ItemType::ItemProgram: name = "Program"; break;
+    }
+    return name;
+}
+
+auto enums::item_type_from_str(std::string_view str) -> ItemType {
+    using Self = ItemType;
+    if (str == "Provider") return Self::ItemProvider;
+    if (str == "Library") return Self::ItemLibrary;
+    if (str == "Album") return Self::ItemAlbum;
+    if (str == "AlbumArtist") return Self::ItemAlbumArtist;
+    if (str == "Artist") return Self::ItemArtist;
+    if (str == "Mix") return Self::ItemMix;
+    if (str == "Radio") return Self::ItemRadio;
+    if (str == "RadioQueue") return Self::ItemRadioQueue;
+    if (str == "Song") return Self::ItemSong;
+    if (str == "Program") return Self::ItemProgram;
+    return Self::ItemInvalid;
+}
+} // namespace qcm
+
+#include "Qcm/message/moc_item_id.cpp"

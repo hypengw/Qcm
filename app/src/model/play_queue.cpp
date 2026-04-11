@@ -201,7 +201,7 @@ PlayQueue::PlayQueue(QObject* parent)
       m_changed_timer(new QTimer(this)),
       m_pending_advance_timer(new QTimer(this)),
       m_pending_advance(false) {
-    updateRoleNames(qcm::model::Song::staticMetaObject, this);
+    updateRoleNames(qcm::model::Song::staticMetaObject, this, kstore::QMetaRoleNames::WithMethod);
     connect(this, &PlayQueue::currentIndexChanged, this, [this](qint32 idx) {
         setCurrentSong(idx);
 
@@ -271,8 +271,6 @@ auto PlayQueue::data(const QModelIndex& index, int role) const -> QVariant {
                 } else {
                     return prop.value().readOnGadget(&m_placeholder);
                 }
-            } else if (prop->name() == "itemId"sv) {
-                return QVariant::fromValue(*id);
             } else if (prop->name() == "sourceId"sv) {
                 // if (auto it = m_source_map.find(hash); it != m_source_map.end()) {
                 //     return QVariant::fromValue(it->second);
@@ -281,6 +279,10 @@ auto PlayQueue::data(const QModelIndex& index, int role) const -> QVariant {
                 // }
             } else {
                 return prop.value().readOnGadget(&m_placeholder);
+            }
+        } else if (auto method = this->methodOfRole(role); method) {
+            if (method->name() == "itemId"sv) {
+                return QVariant::fromValue(*id);
             }
         }
     } while (0);
@@ -627,10 +629,11 @@ bool PlayQueue::move(qint32 src, qint32 dst, qint32 count) {
     return moveRows(parent, src, count, parent, dst);
 }
 
-auto PlayQueue::dynamicQueue(qint64 queueId) -> model::IdQueue* {
-    auto it = m_dynamic_queues.find(queueId);
+auto PlayQueue::dynamicQueue(model::ItemId itemId) -> model::IdQueue* {
+    auto queueId = itemId.id();
+    auto it      = m_dynamic_queues.find(queueId);
     if (it != m_dynamic_queues.end() && it->second) return it->second;
-    auto* q = new model::DynamicIdQueue(queueId, this);
+    auto* q                   = new model::DynamicIdQueue(queueId, this);
     m_dynamic_queues[queueId] = q;
     return q;
 }

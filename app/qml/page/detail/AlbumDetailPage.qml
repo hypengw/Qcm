@@ -4,12 +4,13 @@ import QtQml.Models as QM
 import QtQuick.Layouts
 import Qcm.App as QA
 import Qcm.Material as MD
+import Qcm.Msg as QM
 
 MD.Page {
     id: root
 
     readonly property var album: qr_al.data.album
-    property QA.item_id itemId
+    property QM.item_id itemId
     title: qsTr("album")
 
     padding: 0
@@ -29,7 +30,7 @@ MD.Page {
 
             displaySize: Qt.size(240, 240)
             elevation: MD.Token.elevation.level2
-            source: QA.Util.image_url(root.album.itemId)
+            source: QA.Util.image_url(root.album.itemId())
             radius: 16
         }
         MD.Label {
@@ -55,7 +56,7 @@ MD.Page {
             typescale: MD.Token.typescale.body_medium
             action: MD.Action {
                 text: {
-                    const names = QA.Util.joinName(root.model.extra?.artists, '/');
+                    const names = QA.Util.joinName(root.model.extra()?.artists, '/');
                     return names || qsTr("Unknown Artist");
                 }
                 onTriggered: {
@@ -65,7 +66,7 @@ MD.Page {
             QA.GoToArtistAction {
                 id: m_go_to_artist_act
                 getItemIds: function () {
-                    return root.model.extra?.artists.map(el => QA.Util.albumArtistId(el.id));
+                    return root.model.extra()?.artists.map(el => QA.Util.albumArtistId(el.id));
                 }
             }
         }

@@ -61,7 +61,7 @@ void FilterRuleModel::setDirty(bool v) {
 void FilterRuleModel::markDirty() { setDirty(true); }
 
 AlbumFilterRuleModel::AlbumFilterRuleModel(QObject* parent): FilterRuleModel(this, parent) {
-    updateRoleNames(msg::filter::AlbumFilter::staticMetaObject, this);
+    updateRoleNames(msg::filter::AlbumFilter::staticMetaObject, this, {});
 }
 AlbumFilterRuleModel::~AlbumFilterRuleModel() {}
 
@@ -72,7 +72,7 @@ void AlbumFilterRuleModel::fromVariantlist(const QVariantList& v) {
     resetModel(view);
 }
 ArtistFilterRuleModel::ArtistFilterRuleModel(QObject* parent): FilterRuleModel(this, parent) {
-    updateRoleNames(msg::filter::ArtistFilter::staticMetaObject, this);
+    updateRoleNames(msg::filter::ArtistFilter::staticMetaObject, this, {});
 }
 ArtistFilterRuleModel::~ArtistFilterRuleModel() {}
 
@@ -84,7 +84,7 @@ void ArtistFilterRuleModel::fromVariantlist(const QVariantList& v) {
 }
 
 MixFilterRuleModel::MixFilterRuleModel(QObject* parent): FilterRuleModel(this, parent) {
-    updateRoleNames(msg::filter::MixFilter::staticMetaObject, this);
+    updateRoleNames(msg::filter::MixFilter::staticMetaObject, this, {});
 }
 MixFilterRuleModel::~MixFilterRuleModel() {}
 

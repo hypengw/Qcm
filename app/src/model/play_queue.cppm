@@ -156,7 +156,7 @@ public:
 
     Q_INVOKABLE bool move(qint32 src, qint32 dst, qint32 count = 1);
 
-    Q_INVOKABLE qcm::model::IdQueue* dynamicQueue(qint64 queueId);
+    Q_INVOKABLE qcm::model::IdQueue* dynamicQueue(model::ItemId queueId);
 
     auto update(cppstd::span<const model::Song>) -> void;
     void updateSourceId(cppstd::span<const model::ItemId> songIds, const model::ItemId& sourceId);

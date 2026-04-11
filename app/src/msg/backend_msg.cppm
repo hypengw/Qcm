@@ -3,10 +3,6 @@ module;
 
 #include "core/log.h"
 
-#ifdef Q_MOC_RUN
-#    include "Qcm/msg/backend_msg.moc"
-#endif
-
 export module qcm:msg.backend;
 export import :model.item_id;
 export import :model.share_store;
@@ -15,9 +11,9 @@ export import qcm.qt;
 
 export namespace google::protobuf
 {
+using google::protobuf::Struct;
 using google::protobuf::Timestamp;
 using google::protobuf::Value;
-using google::protobuf::Struct;
 } // namespace google::protobuf
 
 namespace m = qcm::msg::model;
@@ -55,7 +51,8 @@ namespace PlaylogActionGadget
 {
 using m::PlaylogActionGadget::PlaylogAction;
 }
-namespace AuthResultGadget{
+namespace AuthResultGadget
+{
 using m::AuthResultGadget::AuthResult;
 }
 namespace SyncStateGadget
@@ -72,19 +69,19 @@ using m::ItemTypeGadget::ItemType;
 namespace f = qcm::msg::filter;
 export namespace qcm::msg::filter
 {
+using f::AlbumArtistIdFilter;
 using f::AlbumFilter;
+using f::AlbumIdFilter;
 using f::ArtistFilter;
+using f::ArtistIdFilter;
+using f::LastPlayedAtFilter;
 using f::MixFilter;
+using f::MixIdFilter;
 using f::RemoteMixFilter;
 using f::SongFilter;
-using f::AlbumIdFilter;
-using f::MixIdFilter;
+using f::TitleFilter;
 using f::TypeFilter;
 using f::TypeStringFilter;
-using f::LastPlayedAtFilter;
-using f::AlbumArtistIdFilter;
-using f::ArtistIdFilter;
-using f::TitleFilter;
 
 namespace FilterTypeGadget
 {
@@ -306,101 +303,18 @@ struct rstd::Impl<rstd::fmt::Display, qcm::msg::MessageTypeGadget::MessageType>
 
 // -----------------------------------------
 
-export namespace qcm::model
+namespace qcm::model
 {
-class Song;
+export {
+    using qcm::model::common_extra;
 
-template<typename T>
-void model_init(T* self) {
-    self->setId_proto(-1);
-    if constexpr (std::same_as<T, Song>) {
-        self->setAlbumId(-1);
-    }
+    using msg::model::Album;
+    using msg::model::Artist;
+    using msg::model::Mix;
+    using msg::model::ProviderStatus;
+    using msg::model::RadioQueue;
+    using msg::model::Song;
 }
-
-auto common_extra(model::ItemId id) -> QQmlPropertyMap*;
-
-// itemId is injected directly into qcm::msg::model::{Album,Song,Artist,Mix,
-// ProviderStatus} via the generated-header hook (see message/qml_hook.hpp);
-// this macro only adds wrapper-level bits (ctors, extra, ...).
-#define QCM_MODEL_COMMON(T)                                                            \
-    Q_PROPERTY(QQmlPropertyMap* extra READ extra FINAL)                                \
-                                                                                       \
-public:                                                                                \
-    T(): msg::model::T() { model_init<T>(this); }                                      \
-    T(const model::T& o): msg::model::T(o) {}                                          \
-    T(model::T&& o) noexcept: msg::model::T(std::move(o)) {}                           \
-    T& operator=(const model::T& o) {                                                  \
-        msg::model::T::operator=(o);                                                   \
-        return *this;                                                                  \
-    }                                                                                  \
-    T& operator=(model::T&& o) noexcept {                                              \
-        msg::model::T::operator=(std::move(o));                                        \
-        return *this;                                                                  \
-    }                                                                                  \
-    T(const msg::model::T& o): msg::model::T(o) {}                                     \
-    T(msg::model::T&& o) noexcept: msg::model::T(std::move(o)) {}                      \
-    auto extra() const noexcept -> QQmlPropertyMap* {                                  \
-        return common_extra(this->itemId());                                           \
-    }
-
-class Album : public msg::model::Album {
-    Q_GADGET
-
-    QCM_MODEL_COMMON(Album)
-};
-
-class Song : public msg::model::Song {
-    Q_GADGET
-    Q_PROPERTY(qcm::model::ItemId albumId READ albumItemId WRITE setAlbumItemId FINAL)
-    Q_PROPERTY(QString albumName READ albumName FINAL)
-    QCM_MODEL_COMMON(Song)
-
-public:
-    auto albumItemId() const -> ItemId {
-        return ItemId { enums::ItemType::ItemAlbum, msg::model::Song::albumId() };
-    }
-    void setAlbumItemId(ItemId id) { msg::model::Song::setAlbumId(id.id()); }
-    auto albumName() const -> QString;
-};
-
-class Artist : public msg::model::Artist {
-    Q_GADGET
-
-    // prefer album artist here
-    // and manually set to song artist if needed
-    QCM_MODEL_COMMON(Artist)
-};
-
-class Mix : public msg::model::Mix {
-    Q_GADGET
-
-    QCM_MODEL_COMMON(Mix)
-private:
-    auto libraryId() const -> i64 { return -1; }
-};
-
-class RadioQueue : public msg::model::RadioQueue {
-    Q_GADGET
-    QML_VALUE_TYPE(radio_queue)
-    Q_PROPERTY(qint64 queueId READ queueId CONSTANT FINAL)
-
-public:
-    RadioQueue() = default;
-    RadioQueue(const msg::model::RadioQueue& o): msg::model::RadioQueue(o) {}
-
-    auto queueId() const -> qint64 { return id_proto(); }
-};
-
-class ProviderStatus : public msg::model::ProviderStatus {
-    Q_GADGET
-    QCM_MODEL_COMMON(ProviderStatus)
-private:
-    auto libraryId() const -> i64 { return -1; }
-};
-
-#undef QCM_MODEL_COMMON
-
 } // namespace qcm::model
 
 // -----------------------------------------

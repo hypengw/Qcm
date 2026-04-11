@@ -13,7 +13,6 @@ using qcm::enums::ToastFlags;
 using qcm::enums::qt_getEnumMetaObject;
 using qcm::enums::qt_getEnumName;
 
-using qcm::enums::SpecialRoute;
 using qcm::enums::ApiStatus;
 using qcm::enums::AudioQuality;
 using qcm::enums::CollectionType;
@@ -29,6 +28,7 @@ using qcm::enums::ProxyType;
 using qcm::enums::RecordAction;
 using qcm::enums::SearchLocation;
 using qcm::enums::SearchType;
+using qcm::enums::SpecialRoute;
 using qcm::enums::SyncListType;
 using qcm::enums::ToastFlag;
 
@@ -39,16 +39,7 @@ struct rstd::Impl<rstd::str_::FromStr, qcm::enums::ItemType> {
     using Err  = int;
     using Self = qcm::enums::ItemType;
     static auto from_str(ref_str str) -> rstd::Result<Self, Err> {
-        if (str == "Provider") return Ok(Self::ItemProvider);
-        if (str == "Library") return Ok(Self::ItemLibrary);
-        if (str == "Album") return Ok(Self::ItemAlbum);
-        if (str == "AlbumArtist") return Ok(Self::ItemAlbumArtist);
-        if (str == "Artist") return Ok(Self::ItemArtist);
-        if (str == "Mix") return Ok(Self::ItemMix);
-        if (str == "Radio") return Ok(Self::ItemRadio);
-        if (str == "Song") return Ok(Self::ItemSong);
-        if (str == "Program") return Ok(Self::ItemProgram);
-        return Ok(Self::ItemInvalid);
+        return Ok(qcm::enums::item_type_from_str({ (char const*)str.data(), str.size() }));
     }
 };
 
@@ -67,23 +58,9 @@ struct rstd::Impl<rstd::str_::FromStr, qcm::enums::ImageType> {
 };
 
 template<>
-struct rstd::Impl<rstd::fmt::Display, qcm::enums::ItemType>
-    : rstd::ImplBase<qcm::enums::ItemType> {
+struct rstd::Impl<rstd::fmt::Display, qcm::enums::ItemType> : rstd::ImplBase<qcm::enums::ItemType> {
     auto fmt(rstd::fmt::Formatter& f) const -> bool {
-        std::string_view name;
-        using ItemType = qcm::enums::ItemType;
-        switch (this->self()) {
-        case ItemType::ItemInvalid: name = "Invalid"; break;
-        case ItemType::ItemProvider: name = "Provider"; break;
-        case ItemType::ItemLibrary: name = "Library"; break;
-        case ItemType::ItemAlbum: name = "Album"; break;
-        case ItemType::ItemAlbumArtist: name = "AlbumArtist"; break;
-        case ItemType::ItemArtist: name = "Artist"; break;
-        case ItemType::ItemMix: name = "Mix"; break;
-        case ItemType::ItemRadio: name = "Radio"; break;
-        case ItemType::ItemSong: name = "Song"; break;
-        case ItemType::ItemProgram: name = "Program"; break;
-        }
+        std::string_view name = qcm::enums::item_type_to_str(this->self());
         return f.write_raw((const u8*)name.data(), name.size());
     }
 };
