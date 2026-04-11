@@ -14,7 +14,7 @@ export import :qml.enums;
 export import :util.mem;
 export import :util.global_static;
 export import :player;
-export import qcm.qt;
+export import qextra;
 import ncrequest;
 
 using rstd::sync::Arc;

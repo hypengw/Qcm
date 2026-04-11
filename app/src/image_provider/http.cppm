@@ -9,7 +9,7 @@ export module qcm:image_provider.http;
 export import :image_provider.response;
 export import :util.async;
 export import :global;
-export import qcm.qt;
+export import qextra;
 import ncrequest;
 
 namespace ncm

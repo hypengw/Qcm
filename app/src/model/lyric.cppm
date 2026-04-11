@@ -8,7 +8,7 @@ module;
 export module qcm:model.lyric;
 export import :global;
 export import :util.async;
-export import qcm.qt;
+export import qextra;
 
 namespace qcm
 {

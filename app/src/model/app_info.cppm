@@ -5,7 +5,7 @@ module;
 #include "Qcm/model/app_info.moc"
 #endif
 export module qcm:model.app_info;
-export import qcm.qt;
+export import qextra;
 
 export namespace qcm::model
 {

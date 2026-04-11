@@ -13,7 +13,7 @@ module;
 
 export module qcm:query.api;
 export import :query.query;
-export import qcm.qt;
+export import qextra;
 export import :global;
 
 namespace qcm

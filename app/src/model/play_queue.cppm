@@ -12,7 +12,7 @@ export import :model.id_queue;
 export import :action;
 export import :global;
 export import :msg;
-export import qcm.qt;
+export import qextra;
 import qcm.random;
 
 export namespace qcm

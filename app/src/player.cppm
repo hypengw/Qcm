@@ -12,7 +12,7 @@ export module qcm:player;
 export import :util.mem;
 export import :qml.enums;
 export import qcm.asio;
-export import qcm.qt;
+export import qextra;
 
 namespace qcm
 {

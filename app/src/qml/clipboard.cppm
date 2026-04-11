@@ -5,7 +5,7 @@ module;
 #include "Qcm/qml/clipboard.moc"
 #endif
 export module qcm:qml.clipboard;
-export import qcm.qt;
+export import qextra;
 
 namespace qcm
 {

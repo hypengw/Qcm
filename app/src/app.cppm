@@ -26,7 +26,7 @@ export import :model.empty_model;
 export import :model.item_id;
 export import :model.page_model;
 export import :global;
-export import qcm.qt;
+export import qextra;
 import platform;
 
 namespace qcm

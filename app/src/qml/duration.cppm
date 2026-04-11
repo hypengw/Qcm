@@ -4,7 +4,7 @@ module;
 #include "Qcm/qml/duration.moc"
 #endif
 export module qcm:qml.duration;
-import qcm.qt;
+import qextra;
 
 namespace qcm
 {

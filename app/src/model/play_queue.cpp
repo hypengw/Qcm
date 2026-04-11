@@ -6,7 +6,7 @@ module;
 module qcm;
 import :queue;
 import :app;
-import qcm.qt;
+import qextra;
 import qcm.log;
 
 namespace qcm

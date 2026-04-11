@@ -7,7 +7,7 @@ export module qcm:msg.backend;
 export import :model.item_id;
 export import :model.share_store;
 export import :qml.enums;
-export import qcm.qt;
+export import qextra;
 
 export namespace google::protobuf
 {

@@ -9,7 +9,9 @@ module;
 #endif
 export module qcm:util.async;
 export import :qml.enums;
-export import qcm.qt;
+export import qcm.asio;
+export import qextra;
+
 
 namespace qcm
 {

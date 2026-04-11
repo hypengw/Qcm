@@ -10,7 +10,7 @@ module qcm;
 import :status.provider;
 import :status.process;
 import :app;
-import qcm.qt;
+import qextra;
 import qcm.log;
 
 using namespace qcm;

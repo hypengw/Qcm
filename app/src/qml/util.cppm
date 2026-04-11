@@ -11,7 +11,7 @@ export import :msg;
 export import :model.item_id;
 export import :model.id_queue;
 export import :model.router_msg;
-export import qcm.qt;
+export import qextra;
 
 namespace qcm
 {

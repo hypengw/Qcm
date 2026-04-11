@@ -6,7 +6,7 @@ module;
 #endif
 
 export module qcm:model.table_proxy;
-export import qcm.qt;
+export import qextra;
 
 namespace qcm
 {

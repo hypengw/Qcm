@@ -8,7 +8,7 @@ module;
 export module qcm:model.store_item;
 export import :model.share_store;
 export import :msg;
-export import qcm.qt;
+export import qextra;
 
 
 

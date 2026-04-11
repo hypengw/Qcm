@@ -7,7 +7,7 @@ module;
 
 export module qcm:model.filter_rule;
 export import :msg;
-export import qcm.qt;
+export import qextra;
 
 export namespace qcm
 {

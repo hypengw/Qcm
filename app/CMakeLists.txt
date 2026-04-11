@@ -337,7 +337,7 @@ target_include_directories(
 )
 target_link_libraries(
   app
-  PUBLIC qt
+  PUBLIC qextra
          "$<$<CONFIG:Debug>:Qt6::QuickPrivate>"
          ncrequest::ncrequest
          rstd::rstd

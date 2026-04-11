@@ -147,8 +147,8 @@ App::App(QStringView backend_exe, std::monostate)
                 Qt::QueuedConnection);
         }
 
-        auto data_dir  = convert_from<QString>(data_path().string());
-        auto cache_dir = convert_from<QString>(cache_path().string());
+        QString data_dir  = rstd::into(data_path().string());
+        QString cache_dir = rstd::into(cache_path().string());
         this->backend()->start(backend_exe, data_dir, cache_dir);
     }
 

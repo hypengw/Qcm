@@ -76,6 +76,19 @@ else()
   FetchContent_MakeAvailable(kstore)
 endif()
 
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/qextra")
+  add_subdirectory(qextra)
+else()
+  FetchContent_Declare(
+    qextra
+    GIT_REPOSITORY https://github.com/hypengw/QExtra.git
+    GIT_TAG e08c08a9dca1f5c5381135c6db616206ff938e68
+    GIT_SHALLOW 0
+    GIT_PROGRESS 1
+    FIND_PACKAGE_ARGS GLOBAL)
+  FetchContent_MakeAvailable(qextra)
+endif()
+
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/qml_material")
   add_subdirectory(qml_material)
 else()
