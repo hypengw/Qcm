@@ -9,8 +9,6 @@ import Qcm.Material as MD
 QA.GlobalWrapper {
     id: root
 
-    readonly property QM.song cur_song: QA.App.playqueue.currentSong
-
     property Window main_win: null
     property alias category: m_category
 
