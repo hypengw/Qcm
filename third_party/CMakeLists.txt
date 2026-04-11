@@ -70,7 +70,7 @@ else()
   FetchContent_Declare(
     kstore
     GIT_REPOSITORY https://github.com/hypengw/kstore.git
-    GIT_TAG ca421ea3f7d22aefa48f97253f98012e7592d17b
+    GIT_TAG 4a706464da0459762e709f2c3f233d3ba3c5818b
     GIT_SHALLOW 1
     GIT_PROGRESS 1)
   FetchContent_MakeAvailable(kstore)
@@ -82,7 +82,7 @@ else()
   FetchContent_Declare(
     qml_material
     GIT_REPOSITORY https://github.com/hypengw/QmlMaterial.git
-    GIT_TAG f8e53dfc6e340b817edccc7b7c56d7b1544052ba
+    GIT_TAG d1a6b2cbbfb2aacd11db80db6e23f2565e4e20e9
     GIT_SHALLOW 0
     GIT_PROGRESS 1
     FIND_PACKAGE_ARGS GLOBAL)
