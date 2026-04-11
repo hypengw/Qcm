@@ -56,7 +56,8 @@ MD.Page {
             typescale: MD.Token.typescale.body_medium
             action: MD.Action {
                 text: {
-                    const names = QA.Util.joinName(root.model.extra()?.artists, '/');
+                    const ex = root.model.extra;
+                    const names = QA.Util.joinName(ex?.artists, '/');
                     return names || qsTr("Unknown Artist");
                 }
                 onTriggered: {
@@ -66,7 +67,8 @@ MD.Page {
             QA.GoToArtistAction {
                 id: m_go_to_artist_act
                 getItemIds: function () {
-                    return root.model.extra()?.artists.map(el => QA.Util.albumArtistId(el.id));
+                    const ex = root.model.extra;
+                    return ex?.artists.map(el => QA.Util.albumArtistId(el.id));
                 }
             }
         }
