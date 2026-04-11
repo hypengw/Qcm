@@ -2,7 +2,6 @@ module;
 #include "Qcm/model/play_queue.moc.h"
 #include "Qcm/model/app_info.moc.h"
 #include "Qcm/model/id_queue.moc.h"
-#include "Qcm/model/item_id.moc.h"
 #include "Qcm/model/router_msg.moc.h"
 #include "Qcm/model/empty_model.moc.h"
 #include "Qcm/model/store_item.moc.h"
@@ -136,7 +135,6 @@ PageModel::~PageModel() {}
 
 #include "Qcm/model/app_info.moc.cpp"
 #include "Qcm/model/id_queue.moc.cpp"
-#include "Qcm/model/item_id.moc.cpp"
 #include "Qcm/model/router_msg.moc.cpp"
 #include "Qcm/model/empty_model.moc.cpp"
 #include "Qcm/model/store_item.moc.cpp"

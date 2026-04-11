@@ -46,6 +46,7 @@ set(SOURCES2
 
 set(SOURCES
     include/Qcm/qml/enum.hpp
+    include/Qcm/model/item_id.hpp
     src/qml_register.cpp
     src/convert.cpp
     src/qml/foreign.cpp
@@ -60,7 +61,6 @@ set(MOC_SOURCE_FILES
     src/image_provider/http.cppm
     src/model/app_info.cppm
     src/model/empty_model.cppm
-    src/model/item_id.cppm
     src/model/page_model.cppm
     src/model/router_msg.cppm
     src/model/play_queue.cppm
@@ -100,6 +100,7 @@ set(MOC_SOURCE_FILES
     src/query/sync_query.cppm)
 set(MODULES
     src/mod.cppm
+    src/model/item_id.cppm
     src/image_provider/mod.cppm
     src/image_provider/qr.cppm
     src/image_provider/response.cppm

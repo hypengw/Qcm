@@ -320,8 +320,10 @@ void model_init(T* self) {
 
 auto common_extra(model::ItemId id) -> QQmlPropertyMap*;
 
-#define QCM_MODEL_COMMON(T, _ItemType)                                                 \
-    Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId FINAL)            \
+// itemId is injected directly into qcm::msg::model::{Album,Song,Artist,Mix,
+// ProviderStatus} via the generated-header hook (see message/qml_hook.hpp);
+// this macro only adds wrapper-level bits (ctors, extra, ...).
+#define QCM_MODEL_COMMON(T)                                                            \
     Q_PROPERTY(QQmlPropertyMap* extra READ extra FINAL)                                \
                                                                                        \
 public:                                                                                \
@@ -338,25 +340,21 @@ public:                                                                         
     }                                                                                  \
     T(const msg::model::T& o): msg::model::T(o) {}                                     \
     T(msg::model::T&& o) noexcept: msg::model::T(std::move(o)) {}                      \
-    auto extra() const noexcept -> QQmlPropertyMap* { return common_extra(itemId()); } \
-    auto itemId() const -> qcm::model::ItemId {                                        \
-        return { enums::ItemType::_ItemType, this->id_proto() };                       \
-    }                                                                                  \
-    void setItemId(const qcm::model::ItemId& v) { this->setId_proto(v.id()); }
+    auto extra() const noexcept -> QQmlPropertyMap* {                                  \
+        return common_extra(this->itemId());                                           \
+    }
 
 class Album : public msg::model::Album {
     Q_GADGET
-    QML_VALUE_TYPE(album)
 
-    QCM_MODEL_COMMON(Album, ItemAlbum)
+    QCM_MODEL_COMMON(Album)
 };
 
 class Song : public msg::model::Song {
     Q_GADGET
-    QML_VALUE_TYPE(song)
     Q_PROPERTY(qcm::model::ItemId albumId READ albumItemId WRITE setAlbumItemId FINAL)
     Q_PROPERTY(QString albumName READ albumName FINAL)
-    QCM_MODEL_COMMON(Song, ItemSong)
+    QCM_MODEL_COMMON(Song)
 
 public:
     auto albumItemId() const -> ItemId {
@@ -368,18 +366,16 @@ public:
 
 class Artist : public msg::model::Artist {
     Q_GADGET
-    QML_VALUE_TYPE(artist)
 
     // prefer album artist here
     // and manually set to song artist if needed
-    QCM_MODEL_COMMON(Artist, ItemAlbumArtist)
+    QCM_MODEL_COMMON(Artist)
 };
 
 class Mix : public msg::model::Mix {
     Q_GADGET
-    QML_VALUE_TYPE(mix)
 
-    QCM_MODEL_COMMON(Mix, ItemMix)
+    QCM_MODEL_COMMON(Mix)
 private:
     auto libraryId() const -> i64 { return -1; }
 };
@@ -398,7 +394,7 @@ public:
 
 class ProviderStatus : public msg::model::ProviderStatus {
     Q_GADGET
-    QCM_MODEL_COMMON(ProviderStatus, ItemProvider)
+    QCM_MODEL_COMMON(ProviderStatus)
 private:
     auto libraryId() const -> i64 { return -1; }
 };

@@ -262,3 +262,27 @@ enum MixManipulateOper {
   MIX_MANIPULATE_OPER_REMOVE_SONGS = 2;
   MIX_MANIPULATE_OPER_ADD_ALBUMS = 3;
 }
+
+enum HomeBlockStyle {
+  HOME_BLOCK_STYLE_UNSPECIFIED = 0;
+  HOME_BLOCK_STYLE_GRID = 1;
+  HOME_BLOCK_STYLE_CAROUSEL = 2;
+  HOME_BLOCK_STYLE_LIST = 3;
+}
+
+message HomeBlock {
+  string native_id = 1;
+  string title = 2;
+  string subtitle = 3;
+  string description = 4;
+  HomeBlockStyle style = 5;
+}
+
+message HomeBlockItem {
+  oneof item {
+    Album album = 1;
+    Mix mix = 2;
+    Artist artist = 3;
+    Song song = 4;
+  }
+}

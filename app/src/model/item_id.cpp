@@ -1,11 +1,12 @@
-module;
+#include "Qcm/model/item_id.hpp"
+
 #include <QString>
 #include "core/log.h"
 #undef assert
 #include <rstd/macro.hpp>
-module qcm;
+
+import qcm;
 import qcm.log;
-import :model.item_id;
 
 using namespace Qt::Literals::StringLiterals;
 
@@ -13,9 +14,9 @@ namespace qcm::model
 {
 
 ItemId::ItemId(): m_type(enums::ItemType::ItemInvalid), m_id(-1) {}
-ItemId::ItemId(rstd::nullptr_t): ItemId() {}
+ItemId::ItemId(std::nullptr_t): ItemId() {}
 
-ItemId::ItemId(enums::ItemType type, i64 id): ItemId() {
+ItemId::ItemId(enums::ItemType type, qint64 id): ItemId() {
     setType(type);
     setId(id);
 }
@@ -31,12 +32,12 @@ auto ItemId::type() const -> enums::ItemType { return m_type; }
 
 auto ItemId::idStr() const -> QString { return QString::number(m_id); }
 
-auto ItemId::id() const -> i64 { return m_id; }
+auto ItemId::id() const -> qint64 { return m_id; }
 auto ItemId::pid() const -> QtProtobuf::int64 { return m_id; }
 
 void ItemId::setType(enums::ItemType type) { m_type = type; }
 
-void ItemId::setId(i64 id) { m_id = id; }
+void ItemId::setId(qint64 id) { m_id = id; }
 
 void ItemId::setType(QStringView v) {
     m_type = rstd::from_str<enums::ItemType>(v.toString().toStdString()).unwrap();
@@ -74,7 +75,7 @@ bool ItemId::operator==(const QUrl& url) const {
     return o == *this;
 }
 
-bool ItemId::operator==(cppstd::string_view b) const {
+bool ItemId::operator==(std::string_view b) const {
     QUrl url(convert_from<QString>(b));
     return *this == url;
 }
@@ -117,7 +118,7 @@ QUrl ItemId::toPageUrl() const {
 } // namespace qcm::model
 
 std::size_t std::hash<qcm::model::ItemId>::operator()(const qcm::model::ItemId& k) const noexcept {
-    usize s = 0;
+    std::size_t s = 0;
     ycore::hash_combine(s, static_cast<int>(k.type()));
     ycore::hash_combine(s, k.id());
     return s;

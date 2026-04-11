@@ -87,6 +87,11 @@ enum MessageType {
   GET_RADIO_QUEUES_RSP = 414;
 
   SYNC_ITEM_REQ = 500;
+
+  GET_HOME_BLOCKS_REQ = 600;
+  GET_HOME_BLOCKS_RSP = 601;
+  GET_HOME_BLOCK_ITEMS_REQ = 602;
+  GET_HOME_BLOCK_ITEMS_RSP = 603;
 }
 
 enum ErrorCode {
@@ -448,6 +453,22 @@ message UpdateMixReq {
 
 message SyncItemReq { int64 id = 1; }
 
+message GetHomeBlocksReq { int64 provider_id = 1; }
+message GetHomeBlocksRsp { repeated qcm.msg.model.HomeBlock blocks = 1; }
+
+message GetHomeBlockItemsReq {
+  int64 provider_id = 1;
+  string block_id = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GetHomeBlockItemsRsp {
+  repeated qcm.msg.model.HomeBlockItem items = 1;
+  int32 total = 2;
+  bool has_more = 3;
+}
+
 message QcmMessage {
   MessageType type = 1;
   int32 id = 2;
@@ -531,5 +552,10 @@ message QcmMessage {
     GetRadioQueuesRsp get_radio_queues_rsp = 414;
 
     SyncItemReq sync_item_req = 500;
+
+    GetHomeBlocksReq get_home_blocks_req = 600;
+    GetHomeBlocksRsp get_home_blocks_rsp = 601;
+    GetHomeBlockItemsReq get_home_block_items_req = 602;
+    GetHomeBlockItemsRsp get_home_block_items_rsp = 603;
   }
 }
