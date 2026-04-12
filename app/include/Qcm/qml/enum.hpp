@@ -160,6 +160,29 @@ enum class ProxyType
     ProxySocks5h = 7
 };
 Q_ENUM_NS(ProxyType)
+
+
+
+enum class ItemTypeQml
+{
+    ItemInvalid = 0,
+
+    ItemProvider = 1,
+    ItemLibrary  = 2,
+
+    ItemAlbum       = 51,
+    ItemAlbumArtist = 52,
+    ItemArtist      = 53,
+    ItemMix         = 54,
+    ItemRadio       = 55,
+    ItemRadioQueue  = 56,
+
+    ItemSong    = 101,
+    ItemProgram = 102,
+};
+Q_ENUM_NS(ItemTypeQml)
+
+
 } // namespace enums
 
 } // namespace qcm
