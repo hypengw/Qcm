@@ -94,6 +94,6 @@ compile_commands.json
 /third_party/qextra
 /third_party/rstd
 /pmap.sh
-/flatpak-sources.json
+/flaptak-sources.json
 *.md
 !README.md

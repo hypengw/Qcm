@@ -21,7 +21,6 @@ set(SOURCES2
     src/qml/util.cpp
     src/qml/mod.cpp
     src/query/query.cpp
-    src/query/query_api.cpp
     src/query/artist_query.cpp
     src/query/album_query.cpp
     src/query/favorite_query.cpp
@@ -84,7 +83,6 @@ set(MOC_SOURCE_FILES
     src/global.cppm
     src/player.cppm
     src/action.cppm
-    src/query/query_api.cppm
     src/query/query.cppm
     src/query/album_query.cppm
     src/query/artist_query.cppm
