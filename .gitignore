@@ -92,6 +92,8 @@ compile_commands.json
 /third_party/kstore
 /third_party/ncrequest
 /third_party/qextra
+/third_party/rstd
 /pmap.sh
+/flatpak-sources.json
 *.md
 !README.md
