@@ -3,7 +3,7 @@ module;
 #    include "Qcm/app.moc"
 #endif
 
-#include "Qcm/macro_qt.hpp"
+#include "QExtra/macro_qt.hpp"
 #include "core/log.h"
 
 #include "crypto/crypto.h"
@@ -31,9 +31,6 @@ import platform;
 
 namespace qcm
 {
-class CacheSql;
-class ItemSql;
-
 export class App : public QObject {
     Q_OBJECT
     QML_ELEMENT

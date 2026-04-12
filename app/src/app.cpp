@@ -25,13 +25,6 @@ DEFINE_CONVERT(ncrequest::req_opt::Proxy::Type, enums::ProxyType) {
 namespace
 {
 
-void cache_clean_cb(const cppstd::filesystem::path& cache_dir, std::string_view key) {
-    cppstd::error_code ec;
-    auto               file = cache_dir / (key.size() >= 2 ? key.substr(0, 2) : "no"sv) / key;
-    cppstd::filesystem::remove(file, ec);
-    LOG_DEBUG("cache remove {}", file.string());
-}
-
 auto get_pool_size() -> std::size_t {
     return std::clamp<u32>(cppstd::thread::hardware_concurrency(), 4, 12);
 }

@@ -1,6 +1,6 @@
 module;
 #include "core/log.h"
-#include "Qcm/macro_qt.hpp"
+#include "QExtra/macro_qt.hpp"
 
 #ifdef Q_MOC_RUN
 #    include "Qcm/backend.moc"

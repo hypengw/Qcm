@@ -1,5 +1,5 @@
 module;
-#include "Qcm/macro_qt.hpp"
+#include "QExtra/macro_qt.hpp"
 
 #ifdef Q_MOC_RUN
 #include "Qcm/model/filter_rule_model.moc"

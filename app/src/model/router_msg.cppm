@@ -1,6 +1,6 @@
 module;
 #include "Qcm/macro.hpp"
-#include "Qcm/macro_qt.hpp"
+#include "QExtra/macro_qt.hpp"
 
 #ifdef Q_MOC_RUN
 #    include "Qcm/model/router_msg.moc"
