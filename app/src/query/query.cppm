@@ -7,7 +7,7 @@ module;
 #endif
 
 export module qcm:query.query;
-export import :util.async;
+export import qextra;
 export import qcm.asio;
 
 

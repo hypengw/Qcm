@@ -8,7 +8,7 @@ module;
 export module qcm:query.artist;
 export import :query.query;
 export import :model.list_models;
-export import :util.async;
+export import qextra;
 
 namespace qcm
 {

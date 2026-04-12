@@ -7,8 +7,6 @@ set(APP_AUTHOR "hypengw")
 find_package(Qt6 REQUIRED COMPONENTS Quick ProtobufQuick ProtobufWellKnownTypes
                                      QuickPrivate)
 
-include(${CMAKE_SOURCE_DIR}/cmake/SplitMocFiles.cmake)
-
 qt_standard_project_setup()
 
 set(SOURCES2
@@ -73,7 +71,6 @@ set(MOC_SOURCE_FILES
     src/status/provider.cppm
     src/status/app_state.cppm
     src/msg/store.cppm
-    src/util/async.cppm
     src/qml/util.cppm
     src/qml/duration.cppm
     src/qml/clipboard.cppm

@@ -4,7 +4,6 @@ export module qcm.asio;
 export import :task;
 export import :sync_file;
 export import :detached_log;
-export import :watch_dog;
 export import qcm.core;
 export import qcm.helper;
 export import asio;

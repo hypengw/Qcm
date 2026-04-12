@@ -5,7 +5,7 @@ module;
 
 module qcm;
 import :model.lyric;
-import :util.async;
+import qextra;
 import :global;
 
 using namespace qcm;

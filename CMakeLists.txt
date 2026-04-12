@@ -55,6 +55,7 @@ include(GNUInstallDirs)
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Core Quick ShaderTools)
+include(${CMAKE_SOURCE_DIR}/cmake/SplitMocFiles.cmake)
 
 if(QT_KNOWN_POLICY_QTP0002)
   qt_policy(SET QTP0002 NEW)

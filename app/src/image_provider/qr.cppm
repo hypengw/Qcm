@@ -1,7 +1,6 @@
 module;
 
 export module qcm:image_provider.qr;
-export import :util.async;
 export import :image_provider.response;
 export import qcm.core;
 export import qt;
