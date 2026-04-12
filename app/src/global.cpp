@@ -101,7 +101,9 @@ Global::Global(): d_ptr(make_up<Private>(this)) {
         QCoreApplication::setOrganizationName(APP_NAME);
     }
 
-    QAsyncResult::initEx(qcm::qexecutor(), qcm::pool_executor());
+    QAsyncResult::initEx(qcm::qexecutor(), qcm::pool_executor(), [](QStringView error) {
+        Global::instance()->errorOccurred(error.toString());
+    });
     d->player = new Player(qcm::pool_executor(), &mem_mgr(), this);
     asio::co_spawn(
         asio::strand<Player::channel_type::executor_type>(qcm::pool_executor()),

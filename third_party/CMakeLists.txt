@@ -82,7 +82,7 @@ else()
   FetchContent_Declare(
     qextra
     GIT_REPOSITORY https://github.com/hypengw/QExtra.git
-    GIT_TAG 3577fe189ad642239f536f8b8f179590437027c6
+    GIT_TAG 8cdba769e24dc1afa008f00972d47773e27ecfe0
     GIT_SHALLOW 0
     GIT_PROGRESS 1
     FIND_PACKAGE_ARGS GLOBAL)

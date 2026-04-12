@@ -66,6 +66,8 @@ public:
         save_settings();
         m_playqueu->drop_global();
         m_global->join();
+        // clean query
+        qDeleteAll(m_playqueu->children());
     }
 
     void save_settings() {
