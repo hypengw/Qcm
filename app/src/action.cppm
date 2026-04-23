@@ -7,9 +7,9 @@ Q_MOC_INCLUDE("src/model/id_queue.cppm")
 
 export module qcm:action;
 export import :qml.enums;
-export import :util.global_static;
 export import :model.id_queue;
 export import :model.router_msg;
+export import qextra;
 
 
 

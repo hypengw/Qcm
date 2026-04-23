@@ -33,7 +33,6 @@ set(SOURCES2
     src/model/filter_rule_model.cpp
     src/model/sort_filter.cpp
     src/status/app_state.cpp
-    src/util/global_static.cpp
     src/qml/clipboard.cpp
     src/model/id_queue.cpp
     src/model/play_queue.cpp
@@ -103,7 +102,6 @@ set(MODULES
     src/status/process.cppm
     src/msg/mod.cppm
     src/msg/backend_msg.cppm
-    src/util/global_static.cppm
     src/util/mem.cppm
     src/util/path.cppm
     src/qml/enum.cppm

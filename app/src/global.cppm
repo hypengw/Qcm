@@ -12,7 +12,6 @@ export module qcm:global;
 export import :action;
 export import :qml.enums;
 export import :util.mem;
-export import :util.global_static;
 export import :player;
 export import qextra;
 import ncrequest;
