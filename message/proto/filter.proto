@@ -55,6 +55,14 @@ enum TypeCondition {
   TYPE_CONDITION_IS_NOT = 2;
 }
 
+// How groups of filters combine. Within a group, filters are ANDed.
+// Between groups, this enum chooses the relation. UNSPECIFIED = AND.
+enum FilterLogic {
+  FILTER_LOGIC_UNSPECIFIED = 0;
+  FILTER_LOGIC_AND = 1;
+  FILTER_LOGIC_OR = 2;
+}
+
 message TitleFilter {
   string value = 1;
   StringCondition condition = 2;
@@ -116,6 +124,7 @@ message TypeStringFilter {
 
 message AlbumFilter {
   FilterType type = 1;
+  int32 group = 2;
   oneof payload {
     TitleFilter title_filter = 101;
     TrackCountFilter track_filter = 102;
@@ -133,6 +142,7 @@ message AlbumFilter {
 
 message ArtistFilter {
   FilterType type = 1;
+  int32 group = 2;
   oneof payload {
     NameFilter name_filter = 101;
     AlbumTitleFilter album_title_filter = 102;
@@ -143,6 +153,7 @@ message ArtistFilter {
 
 message SongFilter {
   FilterType type = 1;
+  int32 group = 2;
   oneof payload {
     AlbumIdFilter album_id_filter = 101;
     MixIdFilter mix_id_filter = 102;
@@ -151,6 +162,7 @@ message SongFilter {
 
 message MixFilter {
   FilterType type = 1;
+  int32 group = 2;
   oneof payload {
     NameFilter name_filter = 101;
     TrackCountFilter track_filter = 102;
@@ -163,6 +175,7 @@ message MixFilter {
 
 message RemoteMixFilter {
   FilterType type = 1;
+  int32 group = 2;
   oneof payload {
     NameFilter name_filter = 101;
     TrackCountFilter track_filter = 102;

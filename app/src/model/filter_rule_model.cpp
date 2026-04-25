@@ -10,6 +10,7 @@ FilterRuleModel::FilterRuleModel(kstore::QListInterface* list, QObject* parent)
     connect(this, &QAbstractItemModel::dataChanged, this, &FilterRuleModel::markDirty);
     connect(this, &QAbstractItemModel::rowsInserted, this, &FilterRuleModel::markDirty);
     connect(this, &QAbstractItemModel::rowsRemoved, this, &FilterRuleModel::markDirty);
+    connect(this, &FilterRuleModel::groupLogicChanged, this, &FilterRuleModel::markDirty);
 
     connect(this, &FilterRuleModel::apply, this, [this]() {
         setDirty(false);
@@ -17,6 +18,13 @@ FilterRuleModel::FilterRuleModel(kstore::QListInterface* list, QObject* parent)
     connect(this, &FilterRuleModel::reset, this, [this]() {
         setDirty(false);
     });
+}
+
+void FilterRuleModel::setGroupLogic(msg::filter::FilterLogicGadget::FilterLogic v) {
+    if (m_group_logic != v) {
+        m_group_logic = v;
+        groupLogicChanged();
+    }
 }
 FilterRuleModel::~FilterRuleModel() {}
 
@@ -32,6 +40,7 @@ auto FilterRuleModel::toJsonDocument() const -> QJsonDocument {
     auto list = kstore::qvariant_to_josn(this->items());
     auto obj  = QJsonObject();
     obj.insert("filters", list);
+    obj.insert("group_logic", static_cast<int>(m_group_logic));
     auto doc = QJsonDocument();
     doc.setObject(obj);
     return doc;
@@ -50,6 +59,11 @@ void FilterRuleModel::fromJsonDocument(const QJsonDocument& doc) {
         items.push_back(kstore::qvariant_from_josn(type, v));
     }
     fromVariantlist(items);
+
+    if (obj.contains("group_logic")) {
+        setGroupLogic(static_cast<msg::filter::FilterLogicGadget::FilterLogic>(
+            obj.value("group_logic").toInt()));
+    }
 }
 
 void FilterRuleModel::setDirty(bool v) {

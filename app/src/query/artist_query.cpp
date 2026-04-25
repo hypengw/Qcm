@@ -20,6 +20,7 @@ void ArtistsQuery::reload() {
     initReqForReload(req);
     req.setLibraryId(app->libraryStatus()->activedIds());
     req.setFilters(m_filters);
+    req.setGroupLogic(m_group_logic);
 
     auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
@@ -43,6 +44,15 @@ void ArtistsQuery::setFilters(const QList<msg::filter::ArtistFilter>& f) {
     filtersChanged();
 }
 
+auto ArtistsQuery::groupLogic() const -> msg::filter::FilterLogicGadget::FilterLogic {
+    return m_group_logic;
+}
+void ArtistsQuery::setGroupLogic(msg::filter::FilterLogicGadget::FilterLogic v) {
+    if (ycore::cmp_set(m_group_logic, v)) {
+        groupLogicChanged();
+    }
+}
+
 void ArtistsQuery::fetchMore(qint32) {
     if (noMore()) return;
 
@@ -53,6 +63,7 @@ void ArtistsQuery::fetchMore(qint32) {
     initReqForFetchMore(req);
     req.setLibraryId(app->libraryStatus()->activedIds());
     req.setFilters(m_filters);
+    req.setGroupLogic(m_group_logic);
 
     auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
@@ -85,6 +96,7 @@ void AlbumArtistsQuery::reload() {
     initReqForReload(req);
     req.setLibraryId(app->libraryStatus()->activedIds());
     req.setFilters(m_filters);
+    req.setGroupLogic(m_group_logic);
 
     auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
@@ -110,6 +122,15 @@ void AlbumArtistsQuery::setFilters(const QList<msg::filter::ArtistFilter>& f) {
     filtersChanged();
 }
 
+auto AlbumArtistsQuery::groupLogic() const -> msg::filter::FilterLogicGadget::FilterLogic {
+    return m_group_logic;
+}
+void AlbumArtistsQuery::setGroupLogic(msg::filter::FilterLogicGadget::FilterLogic v) {
+    if (ycore::cmp_set(m_group_logic, v)) {
+        groupLogicChanged();
+    }
+}
+
 void AlbumArtistsQuery::fetchMore(qint32) {
     if (noMore()) return;
 
@@ -120,6 +141,7 @@ void AlbumArtistsQuery::fetchMore(qint32) {
     initReqForFetchMore(req);
     req.setLibraryId(app->libraryStatus()->activedIds());
     req.setFilters(m_filters);
+    req.setGroupLogic(m_group_logic);
 
     auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {

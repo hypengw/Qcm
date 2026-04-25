@@ -18,6 +18,8 @@ class FilterRuleModel : public kstore::QGadgetListModel {
     QML_UNCREATABLE("")
 
     Q_PROPERTY(bool dirty READ dirty NOTIFY dirtyChanged FINAL)
+    Q_PROPERTY(qcm::msg::filter::FilterLogicGadget::FilterLogic groupLogic READ groupLogic WRITE
+                   setGroupLogic NOTIFY groupLogicChanged FINAL)
 public:
     FilterRuleModel(kstore::QListInterface* list, QObject* = nullptr);
     ~FilterRuleModel();
@@ -35,11 +37,20 @@ public:
     void          setDirty(bool v);
     Q_SIGNAL void dirtyChanged();
 
+    auto groupLogic() const noexcept -> msg::filter::FilterLogicGadget::FilterLogic {
+        return m_group_logic;
+    }
+    void          setGroupLogic(msg::filter::FilterLogicGadget::FilterLogic);
+    Q_SIGNAL void groupLogicChanged();
+
 private:
     virtual void fromVariantlist(const QVariantList& v) = 0;
 
     Q_SLOT void markDirty();
     bool        m_dirty;
+    msg::filter::FilterLogicGadget::FilterLogic m_group_logic {
+        msg::filter::FilterLogicGadget::FilterLogic::FILTER_LOGIC_UNSPECIFIED
+    };
 };
 
 class AlbumFilterRuleModel

@@ -62,6 +62,22 @@ MD.ItemDelegate {
             }
         }
 
+        MD.InputChip {
+            id: m_group
+            text: 'G' + root.model.group
+            onClicked: edit = true
+            editDelegate: MD.TextInput {
+                text: root.model.group
+                validator: IntValidator {
+                    bottom: 0
+                }
+                onAccepted: {
+                    root.model.group = parseInt(text);
+                    m_group.edit = false;
+                }
+            }
+        }
+
         MD.SmallIconButton {
             id: m_act
             icon.name: MD.Token.icon.close

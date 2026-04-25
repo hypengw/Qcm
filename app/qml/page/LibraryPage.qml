@@ -470,6 +470,7 @@ MD.Page {
         function doQuery() {
             const q = qr_album_artists;
             q.filters = this.items();
+            q.groupLogic = this.groupLogic;
         }
         onApply: {
             doQuery();
@@ -486,6 +487,7 @@ MD.Page {
         function doQuery() {
             const q = qr_artists;
             q.filters = this.items();
+            q.groupLogic = this.groupLogic;
         }
         onApply: {
             doQuery();
@@ -502,6 +504,7 @@ MD.Page {
         function doQuery() {
             const q = qr_albums;
             q.filters = this.items();
+            q.groupLogic = this.groupLogic;
         }
         onApply: {
             doQuery();

@@ -19,6 +19,8 @@ export class ArtistsQuery : public QueryList,
     QML_ELEMENT
     Q_PROPERTY(QList<qcm::msg::filter::ArtistFilter> filters READ filters WRITE setFilters NOTIFY
                    filtersChanged FINAL)
+    Q_PROPERTY(qcm::msg::filter::FilterLogicGadget::FilterLogic groupLogic READ groupLogic WRITE
+                   setGroupLogic NOTIFY groupLogicChanged FINAL)
 
 public:
     ArtistsQuery(QObject* parent = nullptr);
@@ -26,13 +28,20 @@ public:
     auto filters() const -> const QList<msg::filter::ArtistFilter>&;
     void setFilters(const QList<msg::filter::ArtistFilter>&);
 
+    auto groupLogic() const -> msg::filter::FilterLogicGadget::FilterLogic;
+    void setGroupLogic(msg::filter::FilterLogicGadget::FilterLogic);
+
     void reload() override;
     void fetchMore(qint32) override;
 
     Q_SIGNAL void filtersChanged();
+    Q_SIGNAL void groupLogicChanged();
 
 private:
-    QList<msg::filter::ArtistFilter> m_filters;
+    QList<msg::filter::ArtistFilter>            m_filters;
+    msg::filter::FilterLogicGadget::FilterLogic m_group_logic {
+        msg::filter::FilterLogicGadget::FilterLogic::FILTER_LOGIC_UNSPECIFIED
+    };
 };
 
 export class AlbumArtistsQuery : public QueryList,
@@ -41,19 +50,28 @@ export class AlbumArtistsQuery : public QueryList,
     QML_ELEMENT
     Q_PROPERTY(QList<qcm::msg::filter::ArtistFilter> filters READ filters WRITE setFilters NOTIFY
                    filtersChanged FINAL)
+    Q_PROPERTY(qcm::msg::filter::FilterLogicGadget::FilterLogic groupLogic READ groupLogic WRITE
+                   setGroupLogic NOTIFY groupLogicChanged FINAL)
 
 public:
     AlbumArtistsQuery(QObject* parent = nullptr);
     auto filters() const -> const QList<msg::filter::ArtistFilter>&;
     void setFilters(const QList<msg::filter::ArtistFilter>&);
 
+    auto groupLogic() const -> msg::filter::FilterLogicGadget::FilterLogic;
+    void setGroupLogic(msg::filter::FilterLogicGadget::FilterLogic);
+
     Q_SIGNAL void filtersChanged();
+    Q_SIGNAL void groupLogicChanged();
 
     void reload() override;
     void fetchMore(qint32) override;
 
 private:
-    QList<msg::filter::ArtistFilter> m_filters;
+    QList<msg::filter::ArtistFilter>            m_filters;
+    msg::filter::FilterLogicGadget::FilterLogic m_group_logic {
+        msg::filter::FilterLogicGadget::FilterLogic::FILTER_LOGIC_UNSPECIFIED
+    };
 };
 
 export class ArtistQuery : public Query, public QueryExtra<model::ArtistStoreItem, ArtistQuery> {

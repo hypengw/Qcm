@@ -87,6 +87,10 @@ namespace FilterTypeGadget
 {
 using f::FilterTypeGadget::FilterType;
 }
+namespace FilterLogicGadget
+{
+using f::FilterLogicGadget::FilterLogic;
+}
 
 } // namespace qcm::msg::filter
 

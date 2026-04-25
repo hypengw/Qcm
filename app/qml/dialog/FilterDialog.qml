@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import QtQuick.Templates as T
 import Qcm.App as QA
 import Qcm.Material as MD
+import Qcm.Msg as QM
 
 MD.Dialog {
     id: root
@@ -46,6 +47,22 @@ MD.Dialog {
                         root.model.insertRow(-1);
                     }
                 }
+            }
+        }
+
+        MD.SegmentedButtonGroup {
+            Layout.alignment: Qt.AlignLeft
+            MD.SegmentedButton {
+                text: qsTr('AND')
+                checked: !root.model
+                    || root.model.groupLogic !== QM.FilterLogic.FILTER_LOGIC_OR
+                onClicked: root.model.groupLogic = QM.FilterLogic.FILTER_LOGIC_AND
+            }
+            MD.SegmentedButton {
+                text: qsTr('OR')
+                checked: root.model
+                    && root.model.groupLogic === QM.FilterLogic.FILTER_LOGIC_OR
+                onClicked: root.model.groupLogic = QM.FilterLogic.FILTER_LOGIC_OR
             }
         }
 

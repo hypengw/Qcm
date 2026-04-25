@@ -82,7 +82,7 @@ else()
   FetchContent_Declare(
     qextra
     GIT_REPOSITORY https://github.com/hypengw/QExtra.git
-    GIT_TAG 8cdba769e24dc1afa008f00972d47773e27ecfe0
+    GIT_TAG bf13f664a518644110140b1901cc0dde057f1658
     GIT_SHALLOW 0
     GIT_PROGRESS 1
     FIND_PACKAGE_ARGS GLOBAL)
@@ -95,7 +95,7 @@ else()
   FetchContent_Declare(
     qml_material
     GIT_REPOSITORY https://github.com/hypengw/QmlMaterial.git
-    GIT_TAG d1a6b2cbbfb2aacd11db80db6e23f2565e4e20e9
+    GIT_TAG 06e971569a203ee1b6ec783d0128040c699e8eae
     GIT_SHALLOW 0
     GIT_PROGRESS 1
     FIND_PACKAGE_ARGS GLOBAL)
