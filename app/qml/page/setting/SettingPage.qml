@@ -23,7 +23,7 @@ QA.SettingBasePage {
             }
         }
 
-        MD.Divider {}
+        MD.AutoDivider {}
 
         QA.SettingSection {
             Layout.fillWidth: true

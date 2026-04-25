@@ -23,7 +23,7 @@ MD.ListItem {
         backgroundColor: ctx.color.surface_container
     }
 
-    divider: MD.Divider {
+    divider: MD.AutoDivider {
         anchors.bottom: parent.bottom
         leftMargin: 16
         rightMargin: 16
@@ -85,7 +85,7 @@ MD.ListItem {
                 icon.name: MD.Token.icon.more_vert
 
                 onClicked: {
-                    MD.Util.showPopup('qrc:/Qcm/App/qml/menu/ProgramMenu.qml', {
+                    MD.Util.showPopup('Qcm.App/ProgramMenu', {
                         "itemId": root.dgModel.itemId,
                         "song": root.dgModel.song,
                         "y": height

@@ -9,7 +9,7 @@ namespace qcm
 AlbumsQuery::AlbumsQuery(QObject* parent): QueryList(parent) {
     auto app = App::instance();
     this->tdata()->set_store(this->tdata(), app->store()->albums);
-    this->connectSyncFinished();
+    connectSyncFinished(this);
     this->connect_requet_reload(&LibraryStatus::activedIdsChanged, app->libraryStatus());
     this->connect_requet_reload(&AlbumsQuery::filtersChanged, this);
 }

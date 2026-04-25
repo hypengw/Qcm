@@ -131,7 +131,7 @@ MD.ApplicationWindow {
             } else if (s === QA.Enum.SRSync) {
                 m_sync_popup.open();
             } else if (typeof s == 'number') {
-                const purl = 'qrc:/Qcm/App/qml/component/page/PagePopup.qml';
+                const purl = 'Qcm.App/PagePopup';
                 const url = QA.Util.special_route_url(s);
                 if (url) {
                     MD.Util.showPopup(purl, {

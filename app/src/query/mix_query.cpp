@@ -9,7 +9,7 @@ namespace qcm
 MixesQuery::MixesQuery(QObject* parent): QueryList(parent) {
     auto app = App::instance();
     this->tdata()->set_store(this->tdata(), app->store()->mixes);
-    this->connectSyncFinished();
+    connectSyncFinished(this);
     this->connect_requet_reload(&MixesQuery::filtersChanged, this);
 
     connect(Notifier::instance(), &Notifier::mixCreated, this, &MixesQuery::delayReload);
@@ -66,7 +66,7 @@ void MixesQuery::fetchMore(qint32) {
 RemoteMixesQuery::RemoteMixesQuery(QObject* parent): QueryList(parent) {
     auto app = App::instance();
     this->tdata()->set_store(this->tdata(), app->store()->mixes);
-    this->connectSyncFinished();
+    connectSyncFinished(this);
     this->connect_requet_reload(&RemoteMixesQuery::filtersChanged, this);
 }
 void RemoteMixesQuery::reload() {
@@ -123,7 +123,7 @@ void MixQuery::reload() {
 MixSongsQuery::MixSongsQuery(QObject* parent): QueryList(parent) {
     auto app = App::instance();
     this->tdata()->set_store(this->tdata(), app->store()->songs);
-    this->connectSyncFinished();
+    connectSyncFinished(this);
     this->setLimit(1000);
 }
 

@@ -79,7 +79,6 @@ set(MOC_SOURCE_FILES
     src/global.cppm
     src/player.cppm
     src/action.cppm
-    src/query/query.cppm
     src/query/album_query.cppm
     src/query/artist_query.cppm
     src/query/favorite_query.cppm
@@ -97,6 +96,7 @@ set(MODULES
     src/image_provider/qr.cppm
     src/image_provider/response.cppm
     src/query/mod.cppm
+    src/query/query.cppm
     src/model/mod.cppm
     src/model/share_store.cppm
     src/status/process.cppm

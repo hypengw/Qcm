@@ -45,7 +45,7 @@ MD.ListItem {
 
     mdState.backgroundColor: mdState.ctx.color.surface_container
 
-    divider: MD.Divider {
+    divider: MD.AutoDivider {
         anchors.bottom: parent.bottom
         leftMargin: 16
         rightMargin: 16
@@ -160,7 +160,7 @@ MD.ListItem {
                     if (root.dgModel.sourceId) {
                         props["sourceId"] = root.dgModel.sourceId;
                     }
-                    MD.Util.showPopup('qrc:/Qcm/App/qml/menu/SongMenu.qml', props, this);
+                    MD.Util.showPopup('Qcm.App/SongMenu', props, this);
                 }
             }
         }

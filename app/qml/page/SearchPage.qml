@@ -179,7 +179,7 @@ MD.Page {
                                         "itemId": m_item.model.itemId,
                                         "y": height
                                     };
-                                    MD.Util.showPopup('qrc:/Qcm/App/qml/menu/AlbumMenu.qml', props, this);
+                                    MD.Util.showPopup('Qcm.App/AlbumMenu', props, this);
                                 }
                             }
                             onClicked: {

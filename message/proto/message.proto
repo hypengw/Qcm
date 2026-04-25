@@ -464,9 +464,12 @@ message GetHomeBlockItemsReq {
 }
 
 message GetHomeBlockItemsRsp {
-  repeated qcm.msg.model.HomeBlockItem items = 1;
-  int32 total = 2;
-  bool has_more = 3;
+  oneof content {
+    GetAlbumsRsp albums = 1;
+    GetMixsRsp mixes = 2;
+    GetArtistsRsp artists = 3;
+    GetSongsRsp songs = 4;
+  }
 }
 
 message QcmMessage {

@@ -9,7 +9,7 @@ namespace qcm
 ArtistsQuery::ArtistsQuery(QObject* parent): QueryList(parent) {
     auto app = App::instance();
     this->tdata()->set_store(this->tdata(), AppStore::instance()->artists);
-    this->connectSyncFinished();
+    connectSyncFinished(this);
     this->connect_requet_reload(&LibraryStatus::activedIdsChanged, app->libraryStatus());
 }
 void ArtistsQuery::reload() {
@@ -74,7 +74,7 @@ void ArtistsQuery::fetchMore(qint32) {
 AlbumArtistsQuery::AlbumArtistsQuery(QObject* parent): QueryList(parent) {
     auto app = App::instance();
     this->tdata()->set_store(this->tdata(), AppStore::instance()->artists);
-    this->connectSyncFinished();
+    connectSyncFinished(this);
     this->connect_requet_reload(&LibraryStatus::activedIdsChanged, app->libraryStatus());
 }
 void AlbumArtistsQuery::reload() {

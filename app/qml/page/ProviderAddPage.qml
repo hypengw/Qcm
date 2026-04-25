@@ -61,7 +61,7 @@ MD.Page {
                         }
                     }
                     mdState.backgroundColor: mdState.ctx.color.surface_container
-                    divider: MD.Divider {
+                    divider: MD.AutoDivider {
                         anchors.bottom: parent.bottom
                         orientation: Qt.Horizontal
                     }

@@ -276,13 +276,5 @@ message HomeBlock {
   string subtitle = 3;
   string description = 4;
   HomeBlockStyle style = 5;
-}
-
-message HomeBlockItem {
-  oneof item {
-    Album album = 1;
-    Mix mix = 2;
-    Artist artist = 3;
-    Song song = 4;
-  }
+  ItemType item_type = 6;
 }
