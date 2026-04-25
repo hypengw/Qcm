@@ -55,12 +55,21 @@ enum TypeCondition {
   TYPE_CONDITION_IS_NOT = 2;
 }
 
-// How groups of filters combine. Within a group, filters are ANDed.
-// Between groups, this enum chooses the relation. UNSPECIFIED = AND.
-enum FilterLogic {
-  FILTER_LOGIC_UNSPECIFIED = 0;
-  FILTER_LOGIC_AND = 1;
-  FILTER_LOGIC_OR = 2;
+// Binary boolean operator. UNSPECIFIED = AND.
+enum LogicOp {
+  LOGIC_OP_UNSPECIFIED = 0;
+  LOGIC_OP_AND = 1;
+  LOGIC_OP_OR = 2;
+}
+
+// Override the default AND between two filter groups.
+// Within each group, filters are always ANDed. Groups not referenced by any
+// FilterLogic entry continue to AND with the rest. Multiple entries are
+// combined by ANDing their pair expressions.
+message FilterLogic {
+  LogicOp op = 1;
+  int32 group_a = 2;
+  int32 group_b = 3;
 }
 
 message TitleFilter {

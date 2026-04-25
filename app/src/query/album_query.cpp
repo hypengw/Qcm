@@ -12,7 +12,7 @@ AlbumsQuery::AlbumsQuery(QObject* parent): QueryList(parent) {
     connectSyncFinished(this);
     this->connect_requet_reload(&LibraryStatus::activedIdsChanged, app->libraryStatus());
     this->connect_requet_reload(&AlbumsQuery::filtersChanged, this);
-    this->connect_requet_reload(&AlbumsQuery::groupLogicChanged, this);
+    this->connect_requet_reload(&AlbumsQuery::filterLogicsChanged, this);
 }
 
 auto AlbumsQuery::filters() const -> const QList<msg::filter::AlbumFilter>& { return m_filters; }
@@ -21,13 +21,12 @@ void AlbumsQuery::setFilters(const QList<msg::filter::AlbumFilter>& filters) {
     filtersChanged();
 }
 
-auto AlbumsQuery::groupLogic() const -> msg::filter::FilterLogicGadget::FilterLogic {
-    return m_group_logic;
+auto AlbumsQuery::filterLogics() const -> const QList<msg::filter::FilterLogic>& {
+    return m_filter_logics;
 }
-void AlbumsQuery::setGroupLogic(msg::filter::FilterLogicGadget::FilterLogic v) {
-    if (ycore::cmp_set(m_group_logic, v)) {
-        groupLogicChanged();
-    }
+void AlbumsQuery::setFilterLogics(const QList<msg::filter::FilterLogic>& v) {
+    m_filter_logics = v;
+    filterLogicsChanged();
 }
 
 void AlbumsQuery::reload() {
@@ -38,7 +37,7 @@ void AlbumsQuery::reload() {
     initReqForReload(req);
     req.setLibraryId(app->libraryStatus()->activedIds());
     req.setFilters(m_filters);
-    req.setGroupLogic(m_group_logic);
+    req.setFilterLogics(m_filter_logics);
 
     auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
@@ -72,7 +71,7 @@ void AlbumsQuery::fetchMore(qint32) {
     initReqForFetchMore(req);
     req.setLibraryId(app->libraryStatus()->activedIds());
     req.setFilters(m_filters);
-    req.setGroupLogic(m_group_logic);
+    req.setFilterLogics(m_filter_logics);
 
     auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {

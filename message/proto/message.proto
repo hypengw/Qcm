@@ -202,7 +202,7 @@ message GetAlbumsReq {
   qcm.msg.model.AlbumSort sort = 4;
   bool sort_asc = 5;
   repeated qcm.msg.filter.AlbumFilter filters = 6;
-  qcm.msg.filter.FilterLogic group_logic = 7;
+  repeated qcm.msg.filter.FilterLogic filter_logics = 7;
 }
 
 message GetAlbumsRsp {
@@ -228,7 +228,7 @@ message GetArtistsReq {
   qcm.msg.model.ArtistSort sort = 4;
   bool sort_asc = 5;
   repeated qcm.msg.filter.ArtistFilter filters = 6;
-  qcm.msg.filter.FilterLogic group_logic = 7;
+  repeated qcm.msg.filter.FilterLogic filter_logics = 7;
 }
 
 message GetArtistsRsp {
@@ -245,7 +245,7 @@ message GetAlbumArtistsReq {
   qcm.msg.model.ArtistSort sort = 4;
   bool sort_asc = 5;
   repeated qcm.msg.filter.ArtistFilter filters = 6;
-  qcm.msg.filter.FilterLogic group_logic = 7;
+  repeated qcm.msg.filter.FilterLogic filter_logics = 7;
 }
 
 message GetAlbumArtistsRsp {
@@ -300,7 +300,7 @@ message GetMixsReq {
   qcm.msg.model.MixSort sort = 4;
   bool sort_asc = 5;
   repeated qcm.msg.filter.MixFilter filters = 6;
-  qcm.msg.filter.FilterLogic group_logic = 7;
+  repeated qcm.msg.filter.FilterLogic filter_logics = 7;
 }
 
 message GetMixsRsp {
@@ -316,7 +316,7 @@ message GetRemoteMixsReq {
   qcm.msg.model.MixSort sort = 3;
   bool sort_asc = 4;
   repeated qcm.msg.filter.RemoteMixFilter filters = 6;
-  qcm.msg.filter.FilterLogic group_logic = 7;
+  repeated qcm.msg.filter.FilterLogic filter_logics = 7;
 }
 
 message GetRemoteMixsRsp {
@@ -350,8 +350,8 @@ message GetSongIdsReq {
   repeated int64 library_ids = 5;
   repeated qcm.msg.filter.SongFilter filters = 6;
   repeated qcm.msg.filter.AlbumFilter album_filters = 7;
-  qcm.msg.filter.FilterLogic group_logic = 8;
-  qcm.msg.filter.FilterLogic album_group_logic = 9;
+  repeated qcm.msg.filter.FilterLogic filter_logics = 8;
+  repeated qcm.msg.filter.FilterLogic album_filter_logics = 9;
 }
 
 message GetSongIdsRsp { repeated int64 ids = 1; }

@@ -62,22 +62,6 @@ MD.ItemDelegate {
             }
         }
 
-        MD.InputChip {
-            id: m_group
-            text: 'G' + root.model.group
-            onClicked: edit = true
-            editDelegate: MD.TextInput {
-                text: root.model.group
-                validator: IntValidator {
-                    bottom: 0
-                }
-                onAccepted: {
-                    root.model.group = parseInt(text);
-                    m_group.edit = false;
-                }
-            }
-        }
-
         MD.SmallIconButton {
             id: m_act
             icon.name: MD.Token.icon.close
@@ -91,7 +75,10 @@ MD.ItemDelegate {
     background: MD.Rectangle {
         corners: {
             const v = root.ListView.view;
-            return MD.Util.listCorners(root.index, v.count, 12);
+            const m = v.model;
+            void(v.count);
+            return MD.Util.listCorners(m.rowIndexInGroup(root.index),
+                                       m.rowCountInGroupOf(root.index), 12);
         }
         color: root.MD.MProp.color.surface
     }

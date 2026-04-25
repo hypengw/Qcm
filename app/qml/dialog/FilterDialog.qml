@@ -11,6 +11,7 @@ MD.Dialog {
     title: qsTr('filter')
     property QA.FilterRuleModel model
     horizontalPadding: 16
+    implicitWidth: Math.min(420, parent ? parent.width - 48 : 420)
 
     standardButtons: T.Dialog.Apply | T.Dialog.Reset
     onApplied: {
@@ -43,26 +44,8 @@ MD.Dialog {
                 }
                 MD.IconButton {
                     icon.name: MD.Token.icon.add
-                    onClicked: {
-                        root.model.insertRow(-1);
-                    }
+                    onClicked: root.model.appendNewGroup()
                 }
-            }
-        }
-
-        MD.SegmentedButtonGroup {
-            Layout.alignment: Qt.AlignLeft
-            MD.SegmentedButton {
-                text: qsTr('AND')
-                checked: !root.model
-                    || root.model.groupLogic !== QM.FilterLogic.FILTER_LOGIC_OR
-                onClicked: root.model.groupLogic = QM.FilterLogic.FILTER_LOGIC_AND
-            }
-            MD.SegmentedButton {
-                text: qsTr('OR')
-                checked: root.model
-                    && root.model.groupLogic === QM.FilterLogic.FILTER_LOGIC_OR
-                onClicked: root.model.groupLogic = QM.FilterLogic.FILTER_LOGIC_OR
             }
         }
 
@@ -87,6 +70,58 @@ MD.Dialog {
             spacing: 2
             leftMargin: 16
             rightMargin: 16
+
+            section.property: "group"
+            section.criteria: ViewSection.FullString
+            section.delegate: m_section_dg
+        }
+    }
+
+    Component {
+        id: m_section_dg
+        RowLayout {
+            id: m_section
+            width: ListView.view.contentWidth
+            spacing: 8
+            required property string section
+            readonly property int groupId: parseInt(m_section.section)
+            readonly property int sectionIndex: root.model
+                ? root.model.sectionIndexForGroup(m_section.groupId) : -1
+            readonly property int currentOp: root.model && m_section.sectionIndex > 0
+                ? root.model.logicOpAt(m_section.sectionIndex) : -1
+
+            MD.Label {
+                Layout.fillWidth: true
+                text: qsTr('Group %1').arg(m_section.sectionIndex + 1)
+                typescale: MD.Token.typescale.label_medium
+            }
+
+            MD.SegmentedButtonGroup {
+                visible: m_section.sectionIndex > 0
+                MD.SegmentedButton {
+                    size: MD.Enum.XS
+                    text: qsTr('AND')
+                    checked: m_section.currentOp !== QM.LogicOp.LOGIC_OP_OR
+                    onClicked: root.model.setLogicOpAt(m_section.sectionIndex,
+                        QM.LogicOp.LOGIC_OP_AND)
+                }
+                MD.SegmentedButton {
+                    size: MD.Enum.XS
+                    text: qsTr('OR')
+                    checked: m_section.currentOp === QM.LogicOp.LOGIC_OP_OR
+                    onClicked: root.model.setLogicOpAt(m_section.sectionIndex,
+                        QM.LogicOp.LOGIC_OP_OR)
+                }
+            }
+
+            MD.SmallIconButton {
+                icon.name: MD.Token.icon.add
+                onClicked: root.model.appendRuleInGroup(m_section.groupId)
+            }
+            MD.SmallIconButton {
+                icon.name: MD.Token.icon.delete
+                onClicked: root.model.deleteGroup(m_section.groupId)
+            }
         }
     }
 

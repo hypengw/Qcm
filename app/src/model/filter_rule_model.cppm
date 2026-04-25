@@ -18,8 +18,8 @@ class FilterRuleModel : public kstore::QGadgetListModel {
     QML_UNCREATABLE("")
 
     Q_PROPERTY(bool dirty READ dirty NOTIFY dirtyChanged FINAL)
-    Q_PROPERTY(qcm::msg::filter::FilterLogicGadget::FilterLogic groupLogic READ groupLogic WRITE
-                   setGroupLogic NOTIFY groupLogicChanged FINAL)
+    Q_PROPERTY(QList<qcm::msg::filter::FilterLogic> filterLogics READ filterLogics WRITE
+                   setFilterLogics NOTIFY filterLogicsChanged FINAL)
 public:
     FilterRuleModel(kstore::QListInterface* list, QObject* = nullptr);
     ~FilterRuleModel();
@@ -37,20 +37,37 @@ public:
     void          setDirty(bool v);
     Q_SIGNAL void dirtyChanged();
 
-    auto groupLogic() const noexcept -> msg::filter::FilterLogicGadget::FilterLogic {
-        return m_group_logic;
+    auto          filterLogics() const noexcept -> const QList<msg::filter::FilterLogic>& {
+        return m_filter_logics;
     }
-    void          setGroupLogic(msg::filter::FilterLogicGadget::FilterLogic);
-    Q_SIGNAL void groupLogicChanged();
+    void          setFilterLogics(const QList<msg::filter::FilterLogic>&);
+    Q_SIGNAL void filterLogicsChanged();
+
+    // section / grouping helpers
+    Q_INVOKABLE int  newGroupId() const;
+    Q_INVOKABLE int  countInGroup(int group) const;
+    Q_INVOKABLE int  rowIndexInGroup(int row) const;
+    Q_INVOKABLE int  rowCountInGroupOf(int row) const;
+    Q_INVOKABLE int  findInsertPosition(int group) const;
+    Q_INVOKABLE int  sectionIndexForGroup(int group) const;
+    Q_INVOKABLE int  findLogicAt(int section_index) const;
+    Q_INVOKABLE int  logicOpAt(int section_index) const;  // -1 if none
+    Q_INVOKABLE void setLogicOpAt(int section_index, int op);
+    Q_INVOKABLE void appendRuleInGroup(int group);
+    Q_INVOKABLE void appendNewGroup();
+    Q_INVOKABLE void deleteGroup(int group);
+    Q_INVOKABLE void sortByGroup();
 
 private:
     virtual void fromVariantlist(const QVariantList& v) = 0;
 
-    Q_SLOT void markDirty();
-    bool        m_dirty;
-    msg::filter::FilterLogicGadget::FilterLogic m_group_logic {
-        msg::filter::FilterLogicGadget::FilterLogic::FILTER_LOGIC_UNSPECIFIED
-    };
+    int  roleForName_(const QByteArray& name) const;
+    int  groupOf_(const QVariant& v) const;
+    auto orderedGroups_() const -> QList<int>;
+
+    Q_SLOT void                     markDirty();
+    bool                            m_dirty;
+    QList<msg::filter::FilterLogic> m_filter_logics;
 };
 
 class AlbumFilterRuleModel

@@ -74,6 +74,7 @@ using f::AlbumFilter;
 using f::AlbumIdFilter;
 using f::ArtistFilter;
 using f::ArtistIdFilter;
+using f::FilterLogic;
 using f::LastPlayedAtFilter;
 using f::MixFilter;
 using f::MixIdFilter;
@@ -87,9 +88,9 @@ namespace FilterTypeGadget
 {
 using f::FilterTypeGadget::FilterType;
 }
-namespace FilterLogicGadget
+namespace LogicOpGadget
 {
-using f::FilterLogicGadget::FilterLogic;
+using f::LogicOpGadget::LogicOp;
 }
 
 } // namespace qcm::msg::filter

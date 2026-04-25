@@ -20,7 +20,7 @@ void ArtistsQuery::reload() {
     initReqForReload(req);
     req.setLibraryId(app->libraryStatus()->activedIds());
     req.setFilters(m_filters);
-    req.setGroupLogic(m_group_logic);
+    req.setFilterLogics(m_filter_logics);
 
     auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
@@ -44,13 +44,12 @@ void ArtistsQuery::setFilters(const QList<msg::filter::ArtistFilter>& f) {
     filtersChanged();
 }
 
-auto ArtistsQuery::groupLogic() const -> msg::filter::FilterLogicGadget::FilterLogic {
-    return m_group_logic;
+auto ArtistsQuery::filterLogics() const -> const QList<msg::filter::FilterLogic>& {
+    return m_filter_logics;
 }
-void ArtistsQuery::setGroupLogic(msg::filter::FilterLogicGadget::FilterLogic v) {
-    if (ycore::cmp_set(m_group_logic, v)) {
-        groupLogicChanged();
-    }
+void ArtistsQuery::setFilterLogics(const QList<msg::filter::FilterLogic>& v) {
+    m_filter_logics = v;
+    filterLogicsChanged();
 }
 
 void ArtistsQuery::fetchMore(qint32) {
@@ -63,7 +62,7 @@ void ArtistsQuery::fetchMore(qint32) {
     initReqForFetchMore(req);
     req.setLibraryId(app->libraryStatus()->activedIds());
     req.setFilters(m_filters);
-    req.setGroupLogic(m_group_logic);
+    req.setFilterLogics(m_filter_logics);
 
     auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
@@ -96,7 +95,7 @@ void AlbumArtistsQuery::reload() {
     initReqForReload(req);
     req.setLibraryId(app->libraryStatus()->activedIds());
     req.setFilters(m_filters);
-    req.setGroupLogic(m_group_logic);
+    req.setFilterLogics(m_filter_logics);
 
     auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
@@ -122,13 +121,12 @@ void AlbumArtistsQuery::setFilters(const QList<msg::filter::ArtistFilter>& f) {
     filtersChanged();
 }
 
-auto AlbumArtistsQuery::groupLogic() const -> msg::filter::FilterLogicGadget::FilterLogic {
-    return m_group_logic;
+auto AlbumArtistsQuery::filterLogics() const -> const QList<msg::filter::FilterLogic>& {
+    return m_filter_logics;
 }
-void AlbumArtistsQuery::setGroupLogic(msg::filter::FilterLogicGadget::FilterLogic v) {
-    if (ycore::cmp_set(m_group_logic, v)) {
-        groupLogicChanged();
-    }
+void AlbumArtistsQuery::setFilterLogics(const QList<msg::filter::FilterLogic>& v) {
+    m_filter_logics = v;
+    filterLogicsChanged();
 }
 
 void AlbumArtistsQuery::fetchMore(qint32) {
@@ -141,7 +139,7 @@ void AlbumArtistsQuery::fetchMore(qint32) {
     initReqForFetchMore(req);
     req.setLibraryId(app->libraryStatus()->activedIds());
     req.setFilters(m_filters);
-    req.setGroupLogic(m_group_logic);
+    req.setFilterLogics(m_filter_logics);
 
     auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
