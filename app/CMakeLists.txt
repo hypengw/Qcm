@@ -336,7 +336,6 @@ target_link_libraries(
          rstd::rstd
          crypto
          qr_code
-         kstore
          player
          platform
          "message"

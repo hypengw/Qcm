@@ -64,18 +64,6 @@ else()
   FetchContent_MakeAvailable(ncrequest)
 endif()
 
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/kstore")
-  add_subdirectory(kstore)
-else()
-  FetchContent_Declare(
-    kstore
-    GIT_REPOSITORY https://github.com/hypengw/kstore.git
-    GIT_TAG 4a706464da0459762e709f2c3f233d3ba3c5818b
-    GIT_SHALLOW 1
-    GIT_PROGRESS 1)
-  FetchContent_MakeAvailable(kstore)
-endif()
-
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/qextra")
   add_subdirectory(qextra)
 else()
