@@ -43,16 +43,16 @@ public:
 
 namespace model
 {
-extern const cppstd::set<QStringView> AlbumJsonFields;
-extern const cppstd::set<QStringView> ArtistJsonFields;
-extern const cppstd::set<QStringView> MixJsonFields;
-extern const cppstd::set<QStringView> SongJsonFields;
+extern const std::set<QStringView> AlbumJsonFields;
+extern const std::set<QStringView> ArtistJsonFields;
+extern const std::set<QStringView> MixJsonFields;
+extern const std::set<QStringView> SongJsonFields;
 } // namespace model
 
 export template<typename T>
 auto merge_store_extra(T& store, i64 key, const google::protobuf::Struct& in) {
     if (auto extend = store.query_extend(key); extend) {
-        cppstd::set<QStringView> const* json_fields { nullptr };
+        std::set<QStringView> const* json_fields { nullptr };
         if constexpr (std::same_as<T, AppStore::album_store>) {
             json_fields = &model::AlbumJsonFields;
         } else if constexpr (std::same_as<T, AppStore::song_store>) {

@@ -41,7 +41,7 @@ public:
     Q_SIGNAL void activedIdsChanged();
 
 private:
-    cppstd::set<i64>         m_inactived;
+    std::set<i64>         m_inactived;
     QtProtobuf::int64List m_ids;
 };
 
@@ -84,7 +84,7 @@ private:
 
     bool                  m_syncing;
     LibraryStatus*        m_lib_status;
-    cppstd::set<i64>      m_inactived;
+    std::set<i64>      m_inactived;
     QtProtobuf::int64List m_actived_ids;
 };
 

@@ -8,11 +8,11 @@ export import qcm.core;
 export import qcm.helper;
 export import asio;
 
-DEFINE_CONVERT(cppstd::vector<byte>, asio::streambuf) {
+DEFINE_CONVERT(std::vector<byte>, asio::streambuf) {
     out.clear();
-    cppstd::transform(asio::buffers_begin(in.data()),
+    std::transform(asio::buffers_begin(in.data()),
                       asio::buffers_end(in.data()),
-                      cppstd::back_inserter(out),
+                      std::back_inserter(out),
                       [](unsigned char c) {
                           return byte { c };
                       });
@@ -22,7 +22,7 @@ template<>
 struct rstd::Impl<rstd::fmt::Display, asio::streambuf> : rstd::ImplBase<asio::streambuf> {
     auto fmt(rstd::fmt::Formatter& f) const -> bool {
         auto& buf = this->self();
-        cppstd::string out { asio::buffers_begin(buf.data()), asio::buffers_end(buf.data()) };
+        std::string out { asio::buffers_begin(buf.data()), asio::buffers_end(buf.data()) };
         return f.write_raw((const u8*)out.data(), out.size());
     }
 };
@@ -42,7 +42,7 @@ void post_via(const Ex& exec, const ExWork& work_exec, F&& handler, Args&&... ar
     asio::post(
         exec,
         asio::bind_executor(work_exec,
-                            cppstd::bind(rstd::forward<F>(handler), rstd::forward<Args>(args)...)));
+                            std::bind(rstd::forward<F>(handler), rstd::forward<Args>(args)...)));
 }
 
 template<typename Ex, typename F, typename... Args>

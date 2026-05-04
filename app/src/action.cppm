@@ -49,9 +49,9 @@ Q_SIGNALS:
     void switch_queue(model::IdQueue*);
 
     void play(model::ItemId songId, model::ItemId sourceId = {});
-    void queue_next(const cppstd::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
-    void queue(const cppstd::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
-    void switch_songs(const cppstd::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
+    void queue_next(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
+    void queue(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
+    void switch_songs(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
 
     void playUrl(const QUrl& url, bool refresh = false);
 

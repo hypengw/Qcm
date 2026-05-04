@@ -41,7 +41,7 @@ public:
                     [&backend, msg = std::move(msg), handler = std::move(handler)] mutable {
                         msg.setId_proto(backend.serial());
                         backend.m_handlers.insert_or_assign(
-                            msg.id_proto(), cppstd::move_only_function<ret> { std::move(handler) });
+                            msg.id_proto(), std::move_only_function<ret> { std::move(handler) });
                         auto bytes = msg.serialize(backend.m_serializer.get());
                         backend.m_client->send({ bytes.constData(), (std::size_t)bytes.size() });
                     });
@@ -140,10 +140,10 @@ auto Backend::start(QStringView exe_, QStringView data_dir_, QStringView cache_d
 
     {
         std::error_code ec;
-        auto            path = cppstd::filesystem::path(m_exe.toStdString());
+        auto            path = std::filesystem::path(m_exe.toStdString());
 
-        if (! cppstd::filesystem::exists(path, ec)) {
-            error(rstd::into(cppstd::format("Not found:\n {}", path.string())));
+        if (! std::filesystem::exists(path, ec)) {
+            error(rstd::into(std::format("Not found:\n {}", path.string())));
             return false;
         }
     }

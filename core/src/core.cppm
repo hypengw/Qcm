@@ -24,13 +24,13 @@ export using rstd::voidp;
 export using rstd::const_voidp;
 
 export template<typename T>
-using rc = cppstd::shared_ptr<T>;
+using rc = std::shared_ptr<T>;
 
 export template<typename T>
-using weak = cppstd::weak_ptr<T>;
+using weak = std::weak_ptr<T>;
 
-export template<typename T, typename D = cppstd::default_delete<T>>
-using up = cppstd::unique_ptr<T, D>;
+export template<typename T, typename D = std::default_delete<T>>
+using up = std::unique_ptr<T, D>;
 
 export using rstd::Option;
 export using rstd::Result;
@@ -43,22 +43,22 @@ export using ref_str = rstd::ref<rstd::str>;
 
 export template<typename T, typename... Args>
 auto make_up(Args&&... args) {
-    return cppstd::make_unique<T>(cppstd::forward<Args>(args)...);
+    return std::make_unique<T>(std::forward<Args>(args)...);
 }
 
 export template<typename T, typename... Args>
 auto make_box(Args&&... args) {
-    return cppstd::make_unique<T>(cppstd::forward<Args>(args)...);
+    return std::make_unique<T>(std::forward<Args>(args)...);
 }
 
 export template<typename T, typename... Args>
 auto make_rc(Args&&... args) {
-    return cppstd::make_shared<T>(cppstd::forward<Args>(args)...);
+    return std::make_shared<T>(std::forward<Args>(args)...);
 }
 
 export template<typename T, typename... Args>
 auto make_arc(Args&&... args) {
-    return cppstd::make_shared<T>(cppstd::forward<Args>(args)...);
+    return std::make_shared<T>(std::forward<Args>(args)...);
 }
 
 export template<typename T>
@@ -81,7 +81,7 @@ protected:
 
 namespace ycore
 {
-export using monostate = cppstd::monostate;
+export using monostate = std::monostate;
 
 export template<typename Wrapper>
 typename Wrapper::element_type* GetPtrHelper(const Wrapper& p) {
@@ -89,8 +89,8 @@ typename Wrapper::element_type* GetPtrHelper(const Wrapper& p) {
 }
 
 export template<class T>
-void hash_combine(cppstd::size_t& seed, const T& v) {
-    cppstd::hash<T> hasher;
+void hash_combine(std::size_t& seed, const T& v) {
+    std::hash<T> hasher;
     seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
 
@@ -109,7 +109,7 @@ export template<class T, class U = T>
 constexpr bool cmp_exchange(T&  obj,
                             U&& new_value) noexcept(mtp::noex_move<T> && mtp::noex_assign<T&, U>) {
     if (obj != new_value) {
-        obj = cppstd::forward<U>(new_value);
+        obj = std::forward<U>(new_value);
         return true;
     }
     return false;
@@ -118,7 +118,7 @@ constexpr bool cmp_exchange(T&  obj,
 export template<typename T>
 [[nodiscard]] constexpr bool fuzzy_equal(T a, T b) {
     const T scale = mtp::same_as<T, double> ? T(1000000000000.) : T(100000.f);
-    return cppstd::fabs(a - b) * scale <= cppstd::min(cppstd::fabs(a), cppstd::fabs(b));
+    return std::fabs(a - b) * scale <= std::min(std::fabs(a), std::fabs(b));
 }
 
 export template<typename T>
@@ -126,8 +126,8 @@ using param_t = mtp::cond<mtp::triv_copy<T> && sizeof(T) <= 32, T, const T&>;
 
 export template<typename T>
 constexpr auto cmp_set(T&         lhs,
-                       param_t<T> rhs) noexcept(cppstd::is_nothrow_move_constructible<T>::value &&
-                                                cppstd::is_nothrow_assignable<T&, T>::value)
+                       param_t<T> rhs) noexcept(std::is_nothrow_move_constructible<T>::value &&
+                                                std::is_nothrow_assignable<T&, T>::value)
     -> bool {
     if constexpr (mtp::is_float<T>) {
         if (! fuzzy_equal(lhs, rhs)) {
@@ -157,16 +157,16 @@ public:
 };
 } // namespace detail
 export template<typename T>
-using range_value_t = cppstd::iter_value_t<T>;
+using range_value_t = std::iter_value_t<T>;
 
 export template<typename T>
 concept range = requires(T& t) {
-    cppstd::begin(t);
-    cppstd::end(t);
+    std::begin(t);
+    std::end(t);
 };
 
 export template<class T>
-concept sized_range = ycore::range<T> && requires(T& t) { cppstd::ranges::size(t); };
+concept sized_range = ycore::range<T> && requires(T& t) { std::ranges::size(t); };
 
 export template<typename T>
 concept tuple_like = detail::is_tuple_like_<T>::value && ! range<T>;
@@ -227,13 +227,13 @@ protected:
 
 export template<rstd::mtp::spec_of<rstd::convert::From>  T,
                 rstd::mtp::spec_of<rstd::option::Option> A>
-    requires rstd::mtp::spec_of<typename T::from_t, cppstd::optional> &&
+    requires rstd::mtp::spec_of<typename T::from_t, std::optional> &&
              rstd::mtp::same_as<typename T::from_t::value_type, typename A::value_type>
 struct rstd::Impl<T, A> {
     using Self = A;
     static auto from(typename T::from_t value) -> Self {
         if (value) {
-            return rstd::Some(cppstd::move(*value));
+            return rstd::Some(std::move(*value));
         } else {
             return rstd::None();
         }

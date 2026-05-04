@@ -9,7 +9,7 @@ import qcm.log;
 
 
 
-using path = cppstd::filesystem::path;
+using path = std::filesystem::path;
 
 path qcm::config_path() {
     auto locs = QStandardPaths::standardLocations(QStandardPaths::AppConfigLocation);
@@ -29,10 +29,10 @@ path qcm::cache_path() {
     return path(locs[0].toStdString());
 }
 
-bool qcm::init_path(cppstd::span<const path> pathes) {
+bool qcm::init_path(std::span<const path> pathes) {
     for (auto& p : pathes) {
-        cppstd::error_code ec;
-        cppstd::filesystem::create_directories(p, ec);
+        std::error_code ec;
+        std::filesystem::create_directories(p, ec);
         debug_assert(! ec, "path: {}, info: {}({})", p.string(), ec.message(), ec.value());
     }
     return true;

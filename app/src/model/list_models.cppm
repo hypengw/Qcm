@@ -13,7 +13,7 @@ export namespace qcm::model
 
 template<typename TItem, typename CRTP>
 using MetaListCRTP = kstore::QMetaListModelCRTP<TItem, CRTP, kstore::ListStoreType::Share,
-                                                cppstd::pmr::polymorphic_allocator<TItem>>;
+                                                std::pmr::polymorphic_allocator<TItem>>;
 
 class AlbumListModel : public kstore::QGadgetListModel,
                        public MetaListCRTP<model::Album, AlbumListModel> {

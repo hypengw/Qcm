@@ -223,7 +223,7 @@ PlayQueue::PlayQueue(QObject* parent)
         if (! sourceModel()) return;
         if (m_changed_ids.empty()) return;
 
-        cppstd::unordered_set<model::ItemId> ids { m_changed_ids.begin(), m_changed_ids.end() };
+        std::unordered_set<model::ItemId> ids { m_changed_ids.begin(), m_changed_ids.end() };
         m_changed_ids.clear();
         notifyRowsForIds(ids);
     });
@@ -643,7 +643,7 @@ void PlayQueue::addChangedId(std::span<const model::ItemId> ids) {
     m_changed_timer->start();
 }
 
-void PlayQueue::notifyRowsForIds(const cppstd::unordered_set<model::ItemId>& ids) {
+void PlayQueue::notifyRowsForIds(const std::unordered_set<model::ItemId>& ids) {
     if (ids.empty()) return;
     if (! sourceModel()) return;
     auto count = rowCount();
@@ -676,7 +676,7 @@ void PlayQueue::fetchSongs() {
     auto backend = App::instance()->backend();
 
     auto req  = msg::GetSongsByIdReq {};
-    auto view = cppstd::views::transform(m_pending_ids, [](const auto& id) {
+    auto view = std::ranges::views::transform(m_pending_ids, [](const auto& id) {
         return id.id();
     });
     req.setIds({ view.begin(), view.end() });
@@ -690,7 +690,7 @@ void PlayQueue::fetchSongs() {
             co_await qcm::qexecutor_switch();
 
             if (rsp) {
-                cppstd::unordered_set<model::ItemId> fetched_ids;
+                std::unordered_set<model::ItemId> fetched_ids;
                 std::vector<i64>                     id_list;
 
                 auto store  = AppStore::instance();

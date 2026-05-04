@@ -28,7 +28,7 @@ void ArtistsQuery::reload() {
         co_await qcm::qexecutor_switch();
         self->inspect_set(rsp, [self](msg::GetArtistsRsp& el) {
             auto t    = self->tdata();
-            auto view = std::views::transform(el.items(), [](auto&& el) {
+            auto view = std::ranges::views::transform(el.items(), [](auto&& el) {
                 return model::Artist(el);
             });
             t->setHasMore(false);
@@ -70,7 +70,7 @@ void ArtistsQuery::fetchMore(qint32) {
         auto rsp    = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
         self->inspect_set(rsp, [self, offset](msg::GetArtistsRsp& el) {
-            auto view = std::views::transform(el.items(), [](auto&& el) {
+            auto view = std::ranges::views::transform(el.items(), [](auto&& el) {
                 return model::Artist(el);
             });
             self->tdata()->extend(view);
@@ -103,7 +103,7 @@ void AlbumArtistsQuery::reload() {
         co_await qcm::qexecutor_switch();
         self->inspect_set(rsp, [self](msg::GetAlbumArtistsRsp& el) {
             auto t    = self->tdata();
-            auto view = std::views::transform(el.items(), [](auto&& el) {
+            auto view = std::ranges::views::transform(el.items(), [](auto&& el) {
                 return model::Artist(el);
             });
             t->setHasMore(false);
@@ -147,7 +147,7 @@ void AlbumArtistsQuery::fetchMore(qint32) {
         auto rsp    = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
         self->inspect_set(rsp, [self, offset](msg::GetAlbumArtistsRsp& el) {
-            auto view = std::views::transform(el.items(), [](auto&& el) {
+            auto view = std::ranges::views::transform(el.items(), [](auto&& el) {
                 return model::Artist(el);
             });
             self->tdata()->extend(view);
@@ -232,7 +232,7 @@ void ArtistAlbumQuery::fetchMore(qint32) {
         auto rsp    = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
         self->inspect_set(rsp, [self, offset](msg::GetArtistAlbumRsp& el) {
-            auto view = std::views::transform(el.items(), [](auto&& el) {
+            auto view = std::ranges::views::transform(el.items(), [](auto&& el) {
                 return model::Album(el);
             });
 

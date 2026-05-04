@@ -35,7 +35,7 @@ public:
         auto key = kstore::ItemTrait<item_type>::key(v);
         if (key != m_item.key()) {
             m_item = m_item.store().store_insert(v).first;
-            m_item.store().store_changed_callback(cppstd::span { &key, 1 }, m_handle ? *m_handle : 0);
+            m_item.store().store_changed_callback(std::span { &key, 1 }, m_handle ? *m_handle : 0);
             static_cast<CRTP*>(this)->itemChanged();
 
             unreg();

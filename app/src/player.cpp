@@ -26,7 +26,7 @@ public:
     bool try_send(NotifyInfo info) override {
         return m_channel->try_send(asio::error_code {}, info);
     }
-    cppstd::future<void> send(NotifyInfo info) override {
+    std::future<void> send(NotifyInfo info) override {
         return asio::co_spawn(
             m_strand,
             [info, this]() -> asio::awaitable<void> {
@@ -176,8 +176,8 @@ void Player::set_fadeTime(u32 val) {
 void Player::set_position_raw(int v) {
     int expected = m_position.load(std::memory_order_relaxed);
     if (m_position.compare_exchange_weak(expected, v)) {
-        auto now  = cppstd::chrono::steady_clock::now();
-        auto last = m_last_time.load(cppstd::memory_order::relaxed);
+        auto now  = std::chrono::steady_clock::now();
+        auto last = m_last_time.load(std::memory_order::relaxed);
         if (now - last > std::chrono::milliseconds(50)) {
             m_last_time.store(now, std::memory_order_relaxed);
             emit positionChanged();

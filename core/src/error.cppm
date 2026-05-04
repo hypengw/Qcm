@@ -15,33 +15,33 @@ export namespace error
 template<typename T>
 class ErrorBase : public CRTP<T> {
 public:
-    T& record(const cppstd::source_location loc = cppstd::source_location::current()) {
+    T& record(const std::source_location loc = std::source_location::current()) {
         T& err = this->crtp_impl();
         if (static_cast<bool>(err)) {
             m_loc_stack.push_back(loc);
         }
         return err;
     }
-    cppstd::span<const cppstd::source_location> location_stack() const { return m_loc_stack; }
+    std::span<const std::source_location> location_stack() const { return m_loc_stack; }
 
 private:
-    cppstd::vector<cppstd::source_location> m_loc_stack;
+    std::vector<std::source_location> m_loc_stack;
 };
 
 template<typename T>
     requires rstd::mtp::spec_of<T, rstd::result::Result> &&
-             requires(T::error_type err, cppstd::source_location loc) {
+             requires(T::error_type err, std::source_location loc) {
                  { err.record(loc) };
              }
-auto record(T&& exp, const cppstd::source_location loc = cppstd::source_location::current()) {
-    return cppstd::forward<T>(exp).map_err([&loc](auto err) {
+auto record(T&& exp, const std::source_location loc = std::source_location::current()) {
+    return std::forward<T>(exp).map_err([&loc](auto err) {
         return err.record(loc);
     });
 }
 
 struct Msg {
-    cppstd::string          what;
-    cppstd::source_location loc;
+    std::string          what;
+    std::source_location loc;
 };
 
 class Error {
@@ -50,21 +50,21 @@ class Error {
 public:
     Error()  = default;
     ~Error() = default;
-    Error(cppstd::nullopt_t): Error() {}
+    Error(std::nullopt_t): Error() {}
     Error(const Error&)            = default;
     Error& operator=(const Error&) = default;
-    Error(Error&& o) noexcept: m_msg_stack(cppstd::move(o.m_msg_stack)) {}
+    Error(Error&& o) noexcept: m_msg_stack(std::move(o.m_msg_stack)) {}
     Error& operator=(Error&& o) noexcept {
-        m_msg_stack = cppstd::move(o.m_msg_stack);
+        m_msg_stack = std::move(o.m_msg_stack);
         return *this;
     }
 
-    cppstd::string what() const;
+    std::string what() const;
 
     template<typename TErr>
         requires rstd::mtp::same_as<rstd::mtp::decay<TErr>, Error>
-    static Error push(TErr&& err, cppstd::string_view what = {},
-                      const cppstd::source_location loc = cppstd::source_location::current()) {
+    static Error push(TErr&& err, std::string_view what = {},
+                      const std::source_location loc = std::source_location::current()) {
         Msg msg;
         msg.loc  = loc;
         msg.what = what;
@@ -74,16 +74,16 @@ public:
 
     template<typename Fmt>
         requires(! rstd::mtp::same_as<rstd::mtp::decay<Fmt>, Error>) &&
-                (rstd::fmt::formattable<cppstd::decay_t<Fmt>, char> ||
-                 rstd::mtp::same_as<cppstd::decay_t<Fmt>, cppstd::nullopt_t>)
+                (rstd::fmt::formattable<std::decay_t<Fmt>, char> ||
+                 rstd::mtp::same_as<std::decay_t<Fmt>, std::nullopt_t>)
     static Error push(Fmt&&                         f,
-                      const cppstd::source_location loc = cppstd::source_location::current()) {
+                      const std::source_location loc = std::source_location::current()) {
         using T = rstd::mtp::decay<Fmt>;
         Error e;
         Msg   msg;
         msg.loc = loc;
         if constexpr (rstd::fmt::formattable<T, char>) {
-            msg.what = cppstd::format("{}", f);
+            msg.what = std::format("{}", f);
         } else {
             msg.what = "nullopt";
         }
@@ -94,10 +94,10 @@ public:
     // template<typename T>
     //     requires helper::is_expected<T>
     // static auto expected_chain(T&&                        exp,
-    //                            const cppstd::source_location loc =
-    //                            cppstd::source_location::current()) {
-    //     return cppstd::forward<T>(exp).map_error([&loc](auto err) {
-    //         if constexpr (cppstd::same_as<cppstd::decay_t<decltype(err)>, Error>) {
+    //                            const std::source_location loc =
+    //                            std::source_location::current()) {
+    //     return std::forward<T>(exp).map_error([&loc](auto err) {
+    //         if constexpr (std::same_as<std::decay_t<decltype(err)>, Error>) {
     //             return Error::push(err, {}, loc);
     //         } else {
     //             return Error::push(err, loc);
@@ -106,13 +106,13 @@ public:
     // }
 
 private:
-    cppstd::vector<Msg> m_msg_stack;
+    std::vector<Msg> m_msg_stack;
 };
 
 /*
 template<typename Fmt>
-Error push(Fmt&& f, const cppstd::source_location loc = cppstd::source_location::current()) {
-    return Error::push(cppstd::forward<Fmt>(f), loc);
+Error push(Fmt&& f, const std::source_location loc = std::source_location::current()) {
+    return Error::push(std::forward<Fmt>(f), loc);
 }
 */
 
@@ -133,7 +133,7 @@ struct rstd::Impl<rstd::fmt::Display, error::Msg> : rstd::ImplBase<error::Msg> {
 };
 
 template<>
-struct rstd::Impl<rstd::fmt::Display, cppstd::error_code> : rstd::ImplBase<cppstd::error_code> {
+struct rstd::Impl<rstd::fmt::Display, std::error_code> : rstd::ImplBase<std::error_code> {
     auto fmt(rstd::fmt::Formatter& f) const -> bool {
         auto& e = this->self();
         auto out = rstd::format("{}({}:{})", e.message(), e.value(), e.category().name());
@@ -145,11 +145,11 @@ template<>
 struct rstd::Impl<rstd::fmt::Display, error::Error> : rstd::ImplBase<error::Error> {
     auto fmt(rstd::fmt::Formatter& f) const -> bool {
         auto& e = this->self();
-        cppstd::string out { "err stack:\n" };
+        std::string out { "err stack:\n" };
         if (e.m_msg_stack.empty()) {
             out.append("    error stack empty");
         } else {
-            cppstd::size_t i { 0 };
+            std::size_t i { 0 };
             for (auto& msg : e.m_msg_stack) {
                 auto s = rstd::format("   {}# {}\n", i++, msg);
                 out.append((const char*)s.begin(), s.size());
@@ -159,7 +159,7 @@ struct rstd::Impl<rstd::fmt::Display, error::Error> : rstd::ImplBase<error::Erro
     }
 };
 
-inline cppstd::string error::Error::what() const {
+inline std::string error::Error::what() const {
     if (m_msg_stack.empty()) return {};
     return m_msg_stack.front().what;
 }

@@ -45,8 +45,8 @@ public:
     auto          options() const -> Options;
     auto          currentId() const -> ItemId;
     Q_SIGNAL void currentIdChanged();
-    auto          currentExtra() const -> cppstd::optional<QVariant>;
-    auto          currentOrFirstExtra() const -> cppstd::optional<QVariant>;
+    auto          currentExtra() const -> std::optional<QVariant>;
+    auto          currentOrFirstExtra() const -> std::optional<QVariant>;
     auto          currentIndex() const -> qint32;
     Q_SLOT void   setCurrentIndex(qint32 idx);
     void          setCurrentIndex(const ItemId&);
@@ -54,8 +54,8 @@ public:
     Q_SIGNAL void currentIndexChanged(qint32 idx);
     Q_SIGNAL void requestNext();
     auto          contains(const ItemId&) const -> bool;
-    auto          insert(qint32 pos, cppstd::span<const ItemId>) -> int;
-    auto          insert(qint32 pos, cppstd::span<const Item>) -> int;
+    auto          insert(qint32 pos, std::span<const ItemId>) -> int;
+    auto          insert(qint32 pos, std::span<const Item>) -> int;
     void          remove(const ItemId&);
     bool removeRows(int row, int count, const QModelIndex& parent = QModelIndex()) override;
     bool moveRows(const QModelIndex& sourceParent, int sourceRow, int count,
@@ -72,8 +72,8 @@ protected:
 private:
     Q_OBJECT_BINDABLE_PROPERTY(IdQueue, int, m_current_index, &IdQueue::currentIndexChanged)
 
-    cppstd::vector<Item>         m_queue;
-    cppstd::unordered_set<usize> m_set;
+    std::vector<Item>         m_queue;
+    std::unordered_set<usize> m_set;
     Options                      m_opts;
     QString                      m_name;
 };

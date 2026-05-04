@@ -70,9 +70,9 @@ private:
 
     PlayIdQueue*        m_source;
     QProperty<bool>     m_support_shuffle;
-    cppstd::vector<qint32> m_shuffle_list;
+    std::vector<qint32> m_shuffle_list;
 
-    cppstd::unordered_map<qint32, qint32> m_source_to_proxy;
+    std::unordered_map<qint32, qint32> m_source_to_proxy;
     Q_OBJECT_BINDABLE_PROPERTY(PlayIdProxyQueue, int, m_current_index,
                                &PlayIdProxyQueue::currentIndexChanged)
     Q_OBJECT_BINDABLE_PROPERTY(PlayIdProxyQueue, bool, m_shuffle, &PlayIdProxyQueue::shuffleChanged)
@@ -158,8 +158,8 @@ public:
 
     Q_INVOKABLE qcm::model::IdQueue* dynamicQueue(model::ItemId queueId);
 
-    auto update(cppstd::span<const model::Song>) -> void;
-    void updateSourceId(cppstd::span<const model::ItemId> songIds, const model::ItemId& sourceId);
+    auto update(std::span<const model::Song>) -> void;
+    void updateSourceId(std::span<const model::ItemId> songIds, const model::ItemId& sourceId);
 
 private:
     Q_SIGNAL void pendingIdsChanged();
@@ -169,9 +169,9 @@ private:
     Q_SLOT void onSourceRowsRemoved(const QModelIndex& parent, int first, int last);
     Q_SLOT void checkCanMove();
 
-    Q_SLOT void addChangedId(cppstd::span<const model::ItemId> ids);
+    Q_SLOT void addChangedId(std::span<const model::ItemId> ids);
     Q_SLOT void fetchSongs();
-    void        notifyRowsForIds(const cppstd::unordered_set<model::ItemId>& ids);
+    void        notifyRowsForIds(const std::unordered_set<model::ItemId>& ids);
     auto        isDynamic() const -> bool;
     void        schedulePendingAdvance();
     void        cancelPendingAdvance();
@@ -183,10 +183,10 @@ private:
     enums::LoopMode         m_loop_mode;
     model::IdQueue::Options m_options;
 
-    mutable cppstd::unordered_set<model::ItemId>                m_pending_ids;
-    mutable cppstd::unordered_set<model::ItemId>                m_changed_ids;
-    mutable cppstd::unordered_map<model::ItemId, SongItem>      m_songs;
-    mutable cppstd::unordered_map<model::ItemId, model::ItemId> m_source_map;
+    mutable std::unordered_set<model::ItemId>                m_pending_ids;
+    mutable std::unordered_set<model::ItemId>                m_changed_ids;
+    mutable std::unordered_map<model::ItemId, SongItem>      m_songs;
+    mutable std::unordered_map<model::ItemId, model::ItemId> m_source_map;
 
     bool    m_can_next;
     bool    m_can_prev;
@@ -200,7 +200,7 @@ private:
     QTimer* m_pending_advance_timer;
     bool    m_pending_advance;
 
-    cppstd::unordered_map<qint64, model::DynamicIdQueue*> m_dynamic_queues;
+    std::unordered_map<qint64, model::DynamicIdQueue*> m_dynamic_queues;
 
     Q_OBJECT_BINDABLE_PROPERTY(PlayQueue, int, m_current_index, &PlayQueue::currentIndexChanged)
 };

@@ -143,7 +143,7 @@ void RadioQueuesQuery::reload() {
         co_await qexecutor_switch();
         self->inspect_set(rsp, [self](auto& el) {
             auto t    = self->tdata();
-            auto view = std::views::transform(el.queues(), [](auto&& el) {
+            auto view = std::ranges::views::transform(el.queues(), [](auto&& el) {
                 return model::RadioQueue(el);
             });
             t->resetModel(view);

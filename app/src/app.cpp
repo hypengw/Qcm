@@ -26,7 +26,7 @@ namespace
 {
 
 auto get_pool_size() -> std::size_t {
-    return std::clamp<u32>(cppstd::thread::hardware_concurrency(), 4, 12);
+    return std::clamp<u32>(std::thread::hardware_concurrency(), 4, 12);
 }
 
 auto app_instance(App* in = nullptr) -> App* {

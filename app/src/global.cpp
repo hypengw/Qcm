@@ -38,7 +38,7 @@ namespace qcm
 {
 
 auto get_pool_size() -> std::size_t {
-    return std::clamp<u32>(cppstd::thread::hardware_concurrency(), 4, 8);
+    return std::clamp<u32>(std::thread::hardware_concurrency(), 4, 8);
 }
 
 namespace
@@ -142,7 +142,7 @@ auto Global::player() const -> Player* {
     return d->player;
 }
 
-auto Global::get_metadata(const cppstd::filesystem::path& path) const -> Metadata {
+auto Global::get_metadata(const std::filesystem::path& path) const -> Metadata {
     C_D(const Global);
     if (d->metadata_impl) {
         return d->metadata_impl(path);

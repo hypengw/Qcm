@@ -58,7 +58,7 @@ public:
     auto uuid() const -> const QUuid&;
     auto player() const -> Player*;
 
-    auto get_metadata(const cppstd::filesystem::path&) const -> Metadata;
+    auto get_metadata(const std::filesystem::path&) const -> Metadata;
 
     void join();
 
@@ -67,7 +67,7 @@ public:
     Q_SIGNAL void uuidChanged(StopSignal stop = {});
     Q_SIGNAL void sessionChanged(StopSignal stop = {});
 
-    using MetadataImpl = cppstd::function<Metadata(const cppstd::filesystem::path&)>;
+    using MetadataImpl = std::function<Metadata(const std::filesystem::path&)>;
     void        set_uuid(const QUuid&);
     void        set_metadata_impl(const MetadataImpl&);
     static void setInstance(Global*);
@@ -149,6 +149,6 @@ public:
 
     Player* player;
 
-    mutable cppstd::mutex mutex;
+    mutable std::mutex mutex;
 };
 } // namespace qcm

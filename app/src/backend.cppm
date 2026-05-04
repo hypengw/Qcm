@@ -72,7 +72,7 @@ private:
     Q_SLOT void on_started(i32 port);
     Q_SLOT void on_connected(i32 port);
 
-    auto base() const -> cppstd::string;
+    auto base() const -> std::string;
     auto serial() -> i32;
 
     Box<QThread>                    m_thread;
@@ -83,7 +83,7 @@ private:
 
     rc<ncrequest::Session> m_session;
 
-    cppstd::map<i32, cppstd::move_only_function<void(asio::error_code, msg::QcmMessage)>>
+    std::map<i32, std::move_only_function<void(asio::error_code, msg::QcmMessage)>>
         m_handlers;
 
     Atomic<i32> m_serial;

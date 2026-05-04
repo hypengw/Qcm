@@ -9,14 +9,14 @@ namespace qcm
 
 export class asio_detached_log_t {
 public:
-    asio_detached_log_t(const cppstd::source_location = cppstd::source_location::current());
-    void operator()(cppstd::exception_ptr);
+    asio_detached_log_t(const std::source_location = std::source_location::current());
+    void operator()(std::exception_ptr);
 
-    cppstd::source_location loc;
+    std::source_location loc;
 };
 
-export void handle_asio_exception(cppstd::exception_ptr                                   eptr,
-                                  asio::any_completion_handler<void(cppstd::string_view)> on_error,
-                                  const cppstd::source_location                           loc);
+export void handle_asio_exception(std::exception_ptr                                   eptr,
+                                  asio::any_completion_handler<void(std::string_view)> on_error,
+                                  const std::source_location                           loc);
 
 } // namespace qcm

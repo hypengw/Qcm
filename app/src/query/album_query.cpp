@@ -46,7 +46,7 @@ void AlbumsQuery::reload() {
         self->inspect_set(rsp, [self](msg::GetAlbumsRsp& el) {
             auto t = self->tdata();
             t->setHasMore(false);
-            auto view = std::views::transform(el.items(), [](auto& el) {
+            auto view = std::ranges::views::transform(el.items(), [](auto& el) {
                 return model::Album { el };
             });
             t->sync(view);
@@ -79,7 +79,7 @@ void AlbumsQuery::fetchMore(qint32) {
         auto rsp    = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
         self->inspect_set(rsp, [self, offset](msg::GetAlbumsRsp& el) {
-            auto view = std::views::transform(el.items(), [](auto&& el) {
+            auto view = std::ranges::views::transform(el.items(), [](auto&& el) {
                 return model::Album(el);
             });
 

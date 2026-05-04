@@ -19,9 +19,9 @@ export struct ShareStoreExt {
 };
 
 export template<typename T>
-class ShareStore : public kstore::ShareStore<T, cppstd::pmr::polymorphic_allocator<T>, ShareStoreExt> {
+class ShareStore : public kstore::ShareStore<T, std::pmr::polymorphic_allocator<T>, ShareStoreExt> {
 public:
-    using base_type = kstore::ShareStore<T, cppstd::pmr::polymorphic_allocator<T>, ShareStoreExt>;
+    using base_type = kstore::ShareStore<T, std::pmr::polymorphic_allocator<T>, ShareStoreExt>;
     ShareStore(): base_type() {}
 };
 

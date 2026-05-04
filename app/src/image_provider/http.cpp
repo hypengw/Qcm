@@ -60,9 +60,9 @@ public:
     ~QcmImageProviderInner() {}
 
     task<ncrequest::HttpHeader> dl_image(const ncrequest::Request& req,
-                                         cppstd::filesystem::path  p) {
-        SyncFile file { cppstd::fstream(p, cppstd::ios_base::out | cppstd::ios_base::binary) };
-        file.handle().exceptions(cppstd::ios_base::failbit | cppstd::ios_base::badbit);
+                                         std::filesystem::path  p) {
+        SyncFile file { std::fstream(p, std::ios_base::out | std::ios_base::binary) };
+        file.handle().exceptions(std::ios_base::failbit | std::ios_base::badbit);
 
         auto rsp_http = (co_await m_session->get(req)).unwrap();
 

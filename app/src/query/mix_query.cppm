@@ -122,13 +122,13 @@ public:
     DeleteMixQuery(QObject* parent = nullptr);
     void reload() override;
 
-    auto ids() const -> cppstd::vector<model::ItemId>;
-    void setIds(const cppstd::vector<model::ItemId>&);
+    auto ids() const -> std::vector<model::ItemId>;
+    void setIds(const std::vector<model::ItemId>&);
 
     Q_SIGNAL void idsChanged();
 
 private:
-    cppstd::vector<model::ItemId> m_ids;
+    std::vector<model::ItemId> m_ids;
 };
 
 export class LinkMixQuery : public Query, public QueryExtra<msg::Rsp, LinkMixQuery> {
@@ -140,13 +140,13 @@ public:
     LinkMixQuery(QObject* parent = nullptr);
     void reload() override;
 
-    auto ids() const -> cppstd::vector<model::ItemId>;
-    void setIds(const cppstd::vector<model::ItemId>&);
+    auto ids() const -> std::vector<model::ItemId>;
+    void setIds(const std::vector<model::ItemId>&);
 
     Q_SIGNAL void idsChanged();
 
 private:
-    cppstd::vector<model::ItemId> m_ids;
+    std::vector<model::ItemId> m_ids;
 };
 
 export class MixManipulateQuery : public Query,
@@ -168,10 +168,10 @@ public:
     auto mixId() const -> model::ItemId;
     void setMixId(const model::ItemId&);
 
-    auto songIds() const -> cppstd::vector<model::ItemId>;
-    void setSongIds(const cppstd::vector<model::ItemId>&);
-    auto albumIds() const -> cppstd::vector<model::ItemId>;
-    void setAlbumIds(const cppstd::vector<model::ItemId>&);
+    auto songIds() const -> std::vector<model::ItemId>;
+    void setSongIds(const std::vector<model::ItemId>&);
+    auto albumIds() const -> std::vector<model::ItemId>;
+    void setAlbumIds(const std::vector<model::ItemId>&);
 
     auto oper() const -> msg::model::MixManipulateOperGadget::MixManipulateOper;
     void setOper(msg::model::MixManipulateOperGadget::MixManipulateOper);
@@ -184,8 +184,8 @@ public:
 private:
     model::ItemId                                          m_mix_id;
     msg::model::MixManipulateOperGadget::MixManipulateOper m_oper;
-    cppstd::vector<model::ItemId>                    m_song_ids;
-    cppstd::vector<model::ItemId>                    m_album_ids;
+    std::vector<model::ItemId>                    m_song_ids;
+    std::vector<model::ItemId>                    m_album_ids;
 };
 
 } // namespace qcm

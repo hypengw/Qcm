@@ -52,7 +52,7 @@ void MixesQuery::fetchMore(qint32) {
         auto rsp    = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
         self->inspect_set(rsp, [self, offset](msg::GetMixsRsp& el) {
-            auto view = std::views::transform(el.items(), [](auto&& el) {
+            auto view = std::ranges::views::transform(el.items(), [](auto&& el) {
                 return model::Mix(el);
             });
             self->tdata()->extend(view);
@@ -148,7 +148,7 @@ void MixSongsQuery::reload() {
         auto rsp    = co_await backend->send(std::move(req));
         co_await qcm::qexecutor_switch();
         self->inspect_set(rsp, [self, offset](msg::GetMixSongsRsp& el) {
-            auto view = std::views::transform(el.items(), [](auto&& el) {
+            auto view = std::ranges::views::transform(el.items(), [](auto&& el) {
                 return model::Song(el);
             });
 
@@ -219,7 +219,7 @@ void DeleteMixQuery::reload() {
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::DeleteMixReq {};
-    auto view    = std::views::transform(m_ids, [](const auto& el) {
+    auto view    = std::ranges::views::transform(m_ids, [](const auto& el) {
         return el.id();
     });
     req.setIds({ view.begin(), view.end() });
@@ -246,7 +246,7 @@ void LinkMixQuery::reload() {
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::LinkMixReq {};
-    auto view    = std::views::transform(m_ids, [](const auto& el) {
+    auto view    = std::ranges::views::transform(m_ids, [](const auto& el) {
         return el.id();
     });
     req.setIds({ view.begin(), view.end() });
@@ -271,13 +271,13 @@ void MixManipulateQuery::reload() {
     req.setId_proto(m_mix_id.id());
     req.setOper(m_oper);
     {
-        auto view = std::views::transform(m_song_ids, [](const auto& el) {
+        auto view = std::ranges::views::transform(m_song_ids, [](const auto& el) {
             return el.id();
         });
         req.setSongIds({ view.begin(), view.end() });
     }
     {
-        auto view = std::views::transform(m_album_ids, [](const auto& el) {
+        auto view = std::ranges::views::transform(m_album_ids, [](const auto& el) {
             return el.id();
         });
         req.setAlbumIds({ view.begin(), view.end() });
