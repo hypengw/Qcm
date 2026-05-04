@@ -9,6 +9,25 @@
 # The deps.json format is a valid flatpak-builder sources array. The
 # `x-cmake` sidecar is an extension key used to carry CMake-specific
 # metadata such as the dependency name or source_subdir override.
+#
+# Local source overrides
+# ----------------------
+# By default a dep `<name>` is taken from `<deps.json dir>/<name>` if
+# that directory exists, otherwise it is fetched. Two named options
+# override this lookup:
+#
+#   LOCAL_ROOT <dir>
+#     Replace the deps.json directory as the lookup root. Each dep is
+#     still found at `<dir>/<name>`.
+#
+#   LOCAL_OVERRIDES <name>=<path> [<name>=<path> ...]
+#     Per-dep absolute lookups. Highest precedence; an entry whose path
+#     does not exist is skipped (falls through to LOCAL_ROOT / fetch).
+#
+# Example:
+#
+#     fetchdeps(${CMAKE_CURRENT_SOURCE_DIR}/deps.json
+#       LOCAL_OVERRIDES qml_material=${CMAKE_SOURCE_DIR}/../qml_material)
 
 include_guard(GLOBAL)
 include(FetchContent)
@@ -53,6 +72,10 @@ macro(_fetchdeps_fetch_one _fd_entry _fd_source_root)
   FetchContent_GetProperties(${_fd_name})
   if(${_fd_name}_POPULATED)
     # already populated
+  elseif(DEFINED _FETCHDEPS_LOCAL_${_fd_name}
+         AND EXISTS "${_FETCHDEPS_LOCAL_${_fd_name}}")
+    message(STATUS "fetchdeps: using local override ${_FETCHDEPS_LOCAL_${_fd_name}}")
+    add_subdirectory("${_FETCHDEPS_LOCAL_${_fd_name}}" "${_fd_name}")
   elseif(EXISTS "${_fd_source_root}/${_fd_name}")
     message(STATUS "fetchdeps: using local ${_fd_source_root}/${_fd_name}")
     add_subdirectory("${_fd_source_root}/${_fd_name}" "${_fd_name}")
@@ -172,6 +195,12 @@ macro(_fetchdeps_fetch_one _fd_entry _fd_source_root)
 endmacro()
 
 macro(fetchdeps _fd_deps_path)
+  cmake_parse_arguments(_FD "" "LOCAL_ROOT" "LOCAL_OVERRIDES" ${ARGN})
+  if(_FD_UNPARSED_ARGUMENTS)
+    message(FATAL_ERROR
+      "fetchdeps: unexpected argument(s): ${_FD_UNPARSED_ARGUMENTS}")
+  endif()
+
   if(NOT EXISTS "${_fd_deps_path}")
     message(FATAL_ERROR "fetchdeps: ${_fd_deps_path} not found")
   endif()
@@ -183,7 +212,22 @@ macro(fetchdeps _fd_deps_path)
   endif()
 
   set_property(GLOBAL PROPERTY _FETCHDEPS_JSON_PATH "${_fd_deps_path}")
-  get_filename_component(_fd_top_source_root "${_fd_deps_path}" DIRECTORY)
+
+  if(_FD_LOCAL_ROOT)
+    set(_fd_top_source_root "${_FD_LOCAL_ROOT}")
+  else()
+    get_filename_component(_fd_top_source_root "${_fd_deps_path}" DIRECTORY)
+  endif()
+
+  foreach(_fd_ov IN LISTS _FD_LOCAL_OVERRIDES)
+    if(_fd_ov MATCHES "^([^=]+)=(.+)$")
+      set(_FETCHDEPS_LOCAL_${CMAKE_MATCH_1} "${CMAKE_MATCH_2}"
+          CACHE INTERNAL "" FORCE)
+    else()
+      message(FATAL_ERROR
+        "fetchdeps: LOCAL_OVERRIDES entry '${_fd_ov}' must be name=path")
+    endif()
+  endforeach()
 
   if(_fd_n GREATER 0)
     math(EXPR _fd_top_last "${_fd_n} - 1")
