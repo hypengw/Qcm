@@ -1,109 +1,9 @@
 include(FetchContent)
 find_package(PkgConfig REQUIRED)
+include(${CMAKE_SOURCE_DIR}/cmake/FetchDeps.cmake)
 
-# rstd
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/rstd")
-  add_subdirectory(rstd)
-else()
-  FetchContent_Declare(
-    rstd
-    GIT_REPOSITORY https://github.com/hypengw/rstd.git
-    GIT_TAG af7cc6fe0e7d0b070130bfcf9f22ad00605a61c8
-    GIT_SHALLOW 0
-    GIT_PROGRESS 1
-    EXCLUDE_FROM_ALL)
-  FetchContent_MakeAvailable(rstd)
-endif()
-
-# asio
-add_library(asio INTERFACE)
-target_compile_definitions(asio INTERFACE ASIO_NO_DEPRECATED ASIO_NO_TYPEID
-                                          ASIO_HAS_THREADS ${WIN_DEFS})
-pkg_check_modules(ASIO QUIET asio>=1.30.2)
-if(NOT ASIO_FOUND)
-  FetchContent_Declare(
-    asio
-    GIT_REPOSITORY https://github.com/chriskohlhoff/asio.git
-    GIT_TAG asio-1-36-0
-    GIT_SHALLOW 1
-    GIT_PROGRESS 1
-    EXCLUDE_FROM_ALL)
-  FetchContent_MakeAvailable(asio)
-  target_include_directories(asio SYSTEM
-                             INTERFACE ${asio_SOURCE_DIR}/asio/include)
-  message(STATUS "asio dir: ${asio_SOURCE_DIR}")
-else()
-  target_include_directories(asio SYSTEM INTERFACE ${ASIO_INCLUDE_DIRS})
-endif()
-
-# pegtl
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/pegtl")
-  add_subdirectory(pegtl)
-else()
-  FetchContent_Declare(
-    pegtl
-    GIT_REPOSITORY https://github.com/taocpp/PEGTL.git
-    GIT_TAG 3.2.8
-    GIT_SHALLOW 1
-    GIT_PROGRESS 1
-    SYSTEM EXCLUDE_FROM_ALL FIND_PACKAGE_ARGS 3.2.7 QUIET GLOBAL)
-  FetchContent_MakeAvailable(pegtl)
-endif()
-
-# ncrequest
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/ncrequest")
-  add_subdirectory(ncrequest)
-else()
-  FetchContent_Declare(
-    ncrequest
-    GIT_REPOSITORY https://github.com/hypengw/ncrequest.git
-    GIT_TAG 3154f287474221e5ce6dd8f8cc481b07780d72a3
-    GIT_SHALLOW 0
-    GIT_PROGRESS 1
-    EXCLUDE_FROM_ALL)
-  FetchContent_MakeAvailable(ncrequest)
-endif()
-
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/qextra")
-  add_subdirectory(qextra)
-else()
-  FetchContent_Declare(
-    qextra
-    GIT_REPOSITORY https://github.com/hypengw/QExtra.git
-    GIT_TAG bf13f664a518644110140b1901cc0dde057f1658
-    GIT_SHALLOW 0
-    GIT_PROGRESS 1
-    FIND_PACKAGE_ARGS GLOBAL)
-  FetchContent_MakeAvailable(qextra)
-endif()
-
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/qml_material")
-  add_subdirectory(qml_material)
-else()
-  FetchContent_Declare(
-    qml_material
-    GIT_REPOSITORY https://github.com/hypengw/QmlMaterial.git
-    GIT_TAG 06e971569a203ee1b6ec783d0128040c699e8eae
-    GIT_SHALLOW 0
-    GIT_PROGRESS 1
-    FIND_PACKAGE_ARGS GLOBAL)
-  FetchContent_MakeAvailable(qml_material)
-endif()
-
+# random
 set(Random_BuildTests OFF)
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/random")
-  add_subdirectory(random)
-else()
-  FetchContent_Declare(
-    random
-    GIT_REPOSITORY https://github.com/ilqvya/random.git
-    GIT_TAG 6983466aadd1173627b362ff1a297527d9842531
-    GIT_SHALLOW 0
-    GIT_PROGRESS 1
-    EXCLUDE_FROM_ALL)
-  FetchContent_MakeAvailable(random)
-endif()
-add_library(random ALIAS effolkronium_random)
 
 # KDSingleApplication
 set(KDSingleApplication_QT6 ON)
@@ -111,18 +11,6 @@ set(KDSingleApplication_STATIC ON)
 set(KDSingleApplication_TESTS OFF)
 set(KDSingleApplication_EXAMPLES OFF)
 set(KDSingleApplication_DOCS OFF)
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/KDSingleApplication")
-  add_subdirectory(KDSingleApplication)
-else()
-  FetchContent_Declare(
-    KDSingleApplication
-    GIT_REPOSITORY https://github.com/KDAB/KDSingleApplication.git
-    GIT_TAG 631237acd4e20251c7f702db5e5434c83f0e336d
-    GIT_SHALLOW 0
-    GIT_PROGRESS 1
-    SYSTEM EXCLUDE_FROM_ALL FIND_PACKAGE_ARGS QUIET GLOBAL)
-  FetchContent_MakeAvailable(KDSingleApplication)
-endif()
 
 # cubeb
 set(BUILD_TESTS OFF)
@@ -130,18 +18,24 @@ set(BUILD_TOOLS OFF)
 set(BUNDLE_SPEEX ON)
 set(USE_SANITIZERS OFF)
 set(USE_WINMM OFF)
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/cubeb")
-  add_subdirectory(cubeb)
+
+# asio
+add_library(asio INTERFACE)
+target_compile_definitions(asio INTERFACE ASIO_NO_DEPRECATED ASIO_NO_TYPEID
+                                          ASIO_HAS_THREADS ${WIN_DEFS})
+
+fetchdeps(${CMAKE_SOURCE_DIR}/deps.json)
+
+pkg_check_modules(ASIO QUIET asio>=1.30.2)
+if(NOT ASIO_FOUND)
+  target_include_directories(asio SYSTEM
+                             INTERFACE ${asio_SOURCE_DIR}/asio/include)
+  message(STATUS "asio dir: ${asio_SOURCE_DIR}")
 else()
-  FetchContent_Declare(
-    cubeb
-    GIT_REPOSITORY https://github.com/mozilla/cubeb.git
-    GIT_TAG 78b2bce70e0d1c21d3c175b72f322c50801b2e94
-    GIT_SHALLOW 0
-    GIT_PROGRESS 1
-    SYSTEM EXCLUDE_FROM_ALL FIND_PACKAGE_ARGS GLOBAL)
-  FetchContent_MakeAvailable(cubeb)
+  target_include_directories(asio SYSTEM INTERFACE ${ASIO_INCLUDE_DIRS})
 endif()
+
+add_library(random ALIAS effolkronium_random)
 if(NOT TARGET cubeb::cubeb)
   add_library(cubeb::cubeb ALIAS cubeb)
 endif()
