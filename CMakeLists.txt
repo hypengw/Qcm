@@ -36,6 +36,14 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 option(QCM_BUILD_TESTS "Build tests" ${PROJECT_IS_TOP_LEVEL})
 option(QCM_USE_ASAN "use asan" OFF)
 option(QCM_QML_DEBUG "qml debug" OFF)
+if(ANDROID)
+  set(_qcm_build_backend_default OFF)
+else()
+  set(_qcm_build_backend_default ON)
+endif()
+option(QCM_BUILD_BACKEND "Build Rust backend via Cargo"
+       ${_qcm_build_backend_default})
+option(QCM_CARGO_OFFLINE "Pass --frozen to Cargo" OFF)
 
 # check lto
 include(CheckIPOSupported)
@@ -80,6 +88,52 @@ set(QML_INSTALL_DIR
     "${QT_INSTALL_QML}"
     CACHE STRING "")
 message("QML_INSTALL_DIR: ${QML_INSTALL_DIR}")
+
+if(QCM_BUILD_BACKEND)
+  find_program(CARGO cargo REQUIRED)
+
+  set(_qcm_backend_dir "${CMAKE_SOURCE_DIR}/backend")
+  if(WIN32)
+    set(_qcm_backend_bin_name "QcmBackend.exe")
+  else()
+    set(_qcm_backend_bin_name "QcmBackend")
+  endif()
+
+  if(CMAKE_BUILD_TYPE STREQUAL "Release"
+     OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo"
+     OR CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
+    set(_qcm_backend_cargo_profile "release")
+    set(_qcm_backend_cargo_profile_arg "--release")
+  else()
+    set(_qcm_backend_cargo_profile "debug")
+    set(_qcm_backend_cargo_profile_arg "")
+  endif()
+
+  set(_qcm_backend_bin
+      "${_qcm_backend_dir}/target/${_qcm_backend_cargo_profile}/${_qcm_backend_bin_name}"
+  )
+  set(_qcm_backend_cargo_args
+      build
+      --bin=QcmBackend
+      --package=qcm-backend
+      "--manifest-path=${_qcm_backend_dir}/Cargo.toml")
+  if(_qcm_backend_cargo_profile_arg)
+    list(APPEND _qcm_backend_cargo_args "${_qcm_backend_cargo_profile_arg}")
+  endif()
+  if(QCM_CARGO_OFFLINE)
+    list(APPEND _qcm_backend_cargo_args --frozen)
+  endif()
+
+  add_custom_target(
+    qcm_backend ALL
+    COMMAND ${CARGO} ${_qcm_backend_cargo_args}
+    WORKING_DIRECTORY "${_qcm_backend_dir}"
+    BYPRODUCTS "${_qcm_backend_bin}"
+    COMMENT "Building QcmBackend"
+    VERBATIM)
+  install(PROGRAMS "${_qcm_backend_bin}" DESTINATION ${CMAKE_INSTALL_BINDIR}
+          COMPONENT Backend)
+endif()
 
 # -Wconversion -Wsign-conversion
 set(WARN_OPTS

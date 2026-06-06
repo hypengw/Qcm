@@ -344,6 +344,9 @@ target_link_libraries(
 qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION src/main.cpp)
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_SCAN_FOR_MODULES ON
                                                  WIN32_EXECUTABLE FALSE)
+if(TARGET qcm_backend)
+  add_dependencies(${PROJECT_NAME} qcm_backend)
+endif()
 target_compile_definitions(${PROJECT_NAME} PRIVATE "${APP_INFO_MACROS}")
 
 target_link_libraries(
