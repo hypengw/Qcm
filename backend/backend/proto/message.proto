@@ -1,0 +1,571 @@
+syntax = "proto3";
+
+package qcm.msg;
+
+import "google/protobuf/struct.proto";
+
+import "filter.proto";
+import "model.proto";
+
+enum MessageType {
+  UNKNOWN = 0;
+  RSP = 1;
+  TEST_REQ = 2;
+  TEST_RSP = 3;
+
+  GET_PROVIDER_METAS_REQ = 4;
+  GET_PROVIDER_METAS_RSP = 5;
+
+  QR_AUTH_URL_REQ = 6;
+  QR_AUTH_URL_RSP = 7;
+  AUTH_PROVIDER_REQ = 8;
+  AUTH_PROVIDER_RSP = 9;
+  ADD_PROVIDER_REQ = 10;
+  UPDATE_PROVIDER_REQ = 11;
+  UPDATE_PROVIDER_RSP = 12;
+  REPLACE_PROVIDER_REQ = 13;
+  DELETE_PROVIDER_REQ = 14;
+  PROVIDER_META_STATUS_MSG = 15;
+  PROVIDER_STATUS_MSG = 16;
+  PROVIDER_SYNC_STATUS_MSG = 17;
+  CREATE_TMP_PROVIDER_REQ = 18;
+  CREATE_TMP_PROVIDER_RSP = 19;
+  DELETE_TMP_PROVIDER_REQ = 20;
+
+  GET_MIXS_REQ = 30;
+  GET_MIXS_RSP = 31;
+  GET_MIX_REQ = 32;
+  GET_MIX_RSP = 33;
+  CREATE_MIX_REQ = 34;
+  CREATE_MIX_RSP = 35;
+  DELETE_MIX_REQ = 36;
+  MIX_MANIPULATE_REQ = 37;
+  MIX_MANIPULATE_RSP = 38;
+  GET_MIX_SONGS_REQ = 39;
+  GET_MIX_SONGS_RSP = 40;
+  LINK_MIX_REQ = 41;
+
+  SYNC_REQ = 50;
+  SYNC_RSP = 51;
+
+  GET_ALBUMS_REQ = 60;
+  GET_ALBUMS_RSP = 61;
+  GET_ALBUM_REQ = 62;
+  GET_ALBUM_RSP = 63;
+
+  GET_ARTISTS_REQ = 70;
+  GET_ARTISTS_RSP = 71;
+  GET_ALBUM_ARTISTS_REQ = 72;
+  GET_ALBUM_ARTISTS_RSP = 73;
+  GET_ARTIST_REQ = 74;
+  GET_ARTIST_RSP = 75;
+  GET_ARTIST_ALBUM_REQ = 76;
+  GET_ARTIST_ALBUM_RSP = 77;
+
+  GET_SUBTITLE_REQ = 90;
+  GET_SUBTITLE_RSP = 91;
+
+  GET_REMOTE_MIXS_REQ = 95;
+  GET_REMOTE_MIXS_RSP = 96;
+
+  SEARCH_REQ = 100;
+  SEARCH_RSP = 101;
+  SET_FAVORITE_REQ = 102;
+
+  GET_STORAGE_INFO_REQ = 200;
+  GET_STORAGE_INFO_RSP = 201;
+  PLAYLOG_REQ = 202;
+
+  GET_SONGS_BY_ID_REQ = 400;
+  GET_SONGS_BY_ID_RSP = 401;
+  GET_SONG_IDS_REQ = 402;
+  GET_SONG_IDS_RSP = 403;
+
+  GET_QUEUE_NEXT_REQ = 410;
+  GET_QUEUE_NEXT_RSP = 411;
+  GET_RADIO_QUEUES_REQ = 413;
+  GET_RADIO_QUEUES_RSP = 414;
+
+  SYNC_ITEM_REQ = 500;
+
+  GET_HOME_BLOCKS_REQ = 600;
+  GET_HOME_BLOCKS_RSP = 601;
+  GET_HOME_BLOCK_ITEMS_REQ = 602;
+  GET_HOME_BLOCK_ITEMS_RSP = 603;
+}
+
+enum ErrorCode {
+  ERROR_CODE_OK = 0;
+  ERROR_CODE_INTERNAL = 1;
+  ERROR_CODE_ENCODE = 2;
+  ERROR_CODE_DECODE = 3;
+  ERROR_CODE_UNSUPPORTED_MESSAGE_TYPE = 4;
+  ERROR_CODE_UNKNOWN_MESSAGE_TYPE = 5;
+  ERROR_CODE_UNEXPECTED_PAYLOAD = 6;
+  ERROR_CODE_MISSING_FIELDS = 7;
+  ERROR_CODE_NO_SUCH_PROVIDER_TYPE = 8;
+  ERROR_CODE_DB = 9;
+  ERROR_CODE_HYPER_BODY = 10;
+  ERROR_CODE_WRONG_ID = 11;
+  ERROR_CODE_PARSE_SUBTITLE = 12;
+
+  ERROR_CODE_NO_SUCH_LIBRARY = 100;
+  ERROR_CODE_NO_SUCH_PROVIDER = 101;
+  ERROR_CODE_NO_SUCH_ALBUM = 102;
+  ERROR_CODE_NO_SUCH_SONG = 103;
+  ERROR_CODE_NO_SUCH_ARTIST = 104;
+  ERROR_CODE_NO_SUCH_MIX = 105;
+
+  ERROR_CODE_NO_SUCH_ITEM_TYPE = 120;
+  ERROR_CODE_NO_SUCH_IMAGE_TYPE = 121;
+  ERROR_CODE_NO_SUCH_SEARCH_TYPE = 122;
+
+  ERROR_CODE_UNSUPPORTED_ITEM_TYPE = 200;
+  ERROR_CODE_NOT_FOUND = 210;
+  ERROR_CODE_NOT_IMPLEMENTED = 211;
+}
+
+message Rsp {
+  ErrorCode code = 1;
+  string message = 2;
+}
+
+message TestReq { string test_data = 1; }
+
+message TestRsp { string test_data = 2; }
+
+message GetProviderMetasReq {}
+message GetProviderMetasRsp { repeated qcm.msg.model.ProviderMeta metas = 1; }
+
+message CreateTmpProviderReq { string type_name = 1; }
+message CreateTmpProviderRsp { string key = 1; }
+message DeleteTmpProviderReq { string key = 1; }
+
+message AuthProviderReq {
+  string tmp_provider = 1;
+  qcm.msg.model.AuthInfo auth_info = 2;
+}
+message AuthProviderRsp {
+  qcm.msg.model.AuthResult code = 1;
+  string message = 2;
+  string qr_name = 3;       // opt
+  string qr_avatar_url = 4; // opt
+}
+
+message AddProviderReq {
+  string name = 1;
+  string tmp_provider = 2;
+}
+
+message UpdateProviderReq {
+  int64 provider_id = 1;
+  string name = 2;
+  qcm.msg.model.AuthInfo auth_info = 3;
+}
+message UpdateProviderRsp {
+  qcm.msg.model.AuthResult code = 1;
+  string message = 2;
+}
+
+message ReplaceProviderReq {
+  int64 provider_id = 1;
+  string tmp_provider = 2;
+}
+message DeleteProviderReq { int64 provider_id = 1; }
+
+message ProviderMetaStatusMsg {
+  repeated qcm.msg.model.ProviderMeta metas = 1;
+  bool full = 2;
+}
+
+message ProviderStatusMsg {
+  repeated qcm.msg.model.ProviderStatus statuses = 1;
+  bool full = 2;
+}
+
+message ProviderSyncStatusMsg {
+  qcm.msg.model.ProviderSyncStatus status = 1;
+  repeated qcm.msg.model.ProviderStatus statuses = 2;
+}
+
+message GetSongsRsp {
+  repeated qcm.msg.model.Song items = 1;
+  repeated google.protobuf.Struct extras = 2;
+  int32 total = 3;
+  bool has_more = 4;
+}
+
+message GetAlbumsReq {
+  repeated int64 library_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  qcm.msg.model.AlbumSort sort = 4;
+  bool sort_asc = 5;
+  repeated qcm.msg.filter.AlbumFilter filters = 6;
+  repeated qcm.msg.filter.FilterLogic filter_logics = 7;
+}
+
+message GetAlbumsRsp {
+  repeated qcm.msg.model.Album items = 1;
+  repeated google.protobuf.Struct extras = 2;
+  int32 total = 3;
+  bool has_more = 4;
+}
+
+message GetAlbumReq { int64 id = 1; }
+
+message GetAlbumRsp {
+  qcm.msg.model.Album item = 1;
+  google.protobuf.Struct extra = 2;
+  repeated qcm.msg.model.Song songs = 3;
+  repeated google.protobuf.Struct song_extras = 4;
+}
+
+message GetArtistsReq {
+  repeated int64 library_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  qcm.msg.model.ArtistSort sort = 4;
+  bool sort_asc = 5;
+  repeated qcm.msg.filter.ArtistFilter filters = 6;
+  repeated qcm.msg.filter.FilterLogic filter_logics = 7;
+}
+
+message GetArtistsRsp {
+  repeated qcm.msg.model.Artist items = 1;
+  repeated google.protobuf.Struct extras = 2;
+  int32 total = 3;
+  bool has_more = 4;
+}
+
+message GetAlbumArtistsReq {
+  repeated int64 library_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  qcm.msg.model.ArtistSort sort = 4;
+  bool sort_asc = 5;
+  repeated qcm.msg.filter.ArtistFilter filters = 6;
+  repeated qcm.msg.filter.FilterLogic filter_logics = 7;
+}
+
+message GetAlbumArtistsRsp {
+  repeated qcm.msg.model.Artist items = 1;
+  repeated google.protobuf.Struct extras = 2;
+  int32 total = 3;
+  bool has_more = 4;
+}
+
+message GetArtistReq { int64 id = 1; }
+
+message GetArtistRsp {
+  qcm.msg.model.Artist item = 1;
+  google.protobuf.Struct extra = 2;
+}
+
+message GetArtistAlbumReq {
+  int64 id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  qcm.msg.model.AlbumSort sort = 4;
+  bool sort_asc = 5;
+}
+
+message GetArtistAlbumRsp {
+  repeated qcm.msg.model.Album items = 1;
+  repeated google.protobuf.Struct extras = 2;
+  int32 total = 3;
+  bool has_more = 4;
+}
+
+message GetMixSongsReq {
+  int64 id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  qcm.msg.model.SongSort sort = 4;
+  bool sort_asc = 5;
+}
+
+message GetMixSongsRsp {
+  qcm.msg.model.Mix mix = 1;
+  repeated qcm.msg.model.Song items = 2;
+  repeated google.protobuf.Struct extras = 3;
+  int32 total = 4;
+  bool has_more = 5;
+}
+
+message GetMixsReq {
+  repeated int64 library_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  qcm.msg.model.MixSort sort = 4;
+  bool sort_asc = 5;
+  repeated qcm.msg.filter.MixFilter filters = 6;
+  repeated qcm.msg.filter.FilterLogic filter_logics = 7;
+}
+
+message GetMixsRsp {
+  repeated qcm.msg.model.Mix items = 1;
+  repeated google.protobuf.Struct extras = 2;
+  int32 total = 3;
+  bool has_more = 4;
+}
+
+message GetRemoteMixsReq {
+  int32 page = 1;
+  int32 page_size = 2;
+  qcm.msg.model.MixSort sort = 3;
+  bool sort_asc = 4;
+  repeated qcm.msg.filter.RemoteMixFilter filters = 6;
+  repeated qcm.msg.filter.FilterLogic filter_logics = 7;
+}
+
+message GetRemoteMixsRsp {
+  repeated qcm.msg.model.Mix items = 1;
+  repeated google.protobuf.Struct extras = 2;
+  int32 total = 3;
+  bool has_more = 4;
+}
+
+message GetMixReq { int64 id = 1; }
+
+message GetMixRsp {
+  qcm.msg.model.Mix item = 1;
+  google.protobuf.Struct extra = 2;
+}
+
+message GetSongsByIdReq { repeated int64 ids = 1; }
+message GetSongsByIdRsp {
+  repeated qcm.msg.model.Song items = 1;
+  repeated google.protobuf.Struct extras = 2;
+  int32 total = 3;
+}
+
+message GetSongIdsReq {
+  qcm.msg.model.SongSort sort = 1;
+  qcm.msg.model.AlbumSort album_sort = 2;
+
+  bool asc = 3;
+  bool album_asc = 4;
+
+  repeated int64 library_ids = 5;
+  repeated qcm.msg.filter.SongFilter filters = 6;
+  repeated qcm.msg.filter.AlbumFilter album_filters = 7;
+  repeated qcm.msg.filter.FilterLogic filter_logics = 8;
+  repeated qcm.msg.filter.FilterLogic album_filter_logics = 9;
+}
+
+message GetSongIdsRsp { repeated int64 ids = 1; }
+
+message SyncReq { int64 provider_id = 1; }
+message SyncRsp { int64 handle = 1; }
+
+message QrAuthUrlReq { string tmp_provider = 1; }
+message QrAuthUrlRsp {
+  string key = 1;
+  string url = 2;
+}
+
+enum SearchType {
+  SEARCH_TYPE_ALBUM = 0;
+  SEARCH_TYPE_ARTIST = 1;
+  SEARCH_TYPE_SONG = 2;
+}
+
+message SearchReq {
+  string query = 1;
+  repeated int64 library_id = 2;
+  repeated int32 types = 3;
+  int32 page = 4;
+  int32 page_size = 5;
+}
+
+message SearchRsp {
+  GetAlbumsRsp albums = 1;
+  GetArtistsRsp artists = 2;
+  GetSongsRsp songs = 3;
+}
+
+message GetSubtitleReq { int64 song_id = 1; }
+
+message GetSubtitleRsp { qcm.msg.model.Subtitle subtitle = 1; }
+
+message SetFavoriteReq {
+  int64 id = 1;
+  qcm.msg.model.ItemType item_type = 2;
+  bool value = 3;
+}
+
+message GetStorageInfoReq {}
+message GetStorageInfoRsp {
+  int64 media_size = 1; // in bytes
+  int64 image_size = 2;
+  int64 database_size = 3;
+}
+
+message PlaylogReq {
+  int64 song_id = 1;
+  qcm.msg.model.PlaylogAction action = 2;
+  int32 position = 3;
+  int64 timestamp = 4;
+  int64 source_id = 5;
+  qcm.msg.model.ItemType source_type = 6;
+  string source_id_str = 7;
+}
+
+message GetQueueNextReq {
+  int64 queue_id = 1;
+  repeated int64 current_song_ids = 2;
+}
+
+message GetQueueNextRsp {
+  repeated qcm.msg.model.Song songs = 1;
+  repeated google.protobuf.Struct extras = 2;
+}
+
+message GetRadioQueuesReq {
+  repeated int64 provider_ids = 1;
+}
+
+message GetRadioQueuesRsp {
+  repeated qcm.msg.model.RadioQueue queues = 1;
+}
+
+message CreateMixReq {
+  string name = 1;
+  repeated int64 song_ids = 2;
+}
+
+message CreateMixRsp { int64 id = 1; }
+
+message DeleteMixReq { repeated int64 ids = 1; }
+message LinkMixReq { repeated int64 ids = 1; }
+
+message MixManipulateReq {
+  int64 id = 1;
+  qcm.msg.model.MixManipulateOper oper = 2;
+  repeated int64 song_ids = 3;
+  repeated int64 album_ids = 4;
+}
+
+message MixManipulateRsp {
+  int64 id = 1;
+  qcm.msg.model.MixManipulateOper oper = 2;
+  int64 count = 3;
+}
+
+message UpdateMixReq {
+  int64 id = 1;
+  string name = 2;
+}
+
+message SyncItemReq { int64 id = 1; }
+
+message GetHomeBlocksReq { int64 provider_id = 1; }
+message GetHomeBlocksRsp { repeated qcm.msg.model.HomeBlock blocks = 1; }
+
+message GetHomeBlockItemsReq {
+  int64 provider_id = 1;
+  string block_id = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GetHomeBlockItemsRsp {
+  oneof content {
+    GetAlbumsRsp albums = 1;
+    GetMixsRsp mixes = 2;
+    GetArtistsRsp artists = 3;
+    GetSongsRsp songs = 4;
+  }
+}
+
+message QcmMessage {
+  MessageType type = 1;
+  int32 id = 2;
+
+  oneof payload {
+    Rsp rsp = 101;
+    TestReq test_req = 102;
+    TestRsp test_rsp = 103;
+
+    GetProviderMetasReq get_provider_metas_req = 104;
+    GetProviderMetasRsp get_provider_metas_rsp = 105;
+
+    QrAuthUrlReq qr_auth_url_req = 106;
+    QrAuthUrlRsp qr_auth_url_rsp = 107;
+    AuthProviderReq auth_provider_req = 108;
+    AuthProviderRsp auth_provider_rsp = 109;
+    AddProviderReq add_provider_req = 110;
+    UpdateProviderReq update_provider_req = 111;
+    UpdateProviderRsp update_provider_rsp = 112;
+    ReplaceProviderReq replace_provider_req = 113;
+    DeleteProviderReq delete_provider_req = 114;
+    ProviderMetaStatusMsg provider_meta_status_msg = 115;
+    ProviderStatusMsg provider_status_msg = 116;
+    ProviderSyncStatusMsg provider_sync_status_msg = 117;
+    CreateTmpProviderReq create_tmp_provider_req = 118;
+    CreateTmpProviderRsp create_tmp_provider_rsp = 119;
+    DeleteTmpProviderReq delete_tmp_provider_req = 120;
+
+    GetMixsReq get_mixs_req = 130;
+    GetMixsRsp get_mixs_rsp = 131;
+    GetMixReq get_mix_req = 132;
+    GetMixRsp get_mix_rsp = 133;
+    CreateMixReq create_mix_req = 134;
+    CreateMixRsp create_mix_rsp = 135;
+    DeleteMixReq delete_mix_req = 136;
+    MixManipulateReq mix_manipulate_req = 137;
+    MixManipulateRsp mix_manipulate_rsp = 138;
+    GetMixSongsReq get_mix_songs_req = 139;
+    GetMixSongsRsp get_mix_songs_rsp = 140;
+    LinkMixReq link_mix_req = 141;
+
+    SyncReq sync_req = 150;
+    SyncRsp sync_rsp = 151;
+
+    GetAlbumsReq get_albums_req = 160;
+    GetAlbumsRsp get_albums_rsp = 161;
+    GetAlbumReq get_album_req = 162;
+    GetAlbumRsp get_album_rsp = 163;
+
+    GetArtistsReq get_artists_req = 170;
+    GetArtistsRsp get_artists_rsp = 171;
+    GetAlbumArtistsReq get_album_artists_req = 172;
+    GetAlbumArtistsRsp get_album_artists_rsp = 173;
+    GetArtistReq get_artist_req = 174;
+    GetArtistRsp get_artist_rsp = 175;
+    GetArtistAlbumReq get_artist_album_req = 176;
+    GetArtistAlbumRsp get_artist_album_rsp = 177;
+
+    GetSubtitleReq get_subtitle_req = 190;
+    GetSubtitleRsp get_subtitle_rsp = 191;
+
+    GetRemoteMixsReq get_remote_mixs_req = 195;
+    GetRemoteMixsRsp get_remote_mixs_rsp = 196;
+
+    SearchReq search_req = 200;
+    SearchRsp search_rsp = 201;
+    SetFavoriteReq set_favorite_req = 202;
+
+    GetStorageInfoReq get_storage_info_req = 300;
+    GetStorageInfoRsp get_storage_info_rsp = 301;
+    PlaylogReq playlog_req = 302;
+
+    GetSongsByIdReq get_songs_by_id_req = 400;
+    GetSongsByIdRsp get_songs_by_id_rsp = 401;
+    GetSongIdsReq get_song_ids_req = 402;
+    GetSongIdsRsp get_song_ids_rsp = 403;
+
+    GetQueueNextReq get_queue_next_req = 410;
+    GetQueueNextRsp get_queue_next_rsp = 411;
+    GetRadioQueuesReq get_radio_queues_req = 413;
+    GetRadioQueuesRsp get_radio_queues_rsp = 414;
+
+    SyncItemReq sync_item_req = 500;
+
+    GetHomeBlocksReq get_home_blocks_req = 600;
+    GetHomeBlocksRsp get_home_blocks_rsp = 601;
+    GetHomeBlockItemsReq get_home_block_items_req = 602;
+    GetHomeBlockItemsRsp get_home_block_items_rsp = 603;
+  }
+}

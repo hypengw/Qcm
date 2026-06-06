@@ -1,0 +1,24 @@
+[package]
+name = "qcm-plugin-lua"
+authors = ["hypengw <hypengwip@gmail.com>"]
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+qcm-core = { git = "https://github.com/hypengw/QcmBackend.git" }
+log = "0.4"
+sea-orm = "1"
+serde = "1.0"
+serde_json = "1.0"
+serde_urlencoded = "0.7"
+chrono = "0.4"
+reqwest = "0.12"
+async-trait = "0.1"
+
+mlua = { version = "0.10", features = [
+    "lua54",
+    "async",
+    "send",
+    "error-send",
+    "serialize",
+] }

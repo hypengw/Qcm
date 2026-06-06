@@ -1,0 +1,11 @@
+[package]
+name = "qcm-plugins"
+authors = ["hypengw <hypengwip@gmail.com>"]
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+qcm-core = { path = "../core" }
+qcm-plugin-local = { path = "./local" }
+qcm-plugin-lua = { path = "./lua" }
+qcm-plugin-jellyfin = { git = "https://github.com/hypengw/qcm-jellyfin-plugin.git", branch = "master" }

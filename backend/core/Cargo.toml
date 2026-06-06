@@ -1,0 +1,51 @@
+[package]
+name = "qcm-core"
+version = "0.1.0"
+authors = ["hypengw <hypengwip@gmail.com>"]
+edition = "2021"
+
+[dependencies]
+qcm-core-macro = { path = "./macro" }
+# basic
+log.workspace = true
+tracing.workspace = true
+uuid = { workspace = true, features = ["v4"] }
+once_cell.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+strum.workspace = true
+strum_macros.workspace = true
+num_enum = "0"
+chrono.workspace = true
+# crypto
+openssl = "0.10"
+hex = "0.4"
+base64 = "0.22"
+# error
+anyhow.workspace = true
+thiserror.workspace = true
+# concurrent
+crossbeam-channel.workspace = true
+# async
+async-trait.workspace = true
+tokio.workspace = true
+bytes.workspace = true
+futures.workspace = true
+# client
+reqwest = { workspace = true, features = ["json", "cookies", "stream"] }
+cookie_store = "0.21"
+reqwest_cookie_store = "0.8"
+# orm
+sea-orm = { workspace = true, features = [
+    "sqlx-sqlite",
+    "runtime-tokio",
+    "with-uuid",
+    "with-chrono",
+    "debug-print",
+    "sqlite-use-returning-for-3_35",
+] }
+# other
+const-chunks = "0.3"
+rust_decimal = "1"
+rust_decimal_macros = "1"
+nom = "8"

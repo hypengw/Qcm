@@ -1,0 +1,44 @@
+[workspace]
+members = ["core", "backend", "plugin"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+
+[patch.'https://github.com/hypengw/QcmBackend.git']
+qcm-core = { path = "./core" }
+
+[workspace.dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "sync", "time"] }
+sea-orm = { version = "1.1" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0"
+thiserror = "2.0"
+prost = "0.13"
+reqwest = { version = "0.12" }
+chrono = "0.4"
+tracing = "0.1"
+log = "0.4"
+bytes = "1"
+uuid = { version = "1.4" }
+once_cell = "1"
+strum = "0.26"
+strum_macros = "0.26"
+async-trait = "0.1"
+crossbeam-channel = "0.5"
+futures = "0.3"
+
+[profile.release]
+lto = "fat"
+strip = "debuginfo"
+codegen-units = 1
+panic = "abort"
+opt-level = 3
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 2

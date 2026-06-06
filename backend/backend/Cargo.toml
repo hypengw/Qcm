@@ -1,0 +1,58 @@
+[package]
+name = "qcm-backend"
+authors = ["hypengw <hypengwip@gmail.com>"]
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "QcmBackend"
+path = "src/main.rs"
+
+[dependencies]
+qcm-core = { path = "../core" }
+anyhow.workspace = true
+log.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+crossbeam-channel.workspace = true
+reqwest = { workspace = true, features = ["json", "cookies", "stream"] }
+chrono.workspace = true
+sea-orm.workspace = true
+sqlx = "0"
+libsqlite3-sys = "0"
+tracing.workspace = true
+bytes.workspace = true
+uuid.workspace = true
+unicode-normalization = "0"
+strum.workspace = true
+strum_macros.workspace = true
+
+migration = { path = "./migration" }
+once_cell.workspace = true
+clap = { version = "4.5", features = ["derive", "env"] }
+prost.workspace = true
+prost-types = "0.13"
+futures-util = "0.3"
+tokio-tungstenite = "0.26"
+rand = "0.9"
+hyper = { version = "1", features = ["http1", "http2", "server"] }
+hyper-util = { version = "0.1", features = ["server-auto"] }
+http-body-util = "0.1"
+hyper-tungstenite = "0.17"
+http-range-header = "0"
+http-range = "0"
+http-content-range = "0"
+scopeguard = "1"
+futures.workspace = true
+tracing-subscriber = { version = "0.3", features = [
+    "env-filter",
+    "registry",
+    "json",
+] }
+
+qcm-plugins = { path = "../plugin" }
+
+[build-dependencies]
+prost-build = "0.13"
