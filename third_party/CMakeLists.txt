@@ -24,11 +24,7 @@ add_library(asio INTERFACE)
 target_compile_definitions(asio INTERFACE ASIO_NO_DEPRECATED ASIO_NO_TYPEID
                                           ASIO_HAS_THREADS ${WIN_DEFS})
 
-set(FETCHDEPS_LOCAL_OVERRIDES "" CACHE STRING
-  "Semicolon-separated <name>=<path> entries for local fetchdeps overrides.")
-
-fetchdeps(${CMAKE_SOURCE_DIR}/deps.json
-  LOCAL_OVERRIDES ${FETCHDEPS_LOCAL_OVERRIDES})
+fetchdeps(${CMAKE_SOURCE_DIR}/deps.json)
 
 pkg_check_modules(ASIO QUIET asio>=1.30.2)
 if(NOT ASIO_FOUND)

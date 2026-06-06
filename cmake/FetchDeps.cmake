@@ -13,21 +13,35 @@
 # Local source overrides
 # ----------------------
 # By default a dep `<name>` is taken from `<deps.json dir>/<name>` if
-# that directory exists, otherwise it is fetched. Two named options
-# override this lookup:
+# that directory exists, otherwise it is fetched. To override per-dep,
+# set the cache variable `FETCHDEPS_LOCAL_<name>=<path>` (typically
+# from a CMakeUserPresets.json `cacheVariables` block, or `-D` on the
+# command line). When set and the path exists it has the highest
+# precedence; otherwise the lookup falls through to the deps.json dir
+# / fetch.
 #
-#   LOCAL_ROOT <dir>
-#     Replace the deps.json directory as the lookup root. Each dep is
-#     still found at `<dir>/<name>`.
+# Selective fetch
+# ---------------
+#   NAMES <name> [<name> ...]
+#     Whitelist. If non-empty, only entries whose `x-cmake.name` is in
+#     the list are declared/fetched; others are skipped silently. Empty
+#     (default) keeps the fetch-all behavior. A NAMES entry not present
+#     in deps.json is reported as a warning.
 #
-#   LOCAL_OVERRIDES <name>=<path> [<name>=<path> ...]
-#     Per-dep absolute lookups. Highest precedence; an entry whose path
-#     does not exist is skipped (falls through to LOCAL_ROOT / fetch).
+# Skip-already-loaded
+# -------------------
+# A dep loaded by an earlier fetchdeps() call in the same configure is
+# tracked as the directory property `_FETCHDEPS_LOADED` on
+# CMAKE_SOURCE_DIR (one shared list for the whole tree). Subsequent
+# calls hit a "<name> already loaded, skipping" log line instead of
+# re-running add_subdirectory()/FetchContent_MakeAvailable().
 #
 # Example:
 #
-#     fetchdeps(${CMAKE_CURRENT_SOURCE_DIR}/deps.json
-#       LOCAL_OVERRIDES qml_material=${CMAKE_SOURCE_DIR}/../qml_material)
+#     fetchdeps(${CMAKE_SOURCE_DIR}/deps.json)
+#     fetchdeps(${CMAKE_SOURCE_DIR}/deps.json NAMES rstd)
+#     # CMakeUserPresets.json cacheVariables:
+#     #   "FETCHDEPS_LOCAL_qml_material": "${sourceDir}/../qml_material"
 
 include_guard(GLOBAL)
 include(FetchContent)
@@ -63,23 +77,49 @@ function(_fetchdeps_mark_declared name)
   set_property(GLOBAL APPEND PROPERTY _FETCHDEPS_DECLARED "${name}")
 endfunction()
 
+function(_fetchdeps_loaded_has out_var name)
+  get_property(_v DIRECTORY "${CMAKE_SOURCE_DIR}" PROPERTY _FETCHDEPS_LOADED)
+  if(name IN_LIST _v)
+    set(${out_var} TRUE PARENT_SCOPE)
+  else()
+    set(${out_var} FALSE PARENT_SCOPE)
+  endif()
+endfunction()
+
+function(_fetchdeps_loaded_add name)
+  get_property(_v DIRECTORY "${CMAKE_SOURCE_DIR}" PROPERTY _FETCHDEPS_LOADED)
+  if(NOT name IN_LIST _v)
+    list(APPEND _v "${name}")
+    set_property(DIRECTORY "${CMAKE_SOURCE_DIR}"
+                 PROPERTY _FETCHDEPS_LOADED "${_v}")
+  endif()
+endfunction()
+
 macro(_fetchdeps_fetch_one _fd_entry _fd_source_root)
   string(JSON _fd_name  GET "${_fd_entry}" "x-cmake" name)
   string(JSON _fd_dtype GET "${_fd_entry}" type)
 
   _fetchdeps_mark_declared("${_fd_name}")
 
-  FetchContent_GetProperties(${_fd_name})
-  if(${_fd_name}_POPULATED)
-    # already populated
-  elseif(DEFINED _FETCHDEPS_LOCAL_${_fd_name}
-         AND EXISTS "${_FETCHDEPS_LOCAL_${_fd_name}}")
-    message(STATUS "fetchdeps: using local override ${_FETCHDEPS_LOCAL_${_fd_name}}")
-    add_subdirectory("${_FETCHDEPS_LOCAL_${_fd_name}}" "${_fd_name}")
-  elseif(EXISTS "${_fd_source_root}/${_fd_name}")
-    message(STATUS "fetchdeps: using local ${_fd_source_root}/${_fd_name}")
-    add_subdirectory("${_fd_source_root}/${_fd_name}" "${_fd_name}")
+  set(_fd_did_load FALSE)
+  _fetchdeps_loaded_has(_fd_loaded_hit "${_fd_name}")
+  if(_fd_loaded_hit)
+    message(STATUS "fetchdeps: ${_fd_name} already loaded, skipping")
   else()
+    FetchContent_GetProperties(${_fd_name})
+    if(${_fd_name}_POPULATED)
+      message(STATUS "fetchdeps: ${_fd_name} already populated, skipping")
+      set(_fd_did_load TRUE)
+    elseif(DEFINED FETCHDEPS_LOCAL_${_fd_name}
+           AND EXISTS "${FETCHDEPS_LOCAL_${_fd_name}}")
+      message(STATUS "fetchdeps: ${_fd_name} <- local override ${FETCHDEPS_LOCAL_${_fd_name}}")
+      add_subdirectory("${FETCHDEPS_LOCAL_${_fd_name}}" "${_fd_name}")
+      set(_fd_did_load TRUE)
+    elseif(EXISTS "${_fd_source_root}/${_fd_name}")
+      message(STATUS "fetchdeps: ${_fd_name} <- local ${_fd_source_root}/${_fd_name}")
+      add_subdirectory("${_fd_source_root}/${_fd_name}" "${_fd_name}")
+      set(_fd_did_load TRUE)
+    else()
     _fetchdeps_json_get_opt(_fd_dest "${_fd_entry}" dest)
     if(_fd_dest)
       set(_FETCHDEPS_DEST_${_fd_name} "${_fd_dest}" CACHE INTERNAL "" FORCE)
@@ -189,13 +229,20 @@ macro(_fetchdeps_fetch_one _fd_entry _fd_source_root)
 
     set(_FETCHDEPS_EXCLUDE_${_fd_name} "${_fd_exclude_from_all}" CACHE INTERNAL "" FORCE)
 
+    message(STATUS "fetchdeps: ${_fd_name} <- fetch ${_fd_dtype}")
     FetchContent_Declare(${_fd_name} ${_fd_declare_args})
     FetchContent_MakeAvailable(${_fd_name})
+    set(_fd_did_load TRUE)
+    endif()
+  endif()
+
+  if(_fd_did_load)
+    _fetchdeps_loaded_add("${_fd_name}")
   endif()
 endmacro()
 
 macro(fetchdeps _fd_deps_path)
-  cmake_parse_arguments(_FD "" "LOCAL_ROOT" "LOCAL_OVERRIDES" ${ARGN})
+  cmake_parse_arguments(_FD "" "" "NAMES" ${ARGN})
   if(_FD_UNPARSED_ARGUMENTS)
     message(FATAL_ERROR
       "fetchdeps: unexpected argument(s): ${_FD_UNPARSED_ARGUMENTS}")
@@ -213,31 +260,40 @@ macro(fetchdeps _fd_deps_path)
 
   set_property(GLOBAL PROPERTY _FETCHDEPS_JSON_PATH "${_fd_deps_path}")
 
-  if(_FD_LOCAL_ROOT)
-    set(_fd_top_source_root "${_FD_LOCAL_ROOT}")
-  else()
-    get_filename_component(_fd_top_source_root "${_fd_deps_path}" DIRECTORY)
-  endif()
-
-  foreach(_fd_ov IN LISTS _FD_LOCAL_OVERRIDES)
-    if(_fd_ov MATCHES "^([^=]+)=(.+)$")
-      set(_FETCHDEPS_LOCAL_${CMAKE_MATCH_1} "${CMAKE_MATCH_2}"
-          CACHE INTERNAL "" FORCE)
-    else()
-      message(FATAL_ERROR
-        "fetchdeps: LOCAL_OVERRIDES entry '${_fd_ov}' must be name=path")
-    endif()
-  endforeach()
+  get_filename_component(_fd_top_source_root "${_fd_deps_path}" DIRECTORY)
 
   if(_fd_n GREATER 0)
     math(EXPR _fd_top_last "${_fd_n} - 1")
+
+    if(_FD_NAMES)
+      set(_fd_known_names "")
+      foreach(_fd_top_i RANGE 0 ${_fd_top_last})
+        string(JSON _fd_top_entry GET "${_fd_deps_json}" ${_fd_top_i})
+        string(JSON _fd_pre_name GET "${_fd_top_entry}" "x-cmake" name)
+        list(APPEND _fd_known_names "${_fd_pre_name}")
+      endforeach()
+      foreach(_fd_want IN LISTS _FD_NAMES)
+        if(NOT _fd_want IN_LIST _fd_known_names)
+          message(WARNING
+            "fetchdeps: NAMES entry '${_fd_want}' not in ${_fd_deps_path}")
+        endif()
+      endforeach()
+    endif()
+
     foreach(_fd_top_i RANGE 0 ${_fd_top_last})
       string(JSON _fd_top_entry GET "${_fd_deps_json}" ${_fd_top_i})
       string(JSON _fd_pre_name GET "${_fd_top_entry}" "x-cmake" name)
+      if(_FD_NAMES AND NOT _fd_pre_name IN_LIST _FD_NAMES)
+        continue()
+      endif()
       _fetchdeps_mark_declared("${_fd_pre_name}")
     endforeach()
     foreach(_fd_top_i RANGE 0 ${_fd_top_last})
       string(JSON _fd_top_entry GET "${_fd_deps_json}" ${_fd_top_i})
+      string(JSON _fd_pre_name GET "${_fd_top_entry}" "x-cmake" name)
+      if(_FD_NAMES AND NOT _fd_pre_name IN_LIST _FD_NAMES)
+        continue()
+      endif()
       _fetchdeps_fetch_one("${_fd_top_entry}" "${_fd_top_source_root}")
     endforeach()
   endif()

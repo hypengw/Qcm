@@ -90,49 +90,25 @@ set(QML_INSTALL_DIR
 message("QML_INSTALL_DIR: ${QML_INSTALL_DIR}")
 
 if(QCM_BUILD_BACKEND)
-  find_program(CARGO cargo REQUIRED)
+  include(FetchDeps)
+  fetchdeps(${CMAKE_SOURCE_DIR}/deps.json NAMES Corrosion)
 
-  set(_qcm_backend_dir "${CMAKE_SOURCE_DIR}/backend")
-  if(WIN32)
-    set(_qcm_backend_bin_name "QcmBackend.exe")
-  else()
-    set(_qcm_backend_bin_name "QcmBackend")
-  endif()
-
-  if(CMAKE_BUILD_TYPE STREQUAL "Release"
-     OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo"
-     OR CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
-    set(_qcm_backend_cargo_profile "release")
-    set(_qcm_backend_cargo_profile_arg "--release")
-  else()
-    set(_qcm_backend_cargo_profile "debug")
-    set(_qcm_backend_cargo_profile_arg "")
-  endif()
-
-  set(_qcm_backend_bin
-      "${_qcm_backend_dir}/target/${_qcm_backend_cargo_profile}/${_qcm_backend_bin_name}"
-  )
-  set(_qcm_backend_cargo_args
-      build
-      --bin=QcmBackend
-      --package=qcm-backend
-      "--manifest-path=${_qcm_backend_dir}/Cargo.toml")
-  if(_qcm_backend_cargo_profile_arg)
-    list(APPEND _qcm_backend_cargo_args "${_qcm_backend_cargo_profile_arg}")
-  endif()
+  set(_qcm_corrosion_extra "")
   if(QCM_CARGO_OFFLINE)
-    list(APPEND _qcm_backend_cargo_args --frozen)
+    list(APPEND _qcm_corrosion_extra FROZEN)
   endif()
 
-  add_custom_target(
-    qcm_backend ALL
-    COMMAND ${CARGO} ${_qcm_backend_cargo_args}
-    WORKING_DIRECTORY "${_qcm_backend_dir}"
-    BYPRODUCTS "${_qcm_backend_bin}"
-    COMMENT "Building QcmBackend"
-    VERBATIM)
-  install(PROGRAMS "${_qcm_backend_bin}" DESTINATION ${CMAKE_INSTALL_BINDIR}
-          COMPONENT Backend)
+  corrosion_import_crate(
+    MANIFEST_PATH "${CMAKE_SOURCE_DIR}/backend/Cargo.toml"
+    CRATES qcm-backend
+    CRATE_TYPES bin
+    IMPORTED_CRATES _qcm_backend_crates
+    ${_qcm_corrosion_extra})
+  add_custom_target(qcm_backend ALL DEPENDS ${_qcm_backend_crates})
+  install(
+    IMPORTED_RUNTIME_ARTIFACTS ${_qcm_backend_crates}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    COMPONENT Backend)
 endif()
 
 # -Wconversion -Wsign-conversion
