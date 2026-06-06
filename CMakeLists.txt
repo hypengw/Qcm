@@ -142,7 +142,6 @@ endif()
 
 add_subdirectory(app/src/platform)
 add_subdirectory(core)
-add_subdirectory(crypto)
 
 add_subdirectory(app/src/message)
 

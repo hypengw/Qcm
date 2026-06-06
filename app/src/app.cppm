@@ -6,7 +6,6 @@ module;
 #include "QExtra/macro_qt.hpp"
 #include "core/log.h"
 
-#include "crypto/crypto.h"
 #include "player/notify.h"
 #include "player/player.h"
 

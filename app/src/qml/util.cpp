@@ -1,9 +1,10 @@
 module;
 #include "core/log.h"
-#include "crypto/crypto.h"
 
 #include "Qcm/qml/util.moc.h"
 #include "Qcm/macro.hpp"
+
+#include <QtCore/QCryptographicHash>
 
 #undef assert
 #include <rstd/macro.hpp>
@@ -240,10 +241,12 @@ auto gen_prefix(std::string_view in) -> std::string {
 }
 
 inline std::string gen_file_name(std::string_view uniq) {
-    return crypto::digest(crypto::md5(), convert_from<std::vector<byte>>(uniq))
-        .map(crypto::hex::encode_up)
-        .map(convert_from<std::string, crypto::bytes_view>)
-        .unwrap();
+    const auto data =
+        QByteArrayView(uniq.data(), static_cast<qsizetype>(uniq.size()));
+    return QCryptographicHash::hash(data, QCryptographicHash::Md5)
+        .toHex()
+        .toUpper()
+        .toStdString();
 }
 
 } // namespace qcm

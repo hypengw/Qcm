@@ -334,7 +334,6 @@ target_link_libraries(
          "$<$<CONFIG:Debug>:Qt6::QuickPrivate>"
          ncrequest::ncrequest
          rstd::rstd
-         crypto
          qr_code
          player
          platform
