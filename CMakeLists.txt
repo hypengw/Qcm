@@ -140,7 +140,7 @@ if(ANDROID)
   set(QCM_SERVICE_STATIC_BUILD ON)
 endif()
 
-add_subdirectory(platform)
+add_subdirectory(app/src/platform)
 add_subdirectory(core)
 add_subdirectory(crypto)
 
