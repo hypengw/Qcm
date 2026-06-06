@@ -144,7 +144,7 @@ add_subdirectory(platform)
 add_subdirectory(core)
 add_subdirectory(crypto)
 
-add_subdirectory(message)
+add_subdirectory(app/src/message)
 
 add_subdirectory(mpris)
 add_subdirectory(player)

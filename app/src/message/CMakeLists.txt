@@ -3,13 +3,16 @@ set(CMAKE_AUTOMOC ON)
 
 set(output_inc_dir "${CMAKE_CURRENT_BINARY_DIR}/gen")
 set(output_dir "${CMAKE_CURRENT_BINARY_DIR}/gen/Qcm/message")
+set(proto_dir "${CMAKE_SOURCE_DIR}/backend/main/proto")
 
 qt_add_protobuf(
   message
   PROTO_FILES
-  proto/message.proto
-  proto/model.proto
-  proto/filter.proto
+  "${proto_dir}/message.proto"
+  "${proto_dir}/model.proto"
+  "${proto_dir}/filter.proto"
+  PROTO_INCLUDES
+  "${proto_dir}"
   OUTPUT_DIRECTORY
   "${output_dir}"
   OUTPUT_TARGETS
@@ -25,7 +28,7 @@ target_include_directories(message PUBLIC
   "include"
   )
 target_link_libraries(message PUBLIC Qt6::ProtobufWellKnownTypes Qt6::ProtobufQuick)
-target_sources(message PRIVATE src/item_id.cpp)
+target_sources(message PRIVATE item_id.cpp)
 
 # ----------------------------------------------------------------------------
 # Post-process generated protobuf headers: inject custom Q_PROPERTY/methods by
