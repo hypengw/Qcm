@@ -96,5 +96,6 @@ compile_commands.json
 /third_party/rstd
 /pmap.sh
 /flaptak-sources.json
+/install
 *.md
 !README.md
