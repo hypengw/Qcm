@@ -78,7 +78,7 @@ QA.GlobalWrapper {
         playlist: QA.App.playqueue
     }
 
-    MD.ColorPicker {
+    MD.ImageColorPicker {
         id: m_picker
     }
 

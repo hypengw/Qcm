@@ -59,7 +59,7 @@
   {
     "dest": "build/_flatpak_deps/qml_material-src",
     "disable-shallow-clone": true,
-    "commit": "c0f238ce28a8c767217ef288f1aa4dfba7235e36",
+    "commit": "1bd02e9d711c76a0cce244fef66825b1837983ac",
     "type": "git",
     "url": "https://github.com/hypengw/QmlMaterial.git",
     "x-cmake": {

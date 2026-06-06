@@ -227,9 +227,12 @@ MD.Pane {
 
                             onClicked: QA.Action.toggle()
 
-                            MD.CircleProgressBar {
+                            MD.CircularIndicator {
                                 anchors.centerIn: parent
-                                value: (QA.Global.player.position / QA.Global.player.duration)
+                                indeterminate: false
+                                value: QA.Global.player.duration > 0
+                                       ? QA.Global.player.position / QA.Global.player.duration
+                                       : 0
                             }
                         }
                         MD.IconButton {
