@@ -44,6 +44,9 @@ endif()
 option(QCM_BUILD_BACKEND "Build Rust backend via Cargo"
        ${_qcm_build_backend_default})
 option(QCM_CARGO_OFFLINE "Pass --frozen to Cargo" OFF)
+set(QCM_BACKEND_CARGO_MANIFEST
+    "${CMAKE_SOURCE_DIR}/Cargo.toml"
+    CACHE FILEPATH "Cargo manifest used to build QcmBackend")
 
 # check lto
 include(CheckIPOSupported)
@@ -99,7 +102,7 @@ if(QCM_BUILD_BACKEND)
   endif()
 
   corrosion_import_crate(
-    MANIFEST_PATH "${CMAKE_SOURCE_DIR}/backend/Cargo.toml"
+    MANIFEST_PATH "${QCM_BACKEND_CARGO_MANIFEST}"
     CRATES qcm-backend
     CRATE_TYPES bin
     IMPORTED_CRATES _qcm_backend_crates

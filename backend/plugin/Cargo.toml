@@ -8,4 +8,4 @@ edition.workspace = true
 qcm-core = { path = "../core" }
 qcm-plugin-local = { path = "./local" }
 qcm-plugin-lua = { path = "./lua" }
-qcm-plugin-jellyfin = { git = "https://github.com/hypengw/qcm-jellyfin-plugin.git", branch = "master" }
+qcm-plugin-jellyfin = { git = "https://github.com/hypengw/qcm-jellyfin-plugin.git", branch = "main" }

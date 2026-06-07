@@ -1,5 +1,5 @@
 [workspace]
-members = ["core", "main", "plugin"]
+members = ["backend/core", "backend/main", "backend/plugin"]
 resolver = "2"
 
 [workspace.package]
@@ -7,7 +7,7 @@ version = "0.1.0"
 edition = "2021"
 
 [patch.'https://github.com/hypengw/QcmBackend.git']
-qcm-core = { path = "./core" }
+qcm-core = { path = "./backend/core" }
 
 [workspace.dependencies]
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "sync", "time"] }

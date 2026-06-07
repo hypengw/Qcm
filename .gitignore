@@ -97,5 +97,7 @@ compile_commands.json
 /pmap.sh
 /flaptak-sources.json
 /install
+/backend/Cargo.toml
+/backend/Cargo.lock
 *.md
 !README.md
