@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use std::str::FromStr;
 use std::sync::Arc;
 
-use crate::util::to_lua;
+use mlua_extra::util::to_lua;
 
 fn header_map_to_table(lua: &Lua, headers: &HeaderMap) -> LuaResult<LuaTable> {
     let table = lua.create_table()?;

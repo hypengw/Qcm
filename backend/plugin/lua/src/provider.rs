@@ -1,6 +1,6 @@
 use crate::enums;
 use crate::error::{create_lua_error_func, FromLuaError};
-use crate::util::to_lua;
+use mlua_extra::{json, time, util::to_lua};
 use mlua::prelude::*;
 use qcm_core::db::sync::sync_song_album_ids;
 use qcm_core::db::values::Timestamp;
@@ -32,7 +32,6 @@ use std::{
 
 use crate::crypto::create_crypto_module;
 use crate::http::{LuaClient, LuaResponse};
-use crate::timestamp::create_time_module;
 use serde::{Deserialize, Serialize};
 
 struct LuaProviderInner {
@@ -139,8 +138,8 @@ impl LuaProvider {
             let qcm_table = lua.create_table()?;
             qcm_table.set("inner", LuaInner(inner.clone()))?;
             qcm_table.set("crypto", create_crypto_module(&lua)?)?;
-            qcm_table.set("json", create_json_module(&lua)?)?;
-            qcm_table.set("time", create_time_module(&lua)?)?;
+            qcm_table.set("json", json::create_module(&lua)?)?;
+            qcm_table.set("time", time::create_module(&lua)?)?;
             qcm_table.set("enum", enums::create_module(&lua)?)?;
             qcm_table.set("error", create_lua_error_func(&lua)?)?;
 
@@ -476,25 +475,6 @@ struct LuaHomeBlockItemsRsp {
     content: HomeBlockContent,
     #[serde(default)]
     total: i32,
-}
-
-fn create_json_module(lua: &Lua) -> LuaResult<LuaTable> {
-    let t = lua.create_table()?;
-    t.set(
-        "encode",
-        lua.create_function(|_, v: mlua::Value| {
-            serde_json::to_string(&v).map_err(|e| mlua::Error::external(e))
-        })?,
-    )?;
-    t.set(
-        "decode",
-        lua.create_function(|lua, str: String| {
-            let v: serde_json::Value =
-                serde_json::from_str(&str).map_err(|e| mlua::Error::external(e))?;
-            to_lua(&lua, &v)
-        })?,
-    )?;
-    Ok(t)
 }
 
 #[derive(Clone, Deserialize)]
