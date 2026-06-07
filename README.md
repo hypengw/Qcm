@@ -1,13 +1,7 @@
 # Qcm
 Material You cloud music player.  
 
-To use Qcm, you'll need to run it with a compatible local backend.  
-
-The backend process is managed by Qcm, you can use `--backend <path>` to set the backend executable path.  
-
 ### Backend
-
-A backend implementation can be found at [QcmBackend](https://github.com/hypengw/QcmBackend), which supports the following music services:
 
 - **Jellyfin**
 - **Subsonic(WIP)**
