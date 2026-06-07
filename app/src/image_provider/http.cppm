@@ -8,7 +8,7 @@ module;
 export module qcm:image_provider.http;
 export import :image_provider.response;
 export import :global;
-export import qextra;
+import qextra;
 import ncrequest;
 
 namespace ncm
@@ -27,13 +27,8 @@ public:
     QcmAsyncImageResponse();
     ~QcmAsyncImageResponse() override;
     auto textureFactory() const -> QQuickTextureFactory* override;
-    void cancel() override { m_wdog.cancel(); }
 
-    auto&  wdog() { return m_wdog; }
     QImage image;
-
-private:
-    WatchDog m_wdog;
 };
 
 class QcmImageProviderInner;

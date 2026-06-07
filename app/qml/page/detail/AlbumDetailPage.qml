@@ -10,7 +10,7 @@ MD.Page {
     id: root
 
     readonly property var album: qr_al.data.album
-    property QM.item_id itemId
+    property QA.item_id itemId
     title: qsTr("album")
 
     padding: 0
@@ -30,7 +30,7 @@ MD.Page {
 
             displaySize: Qt.size(240, 240)
             elevation: MD.Token.elevation.level2
-            source: QA.Util.image_url(root.album.itemId())
+            source: QA.Util.image_url(root.itemId)
             radius: 16
         }
         MD.Label {

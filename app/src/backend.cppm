@@ -9,29 +9,28 @@ export module qcm:backend;
 export import :msg;
 export import :status.process;
 export import :util.mem;
-export import qcm.asio;
-import ncrequest.event;
-import platform;
+import qextra;
 import ncrequest;
 
 using rstd::boxed::Box;
 using rstd::sync::Arc;
 using rstd::sync::atomic::Atomic;
+using namespace qextra::prelude;
 
 export namespace qcm
 {
 
 namespace detail
 {
-class BackendHelper;
+class BackendTransport;
 } // namespace detail
 class Backend : public QObject {
     Q_OBJECT
 
-    friend class detail::BackendHelper;
+    friend class detail::BackendTransport;
 
 public:
-    Backend(rc<ncrequest::Session>);
+    Backend(Arc<ncrequest::Session>);
     ~Backend();
 
     auto start(QStringView exe, QStringView data_dir, QStringView cache_dir) -> bool;
@@ -40,8 +39,10 @@ public:
 
     auto send(msg::QcmMessage&& msg) -> task<Result<msg::QcmMessage, msg::Error>>;
 
-    auto image(QStringView item_type, QStringView id, QStringView image_type) -> ncrequest::Request;
-    auto image(model::ItemId id, enums::ImageType image_type) -> ncrequest::Request;
+    auto image(QStringView item_type, QStringView id, QStringView image_type)
+        -> Result<ncrequest::Request, msg::Error>;
+    auto image(model::ItemId id, enums::ImageType image_type)
+        -> Result<ncrequest::Request, msg::Error>;
     auto audio_url(model::ItemId id) -> QUrl;
 
     template<typename Req>
@@ -75,16 +76,10 @@ private:
     auto base() const -> std::string;
     auto serial() -> i32;
 
-    Box<QThread>                    m_thread;
-    Box<QtExecutionContext>         m_context;
-    QProcess*                       m_process;
-    Box<ncrequest::WebSocketClient> m_client;
-    Box<QProtobufSerializer>        m_serializer;
+    Box<QThread>              m_thread;
+    detail::BackendTransport* m_transport;
 
-    rc<ncrequest::Session> m_session;
-
-    std::map<i32, std::move_only_function<void(asio::error_code, msg::QcmMessage)>>
-        m_handlers;
+    Arc<ncrequest::Session> m_session;
 
     Atomic<i32> m_serial;
     i32         m_port;

@@ -42,7 +42,8 @@ void AlbumsQuery::reload() {
     auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
         self->inspect_set(rsp, [self](msg::GetAlbumsRsp& el) {
             auto t = self->tdata();
             t->setHasMore(false);
@@ -77,7 +78,8 @@ void AlbumsQuery::fetchMore(qint32) {
     spawn([self, backend, req] mutable -> task<void> {
         auto offset = req.page();
         auto rsp    = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
         self->inspect_set(rsp, [self, offset](msg::GetAlbumsRsp& el) {
             auto view = std::ranges::views::transform(el.items(), [](auto&& el) {
                 return model::Album(el);
@@ -115,7 +117,8 @@ void AlbumQuery::reload() {
     auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
         self->inspect_set(rsp, [self](msg::GetAlbumRsp& el) {
             auto store = App::instance()->store();
             auto t     = self->tdata();

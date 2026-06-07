@@ -8,7 +8,7 @@ module;
 export module qcm:msg.store;
 export import :msg.backend;
 export import :model.share_store;
-export import qextra;
+import qextra;
 
 namespace qcm
 {

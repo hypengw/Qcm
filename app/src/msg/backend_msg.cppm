@@ -1,5 +1,5 @@
 module;
-#include "Qcm/message/message.qpb.h"
+#include "message.qpb.h"
 
 #include "core/log.h"
 
@@ -7,7 +7,7 @@ export module qcm:msg.backend;
 export import :model.item_id;
 export import :model.share_store;
 export import :qml.enums;
-export import qextra;
+import qextra;
 
 export namespace google::protobuf
 {
@@ -288,7 +288,7 @@ struct rstd::Impl<rstd::fmt::Display, qcm::msg::Error> : rstd::ImplBase<qcm::msg
     auto fmt(rstd::fmt::Formatter& f) const -> bool {
         auto& err = this->self();
         auto  s   = rstd::format("{}({})", err.message, err.code);
-        return f.write_raw((const u8*)s.begin(), s.size());
+        return f.write_raw(s.data(), s.size().to_primitive());
     }
 };
 
@@ -300,7 +300,7 @@ struct rstd::Impl<rstd::fmt::Display, qcm::msg::MessageTypeGadget::MessageType>
         auto type = this->self();
         auto s    = QMetaEnum::fromType<MessageType>().valueToKey((int)type);
         if (s) {
-            return f.write_raw((const u8*)s, rstd::strlen(s));
+            return f.write_raw(s, rstd::strlen(s));
         }
         return true;
     }
@@ -311,14 +311,42 @@ struct rstd::Impl<rstd::fmt::Display, qcm::msg::MessageTypeGadget::MessageType>
 namespace qcm::model
 {
 export {
-    using qcm::model::common_extra;
-
     using msg::model::Album;
     using msg::model::Artist;
     using msg::model::Mix;
     using msg::model::ProviderStatus;
     using msg::model::RadioQueue;
     using msg::model::Song;
+
+    inline auto item_id(const Album& value) -> ItemId {
+        return { enums::ItemType::ItemAlbum, value.id_proto() };
+    }
+
+    inline auto item_id(const Artist& value) -> ItemId {
+        return { enums::ItemType::ItemAlbumArtist, value.id_proto() };
+    }
+
+    inline auto item_id(const Mix& value) -> ItemId {
+        return { enums::ItemType::ItemMix, value.id_proto() };
+    }
+
+    inline auto item_id(const ProviderStatus& value) -> ItemId {
+        return { enums::ItemType::ItemProvider, value.id_proto() };
+    }
+
+    inline auto item_id(const RadioQueue& value) -> ItemId {
+        return { enums::ItemType::ItemRadioQueue, value.id_proto() };
+    }
+
+    inline auto item_id(const Song& value) -> ItemId {
+        return { enums::ItemType::ItemSong, value.id_proto() };
+    }
+
+    inline void set_item_id(Song& value, const ItemId& id) { value.setId_proto(id.id()); }
+
+    inline auto album_item_id(const Song& value) -> ItemId {
+        return { enums::ItemType::ItemAlbum, value.albumId() };
+    }
 }
 } // namespace qcm::model
 

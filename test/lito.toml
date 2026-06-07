@@ -1,0 +1,15 @@
+[package]
+name = "qcm-test"
+standard = "c++23"
+
+[[test]]
+name = "qcm-test"
+sources = [
+  "src/main.cpp",
+]
+
+[usage]
+threads = true
+
+[dependencies.qcm-core]
+workspace = true

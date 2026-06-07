@@ -27,7 +27,8 @@ void MixesQuery::reload() {
     auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
         self->inspect_set(rsp, [self](msg::GetMixsRsp& el) {
             auto t = self->tdata();
             t->setHasMore(false);
@@ -50,7 +51,8 @@ void MixesQuery::fetchMore(qint32) {
     spawn([self, backend, req] mutable -> task<void> {
         auto offset = req.page();
         auto rsp    = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
         self->inspect_set(rsp, [self, offset](msg::GetMixsRsp& el) {
             auto view = std::ranges::views::transform(el.items(), [](auto&& el) {
                 return model::Mix(el);
@@ -80,7 +82,8 @@ void RemoteMixesQuery::reload() {
     auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
         self->inspect_set(rsp, [self](msg::GetRemoteMixsRsp& el) {
             auto t = self->tdata();
             t->setHasMore(false);
@@ -110,7 +113,8 @@ void MixQuery::reload() {
     auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
         self->inspect_set(rsp, [self](msg::GetMixRsp& el) {
             auto store = AppStore::instance();
             self->tdata()->setItem(el.item());
@@ -146,7 +150,8 @@ void MixSongsQuery::reload() {
     spawn([self, backend, req] mutable -> task<void> {
         auto offset = req.page();
         auto rsp    = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
         self->inspect_set(rsp, [self, offset](msg::GetMixSongsRsp& el) {
             auto view = std::ranges::views::transform(el.items(), [](auto&& el) {
                 return model::Song(el);
@@ -193,7 +198,8 @@ void CreateMixQuery::reload() {
     spawn([self, backend, req] mutable -> task<void> {
         auto name = req.name();
         auto rsp  = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
 
         self->inspect_set(rsp, [self, name](auto&) {
             self->mixCreated(name);
@@ -226,7 +232,8 @@ void DeleteMixQuery::reload() {
     auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
 
         self->inspect_set(rsp, [self](auto&) {
             Notifier::instance()->mixDeleted();
@@ -253,7 +260,8 @@ void LinkMixQuery::reload() {
     auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
 
         self->inspect_set(rsp, [self](auto&) {
             Notifier::instance()->mixLinked();
@@ -285,7 +293,8 @@ void MixManipulateQuery::reload() {
     auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
 
         self->inspect_set(rsp, [self](auto&) {
         });

@@ -16,7 +16,7 @@ namespace player
 
 namespace log = qcm::log;
 
-struct FFmpegError : public error::ErrorBase<FFmpegError> {
+struct FFmpegError : public ::error::ErrorBase<FFmpegError> {
     constexpr static int EABORTED { std::numeric_limits<int>::min() };
     FFmpegError(): code(0) {}
     FFmpegError(int e): code(e) {}
@@ -45,6 +45,6 @@ template<>
 struct rstd::Impl<rstd::fmt::Display, player::FFmpegError> : rstd::ImplBase<player::FFmpegError> {
     auto fmt(rstd::fmt::Formatter& f) const -> bool {
         auto s = this->self().what();
-        return f.write_raw((const u8*)s.data(), s.size());
+        return f.write_raw(s.data(), s.size());
     }
 };

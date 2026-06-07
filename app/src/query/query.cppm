@@ -1,6 +1,7 @@
 export module qcm:query.query;
-export import qextra;
-export import qcm.asio;
+import qextra;
+
+using namespace qextra::prelude;
 
 namespace qcm
 {

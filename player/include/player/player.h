@@ -3,9 +3,6 @@
 #include <map>
 #include <filesystem>
 #include <memory_resource>
-#include <asio/experimental/concurrent_channel.hpp>
-#include <asio/thread_pool.hpp>
-#include <asio/strand.hpp>
 #include "core/macro.h"
 
 #include "player/notify.h"
@@ -20,12 +17,13 @@ auto get_metadata(const std::filesystem::path&) -> Metadata;
 
 class Player {
 public:
-    using executor_type = asio::thread_pool::executor_type;
-
     class Private;
-    Player(std::string_view name, Notifier, executor_type exc,
+    Player(std::string_view name, Notifier,
            std::pmr::memory_resource* mem = std::pmr::get_default_resource());
     ~Player();
+
+    auto process_actions() -> rstd::async::coro<void>;
+    void close();
 
     void play();
     void pause();

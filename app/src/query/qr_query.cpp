@@ -15,7 +15,8 @@ void QrAuthUrlQuery::reload() {
     auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
         if (rsp) {
             self->set(std::move(rsp));
         }

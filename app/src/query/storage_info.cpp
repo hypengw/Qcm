@@ -43,7 +43,8 @@ void StorageInfoQuery::reload() {
     this->spawn([backend, self]() -> task<void> {
         auto req = msg::GetStorageInfoReq {};
         auto rsp = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
         self->inspect_set(rsp, [self](msg::GetStorageInfoRsp& el) {
             auto t = self->tdata();
             t->setImage(el.imageSize());

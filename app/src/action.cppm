@@ -9,7 +9,7 @@ export module qcm:action;
 export import :qml.enums;
 export import :model.id_queue;
 export import :model.router_msg;
-export import qextra;
+import qextra;
 
 
 

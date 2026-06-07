@@ -55,7 +55,6 @@ The following libraries were extracted and modularized during Qcm's development.
 - [ffmpeg](https://www.ffmpeg.org/)
 - [curl](https://curl.se/)
 - [openssl](https://www.openssl.org/)
-- [asio](https://github.com/chriskohlhoff/asio)
 - [cubeb](https://github.com/mozilla/cubeb)
 - [PEGTL](https://github.com/taocpp/PEGTL)
 - [ctre](https://github.com/hanickadot/compile-time-regular-expressions)

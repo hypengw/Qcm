@@ -25,7 +25,7 @@ export import :model.empty_model;
 export import :model.item_id;
 export import :model.page_model;
 export import :global;
-export import qextra;
+import qextra;
 import platform;
 
 namespace qcm
@@ -52,9 +52,6 @@ export class App : public QObject {
     friend class qml::Util;
 
 public:
-    using pool_executor_t = asio::thread_pool::executor_type;
-    using qt_executor_t   = QtExecutor;
-
     App(QStringView backend_exe, std::monostate);
     virtual ~App();
     static App* create(QQmlEngine* qmlEngine, QJSEngine* jsEngine);

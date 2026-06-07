@@ -37,7 +37,7 @@ auto Util::mprisTrackid(model::ItemId id) -> QString {
     if (id.id() >= 0) {
         track_id = std::to_string(id.id());
     }
-    return rstd::into(rstd::format("/{}/TrackId/{}", dbus_path, track_id));
+    return qextra::to_qstring(rstd::format("/{}/TrackId/{}", dbus_path, track_id));
 }
 
 auto Util::create_route_msg(QVariantMap props) -> model::RouteMsg {
@@ -51,11 +51,12 @@ model::RouteMsg Util::routeMsg() { return {}; }
 auto Util::image_url(model::ItemId id, enums::ImageType image_type) -> QUrl {
     auto type = id.type();
     if (type == enums::ItemType::ItemAlbumArtist) type = enums::ItemType::ItemArtist;
-    return rstd::into(rstd::format("image://qcm/{}/{}/{}", type, id.id(), image_type));
+    return QUrl(qextra::to_qstring(
+        rstd::format("image://qcm/{}/{}/{}", type, id.id(), image_type)));
 }
 
 auto Util::image_url(const QString& url) -> QUrl {
-    return rstd::into(rstd::format("image://qcm/{}", url));
+    return QUrl(qextra::to_qstring(rstd::format("image://qcm/{}", url)));
 }
 
 auto Util::audio_url(model::ItemId id) -> QUrl { return App::instance()->backend()->audio_url(id); }
@@ -147,6 +148,17 @@ auto Util::albumArtistId(QString id) -> model::ItemId {
 
 auto Util::artistId(QString id) -> model::ItemId {
     return { enums::ItemType::ItemArtist, id.toLongLong() };
+}
+
+auto Util::itemId(const QJSValue& value) -> model::ItemId {
+    const auto variant = value.toVariant();
+    if (const auto* item = get_if<model::Album>(&variant)) return model::item_id(*item);
+    if (const auto* item = get_if<model::Artist>(&variant)) return model::item_id(*item);
+    if (const auto* item = get_if<model::Mix>(&variant)) return model::item_id(*item);
+    if (const auto* item = get_if<model::ProviderStatus>(&variant)) return model::item_id(*item);
+    if (const auto* item = get_if<model::RadioQueue>(&variant)) return model::item_id(*item);
+    if (const auto* item = get_if<model::Song>(&variant)) return model::item_id(*item);
+    return {};
 }
 
 QString Util::joinName(const QJSValue& v, const QString& sp) {

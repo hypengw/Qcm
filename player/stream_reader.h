@@ -135,7 +135,7 @@ private:
         {
             notify::duration d;
             d.value = fmt_ctx->duration / (AV_TIME_BASE / 1000);
-            m_notifier.send(d).wait();
+            m_notifier.send(d);
         }
 
         Packet pkt;

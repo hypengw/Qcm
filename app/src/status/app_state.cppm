@@ -7,8 +7,8 @@ module;
 #endif
 
 export module qcm:status.app_state;
-export import qextra;
-export import qcm.core;
+import qextra;
+import qcm.core;
 
 namespace qcm
 {

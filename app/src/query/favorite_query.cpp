@@ -37,7 +37,8 @@ void SetFavoriteQuery::reload() {
     auto self = QWatcher { this };
     spawn([self, backend, req, value = m_favorite, item_id = m_item_id] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
 
         self->inspect_set(rsp, [value, item_id](auto&) {
             if (auto ex = AppStore::instance()->extra(item_id)) {

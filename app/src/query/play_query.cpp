@@ -44,7 +44,8 @@ void PlayQuery::reload() {
 
         spawn([self, backend, req] mutable -> task<void> {
             auto rsp = co_await backend->send(std::move(req));
-            co_await qcm::qexecutor_switch();
+            if (! co_await QAsyncResult::qexecutor()) co_return;
+            if (! self) co_return;
             if (rsp) {
                 std::vector<model::ItemId> ids;
                 for (auto id : rsp->ids()) {
@@ -86,7 +87,8 @@ void PlayAllQuery::reload() {
 
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
         if (rsp) {
             std::vector<model::ItemId> ids;
             for (auto id : rsp->ids()) {
@@ -140,7 +142,8 @@ void RadioQueuesQuery::reload() {
 
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
-        co_await qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
         self->inspect_set(rsp, [self](auto& el) {
             auto t    = self->tdata();
             auto view = std::ranges::views::transform(el.queues(), [](auto&& el) {
@@ -170,7 +173,8 @@ void QueueNextQuery::reload() {
 
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
-        co_await qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
         self->inspect_set(rsp, [self](msg::GetQueueNextRsp& el) {
             self->set_tdata(el.songs());
         });

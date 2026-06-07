@@ -11,8 +11,9 @@ module;
 export module qcm:player;
 export import :util.mem;
 export import :qml.enums;
-export import qcm.asio;
-export import qextra;
+import qextra;
+
+using namespace qextra::prelude;
 
 namespace qcm
 {
@@ -20,6 +21,7 @@ namespace qcm
 export class Player : public QObject {
     Q_OBJECT
     QML_NAMED_ELEMENT(QcmPlayer)
+    QML_UNCREATABLE("QcmPlayer is owned by Global")
 
     Q_PROPERTY(
         QUrl source READ source WRITE set_source RESET reset_source NOTIFY sourceChanged FINAL)
@@ -39,11 +41,8 @@ public:
     using NotifyInfo = player::notify::info;
     class NotifyChannel;
     using PlaybackState = enums::PlaybackState;
-    using executor_type = asio::thread_pool::executor_type;
-    using channel_type =
-        asio::experimental::concurrent_channel<executor_type, void(asio::error_code, NotifyInfo)>;
 
-    explicit Player(executor_type ex, MemResourceMgr*, QObject* = nullptr);
+    explicit Player(MemResourceMgr*, QObject* = nullptr);
     ~Player();
 
     void close();
@@ -60,9 +59,7 @@ public:
     auto seekable() const -> bool;
     auto playing() const -> bool;
 
-    auto sender() const -> Sender<NotifyInfo>;
-    auto is_end() const noexcept -> bool { return m_end; }
-    auto process_msg() -> task<void>;
+    auto sender() const -> player::Notifier;
 
     Q_SIGNAL void sourceChanged();
     Q_SIGNAL void positionChanged();
@@ -97,10 +94,12 @@ private:
     void set_cache_progress(QVector2D);
 
 private:
-    up<player::Player> m_player;
-    QUrl               m_source;
     rc<NotifyChannel>  m_channel;
-    bool               m_end;
+    rc<player::Player> m_player;
+    QAsyncResult*      m_action_runner;
+    QAsyncResult*      m_notify_runner;
+    QUrl               m_source;
+    bool               m_closed;
 
     std::atomic<std::chrono::steady_clock::time_point> m_last_time;
 
@@ -112,4 +111,3 @@ private:
 };
 
 } // namespace qcm
-

@@ -1,0 +1,67 @@
+[package]
+name = "qcm-player"
+version.workspace = true
+standard = "c++23"
+
+[lib]
+name = "qcm-player"
+module = "qcm.player"
+archive = "qcm_player"
+sources = [
+  "metadata.cpp",
+  "mod.cppm",
+  "player.cpp",
+]
+
+[usage]
+public-include-directories = ["include"]
+private-include-directories = ["."]
+threads = true
+
+[[when]]
+condition = 'target.os == "windows"'
+
+[when.usage]
+system-libraries = ["winmm"]
+
+[dependencies.qcm-core]
+workspace = true
+pub = true
+
+[dependencies.qcm-platform]
+workspace = true
+
+[dependencies.rstd-std]
+workspace = true
+
+[external-dependencies.pkg-config.libavformat]
+workspace = true
+condition = 'target.family == "unix" && target.os != "android"'
+
+[external-dependencies.pkg-config.libavcodec]
+workspace = true
+condition = 'target.family == "unix" && target.os != "android"'
+
+[external-dependencies.pkg-config.libavutil]
+workspace = true
+condition = 'target.family == "unix" && target.os != "android"'
+
+[external-dependencies.pkg-config.libswresample]
+workspace = true
+condition = 'target.family == "unix" && target.os != "android"'
+
+[external-dependencies.cmake.ffmpeg]
+workspace = true
+condition = 'target.os == "windows" || target.os == "android"'
+targets = [
+  { name = "ffmpeg::avformat" },
+  { name = "ffmpeg::avcodec" },
+  { name = "ffmpeg::avutil" },
+  { name = "ffmpeg::swresample" },
+]
+
+[external-dependencies.cmake.cubeb]
+workspace = true
+targets = [
+  { name = "cubeb::cubeb" },
+]

@@ -7,7 +7,7 @@ import Qcm.Material as MD
 MD.Action {
     id: root
     property alias itemId: m_query.itemId
-    property QM.item_id sourceId
+    property QA.item_id sourceId
 
     enabled: root.itemId.valid
     icon.name: MD.Token.icon.play_arrow

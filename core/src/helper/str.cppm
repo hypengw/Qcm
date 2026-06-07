@@ -22,10 +22,10 @@ namespace helper
 
 template<size_t N>
 struct literal_string_bytes {
-    std::array<std::byte, N - 1> arr;
+    std::array<::rstd::byte, N - 1> arr;
     constexpr literal_string_bytes(const char (&in)[N]) {
         std::transform(in, in + N - 1, arr.begin(), [](unsigned char c) {
-            return std::byte { c };
+            return ::rstd::byte { c };
         });
     }
 };

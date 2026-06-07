@@ -119,7 +119,7 @@ Error push(Fmt&& f, const std::source_location loc = std::source_location::curre
 } // namespace error
 
 template<>
-struct rstd::Impl<rstd::fmt::Display, error::Msg> : rstd::ImplBase<error::Msg> {
+struct rstd::Impl<rstd::fmt::Display, ::error::Msg> : rstd::ImplBase<::error::Msg> {
     auto fmt(rstd::fmt::Formatter& f) const -> bool {
         auto& msg = this->self();
         auto out = rstd::format("{} at {} {}({}:{})",
@@ -128,7 +128,7 @@ struct rstd::Impl<rstd::fmt::Display, error::Msg> : rstd::ImplBase<error::Msg> {
                                 msg.loc.file_name(),
                                 msg.loc.line(),
                                 msg.loc.column());
-        return f.write_raw((const u8*)out.data(), out.size());
+        return f.write_raw(out.data(), out.size().to_primitive());
     }
 };
 
@@ -137,12 +137,12 @@ struct rstd::Impl<rstd::fmt::Display, std::error_code> : rstd::ImplBase<std::err
     auto fmt(rstd::fmt::Formatter& f) const -> bool {
         auto& e = this->self();
         auto out = rstd::format("{}({}:{})", e.message(), e.value(), e.category().name());
-        return f.write_raw((const u8*)out.data(), out.size());
+        return f.write_raw(out.data(), out.size().to_primitive());
     }
 };
 
 template<>
-struct rstd::Impl<rstd::fmt::Display, error::Error> : rstd::ImplBase<error::Error> {
+struct rstd::Impl<rstd::fmt::Display, ::error::Error> : rstd::ImplBase<::error::Error> {
     auto fmt(rstd::fmt::Formatter& f) const -> bool {
         auto& e = this->self();
         std::string out { "err stack:\n" };
@@ -152,10 +152,11 @@ struct rstd::Impl<rstd::fmt::Display, error::Error> : rstd::ImplBase<error::Erro
             std::size_t i { 0 };
             for (auto& msg : e.m_msg_stack) {
                 auto s = rstd::format("   {}# {}\n", i++, msg);
-                out.append((const char*)s.begin(), s.size());
+                out.append(reinterpret_cast<const char*>(s.as_str().data()),
+                           s.size().to_primitive());
             }
         }
-        return f.write_raw((const u8*)out.data(), out.size());
+        return f.write_raw(out.data(), out.size());
     }
 };
 

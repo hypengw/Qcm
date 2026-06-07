@@ -10,11 +10,10 @@ log = "0.4"
 sea-orm = "1"
 serde = "1.0"
 serde_json = "1.0"
-serde_urlencoded = "0.7"
 chrono = "0.4"
 reqwest = "0.12"
 async-trait = "0.1"
-mlua-extra = { path = "../../../../deps/mlua-extra" }
+mlua-extra = { git = "https://github.com/hypengw/mlua-extra", rev = "df1d282170dd1718b8aeff405638c18cedd435ca" }
 
 mlua = { version = "0.10", features = [
     "lua54",

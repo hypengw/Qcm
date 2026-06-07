@@ -6,10 +6,10 @@ import Qcm.Material as MD
 
 MD.Action {
     id: root
-    property QM.item_id itemId
-    property QM.item_id sourceId
+    property QA.item_id itemId
+    property QA.item_id sourceId
 
-    enabled: root.itemId.valid && root.itemId !== QA.App.playqueue.currentSong.itemId()
+    enabled: root.itemId.valid && root.itemId !== QA.App.playqueue.currentSongId
     icon.name: MD.Token.icon.play_arrow
     text: qsTr('play next')
 

@@ -6,7 +6,7 @@ resolver = "2"
 version = "0.1.0"
 edition = "2021"
 
-[patch.'https://github.com/hypengw/Qcm.git']
+[patch.'https://github.com/hypengw/QcmBackend.git']
 qcm-core = { path = "./backend/core" }
 
 [workspace.dependencies]

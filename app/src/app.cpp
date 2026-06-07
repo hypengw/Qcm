@@ -3,7 +3,6 @@ module;
 #include "core/log.h"
 #include "mpris/mpris.h"
 #include "mpris/mediaplayer2.h"
-#include "core/sender.h"
 #include "player/player.h"
 
 #include "Qcm/app.moc.h"
@@ -13,7 +12,6 @@ module;
 module qcm;
 import :app;
 import qcm.log;
-
 
 using namespace qcm;
 using namespace Qt::Literals::StringLiterals;
@@ -31,8 +29,8 @@ auto get_pool_size() -> std::size_t {
 
 auto app_instance(App* in = nullptr) -> App* {
     static App* instance { in };
-    assert(instance != nullptr, "app object not inited");
-    assert(in == nullptr || instance == in, "there should be only one app object");
+    rstd_assert(instance != nullptr, "app object not inited");
+    rstd_assert(in == nullptr || instance == in, "there should be only one app object");
     return instance;
 }
 
@@ -58,9 +56,10 @@ public:
           m_mpris(Box<mpris::Mpris>::make()),
 #endif
           m_main_win(nullptr),
-          m_qml_engine(Box<QQmlApplicationEngine>::make()) {
+          m_qml_engine(make_up<QQmlApplicationEngine>()) {
     }
     ~Private() {
+        m_background_tasks.cancel();
         m_qml_engine.reset();
 
         save_settings();
@@ -94,10 +93,11 @@ public:
 #endif
 
     Option<Box<Backend>> m_backend;
+    QAsyncScope          m_background_tasks;
 
-    std::optional<Sender<Player::NotifyInfo>> m_player_sender;
-    QPointer<QQuickWindow>                    m_main_win;
-    Box<QQmlApplicationEngine>                m_qml_engine;
+    std::optional<player::Notifier> m_player_sender;
+    QPointer<QQuickWindow>          m_main_win;
+    up<QQmlApplicationEngine>       m_qml_engine;
 };
 
 App* App::create(QQmlEngine*, QJSEngine*) {
@@ -142,8 +142,8 @@ App::App(QStringView backend_exe, std::monostate)
                 Qt::QueuedConnection);
         }
 
-        QString data_dir  = rstd::into(data_path().string());
-        QString cache_dir = rstd::into(cache_path().string());
+        QString data_dir  = QString::fromStdString(data_path().string());
+        QString cache_dir = QString::fromStdString(cache_path().string());
         this->backend()->start(backend_exe, data_dir, cache_dir);
     }
 
@@ -188,8 +188,6 @@ void App::init() {
         m->setIdentity("Qcm");
         m->setDesktopEntry(APP_ID); // no ".desktop"
         m->setCanQuit(true);
-        qmlRegisterUncreatableType<mpris::MediaPlayer2>(
-            "Qcm.App", 1, 0, "MprisMediaPlayer", "uncreatable");
     }
 #endif
 
@@ -219,8 +217,8 @@ void App::init() {
         }
     }
 
-    assert(d->m_main_win, "main window must exist");
-    assert(d->m_player_sender, "player must init");
+    rstd_assert(! d->m_main_win.isNull(), "main window must exist");
+    rstd_assert(d->m_player_sender.has_value(), "player must init");
 }
 
 void App::triggerCacheLimit() {
@@ -261,26 +259,7 @@ QVariant App::import_path_list() {
     return d->m_qml_engine->importPathList();
 }
 
-void App::test() {
-    /*
-    asio::co_spawn(
-        d->m_session->get_strand(),
-        [this]() -> asio::awaitable<void> {
-            helper::SyncFile file { std::fstream("/var/tmp/test.iso",
-                                                 std::ios::out | std::ios::binary) };
-            file.handle().exceptions(std::ios_base::failbit | std::ios_base::badbit);
-
-            ncrequest::Request req;
-            req.set_url("https://mirrors.aliyun.com/ubuntu-releases/jammy/"
-                        "ubuntu-22.04.2-desktop-amd64.iso")
-                .set_header("user-agent", "curl/7.87.0");
-            auto rsp = co_await d->m_session->get(req);
-            co_await rsp.value()->read_to_stream(file);
-            co_return;
-        },
-        asio::detached);
-    */
-}
+void App::test() {}
 
 auto App::mpris() const -> QObject* {
     C_D(const App);
@@ -301,7 +280,7 @@ bool App::debug() const {
 
 auto App::engine() const -> QQmlApplicationEngine* {
     C_D(const App);
-    return d->m_qml_engine.as_mut_ptr();
+    return d->m_qml_engine.get();
 }
 auto App::global() const -> Global* {
     C_D(const App);
@@ -401,7 +380,7 @@ auto App::bound_image_size(QSizeF displaySize) const -> QSizeF {
     return displaySize.scaled(QSizeF(size, size), Qt::AspectRatioMode::KeepAspectRatioByExpanding);
 }
 
-void App::set_player_sender(Sender<Player::NotifyInfo> sender) {
+void App::set_player_sender(player::Notifier sender) {
     C_D(App);
     d->m_player_sender = sender;
     /*
@@ -623,12 +602,9 @@ void App::connect_actions() {
                     req.setSourceId(source.id());
                     req.setSourceType((msg::model::ItemTypeGadget::ItemType)source.type());
 
-                    asio::co_spawn(
-                        qcm::strand_executor(),
-                        [backend, req] mutable -> task<void> {
-                            co_await backend->send(std::move(req));
-                        },
-                        asio_detached_log_t {});
+                    d_func()->m_background_tasks.spawn([backend, req] mutable -> task<void> {
+                        (void)co_await backend->send(std::move(req));
+                    });
                 });
     }
 

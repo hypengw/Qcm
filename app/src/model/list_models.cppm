@@ -6,6 +6,7 @@ module;
 
 export module qcm:model.list_models;
 export import :model.store_item;
+export import :model.item_id_list;
 export import :global;
 
 export namespace qcm::model
@@ -15,7 +16,7 @@ template<typename TItem, typename CRTP>
 using MetaListCRTP = kstore::QMetaListModelCRTP<TItem, CRTP, kstore::ListStoreType::Share,
                                                 std::pmr::polymorphic_allocator<TItem>>;
 
-class AlbumListModel : public kstore::QGadgetListModel,
+class AlbumListModel : public ItemIdListModel,
                        public MetaListCRTP<model::Album, AlbumListModel> {
     Q_OBJECT
     QML_ANONYMOUS
@@ -29,7 +30,7 @@ public:
     Q_INVOKABLE QQmlPropertyMap* extra(i32 idx) const;
 };
 
-class SongListModel : public kstore::QGadgetListModel,
+class SongListModel : public ItemIdListModel,
                       public MetaListCRTP<model::Song, SongListModel> {
     Q_OBJECT
     QML_ANONYMOUS
@@ -42,7 +43,7 @@ public:
     Q_INVOKABLE QQmlPropertyMap* extra(i32 idx) const;
 };
 
-class AlbumSongListModel : public kstore::QGadgetListModel,
+class AlbumSongListModel : public ItemIdListModel,
                            public MetaListCRTP<model::Song, AlbumSongListModel> {
     Q_OBJECT
     QML_ANONYMOUS
@@ -74,7 +75,7 @@ private:
     qint32                m_disc_count;
 };
 
-class ArtistListModel : public kstore::QGadgetListModel,
+class ArtistListModel : public ItemIdListModel,
                         public MetaListCRTP<model::Artist, ArtistListModel> {
     Q_OBJECT
     QML_ANONYMOUS
@@ -86,7 +87,7 @@ public:
     ArtistListModel(QObject* parent = nullptr);
 };
 
-class MixListModel : public kstore::QGadgetListModel,
+class MixListModel : public ItemIdListModel,
                      public MetaListCRTP<model::Mix, MixListModel> {
     Q_OBJECT
     QML_ANONYMOUS
@@ -98,7 +99,7 @@ public:
     MixListModel(QObject* parent = nullptr);
 };
 
-class RadioQueueListModel : public kstore::QGadgetListModel,
+class RadioQueueListModel : public ItemIdListModel,
                             public kstore::QMetaListModelCRTP<model::RadioQueue, RadioQueueListModel, kstore::ListStoreType::Vector> {
     Q_OBJECT
     QML_ANONYMOUS
@@ -110,7 +111,7 @@ public:
     RadioQueueListModel(QObject* parent = nullptr);
 };
 
-class MixSongListModel : public kstore::QGadgetListModel,
+class MixSongListModel : public ItemIdListModel,
                          public MetaListCRTP<model::Song, MixSongListModel> {
     Q_OBJECT
     QML_ANONYMOUS

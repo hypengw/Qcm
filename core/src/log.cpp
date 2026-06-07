@@ -107,7 +107,20 @@ struct file_iterator {
 
 } // namespace
 
-auto the_log_manager() -> qcm::LogManager*;
+namespace qcm
+{
+struct LogManagerImpl final : LogManager {
+    auto level() const -> LogLevel override { return m_level; }
+    void set_level(LogLevel value) override { m_level = value; }
+
+    LogLevel m_level { LogLevel::INFO };
+};
+} // namespace qcm
+
+auto the_log_manager() -> qcm::LogManager* {
+    static qcm::LogManagerImpl manager;
+    return &manager;
+}
 
 namespace qcm
 {

@@ -11,7 +11,7 @@ export import :msg;
 export import :model.item_id;
 export import :model.id_queue;
 export import :model.router_msg;
-export import qextra;
+import qextra;
 
 namespace qcm
 {
@@ -51,6 +51,7 @@ public:
 
     Q_INVOKABLE static model::ItemId albumArtistId(QString);
     Q_INVOKABLE static model::ItemId artistId(QString);
+    Q_INVOKABLE static model::ItemId itemId(const QJSValue&);
     Q_INVOKABLE static QString       mprisTrackid(model::ItemId);
     Q_INVOKABLE static QString       joinName(const QJSValue&, const QString& = "/");
     Q_INVOKABLE static QString       formatDateTime(const QJSValue&, const QString&);

@@ -7,7 +7,7 @@ module;
 
 export module qcm:model.filter_rule;
 export import :msg;
-export import qextra;
+import qextra;
 
 export namespace qcm
 {
@@ -110,4 +110,3 @@ public:
 };
 
 } // namespace qcm
-

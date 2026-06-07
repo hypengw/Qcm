@@ -81,6 +81,7 @@ private:
 export class DynamicIdQueue : public IdQueue {
     Q_OBJECT
     QML_ELEMENT
+    QML_UNCREATABLE("DynamicIdQueue is owned by PlayQueue")
 public:
     DynamicIdQueue(qint64 queue_id, QObject* parent = nullptr);
 

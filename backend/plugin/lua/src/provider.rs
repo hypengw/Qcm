@@ -1,7 +1,7 @@
 use crate::enums;
 use crate::error::{create_lua_error_func, FromLuaError};
-use mlua_extra::{json, time, util::to_lua};
 use mlua::prelude::*;
+use mlua_extra::{json, time, url, util::to_lua};
 use qcm_core::db::sync::sync_song_album_ids;
 use qcm_core::db::values::Timestamp;
 use qcm_core::db::{self, DbChunkOper};
@@ -25,10 +25,7 @@ use qcm_core::{
 use reqwest::Response;
 use sea_orm::*;
 use std::str::FromStr;
-use std::{
-    path::Path,
-    sync::Arc,
-};
+use std::{path::Path, sync::Arc};
 
 use crate::crypto::create_crypto_module;
 use crate::http::{LuaClient, LuaResponse};
@@ -137,7 +134,11 @@ impl LuaProvider {
             // qcm table
             let qcm_table = lua.create_table()?;
             qcm_table.set("inner", LuaInner(inner.clone()))?;
-            qcm_table.set("crypto", create_crypto_module(&lua)?)?;
+            let url_module = url::create_module(&lua)?;
+            let crypto_module = create_crypto_module(&lua)?;
+            crypto_module.set("url", url_module.clone())?;
+            qcm_table.set("crypto", crypto_module)?;
+            qcm_table.set("url", url_module)?;
             qcm_table.set("json", json::create_module(&lua)?)?;
             qcm_table.set("time", time::create_module(&lua)?)?;
             qcm_table.set("enum", enums::create_module(&lua)?)?;
@@ -147,7 +148,7 @@ impl LuaProvider {
             qcm_table.set(
                 "get_http_client",
                 lua.create_function(move |_, ()| {
-                    Ok(LuaClient(inner.client.clone(), inner.jar.clone()))
+                    Ok(LuaClient::new(inner.client.clone(), inner.jar.clone()))
                 })?,
             )?;
             qcm_table.set(

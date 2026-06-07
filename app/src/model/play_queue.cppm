@@ -9,10 +9,11 @@ module;
 
 export module qcm:queue;
 export import :model.id_queue;
+import :model.item_id_list;
 export import :action;
 export import :global;
 export import :msg;
-export import qextra;
+import qextra;
 import qcm.random;
 
 export namespace qcm
@@ -84,6 +85,8 @@ class PlayQueue : public QIdentityProxyModel, public kstore::QMetaRoleNames {
     Q_PROPERTY(qint32 currentIndex READ currentIndex NOTIFY currentIndexChanged BINDABLE
                    bindableCurrentIndex FINAL)
     Q_PROPERTY(qcm::model::Song currentSong READ currentSong NOTIFY currentSongChanged FINAL)
+    Q_PROPERTY(qcm::model::ItemId currentSongId READ currentSongId NOTIFY currentSongChanged FINAL)
+    Q_PROPERTY(qcm::model::ItemId currentAlbumId READ currentAlbumId NOTIFY currentSongChanged FINAL)
     Q_PROPERTY(
         qcm::enums::LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged FINAL)
     Q_PROPERTY(bool randomMode READ randomMode WRITE setRandomMode NOTIFY randomModeChanged FINAL)
@@ -118,6 +121,8 @@ public:
     auto          currentData(int role) const -> QVariant;
 
     auto          currentSong() const -> Song;
+    auto          currentSongId() const -> model::ItemId;
+    auto          currentAlbumId() const -> model::ItemId;
     void          setCurrentSong(rstd::Option<SongItem>);
     Q_SLOT void   setCurrentSong(qint32 idx);
     Q_SIGNAL void currentSongChanged();
@@ -201,6 +206,7 @@ private:
     bool    m_pending_advance;
 
     std::unordered_map<qint64, model::DynamicIdQueue*> m_dynamic_queues;
+    QAsyncScope                                        m_background_tasks;
 
     Q_OBJECT_BINDABLE_PROPERTY(PlayQueue, int, m_current_index, &PlayQueue::currentIndexChanged)
 };

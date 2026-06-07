@@ -1,101 +1,179 @@
 module;
 #include <chrono>
-#include "player/player.h"
-#include "core/sender.h"
+#include <mutex>
+#include <optional>
 
+#include "player/player.h"
 #include "Qcm/player.moc.h"
 
 module qcm;
 import :player;
 
-
 using namespace qcm;
+using namespace qextra::prelude;
 using NotifyInfo = player::notify::info;
 
-namespace
-{
-constexpr usize MaxChannelSize { 64 };
-
-} // namespace
-
-class Player::NotifyChannel : public detail::Sender<NotifyInfo> {
+class Player::NotifyChannel : public player::detail::NotifySink {
 public:
-    NotifyChannel(rc<channel_type> ch): m_channel(ch), m_strand(ch->get_executor()) {}
-    virtual ~NotifyChannel() {}
+    struct Notification {
+        u64        epoch;
+        NotifyInfo info;
+    };
 
-    bool try_send(NotifyInfo info) override {
-        return m_channel->try_send(asio::error_code {}, info);
-    }
-    std::future<void> send(NotifyInfo info) override {
-        return asio::co_spawn(
-            m_strand,
-            [info, this]() -> asio::awaitable<void> {
-                co_await m_channel->async_send(asio::error_code {}, info, use_task);
-            },
-            asio::use_future_t {});
-    }
-    void reset() override { m_channel->reset(); }
+    using Receiver = rstd::async::CompletionQueue<Notification>;
+    using Sender   = rstd::async::CompletionQueueHandle<Notification>;
 
-    auto channel() { return m_channel; }
-    auto cancel() { m_channel->cancel(); }
+    NotifyChannel(Receiver receiver, Sender sender)
+        : m_receiver(rstd::move(receiver)), m_sender(rstd::move(sender)) {}
+
+    static auto make() -> rc<NotifyChannel> {
+        auto pair = rstd::move(Receiver::make()).unwrap_unchecked();
+        return make_rc<NotifyChannel>(rstd::move(pair.get<0>()),
+                                      rstd::move(pair.get<1>()));
+    }
+
+    bool send(NotifyInfo info) override {
+        auto notification = Notification { m_epoch.load(), std::move(info) };
+        if (std::holds_alternative<player::notify::position>(notification.info)) {
+            return enqueue_latest(std::move(notification), m_latest_position, m_position_queued);
+        }
+        if (std::holds_alternative<player::notify::cache>(notification.info)) {
+            return enqueue_latest(std::move(notification), m_latest_cache, m_cache_queued);
+        }
+        return m_sender.push(rstd::move(notification)).is_ok();
+    }
+
+    auto advance_epoch() -> u64 override {
+        std::lock_guard lock(m_latest_mutex);
+        m_latest_position.reset();
+        m_latest_cache.reset();
+        return m_epoch.fetch_add(1) + 1;
+    }
+
+    auto epoch() const -> u64 { return m_epoch.load(); }
+    auto next() { return m_receiver.next(); }
+    void close() { m_sender.close(); }
+
+    auto resolve(Notification notification) -> std::optional<Notification> {
+        if (std::holds_alternative<player::notify::position>(notification.info)) {
+            return take_latest(m_latest_position, m_position_queued);
+        }
+        if (std::holds_alternative<player::notify::cache>(notification.info)) {
+            return take_latest(m_latest_cache, m_cache_queued);
+        }
+        return notification;
+    }
 
 private:
-    rc<channel_type>                          m_channel;
-    asio::strand<channel_type::executor_type> m_strand;
+    bool enqueue_latest(Notification notification, std::optional<Notification>& latest,
+                        bool& queued) {
+        std::lock_guard lock(m_latest_mutex);
+        latest = notification;
+        if (queued) return true;
+
+        queued = true;
+        auto result = m_sender.push(rstd::move(notification));
+        if (result.is_err()) {
+            latest.reset();
+            queued = false;
+            return false;
+        }
+        return true;
+    }
+
+    auto take_latest(std::optional<Notification>& latest, bool& queued)
+        -> std::optional<Notification> {
+        std::lock_guard lock(m_latest_mutex);
+        auto result = std::move(latest);
+        latest.reset();
+        queued = false;
+        return result;
+    }
+
+    Receiver m_receiver;
+    Sender   m_sender;
+
+    std::atomic<u64> m_epoch { 0 };
+    std::mutex       m_latest_mutex;
+    std::optional<Notification> m_latest_position;
+    std::optional<Notification> m_latest_cache;
+    bool                        m_position_queued { false };
+    bool                        m_cache_queued { false };
 };
 
-auto Player::process_msg() -> task<void> {
-    auto channel = m_channel->channel();
-    while (! is_end()) {
-        auto [ec, info] = co_await channel->async_receive(asio::as_tuple(use_task));
-        if (! ec) {
-            if (const auto* pos = std::get_if<player::notify::position>(&info)) {
-                set_position_raw(pos->value);
-            } else {
-                emit notify(info);
-            }
-        }
-    }
-    co_return;
-}
-
-Player::Player(executor_type ex, MemResourceMgr* mem, QObject* parent)
+Player::Player(MemResourceMgr* memory, QObject* parent)
     : QObject(parent),
-      m_channel(make_rc<NotifyChannel>(make_rc<channel_type>(ex, MaxChannelSize))),
-      m_end(false),
+      m_channel(NotifyChannel::make()),
+      m_player(make_rc<player::Player>(APP_NAME,
+                                       player::Notifier(m_channel),
+                                       memory->player_mem)),
+      m_action_runner(new QAsyncResult(this)),
+      m_notify_runner(new QAsyncResult(this)),
+      m_closed(false),
       m_last_time(std::chrono::steady_clock::now()),
       m_position(0),
       m_duration(0),
       m_busy(false),
       m_playback_state(PlaybackState::StoppedState) {
-    connect(this, &Player::notify, this, &Player::processNotify, Qt::QueuedConnection);
+    m_action_runner->setForwardError(false);
+    m_notify_runner->setForwardError(false);
 
-    m_player = std::make_unique<player::Player>(
-        APP_NAME, player::Notifier(m_channel), ex, mem->player_mem);
+    m_action_runner->spawn([player = m_player]() -> task<void> {
+        co_await player->process_actions();
+    });
+
+    auto self    = QPointer<Player> { this };
+    auto channel = m_channel;
+    m_notify_runner->spawn([self, channel]() -> task<void> {
+        for (;;) {
+            auto next = co_await channel->next();
+            if (next.is_err()) co_return;
+
+            auto item = rstd::move(next).unwrap_unchecked();
+            if (item.is_none()) co_return;
+
+            auto resolved = channel->resolve(rstd::move(item).unwrap_unchecked());
+            if (! resolved || resolved->epoch != channel->epoch()) continue;
+
+            if (! co_await QAsyncResult::qexecutor()) co_return;
+            if (! self) co_return;
+            if (resolved->epoch != channel->epoch()) continue;
+
+            auto info = rstd::move(resolved->info);
+            if (const auto* position = std::get_if<player::notify::position>(&info)) {
+                self->set_position_raw(static_cast<int>(position->value));
+            } else {
+                self->processNotify(info);
+                Q_EMIT self->notify(rstd::move(info));
+            }
+        }
+    });
 }
-Player::~Player() {
-    if (! m_end) close();
-}
+
+Player::~Player() { close(); }
+
 void Player::close() {
-    m_end = true;
-    m_channel->cancel();
+    if (std::exchange(m_closed, true)) return;
+    m_player->close();
+    m_channel->close();
+    m_action_runner->cancel();
+    m_notify_runner->cancel();
+    m_player.reset();
 }
 
 const QUrl& Player::source() const { return m_source; }
-void        Player::set_source(const QUrl& v) {
-    if (ycore::cmp_set(m_source, v)) {
-        set_busy(true);
-        // | QUrl::PrettyDecoded
-        QString url = m_source.toString(QUrl::PreferLocalFile);
-        m_player->set_source(url.toStdString());
 
+void Player::set_source(const QUrl& value) {
+    if (ycore::cmp_set(m_source, value)) {
+        set_busy(true);
+        auto url = m_source.toString(QUrl::PreferLocalFile);
+        m_player->set_source(url.toStdString());
         sourceChanged();
 
-        if (m_source.isLocalFile()) {
-            set_cache_progress(QVector2D { 0.0f, 1.0f });
-        }
+        if (m_source.isLocalFile()) set_cache_progress(QVector2D { 0.0f, 1.0f });
     }
 }
+
 void Player::reset_source() {
     if (! m_source.isEmpty()) {
         m_source = QUrl();
@@ -117,124 +195,120 @@ void Player::toggle() {
         m_player->play();
     }
 }
+
 void Player::play() {
     set_busy(true);
     m_player->play();
 }
+
 void Player::pause() {
     set_busy(true);
     m_player->pause();
 }
+
 void Player::stop() {
     set_busy(true);
     m_player->stop();
 }
 
-void Player::set_position(int v) {
+void Player::set_position(int value) {
     if (m_duration > 0) {
         set_busy(true);
-        m_player->seek(v + 50);
-        m_channel->cancel();
-        m_channel->reset();
+        m_player->seek(value + 50);
     }
 }
 
-void Player::set_busy(bool v) {
-    if (std::exchange(m_busy, v) != v) {
-        emit busyChanged();
-    }
+void Player::set_busy(bool value) {
+    if (std::exchange(m_busy, value) != value) Q_EMIT busyChanged();
 }
 
 auto Player::volume() const -> float { return m_player->volume(); }
 auto Player::fadeTime() const -> u32 { return m_player->fade_time() / 1000; }
 
 auto Player::seekable() const -> bool { return true; }
+
 auto Player::playing() const -> bool {
-    switch (playback_state()) {
-    case PlaybackState::PlayingState: return true;
-    default: return false;
+    return playback_state() == PlaybackState::PlayingState;
+}
+
+auto Player::sender() const -> player::Notifier { return player::Notifier(m_channel); }
+
+void Player::set_volume(float value) {
+    auto current = volume();
+    if (! ycore::equal_within_ulps(current, value, 4)) {
+        m_player->set_volume(value);
+        Q_EMIT volumeChanged(value);
     }
 }
 
-auto Player::sender() const -> Sender<NotifyInfo> { return { m_channel }; }
-
-void Player::set_volume(float val) {
-    auto cur = volume();
-    if (! ycore::equal_within_ulps(cur, val, 4)) {
-        m_player->set_volume(val);
-        volumeChanged(val);
-    }
-}
-void Player::set_fadeTime(u32 val) {
-    auto cur = m_player->fade_time();
-    if (cur != val) {
-        m_player->set_fade_time(val * 1000);
-        fadeTimeChanged(val);
+void Player::set_fadeTime(u32 value) {
+    auto current = m_player->fade_time();
+    if (current != value) {
+        m_player->set_fade_time(value * 1000);
+        Q_EMIT fadeTimeChanged(value);
     }
 }
 
-void Player::set_position_raw(int v) {
+void Player::set_position_raw(int value) {
     int expected = m_position.load(std::memory_order_relaxed);
-    if (m_position.compare_exchange_weak(expected, v)) {
+    if (m_position.compare_exchange_weak(expected, value)) {
         auto now  = std::chrono::steady_clock::now();
-        auto last = m_last_time.load(std::memory_order::relaxed);
+        auto last = m_last_time.load(std::memory_order_relaxed);
         if (now - last > std::chrono::milliseconds(50)) {
             m_last_time.store(now, std::memory_order_relaxed);
-            emit positionChanged();
+            Q_EMIT positionChanged();
         }
     }
 }
 
-void Player::set_duration(int v) {
-    if (v != std::exchange(m_duration, v)) {
-        emit durationChanged();
+void Player::set_duration(int value) {
+    if (value != std::exchange(m_duration, value)) Q_EMIT durationChanged();
+}
+
+void Player::set_playback_state(PlaybackState value) {
+    if (auto old = std::exchange(m_playback_state, value); old != value) {
+        Q_EMIT playbackStateChanged(old, value);
     }
 }
 
-void Player::set_playback_state(PlaybackState v) {
-    if (auto old = std::exchange(m_playback_state, v); old != v) {
-        emit playbackStateChanged(old, v);
-    }
-}
-
-void Player::set_cache_progress(QVector2D val) {
+void Player::set_cache_progress(QVector2D value) {
     do {
         if (m_source.isLocalFile()) {
-            val = { 0.0, 1.0 };
+            value = { 0.0, 1.0 };
             break;
         }
-        if (! ycore::equal_within_ulps(m_cache_progress.x(), val.x(), 4)) break;
-        if (ycore::equal_within_ulps(1.0f, val.y(), 4)) break;
-        auto delta = val.y() - m_cache_progress.y();
-        if (delta < 0) break;
-        if (delta > 0.05) break;
+        if (! ycore::equal_within_ulps(m_cache_progress.x(), value.x(), 4)) break;
+        if (ycore::equal_within_ulps(1.0f, value.y(), 4)) break;
+        auto delta = value.y() - m_cache_progress.y();
+        if (delta < 0 || delta > 0.05) break;
         return;
     } while (false);
-    m_cache_progress = val;
+    m_cache_progress = value;
     Q_EMIT cacheProgressChanged();
 }
 
-void Player::seek(double pos) {
-    set_position(pos * duration());
-    Q_EMIT seeked(position() * 1000.0);
+void Player::seek(double position) {
+    set_position(position * duration());
+    Q_EMIT seeked(this->position() * 1000.0);
 }
 
 void Player::processNotify(NotifyInfo info) {
     using namespace player;
-    std::visit(overloaded { [](notify::position) {
-                           },
-                            [this](notify::duration d) {
-                                set_duration(d.value);
-                            },
-                            [this](notify::playstate s) {
-                                set_playback_state((PlaybackState)(int)s.value);
-                            },
-                            [this](notify::busy b) {
-                                set_busy(b.value);
-                            },
-                            [this](notify::cache c) {
-                                set_cache_progress({ c.begin, c.end });
-                            } },
+    std::visit(overloaded {
+                   [](notify::position) {},
+                   [this](notify::duration value) {
+                       set_duration(static_cast<int>(value.value));
+                   },
+                   [this](notify::playstate value) {
+                       set_playback_state(static_cast<PlaybackState>(value.value));
+                   },
+                   [this](notify::busy value) {
+                       set_busy(value.value);
+                   },
+                   [this](notify::cache value) {
+                       set_cache_progress({ value.begin, value.end });
+                   },
+               },
                info);
 }
 

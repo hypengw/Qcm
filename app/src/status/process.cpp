@@ -13,14 +13,14 @@ void qcm::process_msg(msg::QcmMessage&& msg) {
     using M = msg::MessageTypeGadget::MessageType;
     switch (msg.type()) {
     case M::PROVIDER_META_STATUS_MSG: {
-        asio::post(qcm::qexecutor(), [msg = rstd::move(msg)] {
+        QMetaObject::invokeMethod(App::instance(), [msg = rstd::move(msg)] {
             auto p = App::instance()->provider_meta_status();
             p->sync(msg.providerMetaStatusMsg().metas());
-        });
+        }, Qt::QueuedConnection);
         break;
     }
     case M::PROVIDER_STATUS_MSG: {
-        asio::post(qcm::qexecutor(), [msg = rstd::move(msg)] {
+        QMetaObject::invokeMethod(App::instance(), [msg = rstd::move(msg)] {
             auto p = App::instance()->provider_status();
             for (auto& s : msg.providerStatusMsg().statuses()) {
                 LOG_INFO("{}", s.name());
@@ -40,14 +40,14 @@ void qcm::process_msg(msg::QcmMessage&& msg) {
                     state->set_state(AppState::Main {});
                 }
             }
-        });
+        }, Qt::QueuedConnection);
         break;
     }
     case M::PROVIDER_SYNC_STATUS_MSG: {
-        asio::post(qcm::qexecutor(), [msg = rstd::move(msg)] {
+        QMetaObject::invokeMethod(App::instance(), [msg = rstd::move(msg)] {
             auto p = App::instance()->provider_status();
             p->updateSyncStatus(msg.providerSyncStatusMsg().status());
-        });
+        }, Qt::QueuedConnection);
         break;
     }
     default: {

@@ -1,0 +1,52 @@
+[package]
+name = "qcm-core"
+version.workspace = true
+standard = "c++23"
+
+[lib]
+name = "qcm-core"
+module = "qcm.core"
+archive = "qcm_core"
+sources = [
+  "src/core.cppm",
+  "src/error.cppm",
+  "src/fmt.cppm",
+  "src/helper/container.cppm",
+  "src/helper/mod.cppm",
+  "src/helper/str.cppm",
+  "src/lambda.cppm",
+  "src/log.cpp",
+  "src/log.cppm",
+  "src/mem.cpp",
+  "src/mem.cppm",
+  "src/mod.cppm",
+  "src/random.cppm",
+  "src/type_list.cppm",
+]
+
+[usage]
+public-include-directories = ["include"]
+threads = true
+
+[[when]]
+condition = 'target.os == "windows"'
+
+[when.usage]
+public-definitions = ["WIN32_LEAN_AND_MEAN", "NOMINMAX", "NOGDI", "_WIN32_WINNT=0x0A00"]
+
+[dependencies.qcm-platform]
+workspace = true
+
+[dependencies.rstd-cppstd]
+workspace = true
+pub = true
+
+[dependencies.rstd-std]
+workspace = true
+pub = true
+
+[external-dependencies.cmake.random]
+workspace = true
+targets = [
+  { name = "effolkronium_random" },
+]

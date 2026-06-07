@@ -9,8 +9,9 @@ MD.Page {
     showBackground: true
     backgroundColor: QA.Global.playing_color
     readonly property var song: QA.App.playqueue.currentSong
+    readonly property QA.item_id songId: QA.App.playqueue.currentSongId
     readonly property list<var> artists: {
-        const ex = QA.Store.extra(song.itemId());
+        const ex = QA.Store.extra(root.songId);
         return ex?.artists ?? [];
     }
 
@@ -106,7 +107,7 @@ MD.Page {
                 QA.Image {
                     Layout.alignment: Qt.AlignHCenter
                     elevation: MD.Token.elevation.level2
-                    source: QA.Util.image_url(root.song.itemId())
+                    source: QA.Util.image_url(root.songId)
                     radius: 16
 
                     Layout.preferredWidth: displaySize.width
@@ -161,7 +162,7 @@ MD.Page {
 
                     MD.IconButton {
                         action: QA.FavoriteAction {
-                            itemId: root.song.itemId()
+                            itemId: root.songId
                         }
                     }
                     MD.IconButton {
@@ -240,7 +241,7 @@ MD.Page {
                     }
                     MD.IconButton {
                         action: QA.CommentAction {
-                            itemId: root.song.itemId()
+                            itemId: root.songId
                         }
                     }
                     MD.IconButton {
@@ -249,6 +250,7 @@ MD.Page {
                         onClicked: {
                             const popup = MD.Util.showPopup('qrc:/Qcm/App/qml/menu/SongMenu.qml', {
                                 "song": root.song,
+                                "itemId": root.songId,
                                 "y": 0
                             }, this);
                             popup.y = -popup.height;
@@ -270,7 +272,7 @@ MD.Page {
 
             QA.LyricQuery {
                 id: m_query
-                itemId: root.song.itemId()
+                itemId: root.songId
             }
 
             Connections {

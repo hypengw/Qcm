@@ -11,7 +11,9 @@ module;
              const std::source_location     loc = std::source_location::current()) { \
             if (! log_check(LogLevel::NAME)) return;                                 \
             auto msg = rstd::format(fmt, rstd::forward<T>(args)...);                 \
-            log_loc_raw(LogLevel::NAME, loc, { msg.data(), msg.size() });            \
+            log_loc_raw(LogLevel::NAME, loc,                                        \
+                        { reinterpret_cast<const char*>(msg.as_str().data()),        \
+                          msg.size().to_primitive() });                              \
         }                                                                            \
     };                                                                               \
     export template<typename... T>                                                   \
@@ -53,7 +55,10 @@ void log(LogLevel level, const std::source_location loc, rstd::fmt::format_strin
          T&&... args) {
     if (! log_check(level)) return;
     auto msg = rstd::format(fmt, rstd::forward<T>(args)...);
-    log_loc_raw(level, loc, { msg.data(), msg.size() });
+    log_loc_raw(level,
+                loc,
+                { reinterpret_cast<const char*>(msg.as_str().data()),
+                  msg.size().to_primitive() });
 }
 
 LOG_FUNC(debug, DEBUG);

@@ -3,7 +3,7 @@ module;
 #include <QtCore/QJsonObject>
 #include <QtCore/QVariant>
 
-#include "Qcm/message/filter.qpb.h"
+#include "filter.qpb.h"
 #include "kstore/qt/meta_utils.hpp"
 
 module qcm;

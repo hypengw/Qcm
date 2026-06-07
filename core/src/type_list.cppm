@@ -182,7 +182,7 @@ struct type_list {
     template<template<typename...> class T>
     using to = T<TS...>;
 
-    using iterator = idx;
+    using iterator = std::size_t;
     static constexpr auto size() { return sizeof...(TS); }
     static constexpr auto begin() { return iterator { 0 }; }
     static constexpr auto end() { return iterator { size() }; }

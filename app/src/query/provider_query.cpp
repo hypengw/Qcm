@@ -14,7 +14,7 @@ auto format_auth_res(const T& rsp) -> std::string {
     using R = qcm::msg::model::AuthResultGadget::AuthResult;
     switch (rsp.code()) {
     case R::Failed: {
-        out = rstd::into(rstd::format("Failed: {}", rsp.message()));
+        out = rstd::cppstd::to_string(rstd::format("Failed: {}", rsp.message()));
         break;
     }
     case R::NoSuchEmail: {
@@ -54,9 +54,10 @@ void AuthProviderQuery::reload() {
     m_req.setTmpProvider(m_tmp_provider);
     spawn([self, backend, req = m_req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
         self->inspect_set(std::move(rsp), [&self](auto& rsp) {
-            QString error = rstd::into(format_auth_res(rsp));
+            QString error = QString::fromStdString(format_auth_res(rsp));
             self->setFailed(error);
             self->set_tdata(rsp);
         });
@@ -83,7 +84,8 @@ void ProviderMetasQuery::reload() {
     auto self    = QWatcher { this };
     spawn([self, backend] -> task<void> {
         auto rsp = co_await backend->send(msg::GetProviderMetasReq {});
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
 
         self->set(std::move(rsp));
         co_return;
@@ -104,7 +106,8 @@ void AddProviderQuery::reload() {
     auto self    = QWatcher { this };
     spawn([self, backend, req = m_req]() mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
         self->set(std::move(rsp));
         co_return;
     });
@@ -132,11 +135,12 @@ void UpdateProviderQuery::reload() {
     m_req.setProviderId(m_provider_id.id());
     spawn([self, backend, req = m_req]() mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
         if (rsp) {
             auto error = format_auth_res(*rsp);
             if (! error.empty()) {
-                self->setError(rstd::into(error));
+                self->setError(QString::fromStdString(error));
                 self->setStatus(Status::Error);
             } else {
                 self->set(std::move(rsp));
@@ -162,7 +166,8 @@ void DeleteProviderQuery::reload() {
     m_req.setProviderId(m_provider_id.id());
     spawn([self, backend, req = m_req]() mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
         self->set(std::move(rsp));
         co_return;
     });
@@ -195,7 +200,8 @@ void ReplaceProviderQuery::reload() {
     req.setTmpProvider(m_tmp_provider);
     spawn([self, backend, req]() mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
         self->set(std::move(rsp));
         co_return;
     });
@@ -229,7 +235,8 @@ void CreateTmpProviderQuery::reload() {
         auto req = msg::CreateTmpProviderReq {};
         req.setTypeName(t);
         auto rsp = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
         self->set(std::move(rsp));
         co_return;
     });
@@ -250,7 +257,8 @@ void DeleteTmpProviderQuery::reload() {
     auto self    = QWatcher { this };
     spawn([self, backend, req = m_req]() mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
         self->set(std::move(rsp));
         co_return;
     });

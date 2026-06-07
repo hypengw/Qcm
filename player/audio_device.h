@@ -36,6 +36,8 @@ DEFINE_CONVERT(player::AudioParams, cubeb_stream_params) {
 namespace player
 {
 
+using namespace rstd::literals;
+
 namespace details
 {
 
@@ -93,9 +95,16 @@ public:
     using up_device_collection =
         up<cubeb_device_collection, std::function<void(cubeb_device_collection*)>>;
 
-    DeviceContext(std::string_view name): m_name(name) {
-        cubeb_init(&m_cubeb_ctx, m_name.c_str(), NULL);
+    static auto make(std::string_view name) -> rstd::Result<rc<DeviceContext>, int> {
+        std::string context_name(name);
+        cubeb*      context { nullptr };
+        auto        result = cubeb_init(&context, context_name.c_str(), nullptr);
+        if (result != CUBEB_OK) return rstd::Err(result);
+
+        return rstd::Ok(rc<DeviceContext>(
+            new DeviceContext(std::move(context_name), context)));
     }
+
     ~DeviceContext() { cubeb_destroy(m_cubeb_ctx); }
 
     std::vector<DeviceDescription> get_devices(cubeb_device_type type) {
@@ -117,8 +126,12 @@ public:
         return out;
     }
 
-    int get_min_latency(cubeb_stream_params& params, u32& latency) {
-        return cubeb_get_min_latency(m_cubeb_ctx, &params, &latency);
+    auto get_min_latency(cubeb_stream_params params) -> rstd::Result<u32, int> {
+        u32  latency {};
+        auto result = cubeb_get_min_latency(m_cubeb_ctx, &params, &latency);
+        if (result != CUBEB_OK) return rstd::Err(result);
+
+        return rstd::Ok(latency);
     }
 
     rstd::Result<rc<cubeb_stream>, int> stream_init(
@@ -147,6 +160,9 @@ public:
     }
 
 private:
+    DeviceContext(std::string name, cubeb* context)
+        : m_name(std::move(name)), m_cubeb_ctx(context) {}
+
     std::string m_name;
     cubeb*      m_cubeb_ctx;
 };
@@ -176,8 +192,7 @@ public:
         output_params.prefs    = CUBEB_STREAM_PREF_NONE;
         output_params.layout   = CUBEB_LAYOUT_UNDEFINED;
 
-        u32 latency = 1;
-        m_ctx->get_min_latency(output_params, latency);
+        auto latency = m_ctx->get_min_latency(output_params).expect("can't query cubeb latency"_str);
 
         // m_buffer.reserve(m_bytes_per_block * kBlockCount);
 
@@ -191,7 +206,7 @@ public:
                                      Self::data_cb,
                                      Self::state_cb,
                                      this)
-                       .expect("can't initialize cubeb device");
+                       .expect("can't initialize cubeb device"_str);
 
         m_audio_params = convert_from<AudioParams>(output_params);
     };
@@ -245,7 +260,7 @@ public:
 
         notify::playstate s;
         s.value = v ? PlayState::Paused : PlayState::Playing;
-        m_notifier.send(s).wait();
+        m_notifier.send(s);
     }
 
     void mark_dirty() {

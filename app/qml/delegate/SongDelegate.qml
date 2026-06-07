@@ -8,7 +8,7 @@ import Qcm.Material as MD
 MD.ListItem {
     id: root
 
-    readonly property bool isPlaying: QA.App.playqueue.currentSong.itemId() === dgModel.itemId
+    readonly property bool isPlaying: QA.App.playqueue.currentSongId === dgModel.itemId
     property var dgModel: {
         // bind visible
         if (visible) {
@@ -125,7 +125,7 @@ MD.ListItem {
                         }
                         if (!root.dgModel?.itemId)
                             return "";
-                        const ex = root.dgModel.extra();
+                        const ex = QA.Store.extra(root.dgModel.itemId);
                         return QA.Util.join([QA.Util.joinName(ex?.artists), ex?.album?.name], ' - ');
                     }
                 }

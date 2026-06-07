@@ -13,7 +13,7 @@ export import :action;
 export import :qml.enums;
 export import :util.mem;
 export import :player;
-export import qextra;
+import qextra;
 import ncrequest;
 
 using rstd::sync::Arc;
@@ -42,18 +42,14 @@ export class Global : public QObject {
     friend class PluginModel;
 
 public:
-    using pool_executor_t = asio::thread_pool::executor_type;
-    using qt_executor_t   = QtExecutor;
-    using Metadata        = player::Metadata;
+    using Metadata = player::Metadata;
 
     static auto instance() -> Global*;
 
     Global();
     ~Global();
 
-    auto qexecutor() -> qt_executor_t&;
-    auto pool_executor() -> pool_executor_t;
-    auto session() -> rc<ncrequest::Session>;
+    auto session() -> Arc<ncrequest::Session>;
 
     auto uuid() const -> const QUuid&;
     auto player() const -> Player*;
@@ -122,10 +118,6 @@ private:
 };
 
 export auto mem_mgr() -> MemResourceMgr&;
-export auto qexecutor_switch() -> task<void>;
-export auto qexecutor() -> QtExecutor&;
-export auto pool_executor() -> asio::thread_pool::executor_type;
-export auto strand_executor() -> asio::strand<asio::thread_pool::executor_type>;
 } // namespace qcm
 
 namespace qcm
@@ -138,10 +130,7 @@ public:
     Private(Global* p);
     ~Private();
 
-    Arc<QtExecutionContext> qt_ctx;
-    asio::thread_pool       pool;
-
-    rc<ncrequest::Session> session;
+    Arc<ncrequest::Session> session;
 
     QUuid uuid;
 

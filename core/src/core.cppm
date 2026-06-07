@@ -1,24 +1,25 @@
 module;
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
 export module qcm.core:basic;
 export import rstd;
-export import rstd.cppstd;
+import rstd.cppstd;
 
 namespace mtp = rstd::mtp;
 
-export using rstd::i8;
-export using rstd::i16;
-export using rstd::i32;
-export using rstd::i64;
+export using i8 = std::int8_t;
+export using i16 = std::int16_t;
+export using i32 = std::int32_t;
+export using i64 = std::int64_t;
 
-export using rstd::u8;
-export using rstd::u16;
-export using rstd::u32;
-export using rstd::u64;
+export using u8 = std::uint8_t;
+export using u16 = std::uint16_t;
+export using u32 = std::uint32_t;
+export using u64 = std::uint64_t;
 
-export using rstd::idx;
-export using rstd::usize;
-export using rstd::isize;
+export using usize = std::size_t;
+export using isize = std::ptrdiff_t;
 export using rstd::byte;
 export using rstd::voidp;
 export using rstd::const_voidp;

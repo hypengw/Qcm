@@ -125,7 +125,8 @@ void SearchQuery::reload() {
         auto backend = App::instance()->backend();
         auto query   = req.query();
         auto rsp     = co_await backend->send(std::move(req));
-        co_await qcm::qexecutor_switch();
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
         self->inspect_set(rsp, [self, query](msg::SearchRsp& rsp) {
             if (rsp.hasAlbums()) {
                 auto el = rsp.albums();

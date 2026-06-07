@@ -1,5 +1,8 @@
+module;
+#include <filesystem>
+#include <span>
 export module qcm:util.path;
-export import qcm.core;
+import qcm.core;
 
 
 export namespace qcm

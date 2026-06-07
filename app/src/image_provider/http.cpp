@@ -1,7 +1,7 @@
 module;
+#include <deque>
+#include <optional>
 #include "Qcm/image_provider/http.moc.h"
-#include "core/asio/async_limit.h"
-#include <QtCore/QPointer>
 
 module qcm;
 import :image_provider.http;
@@ -9,6 +9,7 @@ import :util.path;
 import :app;
 import :global;
 import platform;
+import qextra;
 
 using namespace qcm;
 
@@ -46,65 +47,139 @@ QQuickTextureFactory* QcmAsyncImageResponse::textureFactory() const {
     return QQuickTextureFactory::textureFactoryForImage(image);
 }
 
-class QcmImageProviderInner : std::enable_shared_from_this<QcmImageProviderInner>, NoCopy {
+class QcmImageProviderInner : public std::enable_shared_from_this<QcmImageProviderInner>, NoCopy {
 public:
-    using executor_type = asio::thread_pool::executor_type;
+    struct Job {
+        rc<QcmAsyncImageResponse> rsp;
+        ncrequest::Request        request;
+        QSize                     requested_size;
+    };
 
-    executor_type& get_executor() { return m_ex; }
+    class ActiveRequest {
+    public:
+        explicit ActiveRequest(rc<QcmImageProviderInner> owner): m_owner(rstd::move(owner)) {}
+        ActiveRequest(const ActiveRequest&)            = delete;
+        ActiveRequest& operator=(const ActiveRequest&) = delete;
+        ActiveRequest(ActiveRequest&& other) noexcept: m_owner(rstd::move(other.m_owner)) {}
+        ActiveRequest& operator=(ActiveRequest&&) = delete;
+        ~ActiveRequest() {
+            if (m_owner) m_owner->request_finished();
+        }
 
-    QcmImageProviderInner()
-        : m_ex(Global::instance()->pool_executor()),
-          m_session(Global::instance()->session()),
-          m_limit(m_ex, 8) {}
-    ~QcmImageProviderInner() {}
+    private:
+        rc<QcmImageProviderInner> m_owner;
+    };
 
-    task<ncrequest::HttpHeader> dl_image(const ncrequest::Request& req,
-                                         std::filesystem::path  p) {
-        SyncFile file { std::fstream(p, std::ios_base::out | std::ios_base::binary) };
-        file.handle().exceptions(std::ios_base::failbit | std::ios_base::badbit);
+    QcmImageProviderInner(): m_session(Global::instance()->session()) {}
 
-        auto rsp_http = (co_await m_session->get(req)).unwrap();
-
-        co_await rsp_http->read_to_stream(file);
-
-        file.handle().close();
-        co_return rsp_http->header().clone();
-    }
-
-    task<QImage> request_image(const ncrequest::Request& req, QSize req_size) {
-        auto rsp_http = (co_await m_session->get(req)).unwrap();
-        auto bytes    = co_await rsp_http->bytes();
-
-        QImage img;
-        if (bytes) {
-            img.loadFromData((uchar*)bytes->data(), (int)bytes->size());
-            if (req_size.isValid() && ! img.isNull()) {
-                img = img.scaled(req_size,
-                                 Qt::AspectRatioMode::KeepAspectRatioByExpanding,
-                                 Qt::TransformationMode::SmoothTransformation);
+    void submit(Job job) {
+        auto start = std::optional<Job> {};
+        {
+            auto lock = std::scoped_lock { m_mutex };
+            if (m_closed) {
+                job.rsp->setError(QStringLiteral("image provider is closed"));
+                return;
+            }
+            if (m_active < MaxConcurrent) {
+                ++m_active;
+                start.emplace(rstd::move(job));
+            } else {
+                m_pending.push_back(rstd::move(job));
             }
         }
-        co_return img;
+        if (start) start_job(rstd::move(*start));
     }
 
-    task<void> handle_request(rc<QcmAsyncImageResponse> rsp, const ncrequest::Request& req,
-                              QSize req_size) {
-        auto block = co_await m_limit.async_block(use_task);
-        auto img   = co_await request_image(req, req_size);
-        rsp->image = img;
-        co_return;
+    void shutdown() {
+        auto pending = std::deque<Job> {};
+        {
+            auto lock = std::scoped_lock { m_mutex };
+            m_closed  = true;
+            pending.swap(m_pending);
+        }
+        for (auto& job : pending) {
+            job.rsp->setError(QStringLiteral("image provider is closed"));
+        }
     }
 
 private:
-    executor_type                     m_ex;
-    rc<ncrequest::Session>            m_session;
-    helper::AsyncLimit<executor_type> m_limit;
+    static constexpr std::size_t MaxConcurrent = 8;
+
+    static auto error_string(auto&& error) -> QString {
+        auto text = rstd::format("{}", rstd::forward<decltype(error)>(error));
+        return qextra::to_qstring(text);
+    }
+
+    auto request_image(const ncrequest::Request& request, QSize requested_size)
+        -> task<Result<QImage, QString>> {
+        auto response = co_await m_session->get(request);
+        if (response.is_err()) {
+            co_return Err(error_string(rstd::move(response).unwrap_err_unchecked()));
+        }
+
+        auto body = co_await rstd::move(response).unwrap_unchecked()->bytes();
+        if (body.is_err()) {
+            co_return Err(error_string(rstd::move(body).unwrap_err_unchecked()));
+        }
+
+        auto bytes = rstd::move(body).unwrap_unchecked();
+        auto image = QImage {};
+        if (! image.loadFromData(reinterpret_cast<const uchar*>(bytes.data()),
+                                 static_cast<int>(bytes.size().to_primitive()))) {
+            co_return Err(QStringLiteral("image decode failed"));
+        }
+        if (requested_size.isValid() && ! image.isNull()) {
+            image = image.scaled(requested_size,
+                                 Qt::AspectRatioMode::KeepAspectRatioByExpanding,
+                                 Qt::TransformationMode::SmoothTransformation);
+        }
+        co_return Ok(rstd::move(image));
+    }
+
+    static auto run_job(rc<QcmImageProviderInner> owner, Job job, ActiveRequest active)
+        -> task<void> {
+        (void)active;
+        auto image = co_await owner->request_image(job.request, job.requested_size);
+        if (image.is_err()) {
+            job.rsp->setError(rstd::move(image).unwrap_err_unchecked());
+            co_return;
+        }
+        job.rsp->image = rstd::move(image).unwrap_unchecked();
+    }
+
+    void start_job(Job job) {
+        auto rsp    = job.rsp;
+        auto self   = shared_from_this();
+        auto task   = run_job(self, rstd::move(job), ActiveRequest { self });
+        auto handle = QAsyncResult::runtime_handle().spawn(rstd::move(task));
+        rsp->set_task(rstd::move(handle));
+    }
+
+    void request_finished() {
+        auto next = std::optional<Job> {};
+        {
+            auto lock = std::scoped_lock { m_mutex };
+            if (m_active > 0) --m_active;
+            if (! m_closed && ! m_pending.empty()) {
+                ++m_active;
+                next.emplace(rstd::move(m_pending.front()));
+                m_pending.pop_front();
+            }
+        }
+        if (next) start_job(rstd::move(*next));
+    }
+
+    Arc<ncrequest::Session> m_session;
+    std::mutex              m_mutex;
+    std::deque<Job>         m_pending;
+    std::size_t             m_active { 0 };
+    bool                    m_closed { false };
 };
 } // namespace qcm
 
 QcmImageProvider::QcmImageProvider()
     : QQuickAsyncImageProvider(), m_inner(std::make_shared<QcmImageProviderInner>()) {}
-QcmImageProvider::~QcmImageProvider() {}
+QcmImageProvider::~QcmImageProvider() { m_inner->shutdown(); }
 
 QQuickImageResponse* QcmImageProvider::requestImageResponse(const QString& id,
                                                             const QSize&   requestedSize) {
@@ -113,41 +188,46 @@ QQuickImageResponse* QcmImageProvider::requestImageResponse(const QString& id,
     do {
         if (id.isEmpty()) break;
 
-        auto req = rstd::None<ncrequest::Request>();
+        auto req = [&]() -> Result<ncrequest::Request, QString> {
+            if (id.startsWith("http")) {
+                auto url      = id.toStdString();
+                auto url_text = rstd::cppstd::as_str(url);
+                if (url_text.is_err()) {
+                    return Err(QStringLiteral("invalid image URL encoding"));
+                }
+                auto parsed = ncrequest::Request::from_url(
+                    rstd::move(url_text).unwrap_unchecked());
+                if (parsed.is_err()) {
+                    auto error = rstd::move(parsed).unwrap_err_unchecked();
+                    return Err(QStringLiteral("invalid image URL at byte %1")
+                                   .arg(error.offset().to_primitive()));
+                }
+                return Ok(rstd::move(parsed).unwrap_unchecked());
+            }
 
-        if (id.startsWith("http")) {
-            req = rstd::Some(ncrequest::Request { id.toStdString() });
-        } else {
-            ImageParam p = parse_image_url(rstd::into(rstd::format("image://qcm/{}", id)));
-            auto       b = App::instance()->backend();
-            req          = rstd::Some(b->image(p.item_type, p.item_id, p.image_type));
+            auto image_url = QUrl(QStringLiteral("image://qcm/") + id);
+            auto p         = parse_image_url(image_url);
+            auto request = App::instance()->backend()->image(p.item_type, p.item_id, p.image_type);
+            if (request.is_err()) {
+                auto error = rstd::move(request).unwrap_err_unchecked();
+                auto text  = rstd::format("{}", error);
+                return Err(qextra::to_qstring(text));
+            }
+            return Ok(rstd::move(request).unwrap_unchecked());
+        }();
+
+        if (req.is_err()) {
+            rsp->setError(rstd::move(req).unwrap_err_unchecked());
+            return rsp.get();
         }
 
-        auto alloc = asio::recycling_allocator<void>();
-        auto ex    = asio::make_strand(m_inner->get_executor());
-        rsp->wdog().spawn(
-            ex,
-            [rsp, requestedSize, req = std::move(req), inner = m_inner]() -> task<void> {
-                co_await inner->handle_request(rsp, *req, requestedSize);
-                co_return;
-            },
-            asio::bind_allocator(alloc,
-                                 [rsp, id](std::exception_ptr p) {
-                                     if (p) {
-                                         try {
-                                             std::rethrow_exception(p);
-                                         } catch (const std::exception& e) {
-                                             rsp->setError(rstd::into(rstd::format(R"(
- QcmImageProvider
-     id: {}
-     error: {})",
-                                                                                   id,
-                                                                                   e.what())));
-                                         }
-                                     }
-                                 }),
-            asio::chrono::minutes(2),
-            alloc);
+        auto request = rstd::move(req).unwrap_unchecked();
+        request.get_opt<ncrequest::req_opt::Timeout>().transfer_timeout = rstd::i64(120'000);
+        m_inner->submit(QcmImageProviderInner::Job {
+            .rsp            = rsp,
+            .request        = rstd::move(request),
+            .requested_size = requestedSize,
+        });
         return rsp.get();
     } while (false);
 

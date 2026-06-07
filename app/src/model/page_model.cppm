@@ -8,7 +8,7 @@ module;
 #endif
 
 export module qcm:model.page_model;
-export import qextra;
+import qextra;
 
 namespace qcm
 {

@@ -84,6 +84,7 @@ CMakeLists.txt.*
 compile_commands.json
 /.qmllint.ini
 /.vscode
+/.lito
 /CMakeUserPresets.json
 /env.sh
 .gradle
@@ -99,5 +100,4 @@ compile_commands.json
 /install
 /backend/Cargo.toml
 /backend/Cargo.lock
-*.md
-!README.md
+/.cargo

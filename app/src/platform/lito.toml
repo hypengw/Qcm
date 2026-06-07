@@ -1,0 +1,22 @@
+[package]
+name = "qcm-platform"
+version.workspace = true
+standard = "c++23"
+
+[lib]
+name = "qcm-platform"
+module = "platform"
+archive = "qcm_platform"
+sources = [
+  "linux.cpp",
+  "platform.cpp",
+  "platform.cppm",
+  "win.cpp",
+]
+
+[usage]
+threads = true
+
+[dependencies.rstd-std]
+workspace = true
+pub = true

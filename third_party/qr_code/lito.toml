@@ -1,0 +1,14 @@
+[package]
+name = "qcm-qr-code"
+version.workspace = true
+standard = "c++23"
+
+[lib]
+name = "qcm-qr-code"
+module = "qcm.qr_code"
+archive = "qcm_qr_code"
+sources = ["mod.cppm", "qrcodegen.cpp"]
+
+[usage]
+public-include-directories = ["include"]
+private-include-directories = ["include/qr_code"]

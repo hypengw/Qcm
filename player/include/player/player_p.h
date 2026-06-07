@@ -30,17 +30,14 @@ struct seek : base<i32> {};
 
 using info = std::variant<source, play, pause, stop, seek>;
 } // namespace action
-//
-using Action = qcm::Sender<action::info>;
-
 class Player::Private {
 public:
     C_DECLARE_PUBLIC(Player, m_q)
-    using action_channel_type =
-        asio::experimental::concurrent_channel<asio::thread_pool::executor_type,
-                                               void(asio::error_code, action::info)>;
+    using action_receiver_type = rstd::async::CompletionQueue<action::info>;
+    using action_sender_type   = rstd::async::CompletionQueueHandle<action::info>;
+    using action_channel_type  = rstd::tuple<action_receiver_type, action_sender_type>;
 
-    Private(std::string_view name, Notifier notifier, asio::thread_pool::executor_type exc,
+    Private(std::string_view name, Notifier notifier,
             std::pmr::memory_resource* mem);
     ~Private();
 
@@ -55,9 +52,8 @@ private:
     Player*  m_q;
     Notifier m_notifier;
 
-    rc<action_channel_type> m_action_channel;
-    std::atomic<u32>        m_action_id;
-    bool                    m_end;
+    action_channel_type m_action_channel;
+    std::atomic<u32>    m_action_id;
 
     rc<StreamReader> m_reader;
     up<Decoder>      m_dec;

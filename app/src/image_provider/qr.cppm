@@ -2,8 +2,8 @@ module;
 
 export module qcm:image_provider.qr;
 export import :image_provider.response;
-export import qcm.core;
-export import qt;
+import qcm.core;
+import qt;
 
 namespace qcm
 {

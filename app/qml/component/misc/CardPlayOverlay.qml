@@ -5,7 +5,7 @@ import Qcm.Msg as QM
 
 QA.CardOverlay {
     id: root
-    property QM.item_id itemId
+    property QA.item_id itemId
 
     MD.IconButton {
         anchors.centerIn: parent

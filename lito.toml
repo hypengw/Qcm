@@ -1,0 +1,138 @@
+[workspace]
+name = "qcm"
+members = [
+  "app",
+  "app/src/platform",
+  "core",
+  "mpris",
+  "player",
+  "test",
+  "third_party/qr_code",
+]
+default-members = ["app"]
+
+[workspace.package]
+version = "1.3.4"
+authors = ["hypengw"]
+
+[workspace.dependencies.qcm-core]
+path = "core"
+
+[workspace.dependencies.qcm-mpris]
+path = "mpris"
+
+[workspace.dependencies.qcm-platform]
+path = "app/src/platform"
+
+[workspace.dependencies.qcm-player]
+path = "player"
+
+[workspace.dependencies.qcm-qr-code]
+path = "third_party/qr_code"
+
+[workspace.dependencies.rstd-cppstd]
+version = "0.1.0"
+
+[workspace.dependencies.rstd-std]
+version = "0.1.0"
+
+[workspace.dependencies.ncrequest]
+git = "https://github.com/hypengw/ncrequest.git"
+
+[workspace.dependencies.qextra]
+git = "https://github.com/hypengw/QExtra.git"
+
+[workspace.dependencies.lito-qt]
+builtin = "qt"
+
+[workspace.external-sources.qcm-proto]
+path = "backend/main/proto"
+
+[workspace.external-sources.qcm-rust]
+path = "."
+
+[workspace.external-dependencies.cargo.qcm-backend]
+source = "qcm-rust"
+package = "qcm-backend"
+manifest-path = "Cargo.toml"
+
+[workspace.external-sources.qml-material]
+git = "https://github.com/hypengw/QmlMaterial.git"
+
+[workspace.external-dependencies.cmake.qml-material]
+package = "qml_material"
+source = "qml-material"
+adapter = "adapters/QmlMaterial.cmake"
+cache = { QML_MATERIAL_BUILD_TYPE = "STATIC", QM_BUILD_EXAMPLE = false, QM_BUILD_TESTS = false, QM_ICON_FONT_URL = "" }
+
+[workspace.external-sources.random]
+git = "https://github.com/ilqvya/random.git"
+
+[workspace.external-dependencies.cmake.random]
+package = "random"
+source = "random"
+adapter = "adapters/Random.cmake"
+cache = { Random_BuildTests = false }
+
+[workspace.external-sources.kd-single-application]
+git = "https://github.com/KDAB/KDSingleApplication.git"
+
+[workspace.external-dependencies.cmake.kd-single-application]
+package = "KDSingleApplication"
+source = "kd-single-application"
+adapter = "adapters/KDSingleApplication.cmake"
+cache = { KDSingleApplication_QT6 = true, KDSingleApplication_STATIC = true, KDSingleApplication_TESTS = false, KDSingleApplication_EXAMPLES = false, KDSingleApplication_DOCS = false }
+
+[workspace.external-sources.cubeb]
+git = "https://github.com/mozilla/cubeb.git"
+
+[workspace.external-dependencies.cmake.cubeb]
+package = "cubeb"
+source = "cubeb"
+adapter = "adapters/Cubeb.cmake"
+cache = { BUILD_TESTS = false, BUILD_TOOLS = false, BUNDLE_SPEEX = true, USE_SANITIZERS = false, USE_WINMM = false }
+
+[workspace.external-dependencies.cmake.qt6]
+package = "Qt6"
+components = [
+  "Core",
+  "DBus",
+  "Gui",
+  "Network",
+  "Protobuf",
+  "ProtobufQuick",
+  "ProtobufWellKnownTypes",
+  "Qml",
+  "Quick",
+  "QuickControls2",
+  "QuickPrivate",
+  "ShaderTools",
+  "WebSockets",
+]
+host-tools = [
+  { name = "moc", target = "Qt6::moc" },
+  { name = "protoc", target = "WrapProtoc::WrapProtoc" },
+  { name = "qmlcachegen", target = "Qt6::qmlcachegen" },
+  { name = "qmlimportscanner", target = "Qt6::qmlimportscanner" },
+  { name = "qmltyperegistrar", target = "Qt6::qmltyperegistrar" },
+  { name = "qtprotobufgen", target = "Qt6::qtprotobufgen" },
+  { name = "rcc", target = "Qt6::rcc" },
+]
+
+[workspace.external-dependencies.cmake.ffmpeg]
+package = "ffmpeg"
+
+[workspace.external-dependencies.pkg-config.libavformat]
+module = "libavformat"
+
+[workspace.external-dependencies.pkg-config.libavcodec]
+module = "libavcodec"
+
+[workspace.external-dependencies.pkg-config.libavutil]
+module = "libavutil"
+
+[workspace.external-dependencies.pkg-config.libswresample]
+module = "libswresample"
+
+[profile.release]
+lto = "fat"

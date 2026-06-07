@@ -201,7 +201,7 @@ PlayQueue::PlayQueue(QObject* parent)
       m_changed_timer(new QTimer(this)),
       m_pending_advance_timer(new QTimer(this)),
       m_pending_advance(false) {
-    updateRoleNames(qcm::model::Song::staticMetaObject, this, kstore::QMetaRoleNames::WithMethod);
+    updateRoleNames(qcm::model::Song::staticMetaObject, this, {});
     connect(this, &PlayQueue::currentIndexChanged, this, [this](qint32 idx) {
         setCurrentSong(idx);
 
@@ -248,16 +248,24 @@ PlayQueue::PlayQueue(QObject* parent)
 
     loopModeChanged(m_loop_mode);
 }
-PlayQueue::~PlayQueue() {}
+PlayQueue::~PlayQueue() { m_background_tasks.cancel(); }
 void PlayQueue::drop_global() {
     AppStore::instance()->songs.store_unreg_notify(m_notify_handle);
     m_songs.clear();
 }
 
-auto PlayQueue::roleNames() const -> QHash<int, QByteArray> { return roleNamesRef(); }
+auto PlayQueue::roleNames() const -> QHash<int, QByteArray> {
+    auto roles = roleNamesRef();
+    roles.insert(model::ItemIdListModel::ItemIdRole, "itemId");
+    return roles;
+}
 auto PlayQueue::data(const QModelIndex& index, int role) const -> QVariant {
     auto row = index.row();
     auto id  = getId(row);
+    if (role == model::ItemIdListModel::ItemIdRole) {
+        if (id) return QVariant::fromValue(*id);
+        return {};
+    }
     do {
         if (! id) break;
         auto it    = m_songs.find(*id);
@@ -279,10 +287,6 @@ auto PlayQueue::data(const QModelIndex& index, int role) const -> QVariant {
                 // }
             } else {
                 return prop.value().readOnGadget(&m_placeholder);
-            }
-        } else if (auto method = this->methodOfRole(role); method) {
-            if (method->name() == "itemId"sv) {
-                return QVariant::fromValue(*id);
             }
         }
     } while (0);
@@ -350,12 +354,23 @@ auto PlayQueue::currentSong() const -> model::Song {
 
     model::Song s {};
     if (auto id = currentId()) {
-        s.setItemId(*id);
+        model::set_item_id(s, *id);
         if (auto it = m_source_map.find(*id); it != m_source_map.end()) {
             // s.sourceId = it->second;
         }
     }
     return s;
+}
+
+auto PlayQueue::currentSongId() const -> model::ItemId {
+    return currentId().unwrap_or(model::ItemId {});
+}
+
+auto PlayQueue::currentAlbumId() const -> model::ItemId {
+    if (m_current_song) {
+        if (auto ptr = m_current_song->item()) return model::album_item_id(*ptr);
+    }
+    return {};
 }
 
 void PlayQueue::setCurrentSong(rstd::Option<SongItem> s) {
@@ -535,7 +550,7 @@ auto PlayQueue::update(std::span<const model::Song> in) -> void {
     for (auto& el : in) {
         auto item = store->songs.store_item(el.id_proto());
         if (item) {
-            m_songs.insert_or_assign(el.itemId(), *item);
+            m_songs.insert_or_assign(model::item_id(el), *item);
         }
     }
 }
@@ -672,7 +687,6 @@ void PlayQueue::cancelPendingAdvance() {
 void PlayQueue::fetchSongs() {
     if (m_pending_ids.empty()) return;
 
-    auto ex      = asio::make_strand(qcm::pool_executor());
     auto backend = App::instance()->backend();
 
     auto req  = msg::GetSongsByIdReq {};
@@ -683,38 +697,34 @@ void PlayQueue::fetchSongs() {
     m_pending_ids.clear();
 
     auto self = QWatcher { this };
-    asio::co_spawn(
-        ex,
-        [self, backend, req = std::move(req)] mutable -> task<void> {
-            auto rsp = co_await backend->send(std::move(req));
-            co_await qcm::qexecutor_switch();
+    m_background_tasks.spawn([self, backend, req = std::move(req)] mutable -> task<void> {
+        auto rsp = co_await backend->send(std::move(req));
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
 
-            if (rsp) {
-                std::unordered_set<model::ItemId> fetched_ids;
-                std::vector<i64>                     id_list;
+        if (rsp) {
+            std::unordered_set<model::ItemId> fetched_ids;
+            std::vector<i64>                  id_list;
 
-                auto store  = AppStore::instance();
-                auto handle = self->m_notify_handle;
-                for (auto& song_proto : rsp->items()) {
-                    auto song = model::Song { song_proto };
-                    fetched_ids.insert(song.itemId());
-                    id_list.push_back(song.id_proto());
-                    auto [item, _] = store->songs.store_insert(song);
-                    self->m_songs.insert_or_assign(song.itemId(), item);
-                }
-                for (qsizetype i = 0; i < rsp->extras().size(); i++) {
-                    auto id = rsp->items().at(i).id_proto();
-                    merge_store_extra(store->songs, id, rsp->extras().at(i));
-                }
-                store->songs.store_changed_callback(id_list, handle);
-                // notify rows directly, bypass debounce timer so freshly fetched
-                // songs don't render as placeholders for up to 200ms
-                self->notifyRowsForIds(fetched_ids);
+            auto store  = AppStore::instance();
+            auto handle = self->m_notify_handle;
+            for (auto& song_proto : rsp->items()) {
+                auto song = model::Song { song_proto };
+                fetched_ids.insert(model::item_id(song));
+                id_list.push_back(song.id_proto());
+                auto [item, _] = store->songs.store_insert(song);
+                self->m_songs.insert_or_assign(model::item_id(song), item);
             }
-
-            co_return;
-        },
-        asio_detached_log_t {});
+            for (qsizetype i = 0; i < rsp->extras().size(); i++) {
+                auto id = rsp->items().at(i).id_proto();
+                merge_store_extra(store->songs, id, rsp->extras().at(i));
+            }
+            store->songs.store_changed_callback(id_list, handle);
+            // notify rows directly, bypass debounce timer so freshly fetched
+            // songs don't render as placeholders for up to 200ms
+            self->notifyRowsForIds(fetched_ids);
+        }
+    });
 }
 
 } // namespace qcm

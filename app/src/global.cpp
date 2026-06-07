@@ -13,22 +13,12 @@ namespace
 
 auto static_global(qcm::Global* set = nullptr) -> qcm::Global* {
     static qcm::Global* theGlobal { set };
-    assert(theGlobal);
+    rstd_assert(theGlobal != nullptr, "Global is not initialized");
     return theGlobal;
 }
 
 } // namespace
 
-auto qcm::qexecutor() -> QtExecutor& { return Global::instance()->qexecutor(); }
-auto qcm::qexecutor_switch() -> task<void> {
-    return asio::post(asio::bind_executor(Global::instance()->qexecutor(), use_task));
-}
-auto qcm::pool_executor() -> asio::thread_pool::executor_type {
-    return Global::instance()->pool_executor();
-}
-auto qcm::strand_executor() -> asio::strand<asio::thread_pool::executor_type> {
-    return asio::make_strand(Global::instance()->pool_executor());
-}
 auto qcm::mem_mgr() -> MemResourceMgr& {
     static MemResourceMgr the_mgr {};
     return the_mgr;
@@ -82,10 +72,8 @@ void GlobalWrapper::connect_to_global(Global* g, R (Global::*g_func)(ARGS...),
     });
 }
 
-Global::Private::Private(Global* p)
-    : qt_ctx(Arc<QtExecutionContext>::make(p, (QEvent::Type)QEvent::registerEventType())),
-      pool(get_pool_size()),
-      session(ncrequest::Session::make(pool.get_executor(), mem_mgr().session_mem)),
+Global::Private::Private(Global*)
+    : session(ncrequest::Session::make()),
       player(nullptr) {}
 Global::Private::~Private() {}
 
@@ -94,24 +82,17 @@ auto Global::instance() -> Global* { return static_global(); }
 Global::Global(): d_ptr(make_up<Private>(this)) {
     C_D(Global);
     LOG_DEBUG("init Global");
-    assert(static_global(this) == this);
+    rstd_assert(static_global(this) == this, "Global must be unique");
 
     {
         QCoreApplication::setApplicationName(APP_NAME);
         QCoreApplication::setOrganizationName(APP_NAME);
     }
 
-    QAsyncResult::initEx(qcm::qexecutor(), qcm::pool_executor(), [](QStringView error) {
+    QAsyncResult::initEx(this, rstd::usize(get_pool_size()), [](QStringView error) {
         Global::instance()->errorOccurred(error.toString());
     });
-    d->player = new Player(qcm::pool_executor(), &mem_mgr(), this);
-    asio::co_spawn(
-        asio::strand<Player::channel_type::executor_type>(qcm::pool_executor()),
-        [player = d->player]() -> asio::awaitable<void> {
-            co_await player->process_msg();
-            co_return;
-        },
-        asio_detached_log_t {});
+    d->player = new Player(&mem_mgr(), this);
 }
 Global::~Global() {
     // delete child before private pointer
@@ -119,17 +100,9 @@ Global::~Global() {
     QAsyncResult::dropEx();
     GlobalStatic::instance()->reset();
 }
-auto Global::qexecutor() -> qt_executor_t& {
+auto Global::session() -> Arc<ncrequest::Session> {
     C_D(Global);
-    return d->qt_ctx->get_executor();
-}
-auto Global::pool_executor() -> pool_executor_t {
-    C_D(Global);
-    return d->pool.executor();
-}
-auto Global::session() -> rc<ncrequest::Session> {
-    C_D(Global);
-    return d->session;
+    return d->session.clone();
 }
 
 auto Global::uuid() const -> const QUuid& {
@@ -163,13 +136,10 @@ void Global::set_metadata_impl(const MetadataImpl& impl) {
 
 void Global::join() {
     C_D(Global);
-    session()->about_to_stop();
     player()->close();
 
     delete d->player;
     d->player = nullptr;
-
-    d->pool.join();
 }
 
 GlobalWrapper::GlobalWrapper(): m_g(Global::instance()), m_toast_action_comp(nullptr) {

@@ -1,6 +1,5 @@
 use mlua::prelude::*;
 use qcm_core::crypto::*;
-use serde_urlencoded;
 
 struct LuaRsa(Rsa<pkey::Public>);
 
@@ -111,15 +110,6 @@ pub fn create_crypto_module(lua: &Lua) -> LuaResult<LuaTable> {
         })?,
     )?;
     exports.set("hex", hex)?;
-
-    let url = lua.create_table()?;
-    url.set(
-        "encode",
-        lua.create_function(|_, v: LuaValue| {
-            serde_urlencoded::to_string(&v).map_err(mlua::Error::external)
-        })?,
-    )?;
-    exports.set("url", url)?;
 
     exports.set(
         "create_rsa",

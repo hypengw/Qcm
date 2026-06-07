@@ -2086,7 +2086,11 @@ dependencies = [
 [[package]]
 name = "mlua-extra"
 version = "0.1.0"
+source = "git+https://github.com/hypengw/mlua-extra?rev=df1d282170dd1718b8aeff405638c18cedd435ca#df1d282170dd1718b8aeff405638c18cedd435ca"
 dependencies = [
+ "base64",
+ "cookie_store 0.22.1",
+ "getrandom 0.3.4",
  "log",
  "mlua",
  "reqwest",
@@ -2094,6 +2098,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_urlencoded",
+ "tokio",
  "url",
 ]
 
@@ -2832,7 +2837,6 @@ dependencies = [
  "sea-orm",
  "serde",
  "serde_json",
- "serde_urlencoded",
 ]
 
 [[package]]

@@ -1,6 +1,6 @@
 export module qcm:model.share_store;
-export import qcm.core;
-export import qextra;
+import qcm.core;
+import qextra;
 
 
 

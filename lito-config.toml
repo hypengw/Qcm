@@ -1,0 +1,9 @@
+[build]
+options = [
+  "-Wall",
+  "-Wextra",
+  "-Wpedantic",
+  "-Wno-unused-variable",
+  "-Wno-unused-function",
+]
+

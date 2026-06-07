@@ -53,7 +53,7 @@ MD.Page {
     }
 
     component AlbumCard: MImagePlayCard {
-        subText: QA.Util.joinName(model.extra()?.artists)
+        subText: QA.Util.joinName(QA.Store.extra(model.itemId)?.artists)
     }
     component MixCard: MImagePlayCard {}
     component RadioQueueCard: QA.ImagePlayCard {

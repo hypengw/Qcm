@@ -1,0 +1,33 @@
+[package]
+name = "qcm-mpris"
+version.workspace = true
+standard = "c++23"
+target = { os = "linux" }
+
+[dependencies.lito-qt]
+workspace = true
+
+[lib]
+name = "qcm-mpris"
+module = "qcm.mpris"
+archive = "qcm_mpris"
+sources = [
+  "mediaplayer2.cpp",
+  "mediaplayer2_adaptor.cpp",
+  "mod.cppm",
+  "mpris.cpp",
+]
+
+[usage]
+public-include-directories = ["include"]
+
+[dependencies.qcm-core]
+workspace = true
+pub = true
+
+[external-dependencies.cmake.qt6]
+workspace = true
+targets = [
+  { name = "Qt6::Core", pub = true },
+  { name = "Qt6::DBus", pub = true },
+]

@@ -1,0 +1,209 @@
+[package]
+name = "qcm-app"
+version.workspace = true
+authors.workspace = true
+standard = "c++23"
+
+[features.qml-debug]
+default = false
+
+[dependencies.lito-qt]
+workspace = true
+
+[[bin]]
+name = "Qcm"
+module = "qcm.entry"
+sources = [
+  "src/action.cpp",
+  "src/action.cppm",
+  "src/app.cpp",
+  "src/app.cppm",
+  "src/backend.cpp",
+  "src/backend.cppm",
+  "src/convert.cpp",
+  "src/entry.cpp",
+  "src/entry.cppm",
+  "src/global.cpp",
+  "src/global.cppm",
+  "src/image_provider/http.cpp",
+  "src/image_provider/http.cppm",
+  "src/image_provider/mod.cppm",
+  "src/image_provider/qr.cpp",
+  "src/image_provider/qr.cppm",
+  "src/image_provider/response.cpp",
+  "src/image_provider/response.cppm",
+  "src/main.cpp",
+  "src/message/item_id.cpp",
+  "src/mod.cpp",
+  "src/mod.cppm",
+  "src/model/app_info.cppm",
+  "src/model/empty_model.cppm",
+  "src/model/filter_rule_model.cpp",
+  "src/model/filter_rule_model.cppm",
+  "src/model/id_queue.cpp",
+  "src/model/id_queue.cppm",
+  "src/model/item_id.cppm",
+  "src/model/item_id_list.cppm",
+  "src/model/list_models.cppm",
+  "src/model/lyric.cpp",
+  "src/model/lyric.cppm",
+  "src/model/mod.cpp",
+  "src/model/mod.cppm",
+  "src/model/page_model.cppm",
+  "src/model/play_queue.cpp",
+  "src/model/play_queue.cppm",
+  "src/model/router_msg.cppm",
+  "src/model/share_store.cppm",
+  "src/model/sort_filter.cpp",
+  "src/model/sort_filter.cppm",
+  "src/model/store_item.cppm",
+  "src/model/table_proxy.cppm",
+  "src/msg/backend_msg.cppm",
+  "src/msg/mod.cpp",
+  "src/msg/mod.cppm",
+  "src/msg/store.cppm",
+  "src/notifier.cppm",
+  "src/player.cpp",
+  "src/player.cppm",
+  "src/provider_status.cpp",
+  "src/qml/clipboard.cpp",
+  "src/qml/clipboard.cppm",
+  "src/qml/duration.cppm",
+  "src/qml/enum.cppm",
+  "src/qml/foreign.cpp",
+  "src/qml/mod.cpp",
+  "src/qml/mod.cppm",
+  "src/qml/util.cpp",
+  "src/qml/util.cppm",
+  "src/qml_register.cpp",
+  "src/query/album_query.cpp",
+  "src/query/album_query.cppm",
+  "src/query/artist_query.cpp",
+  "src/query/artist_query.cppm",
+  "src/query/favorite_query.cpp",
+  "src/query/favorite_query.cppm",
+  "src/query/lyric_query.cpp",
+  "src/query/lyric_query.cppm",
+  "src/query/mix_query.cpp",
+  "src/query/mix_query.cppm",
+  "src/query/mod.cppm",
+  "src/query/play_query.cpp",
+  "src/query/play_query.cppm",
+  "src/query/provider_query.cpp",
+  "src/query/provider_query.cppm",
+  "src/query/qr_query.cpp",
+  "src/query/qr_query.cppm",
+  "src/query/query.cpp",
+  "src/query/query.cppm",
+  "src/query/search_query.cpp",
+  "src/query/search_query.cppm",
+  "src/query/storage_info.cpp",
+  "src/query/storage_info.cppm",
+  "src/query/sync_query.cpp",
+  "src/query/sync_query.cppm",
+  "src/status/app_state.cpp",
+  "src/status/app_state.cppm",
+  "src/status/mod.cppm",
+  "src/status/process.cpp",
+  "src/status/process.cppm",
+  "src/status/provider.cppm",
+  "src/util/mem.cppm",
+  "src/util/mod.cppm",
+  "src/util/path.cpp",
+  "src/util/path.cppm",
+]
+
+[usage]
+private-include-directories = [
+  ".",
+  "include",
+  "include/Qcm/qml",
+  "include/Qcm/register",
+  "src/message/include",
+  "src/message/include/Qcm/message",
+]
+private-definitions = [
+  "APP_ID=\"io.github.hypengw.Qcm\"",
+  "APP_AUTHOR=\"hypengw\"",
+  "APP_NAME=\"Qcm\"",
+  "APP_SUMMARY=\"Material You cloud music player\"",
+  "APP_VERSION=\"1.3.4\"",
+]
+threads = true
+
+[[when]]
+condition = 'target.os != "linux"'
+
+[when.usage]
+private-definitions = ["NODEBUS"]
+
+[[when]]
+condition = "feature.qml-debug"
+
+[when.usage]
+private-definitions = ["QT_QML_DEBUG"]
+
+[dependencies.qcm-core]
+workspace = true
+
+[dependencies.qcm-mpris]
+workspace = true
+
+[dependencies.qcm-platform]
+workspace = true
+
+[dependencies.qcm-player]
+workspace = true
+
+[dependencies.qcm-qr-code]
+workspace = true
+
+[dependencies.ncrequest]
+workspace = true
+features = ["qt"]
+
+[dependencies.qextra]
+workspace = true
+
+[dependencies.rstd-cppstd]
+workspace = true
+
+[dependencies.rstd-std]
+workspace = true
+
+[external-sources.qcm-proto]
+workspace = true
+
+[external-dependencies.cmake.qt6]
+workspace = true
+targets = [
+  { name = "Qt6::Core" },
+  { name = "Qt6::Gui" },
+  { name = "Qt6::Network" },
+  { name = "Qt6::Protobuf" },
+  { name = "Qt6::ProtobufQuick" },
+  { name = "Qt6::ProtobufWellKnownTypes" },
+  { name = "Qt6::Qml" },
+  { name = "Qt6::Quick" },
+  { name = "Qt6::QuickControls2" },
+  { name = "Qt6::QuickPrivate" },
+  { name = "Qt6::ShaderTools" },
+  { name = "Qt6::WebSockets" },
+]
+
+[external-dependencies.cmake.qml-material]
+workspace = true
+targets = [
+  { name = "qml_material::qcm" },
+]
+
+[external-dependencies.cmake.kd-single-application]
+workspace = true
+targets = [
+  { name = "kdsingleapplication" },
+]
+
+[external-dependencies.cargo.qcm-backend]
+workspace = true
+usage = "runtime"
+condition = 'target.os != "android"'

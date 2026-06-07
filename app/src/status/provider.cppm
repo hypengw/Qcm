@@ -6,7 +6,7 @@ module;
 
 export module qcm:status.provider;
 export import :msg;
-export import :model.item_id;
+export import :model.item_id_list;
 
 namespace qcm
 {
@@ -46,7 +46,7 @@ private:
 };
 
 export class ProviderStatusModel
-    : public kstore::QGadgetListModel,
+    : public model::ItemIdListModel,
       public kstore::QMetaListModelCRTP<model::ProviderStatus, ProviderStatusModel,
                                         kstore::ListStoreType::Map> {
     Q_OBJECT
