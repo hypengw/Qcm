@@ -385,6 +385,13 @@ struct kstore::ItemTrait<qcm::model::Mix> {
 };
 
 template<>
+struct kstore::ItemTrait<qcm::model::RadioQueue> {
+    using Self     = qcm::model::RadioQueue;
+    using key_type = i64;
+    static auto key(const Self& el) noexcept -> i64 { return el.id_proto(); }
+};
+
+template<>
 struct kstore::ItemTrait<qcm::msg::model::ProviderMeta> {
     using key_type = QString;
     static auto key(const qcm::msg::model::ProviderMeta& el) noexcept -> const key_type& {
