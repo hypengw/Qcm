@@ -121,12 +121,6 @@ void PageModel::init_main_pages(PageModel* self) {
                             .icon   = "search",
                             .source = "qrc:/Qcm/App/qml/page/SearchPage.qml" } };
     self->insert(0, arr);
-#ifdef QCM_DEBUG_BUILD
-    self->insert(self->rowCount(),
-                 Page { .name   = "test",
-                        .icon   = "bug_report",
-                        .source = "qrc:/Qcm/Material/Example/Example.qml" });
-#endif
 }
 PageModel::PageModel(QObject* parent): kstore::QGadgetListModel(this, parent) {}
 PageModel::~PageModel() {}
