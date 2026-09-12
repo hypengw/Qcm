@@ -80,12 +80,34 @@ MD.Page {
                 id: m_for_you_block
                 width: parent.width
                 title: "For You"
-                model: m_for_you_query.data
-                delegate: RadioQueueCard {
+                model: m_daily_mix_query.data
+                delegate: MixCard {
                     width: m_for_you_block.widthProvider.width
                 }
+                QA.RemoteMixesQuery {
+                    id: m_daily_mix_query
+                    limit: 20
+                    noMore: true
+                    property QM.remoteMixFilter filter1
+                    filter1.typeFilter: {
+                        const f = QA.Util.typeStringFilter();
+                        f.value = "daily";
+                        f.condition = QM.TypeCondition.TYPE_CONDITION_IS;
+                        return f;
+                    }
+                    filters: [filter1]
+                }
+            }
+            Block {
+                id: m_radio_block
+                width: parent.width
+                title: "Radio"
+                model: m_radio_query.data
+                delegate: RadioQueueCard {
+                    width: m_radio_block.widthProvider.width
+                }
                 QA.RadioQueuesQuery {
-                    id: m_for_you_query
+                    id: m_radio_query
                     Component.onCompleted: reload()
                 }
             }

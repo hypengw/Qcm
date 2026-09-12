@@ -146,7 +146,7 @@ MD.Page {
 
                 QA.UpdateProviderQuery {
                     id: m_update_query
-                    providerId: root.model.itemId
+                    providerId: root.itemId
                     onStatusChanged: {
                         if (status == QA.Enum.Finished)
                             root.MD.MProp.page.pop();
@@ -154,7 +154,7 @@ MD.Page {
                 }
                 QA.ReplaceProviderQuery {
                     id: m_replace_query
-                    providerId: root.model.itemId
+                    providerId: root.itemId
                     onStatusChanged: {
                         if (status == QA.Enum.Finished)
                             root.MD.MProp.page.pop();
