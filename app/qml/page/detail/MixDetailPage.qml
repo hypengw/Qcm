@@ -20,7 +20,10 @@ MD.Page {
         view: m_view
         excludeBegin: m_view.headerItem.height - m_control_pane.height + view.topMargin
         radius: root.radius
-        bottomMargin: MD.MProp.size.verticalPadding
+        x: m_view.leftMargin
+        leftMargin: 0
+        rightMargin: 0
+        bottomMargin: root.MD.MProp.page.bottomMargin
     }
 
     MD.VerticalListView {
@@ -29,8 +32,10 @@ MD.Page {
         reuseItems: true
         contentY: 0
 
-        topMargin: MD.MProp.size.verticalPadding
-        bottomMargin: MD.MProp.size.verticalPadding * 2
+        leftMargin: root.MD.MProp.page.leftMargin
+        rightMargin: root.MD.MProp.page.rightMargin
+        topMargin: root.MD.MProp.page.topMargin
+        bottomMargin: root.MD.MProp.page.bottomMargin + 16
 
         model: qr_pl.data
         readonly property bool single: width < m_cover.displaySize.width * (1.0 + 1.5) + 8
@@ -193,14 +198,14 @@ MD.Page {
         }
         footer: MD.ListBusyFooter {
             running: qr_pl.status === QA.Enum.Querying
-            width: ListView.view.width
+            width: ListView.view.contentWidth
         }
     }
     MD.FAB {
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.rightMargin: 16
-        anchors.bottomMargin: 16
+        anchors.rightMargin: root.MD.MProp.page.rightMargin + 16
+        anchors.bottomMargin: root.MD.MProp.page.bottomMargin + 16
         flickable: m_view
         action: MD.Action {
             icon.name: MD.Token.icon.play_arrow

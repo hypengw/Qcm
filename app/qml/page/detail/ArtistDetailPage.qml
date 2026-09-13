@@ -30,7 +30,7 @@ MD.Page {
         leftMargin: 0
         rightMargin: 0
         x: m_view.leftMargin
-        topMargin: MD.MProp.size.verticalPadding
+        topMargin: root.MD.MProp.page.topMargin
         bottomMargin: 0
     }
     Item {
@@ -145,8 +145,10 @@ MD.Page {
         anchors.fill: parent
 
         displayMode: root.displayMode
-        topMargin: MD.MProp.size.verticalPadding
-        bottomMargin: MD.MProp.size.verticalPadding
+        leftMargin: root.MD.MProp.page.leftMargin
+        rightMargin: root.MD.MProp.page.rightMargin
+        topMargin: root.MD.MProp.page.topMargin
+        bottomMargin: root.MD.MProp.page.bottomMargin
         model: qr_artist_albums.data
         delegate: {
             const d = displayMode;

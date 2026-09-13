@@ -9,12 +9,9 @@ import Qcm.Msg as QM
 
 MD.Page {
     id: root
-    rightPadding: MD.MProp.size.isCompact ? 0 : 8
-    topPadding: vpadding
 
     readonly property bool canBack: false//leaf.folded && leaf.rightAbove
     title: m_content.currentItem?.title ?? qsTr("library")
-    property int vpadding: showHeader ? 0 : MD.MProp.size.verticalPadding
     scrolling: m_content.currentItem?.scrolling ?? false
 
     property int currentIndex: 0
@@ -242,6 +239,10 @@ MD.Page {
             id: m_page_context
             showHeader: false
             radius: root.radius
+            leftMargin: root.MD.MProp.page.leftMargin
+            rightMargin: root.MD.MProp.page.rightMargin
+            topMargin: root.MD.MProp.page.topMargin
+            bottomMargin: root.MD.MProp.page.bottomMargin
         }
         function route(itemId) {
             if (visible) {
@@ -335,6 +336,9 @@ MD.Page {
 
     MD.SplitView {
         anchors.fill: parent
+        anchors.leftMargin: root.MD.MProp.page.leftMargin
+        anchors.rightMargin: root.MD.MProp.page.rightMargin
+        anchors.topMargin: root.MD.MProp.page.topMargin
         ColumnLayout {
             LayoutItemProxy {
                 Layout.fillHeight: true
@@ -352,7 +356,7 @@ MD.Page {
     //     rightMin: 400
 
     //     leftPage: MD.Pane {
-    //         topPadding: root.vpadding
+    //         topPadding: root.MD.MProp.page.topMargin
     //         showBackground: false
 
     //         ColumnLayout {
@@ -366,7 +370,7 @@ MD.Page {
 
     component BaseView: QA.ItemView {
         id: m_view_base
-        bottomMargin: root.vpadding
+        bottomMargin: root.MD.MProp.page.bottomMargin
 
         property bool dirty: false
         property QA.FilterRuleModel filterModel

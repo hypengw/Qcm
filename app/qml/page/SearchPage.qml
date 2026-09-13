@@ -8,7 +8,6 @@ MD.Page {
     id: root
     padding: 0
     title: qsTr('search')
-    topPadding: showHeader ? 0 : MD.MProp.size.verticalPadding
 
     property list<QtObject> models: [m_model.songs, m_model.albums, m_model.artists]
     property list<var> delegates: [m_dg_song, m_dg_album, m_dg_artist]
@@ -28,10 +27,10 @@ MD.Page {
         implicitHeight: contentHeight
         busy: query.status === QA.Enum.Querying
         topMargin: 8
-        bottomMargin: MD.MProp.size.verticalPadding * 2
+        bottomMargin: root.MD.MProp.page.bottomMargin + 16
 
-        leftMargin: 12
-        rightMargin: 12
+        leftMargin: root.MD.MProp.page.leftMargin + 12
+        rightMargin: root.MD.MProp.page.rightMargin + 12
 
         QA.SearchQuery {
             id: m_query
@@ -49,8 +48,9 @@ MD.Page {
         spacing: 8
 
         ColumnLayout {
-            Layout.leftMargin: 12
-            Layout.rightMargin: 12
+            Layout.topMargin: root.MD.MProp.page.topMargin
+            Layout.leftMargin: root.MD.MProp.page.leftMargin + 12
+            Layout.rightMargin: root.MD.MProp.page.rightMargin + 12
             spacing: 16
 
             MD.SearchBar {

@@ -21,6 +21,10 @@ MD.Page {
 
     property var model: QA.App.pages
     readonly property bool useLarge: MD.MProp.size.windowClass >= MD.Enum.WindowClassLarge
+    readonly property int pageLeftMargin: 4
+    readonly property int pageRightMargin: 12
+    readonly property int pageTopMargin: MD.MProp.size.isCompact ? 0 : MD.MProp.size.verticalPadding
+    readonly property int pageBottomMargin: MD.MProp.size.isCompact ? 0 : MD.MProp.size.verticalPadding
 
     function back() {
         m_page_stack.back();
@@ -251,6 +255,10 @@ MD.Page {
                         showHeader: root.MD.MProp.size.isCompact
                         leadingAction: root.canBack ? m_back_action : m_draw_action
                         radius: root.radius
+                        leftMargin: root.pageLeftMargin
+                        rightMargin: root.pageRightMargin
+                        topMargin: root.pageTopMargin
+                        bottomMargin: root.pageBottomMargin
                     }
                 }
 
@@ -261,6 +269,10 @@ MD.Page {
                     leadingAction: root.canBack ? m_back_action : null
                     showHeader: root.MD.MProp.size.isCompact
                     radius: root.radius
+                    leftMargin: root.pageLeftMargin
+                    rightMargin: root.pageRightMargin
+                    topMargin: root.pageTopMargin
+                    bottomMargin: root.pageBottomMargin
                 }
 
                 MD.Action {

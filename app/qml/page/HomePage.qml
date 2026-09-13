@@ -20,7 +20,8 @@ MD.Page {
         visible: m_view.count > 0
         spacing: 8
         QA.HorizontalItemBar {
-            width: parent.width
+            x: root.MD.MProp.page.leftMargin
+            width: parent.width - root.MD.MProp.page.leftMargin - root.MD.MProp.page.rightMargin
             title: m_block.title
             view: m_view
         }
@@ -28,8 +29,9 @@ MD.Page {
             id: m_view
             height: 100 + m_width_provider.width
             width: parent.width
-            spacing: 12
-            rightMargin: m_view.spacing
+            spacing: Math.max(12, rightMargin)
+            leftMargin: root.MD.MProp.page.leftMargin
+            rightMargin: root.MD.MProp.page.rightMargin
             highlightRangeMode: ListView.StrictlyEnforceRange
 
             MD.WidthProvider {
@@ -37,7 +39,12 @@ MD.Page {
                 minimum: 140
                 spacing: m_view.spacing
                 total: m_view.width
+                leftMargin: m_view.leftMargin
                 rightMargin: m_view.rightMargin
+                onMinimumChanged: m_width_provider.refresh()
+                onSpacingChanged: m_width_provider.refresh()
+                onLeftMarginChanged: m_width_provider.refresh()
+                onRightMarginChanged: m_width_provider.refresh()
             }
         }
     }
@@ -74,7 +81,10 @@ MD.Page {
 
     MD.VerticalFlickable {
         anchors.fill: parent
+        leftMargin: 0
         rightMargin: 0
+        topMargin: root.MD.MProp.page.topMargin
+        bottomMargin: root.MD.MProp.page.bottomMargin
         Column {
             spacing: 0
             width: parent.width
