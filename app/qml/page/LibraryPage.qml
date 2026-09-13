@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtCore
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Templates as T
 import Qcm.App as QA
 import Qcm.Material as MD
 import Qcm.Msg as QM
@@ -9,6 +10,7 @@ import Qcm.Msg as QM
 MD.Page {
     id: root
     rightPadding: MD.MProp.size.isCompact ? 0 : 8
+    topPadding: vpadding
 
     readonly property bool canBack: false//leaf.folded && leaf.rightAbove
     title: m_content.currentItem?.title ?? qsTr("library")
@@ -22,146 +24,158 @@ MD.Page {
     }
 
     readonly property Item libView: Item {
+        id: m_lib_view
+
         visible: false
-        implicitHeight: m_stack_layout.implicitHeight
-        implicitWidth: m_stack_layout.implicitWidth
+        implicitHeight: m_library_layout.implicitHeight
+        implicitWidth: m_library_layout.implicitWidth
         clip: true
 
-        MD.FlickablePane {
-            corners: MD.Util.corners(MD.Token.shape.corner.medium, MD.Token.shape.corner.large)
-            view: {
-                const item = m_stack_layout.itemAt(m_stack_layout.currentIndex);
-                if (!item)
-                    return null;
-                const displayMode = ((item as ListView).headerItem as HeaderToolBar)?.displayMode ?? 0;
-                return displayMode == 0 ? null : (item as ListView);
-            }
-        }
+        readonly property BaseView currentView: m_stack_layout.itemAt(m_stack_layout.currentIndex) as BaseView
 
-        MD.WidthProvider {
-            id: m_wp
-            total: m_stack_layout.width
-            minimum: 140
-            spacing: 12
-            leftMargin: 8
-            rightMargin: 8
-        }
-
-        StackLayout {
-            id: m_stack_layout
+        ColumnLayout {
+            id: m_library_layout
             anchors.fill: parent
-            Component.onCompleted: {
-                currentIndex = Qt.binding(function () {
-                    return root.currentIndex;
-                });
+            spacing: 0
+
+            HeaderToolBar {
+                Layout.fillWidth: true
+                view: m_lib_view.currentView
             }
 
-            BaseView {
-                id: m_view_album
-                busy: qr_albums.querying
-                displayMode: m_album_setting.display_mode
-                delegate: {
-                    const d = displayMode;
-                    return [dg_albumlist, dg_album_card, dg_album_card][d];
+            Item {
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                clip: true
+
+                MD.FlickablePane {
+                    corners: MD.Util.corners(0, MD.Token.shape.corner.large)
+                    view: {
+                        const view = m_lib_view.currentView;
+                        return view?.displayMode == 0 ? null : view;
+                    }
                 }
-                model: qr_albums.data
-                type: 'album'
-                header: HeaderToolBar {
-                    model: m_album_sort_type
-                    displayMode: m_view_album.displayMode
-                    onSelectDisplayMode: m => m_album_setting.display_mode = m
-                    filterModel: m_album_filter_model
-                    actions: [
-                        QA.PlayAllAction {
-                            albumSort: qr_albums.sort
-                            albumAsc: qr_albums.asc
-                            filters: qr_albums.filters
-                        },
-                        QA.PlayAllAction {
-                            icon.name: MD.Token.icon.shuffle
-                            text: qsTr('shuffle all')
-                            albumSort: QM.AlbumSort.ALBUM_SORT_RANDOM
-                            albumAsc: qr_albums.asc
-                            filters: qr_albums.filters
+
+                MD.WidthProvider {
+                    id: m_wp
+                    total: m_stack_layout.width
+                    minimum: 140
+                    spacing: 12
+                    leftMargin: 8
+                    rightMargin: 8
+                }
+
+                StackLayout {
+                    id: m_stack_layout
+                    anchors.fill: parent
+                    Component.onCompleted: {
+                        currentIndex = Qt.binding(function () {
+                            return root.currentIndex;
+                        });
+                    }
+
+                    BaseView {
+                        id: m_view_album
+                        busy: qr_albums.querying
+                        displayMode: m_album_setting.display_mode
+                        delegate: {
+                            const d = displayMode;
+                            return [dg_albumlist, dg_album_card, dg_album_card][d];
                         }
-                    ]
-                }
-            }
+                        filterModel: m_album_filter_model
+                        headerActions: [
+                            QA.PlayAllAction {
+                                albumSort: qr_albums.sort
+                                albumAsc: qr_albums.asc
+                                filters: qr_albums.filters
+                            },
+                            QA.PlayAllAction {
+                                icon.name: MD.Token.icon.shuffle
+                                text: qsTr('shuffle all')
+                                albumSort: QM.AlbumSort.ALBUM_SORT_RANDOM
+                                albumAsc: qr_albums.asc
+                                filters: qr_albums.filters
+                            }
+                        ]
+                        model: qr_albums.data
+                        sortModel: m_album_sort_type
+                        type: 'album'
+                        onSelectDisplayMode: m => m_album_setting.display_mode = m
+                    }
 
-            BaseView {
-                id: m_view_mix
-                busy: qr_mix.querying
-                model: qr_mix.data
+                    BaseView {
+                        id: m_view_mix
+                        busy: qr_mix.querying
+                        displayMode: m_mix_setting.display_mode
+                        filterModel: m_mix_filter_model
+                        headerActions: [
+                            QA.MixCreateAction {},
+                            QA.MixLinkAction {}
+                        ]
+                        model: qr_mix.data
+                        sortModel: m_mix_sort_type
+                        onSelectDisplayMode: m => m_mix_setting.display_mode = m
 
-                delegate: {
-                    const d = displayMode;
-                    return [dg_mixlist, dg_mix_card, dg_mix_card][d];
-                }
+                        delegate: {
+                            const d = displayMode;
+                            return [dg_mixlist, dg_mix_card, dg_mix_card][d];
+                        }
+                    }
+                    BaseView {
+                        id: m_view_album_artist
+                        busy: qr_album_artists.querying
+                        displayMode: m_album_artist_setting.display_mode
+                        filterModel: m_album_artist_filter_model
+                        headerActions: []
+                        model: qr_album_artists.data
+                        sortModel: m_album_artist_sort_type
+                        type: 'albumartist'
+                        onSelectDisplayMode: m => m_album_artist_setting.display_mode = m
+                        delegate: {
+                            const d = displayMode;
+                            return [dg_artistlist, dg_artist_card, dg_artist_card][d];
+                        }
+                    }
 
-                header: HeaderToolBar {
-                    model: m_mix_sort_type
-                    displayMode: m_view_mix.displayMode
-                    onSelectDisplayMode: m => m_mix_setting.display_mode = m
-                    filterModel: m_mix_filter_model
-                    actions: [
-                        QA.MixCreateAction {},
-                        QA.MixLinkAction {}
-                    ]
-                }
-            }
-            BaseView {
-                id: m_view_album_artist
-                busy: qr_album_artists.querying
-                displayMode: m_album_artist_setting.display_mode
-                model: qr_album_artists.data
-                type: 'albumartist'
-                delegate: {
-                    const d = displayMode;
-                    return [dg_artistlist, dg_artist_card, dg_artist_card][d];
-                }
-
-                header: HeaderToolBar {
-                    model: m_album_artist_sort_type
-                    displayMode: m_view_album_artist.displayMode
-                    onSelectDisplayMode: m => m_album_artist_setting.display_mode = m
-                    filterModel: m_album_artist_filter_model
-                    actions: []
-                }
-            }
-
-            BaseView {
-                id: m_view_artist
-                busy: qr_artists.querying
-                model: qr_artists.data
-                displayMode: m_artist_setting.display_mode
-                type: 'artist'
-                delegate: {
-                    const d = displayMode;
-                    return [dg_artistlist, dg_artist_card, dg_artist_card][d];
-                }
-
-                header: HeaderToolBar {
-                    model: m_artist_sort_type
-                    displayMode: m_view_artist.displayMode
-                    onSelectDisplayMode: m => m_artist_setting.display_mode = m
-                    filterModel: m_artist_filter_model
-                    actions: []
+                    BaseView {
+                        id: m_view_artist
+                        busy: qr_artists.querying
+                        displayMode: m_artist_setting.display_mode
+                        filterModel: m_artist_filter_model
+                        headerActions: []
+                        model: qr_artists.data
+                        sortModel: m_artist_sort_type
+                        type: 'artist'
+                        onSelectDisplayMode: m => m_artist_setting.display_mode = m
+                        delegate: {
+                            const d = displayMode;
+                            return [dg_artistlist, dg_artist_card, dg_artist_card][d];
+                        }
+                    }
                 }
             }
         }
     }
 
     readonly property list<string> tabs: [qsTr("Album"), qsTr("Mix"), qsTr("AlbumArtist"), qsTr("Artist"),]
-    readonly property Item chipBar: Item {
-        visible: false
-        implicitHeight: children[0].implicitHeight + 16
+    component LibraryTabBar: Item {
+        id: m_library_tab_bar
+
+        readonly property bool textOnly: MD.MProp.size.isCompact
+
+        implicitHeight: textOnly ? m_text_tab_view.implicitHeight : m_chip_tab_view.implicitHeight
+        implicitWidth: textOnly ? m_text_tab_view.implicitWidth : m_chip_tab_view.implicitWidth
+
         MD.HorizontalListView {
-            anchors.centerIn: parent
+            id: m_chip_tab_view
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
             implicitHeight: contentItem.childrenRect.height
-            spacing: 12
+            spacing: 8
             leftMargin: 8
             rightMargin: 8
             width: Math.min(implicitWidth, parent.width)
+            visible: !m_library_tab_bar.textOnly
             model: root.tabs
 
             delegate: MD.FilterChip {
@@ -171,6 +185,50 @@ MD.Page {
                 checked: index == root.currentIndex
                 text: modelData
                 onClicked: root.currentIndex = index
+            }
+        }
+
+        MD.HorizontalListView {
+            id: m_text_tab_view
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            implicitHeight: 32
+            spacing: 8
+            leftMargin: 4
+            rightMargin: 4
+            width: Math.min(implicitWidth, parent.width)
+            visible: m_library_tab_bar.textOnly
+            model: root.tabs
+
+            delegate: T.Button {
+                id: m_text_tab
+
+                required property string modelData
+                required property int index
+
+                activeFocusOnTab: true
+                checkable: false
+                checked: index == root.currentIndex
+                implicitHeight: 32
+                implicitWidth: contentItem.implicitWidth + leftPadding + rightPadding
+                leftPadding: 4
+                rightPadding: 4
+                text: modelData
+                onClicked: root.currentIndex = index
+
+                contentItem: MD.Label {
+                    color: MD.MProp.textColor
+                    horizontalAlignment: Text.AlignHCenter
+                    text: m_text_tab.text
+                    typescale: m_text_tab.checked ? MD.Token.typescale.title_medium : MD.Token.typescale.label_large
+                    verticalAlignment: Text.AlignVCenter
+                }
+                background: Item {
+                    MD.FocusIndicator {
+                        active: m_text_tab.visualFocus
+                        corners: MD.Util.corners(4)
+                    }
+                }
             }
         }
     }
@@ -279,11 +337,6 @@ MD.Page {
         anchors.fill: parent
         ColumnLayout {
             LayoutItemProxy {
-                Layout.fillWidth: true
-                target: root.chipBar
-            }
-
-            LayoutItemProxy {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 target: root.libView
@@ -316,7 +369,11 @@ MD.Page {
         bottomMargin: root.vpadding
 
         property bool dirty: false
+        property QA.FilterRuleModel filterModel
+        property list<MD.Action> headerActions
+        property var sortModel
         property string type
+        signal selectDisplayMode(int mode)
         clip: false
 
         currentIndex: -1
@@ -350,49 +407,65 @@ MD.Page {
 
     component HeaderToolBar: MD.Control {
         id: m_header_bar
-        width: ListView.view.width
+
+        required property BaseView view
+
         horizontalPadding: 8
-        property var model
-        property int displayMode: 0
-        property QA.FilterRuleModel filterModel
-        signal selectDisplayMode(int mode)
 
         QA.SortMenu {
             id: m_header_sort_menu
             y: m_header_bar.height
-            model: m_header_bar.model
+            model: m_header_bar.view?.sortModel ?? null
         }
 
         verticalPadding: 4
 
-        property list<MD.Action> actions
         readonly property list<MD.Action> preActions: [
             QA.SelectDisplayModeAction {
-                displayMode: m_header_bar.displayMode
-                onSelectDisplayMode: m => m_header_bar.selectDisplayMode(m)
+                displayMode: m_header_bar.view?.displayMode ?? 0
+                onSelectDisplayMode: m => m_header_bar.view?.selectDisplayMode(m)
             },
             QA.FilterAction {
-                model: m_header_bar.filterModel
+                model: m_header_bar.view?.filterModel ?? null
             }
         ]
 
         contentItem: RowLayout {
-            QA.OrderChip {
+            id: m_header_row
+
+            spacing: 4
+
+            LibraryTabBar {
+                id: m_library_tabs
+
                 Layout.alignment: Qt.AlignVCenter
+                Layout.fillWidth: true
+                Layout.minimumWidth: Math.min(implicitWidth, 160)
+            }
+
+            QA.OrderChip {
+                id: m_order_chip
+
+                Layout.alignment: Qt.AlignVCenter
+                Layout.maximumWidth: implicitWidth
+                Layout.minimumWidth: implicitWidth
                 text: {
-                    const m = m_header_bar.model;
-                    m.item(m.currentIndex).name;
+                    const m = m_header_bar.view?.sortModel;
+                    return m?.item(m.currentIndex)?.name ?? "";
                 }
-                asc: m_header_bar.model.asc
+                asc: m_header_bar.view?.sortModel?.asc ?? false
                 onClicked: {
                     m_header_sort_menu.open();
                 }
             }
+
             MD.ActionToolBar {
                 id: m_tool_bar
+
                 Layout.alignment: Qt.AlignVCenter
-                Layout.fillWidth: true
-                actions: [...m_header_bar.actions, ...m_header_bar.preActions]
+                Layout.maximumWidth: maximumContentWidth
+                Layout.preferredWidth: Math.min(maximumContentWidth, Math.max(Layout.minimumWidth, m_header_row.width - m_library_tabs.implicitWidth - m_order_chip.implicitWidth - m_header_row.spacing * 2))
+                actions: m_header_bar.view ? [...m_header_bar.view.headerActions, ...m_header_bar.preActions] : m_header_bar.preActions
                 iconDelegate: MD.SmallIconButton {
                     id: m_item
                     anchors.verticalCenter: parent.verticalCenter
