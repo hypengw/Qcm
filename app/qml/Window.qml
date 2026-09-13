@@ -246,7 +246,7 @@ MD.ApplicationWindow {
 
             Connections {
                 function onRoute(dst) {
-                    if (dst === Enum.SRMain) {
+                    if (dst === QA.Enum.SRMain) {
                         sv_main.pop(null);
                     }
                 }
