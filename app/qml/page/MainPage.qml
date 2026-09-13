@@ -237,9 +237,6 @@ MD.Page {
                 id: m_page_stack
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                Layout.topMargin: 0
-                Layout.bottomMargin: 0
-                Layout.rightMargin: 16
                 clip: true
 
                 initialItem: QA.PageContainer {
@@ -282,12 +279,6 @@ MD.Page {
                     }
                 }
 
-                Binding {
-                    when: root.MD.MProp.size.isCompact
-                    m_page_stack.Layout.topMargin: 0
-                    m_page_stack.Layout.bottomMargin: 0
-                    m_page_stack.Layout.rightMargin: 0
-                }
             }
         }
     }

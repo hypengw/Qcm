@@ -8,6 +8,7 @@ import Qcm.Msg as QM
 
 MD.Page {
     id: root
+    rightPadding: MD.MProp.size.isCompact ? 0 : 8
 
     readonly property bool canBack: false//leaf.folded && leaf.rightAbove
     title: m_content.currentItem?.title ?? qsTr("library")

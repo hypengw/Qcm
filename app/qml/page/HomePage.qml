@@ -29,6 +29,7 @@ MD.Page {
             height: 100 + m_width_provider.width
             width: parent.width
             spacing: 12
+            rightMargin: m_view.spacing
             highlightRangeMode: ListView.StrictlyEnforceRange
 
             MD.WidthProvider {
@@ -36,6 +37,7 @@ MD.Page {
                 minimum: 140
                 spacing: m_view.spacing
                 total: m_view.width
+                rightMargin: m_view.rightMargin
             }
         }
     }
