@@ -27,9 +27,7 @@ MD.Page {
             return (root.viewHeaderItem?.height ?? 0) - m_control_pane.height + view.topMargin;
         }
         radius: root.radius
-        leftMargin: 0
-        rightMargin: 0
-        x: m_view.leftMargin
+        includeHorizontalMargins: false
         topMargin: root.MD.MProp.page.topMargin
         bottomMargin: 0
     }
@@ -145,10 +143,7 @@ MD.Page {
         anchors.fill: parent
 
         displayMode: root.displayMode
-        leftMargin: root.MD.MProp.page.leftMargin
-        rightMargin: root.MD.MProp.page.rightMargin
-        topMargin: root.MD.MProp.page.topMargin
-        bottomMargin: root.MD.MProp.page.bottomMargin
+        pageMarginEdges: Qt.LeftEdge | Qt.RightEdge | Qt.TopEdge | Qt.BottomEdge
         model: qr_artist_albums.data
         delegate: {
             const d = displayMode;

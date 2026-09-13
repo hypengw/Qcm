@@ -119,9 +119,7 @@ MD.Page {
             return ((view)?.headerItem?.height ?? 0) - m_control_pane.height + view.topMargin;
         }
         radius: root.radius
-        x: view?.leftMargin ?? 0
-        leftMargin: 0
-        rightMargin: 0
+        includeHorizontalMargins: false
         bottomMargin: root.MD.MProp.page.bottomMargin
     }
 
@@ -238,16 +236,13 @@ MD.Page {
     Component {
         id: m_list_comp
 
-        MD.VerticalListView {
+        MD.PageVerticalListView {
             id: m_view
             anchors.fill: parent
             reuseItems: true
             contentY: 0
 
-            leftMargin: root.MD.MProp.page.leftMargin
-            rightMargin: root.MD.MProp.page.rightMargin
-            topMargin: root.MD.MProp.page.topMargin
-            bottomMargin: root.MD.MProp.page.bottomMargin + 16
+            extraBottomMargin: 16
 
             model: m_sort_filter_model
 
@@ -313,7 +308,7 @@ MD.Page {
                     let w = explicitColumnWidth(column);
                     if (w >= 0)
                         return w;
-                    return (m_view.width - m_view.leftMargin - m_view.rightMargin) / m_view.columns;
+                    return m_view.viewportContentWidth / m_view.columns;
                     // return implicitColumnWidth(column);
                 }
                 leftMargin: root.MD.MProp.page.leftMargin
@@ -328,9 +323,8 @@ MD.Page {
             }
             MD.HorizontalHeaderView {
                 id: m_header
-                x: m_view.leftMargin
+                followSyncViewMargins: true
                 y: -m_view.contentY - height
-                width: m_view.width - m_view.leftMargin - m_view.rightMargin
                 syncView: m_view
             }
         }

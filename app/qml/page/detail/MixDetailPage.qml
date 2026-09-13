@@ -20,22 +20,17 @@ MD.Page {
         view: m_view
         excludeBegin: m_view.headerItem.height - m_control_pane.height + view.topMargin
         radius: root.radius
-        x: m_view.leftMargin
-        leftMargin: 0
-        rightMargin: 0
+        includeHorizontalMargins: false
         bottomMargin: root.MD.MProp.page.bottomMargin
     }
 
-    MD.VerticalListView {
+    MD.PageVerticalListView {
         id: m_view
         anchors.fill: parent
         reuseItems: true
         contentY: 0
 
-        leftMargin: root.MD.MProp.page.leftMargin
-        rightMargin: root.MD.MProp.page.rightMargin
-        topMargin: root.MD.MProp.page.topMargin
-        bottomMargin: root.MD.MProp.page.bottomMargin + 16
+        extraBottomMargin: 16
 
         model: qr_pl.data
         readonly property bool single: width < m_cover.displaySize.width * (1.0 + 1.5) + 8

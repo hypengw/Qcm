@@ -239,10 +239,7 @@ MD.Page {
             id: m_page_context
             showHeader: false
             radius: root.radius
-            leftMargin: root.MD.MProp.page.leftMargin
-            rightMargin: root.MD.MProp.page.rightMargin
-            topMargin: root.MD.MProp.page.topMargin
-            bottomMargin: root.MD.MProp.page.bottomMargin
+            inherit: root.MD.MProp.page
         }
         function route(itemId) {
             if (visible) {

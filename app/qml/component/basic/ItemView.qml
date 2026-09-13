@@ -1,7 +1,8 @@
 import Qcm.Material as MD
 
-MD.VerticalListView {
+MD.PageVerticalListView {
     id: root
+    pageMarginEdges: 0
     property int displayMode: 0
     highlightFollowsCurrentItem: false
     cacheBuffer: 300

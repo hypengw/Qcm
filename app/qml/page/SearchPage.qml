@@ -20,17 +20,17 @@ MD.Page {
         id: m_search_type_model
     }
 
-    component BaseView: MD.VerticalListView {
+    component BaseView: MD.PageVerticalListView {
         property string text
         readonly property alias query: m_query
 
         implicitHeight: contentHeight
         busy: query.status === QA.Enum.Querying
-        topMargin: 8
-        bottomMargin: root.MD.MProp.page.bottomMargin + 16
-
-        leftMargin: root.MD.MProp.page.leftMargin + 12
-        rightMargin: root.MD.MProp.page.rightMargin + 12
+        pageMarginEdges: Qt.LeftEdge | Qt.RightEdge | Qt.BottomEdge
+        extraTopMargin: 8
+        extraBottomMargin: 16
+        extraLeftMargin: 12
+        extraRightMargin: 12
 
         QA.SearchQuery {
             id: m_query
