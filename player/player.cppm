@@ -1,5 +1,4 @@
 module;
-#include <memory_resource>
 #include "core/macro.h"
 
 export module qcm.player:player;
@@ -13,8 +12,9 @@ export namespace player
 class Player {
 public:
     class Private;
-    Player(std::string_view           name, Notifier,
-           std::pmr::memory_resource* mem = std::pmr::get_default_resource());
+    Player(std::string_view                             name, Notifier,
+           rstd::ref<rstd::dyn<rstd::alloc::Allocator>> allocator =
+               ::alloc::allocator_ref(::alloc::GLOBAL));
     ~Player();
 
     auto process_actions() -> rstd::async::coro<void>;

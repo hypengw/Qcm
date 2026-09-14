@@ -50,3 +50,7 @@ workspace = true
 targets = [
   { name = "effolkronium_random" },
 ]
+
+[[test]]
+name = "memory-stats"
+sources = ["tests/memory_stats.cpp"]

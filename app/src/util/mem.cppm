@@ -10,9 +10,9 @@ export struct MemResourceMgr {
     MemoryStatResource* pool_stat { new MemoryStatResource {} };
     pmr_sync_pool*      pool { new pmr_sync_pool { pool_stat } };
 
-    MemoryStatResource* session_mem { new MemoryStatResource { pool } };
-    MemoryStatResource* backend_mem { new MemoryStatResource { pool } };
-    MemoryStatResource* player_mem { new MemoryStatResource { pool } };
-    MemoryStatResource* store_mem { new MemoryStatResource { pool } };
+    MemoryStatResource*  session_mem { new MemoryStatResource { pool } };
+    MemoryStatResource*  backend_mem { new MemoryStatResource { pool } };
+    MemoryStatAllocator* player_mem { new MemoryStatAllocator {} };
+    MemoryStatResource*  store_mem { new MemoryStatResource { pool } };
 };
 } // namespace qcm

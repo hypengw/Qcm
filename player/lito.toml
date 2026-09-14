@@ -12,12 +12,12 @@ sources = [
   "metadata.cppm",
   "mod.cppm",
   "notify.cppm",
+  "pcm.cppm",
   "player.cpp",
   "player.cppm",
 ]
 
 [usage]
-private-include-directories = ["."]
 threads = true
 
 

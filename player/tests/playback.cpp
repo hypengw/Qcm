@@ -3,7 +3,6 @@
 #include <chrono>
 #include <mutex>
 #include <thread>
-#include "pcm_queue.h"
 import qcm.player;
 import qcm.core;
 import rstd;
@@ -38,23 +37,9 @@ bool wait(F predicate, std::chrono::milliseconds timeout = 5s) {
     return true;
 }
 int main(int argc, char** argv) {
-    player::SpscQueue<std::uint64_t, 32> queue(std::pmr::get_default_resource());
-    std::atomic<bool>                    failed {};
-    std::thread                          producer([&] {
-        for (std::uint64_t i = 0; i < 100000; ++i) {
-            while (! queue.push(i)) std::this_thread::yield();
-        }
-    });
-    for (std::uint64_t i = 0; i < 100000; ++i) {
-        const std::uint64_t* value;
-        while (! (value = queue.front())) std::this_thread::yield();
-        if (*value != i) failed = true;
-        queue.pop();
-    }
-    producer.join();
-    if (failed || ! queue.empty()) return 1;
-    auto           sink = make_rc<Sink>();
-    player::Player player("Qcm test", player::Notifier(sink));
+    auto                     sink = make_rc<Sink>();
+    qcm::MemoryStatAllocator memory;
+    player::Player player("Qcm test", player::Notifier(sink), ::alloc::allocator_ref(memory));
     std::thread    run([&] {
         rstd::async::block_on(player.process_actions());
     });
@@ -62,7 +47,7 @@ int main(int argc, char** argv) {
         player.close();
         player.close();
         run.join();
-        return result;
+        return memory.current_bytes() == 0 && memory.current_block_count() == 0 ? result : 30;
     };
     if (argc < 2) {
         player.set_source("/nonexistent/qcm-media-test");

@@ -316,7 +316,7 @@ void App::releaseResources(QQuickWindow*, const QJSValue& extra) {
         return std::format("{:.2f} MB", n / (1024.0 * 1024.0));
     };
 
-    auto print_mem_stat = [as_mb](MemoryStatResource* s) {
+    auto print_mem_stat = [as_mb](MemoryStats* s) {
         return std::format("used({}): {}, peak: {}",
                            s->current_block_count(),
                            as_mb(s->current_bytes()),

@@ -104,7 +104,8 @@ private:
 Player::Player(MemResourceMgr* memory, QObject* parent)
     : QObject(parent),
       m_channel(NotifyChannel::make()),
-      m_player(make_rc<player::Player>(APP_NAME, player::Notifier(m_channel), memory->player_mem)),
+      m_player(make_rc<player::Player>(APP_NAME, player::Notifier(m_channel),
+                                       ::alloc::allocator_ref(*memory->player_mem))),
       m_closed(false),
       m_last_time(std::chrono::steady_clock::now()),
       m_position(0),

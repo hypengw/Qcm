@@ -10,10 +10,11 @@ module;
 #include <thread>
 
 #include "core/macro.h"
-#include "pcm_queue.h"
+#include <cstring>
 
 module qcm.player;
 import :player;
+import :pcm;
 import qcm.core;
 
 import rstd;
@@ -25,6 +26,12 @@ namespace wa = wavsen::audio;
 namespace rn = rstd;
 using namespace std::chrono_literals;
 using namespace rstd::literals;
+namespace spsc       = rn::sync::spsc;
+using QueueAllocator = rn::ref<rn::dyn<rn::alloc::Allocator>>;
+template<class T>
+using Producer = spsc::Producer<T, QueueAllocator>;
+template<class T>
+using Consumer = spsc::Consumer<T, QueueAllocator>;
 
 namespace
 {
@@ -45,40 +52,46 @@ struct Command {
 };
 class PcmChannel : public wa::IPullChannel {
 public:
-    PcmChannel(SpscQueue<PcmBlock, 32>& pcm, SpscQueue<ClockSpan, 512>& clock)
-        : m_pcm(pcm), m_clock(clock) {}
+    PcmChannel(Consumer<PcmBlock> pcm, Producer<ClockSpan> clock)
+        : m_pcm(rn::move(pcm)), m_clock(rn::move(clock)) {}
     void pass_desc(const wa::DeviceDesc& desc) override {
         m_valid = desc.channels == rn::u32(2) && desc.sample_rate == rn::u32(48000);
     }
-    void output_offset(rn::u64 value) override { m_output = value.to_primitive(); }
+    void output_offset(rn::u64 value) override { m_output = value; }
     auto next_pcm(void* data, rn::u32 requested) -> rn::u64 override {
         if (! m_valid) return rn::u64();
-        unsigned produced = 0;
-        while (produced < requested.to_primitive()) {
-            const auto* block = m_pcm.front();
-            if (! block || m_clock.full()) break;
-            const auto count =
-                std::min(block->frames - m_offset, requested.to_primitive() - produced);
-            std::memcpy(static_cast<float*>(data) + produced * 2,
-                        block->samples.data() + m_offset * 2,
-                        count * 2 * sizeof(float));
-            m_clock.push({ m_output + produced, count, block->seconds + double(m_offset) / 48000 });
+        rn::u32 produced {};
+        while (produced < requested) {
+            auto front = m_pcm.try_front();
+            if (front.is_err()) break;
+            auto       block = rn::move(front).unwrap();
+            const auto count = rn::cmp::min(block->frames - m_offset, requested - produced);
+            if (m_clock
+                    .try_push(ClockSpan { m_output + rn::u64(produced.to_primitive()),
+                                          count,
+                                          block->seconds +
+                                              rn::f64(m_offset.to_primitive()) / rn::f64(48000) })
+                    .is_err())
+                break;
+            std::memcpy(static_cast<float*>(data) + produced.to_primitive() * 2,
+                        block->samples.data() + m_offset.to_primitive() * 2,
+                        count.to_primitive() * 2 * sizeof(float));
             produced += count;
             m_offset += count;
             if (m_offset == block->frames) {
-                m_offset = 0;
-                m_pcm.pop();
+                m_offset = rn::u32();
+                block.consume();
             }
         }
-        return rn::u64(produced);
+        return rn::u64(produced.to_primitive());
     }
 
 private:
-    SpscQueue<PcmBlock, 32>&   m_pcm;
-    SpscQueue<ClockSpan, 512>& m_clock;
-    std::uint64_t              m_output {};
-    unsigned                   m_offset {};
-    bool                       m_valid {};
+    Consumer<PcmBlock>  m_pcm;
+    Producer<ClockSpan> m_clock;
+    rn::u64             m_output {};
+    rn::u32             m_offset {};
+    bool                m_valid {};
 };
 } // namespace
 
@@ -86,12 +99,11 @@ class Player::Private {
 public:
     using Receiver = rn::async::CompletionQueue<Command>;
     using Done     = rn::async::CompletionQueue<bool>;
-    Private(std::string_view name, Notifier notifier, std::pmr::memory_resource* memory)
+    Private(std::string_view name, Notifier notifier, QueueAllocator allocator)
         : notify(std::move(notifier)),
           actions(rn::move(Receiver::make()).unwrap_unchecked()),
           done(rn::move(Done::make()).unwrap_unchecked()),
-          pcm(memory),
-          clock(memory),
+          queue_allocator(allocator),
           app_name(name) {}
     ~Private() {
         close();
@@ -153,8 +165,8 @@ public:
             device->wait_stopped();
             device.reset();
         }
-        pcm.reset();
-        clock.reset();
+        pcm.close();
+        clock.close();
         last_end     = 0;
         last_seconds = 0;
         fade_pending = false;
@@ -169,6 +181,15 @@ public:
         state(PlayState::Stopped);
     }
     bool open_device() {
+        auto pcm_queue =
+            spsc::RingBuffer<PcmBlock, QueueAllocator>::make(rn::usize(32), queue_allocator);
+        auto clock_queue =
+            spsc::RingBuffer<ClockSpan, QueueAllocator>::make(rn::usize(512), queue_allocator);
+        if (pcm_queue.is_err() || clock_queue.is_err()) return false;
+        auto pcm_pair      = rn::move(pcm_queue).unwrap();
+        auto clock_pair    = rn::move(clock_queue).unwrap();
+        pcm                = rn::move(pcm_pair.get<0>());
+        clock              = rn::move(clock_pair.get<1>());
         device             = std::make_unique<wa::AudioDevice>();
         desired            = {};
         desired.generation = rn::u64(++device_generation);
@@ -177,7 +198,9 @@ public:
         desired.identity.application_name =
             rn::prelude::String::make(rn::cppstd::as_str(app_name).unwrap_or("Qcm"_str));
         desired.identity.application_id = rn::prelude::String::make("org.qcm.Qcm"_str);
-        if (! device->mount(std::make_unique<PcmChannel>(pcm, clock), rn::u64(device_generation)) ||
+        if (! device->mount(std::make_unique<PcmChannel>(rn::move(pcm_pair.get<1>()),
+                                                         rn::move(clock_pair.get<0>())),
+                            rn::u64(device_generation)) ||
             ! device->apply(desired.clone()))
             return false;
         const auto deadline = std::chrono::steady_clock::now() + 5s;
@@ -318,14 +341,20 @@ public:
         }
         // Drain clock reports before decoding, including while paused.
         const auto played = device->stream_position_frames().to_primitive();
-        while (const auto* span = clock.front()) {
-            last_end     = span->output_frame + span->frames;
-            last_seconds = span->seconds + double(span->frames) / 48000;
-            if (played < span->output_frame) break;
-            const auto offset = std::min<std::uint64_t>(played - span->output_frame, span->frames);
-            position(static_cast<i64>((span->seconds + double(offset) / 48000) * 1000));
-            if (offset < span->frames) break;
-            clock.pop();
+        for (;;) {
+            auto front = clock.try_front();
+            if (front.is_err()) break;
+            auto span = rn::move(front).unwrap();
+            last_end  = span->output_frame.to_primitive() + span->frames.to_primitive();
+            last_seconds =
+                span->seconds.to_primitive() + double(span->frames.to_primitive()) / 48000;
+            if (played < span->output_frame.to_primitive()) break;
+            const auto offset = std::min<std::uint64_t>(played - span->output_frame.to_primitive(),
+                                                        span->frames.to_primitive());
+            position(
+                static_cast<i64>((span->seconds.to_primitive() + double(offset) / 48000) * 1000));
+            if (offset < span->frames.to_primitive()) break;
+            span.consume();
         }
         if (fade_pending &&
             device->completed_volume_scale_revision() == desired.volume_scale_revision) {
@@ -343,25 +372,29 @@ public:
                 busy(false);
             }
         }
-        if (! pcm.full() && ! decoder->is_eof()) {
+        if (! pcm.is_full() && ! decoder->is_eof()) {
             PcmBlock block;
-            block.frames = static_cast<unsigned>(
-                decoder->next_pcm(block.samples.data(), rn::u32(1024)).to_primitive());
-            block.seconds = decoder->pcm_position_seconds().to_primitive();
+            block.frames =
+                rn::u32(decoder->next_pcm(block.samples.data(), rn::u32(1024)).to_primitive());
+            block.seconds = decoder->pcm_position_seconds();
             if (cancelled()) return;
             if (decoder->error().kind != wa::MediaErrorKind::None) {
                 fail();
                 return;
             }
-            if (block.frames) {
-                pcm.push(block);
+            if (block.frames != rn::u32()) {
+                const auto seconds = block.seconds.to_primitive();
+                if (pcm.try_push(rn::move(block)).is_err()) {
+                    fail();
+                    return;
+                }
                 if (seek_pending) {
-                    position(static_cast<i64>(block.seconds * 1000));
+                    position(static_cast<i64>(seconds * 1000));
                     seek_pending = false;
                 }
             }
         }
-        if (start_pending && (! pcm.empty() || decoder->is_eof())) {
+        if (start_pending && (! pcm.is_empty() || decoder->is_eof())) {
             start_pending                = false;
             desired.volume_scale         = rn::f32();
             desired.volume_scale_fade_ms = rn::u32();
@@ -369,7 +402,8 @@ public:
             device->apply(desired.clone());
             set_playing(playing);
         }
-        if (decoder->is_eof() && pcm.empty() && clock.empty() && played >= last_end && playing) {
+        if (decoder->is_eof() && pcm.is_empty() && clock.is_empty() && played >= last_end &&
+            playing) {
             position(static_cast<i64>(last_seconds * 1000));
             desired.playing = false;
             device->apply(desired.clone());
@@ -415,12 +449,13 @@ public:
     std::atomic<bool>                                              closed {};
     std::atomic<bool>                                              requested_playing {};
     std::atomic<std::uint64_t> requested_revision {}, requested_source {}, latest_id {};
-    std::uint64_t      active_revision {}, active_source {}, current_id {}, device_generation {};
-    std::atomic<float> volume { 1.0f };
-    std::atomic<u32>   fade_time { 500000 };
-    SpscQueue<PcmBlock, 32>            pcm;
-    SpscQueue<ClockSpan, 512>          clock;
-    std::string                        app_name, current_source;
+    std::uint64_t       active_revision {}, active_source {}, current_id {}, device_generation {};
+    std::atomic<float>  volume { 1.0f };
+    std::atomic<u32>    fade_time { 500000 };
+    QueueAllocator      queue_allocator;
+    Producer<PcmBlock>  pcm;
+    Consumer<ClockSpan> clock;
+    std::string         app_name, current_source;
     std::unique_ptr<wa::StreamDecoder> decoder;
     std::unique_ptr<wa::AudioDevice>   device;
     wa::AudioDeviceDesiredState        desired;
@@ -432,8 +467,8 @@ public:
     double                   last_seconds {};
 };
 
-Player::Player(std::string_view name, Notifier notify, std::pmr::memory_resource* memory)
-    : m_d(make_up<Private>(name, std::move(notify), memory)) {}
+Player::Player(std::string_view name, Notifier notify, QueueAllocator allocator)
+    : m_d(make_up<Private>(name, std::move(notify), allocator)) {}
 Player::~Player() = default;
 auto Player::process_actions() -> rn::async::coro<void> {
     C_D(Player);
