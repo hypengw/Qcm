@@ -5,10 +5,10 @@ module;
 #    include "Qcm/global.moc"
 #endif
 
-#include "player/metadata.h"
 #include "core/log.h"
 
 export module qcm:global;
+import qcm.player;
 export import :action;
 export import :qml.enums;
 export import :util.mem;

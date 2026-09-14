@@ -1,10 +1,7 @@
-#pragma once
-#include <cstdint>
-#include <string>
-#include <map>
-#include <vector>
+export module qcm.player:metadata;
+import rstd.cppstd;
 
-namespace player
+export namespace player
 {
 struct Metadata {
     struct Stream {
@@ -14,5 +11,7 @@ struct Metadata {
     std::map<std::string, std::string, std::less<>> tags;
     std::vector<Stream>                             streams;
 };
+
+auto get_metadata(const std::filesystem::path&) -> Metadata;
 
 } // namespace player

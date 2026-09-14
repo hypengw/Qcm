@@ -6,8 +6,6 @@ module;
 #include "QExtra/macro_qt.hpp"
 #include "core/log.h"
 
-#include "player/notify.h"
-#include "player/player.h"
 
 #ifndef NODEBUS
 #    include "mpris/mpris.h"
@@ -15,6 +13,7 @@ module;
 #endif
 
 export module qcm:app;
+import qcm.player;
 export import :backend;
 export import :status.provider;
 export import :queue;

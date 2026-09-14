@@ -3,13 +3,13 @@ module;
 #include "core/log.h"
 #include "mpris/mpris.h"
 #include "mpris/mediaplayer2.h"
-#include "player/player.h"
 
 #include "Qcm/app.moc.h"
 #undef assert
 #include <rstd/macro.hpp>
 
 module qcm;
+import qcm.player;
 import :app;
 import qcm.log;
 
@@ -389,7 +389,7 @@ void App::set_player_sender(player::Notifier sender) {
             if (totle >= end && totle >= begin) {
                 float db = begin / (double)totle;
                 float de = end / (double)totle;
-                sender.try_send(player::notify::cache { db, de });
+                sender.try_send(player::notify::info::cache( db, de ));
             }
         };
         */
@@ -522,19 +522,17 @@ void App::connect_actions() {
                 });
 
         connect(Action::instance(), &Action::toggle, player, &Player::toggle);
+        connect(player, &Player::ended, player, [] {
+            auto queue = App::instance()->playqueue();
+            queue->next(queue->loopMode());
+        });
 
         connect(
             player,
             &Player::playbackStateChanged,
             player,
-            [p = player](Player::PlaybackState, Player::PlaybackState new_) {
+            [](Player::PlaybackState, Player::PlaybackState new_) {
                 auto queue = App::instance()->playqueue();
-                if (new_ == Player::PlaybackState::StoppedState && p->source().isValid()) {
-                    if (p->duration() > 0 && p->position() / (double)p->duration() > 0.98) {
-                        queue->next(queue->loopMode());
-                    }
-                }
-
                 if (new_ == Player::PlaybackState::PlayingState) {
                     auto cur = queue->currentId().unwrap_or(model::ItemId {});
                     Action::instance()->playLog(

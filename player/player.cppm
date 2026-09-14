@@ -1,24 +1,19 @@
-#pragma once
-
-#include <map>
-#include <filesystem>
+module;
 #include <memory_resource>
 #include "core/macro.h"
 
-#include "player/notify.h"
-#include "player/metadata.h"
-
+export module qcm.player:player;
 import qcm.core;
+import rstd.cppstd;
+import :notify;
 
-namespace player
+export namespace player
 {
-
-auto get_metadata(const std::filesystem::path&) -> Metadata;
 
 class Player {
 public:
     class Private;
-    Player(std::string_view name, Notifier,
+    Player(std::string_view           name, Notifier,
            std::pmr::memory_resource* mem = std::pmr::get_default_resource());
     ~Player();
 

@@ -1,12 +1,13 @@
 module;
+#include <rstd/enum.hpp>
 #include <chrono>
 #include <mutex>
 #include <optional>
 
-#include "player/player.h"
 #include "Qcm/player.moc.h"
 
 module qcm;
+import qcm.player;
 import :player;
 
 using namespace qcm;
@@ -28,16 +29,15 @@ public:
 
     static auto make() -> rc<NotifyChannel> {
         auto pair = rstd::move(Receiver::make()).unwrap_unchecked();
-        return make_rc<NotifyChannel>(rstd::move(pair.get<0>()),
-                                      rstd::move(pair.get<1>()));
+        return make_rc<NotifyChannel>(rstd::move(pair.get<0>()), rstd::move(pair.get<1>()));
     }
 
     bool send(NotifyInfo info) override {
         auto notification = Notification { m_epoch.load(), std::move(info) };
-        if (std::holds_alternative<player::notify::position>(notification.info)) {
+        if (notification.info.is_position()) {
             return enqueue_latest(std::move(notification), m_latest_position, m_position_queued);
         }
-        if (std::holds_alternative<player::notify::cache>(notification.info)) {
+        if (notification.info.is_cache()) {
             return enqueue_latest(std::move(notification), m_latest_cache, m_cache_queued);
         }
         return m_sender.push(rstd::move(notification)).is_ok();
@@ -55,10 +55,10 @@ public:
     void close() { m_sender.close(); }
 
     auto resolve(Notification notification) -> std::optional<Notification> {
-        if (std::holds_alternative<player::notify::position>(notification.info)) {
+        if (notification.info.is_position()) {
             return take_latest(m_latest_position, m_position_queued);
         }
-        if (std::holds_alternative<player::notify::cache>(notification.info)) {
+        if (notification.info.is_cache()) {
             return take_latest(m_latest_cache, m_cache_queued);
         }
         return notification;
@@ -71,7 +71,7 @@ private:
         latest = notification;
         if (queued) return true;
 
-        queued = true;
+        queued      = true;
         auto result = m_sender.push(rstd::move(notification));
         if (result.is_err()) {
             latest.reset();
@@ -84,7 +84,7 @@ private:
     auto take_latest(std::optional<Notification>& latest, bool& queued)
         -> std::optional<Notification> {
         std::lock_guard lock(m_latest_mutex);
-        auto result = std::move(latest);
+        auto            result = std::move(latest);
         latest.reset();
         queued = false;
         return result;
@@ -93,8 +93,8 @@ private:
     Receiver m_receiver;
     Sender   m_sender;
 
-    std::atomic<u64> m_epoch { 0 };
-    std::mutex       m_latest_mutex;
+    std::atomic<u64>            m_epoch { 0 };
+    std::mutex                  m_latest_mutex;
     std::optional<Notification> m_latest_position;
     std::optional<Notification> m_latest_cache;
     bool                        m_position_queued { false };
@@ -104,27 +104,22 @@ private:
 Player::Player(MemResourceMgr* memory, QObject* parent)
     : QObject(parent),
       m_channel(NotifyChannel::make()),
-      m_player(make_rc<player::Player>(APP_NAME,
-                                       player::Notifier(m_channel),
-                                       memory->player_mem)),
-      m_action_runner(new QAsyncResult(this)),
-      m_notify_runner(new QAsyncResult(this)),
+      m_player(make_rc<player::Player>(APP_NAME, player::Notifier(m_channel), memory->player_mem)),
       m_closed(false),
       m_last_time(std::chrono::steady_clock::now()),
       m_position(0),
       m_duration(0),
       m_busy(false),
       m_playback_state(PlaybackState::StoppedState) {
-    m_action_runner->setForwardError(false);
-    m_notify_runner->setForwardError(false);
-
-    m_action_runner->spawn([player = m_player]() -> task<void> {
-        co_await player->process_actions();
-    });
+    // Retain the player until close() completes asynchronous device teardown.
+    (void)QAsyncResult::runtime_handle().spawn(
+        qextra::own_task([player = m_player]() -> task<void> {
+            co_await player->process_actions();
+        }));
 
     auto self    = QPointer<Player> { this };
     auto channel = m_channel;
-    m_notify_runner->spawn([self, channel]() -> task<void> {
+    m_notify_scope.spawn([self, channel]() -> task<void> {
         for (;;) {
             auto next = co_await channel->next();
             if (next.is_err()) co_return;
@@ -140,8 +135,8 @@ Player::Player(MemResourceMgr* memory, QObject* parent)
             if (resolved->epoch != channel->epoch()) continue;
 
             auto info = rstd::move(resolved->info);
-            if (const auto* position = std::get_if<player::notify::position>(&info)) {
-                self->set_position_raw(static_cast<int>(position->value));
+            if (info.is_position()) {
+                self->set_position_raw(static_cast<int>(info.as_position().value));
             } else {
                 self->processNotify(info);
                 Q_EMIT self->notify(rstd::move(info));
@@ -156,8 +151,7 @@ void Player::close() {
     if (std::exchange(m_closed, true)) return;
     m_player->close();
     m_channel->close();
-    m_action_runner->cancel();
-    m_notify_runner->cancel();
+    m_notify_scope.cancel();
     m_player.reset();
 }
 
@@ -227,9 +221,7 @@ auto Player::fadeTime() const -> u32 { return m_player->fade_time() / 1000; }
 
 auto Player::seekable() const -> bool { return true; }
 
-auto Player::playing() const -> bool {
-    return playback_state() == PlaybackState::PlayingState;
-}
+auto Player::playing() const -> bool { return playback_state() == PlaybackState::PlayingState; }
 
 auto Player::sender() const -> player::Notifier { return player::Notifier(m_channel); }
 
@@ -293,23 +285,14 @@ void Player::seek(double position) {
 }
 
 void Player::processNotify(NotifyInfo info) {
-    using namespace player;
-    std::visit(overloaded {
-                   [](notify::position) {},
-                   [this](notify::duration value) {
-                       set_duration(static_cast<int>(value.value));
-                   },
-                   [this](notify::playstate value) {
-                       set_playback_state(static_cast<PlaybackState>(value.value));
-                   },
-                   [this](notify::busy value) {
-                       set_busy(value.value);
-                   },
-                   [this](notify::cache value) {
-                       set_cache_progress({ value.begin, value.end });
-                   },
-               },
-               info);
+    RSTD_MATCH(info) {
+        RSTD_CASE(position, value) {}
+        RSTD_CASE(ended) { Q_EMIT ended(); }
+        RSTD_CASE(duration, value) { set_duration(static_cast<int>(value)); }
+        RSTD_CASE(playstate, value) { set_playback_state(static_cast<PlaybackState>(value)); }
+        RSTD_CASE(busy, value) { set_busy(value); }
+        RSTD_CASE(cache, begin, end) { set_cache_progress({ begin, end }); }
+    }
 }
 
 #include "Qcm/player.moc.cpp"

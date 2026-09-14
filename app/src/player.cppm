@@ -1,14 +1,13 @@
 module;
 #include "QExtra/macro_qt.hpp"
 
-#include "player/player.h"
-#include "player/notify.h"
 
 #ifdef Q_MOC_RUN
 #    include "Qcm/player.moc"
 #endif
 
 export module qcm:player;
+import qcm.player;
 export import :util.mem;
 export import :qml.enums;
 import qextra;
@@ -70,6 +69,7 @@ public:
     Q_SIGNAL void playbackStateChanged(PlaybackState old, PlaybackState new_);
     Q_SIGNAL void cacheProgressChanged();
     Q_SIGNAL void seeked(double position);
+    Q_SIGNAL void ended();
     Q_SIGNAL void notify(NotifyInfo);
 
     Q_SLOT void processNotify(NotifyInfo);
@@ -96,8 +96,7 @@ private:
 private:
     rc<NotifyChannel>  m_channel;
     rc<player::Player> m_player;
-    QAsyncResult*      m_action_runner;
-    QAsyncResult*      m_notify_runner;
+    QAsyncScope        m_notify_scope;
     QUrl               m_source;
     bool               m_closed;
 
