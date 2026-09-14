@@ -39,6 +39,16 @@ bool wait(F predicate, std::chrono::milliseconds timeout = 5s) {
 int main(int argc, char** argv) {
     auto                     sink = make_rc<Sink>();
     qcm::MemoryStatAllocator memory;
+    {
+        player::Player idle(
+            "Qcm idle test", player::Notifier(sink), ::alloc::allocator_ref(memory));
+    }
+    {
+        player::Player closed(
+            "Qcm closed test", player::Notifier(sink), ::alloc::allocator_ref(memory));
+        closed.close();
+        rstd::async::block_on(closed.process_actions());
+    }
     player::Player player("Qcm test", player::Notifier(sink), ::alloc::allocator_ref(memory));
     std::thread    run([&] {
         rstd::async::block_on(player.process_actions());

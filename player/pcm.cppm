@@ -1,4 +1,4 @@
-module qcm.player:pcm;
+export module qcm.player:pcm;
 import rstd;
 
 namespace player
