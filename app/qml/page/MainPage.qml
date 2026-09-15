@@ -48,6 +48,10 @@ MD.Page {
             }
         }
 
+        function onOpenDrawer() {
+            m_drawer.open();
+        }
+
         function onRouteMain(idx) {
             root.pageIndex = idx;
         }
@@ -61,83 +65,86 @@ MD.Page {
             visible: false
 
             RowLayout {
-                MD.StandardDrawer {
+                MD.NavigationRail {
                     id: m_drawer
                     Layout.fillHeight: true
                     model: root.model
+                    hideWhenCollapsed: true
+
+                    Binding {
+                        target: m_drawer
+                        property: "currentIndex"
+                        value: root.pageIndex
+                    }
+
                     onClicked: function (model) {
                         m_page_stack.pop_page(null);
                         QA.Action.routeMain(model.index);
                     }
 
-                    Behavior on implicitWidth {
-                        NumberAnimation {
-                            duration: 200
-                        }
-                    }
+                    header: Item {
+                        implicitWidth: m_drawer.useLarge ? m_drawer.expandedWidth : m_drawer.collapsedWidth
+                        implicitHeight: m_menu_button.y + m_menu_button.height + 12
 
-                    headerAction: (m_page_stack.depth > 1 || !!page_container.canBack) ? m_drawer_back_action : defaultHeaderAction
-                    MD.Action {
-                        id: m_drawer_back_action
-                        icon.name: MD.Token.icon.arrow_back
-                        onTriggered: {
-                            if (m_page_stack.depth > 1)
-                                m_page_stack.pop_page();
-                            else if (page_container.canBack)
-                                page_container.back();
+                        MD.StandardIconButton {
+                            id: m_menu_button
+                            x: m_drawer.useLarge ? (32 - (width - 24) / 2) : (m_drawer.collapsedWidth - width) / 2
+                            y: 4
+                            icon.name: root.canBack ? MD.Token.icon.arrow_back : (m_drawer.useLarge ? MD.Token.icon.menu_open : MD.Token.icon.menu)
+                            onClicked: {
+                                if (root.canBack)
+                                    root.back();
+                                else
+                                    m_drawer.toggle();
+                            }
+
+                            Behavior on x {
+                                NumberAnimation {
+                                    duration: MD.Token.duration.long2
+                                    easing: MD.Token.easing.emphasized
+                                }
+                            }
                         }
                     }
 
                     footer: Column {
-                        MD.IconButton {
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            action: MD.Action {
-                                icon.name: MD.Token.icon.hard_drive
-                                onTriggered: {
-                                    QA.Action.openPopup(QA.Enum.SRSync);
-                                }
-                            }
-                        }
-                        MD.IconButton {
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            action: QA.SettingAction {}
-                        }
-                    }
-                    drawerContent: Item {
-                        implicitHeight: children[0].implicitHeight
-                        Column {
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            width: parent.width - 24
-                            MD.DrawerItem {
-                                width: parent.width
-                                action: MD.Action {
-                                    icon.name: MD.Token.icon.hard_drive
-                                    text: qsTr('provider')
-                                    onTriggered: {
-                                        QA.Action.openPopup(QA.Enum.SRSync);
-                                        m_drawer.close();
-                                    }
-                                }
-                            }
-                            MD.DrawerItem {
-                                width: parent.width
-                                action: QA.SettingAction {
-                                    onTriggered: {
-                                        m_drawer.close();
-                                    }
-                                }
-                            }
-                            MD.DrawerItem {
-                                width: parent.width
-                                action: MD.Action {
-                                    icon.name: MD.Token.icon.info
-                                    text: qsTr('about')
+                        spacing: m_drawer.useLarge ? 0 : 12
 
-                                    onTriggered: {
-                                        QA.Action.openPopup(QA.Enum.SRAbout);
-                                        m_drawer.close();
-                                    }
-                                }
+                        MD.RailItem {
+                            width: parent.width
+                            expand: m_drawer.useLarge
+                            checked: false
+                            icon.name: MD.Token.icon.hard_drive
+                            iconStyle: m_drawer.useLarge ? MD.Enum.IconAndText : MD.Enum.IconOnly
+                            text: qsTr('provider')
+                            onClicked: {
+                                QA.Action.openPopup(QA.Enum.SRSync);
+                                if (m_drawer.useModal)
+                                    m_drawer.close();
+                            }
+                        }
+                        MD.RailItem {
+                            width: parent.width
+                            expand: m_drawer.useLarge
+                            checked: false
+                            iconStyle: m_drawer.useLarge ? MD.Enum.IconAndText : MD.Enum.IconOnly
+                            action: QA.SettingAction {}
+                            onClicked: {
+                                if (m_drawer.useModal)
+                                    m_drawer.close();
+                            }
+                        }
+                        MD.RailItem {
+                            visible: m_drawer.useLarge
+                            width: parent.width
+                            expand: true
+                            checked: false
+                            icon.name: MD.Token.icon.info
+                            text: qsTr('about')
+                            onClicked: {
+                                QA.Action.openPopup(QA.Enum.SRAbout);
+                                if (m_drawer.useModal)
+                                    m_drawer.close();
                             }
                         }
                     }
@@ -287,7 +294,7 @@ MD.Page {
                     id: m_draw_action
                     icon.name: MD.Token.icon.menu
                     onTriggered: {
-                        m_drawer.open();
+                        QA.Action.openDrawer();
                     }
                 }
 
