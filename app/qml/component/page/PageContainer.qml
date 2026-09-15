@@ -11,6 +11,12 @@ MD.StackView {
         currentItem.back();
     }
 
+    // Inherit the page context before StackView starts the enter transition.
+    Item {
+        id: m_page_host
+        visible: false
+    }
+
     MD.Pool {
         id: m_pool
         onObjectAdded: function (obj, key) {
@@ -31,9 +37,9 @@ MD.StackView {
                 "url": page_url,
                 "props": props
             });
-            m_pool.addWithKey(key, page_url, props);
+            m_pool.addWithKey(key, page_url, Object.assign({}, props, {parent: m_page_host}));
         } else {
-            m_pool.add(page_url, props);
+            m_pool.add(page_url, Object.assign({}, props, {parent: m_page_host}));
         }
     }
 }
