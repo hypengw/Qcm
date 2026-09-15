@@ -6,6 +6,8 @@ QA.ImageCard {
     id: root
 
     property alias itemId: m_overlay.itemId
+    property alias smallPlayButton: m_overlay.smallButton
+    property alias playButtonAlignment: m_overlay.buttonAlignment
 
     QA.CardPlayOverlay {
         id: m_overlay

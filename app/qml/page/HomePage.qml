@@ -56,6 +56,8 @@ MD.Page {
     }
 
     component AlbumCard: MImagePlayCard {
+        smallPlayButton: true
+        playButtonAlignment: Qt.AlignRight | Qt.AlignBottom
         subText: QA.Util.joinName(QA.Store.extra(model.itemId)?.artists) || qsTr("%1 tracks").arg(model.trackCount)
     }
     component MixCard: MImagePlayCard {
