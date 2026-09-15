@@ -84,7 +84,7 @@ MD.Page {
 
                     header: Item {
                         implicitWidth: m_drawer.useLarge ? m_drawer.expandedWidth : m_drawer.collapsedWidth
-                        implicitHeight: m_menu_button.y + m_menu_button.height + 12
+                        implicitHeight: m_logo.y + m_logo.height + 12
 
                         MD.StandardIconButton {
                             id: m_menu_button
@@ -104,6 +104,31 @@ MD.Page {
                                     easing: MD.Token.easing.emphasized
                                 }
                             }
+                        }
+                        Image {
+                            id: m_logo
+                            width: 32
+                            height: 32
+                            x: m_drawer.useLarge ? 32 : (m_drawer.collapsedWidth - width) / 2
+                            y: m_menu_button.y + m_menu_button.height + 16
+                            source: "qrc:/Qcm/App/assets/Qcm.svg"
+                            fillMode: Image.PreserveAspectFit
+                            sourceSize: Qt.size(64, 64)
+
+                            Behavior on x {
+                                NumberAnimation {
+                                    duration: MD.Token.duration.long2
+                                    easing: MD.Token.easing.emphasized
+                                }
+                            }
+                        }
+                        MD.Label {
+                            visible: m_drawer.useLarge
+                            anchors.left: m_logo.right
+                            anchors.leftMargin: 12
+                            anchors.verticalCenter: m_logo.verticalCenter
+                            text: "Qcm"
+                            typescale: MD.Token.typescale.title_large
                         }
                     }
 
