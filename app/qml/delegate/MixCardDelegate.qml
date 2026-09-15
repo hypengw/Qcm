@@ -5,11 +5,10 @@ import Qcm.Material as MD
 MD.ListGridBaseDelegate {
     id: root
 
-    cellHeight: widthProvider.width + 72 + (hasSubText ? (m_card.labelSpacing + m_card.subImplicitHeight) : 0)
+    cellHeight: widthProvider.width + 72
 
     property alias mdState: m_card.mdState
     property alias subText: m_card.subText
-    property bool hasSubText: false
 
     QA.ImageCard {
         id: m_card
@@ -19,6 +18,7 @@ MD.ListGridBaseDelegate {
 
         image.source: QA.Util.image_url(parent.model.itemId)
         text: parent.model.name
+        subText: qsTr("%1 songs").arg(root.model.trackCount)
         picWidth: width
         onClicked: root.clicked()
     }

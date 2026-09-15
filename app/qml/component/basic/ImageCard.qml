@@ -31,8 +31,8 @@ MD.Card {
 
         Column {
             spacing: root.labelSpacing
-            anchors.leftMargin: 16
-            anchors.rightMargin: 16
+            anchors.leftMargin: 12
+            anchors.rightMargin: 12
             anchors.left: parent.left
             anchors.right: parent.right
 
@@ -40,19 +40,22 @@ MD.Card {
                 id: label
                 width: parent.width
                 text: root.text
-                maximumLineCount: 2
+                maximumLineCount: 1
+                wrapMode: Text.NoWrap
+                horizontalAlignment: Text.AlignLeft
                 typescale: root.typescale
             }
 
             MD.Label {
                 id: label_sub
-                anchors.horizontalCenter: parent.horizontalCenter
                 text: root.subText
-                width: Math.min(implicitWidth, parent.width)
+                width: parent.width
                 visible: !!text
                 opacity: 0.6
-                typescale: root.typescale
+                typescale: MD.Token.typescale.body_small
                 maximumLineCount: 1
+                wrapMode: Text.NoWrap
+                horizontalAlignment: Text.AlignLeft
             }
         }
     }

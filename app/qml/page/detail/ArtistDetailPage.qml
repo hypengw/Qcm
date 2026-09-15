@@ -129,7 +129,6 @@ MD.Page {
         QA.AlbumCardDelegate {
             widthProvider: m_wp
             mdState.backgroundOpacity: (ListView.view as QA.ItemView).displayMode == QA.Enum.DGrid ? 0 : 1
-            hasSubText: true
             subText: QA.Util.formatDateTime(model.publishTime, 'yyyy')
             onClicked: {
                 ListView.view.currentIndex = index;

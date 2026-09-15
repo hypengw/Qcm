@@ -56,9 +56,11 @@ MD.Page {
     }
 
     component AlbumCard: MImagePlayCard {
-        subText: QA.Util.joinName(QA.Store.extra(model.itemId)?.artists)
+        subText: QA.Util.joinName(QA.Store.extra(model.itemId)?.artists) || qsTr("%1 tracks").arg(model.trackCount)
     }
-    component MixCard: MImagePlayCard {}
+    component MixCard: MImagePlayCard {
+        subText: qsTr("%1 songs").arg(model.trackCount)
+    }
     component RadioQueueCard: QA.ImagePlayCard {
         id: m_card
         required property var model

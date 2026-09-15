@@ -7,6 +7,7 @@ MD.ListGridBaseDelegate {
 
     cellHeight: widthProvider.width + 72
     property alias mdState: m_card.mdState
+    property alias subText: m_card.subText
 
     QA.ImageCard {
         id: m_card
@@ -16,6 +17,7 @@ MD.ListGridBaseDelegate {
 
         image.source: QA.Util.image_url(parent.model.itemId)
         text: parent.model.name
+        subText: qsTr("%1 albums").arg(root.model.albumCount) + " · " + qsTr("%1 songs").arg(root.model.musicCount)
         picWidth: width
         onClicked: root.clicked()
     }
