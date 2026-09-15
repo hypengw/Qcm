@@ -51,6 +51,8 @@ MD.Pane {
                 clip: false
                 QA.PlaySlider {
                     id: slider
+                    handle: null
+                    implicitHeight: 20
                     anchors.centerIn: parent
                     width: parent.width
                     z: 1
