@@ -1,5 +1,5 @@
 # Qcm
-Material You cloud music player.  
+Quick cloud music player.  
 
 ### Backend
 

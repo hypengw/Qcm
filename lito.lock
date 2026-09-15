@@ -1,0 +1,190 @@
+version = 1
+
+[[packages]]
+name = "ncrequest"
+version = "0.1.0"
+source = "git+https://github.com/hypengw/ncrequest.git#cdaca8b5c523906fc0c9ed58cd5f2c7981b5a255"
+dependencies = [
+  "rstd-cppstd",
+  "rstd-std",
+]
+
+[[packages]]
+name = "qcm-app"
+version = "1.3.5"
+dependencies = [
+  "ncrequest",
+  "qcm-core",
+  "qcm-mpris",
+  "qcm-platform",
+  "qcm-player",
+  "qcm-qr-code",
+  "qextra",
+  "rstd-cppstd",
+  "rstd-std",
+]
+
+[[packages.externals]]
+name = "kd-single-application"
+source = "git+https://github.com/KDAB/KDSingleApplication.git#93856149f2efffb3037ac7c2c9d0a6a65fef6623"
+
+[[packages.externals]]
+name = "qml-material"
+source = "git+https://github.com/hypengw/QmlMaterial.git#0b9af089b2dcc082b1a2564c9f19489c8c85a7b9"
+
+[[packages]]
+name = "qcm-core"
+version = "1.3.5"
+dependencies = [
+  "qcm-platform",
+  "rstd-cppstd",
+  "rstd-std",
+]
+
+[[packages.externals]]
+name = "random"
+source = "git+https://github.com/ilqvya/random.git#567e9c62df20f19adbda0e12fa4d88b2b49a7d1c"
+
+[[packages]]
+name = "qcm-mpris"
+version = "1.3.5"
+dependencies = [
+  "qcm-core",
+]
+
+[[packages]]
+name = "qcm-platform"
+version = "1.3.5"
+dependencies = [
+  "rstd-std",
+]
+
+[[packages]]
+name = "qcm-player"
+version = "1.3.5"
+dependencies = [
+  "qcm-core",
+  "rstd-cppstd",
+  "rstd-std",
+  "wavsen",
+]
+
+[[packages]]
+name = "qcm-qr-code"
+version = "1.3.5"
+
+[[packages]]
+name = "qcm-test"
+dependencies = [
+  "qcm-core",
+]
+
+[[packages]]
+name = "qextra"
+version = "0.1.0"
+source = "git+https://github.com/hypengw/QExtra.git#68f752fd38e3d7a923bf36d621f4a94be7b26fd8"
+dependencies = [
+  "ncrequest",
+  "rstd-cppstd",
+  "rstd-std",
+]
+
+[[packages]]
+name = "rstd-alloc"
+version = "0.1.3"
+source = "registry+https://registry.litocpp.org/"
+checksum = "7fc33a153eea4938b521a5ce2fd01cccbcd231535281f3b0a838ed576774915c"
+dependencies = [
+  "rstd-core",
+  "rstd-runtime",
+]
+
+[[packages]]
+name = "rstd-basic"
+version = "0.1.3"
+source = "registry+https://registry.litocpp.org/"
+checksum = "f83beeef0d03772b3d267e79b01bf8b90bf756a68940008cb3f63c2561494b4a"
+
+[[packages]]
+name = "rstd-core"
+version = "0.1.3"
+source = "registry+https://registry.litocpp.org/"
+checksum = "2290c2d3ce1d85057c234500e06c913b2189029d0e52b3aa9c6683ddd7e7a90a"
+dependencies = [
+  "rstd-basic",
+  "rstd-runtime",
+]
+
+[[packages]]
+name = "rstd-cppstd"
+version = "0.1.3"
+source = "registry+https://registry.litocpp.org/"
+checksum = "bfb92639b7283cc9e3a4365f80d1246033042134dfba2ab65577b04bb8b05e49"
+dependencies = [
+  "rstd-std",
+]
+
+[[packages]]
+name = "rstd-dlopn"
+version = "0.1.3"
+source = "registry+https://registry.litocpp.org/"
+checksum = "3a286e2a5e5e3b01aa40fe0b3484a3b35149ce0576897375b1b8a4ca7c8af446"
+dependencies = [
+  "rstd-std",
+]
+
+[[packages]]
+name = "rstd-log"
+version = "0.1.3"
+source = "registry+https://registry.litocpp.org/"
+checksum = "aff42f1b64f17338a00880c6bb459a92990ac74124b3655d099af3e4634d6e2b"
+dependencies = [
+  "rstd-core",
+  "rstd-std",
+]
+
+[[packages]]
+name = "rstd-runtime"
+version = "0.1.3"
+source = "registry+https://registry.litocpp.org/"
+checksum = "905637de9698e6d52d64d963b5821190932b3bf83ec787d381cb9a5c9b378ad4"
+dependencies = [
+  "rstd-basic",
+]
+
+[[packages]]
+name = "rstd-std"
+version = "0.1.3"
+source = "registry+https://registry.litocpp.org/"
+checksum = "51016ec3e1f07b01e2e92b8ac19bb9fb7c9dbf8e241732dde1d545740fad45b3"
+dependencies = [
+  "rstd-alloc",
+  "rstd-core",
+]
+
+[[packages]]
+name = "vvk"
+version = "0.1.0"
+source = "git+https://github.com/litocpp/vvk.git#117626d9bfc6c1de0f2957f7fa42b47935bb6af8"
+dependencies = [
+  "rstd-cppstd",
+  "rstd-log",
+  "rstd-std",
+]
+
+[[packages.externals]]
+name = "vma"
+source = "git+https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git#3aa921224c154a0d2c43912bc88e1c42ce1f7607"
+
+[[packages]]
+name = "wavsen"
+version = "0.1.0"
+source = "git+https://github.com/hypengw/wavsen.git#ad8a0f6dab8bf280c0be2836cdf6f22416d8b1d1"
+dependencies = [
+  "rstd-core",
+  "rstd-cppstd",
+  "rstd-dlopn",
+  "rstd-log",
+  "rstd-std",
+  "vvk",
+]

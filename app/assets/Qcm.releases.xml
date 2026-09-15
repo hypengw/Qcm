@@ -1,4 +1,15 @@
 <releases>
+  <release version="1.3.5" date="2026-09-15">
+    <description>
+      <ul>
+        <li>update navigation and card layout</li>
+        <li>add album play buttons</li>
+        <li>fix daily mix, login, and radio queue</li>
+        <li>migrate playback to wavsen</li>
+        <li>integrate backend and migrate to lito</li>
+      </ul>
+    </description>
+  </release>
   <release version="1.3.4" date="2025-12-28">
     <description>
       <ul>

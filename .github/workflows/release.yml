@@ -1,0 +1,39 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to release (e.g. v1.3.5)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'push' || startsWith(inputs.tag || '', 'v')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      - name: Prepare release notes
+        id: release-notes
+        uses: hypengw/appstream-release-notes-action@v0.1.0
+        with:
+          file: app/assets/Qcm.releases.xml
+          version: ${{ inputs.tag || github.ref_name }}
+
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ inputs.tag || github.ref_name }}
+          bodyFile: ${{ steps.release-notes.outputs.path }}
+          immutableCreate: true
+          skipIfReleaseExists: true

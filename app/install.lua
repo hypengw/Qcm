@@ -29,7 +29,7 @@ lito.install({
       values = {
         APP_ID = "io.github.hypengw.Qcm",
         APP_NAME = "Qcm",
-        APP_SUMMARY = "Material You cloud music player",
+        APP_SUMMARY = "Quick cloud music player",
         PROJECT_NAME = "Qcm",
       },
     },
@@ -39,7 +39,7 @@ lito.install({
       values = {
         APP_ID = "io.github.hypengw.Qcm",
         APP_NAME = "Qcm",
-        APP_SUMMARY = "Material You cloud music player",
+        APP_SUMMARY = "Quick cloud music player",
         APP_RELEASES = releases,
       },
     },
