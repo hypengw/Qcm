@@ -16,10 +16,6 @@ import qcm.log;
 using namespace qcm;
 using namespace Qt::Literals::StringLiterals;
 
-DEFINE_CONVERT(ncrequest::req_opt::Proxy::Type, enums::ProxyType) {
-    out = static_cast<rstd::mtp::decay<decltype(out)>>(in);
-}
-
 namespace
 {
 
@@ -244,14 +240,39 @@ void App::load_plugins() {
 
 void App::setProxy(enums::ProxyType t, QString content) {
     C_D(App);
-    d->m_global->session()->set_proxy(
-        ncrequest::req_opt::Proxy { .type    = convert_from<ncrequest::req_opt::Proxy::Type>(t),
-                                    .content = content.toStdString() });
+    if (content.isEmpty()) {
+        d->m_global->set_proxy(ncrequest::ProxyOptions::system());
+        return;
+    }
+    QString scheme;
+    switch (t) {
+    case enums::ProxyType::ProxyHttp: scheme = QStringLiteral("http"); break;
+    case enums::ProxyType::ProxyHttps2: scheme = QStringLiteral("https"); break;
+    case enums::ProxyType::ProxySocks4: scheme = QStringLiteral("socks4"); break;
+    case enums::ProxyType::ProxySocks5: scheme = QStringLiteral("socks5"); break;
+    case enums::ProxyType::ProxySocks4a: scheme = QStringLiteral("socks4a"); break;
+    case enums::ProxyType::ProxySocks5h: scheme = QStringLiteral("socks5h"); break;
+    default:
+        d->m_global->errorOccurred(QStringLiteral("invalid proxy type"));
+        return;
+    }
+    auto text = (scheme + QStringLiteral("://") + content).toStdString();
+    auto url = lihttpto::Url::parse(rstd::cppstd::as_str(text).unwrap());
+    if (url.is_err()) {
+        d->m_global->errorOccurred(QStringLiteral("invalid proxy URL"));
+        return;
+    }
+    auto proxy = ncrequest::ProxyOptions::explicit_proxy(rstd::move(url).unwrap());
+    if (proxy.is_err()) {
+        d->m_global->errorOccurred(qextra::to_qstring(rstd::format("{}", proxy.unwrap_err())));
+        return;
+    }
+    d->m_global->set_proxy(rstd::move(proxy).unwrap());
 }
 
 void App::setVerifyCertificate(bool v) {
     C_D(App);
-    d->m_global->session()->set_verify_certificate(v);
+    d->m_global->set_verify_certificate(v);
 }
 
 QVariant App::import_path_list() {

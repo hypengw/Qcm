@@ -70,8 +70,6 @@ public:
         rc<QcmImageProviderInner> m_owner;
     };
 
-    QcmImageProviderInner(): m_session(Global::instance()->session()) {}
-
     void submit(Job job) {
         auto start = std::optional<Job> {};
         {
@@ -110,9 +108,10 @@ private:
         return qextra::to_qstring(text);
     }
 
-    auto request_image(const ncrequest::Request& request, QSize requested_size)
+    auto request_image(ncrequest::Request request, QSize requested_size)
         -> task<Result<QImage, QString>> {
-        auto response = co_await m_session->get(request);
+        auto session = Global::instance()->session();
+        auto response = co_await session->get(rstd::move(request));
         if (response.is_err()) {
             co_return Err(error_string(rstd::move(response).unwrap_err_unchecked()));
         }
@@ -139,7 +138,7 @@ private:
     static auto run_job(rc<QcmImageProviderInner> owner, Job job, ActiveRequest active)
         -> task<void> {
         (void)active;
-        auto image = co_await owner->request_image(job.request, job.requested_size);
+        auto image = co_await owner->request_image(rstd::move(job.request), job.requested_size);
         if (image.is_err()) {
             job.rsp->setError(rstd::move(image).unwrap_err_unchecked());
             co_return;
@@ -169,7 +168,6 @@ private:
         if (next) start_job(rstd::move(*next));
     }
 
-    Arc<ncrequest::Session> m_session;
     std::mutex              m_mutex;
     std::deque<Job>         m_pending;
     std::size_t             m_active { 0 };
@@ -222,7 +220,12 @@ QQuickImageResponse* QcmImageProvider::requestImageResponse(const QString& id,
         }
 
         auto request = rstd::move(req).unwrap_unchecked();
-        request.get_opt<ncrequest::req_opt::Timeout>().transfer_timeout = rstd::i64(120'000);
+        auto options = request.options().clone();
+        auto timeout = options.timeout.unwrap_or(ncrequest::TimeoutOptions {});
+        timeout.total = ncrequest::TimeoutLimit::after(
+            rstd::time::Duration::from_secs(rstd::u64(120)));
+        options.timeout = Some(timeout);
+        request.set_options(rstd::move(options));
         m_inner->submit(QcmImageProviderInner::Job {
             .rsp            = rsp,
             .request        = rstd::move(request),

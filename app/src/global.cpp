@@ -73,7 +73,7 @@ void GlobalWrapper::connect_to_global(Global* g, R (Global::*g_func)(ARGS...),
 }
 
 Global::Private::Private(Global*)
-    : session(ncrequest::Session::make()),
+    : session(ncrequest::Session::make().unwrap()),
       player(nullptr) {}
 Global::Private::~Private() {}
 
@@ -102,7 +102,45 @@ Global::~Global() {
 }
 auto Global::session() -> Arc<ncrequest::Session> {
     C_D(Global);
+    auto lock = std::scoped_lock { d->mutex };
     return d->session.clone();
+}
+
+auto Global::Private::replace_session(ncrequest::ProxyOptions proxy_options,
+                                      ncrequest::TlsOptions tls_options)
+    -> ncrequest::Result<rstd::empty> {
+    auto options = ncrequest::SessionOptions {};
+    options.proxy = proxy_options.clone();
+    options.tls = tls_options.clone();
+    auto next = ncrequest::Session::make(rstd::move(options));
+    if (next.is_err()) return Err(rstd::move(next).unwrap_err());
+    session = rstd::move(next).unwrap();
+    proxy = rstd::move(proxy_options);
+    tls = rstd::move(tls_options);
+    return Ok(rstd::empty {});
+}
+
+void Global::set_proxy(ncrequest::ProxyOptions proxy) {
+    C_D(Global);
+    auto result = [&] {
+        auto lock = std::scoped_lock { d->mutex };
+        return d->replace_session(rstd::move(proxy), d->tls.clone());
+    }();
+    if (result.is_err())
+        errorOccurred(qextra::to_qstring(rstd::format("{}", result.unwrap_err())));
+}
+
+void Global::set_verify_certificate(bool verify) {
+    C_D(Global);
+    auto result = [&] {
+        auto lock = std::scoped_lock { d->mutex };
+        auto tls = d->tls.clone();
+        tls.verify_peer = verify;
+        tls.verify_hostname = verify;
+        return d->replace_session(d->proxy.clone(), rstd::move(tls));
+    }();
+    if (result.is_err())
+        errorOccurred(qextra::to_qstring(rstd::format("{}", result.unwrap_err())));
 }
 
 auto Global::uuid() const -> const QUuid& {

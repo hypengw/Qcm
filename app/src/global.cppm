@@ -50,6 +50,8 @@ public:
     ~Global();
 
     auto session() -> Arc<ncrequest::Session>;
+    void set_proxy(ncrequest::ProxyOptions);
+    void set_verify_certificate(bool);
 
     auto uuid() const -> const QUuid&;
     auto player() const -> Player*;
@@ -131,6 +133,10 @@ public:
     ~Private();
 
     Arc<ncrequest::Session> session;
+    ncrequest::ProxyOptions proxy;
+    ncrequest::TlsOptions tls;
+    auto replace_session(ncrequest::ProxyOptions, ncrequest::TlsOptions)
+        -> ncrequest::Result<rstd::empty>;
 
     QUuid uuid;
 

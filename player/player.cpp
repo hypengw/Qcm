@@ -186,8 +186,10 @@ bool Player::open_device() {
     desired.volume                    = m_volume.load().powf(rn::f32(3));
     desired.identity.application_name = app_name.clone();
     desired.identity.application_id   = String::make("org.qcm.Qcm"_str);
-    if (! (*device)->mount(std::make_unique<PcmChannel>(rn::move(pcm_pair.get<1>()),
-                                                        rn::move(clock_pair.get<0>())),
+    auto channel = Box<PcmChannel>::make(rn::move(pcm_pair.get<1>()),
+                                          rn::move(clock_pair.get<0>()));
+    if (! (*device)->mount(Box<dyn<wa::PullChannelObject>>::from_raw(
+                               dyn<wa::PullChannelObject>::from_ptr(rn::move(channel).into_raw())),
                            rn::u64(device_generation)) ||
         ! (*device)->apply(desired.clone()))
         return false;
