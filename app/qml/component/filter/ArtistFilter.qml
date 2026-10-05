@@ -60,7 +60,10 @@ MD.ItemDelegate {
             }
         }
 
-        MD.SmallIconButton {
+        MD.StandardIconButton {
+            icon.width: 22
+            icon.height: 22
+            implicitBackgroundSize: 0
             id: m_act
             icon.name: MD.Token.icon.close
             onClicked: {

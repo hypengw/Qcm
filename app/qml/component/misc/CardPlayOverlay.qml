@@ -17,10 +17,10 @@ QA.CardOverlay {
         action: QA.PlayAction {
             itemId: root.itemId
             icon.name: MD.Token.icon.play_arrow
-            icon.width: root.smallButton ? m_button.mdState.iconSize : 30
-            icon.height: root.smallButton ? m_button.mdState.iconSize : 30
             checked: true
         }
+        icon.width: root.smallButton ? mdState.iconSize : 30
+        icon.height: root.smallButton ? mdState.iconSize : 30
         padding: root.smallButton ? 4 : 14
         checked: true
         mdState.type: MD.Enum.IBtFilled

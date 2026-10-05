@@ -5,6 +5,8 @@ import Qcm.App as QA
 
 
 MD.ListItem {
+    required index
+    required model
     id: root
     width: ListView.view.width
     text: model.user.name

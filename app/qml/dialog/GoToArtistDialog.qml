@@ -15,6 +15,7 @@ MD.Dialog {
         expand: true
 
         delegate: MD.ListItem {
+            required index
             required property var modelData
             model: null
             width: ListView.view.width

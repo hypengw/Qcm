@@ -45,6 +45,8 @@ MD.Page {
                 rightMargin: 16
 
                 delegate: MD.ListItem {
+                    required index
+                    required model
                     width: ListView.view.contentWidth
 
                     corners: MD.Util.listCorners(index, count, 16)

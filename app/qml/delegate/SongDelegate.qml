@@ -6,6 +6,8 @@ import Qcm.App as QA
 import Qcm.Material as MD
 
 MD.ListItem {
+    required index
+    required model
     id: root
 
     readonly property bool isPlaying: QA.App.playqueue.currentSongId === dgModel.itemId

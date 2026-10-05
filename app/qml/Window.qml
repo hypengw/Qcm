@@ -51,7 +51,7 @@ MD.ApplicationWindow {
         id: m_win_stack
         anchors.fill: parent
 
-        initialItem: comp_loading
+        initialItem: QA.LoadingPage {}
 
         MD.MProp.page: m_stack_page_ctx
         MD.PageContext {
@@ -61,7 +61,7 @@ MD.ApplicationWindow {
             leadingAction: MD.Action {
                 icon.name: MD.Token.icon.arrow_back
                 onTriggered: {
-                    m_win_stack.pop();
+                    m_win_stack.pop_page();
                 }
             }
         }
@@ -70,21 +70,21 @@ MD.ApplicationWindow {
 
         Connections {
             function onLoading() {
-                m_win_stack.pop(null);
-                m_win_stack.replace(m_win_stack.currentItem, comp_loading);
+                m_win_stack.pop_page(null);
+                m_win_stack.replace_page(comp_loading);
             }
             function onWelcome() {
-                m_win_stack.pop(null);
-                m_win_stack.replace(m_win_stack.currentItem, comp_welcome);
+                m_win_stack.pop_page(null);
+                m_win_stack.replace_page(comp_welcome);
             }
             function onMain() {
-                m_win_stack.pop(null);
-                m_win_stack.replace(m_win_stack.currentItem, comp_main);
+                m_win_stack.pop_page(null);
+                m_win_stack.replace_page(comp_main);
             }
             function onError(err) {
                 console.error(err);
-                m_win_stack.pop(null);
-                m_win_stack.replace(m_win_stack.currentItem, comp_retry, {
+                m_win_stack.pop_page(null);
+                m_win_stack.replace_page(comp_retry, {
                     text: err,
                     retryCallback: () => {
                         QA.App.appState.retry();
@@ -96,7 +96,7 @@ MD.ApplicationWindow {
         Connections {
             function onRoute(name) {
                 if (name === QA.Enum.SRLogin) {
-                    m_win_stack.push(comp_welcome);
+                    m_win_stack.push_page(comp_welcome);
                 }
             }
 
@@ -222,7 +222,7 @@ MD.ApplicationWindow {
 
     Component {
         id: comp_main
-        MD.StackView {
+        QA.PageStack {
             id: sv_main
 
             // property var playing_page: {
@@ -235,19 +235,18 @@ MD.ApplicationWindow {
 
             initialItem: QA.MainPage {}
 
-            property bool canBack: currentItem.canBack || depth > 1
             function back() {
                 if (currentItem.canBack) {
                     this.currentItem.back();
                 } else {
-                    this.pop(null);
+                    this.pop_page(null);
                 }
             }
 
             Connections {
                 function onRoute(dst) {
                     if (dst === QA.Enum.SRMain) {
-                        sv_main.pop(null);
+                        sv_main.pop_page(null);
                     }
                 }
 

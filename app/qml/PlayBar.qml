@@ -248,10 +248,10 @@ MD.Pane {
                         }
                     }
                 }
-                MD.StackView {
+                MD.PageContainer {
                     id: ctl_stack
                     function switch_to() {
-                        replace(currentItem, root.isSmall ? comp_ctl_small : comp_ctl);
+                        switchTo(root.isSmall ? comp_ctl_small : comp_ctl, {}, false);
                     }
 
                     Layout.fillHeight: true

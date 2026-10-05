@@ -75,7 +75,7 @@ MD.Page {
         }
     }
 
-    property bool canBack: m_small.visible && m_small.depth > 1
+    canBack: m_small.visible && m_small.depth > 1
 
     function back() {
         m_small.switch_pane();
@@ -147,7 +147,7 @@ MD.Page {
                     Layout.fillWidth: true
                     typescale: MD.Token.typescale.body_medium
                     horizontalAlignment: Text.AlignHCenter
-                    text: root.song.albumName
+                    text: QA.Store.extra(root.songId)?.album?.name ?? ""
                 }
                 MD.Text {
                     Layout.alignment: Qt.AlignHCenter
@@ -319,20 +319,20 @@ MD.Page {
         }
     }
 
-    MD.StackView {
+    QA.PageStack {
         id: m_small
         visible: true
         anchors.fill: parent
 
         function push_pane(target) {
-            push(m_layout_comp, {
+            push_page(m_layout_comp, {
                 'target': target
             });
         }
 
         function switch_pane() {
             if (depth > 1) {
-                popToIndex(0);
+                pop_page(null);
             } else {
                 push_pane(lyric_pane);
             }

@@ -1,12 +1,8 @@
 import QtQuick
-import QtQuick.Templates as T
-
 import Qcm.Material as MD
 
-MD.StackView {
+MD.PageStack {
     id: root
-
-    readonly property var pages: new Map()
 
     property bool canBack: (currentItem?.canBack ?? false) || depth > 1
     function back() {
@@ -17,8 +13,8 @@ MD.StackView {
         }
     }
 
-    implicitHeight: currentItem.implicitHeight
-    implicitWidth: currentItem.implicitWidth
+    implicitHeight: currentItem?.implicitHeight ?? 0
+    implicitWidth: currentItem?.implicitWidth ?? 0
 
     Behavior on implicitHeight {
         NumberAnimation {
@@ -27,57 +23,47 @@ MD.StackView {
         }
     }
 
-    // Inherit the page context before StackView starts the enter transition.
+    // Supply the page context before component completion and the enter transition.
     Item {
         id: m_page_host
         visible: false
     }
 
     MD.Pool {
-        id: m_pool
-        onObjectAdded: function (obj, key) {
-            const item = root.push(obj) as Item;
-            if (item) {
-                item.T.StackView.removed.connect(m_pool, function () {
-                    if (!m_pool.removeObject(obj)) {
-                        console.error('remove failed: ', obj);
-                    }
-                });
-            }
+        id: m_push_pool
+        onObjectAdded: (obj, key) => root.acceptPage(obj, m_push_pool, false)
+    }
+    MD.Pool {
+        id: m_replace_pool
+        onObjectAdded: (obj, key) => root.acceptPage(obj, m_replace_pool, true)
+    }
+
+    function acceptPage(item, pool, replace) {
+        if (replace ? replaceCurrentItem(item) : pushItem(item)) {
+            item.MD.PageStack.removed.connect(pool, function () {
+                pool.removeObject(item);
+            });
+        } else {
+            pool.removeObject(item);
         }
     }
 
-    function push_page(url, props = {}) {
-        const key = JSON.stringify({
-            "url": url,
-            "props": MD.Util.paramsString(props)
-        });
-        const item = pages.get(key);
-        if (item) {
-            popup(item);
-        } else {
-            m_pool.addWithKey(key, url, Object.assign({}, props, {parent: m_page_host}));
-        }
+    function push_page(source, props = {}) {
+        m_push_pool.add(source, Object.assign({}, props, {parent: m_page_host}));
+    }
+
+    function replace_page(source, props = {}) {
+        m_replace_pool.add(source, Object.assign({}, props, {parent: m_page_host}));
     }
 
     function pop_page(bottom) {
         if (bottom === null) {
-            pop(null);
-            m_pool.clear();
-        } else {
-            const item = pop();
-            m_pool.removeObject(item);
+            while (depth > 2) {
+                if (!popCurrentItem(MD.PageStack.Immediate))
+                    return;
+            }
         }
-    }
-
-    function popup(item) {
-        const items = [];
-        while (currentItem !== item)
-            items.unshift(pop(T.StackView.Immediate));
-        if (items.length === 0)
-            return;
-        const target = pop(T.StackView.Immediate);
-        push(items, T.StackView.Immediate);
-        push(target);
+        if (depth > 1)
+            popCurrentItem();
     }
 }

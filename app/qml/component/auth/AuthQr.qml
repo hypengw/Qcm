@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Templates as T
 
 import Qcm.App as QA
 import Qcm.Msg as QM
@@ -28,11 +27,11 @@ ColumnLayout {
         onTmpProviderChanged: reload()
     }
 
-    MD.StackView {
+    QA.PageStack {
         id: m_qr_stack
         Layout.fillWidth: true
 
-        initialItem: comp_qr_wait_scan
+        initialItem: comp_qr_wait_scan.createObject(m_qr_stack)
 
         implicitHeight: currentItem.implicitHeight
 
@@ -48,13 +47,13 @@ ColumnLayout {
                 case QM.AuthResult.QrWaitComform:
                     {
                         if (stack.depth == 1)
-                            stack.pushItem(comp_qr_wait_comfirm, {}, T.StackView.PushTransition);
+                            stack.push_page(comp_qr_wait_comfirm);
                         break;
                     }
                 default:
                     {
                         if (stack.depth > 1) {
-                            stack.pop(null);
+                            stack.pop_page(null);
                         }
                     }
                 }

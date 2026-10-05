@@ -155,6 +155,8 @@ MD.Page {
                     Component {
                         id: m_dg_album
                         MD.ListItem {
+                            required index
+                            required model
                             id: m_item
                             width: ListView.view.contentWidth
                             rightPadding: 0
@@ -192,6 +194,8 @@ MD.Page {
                     Component {
                         id: m_dg_artist
                         MD.ListItem {
+                            required index
+                            required model
                             width: ListView.view.contentWidth
                             text: model.name
                             maximumLineCount: 2

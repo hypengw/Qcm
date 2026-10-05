@@ -1,8 +1,7 @@
 import QtQuick
-import QtQuick.Templates as T
 import Qcm.Material as MD
 
-MD.StackView {
+MD.PageStack {
     id: root
 
     readonly property bool canBack: currentItem?.canBack ?? false
@@ -11,7 +10,7 @@ MD.StackView {
         currentItem.back();
     }
 
-    // Inherit the page context before StackView starts the enter transition.
+    // Inherit the page context before PageStack starts the enter transition.
     Item {
         id: m_page_host
         visible: false
@@ -20,13 +19,18 @@ MD.StackView {
     MD.Pool {
         id: m_pool
         onObjectAdded: function (obj, key) {
-            const item = root.replaceCurrentItem(obj) as Item;
-            if (!key && item) {
-                item.T.StackView.removed.connect(m_pool, function () {
+            if (obj === root.currentItem)
+                return;
+            root.completeTransition();
+            const accepted = root.replaceCurrentItem(obj);
+            if (!key && accepted) {
+                obj.MD.PageStack.removed.connect(m_pool, function () {
                     if (!m_pool.removeObject(obj)) {
                         console.error(`remove failed(${obj}): ${key}`);
                     }
                 });
+            } else if (!accepted && !key) {
+                m_pool.removeObject(obj);
             }
         }
     }

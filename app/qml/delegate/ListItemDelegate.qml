@@ -3,6 +3,8 @@ import Qcm.App as QA
 import Qcm.Material as MD
 
 MD.ListItem {
+    required index
+    required model
     id: root
     property var itemId: model.itemId
     property string image

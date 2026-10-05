@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Templates as T
 
 import Qcm.App as QA
 import Qcm.Material as MD
@@ -31,7 +30,7 @@ MD.Page {
                 }
 
                 onPushItem: function (comp, props) {
-                    m_stack.pushItem(comp, props, T.StackView.PushTransition);
+                    m_stack.push_page(comp, props);
                 }
             }
 

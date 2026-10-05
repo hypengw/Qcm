@@ -114,11 +114,17 @@ MD.Dialog {
                 }
             }
 
-            MD.SmallIconButton {
+            MD.StandardIconButton {
+                icon.width: 22
+                icon.height: 22
+                implicitBackgroundSize: 0
                 icon.name: MD.Token.icon.add
                 onClicked: root.model.appendRuleInGroup(m_section.groupId)
             }
-            MD.SmallIconButton {
+            MD.StandardIconButton {
+                icon.width: 22
+                icon.height: 22
+                implicitBackgroundSize: 0
                 icon.name: MD.Token.icon.delete
                 onClicked: root.model.deleteGroup(m_section.groupId)
             }

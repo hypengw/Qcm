@@ -50,6 +50,8 @@ MD.Dialog {
             }
         }
         delegate: MD.ListItem {
+            required index
+            required model
             text: model.name
             supportText: `${model.trackCount} songs`
             width: ListView.view.width

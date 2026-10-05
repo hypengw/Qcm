@@ -55,7 +55,7 @@ MD.Popup {
                 if (cur?.canBack) {
                     cur.back();
                 } else if (m_stack.depth > 1) {
-                    m_stack.pop();
+                    m_stack.popCurrentItem();
                 } else {
                     root.close();
                 }
@@ -66,9 +66,9 @@ MD.Popup {
     MD.Pool {
         id: m_pool
         onObjectAdded: function (obj, key) {
-            const item = m_stack.push(obj, T.StackView.PushTransition) as Item;
-            if (item) {
-                const attach = item.T.StackView;
+            const item = obj as Item;
+            if (m_stack.pushItem(item)) {
+                const attach = item.MD.PageStack;
                 attach.removed.connect(m_pool, function () {
                     if (!m_pool.removeObject(obj)) {
                         console.error('remove failed: ', obj);
@@ -78,9 +78,9 @@ MD.Popup {
                     if (!attach || !m_stack)
                         return;
 
-                    if (attach.status == T.StackView.Active) {
+                    if (attach.status == MD.PageStack.Active) {
                         m_stack.lastImplicitHeight = 0;
-                    } else if (attach.status == T.StackView.Deactivating) {
+                    } else if (attach.status == MD.PageStack.Deactivating) {
                         m_stack.lastImplicitHeight = Qt.binding(function () {
                             return item.implicitHeight;
                         });
@@ -88,6 +88,8 @@ MD.Popup {
                 });
 
                 m_stack.lastImplicitHeight = m_stack.implicitHeight;
+            } else {
+                m_pool.removeObject(obj);
             }
         }
     }
@@ -96,7 +98,7 @@ MD.Popup {
         m_pool.add(source, props);
     }
 
-    contentItem: MD.StackView {
+    contentItem: MD.PageStack {
         id: m_stack
         property real lastImplicitHeight: 0
         implicitHeight: Math.max(lastImplicitHeight, currentItem?.implicitHeight ?? 0)
@@ -107,8 +109,8 @@ MD.Popup {
                 m_pool.add(comp, props);
             }
             function onPop() {
-                const item = m_stack.pop();
-                m_pool.removeObject(item);
+                if (m_stack.depth > 1)
+                    m_stack.popCurrentItem();
             }
             target: m_page_context
         }

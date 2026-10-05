@@ -10,14 +10,15 @@ import Qcm.Msg as QM
 MD.Page {
     id: root
 
-    readonly property bool canBack: false//leaf.folded && leaf.rightAbove
+    canBack: false
     title: m_content.currentItem?.title ?? qsTr("library")
     scrolling: m_content.currentItem?.scrolling ?? false
 
     property int currentIndex: 0
 
     function back() {
-        m_content.pop(null);
+        if (m_content.canBack)
+            m_content.back();
     }
 
     readonly property Item libView: Item {
@@ -362,7 +363,7 @@ MD.Page {
     //             spacing: 0
     //         }
     //     }
-    //     rightPage: MD.StackView {}
+    //     rightPage: MD.PageStack {}
     // }
 
     component BaseView: QA.ItemView {
@@ -467,7 +468,10 @@ MD.Page {
                 Layout.maximumWidth: maximumContentWidth
                 Layout.preferredWidth: Math.min(maximumContentWidth, Math.max(Layout.minimumWidth, m_header_row.width - m_library_tabs.implicitWidth - m_order_chip.implicitWidth - m_header_row.spacing * 2))
                 actions: m_header_bar.view ? [...m_header_bar.view.headerActions, ...m_header_bar.preActions] : m_header_bar.preActions
-                iconDelegate: MD.SmallIconButton {
+                iconDelegate: MD.StandardIconButton {
+                    icon.width: 22
+                    icon.height: 22
+                    implicitBackgroundSize: 0
                     id: m_item
                     anchors.verticalCenter: parent.verticalCenter
                     action: MD.ToolBarLayout.action as MD.Action
@@ -477,7 +481,10 @@ MD.Page {
                         }
                     }
                 }
-                moreDelegate: MD.SmallIconButton {
+                moreDelegate: MD.StandardIconButton {
+                    icon.width: 22
+                    icon.height: 22
+                    implicitBackgroundSize: 0
                     action: m_tool_bar.moreAction
                 }
             }
