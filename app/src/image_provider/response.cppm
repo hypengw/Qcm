@@ -4,7 +4,7 @@ module;
 
 export module qcm:image_provider.response;
 import qcm.core;
-import qt;
+import qextra.qt;
 
 using rstd::sync::atomic::Atomic;
 

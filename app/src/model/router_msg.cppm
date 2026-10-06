@@ -7,7 +7,7 @@ module;
 #endif
 
 export module qcm:model.router_msg;
-import qt;
+import qextra.qt;
 
 namespace qcm
 {
