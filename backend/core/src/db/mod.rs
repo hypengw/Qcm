@@ -2,6 +2,8 @@ pub mod basic;
 pub mod fts;
 pub mod size;
 pub mod sync;
+pub mod sync_batch;
+pub mod sync_run;
 pub mod values;
 
 pub use basic::QueryBuilder;
@@ -18,8 +20,7 @@ pub fn columns_contains<Col>(list: &[Col], c: &Col) -> bool {
     list.iter().any(|l| discriminant(l) == discriminant(c))
 }
 
-type EntityKey<Et> =
-    <<Et as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType;
+type EntityKey<Et> = <<Et as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType;
 
 pub struct DbOper {}
 impl DbOper {
@@ -90,10 +91,7 @@ impl DbOper {
         iter: I,
         conflict: &[Col],
         exclude: &[Col],
-    ) -> Result<
-        TryInsertResult<Vec<EntityKey<Et>>>,
-        sea_orm::DbErr,
-    >
+    ) -> Result<TryInsertResult<Vec<EntityKey<Et>>>, sea_orm::DbErr>
     where
         Et: EntityTrait,
         Et::Model: sea_orm::ModelTrait + sea_orm::IntoActiveModel<A>,

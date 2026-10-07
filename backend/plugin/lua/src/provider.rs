@@ -1,3 +1,4 @@
+use crate::db::{CallGuard, CallState, LuaContext};
 use crate::enums;
 use crate::error::{create_lua_error_func, FromLuaError};
 use mlua::prelude::*;
@@ -24,11 +25,11 @@ use qcm_core::{
 };
 use reqwest::Response;
 use sea_orm::*;
-use std::str::FromStr;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::{path::Path, sync::Arc};
 
 use crate::crypto::create_crypto_module;
-use crate::http::{LuaClient, LuaResponse};
+use crate::http::{new_client, LuaResponse};
 use serde::{Deserialize, Serialize};
 
 struct LuaProviderInner {
@@ -42,6 +43,9 @@ struct LuaInner(Arc<LuaProviderInner>);
 impl LuaUserData for LuaInner {
     fn add_fields<F: LuaUserDataFields<Self>>(fields: &mut F) {
         fields.add_field_method_get("id", |_, this| Ok(this.0.common.id()));
+        fields.add_field_method_get("base_url", |_, this| Ok(this.0.common.base_url()));
+        fields.add_field_method_get("app_name", |_, _| Ok(qcm_core::global::APP_NAME));
+        fields.add_field_method_get("app_version", |_, _| Ok(env!("CARGO_PKG_VERSION")));
     }
     fn add_methods<M: LuaUserDataMethods<Self>>(methods: &mut M) {
         methods.add_method("device_id", |_, this, _: ()| {
@@ -57,7 +61,7 @@ struct LuaImpl {
     login: LuaFunction,
     sync: LuaFunction,
     sync_item: LuaFunction,
-    get_queue_next: LuaFunction,
+    get_queue_next: Option<LuaFunction>,
     favorite: LuaFunction,
     qr: Option<LuaFunction>,
     image: LuaFunction,
@@ -98,6 +102,9 @@ pub struct LuaProvider {
     inner: Arc<LuaProviderInner>,
     funcs: LuaImpl,
     lua: Lua,
+    generation: Arc<AtomicU64>,
+    capabilities: crate::plugin::Capabilities,
+    saved: std::sync::Mutex<String>,
 }
 
 impl LuaProvider {
@@ -108,6 +115,24 @@ impl LuaProvider {
         meta_type: &str,
         script_path: &Path,
     ) -> Result<Self> {
+        Self::with_capabilities(
+            id,
+            name,
+            device_id,
+            meta_type,
+            script_path,
+            Default::default(),
+        )
+    }
+    pub fn with_capabilities(
+        id: Option<i64>,
+        name: &str,
+        device_id: &str,
+        meta_type: &str,
+        script_path: &Path,
+        capabilities: crate::plugin::Capabilities,
+    ) -> Result<Self> {
+        capabilities.validate()?;
         let jar = Arc::new(CookieStoreRwLock::default());
 
         let lua = Lua::new();
@@ -140,6 +165,8 @@ impl LuaProvider {
             qcm_table.set("crypto", crypto_module)?;
             qcm_table.set("url", url_module)?;
             qcm_table.set("json", json::create_module(&lua)?)?;
+            qcm_table.set("null", LuaValue::NULL)?;
+            qcm_table.set("errors", mlua_extra::error::create_module(&lua)?)?;
             qcm_table.set("time", time::create_module(&lua)?)?;
             qcm_table.set("enum", enums::create_module(&lua)?)?;
             qcm_table.set("error", create_lua_error_func(&lua)?)?;
@@ -148,7 +175,7 @@ impl LuaProvider {
             qcm_table.set(
                 "get_http_client",
                 lua.create_function(move |_, ()| {
-                    Ok(LuaClient::new(inner.client.clone(), inner.jar.clone()))
+                    Ok(new_client(inner.client.clone(), inner.jar.clone()))
                 })?,
             )?;
             qcm_table.set(
@@ -191,9 +218,7 @@ impl LuaProvider {
                 sync_item: provider_table
                     .get::<LuaFunction>("sync_item")
                     .map_err(|_| anyhow!("sync_item func not found"))?,
-                get_queue_next: provider_table
-                    .get::<LuaFunction>("get_queue_next")
-                    .map_err(|_| anyhow!("get_queue_next func not found"))?,
+                get_queue_next: provider_table.get("get_queue_next")?,
                 favorite: provider_table
                     .get::<LuaFunction>("favorite")
                     .map_err(|_| anyhow!("favorite func not found"))?,
@@ -211,10 +236,26 @@ impl LuaProvider {
                 home_block_items: provider_table.get::<LuaFunction>("home_block_items").ok(),
             },
             lua,
+            generation: Arc::new(AtomicU64::new(1)),
+            capabilities,
+            saved: std::sync::Mutex::new(String::new()),
         };
         Ok(provider)
     }
 
+    fn context(
+        &self,
+        ctx: &Context,
+        run: Option<qcm_core::db::sync_run::SyncRun>,
+    ) -> (LuaContext, CallGuard) {
+        let (state, guard) = CallState::new(
+            self.generation.clone(),
+            self.capabilities.explicit(),
+            run,
+            self.capabilities.sync_types.clone(),
+        );
+        (LuaContext(ctx.clone(), self.id(), state), guard)
+    }
     pub fn type_name() -> &'static str {
         "lua"
     }
@@ -238,12 +279,28 @@ impl HasCommonData for LuaProvider {
 
 #[async_trait::async_trait]
 impl Provider for LuaProvider {
+    fn invalidate(&self) {
+        self.generation.fetch_add(1, Ordering::AcqRel);
+    }
     fn load(&self, data: &str) {
-        let _ = self.funcs.load.call::<()>(data.to_string());
+        self.generation.fetch_add(1, Ordering::AcqRel);
+        *self.saved.lock().unwrap() = data.to_owned();
+        if let Err(error) = self.funcs.load.call::<()>(data.to_string()) {
+            log::error!("Lua provider load failed: {error}");
+        }
     }
 
     fn save(&self) -> String {
-        self.funcs.save.call::<String>(()).unwrap_or_default()
+        match self.funcs.save.call::<String>(()) {
+            Ok(value) => {
+                *self.saved.lock().unwrap() = value.clone();
+                value
+            }
+            Err(error) => {
+                log::error!("Lua provider save failed: {error}");
+                self.saved.lock().unwrap().clone()
+            }
+        }
     }
 
     async fn check(&self, _ctx: &Context) -> Result<(), ProviderError> {
@@ -255,6 +312,7 @@ impl Provider for LuaProvider {
     }
 
     async fn auth(&self, _ctx: &Context, info: &AuthInfo) -> Result<AuthResult, ProviderError> {
+        self.generation.fetch_add(1, Ordering::AcqRel);
         let res = self
             .funcs
             .login
@@ -271,11 +329,21 @@ impl Provider for LuaProvider {
 
     async fn sync(&self, ctx: &Context) -> Result<(), ProviderError> {
         let now = chrono::Utc::now();
-
+        let run = if self.capabilities.explicit() {
+            Some(
+                ctx.sync_coordinator
+                    .start(self.id().ok_or(ProviderError::NotAuth)?)
+                    .await?,
+            )
+        } else {
+            None
+        };
+        let (call, _guard) = self.context(ctx, run);
+        let pending = call.2.run.clone();
         let res = self
             .funcs
             .sync
-            .call_async::<LuaValue>(LuaContext(ctx.clone(), self.id()))
+            .call_async::<LuaValue>(call.clone())
             .await
             .map_err(ProviderError::from_err)?;
 
@@ -287,7 +355,15 @@ impl Provider for LuaProvider {
             }
         }
 
+        if let Some(run) = pending {
+            run.lock()
+                .await
+                .finalize(&ctx.db, &ctx.sync_coordinator)
+                .await?;
+            return Ok(());
+        }
         if let Some(id) = self.id() {
+            let _write = ctx.sync_coordinator.write(id, None).await?;
             let txn = ctx.db.begin().await?;
             db::sync::sync_drop_before(&txn, id, now).await?;
             txn.commit().await?;
@@ -295,9 +371,10 @@ impl Provider for LuaProvider {
         Ok(())
     }
     async fn sync_item(&self, ctx: &Context, item: sqlm::item::Model) -> Result<(), ProviderError> {
+        let (call, _guard) = self.context(ctx, None);
         self.funcs
             .sync_item
-            .call_async::<LuaValue>((LuaContext(ctx.clone(), self.id()), to_lua(&self.lua, &item)))
+            .call_async::<LuaValue>((call.clone(), to_lua(&self.lua, &item)))
             .await
             .map_err(ProviderError::from_err)?;
         Ok(())
@@ -309,11 +386,14 @@ impl Provider for LuaProvider {
         native_id: &str,
         current_native_ids: &[String],
     ) -> Result<Vec<sqlm::song::Model>, ProviderError> {
+        let (call, _guard) = self.context(ctx, None);
         let res: LuaValue = self
             .funcs
             .get_queue_next
+            .as_ref()
+            .ok_or(ProviderError::NotImplemented)?
             .call_async((
-                LuaContext(ctx.clone(), self.id()),
+                call.clone(),
                 native_id.to_string(),
                 current_native_ids.to_vec(),
             ))
@@ -330,15 +410,11 @@ impl Provider for LuaProvider {
         item_type: sqlm::type_enum::ItemType,
         value: bool,
     ) -> Result<(), ProviderError> {
+        let (call, _guard) = self.context(ctx, None);
         let res = self
             .funcs
             .favorite
-            .call_async::<LuaValue>((
-                LuaContext(ctx.clone(), self.id()),
-                item_id,
-                item_type as i32,
-                value,
-            ))
+            .call_async::<LuaValue>((call.clone(), item_id, item_type as i32, value))
             .await
             .map_err(ProviderError::from_err)?;
         Ok(())
@@ -368,12 +444,12 @@ impl Provider for LuaProvider {
             .image
             .call_async::<LuaValue>((item_id, image_id, image_type.to_string()))
             .await
-            .map_err(|e| anyhow!(e))?;
+            .map_err(ProviderError::from_err)?;
 
         if val.is_userdata() {
             let ud = val.as_userdata().unwrap();
             let mut ud_rsp = ud.borrow_mut::<LuaResponse>().map_err(AnyError::from)?;
-            let rsp = ud_rsp.0.take().ok_or(anyhow!("response not found"))?;
+            let rsp = ud_rsp.take_response().map_err(ProviderError::from_err)?;
             Ok(rsp)
         } else {
             Err(ProviderError::NotFound)
@@ -403,12 +479,12 @@ impl Provider for LuaProvider {
             .audio
             .call_async::<LuaValue>((item_id, headers))
             .await
-            .map_err(|e| anyhow!(e))?;
+            .map_err(ProviderError::from_err)?;
 
         if val.is_userdata() {
             let ud = val.as_userdata().unwrap();
             let mut ud_rsp = ud.borrow_mut::<LuaResponse>().map_err(AnyError::from)?;
-            let rsp = ud_rsp.0.take().ok_or(anyhow!("response not found"))?;
+            let rsp = ud_rsp.take_response().map_err(ProviderError::from_err)?;
             Ok(rsp)
         } else {
             Err(ProviderError::NotFound)
@@ -420,11 +496,25 @@ impl Provider for LuaProvider {
             .subtitle
             .call_async::<LuaValue>(item_id)
             .await
-            .map_err(|e| anyhow!(e))?;
+            .map_err(ProviderError::from_err)?;
         if val.is_string() {
             let lrc = val.to_string().unwrap();
             let subtitle = Subtitle::from_lrc(&lrc)
                 .map_err(|e| ProviderError::ParseSubtitle(format!("{:?}", e)))?;
+            Ok(subtitle)
+        } else if val.is_table() {
+            let subtitle: Subtitle = self.lua.from_value(val).map_err(ProviderError::from_err)?;
+            if subtitle.items.len() > 100_000
+                || subtitle.items.iter().any(|v| {
+                    v.start.is_some_and(|t| t < 0)
+                        || v.end.is_some_and(|e| e < v.start.unwrap_or(0))
+                        || v.text.as_ref().is_some_and(|t| t.len() > 1024 * 1024)
+                })
+            {
+                return Err(ProviderError::ParseSubtitle(
+                    "invalid structured subtitle".into(),
+                ));
+            }
             Ok(subtitle)
         } else {
             Err(ProviderError::NotFound)
@@ -432,13 +522,14 @@ impl Provider for LuaProvider {
     }
 
     async fn home_blocks(&self, ctx: &Context) -> Result<Vec<HomeBlock>, ProviderError> {
+        let (call, _guard) = self.context(ctx, None);
         let func = self
             .funcs
             .home_blocks
             .as_ref()
             .ok_or(ProviderError::NotImplemented)?;
         let val = func
-            .call_async::<LuaValue>(LuaContext(ctx.clone(), self.id()))
+            .call_async::<LuaValue>(call.clone())
             .await
             .map_err(ProviderError::from_err)?;
         self.lua.from_value(val).map_err(ProviderError::from_err)
@@ -451,18 +542,14 @@ impl Provider for LuaProvider {
         page: i32,
         page_size: i32,
     ) -> Result<(HomeBlockContent, i32), ProviderError> {
+        let (call, _guard) = self.context(ctx, None);
         let func = self
             .funcs
             .home_block_items
             .as_ref()
             .ok_or(ProviderError::NotImplemented)?;
         let val = func
-            .call_async::<LuaValue>((
-                LuaContext(ctx.clone(), self.id()),
-                block_id.to_string(),
-                page,
-                page_size,
-            ))
+            .call_async::<LuaValue>((call.clone(), block_id.to_string(), page, page_size))
             .await
             .map_err(ProviderError::from_err)?;
         let out: LuaHomeBlockItemsRsp =
@@ -485,11 +572,11 @@ struct RadioQueueInput {
     description: Option<String>,
 }
 
-struct LuaContext(Context, /* provider_id */ Option<i64>);
-
 impl LuaUserData for LuaContext {
     fn add_methods<M: LuaUserDataMethods<Self>>(methods: &mut M) {
+        crate::db::add_methods(methods);
         methods.add_method("commit_album", |_, this, count: i32| {
+            this.2.check()?;
             if let Some(id) = this.1 {
                 let _ = this.0.ev_sender.try_send(CoreEvent::SyncCommit {
                     id,
@@ -499,6 +586,7 @@ impl LuaUserData for LuaContext {
             Ok(())
         });
         methods.add_method("commit_artist", |_, this, count: i32| {
+            this.2.check()?;
             if let Some(id) = this.1 {
                 let _ = this.0.ev_sender.try_send(CoreEvent::SyncCommit {
                     id,
@@ -508,6 +596,7 @@ impl LuaUserData for LuaContext {
             Ok(())
         });
         methods.add_method("commit_song", |_, this, count: i32| {
+            this.2.check()?;
             if let Some(id) = this.1 {
                 let _ = this.0.ev_sender.try_send(CoreEvent::SyncCommit {
                     id,
@@ -518,6 +607,7 @@ impl LuaUserData for LuaContext {
         });
 
         methods.add_method("get_playing", |lua, this, ()| {
+            this.2.check()?;
             match this.1.and_then(qcm_core::global::get_playing) {
                 Some(info) => {
                     let t = lua.create_table()?;
@@ -532,7 +622,19 @@ impl LuaUserData for LuaContext {
         methods.add_async_method("sync_libraries", |lua, this, models: LuaValue| async move {
             let models: Vec<sqlm::library::Model> = lua.from_value(models)?;
 
+            let _write = this.legacy_write().await?;
             let txn = this.0.db.begin().await.map_err(mlua::Error::external)?;
+            for model in &models {
+                if model.provider_id != this.provider_id()? {
+                    return Err(LuaError::runtime("library belongs to another provider"));
+                }
+                if model.library_id != -1 {
+                    this.writer()?
+                        .validate_library(&txn, model.library_id)
+                        .await
+                        .map_err(LuaError::external)?;
+                }
+            }
             let conflict = [
                 sqlm::library::Column::ProviderId,
                 sqlm::library::Column::NativeId,
@@ -552,6 +654,7 @@ impl LuaUserData for LuaContext {
             let out = DbOper::insert_return_key(&txn, iter, &conflict, &exclude)
                 .await
                 .map_err(mlua::Error::external)?;
+            this.2.check()?;
             txn.commit().await.map_err(mlua::Error::external)?;
 
             match out {
@@ -565,7 +668,14 @@ impl LuaUserData for LuaContext {
                 let models: Vec<sqlm::album::Model> = lua.from_value(models)?;
                 let opts: Option<LuaSyncOption> = lua.from_value(lua_syncopt)?;
 
+                let _write = this.legacy_write().await?;
                 let txn = this.0.db.begin().await.map_err(mlua::Error::external)?;
+                this.validate_items(
+                    &txn,
+                    models.iter().map(|m| m.id).collect::<Vec<_>>(),
+                    &[sqlm::type_enum::ItemType::Album],
+                )
+                .await?;
                 let conflict = [sqlm::album::Column::Id];
                 let mut exclude = vec![sqlm::album::Column::Id];
                 if let Some(opts) = opts {
@@ -580,6 +690,7 @@ impl LuaUserData for LuaContext {
                     .await
                     .map_err(mlua::Error::external)?;
 
+                this.2.check()?;
                 txn.commit().await.map_err(mlua::Error::external)?;
                 Ok(out)
             },
@@ -587,7 +698,14 @@ impl LuaUserData for LuaContext {
         methods.add_async_method("sync_artists", |lua, this, models: LuaValue| async move {
             let models: Vec<sqlm::artist::Model> = lua.from_value(models)?;
 
+            let _write = this.legacy_write().await?;
             let txn = this.0.db.begin().await.map_err(mlua::Error::external)?;
+            this.validate_items(
+                &txn,
+                models.iter().map(|m| m.id).collect::<Vec<_>>(),
+                &[sqlm::type_enum::ItemType::Artist],
+            )
+            .await?;
             let conflict = [sqlm::artist::Column::Id];
             let exclude = [sqlm::artist::Column::Id];
             let iter = models.into_iter().map(|i| {
@@ -599,13 +717,27 @@ impl LuaUserData for LuaContext {
                 .await
                 .map_err(mlua::Error::external)?;
 
+            this.2.check()?;
             txn.commit().await.map_err(mlua::Error::external)?;
             Ok(out)
         });
         methods.add_async_method("sync_songs", |lua, this, models: LuaValue| async move {
             let models: Vec<sqlm::song::Model> = lua.from_value(models)?;
 
+            let _write = this.legacy_write().await?;
             let txn = this.0.db.begin().await.map_err(mlua::Error::external)?;
+            this.validate_items(
+                &txn,
+                models.iter().map(|m| m.id).collect::<Vec<_>>(),
+                &[sqlm::type_enum::ItemType::Song],
+            )
+            .await?;
+            this.validate_items(
+                &txn,
+                models.iter().filter_map(|m| m.album_id).collect::<Vec<_>>(),
+                &[sqlm::type_enum::ItemType::Album],
+            )
+            .await?;
             let conflict = [sqlm::song::Column::Id];
             let exclude = [sqlm::song::Column::Id];
             let iter = models.into_iter().map(|i| {
@@ -617,6 +749,7 @@ impl LuaUserData for LuaContext {
                 .await
                 .map_err(mlua::Error::external)?;
 
+            this.2.check()?;
             txn.commit().await.map_err(mlua::Error::external)?;
             Ok(out)
         });
@@ -626,7 +759,17 @@ impl LuaUserData for LuaContext {
                 let models: Vec<sqlm::remote_mix::Model> = lua.from_value(models)?;
                 let opts: Option<LuaSyncOption> = lua.from_value(lua_syncopt)?;
 
+                let _write = this.legacy_write().await?;
                 let txn = this.0.db.begin().await.map_err(mlua::Error::external)?;
+                this.validate_items(
+                    &txn,
+                    models.iter().map(|m| m.id).collect::<Vec<_>>(),
+                    &[
+                        sqlm::type_enum::ItemType::Mix,
+                        sqlm::type_enum::ItemType::Radio,
+                    ],
+                )
+                .await?;
 
                 let mut out = Vec::new();
                 {
@@ -681,6 +824,7 @@ impl LuaUserData for LuaContext {
                         .map_err(mlua::Error::external)?;
                 }
 
+                this.2.check()?;
                 txn.commit().await.map_err(mlua::Error::external)?;
                 Ok(out)
             },
@@ -689,8 +833,11 @@ impl LuaUserData for LuaContext {
             "sync_radio_queues",
             |lua, this, models: LuaValue| async move {
                 let models: Vec<RadioQueueInput> = lua.from_value(models)?;
-                let provider_id = this.1.ok_or_else(|| mlua::Error::runtime("no provider id"))?;
+                let provider_id = this
+                    .1
+                    .ok_or_else(|| mlua::Error::runtime("no provider id"))?;
 
+                let _write = this.legacy_write().await?;
                 let txn = this.0.db.begin().await.map_err(mlua::Error::external)?;
 
                 let item_models = models.clone().into_iter().map(|m| sqlm::item::ActiveModel {
@@ -721,6 +868,7 @@ impl LuaUserData for LuaContext {
                     .await
                     .map_err(mlua::Error::external)?;
 
+                this.2.check()?;
                 txn.commit().await.map_err(mlua::Error::external)?;
                 Ok(ids)
             },
@@ -728,7 +876,14 @@ impl LuaUserData for LuaContext {
         methods.add_async_method("sync_images", |lua, this, models: LuaValue| async move {
             let models: Vec<sqlm::image::Model> = lua.from_value(models)?;
 
+            let _write = this.legacy_write().await?;
             let txn = this.0.db.begin().await.map_err(mlua::Error::external)?;
+            this.validate_items(
+                &txn,
+                models.iter().map(|m| m.item_id).collect::<Vec<_>>(),
+                &[],
+            )
+            .await?;
             let conflict = [sqlm::image::Column::ItemId, sqlm::image::Column::ImageType];
             let exclude = [sqlm::image::Column::Id];
             let iter = models.into_iter().map(|i| {
@@ -741,6 +896,7 @@ impl LuaUserData for LuaContext {
                 .await
                 .map_err(mlua::Error::external)?;
 
+            this.2.check()?;
             txn.commit().await.map_err(mlua::Error::external)?;
             Ok(())
         });
@@ -750,7 +906,10 @@ impl LuaUserData for LuaContext {
                 let models: Vec<sqlm::dynamic::Model> = lua.from_value(models)?;
                 let opts: Option<LuaSyncOption> = lua.from_value(lua_syncopt)?;
 
+                let _write = this.legacy_write().await?;
                 let txn = this.0.db.begin().await.map_err(mlua::Error::external)?;
+                this.validate_items(&txn, models.iter().map(|m| m.id).collect::<Vec<_>>(), &[])
+                    .await?;
                 let conflict = [sqlm::dynamic::Column::Id];
                 let mut exclude = vec![sqlm::dynamic::Column::Id];
 
@@ -767,6 +926,7 @@ impl LuaUserData for LuaContext {
                     .await
                     .map_err(mlua::Error::external)?;
 
+                this.2.check()?;
                 txn.commit().await.map_err(mlua::Error::external)?;
                 Ok(())
             },
@@ -776,11 +936,17 @@ impl LuaUserData for LuaContext {
             |lua, this, (library_id, models): (i64, LuaValue)| async move {
                 let models: Vec<(String, String)> = lua.from_value(models)?;
 
+                let _write = this.legacy_write().await?;
                 let txn = this.0.db.begin().await.map_err(mlua::Error::external)?;
+                this.writer()?
+                    .validate_library(&txn, library_id)
+                    .await
+                    .map_err(LuaError::external)?;
                 sync_song_album_ids(&txn, library_id, models)
                     .await
                     .map_err(mlua::Error::external)?;
 
+                this.2.check()?;
                 txn.commit().await.map_err(mlua::Error::external)?;
                 Ok(())
             },
@@ -798,7 +964,19 @@ impl LuaUserData for LuaContext {
                     .map_err(mlua::Error::external)?
                     .ok_or(mlua::Error::runtime("no mix entry"))?;
 
+                let _write = this.legacy_write().await?;
                 let txn = this.0.db.begin().await.map_err(mlua::Error::external)?;
+                this.validate_items(
+                    &txn,
+                    [remote_mix_id],
+                    &[
+                        sqlm::type_enum::ItemType::Mix,
+                        sqlm::type_enum::ItemType::Radio,
+                    ],
+                )
+                .await?;
+                this.validate_items(&txn, song_ids.clone(), &[sqlm::type_enum::ItemType::Song])
+                    .await?;
 
                 let conflict = [
                     sqlm::rel_mix_song::Column::MixId,
@@ -832,6 +1010,7 @@ impl LuaUserData for LuaContext {
                     .await
                     .map_err(mlua::Error::external)?;
 
+                this.2.check()?;
                 txn.commit().await.map_err(mlua::Error::external)?;
                 Ok(())
             },
@@ -840,7 +1019,20 @@ impl LuaUserData for LuaContext {
             "sync_album_artist_ids",
             |lua, this, (models,): (LuaValue,)| async move {
                 let models: Vec<sqlm::rel_album_artist::Model> = lua.from_value(models)?;
+                let _write = this.legacy_write().await?;
                 let txn = this.0.db.begin().await.map_err(mlua::Error::external)?;
+                this.validate_items(
+                    &txn,
+                    models.iter().map(|m| m.album_id).collect::<Vec<_>>(),
+                    &[sqlm::type_enum::ItemType::Album],
+                )
+                .await?;
+                this.validate_items(
+                    &txn,
+                    models.iter().map(|m| m.artist_id).collect::<Vec<_>>(),
+                    &[sqlm::type_enum::ItemType::Artist],
+                )
+                .await?;
 
                 let conflict = [
                     sqlm::rel_album_artist::Column::AlbumId,
@@ -857,6 +1049,7 @@ impl LuaUserData for LuaContext {
                     .await
                     .map_err(mlua::Error::external)?;
 
+                this.2.check()?;
                 txn.commit().await.map_err(mlua::Error::external)?;
                 Ok(())
             },
@@ -865,7 +1058,20 @@ impl LuaUserData for LuaContext {
             "sync_song_artist_ids",
             |lua, this, (models,): (LuaValue,)| async move {
                 let models: Vec<sqlm::rel_song_artist::Model> = lua.from_value(models)?;
+                let _write = this.legacy_write().await?;
                 let txn = this.0.db.begin().await.map_err(mlua::Error::external)?;
+                this.validate_items(
+                    &txn,
+                    models.iter().map(|m| m.song_id).collect::<Vec<_>>(),
+                    &[sqlm::type_enum::ItemType::Song],
+                )
+                .await?;
+                this.validate_items(
+                    &txn,
+                    models.iter().map(|m| m.artist_id).collect::<Vec<_>>(),
+                    &[sqlm::type_enum::ItemType::Artist],
+                )
+                .await?;
 
                 let conflict = [
                     sqlm::rel_song_artist::Column::SongId,
@@ -882,6 +1088,7 @@ impl LuaUserData for LuaContext {
                     .await
                     .map_err(mlua::Error::external)?;
 
+                this.2.check()?;
                 txn.commit().await.map_err(mlua::Error::external)?;
                 Ok(())
             },
@@ -902,7 +1109,19 @@ impl LuaUserData for LuaContext {
                 }
 
                 let models: Vec<sqlm::item::Model> = lua.from_value(models)?;
+                let _write = this.legacy_write().await?;
                 let txn = this.0.db.begin().await.map_err(mlua::Error::external)?;
+                for model in &models {
+                    if model.provider_id != this.provider_id()? {
+                        return Err(LuaError::runtime("item belongs to another provider"));
+                    }
+                    if let Some(id) = model.library_id {
+                        this.writer()?
+                            .validate_library(&txn, id)
+                            .await
+                            .map_err(LuaError::external)?;
+                    }
+                }
 
                 let iter = models.into_iter().map(|i| {
                     let mut a: sqlm::item::ActiveModel = i.into();
@@ -914,12 +1133,14 @@ impl LuaUserData for LuaContext {
                     .await
                     .map_err(mlua::Error::external)?;
 
+                this.2.check()?;
                 txn.commit().await.map_err(mlua::Error::external)?;
                 Ok(out)
             },
         );
 
         methods.add_async_method("libraries", |lua, this, (): ()| async move {
+            this.2.check()?;
             let out = sqlm::library::Entity::find()
                 .filter(sqlm::library::Column::ProviderId.eq(this.1))
                 .all(&this.0.db)

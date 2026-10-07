@@ -21,7 +21,7 @@ use crate::api::{
 use crate::convert::QcmInto;
 use crate::db::filter::SelectQcmMsgFilters;
 use crate::error::ProcessError;
-use crate::event::{ServiceContext, BackendEvent};
+use crate::event::{BackendEvent, ServiceContext};
 use crate::msg::{
     self, AuthProviderRsp, GetAlbumArtistsRsp, GetAlbumsRsp, GetArtistsRsp, GetProviderMetasRsp,
     GetSongsRsp, GetStorageInfoRsp, MessageType, QcmMessage, QrAuthUrlRsp, Rsp, SyncRsp, TestRsp,
@@ -54,6 +54,12 @@ pub async fn process_qcm(
         MessageType::DeleteProviderReq => {
             if let Some(Payload::DeleteProviderReq(req)) = payload {
                 let id = req.provider_id;
+                let write = ctx
+                    .provider_context
+                    .sync_coordinator
+                    .write(id, None)
+                    .await?;
+                write.invalidate_sync();
                 sqlm::provider::Entity::delete_by_id(id)
                     .exec(&ctx.provider_context.db)
                     .await?;
@@ -116,7 +122,12 @@ pub async fn process_qcm(
                 // maybe: try use tmp self?
                 tmp_provider.set_name(&_provider.name());
 
-                // replace
+                let write = ctx
+                    .provider_context
+                    .sync_coordinator
+                    .write(req.provider_id, None)
+                    .await?;
+                write.invalidate_sync();
                 crate::db::add_provider(&ctx.provider_context.db, tmp_provider.clone()).await?;
                 global::add_provider(tmp_provider.clone());
                 return Ok(Rsp::default().qcm_into());
@@ -141,6 +152,12 @@ pub async fn process_qcm(
                         let info = auth_info.clone().qcm_into();
                         match new_provider.auth(&ctx.provider_context, &info).await? {
                             AuthResult::Ok => {
+                                let write = ctx
+                                    .provider_context
+                                    .sync_coordinator
+                                    .write(req.provider_id, None)
+                                    .await?;
+                                write.invalidate_sync();
                                 crate::db::add_provider(
                                     &ctx.provider_context.db,
                                     new_provider.clone(),
@@ -489,6 +506,11 @@ pub async fn process_qcm(
         MessageType::DeleteMixReq => {
             if let Some(Payload::DeleteMixReq(req)) = payload {
                 let db = &ctx.provider_context.db;
+                let _writes = ctx
+                    .provider_context
+                    .sync_coordinator
+                    .write_mixes(db, &req.ids, &[])
+                    .await?;
                 sqlm::mix::Entity::delete_many()
                     .filter(sqlm::mix::Column::Id.is_in(req.ids.clone()))
                     .filter(sqlm::mix::Column::MixType.eq(MixType::Normal))
@@ -507,6 +529,11 @@ pub async fn process_qcm(
         MessageType::LinkMixReq => {
             if let Some(Payload::LinkMixReq(req)) = payload {
                 let db = &ctx.provider_context.db;
+                let _writes = ctx
+                    .provider_context
+                    .sync_coordinator
+                    .write_mixes(db, &req.ids, &[])
+                    .await?;
                 sqlm::mix::Entity::update_many()
                     .col_expr(sqlm::mix::Column::MixType, Expr::val(MixType::Link).into())
                     .filter(sqlm::mix::Column::Id.is_in(req.ids.clone()))
@@ -517,6 +544,13 @@ pub async fn process_qcm(
         }
         MessageType::MixManipulateReq => {
             if let Some(Payload::MixManipulateReq(req)) = payload {
+                let mut affected = req.song_ids.clone();
+                affected.extend_from_slice(&req.album_ids);
+                let _writes = ctx
+                    .provider_context
+                    .sync_coordinator
+                    .write_mixes(&ctx.provider_context.db, &[req.id], &affected)
+                    .await?;
                 let db = ctx.provider_context.db.begin().await?;
 
                 let mut rsp = msg::MixManipulateRsp::default();
@@ -540,6 +574,7 @@ pub async fn process_qcm(
                                 sqlm::mix::Column::TrackCount,
                                 Expr::col(sqlm::mix::Column::TrackCount).sub(count).into(),
                             )
+                            .filter(sqlm::mix::Column::Id.eq(req.id))
                             .exec(&db)
                             .await?;
 
@@ -897,7 +932,12 @@ pub async fn process_qcm(
                     .await?;
 
                 use sea_orm::Set;
-
+                let mut write = ctx
+                    .provider_context
+                    .sync_coordinator
+                    .write(provider_id, None)
+                    .await?;
+                write.favorite(req.id);
                 match item_type {
                     ItemType::Album | ItemType::Song | ItemType::Artist => {
                         let m = sqlm::dynamic::ActiveModel {
@@ -967,14 +1007,13 @@ pub async fn process_qcm(
                 let action = msg::model::PlaylogAction::try_from(req.action)
                     .unwrap_or(msg::model::PlaylogAction::Unspecified);
 
-                let item_info: Option<(i64, String)> =
-                    sqlm::item::Entity::find_by_id(req.song_id)
-                        .select_only()
-                        .column(sqlm::item::Column::ProviderId)
-                        .column(sqlm::item::Column::NativeId)
-                        .into_tuple()
-                        .one(&ctx.provider_context.db)
-                        .await?;
+                let item_info: Option<(i64, String)> = sqlm::item::Entity::find_by_id(req.song_id)
+                    .select_only()
+                    .column(sqlm::item::Column::ProviderId)
+                    .column(sqlm::item::Column::NativeId)
+                    .into_tuple()
+                    .one(&ctx.provider_context.db)
+                    .await?;
 
                 if let Some((provider_id, native_id)) = &item_info {
                     match action {
@@ -1098,11 +1137,7 @@ pub async fn process_qcm(
                 let provider = global::provider(queue_provider_id)
                     .ok_or(ProcessError::NoSuchProvider(queue_provider_id.to_string()))?;
                 let new_songs = provider
-                    .get_queue_next(
-                        &ctx.provider_context,
-                        &queue_native_id,
-                        &current_native_ids,
-                    )
+                    .get_queue_next(&ctx.provider_context, &queue_native_id, &current_native_ids)
                     .await?;
                 drop(provider);
 
@@ -1136,7 +1171,11 @@ pub async fn process_qcm(
                     .all(&ctx.provider_context.db)
                     .await?;
 
-                log::info!("provider id: {:?}, queus count: {}", req.provider_ids, queues.len());
+                log::info!(
+                    "provider id: {:?}, queus count: {}",
+                    req.provider_ids,
+                    queues.len()
+                );
 
                 let queues = queues
                     .into_iter()
@@ -1177,8 +1216,8 @@ pub async fn process_qcm(
                     .await?;
                 let total_u = total as u64;
                 let has_more = page_params.has_more(total_u);
-                use qcm_core::provider::HomeBlockContent as C;
                 use msg::get_home_block_items_rsp::Content;
+                use qcm_core::provider::HomeBlockContent as C;
                 let content = match content {
                     C::Albums(items) => Content::Albums(msg::GetAlbumsRsp {
                         items: items.into_iter().map(|i| i.qcm_into()).collect(),

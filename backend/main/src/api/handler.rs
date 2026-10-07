@@ -10,7 +10,7 @@ use crate::reverse::ReverseEvent;
 use crate::task::TaskManagerOper;
 use crate::{
     error::ProcessError,
-    event::{self, EventSink, ServiceContext, BackendEvent},
+    event::{self, BackendEvent, EventSink, ServiceContext},
 };
 use futures_util::{SinkExt, StreamExt};
 use http_body_util::BodyExt;
@@ -119,13 +119,16 @@ async fn handle_ws(
     let (ev_sender, mut ev_receiver) = async_mpsc::channel::<event::Event>(1024);
     let (bk_ev_sender, mut bk_ev_receiver) = async_mpsc::channel::<event::BackendEvent>(1024);
 
-    let sink: Arc<dyn EventSink> = Arc::new(WsEventSink { tx: ws_sender.clone() });
+    let sink: Arc<dyn EventSink> = Arc::new(WsEventSink {
+        tx: ws_sender.clone(),
+    });
 
     let ctx = Arc::new(ServiceContext {
         provider_context: Arc::new(Context {
             db,
             cache_db,
             ev_sender: ev_sender,
+            sync_coordinator: Arc::new(Default::default()),
         }),
         backend_ev: bk_ev_sender,
         oper,

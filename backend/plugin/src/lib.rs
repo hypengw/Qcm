@@ -4,8 +4,6 @@ use qcm_core::global as qg;
 
 pub fn init() {
     {
-        use qcm_plugin_jellyfin::plugin::JellyfinPlugin;
-        qg::add_plugin(Box::new(JellyfinPlugin::new()));
         use qcm_plugin_lua::plugin::LuaPlugin;
         qg::add_plugin(Box::new(LuaPlugin::new()));
     }
@@ -19,6 +17,8 @@ pub fn init() {
     });
 
     for m in metas {
-        qg::reg_provider_meta(m);
+        if let Err(error) = qg::reg_provider_meta(m) {
+            log::error!("{error}");
+        }
     }
 }

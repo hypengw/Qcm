@@ -140,12 +140,16 @@ pub fn add_plugin(p: Box<dyn Plugin>) {
         .insert((*p).id().to_string(), p);
 }
 
-pub fn reg_provider_meta(meta: ProviderMeta) {
-    GLOBAL
-        .lock()
-        .unwrap()
-        .provider_metas
-        .insert(meta.type_name.clone(), meta);
+pub fn reg_provider_meta(meta: ProviderMeta) -> crate::Result<()> {
+    let mut global = GLOBAL.lock().unwrap();
+    if global.provider_metas.contains_key(&meta.type_name) {
+        return Err(crate::anyhow!(
+            "duplicate provider type: {}",
+            meta.type_name
+        ));
+    }
+    global.provider_metas.insert(meta.type_name.clone(), meta);
+    Ok(())
 }
 
 pub fn provider_meta(type_name: &str) -> Option<ProviderMeta> {
@@ -196,11 +200,15 @@ pub fn providers() -> Vec<Arc<dyn Provider>> {
 
 pub fn add_provider(p: Arc<dyn Provider>) {
     let mut g = GLOBAL.lock().unwrap();
-    g.providers.insert(p.id().unwrap(), p);
+    if let Some(old) = g.providers.insert(p.id().unwrap(), p) {
+        old.invalidate();
+    }
 }
 pub fn remove_provider(id: i64) {
     let mut g = GLOBAL.lock().unwrap();
-    g.providers.remove(&id);
+    if let Some(old) = g.providers.remove(&id) {
+        old.invalidate();
+    }
 }
 
 pub fn get_tmp_provider(key: &str) -> Option<Arc<dyn Provider>> {

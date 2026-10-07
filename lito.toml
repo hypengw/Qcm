@@ -2,6 +2,7 @@
 name = "qcm"
 members = [
   "app",
+  "backend/plugin/lua/jellyfin",
   "app/src/platform",
   "core",
   "mpris",

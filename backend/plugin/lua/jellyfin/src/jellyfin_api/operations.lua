@@ -1,0 +1,16 @@
+return {
+    authenticate_user_by_name = require("jellyfin_api.operations.authenticate_user_by_name"),
+    get_album_artists = require("jellyfin_api.operations.get_album_artists"),
+    get_artists = require("jellyfin_api.operations.get_artists"),
+    get_audio_stream = require("jellyfin_api.operations.get_audio_stream"),
+    get_endpoint_info = require("jellyfin_api.operations.get_endpoint_info"),
+    get_item = require("jellyfin_api.operations.get_item"),
+    get_item_image = require("jellyfin_api.operations.get_item_image"),
+    get_items = require("jellyfin_api.operations.get_items"),
+    get_lyrics = require("jellyfin_api.operations.get_lyrics"),
+    get_playlist_items = require("jellyfin_api.operations.get_playlist_items"),
+    get_user_views = require("jellyfin_api.operations.get_user_views"),
+    get_virtual_folders = require("jellyfin_api.operations.get_virtual_folders"),
+    mark_favorite_item = require("jellyfin_api.operations.mark_favorite_item"),
+    unmark_favorite_item = require("jellyfin_api.operations.unmark_favorite_item"),
+}

@@ -51,6 +51,7 @@ pub struct Context {
     pub db: DatabaseConnection,
     pub cache_db: DatabaseConnection,
     pub ev_sender: Sender<Event>,
+    pub sync_coordinator: Arc<crate::db::sync_run::SyncCoordinator>,
 }
 
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]
@@ -143,6 +144,7 @@ pub trait ProviderCommon {
 
 #[async_trait::async_trait]
 pub trait Provider: ProviderCommon + ProviderSession + Send + Sync {
+    fn invalidate(&self) {}
     fn load(&self, data: &str);
     fn save(&self) -> String;
 
@@ -233,6 +235,9 @@ impl ProviderCommonData {
     }
     pub fn id(&self) -> Option<i64> {
         self.inner.read().unwrap().id
+    }
+    pub fn base_url(&self) -> String {
+        self.inner.read().unwrap().base_url.clone()
     }
     fn set_id(&self, id: Option<i64>) {
         let mut inner = self.inner.write().unwrap();
