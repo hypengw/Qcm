@@ -259,7 +259,7 @@ MD.Page {
                 subtitle: QA.Util.joinName(QA.Store.extra(model.itemId)?.artists, '/')
 
                 onClicked: {
-                    QA.Action.play(dgModel.itemId);
+                    QA.Action.play(itemId);
                 }
             }
 

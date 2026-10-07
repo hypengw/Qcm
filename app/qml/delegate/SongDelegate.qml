@@ -10,23 +10,17 @@ MD.ListItem {
     required model
     id: root
 
-    readonly property bool isPlaying: QA.App.playqueue.currentSongId === dgModel.itemId
-    property var dgModel: {
-        // bind visible
-        if (visible) {
-            if (model && model.index >= 0) {
-                return model;
-            }
-        }
-        return QA.App.empty.song;
-    }
+    readonly property bool hasModel: visible && index >= 0 && !!model
+    readonly property QA.item_id itemId: hasModel ? model.itemId : QA.Util.createItemid()
+    readonly property bool isPlaying: itemId.valid && QA.App.playqueue.currentSongId === itemId
+    property var dgModel: hasModel ? model : QA.App.empty.song
     property string subtitle: ''
     property bool showCover: false
     property bool canDelete: false
     property bool useTracknumber: true
     readonly property int coverSize: 48
 
-    enabled: dgModel.canPlay
+    enabled: itemId.valid && dgModel.canPlay
     highlighted: isPlaying
     heightMode: MD.Enum.ListItemTwoLine
 
@@ -87,7 +81,7 @@ MD.ListItem {
                     id: m_comp_song_image
                     QA.Image {
                         radius: 8
-                        source: QA.Util.image_url(root.dgModel.itemId)
+                        source: QA.Util.image_url(root.itemId)
                         displaySize: Qt.size(48, 48)
                     }
                 }
@@ -125,9 +119,9 @@ MD.ListItem {
                         if (root.subtitle) {
                             return root.subtitle;
                         }
-                        if (!root.dgModel?.itemId)
+                        if (!root.itemId.valid)
                             return "";
-                        const ex = QA.Store.extra(root.dgModel.itemId);
+                        const ex = QA.Store.extra(root.itemId);
                         return QA.Util.join([QA.Util.joinName(ex?.artists), ex?.album?.name], ' - ');
                     }
                 }
@@ -145,7 +139,7 @@ MD.ListItem {
             MD.BusyIconButton {
                 visible: !root.MD.MProp.size.isCompact
                 action: QA.FavoriteAction {
-                    itemId: root.dgModel.itemId
+                    itemId: root.itemId
                 }
             }
             MD.IconButton {
@@ -153,7 +147,7 @@ MD.ListItem {
 
                 onClicked: {
                     const props = {
-                        "itemId": root.dgModel.itemId,
+                        "itemId": root.itemId,
                         "y": height
                     };
                     if (root.canDelete) {

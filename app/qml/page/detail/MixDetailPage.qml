@@ -188,7 +188,7 @@ MD.Page {
             useTracknumber: false
 
             onClicked: {
-                QA.Action.play(dgModel.itemId);
+                QA.Action.play(itemId);
             }
         }
         footer: MD.ListBusyFooter {
