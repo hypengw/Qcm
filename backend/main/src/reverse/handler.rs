@@ -40,7 +40,10 @@ pub async fn media_get_image(
                         image_id.as_deref(),
                         image_type,
                     )
-                    .await?;
+                    .await
+                    .inspect_err(|err| {
+                        log::debug!("image request failed: provider={provider_id}, item={item_id}, image={image_id:?}, type={image_type}: {err}");
+                    })?;
                 Ok(resp)
             }
         }
@@ -109,7 +112,12 @@ pub async fn media_get_audio(
                     .ok_or(ProcessError::NoSuchProvider(provider_id.to_string()))?;
                 let resp = provider
                     .audio(&ctx.provider_context, &native_id, Some(headers))
-                    .await?;
+                    .await
+                    .inspect_err(|err| {
+                        log::debug!(
+                            "audio request failed: provider={provider_id}, item={native_id}: {err}"
+                        );
+                    })?;
                 Ok(resp)
             }
         }

@@ -226,7 +226,7 @@ pub async fn handle_ws_message(
 
     match process_ws(&ctx, &ws_sender, &msg, &mut id).await {
         Ok(msg_rsp) => {
-            log::warn!("send {}", msg_rsp.r#type);
+            log::debug!("send {}", msg_rsp.r#type);
             let mut buf = Vec::new();
             msg_rsp.encode(&mut buf)?;
             ws_sender.send(WsMessage::Binary(buf.into())).await?;

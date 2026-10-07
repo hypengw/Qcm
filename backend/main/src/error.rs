@@ -76,16 +76,22 @@ where
 impl From<qcm_core::error::ProviderError> for ProcessError {
     fn from(e: qcm_core::error::ProviderError) -> Self {
         use qcm_core::error::ProviderError;
-        match e {
-            ProviderError::Infallible(e) => ProcessError::Infallible(e),
-            ProviderError::NotFound => ProcessError::NotFound,
-            ProviderError::ParseSubtitle(e) => ProcessError::ParseSubtitle(e),
-            ProviderError::WithContext { context, err } => {
-                // drop and log context
-                log::error!("{}\n{}", err, context);
-                ProcessError::Internal(err.into())
+        let mut cause = &e;
+        while let ProviderError::WithContext { err, .. } = cause {
+            cause = err;
+        }
+        if matches!(e, ProviderError::WithContext { .. }) {
+            if matches!(cause, ProviderError::NotFound) {
+                log::debug!("{e}");
+            } else {
+                log::error!("{e}");
             }
-            e => ProcessError::Internal(e.into()),
+        }
+        match cause {
+            ProviderError::Infallible(e) => ProcessError::Infallible(*e),
+            ProviderError::NotFound => ProcessError::NotFound,
+            ProviderError::ParseSubtitle(message) => ProcessError::ParseSubtitle(message.clone()),
+            _ => ProcessError::Internal(e.into()),
         }
     }
 }
@@ -157,7 +163,41 @@ mod tests {
             err: Arc::new(inner),
         };
         let converted: ProcessError = pe.into();
-        assert!(matches!(converted, ProcessError::Internal(_)));
+        match converted {
+            ProcessError::Internal(err) => {
+                assert!(err.to_string().contains("during sync"));
+                assert!(err.to_string().contains("Not auth"));
+            }
+            _ => panic!("Expected Internal"),
+        }
+    }
+
+    #[test]
+    fn test_provider_error_with_context_not_found() {
+        use std::sync::Arc;
+        let mut error = Arc::new(ProviderError::NotFound);
+        for _ in 0..3 {
+            let wrapped = ProviderError::WithContext {
+                context: "Lua traceback".into(),
+                err: error.clone(),
+            };
+            let converted: ProcessError = wrapped.into();
+            assert!(matches!(converted, ProcessError::NotFound));
+            error = Arc::new(ProviderError::WithContext {
+                context: "resource request".into(),
+                err: error,
+            });
+        }
+    }
+
+    #[test]
+    fn test_provider_error_with_context_parse_subtitle() {
+        let converted: ProcessError = ProviderError::WithContext {
+            context: "Lua traceback".into(),
+            err: std::sync::Arc::new(ProviderError::ParseSubtitle("bad lrc".into())),
+        }
+        .into();
+        assert!(matches!(converted, ProcessError::ParseSubtitle(message) if message == "bad lrc"));
     }
 
     #[test]
