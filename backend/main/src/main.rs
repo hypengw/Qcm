@@ -7,13 +7,12 @@ mod fts;
 mod global;
 mod http;
 mod msg;
-mod reverse;
+mod resource_cache;
 mod task;
 
 use anyhow;
 use clap::{self, Parser};
 use fts::load_fts_plugin;
-use reverse::ReverseEvent;
 use std::{
     collections::HashMap,
     path::{Path, PathBuf},
@@ -134,23 +133,7 @@ async fn main() -> Result<(), anyhow::Error> {
         shutdown_rx
     };
 
-    let reverse_ev = {
-        let cache_db = cache_db.clone();
-        let cache_dir = args.cache.clone();
-        let (tx, rx) = tokio::sync::mpsc::channel(512);
-        tokio::spawn({
-            async move {
-                reverse::Dispatcher::process(
-                    rx,
-                    cache_db,
-                    cache_dir.join("QcmBackend"),
-                )
-                .await;
-            }
-        });
-
-        tx
-    };
+    let resource_cache = resource_cache::ResourceCache::open(args.cache.join("QcmBackend")).await?;
 
     // Use port 0 if none specified (system will assign an available port)
     let listener = listen(args.port.unwrap_or(0)).await;
@@ -166,7 +149,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let accept = {
         let oper = oper.clone();
         let cnn_shutdown_rx = shutdown_rx.clone();
-        let reverse_ev = reverse_ev.clone();
+        let resource_cache = resource_cache.clone();
         move |stream: TcpStream| {
             let addr = stream
                 .peer_addr()
@@ -177,7 +160,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 let db = db.clone();
                 let cache_db = cache_db.clone();
                 let oper = oper.clone();
-                let reverse_ev = reverse_ev.clone();
+                let resource_cache = resource_cache.clone();
                 let mut cnn_shutdown_rx = cnn_shutdown_rx.clone();
 
                 async move {
@@ -186,8 +169,8 @@ async fn main() -> Result<(), anyhow::Error> {
                         let db = db.clone();
                         let cache_db = cache_db.clone();
                         let oper = oper.clone();
-                        let reverse_ev = reverse_ev.clone();
-                        async move { handle_request(request, db, cache_db, oper, reverse_ev).await }
+                        let resource_cache = resource_cache.clone();
+                        async move { handle_request(request, db, cache_db, oper, resource_cache).await }
                     };
                     let connection = http
                         .serve_connection(TokioIo::new(stream), hyper::service::service_fn(service))
@@ -232,7 +215,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
     // final
     {
-        let _ = reverse_ev.send(ReverseEvent::Stop);
+        resource_cache.shutdown().await?;
 
         log::info!("Shutting down task manager");
         oper.stop();

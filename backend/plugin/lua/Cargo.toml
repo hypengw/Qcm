@@ -14,7 +14,7 @@ chrono = "0.4"
 reqwest = "0.12"
 async-trait = "0.1"
 tokio.workspace = true
-mlua-extra = { git = "https://github.com/hypengw/mlua-extra", rev = "52f9eba9669360192a2cbd32df383e7c09bd4287" }
+mlua-extra = { git = "https://github.com/hypengw/mlua-extra", rev = "c865a7c6792a7639f228c62af94ad17d8bf0d77a" }
 
 mlua = { version = "0.10", features = [
     "lua54",

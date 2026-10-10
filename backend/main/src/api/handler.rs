@@ -6,7 +6,6 @@ use crate::convert::*;
 use crate::global as bglobal;
 use crate::http::body_type::ResponseBody;
 use crate::msg::{self, QcmMessage, Rsp};
-use crate::reverse::ReverseEvent;
 use crate::task::TaskManagerOper;
 use crate::{
     error::ProcessError,
@@ -52,7 +51,7 @@ pub async fn handle_request(
     db: DatabaseConnection,
     cache_db: DatabaseConnection,
     oper: TaskManagerOper,
-    reverse_ev: tokio::sync::mpsc::Sender<ReverseEvent>,
+    resource_cache: Arc<crate::resource_cache::ResourceCache>,
 ) -> Result<Response<ResponseBody>> {
     // if ws
     if hyper_tungstenite::is_upgrade_request(&request) {
@@ -60,7 +59,7 @@ pub async fn handle_request(
 
         // spawn to handle ws connect
         tokio::spawn(async move {
-            if let Err(e) = handle_ws(websocket, db, cache_db, oper, reverse_ev).await {
+            if let Err(e) = handle_ws(websocket, db, cache_db, oper, resource_cache).await {
                 log::error!("Error in websocket connection: {e}");
             }
         });
@@ -69,7 +68,12 @@ pub async fn handle_request(
         Ok(response.map(|b| ResponseBody::Boxed(b.map_err(|e| e.into()).boxed())))
     } else {
         // TODO: support multiple backend
-        let ctx = bglobal::context(1).unwrap();
+        let Some(ctx) = bglobal::context(1) else {
+            return Ok(Response::builder()
+                .status(StatusCode::SERVICE_UNAVAILABLE)
+                .body(ResponseBody::Empty)
+                .unwrap());
+        };
         log::debug!(target: "http", "{}", request.uri());
 
         use hyper::Method;
@@ -89,6 +93,7 @@ pub async fn handle_request(
             Ok(rsp) => Ok(rsp),
             Err(
                 ProcessError::NotFound
+                | ProcessError::NoSuchProvider(_)
                 | ProcessError::NoSuchAlbum(_)
                 | ProcessError::NoSuchArtist(_)
                 | ProcessError::NoSuchSong(_)
@@ -101,6 +106,17 @@ pub async fn handle_request(
                     .unwrap();
                 Ok(rsp)
             }
+            Err(ProcessError::NotAuth) => Ok(Response::builder()
+                .status(StatusCode::UNAUTHORIZED)
+                .body(ResponseBody::Empty)
+                .unwrap()),
+            Err(ProcessError::Resource(err)) => {
+                log::debug!("resource request failed: {err}");
+                Ok(Response::builder()
+                    .status(StatusCode::BAD_GATEWAY)
+                    .body(ResponseBody::Empty)
+                    .unwrap())
+            }
             Err(err) => Err(err.into()),
         }
     }
@@ -111,7 +127,7 @@ async fn handle_ws(
     db: DatabaseConnection,
     cache_db: DatabaseConnection,
     oper: TaskManagerOper,
-    reverse_ev: tokio::sync::mpsc::Sender<ReverseEvent>,
+    resource_cache: Arc<crate::resource_cache::ResourceCache>,
 ) -> Result<()> {
     let (mut ws_writer, ws_reader) = ws.await?.split();
 
@@ -132,7 +148,7 @@ async fn handle_ws(
         }),
         backend_ev: bk_ev_sender,
         oper,
-        reverse_ev,
+        resource_cache,
     });
 
     // TODO: reg context by real port

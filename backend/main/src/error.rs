@@ -10,6 +10,10 @@ use tokio::sync::mpsc::error::SendError;
 #[derive(Debug, Error, Default)]
 pub enum ProcessError {
     #[error("{0}")]
+    Resource(anyhow::Error),
+    #[error("Not auth")]
+    NotAuth,
+    #[error("{0}")]
     Internal(#[from] anyhow::Error),
     #[error("Encode error: {0}")]
     Encode(#[from] prost::EncodeError),
@@ -90,6 +94,7 @@ impl From<qcm_core::error::ProviderError> for ProcessError {
         match cause {
             ProviderError::Infallible(e) => ProcessError::Infallible(*e),
             ProviderError::NotFound => ProcessError::NotFound,
+            ProviderError::NotAuth => ProcessError::NotAuth,
             ProviderError::ParseSubtitle(message) => ProcessError::ParseSubtitle(message.clone()),
             _ => ProcessError::Internal(e.into()),
         }
@@ -99,6 +104,7 @@ impl From<qcm_core::error::ProviderError> for ProcessError {
 impl From<HttpError> for ProcessError {
     fn from(e: HttpError) -> Self {
         match e {
+            HttpError::Cache(e) => ProcessError::Internal(anyhow!(e)),
             HttpError::UnsupportedRange(e) => ProcessError::Internal(anyhow!("{}", e)),
             HttpError::Reqwest(e) => ProcessError::Internal(e.into()),
             HttpError::HyperBody(e) => ProcessError::HyperBody(e),
@@ -130,12 +136,10 @@ mod tests {
     }
 
     #[test]
-    fn test_provider_error_infallible_to_process_error() {
-        // Can't construct Infallible directly, but test the variant exists
-        // This tests the other path: generic errors become Internal
+    fn test_provider_error_not_auth_to_process_error() {
         let pe = ProviderError::NotAuth;
         let converted: ProcessError = pe.into();
-        assert!(matches!(converted, ProcessError::Internal(_)));
+        assert!(matches!(converted, ProcessError::NotAuth));
     }
 
     #[test]
@@ -157,7 +161,7 @@ mod tests {
     #[test]
     fn test_provider_error_with_context_to_internal() {
         use std::sync::Arc;
-        let inner = ProviderError::NotAuth;
+        let inner = ProviderError::Lua("unknown failure".into());
         let pe = ProviderError::WithContext {
             context: "during sync".into(),
             err: Arc::new(inner),
@@ -166,7 +170,7 @@ mod tests {
         match converted {
             ProcessError::Internal(err) => {
                 assert!(err.to_string().contains("during sync"));
-                assert!(err.to_string().contains("Not auth"));
+                assert!(err.to_string().contains("unknown failure"));
             }
             _ => panic!("Expected Internal"),
         }

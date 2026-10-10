@@ -2073,7 +2073,7 @@ dependencies = [
 [[package]]
 name = "mlua-extra"
 version = "0.1.0"
-source = "git+https://github.com/hypengw/mlua-extra?rev=52f9eba9669360192a2cbd32df383e7c09bd4287#52f9eba9669360192a2cbd32df383e7c09bd4287"
+source = "git+https://github.com/hypengw/mlua-extra?rev=c865a7c6792a7639f228c62af94ad17d8bf0d77a#c865a7c6792a7639f228c62af94ad17d8bf0d77a"
 dependencies = [
  "base64",
  "chrono",
@@ -2707,6 +2707,7 @@ dependencies = [
  "http-content-range",
  "http-range",
  "http-range-header",
+ "httpdate",
  "hyper",
  "hyper-tungstenite",
  "hyper-util",

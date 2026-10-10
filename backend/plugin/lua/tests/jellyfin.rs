@@ -92,6 +92,30 @@ async fn capabilities_and_optional_queue() {
     p.load("{invalid");
     assert_eq!(p.save(), "{invalid");
 }
+
+#[tokio::test]
+async fn prepared_resources_accept_304_and_reject_invalidated_accounts() {
+    use qcm_core::{resource::Resource,model::type_enum::ImageType};
+    use tokio::io::{AsyncReadExt,AsyncWriteExt};
+    let listener=tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let base=format!("http://{}",listener.local_addr().unwrap());
+    let p=provider(); p.load_auth_info(&base,None);
+    p.load(r#"{"token":"test-token","user_id":"00000000000000000000000000000001"}"#);
+    let request=p.prepare_resource(Resource::Image {item_id:"00000000000000000000000000000002".into(),image_id:None,kind:ImageType::Primary}).await.unwrap();
+    assert!(request.url().path().ends_with("/Images/Primary"));
+    assert!(request.headers().contains_key("authorization"));
+    let server=tokio::spawn(async move {
+        let (mut socket,_)=listener.accept().await.unwrap();
+        let mut data=Vec::new(); let mut chunk=[0;1024];
+        while !data.ends_with(b"\r\n\r\n") {let n=socket.read(&mut chunk).await.unwrap(); assert!(n>0); data.extend_from_slice(&chunk[..n]);}
+        assert!(String::from_utf8(data).unwrap().to_ascii_lowercase().contains("if-none-match: \"one\""));
+        socket.write_all(b"HTTP/1.1 304 Not Modified\r\nETag: \"one\"\r\nConnection: close\r\n\r\n").await.unwrap();
+    });
+    let mut headers=reqwest::header::HeaderMap::new(); headers.insert("if-none-match","\"one\"".parse().unwrap());
+    assert_eq!(request.fetch(headers).await.unwrap().status(),304);
+    server.await.unwrap(); p.invalidate(); assert!(!request.is_valid());
+    assert!(matches!(request.fetch(Default::default()).await,Err(qcm_core::error::ProviderError::NotAuth)));
+}
 #[tokio::test]
 #[ignore = "requires the authorized Jellyfin test server and credentials in environment"]
 async fn live_sync_restore_and_media() {

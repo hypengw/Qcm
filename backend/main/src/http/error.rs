@@ -3,6 +3,8 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum HttpError {
+    #[error("Resource cache: {0}")]
+    Cache(String),
     #[error(transparent)]
     Reqwest(#[from] reqwest::Error),
     #[error("Hyper body error: {0}")]

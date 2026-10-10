@@ -64,6 +64,7 @@ pub async fn process_qcm(
                     .exec(&ctx.provider_context.db)
                     .await?;
                 global::remove_provider(id);
+                ctx.resource_cache.invalidate(id).await?;
                 let _ = ctx
                     .backend_ev
                     .send(BackendEvent::DeleteProvider { id })
@@ -130,6 +131,7 @@ pub async fn process_qcm(
                 write.invalidate_sync();
                 crate::db::add_provider(&ctx.provider_context.db, tmp_provider.clone()).await?;
                 global::add_provider(tmp_provider.clone());
+                ctx.resource_cache.invalidate(req.provider_id).await?;
                 return Ok(Rsp::default().qcm_into());
             }
         }
@@ -164,6 +166,7 @@ pub async fn process_qcm(
                                 )
                                 .await?;
                                 global::add_provider(new_provider);
+                                ctx.resource_cache.invalidate(req.provider_id).await?;
                             }
                             e => {
                                 rsp = e.qcm_into();
@@ -965,37 +968,21 @@ pub async fn process_qcm(
         }
         MessageType::GetStorageInfoReq => {
             if let Some(Payload::GetStorageInfoReq(_)) = payload {
-                let db = &ctx.provider_context.cache_db;
-
-                let size: Vec<(i32, i64)> = sqlm::cache::Entity::find()
-                    .select_only()
-                    .column(sqlm::cache::Column::CacheType)
-                    .column_as(Expr::col(sqlm::cache::Column::ContentLength).sum(), "size")
-                    .group_by(sqlm::cache::Column::CacheType)
-                    .into_tuple()
-                    .all(db)
-                    .await?;
+                let size = ctx.resource_cache.usage().await?;
 
                 let db_size = qcm_core::db::size::sqlite_sizes(&ctx.provider_context.db).await?;
                 let cache_db_size =
                     qcm_core::db::size::sqlite_sizes(&ctx.provider_context.cache_db).await?;
 
-                let mut rsp = GetStorageInfoRsp {
-                    media_size: 0,
-                    image_size: 0,
+                let rsp = GetStorageInfoRsp {
+                    media_size: size.audio as i64,
+                    image_size: size.image as i64,
                     database_size: db_size
                         .total_disk_bytes
                         .saturating_add(cache_db_size.total_disk_bytes)
+                        .saturating_add(size.metadata)
                         as i64,
                 };
-
-                for (content_type, size) in size {
-                    match content_type {
-                        x if x == sqlm::type_enum::CacheType::Image as i32 => rsp.image_size = size,
-                        x if x == sqlm::type_enum::CacheType::Audio as i32 => rsp.media_size = size,
-                        _ => {}
-                    }
-                }
 
                 return Ok(rsp.qcm_into());
             }

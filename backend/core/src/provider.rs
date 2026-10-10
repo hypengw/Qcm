@@ -148,6 +148,13 @@ pub trait Provider: ProviderCommon + ProviderSession + Send + Sync {
     fn load(&self, data: &str);
     fn save(&self) -> String;
 
+    async fn prepare_resource(
+        &self,
+        _resource: crate::resource::Resource,
+    ) -> Result<crate::resource::PreparedResource, ProviderError> {
+        Err(ProviderError::NotImplemented)
+    }
+
     async fn check(&self, ctx: &Context) -> Result<(), ProviderError>;
     async fn auth(&self, ctx: &Context, info: &AuthInfo) -> Result<AuthResult, ProviderError>;
     async fn sync(&self, ctx: &Context) -> Result<(), ProviderError>;

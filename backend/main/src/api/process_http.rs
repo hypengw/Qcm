@@ -1,7 +1,6 @@
 use super::process_qcm::process_qcm;
 use http_body_util::{BodyExt, Full, Limited};
 use hyper::body::{Bytes, Incoming};
-use hyper::header::HeaderName;
 use hyper::{Request, Response, StatusCode};
 use prost::{self, Message};
 use qcm_core::http;
@@ -18,10 +17,9 @@ use std::sync::Arc;
 use crate::error::ProcessError;
 use crate::event::ServiceContext;
 use crate::http::body_type::ResponseBody;
-use crate::reverse::handler::{media_get_audio, media_get_image};
+use crate::resource_cache::provider::{media_get_audio, media_get_image};
 
 const SECURE_MAX_SIZE: usize = 64 * 1024;
-const HEADER_ICY: HeaderName = HeaderName::from_static("icy-metadata");
 
 pub async fn process_http_post(
     ctx: &Arc<ServiceContext>,
@@ -61,6 +59,7 @@ async fn process_http_get_image(
     item_type: ItemType,
     image_type: ImageType,
     id: i64,
+    headers: http::HeaderMap,
 ) -> Result<Response<ResponseBody>, ProcessError> {
     let db = &ctx.provider_context.db;
 
@@ -86,6 +85,7 @@ async fn process_http_get_image(
                 &native_id,
                 image_native_id.as_deref(),
                 image_type,
+                headers,
             )
             .await
         }
@@ -145,6 +145,7 @@ async fn process_http_get_image(
                 &native_id,
                 image_native_id.as_deref(),
                 image_type,
+                headers,
             )
             .await
         }
@@ -169,6 +170,7 @@ async fn process_http_get_image(
                 &native_id,
                 image_id.as_deref(),
                 image_type,
+                headers,
             )
             .await
         }
@@ -195,6 +197,7 @@ async fn process_http_get_image(
                 &native_id,
                 image_id.as_deref(),
                 image_type,
+                headers,
             )
             .await
         }
@@ -222,7 +225,8 @@ pub async fn process_http_get(
 
             let item_type = ItemType::from_str(&item_type_str)
                 .map_err(|_| ProcessError::NoSuchItemType(item_type_str.to_string()))?;
-            process_http_get_image(ctx, item_type, image_type, parse_id(id)?).await
+            process_http_get_image(ctx, item_type, image_type, parse_id(id)?, req.headers().clone())
+                .await
         }
         ["audio", item_type, id] => {
             match ItemType::from_str(&item_type)
@@ -241,22 +245,7 @@ pub async fn process_http_get(
                             .await?
                             .ok_or(ProcessError::NoSuchSong(id.to_string()))?;
 
-                    let mut headers = http::HeaderMap::new();
-
-                    use reqwest::header;
-                    req.headers()
-                        .iter()
-                        .filter(|(k, _)| match **k {
-                            header::ACCEPT => true,
-                            header::RANGE => true,
-                            header::CONNECTION => true,
-                            _ => *k == &HEADER_ICY,
-                        })
-                        .for_each(|(k, v)| {
-                            headers.insert(k, v.clone());
-                        });
-
-                    media_get_audio(ctx, provider_id, &native_id, headers).await
+                    media_get_audio(ctx, provider_id, &native_id, req.headers().clone()).await
                 }
                 _ => Err(ProcessError::UnsupportedItemType(item_type.to_string())),
             }

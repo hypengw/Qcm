@@ -35,6 +35,7 @@ use serde::{Deserialize, Serialize};
 struct LuaProviderInner {
     common: ProviderCommonData,
     client: qcm_core::http::HttpClient,
+    stream_client: qcm_core::http::HttpClient,
     jar: Arc<CookieStoreRwLock>,
 }
 
@@ -66,6 +67,8 @@ struct LuaImpl {
     qr: Option<LuaFunction>,
     image: LuaFunction,
     audio: LuaFunction,
+    prepare_image: Option<LuaFunction>,
+    prepare_audio: Option<LuaFunction>,
     subtitle: LuaFunction,
     home_blocks: Option<LuaFunction>,
     home_block_items: Option<LuaFunction>,
@@ -140,9 +143,12 @@ impl LuaProvider {
         let client = qcm_core::http::client_builder_with_jar(jar.clone())
             .build()
             .unwrap();
+        let stream_client=qcm_core::http::client_builder_with_jar(jar.clone())
+            .no_gzip().no_brotli().no_deflate().no_zstd().build()?;
         let inner = Arc::new(LuaProviderInner {
             common: ProviderCommonData::new(id, name, device_id, meta_type),
             client: client.clone(),
+            stream_client,
             jar: jar,
         });
         {
@@ -175,7 +181,7 @@ impl LuaProvider {
             qcm_table.set(
                 "get_http_client",
                 lua.create_function(move |_, ()| {
-                    Ok(new_client(inner.client.clone(), inner.jar.clone()))
+                    Ok(new_client(inner.client.clone(), inner.jar.clone()).with_stream_client(inner.stream_client.clone()))
                 })?,
             )?;
             qcm_table.set(
@@ -229,6 +235,8 @@ impl LuaProvider {
                 audio: provider_table
                     .get::<LuaFunction>("audio")
                     .map_err(|_| anyhow!("audio func not found"))?,
+                prepare_image: provider_table.get("prepare_image")?,
+                prepare_audio: provider_table.get("prepare_audio")?,
                 subtitle: provider_table
                     .get::<LuaFunction>("subtitle")
                     .map_err(|_| anyhow!("subtitle func not found"))?,
@@ -454,6 +462,34 @@ impl Provider for LuaProvider {
         } else {
             Err(ProviderError::NotFound)
         }
+    }
+
+    async fn prepare_resource(&self, resource: qcm_core::resource::Resource) -> Result<qcm_core::resource::PreparedResource, ProviderError> {
+        let generation=self.generation.load(Ordering::Acquire);
+        use mlua_extra::http::{LuaRequest, LuaRequestBuilder};
+        use qcm_core::resource::Resource;
+        let value = match resource {
+            Resource::Image { item_id, image_id, kind } => {
+                let function = self.funcs.prepare_image.as_ref().ok_or(ProviderError::NotImplemented)?;
+                function.call_async::<LuaValue>((item_id, image_id, kind.to_string())).await
+            }
+            Resource::Audio { item_id } => {
+                let function = self.funcs.prepare_audio.as_ref().ok_or(ProviderError::NotImplemented)?;
+                function.call_async::<LuaValue>(item_id).await
+            }
+        }.map_err(ProviderError::from_err)?;
+        let ud = value.as_userdata().ok_or(ProviderError::NotFound)?;
+        let (client, request, timeout) = (|| -> LuaResult<_> {
+            if ud.is::<LuaRequest>() {
+                ud.borrow_mut::<LuaRequest>()?.take_parts()
+            } else {
+                ud.borrow_mut::<LuaRequestBuilder>()?.take_parts()
+            }
+        })().map_err(ProviderError::from_err)?;
+        let revision=self.generation.clone();
+        if revision.load(Ordering::Acquire)!=generation {return Err(ProviderError::NotAuth);}
+        Ok(qcm_core::resource::PreparedResource::new(client, request, timeout.unwrap_or(std::time::Duration::from_secs(30)))?
+            .guarded_by(move ||revision.load(Ordering::Acquire)==generation))
     }
 
     async fn audio(

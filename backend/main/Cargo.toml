@@ -22,6 +22,7 @@ chrono.workspace = true
 sea-orm.workspace = true
 sqlx = "0"
 libsqlite3-sys = "0"
+httpdate = "1"
 tracing.workspace = true
 bytes.workspace = true
 uuid.workspace = true

@@ -1,4 +1,3 @@
-use super::reverse::ReverseEvent;
 use super::task::TaskManagerOper;
 pub use qcm_core::event::Event;
 pub use qcm_core::event::SyncCommit;
@@ -32,5 +31,5 @@ pub struct ServiceContext {
     pub provider_context: Arc<provider::Context>,
     pub backend_ev: Sender<BackendEvent>,
     pub oper: TaskManagerOper,
-    pub reverse_ev: Sender<ReverseEvent>,
+    pub resource_cache: Arc<crate::resource_cache::ResourceCache>,
 }

@@ -181,6 +181,12 @@ end
 function M.image(id,image_id,kind)
     return stream('get_item_image',{item_id=image_id or id,image_type=kind,fill_height=420,fill_width=400})
 end
+function M.prepare_image(id,image_id,kind)
+    return require_api().operations.get_item_image {item_id=image_id or id,image_type=kind,fill_height=420,fill_width=400}:build_request()
+end
+function M.prepare_audio(id)
+    return require_api().operations.get_audio_stream {item_id=id,static=true}:build_request()
+end
 function M.audio(id,headers) return stream('get_audio_stream',{item_id=id,static=true},headers) end
 function M.subtitle(id)
     local response=perform('get_lyrics',{item_id=id})

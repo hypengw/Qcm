@@ -507,7 +507,9 @@ impl QcmFrom<ProcessError> for msg::Rsp {
     fn qcm_from(v: ProcessError) -> Self {
         Self {
             code: match v {
-                ProcessError::Internal(_) => msg::ErrorCode::Internal.into(),
+                ProcessError::Internal(_) | ProcessError::Resource(_) | ProcessError::NotAuth => {
+                    msg::ErrorCode::Internal.into()
+                }
                 ProcessError::Encode(_) => msg::ErrorCode::Encode.into(),
                 ProcessError::Decode(_) => msg::ErrorCode::Decode.into(),
                 ProcessError::UnsupportedMessageType(_) => {

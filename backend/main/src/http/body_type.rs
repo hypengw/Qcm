@@ -65,6 +65,7 @@ pub enum ResponseBody {
     Empty,
     Incoming(Incoming),
     Boxed(BoxBody),
+    Resource(combinators::UnsyncBoxBody<Bytes, HttpError>),
     UnboundedStreamed(UnboundedStreamBody),
     BoundedStreamed(BoundedStreamBody),
 }
@@ -83,6 +84,7 @@ impl Body for ResponseBody {
                 Pin::new(incoming).poll_frame(cx).map_err(|e| e.into())
             }
             ResponseBody::Boxed(boxed) => Pin::new(boxed).poll_frame(cx).map_err(|e| e.into()),
+            ResponseBody::Resource(body) => Pin::new(body).poll_frame(cx).map_err(|e| e.into()),
             ResponseBody::UnboundedStreamed(streamed) => {
                 Pin::new(streamed).poll_frame(cx).map_err(|e| e.into())
             }
@@ -97,6 +99,7 @@ impl Body for ResponseBody {
             ResponseBody::Empty => true,
             ResponseBody::Incoming(incoming) => incoming.is_end_stream(),
             ResponseBody::Boxed(boxed) => boxed.is_end_stream(),
+            ResponseBody::Resource(body) => body.is_end_stream(),
             ResponseBody::UnboundedStreamed(streamed) => streamed.is_end_stream(),
             ResponseBody::BoundedStreamed(streamed) => streamed.is_end_stream(),
         }
@@ -107,6 +110,7 @@ impl Body for ResponseBody {
             ResponseBody::Empty => hyper::body::SizeHint::with_exact(0),
             ResponseBody::Incoming(incoming) => incoming.size_hint(),
             ResponseBody::Boxed(boxed) => boxed.size_hint(),
+            ResponseBody::Resource(body) => body.size_hint(),
             ResponseBody::UnboundedStreamed(streamed) => hyper::body::Body::size_hint(streamed),
             ResponseBody::BoundedStreamed(streamed) => hyper::body::Body::size_hint(streamed),
         }

@@ -3,6 +3,7 @@ pub mod db;
 pub mod model;
 pub mod crypto;
 pub mod provider;
+pub mod resource;
 pub mod plugin;
 pub mod http;
 pub mod global;
