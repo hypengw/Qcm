@@ -1,4 +1,5 @@
 mod format;
+mod file_delivery;
 mod policy;
 pub mod provider;
 mod service;
@@ -8,3 +9,4 @@ mod store;
 mod tests;
 
 pub use service::{ResourceCache, ResourceRequest};
+pub use file_delivery::ResourceDelivery;

@@ -1,4 +1,6 @@
 use super::*;
+#[path = "complete_file_tests.rs"]
+mod complete_files;
 #[path = "ffmpeg_test.rs"]
 mod ffmpeg;
 use bytes::Bytes;
@@ -69,7 +71,7 @@ fn geometry_and_index_boundaries() {
 #[tokio::test]
 async fn unordered_slots_tail_corruption_and_restart() {
     let dir = Directory::new();
-    let store = store::Store::open(dir.0.clone()).await.unwrap();
+    let store = store::Store::open_blocks(dir.0.clone()).await.unwrap();
     let geometry = format::Geometry::new(format::MIN_BLOCK * 2 + 17).unwrap();
     let version = store
         .create(meta("resource", geometry.length))
@@ -97,7 +99,7 @@ async fn unordered_slots_tail_corruption_and_restart() {
     store.checkpoint().await.unwrap();
     drop(version);
     drop(store);
-    let store = store::Store::open(dir.0.clone()).await.unwrap();
+    let store = store::Store::open_blocks(dir.0.clone()).await.unwrap();
     let version = store.lookup("resource".into()).await.unwrap().unwrap();
     assert_eq!(store.read(version.clone(), 0).await.unwrap(), Some(a));
     use std::io::{Seek, SeekFrom, Write};
@@ -152,7 +154,7 @@ async fn failed_io_and_sql_do_not_publish_partial_indexes() {
 #[tokio::test]
 async fn restart_rejects_torn_files_and_corrupt_metadata() {
     let dir = Directory::new();
-    let storage = store::Store::open(dir.0.clone()).await.unwrap();
+    let storage = store::Store::open_blocks(dir.0.clone()).await.unwrap();
     let version = storage
         .create(meta("torn", format::MIN_BLOCK))
         .await
@@ -1053,6 +1055,13 @@ async fn weak_version_corruption_does_not_mix_new_and_old_blocks() {
     use std::io::{Seek, SeekFrom, Write};
     let dir = Directory::new();
     let cache = ResourceCache::open(dir.0.clone()).await.unwrap();
+    cache
+        .store
+        .as_ref()
+        .unwrap()
+        .test_materialization(false)
+        .await
+        .unwrap();
     let origin = Origin::new(600000, true, true, Duration::ZERO).await;
     body(cache.response(origin.request(None)).await.unwrap()).await;
     let path = std::fs::read_dir(dir.0.join("resources-v1"))

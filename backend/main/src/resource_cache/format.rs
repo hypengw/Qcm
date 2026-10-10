@@ -80,6 +80,14 @@ impl Index {
         }
     }
     pub fn load(geometry: Geometry, bytes: Vec<u8>, slots: u64) -> Result<Self> {
+        Self::load_layout(geometry, bytes, Some(slots))
+    }
+    pub fn load_plain(geometry: Geometry, bytes: Vec<u8>) -> Result<Self> {
+        let index = Self::load_layout(geometry, bytes, None)?;
+        ensure!(index.complete(), "incomplete plain index");
+        Ok(index)
+    }
+    fn load_layout(geometry: Geometry, bytes: Vec<u8>, slots: Option<u64>) -> Result<Self> {
         ensure!(
             matches!(geometry.block, MIN_BLOCK | 524288 | MAX_BLOCK),
             "invalid block size"
@@ -95,7 +103,9 @@ impl Index {
         };
         for i in 0..geometry.count() {
             if let Some((slot, _)) = value.get(i) {
-                ensure!(u64::from(slot) < slots, "index references absent slot");
+                if let Some(slots) = slots {
+                    ensure!(u64::from(slot) < slots, "index references absent slot");
+                }
             }
         }
         Ok(value)
@@ -148,5 +158,8 @@ impl Index {
     }
     pub fn committed(&mut self) {
         self.dirty.clear();
+    }
+    pub fn is_committed(&self) -> bool {
+        self.dirty.is_empty()
     }
 }

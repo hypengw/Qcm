@@ -67,6 +67,12 @@ pub async fn handle_request(
         // return upgrade rsp
         Ok(response.map(|b| ResponseBody::Boxed(b.map_err(|e| e.into()).boxed())))
     } else {
+        if let Some(response) = resource_cache
+            .file_lease_response(request.method(), request.uri().path(), request.headers())
+            .await
+        {
+            return Ok(response);
+        }
         // TODO: support multiple backend
         let Some(ctx) = bglobal::context(1) else {
             return Ok(Response::builder()

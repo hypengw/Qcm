@@ -17,6 +17,10 @@ use std::{
     },
 };
 use tokio::sync::{mpsc, oneshot};
+#[path = "materialize.rs"]
+mod materialize;
+use materialize::{Build, Threads};
+pub use materialize::{CommitOutcome, LocalFile, PlainCorrupt, LEASE_SECONDS};
 
 const CAPACITY: u64 = 32 * 1024 * 1024 * 1024;
 const MAX_RESIDENT: usize = 128;
@@ -59,6 +63,7 @@ struct Resident {
     index: Index,
     file: File,
     lease: Weak<Lease>,
+    plain: bool,
 }
 struct Storage {
     db: Database,
@@ -67,26 +72,55 @@ struct Storage {
     capacity: u64,
     stopped: bool,
     sizes: HashMap<String, (u64, i32)>,
+    building: Option<Build>,
+    scan_cursor: i64,
+    clock: u64,
+    clock_uncertain: bool,
+    started: std::time::Instant,
+    files_enabled: bool,
+    restart_grace: Option<std::time::Instant>,
+    garbage: std::collections::HashSet<String>,
     #[cfg(test)]
     fault: Option<Fault>,
+    _owner: File,
 }
 #[cfg(test)]
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub(super) enum Fault {
     Write,
     Sync,
     Sql,
     CrashSync,
     CrashSql,
+    MaterializeWrite,
+    MaterializeSync,
+    MaterializeRename,
+    MaterializeSql,
+    MaterializeDelete,
+    CrashMaterializeSync,
+    CrashMaterializeRename,
+    CrashMaterializeSql,
+    CrashMaterializeCreate,
+    CrashMaterializeWrite,
+    CrashMaterializeDirectory,
+    CrashMaterializeDelete,
 }
 
 #[derive(Clone)]
 pub struct Store {
     tx: mpsc::Sender<Job>,
-    thread: Arc<std::sync::Mutex<Option<std::thread::JoinHandle<()>>>>,
+    threads: Arc<Threads>,
+    wake: std::sync::mpsc::SyncSender<()>,
 }
 impl Store {
     pub async fn open(root: PathBuf) -> Result<Self> {
+        Self::open_with_files(root, true).await
+    }
+    #[cfg(test)]
+    pub async fn open_blocks(root: PathBuf) -> Result<Self> {
+        Self::open_with_files(root, false).await
+    }
+    async fn open_with_files(root: PathBuf, files_enabled: bool) -> Result<Self> {
         let (tx, mut rx) = mpsc::channel::<Job>(8);
         let (ready_tx, ready_rx) = oneshot::channel();
         let thread = std::thread::Builder::new()
@@ -95,6 +129,7 @@ impl Store {
                 let opened = Storage::open(root);
                 match opened {
                     Ok(mut storage) => {
+                        storage.files_enabled = files_enabled;
                         let _ = ready_tx.send(Ok(()));
                         while let Some(job) = rx.blocking_recv() {
                             job(&mut storage);
@@ -109,9 +144,12 @@ impl Store {
                 }
             })?;
         ready_rx.await??;
+        let (wake, wake_rx) = std::sync::mpsc::sync_channel(1);
+        let threads = Threads::start(thread, tx.clone(), wake_rx)?;
         Ok(Self {
             tx,
-            thread: Arc::new(std::sync::Mutex::new(Some(thread))),
+            threads: Arc::new(threads),
+            wake,
         })
     }
     async fn call<T: Send + 'static>(
@@ -128,20 +166,35 @@ impl Store {
         rx.await?
     }
     pub async fn lookup(&self, key: String) -> Result<Option<Version>> {
-        self.call(move |s| s.lookup(&key)).await
+        let result = self.call(move |s| s.lookup(&key)).await;
+        let _ = self.wake.try_send(());
+        result
     }
     pub async fn create(&self, meta: Metadata) -> Result<Version> {
-        self.call(move |s| s.create(meta)).await
+        let result = self.call(move |s| s.create(meta)).await;
+        let _ = self.wake.try_send(());
+        result
     }
     pub async fn read(&self, version: Version, block: u64) -> Result<Option<Bytes>> {
         self.call(move |s| s.read(version.id, block)).await
     }
-    pub async fn write(&self, version: Version, blocks: Vec<(u64, Bytes)>) -> Result<()> {
-        self.call(move |s| s.write(version.id, &blocks)).await
+    pub async fn write(
+        &self,
+        version: Version,
+        blocks: Vec<(u64, Bytes)>,
+    ) -> Result<CommitOutcome> {
+        let result = self.call(move |s| s.write(version.id, &blocks)).await;
+        if result.as_ref().is_ok_and(|v| v.newly_complete) {
+            let _ = self.wake.try_send(());
+        }
+        result
     }
     pub async fn complete(&self, version: Version) -> Result<bool> {
-        self.call(move |s| Ok(s.load(version.id)?.index.complete()))
-            .await
+        self.call(move |s| {
+            let v = s.load(version.id)?;
+            Ok(v.index.is_committed() && v.index.complete())
+        })
+        .await
     }
     pub async fn covered(&self, version: Version, range: std::ops::Range<u64>) -> Result<bool> {
         self.call(move |s| {
@@ -198,13 +251,15 @@ impl Store {
         .await
     }
     pub async fn shutdown(&self) -> Result<()> {
+        let threads = self.threads.clone();
+        tokio::task::spawn_blocking(move || threads.stop_worker()).await??;
         self.call(|s| {
             s.db.exec("PRAGMA wal_checkpoint(PASSIVE)")?;
             s.stopped = true;
             Ok(())
         })
         .await?;
-        let thread = self.thread.lock().unwrap().take();
+        let thread = self.threads.storage.lock().unwrap().take();
         if let Some(thread) = thread {
             tokio::task::spawn_blocking(move || {
                 thread
@@ -223,13 +278,47 @@ impl Store {
         })
         .await
     }
+    #[cfg(test)]
+    pub(super) async fn clear_fault(&self) -> Result<()> {
+        self.call(|s| {
+            s.fault = None;
+            Ok(())
+        })
+        .await?;
+        let _ = self.wake.try_send(());
+        Ok(())
+    }
 }
 
 impl Storage {
     fn open(root: PathBuf) -> Result<Self> {
         fs::create_dir_all(&root)?;
+        ensure!(
+            fs::symlink_metadata(&root)?.file_type().is_dir(),
+            "invalid cache directory"
+        );
+        materialize::private_directory(&root)?;
+        let root = fs::canonicalize(root)?;
+        let owner_path = root.join("owner.lock");
+        if owner_path.try_exists()? {
+            materialize::regular_file(&owner_path)?;
+        }
+        let owner = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .truncate(false)
+            .open(owner_path)?;
+        materialize::private_file(&owner)?;
+        owner
+            .try_lock()
+            .map_err(|err| anyhow::anyhow!("cache owner unavailable: {err}"))?;
+        if root.join("meta.sqlite").try_exists()? {
+            materialize::regular_file(&root.join("meta.sqlite"))?;
+        }
         let db = Database::open(&root.join("meta.sqlite"))?;
         db.exec("CREATE TABLE IF NOT EXISTS versions (id INTEGER PRIMARY KEY, resource_key TEXT NOT NULL, provider INTEGER NOT NULL, kind INTEGER NOT NULL, generation TEXT NOT NULL UNIQUE, meta TEXT NOT NULL, blocks BLOB NOT NULL, last_use INTEGER NOT NULL, obsolete INTEGER NOT NULL DEFAULT 0); CREATE INDEX IF NOT EXISTS resource_lookup ON versions(resource_key, id);")?;
+        materialize::migrate(&db)?;
         let capacity = std::env::var("QCM_RESOURCE_CACHE_BYTES")
             .ok()
             .and_then(|s| s.parse().ok())
@@ -241,9 +330,19 @@ impl Storage {
             capacity,
             stopped: false,
             sizes: HashMap::new(),
+            building: None,
+            scan_cursor: 0,
+            clock: super::policy::now(),
+            clock_uncertain: false,
+            started: std::time::Instant::now(),
+            files_enabled: true,
+            restart_grace: None,
+            garbage: std::collections::HashSet::new(),
             #[cfg(test)]
             fault: None,
+            _owner: owner,
         };
+        store.restore_leases()?;
         store.recover()?;
         Ok(store)
     }
@@ -251,14 +350,15 @@ impl Storage {
         self.root.join(format!("{generation}.data"))
     }
     fn recover(&mut self) -> Result<()> {
-        let mut rows = self.db.statement("SELECT id, meta FROM versions", &[])?;
+        let mut rows = self.db.statement("SELECT v.id, v.meta, COALESCE(f.ready,0) FROM versions v LEFT JOIN complete_files f ON f.version_id=v.id", &[])?;
         let mut invalid = Vec::new();
         let mut retained = HashMap::new();
         while rows.next()? {
             let id = rows.int(0);
             match serde_json::from_str::<Metadata>(&rows.text(1)?) {
                 Ok(meta) if valid_generation(&meta.generation) => {
-                    retained.insert(format!("{}.data", meta.generation), meta.kind);
+                    let suffix = if rows.int(2) == 1 { "ok" } else { "data" };
+                    retained.insert(format!("{}.{suffix}", meta.generation), meta.kind);
                 }
                 _ => {
                     invalid.push(id);
@@ -266,25 +366,43 @@ impl Storage {
             }
         }
         drop(rows);
+        let mut leases = self.db.statement("SELECT DISTINCT v.id,v.generation,v.kind FROM versions v JOIN file_leases l ON l.version_id=v.id", &[])?;
+        while leases.next()? {
+            let generation = leases.text(1)?;
+            if valid_generation(&generation) {
+                retained.insert(format!("{generation}.ok"), leases.int(2) as i32);
+            }
+        }
+        drop(leases);
         for id in invalid {
-            self.delete(id)?;
+            self.db
+                .statement(
+                    "UPDATE versions SET obsolete=2 WHERE id=?",
+                    &[Value::Int(id)],
+                )?
+                .next()?;
+            if let Err(err) = self.delete(id) {
+                log::warn!("invalid cache cleanup deferred: {err}");
+            }
         }
         for entry in fs::read_dir(&self.root)? {
             let entry = entry?;
             let name = entry.file_name().to_string_lossy().into_owned();
-            if name.ends_with(".data")
-                && valid_generation(name.trim_end_matches(".data"))
-                && !retained.contains_key(&name)
-            {
-                fs::remove_file(entry.path())?;
-            } else if let Some(kind) = retained.get(&name) {
-                self.sizes.insert(
-                    name.trim_end_matches(".data").into(),
-                    (allocated(&entry.metadata()?), *kind),
-                );
+            if let Some(kind) = retained.get(&name) {
+                self.sizes
+                    .insert(name, (allocated(&entry.metadata()?), *kind));
+            } else if materialize::managed_name(&name) {
+                self.sizes
+                    .insert(name.clone(), (allocated(&entry.metadata()?), 0));
+                if let Err(err) = self.remove_managed(&name) {
+                    log::warn!("cache cleanup deferred: {err}");
+                }
             }
         }
-        self.evict(0)
+        if let Err(err) = self.evict(0) {
+            log::warn!("cache recovery over budget: {err}");
+        }
+        Ok(())
     }
     fn load(&mut self, id: i64) -> Result<&mut Resident> {
         if !self.versions.contains_key(&id) {
@@ -304,25 +422,41 @@ impl Storage {
             );
             let bytes = row.blob(1);
             drop(row);
-            let mut file = OpenOptions::new()
-                .read(true)
-                .write(true)
-                .open(self.path(&meta.generation))?;
+            let plain_length = self.plain_length(id)?;
+            let plain = plain_length.is_some();
+            let path = if plain {
+                self.file_path(&meta.generation, "ok")
+            } else {
+                self.path(&meta.generation)
+            };
+            materialize::regular_file(&path)?;
+            let mut file = OpenOptions::new().read(true).write(!plain).open(&path)?;
             let size = file.metadata()?.len();
-            ensure!(size >= HEADER_LEN, "incomplete data header");
-            let mut header = [0; HEADER_LEN as usize];
-            file.read_exact(&mut header)?;
-            ensure!(
-                header == meta.geometry.header(&meta.generation)?,
-                "data identity mismatch"
-            );
-            let slots = (size - HEADER_LEN) / meta.geometry.block;
-            self.reserve_index(bytes.len())?;
-            let index = Index::load(meta.geometry, bytes, slots)?;
-            // A torn, unreferenced final slot can be discarded before the next append.
-            file.set_len(HEADER_LEN + slots * meta.geometry.block)?;
+            let index = if plain {
+                ensure!(
+                    plain_length == Some(meta.geometry.length),
+                    "plain descriptor length mismatch"
+                );
+                ensure!(size == meta.geometry.length, "invalid plain length");
+                self.reserve_index(bytes.len())?;
+                Index::load_plain(meta.geometry, bytes)?
+            } else {
+                ensure!(size >= HEADER_LEN, "incomplete data header");
+                let mut header = [0; HEADER_LEN as usize];
+                file.read_exact(&mut header)?;
+                ensure!(
+                    header == meta.geometry.header(&meta.generation)?,
+                    "data identity mismatch"
+                );
+                let slots = (size - HEADER_LEN) / meta.geometry.block;
+                self.reserve_index(bytes.len())?;
+                let index = Index::load(meta.geometry, bytes, slots)?;
+                // A torn, unreferenced final slot can be discarded before the next append.
+                file.set_len(HEADER_LEN + slots * meta.geometry.block)?;
+                index
+            };
             self.sizes.insert(
-                meta.generation.clone(),
+                path.file_name().unwrap().to_string_lossy().into_owned(),
                 (allocated(&file.metadata()?), meta.kind),
             );
             self.versions.insert(
@@ -332,6 +466,7 @@ impl Storage {
                     index,
                     file,
                     lease: Weak::new(),
+                    plain,
                 },
             );
         }
@@ -387,11 +522,12 @@ impl Storage {
             .read(true)
             .write(true)
             .open(&path)?;
+        materialize::private_file(&file)?;
         file.write_all(&meta.geometry.header(&meta.generation)?)?;
         file.sync_all()?;
         sync_directory(&self.root)?;
         self.sizes.insert(
-            meta.generation.clone(),
+            format!("{}.data", meta.generation),
             (allocated(&file.metadata()?), meta.kind),
         );
         let index = Index::new(meta.geometry);
@@ -400,7 +536,7 @@ impl Storage {
         let result = (|| {
             self.db
                 .statement(
-                    "UPDATE versions SET obsolete=1 WHERE resource_key=?",
+                    "UPDATE versions SET obsolete=1 WHERE resource_key=? AND obsolete=0",
                     &[Value::Text(&meta.key)],
                 )?
                 .next()?;
@@ -414,7 +550,7 @@ impl Storage {
             Err(err) => {
                 let _ = self.db.exec("ROLLBACK");
                 let _ = fs::remove_file(path);
-                self.sizes.remove(&meta.generation);
+                self.sizes.remove(&format!("{}.data", meta.generation));
                 return Err(err);
             }
         };
@@ -425,6 +561,7 @@ impl Storage {
                 index,
                 file,
                 lease: Weak::new(),
+                plain: false,
             },
         );
         self.version(id)
@@ -437,25 +574,44 @@ impl Storage {
         };
         let range = value.meta.geometry.range(block)?;
         let mut data = vec![0; (range.end - range.start) as usize];
-        value
-            .file
-            .seek(SeekFrom::Start(value.meta.geometry.offset(slot)?))?;
+        value.file.seek(SeekFrom::Start(if value.plain {
+            range.start
+        } else {
+            value.meta.geometry.offset(slot)?
+        }))?;
         if value.file.read_exact(&mut data).is_err() || format::hash(&data)? != digest {
+            if value.plain {
+                self.retire_corrupt(id)?;
+                anyhow::bail!(materialize::PlainCorrupt);
+            }
             value.index.remove(block);
             self.commit(id)?;
             return Ok(None);
         }
         Ok(Some(Bytes::from(data)))
     }
-    fn write(&mut self, id: i64, blocks: &[(u64, Bytes)]) -> Result<()> {
+    fn write(&mut self, id: i64, blocks: &[(u64, Bytes)]) -> Result<CommitOutcome> {
+        self.check_active(id)?;
+        let value = self.load(id)?;
+        let was_complete = value.index.is_committed() && value.index.complete();
         let result = self.write_data(id, blocks);
         if let Some(value) = self.versions.get(&id) {
             self.sizes.insert(
-                value.meta.generation.clone(),
+                format!(
+                    "{}.{}",
+                    value.meta.generation,
+                    if value.plain { "ok" } else { "data" }
+                ),
                 (allocated(&value.file.metadata()?), value.meta.kind),
             );
         }
-        result
+        result?;
+        let value = self.load(id)?;
+        let complete = value.index.is_committed() && value.index.complete();
+        Ok(CommitOutcome {
+            complete,
+            newly_complete: complete && !was_complete,
+        })
     }
     fn write_data(&mut self, id: i64, blocks: &[(u64, Bytes)]) -> Result<()> {
         self.check_active(id)?;
@@ -465,6 +621,16 @@ impl Storage {
             anyhow::bail!("injected write failure");
         }
         let resident = self.load(id)?;
+        if resident.plain {
+            ensure!(
+                blocks.iter().all(|(i, data)| resident
+                    .index
+                    .get(*i)
+                    .is_some_and(|(_, digest)| format::hash(data).ok() == Some(digest))),
+                "attempted plain overwrite"
+            );
+            return Ok(());
+        }
         let required = blocks
             .iter()
             .filter(|(i, _)| resident.index.get(*i).is_none())
@@ -613,6 +779,9 @@ impl Storage {
         {
             return Ok(());
         }
+        if self.externally_pinned(id)? {
+            return Ok(());
+        }
         let mut row = self.db.statement(
             "SELECT generation FROM versions WHERE id=?",
             &[Value::Int(id)],
@@ -624,17 +793,38 @@ impl Storage {
         };
         drop(row);
         self.db
-            .statement("DELETE FROM versions WHERE id=?", &[Value::Int(id)])?
+            .statement(
+                "UPDATE versions SET obsolete=2 WHERE id=?",
+                &[Value::Int(id)],
+            )?
             .next()?;
         self.versions.remove(&id);
         if let Some(generation) = generation.filter(|g| valid_generation(g)) {
-            match fs::remove_file(self.path(&generation)) {
-                Ok(()) => (),
-                Err(e) if e.kind() == std::io::ErrorKind::NotFound => (),
-                Err(e) => return Err(e.into()),
+            for suffix in ["data", "ok.tmp", "ok"] {
+                self.remove_managed(&format!("{generation}.{suffix}"))?;
             }
-            self.sizes.remove(&generation);
         }
+        self.db.exec("BEGIN IMMEDIATE")?;
+        let result = (|| {
+            for table in ["complete_files", "file_leases", "versions"] {
+                let column = if table == "versions" {
+                    "id"
+                } else {
+                    "version_id"
+                };
+                self.db
+                    .statement(
+                        &format!("DELETE FROM {table} WHERE {column}=?"),
+                        &[Value::Int(id)],
+                    )?
+                    .next()?;
+            }
+            self.db.exec("COMMIT")
+        })();
+        if result.is_err() {
+            let _ = self.db.exec("ROLLBACK");
+        }
+        result?;
         Ok(())
     }
     fn usage(&mut self) -> Result<Usage> {
@@ -657,6 +847,7 @@ impl Storage {
     }
     fn evict(&mut self, required: u64) -> Result<()> {
         let usage = self.usage()?;
+        let required = required.saturating_add(self.building.as_ref().map_or(0, |b| b.remaining));
         let over_capacity = usage.image + usage.audio + usage.metadata + required > self.capacity;
         let query = if over_capacity {
             "SELECT id, obsolete FROM versions ORDER BY obsolete DESC,last_use ASC"
@@ -682,7 +873,9 @@ impl Storage {
             {
                 continue;
             }
-            self.delete(id)?;
+            if let Err(err) = self.delete(id) {
+                log::warn!("cache deletion deferred: {err}");
+            }
             let usage = self.usage()?;
             bytes = usage.image + usage.audio + usage.metadata;
         }

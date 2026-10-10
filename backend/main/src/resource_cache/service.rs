@@ -2,6 +2,7 @@ use super::{
     format::{identity, Geometry},
     policy::{self, Policy},
     store::{Metadata, Store, Version},
+    ResourceDelivery,
 };
 use crate::{
     error::ProcessError,
@@ -49,6 +50,7 @@ pub struct ResourceCache {
     per_resource: Mutex<HashMap<i64, Weak<Semaphore>>>,
     stop: watch::Sender<bool>,
     tasks: Mutex<tokio::task::JoinSet<()>>,
+    pub(super) file_client: std::sync::RwLock<Option<String>>,
 }
 #[derive(Clone)]
 enum Progress {
@@ -116,6 +118,7 @@ impl ResourceCache {
             per_resource: Mutex::new(HashMap::new()),
             stop,
             tasks: Mutex::new(tokio::task::JoinSet::new()),
+            file_client: std::sync::RwLock::new(None),
         }))
     }
     fn storage(&self) -> &Store {
@@ -175,12 +178,21 @@ impl ResourceCache {
         self: &Arc<Self>,
         request: ResourceRequest,
     ) -> Result<Response<ResponseBody>, ProcessError> {
+        self.delivery(request)
+            .await?
+            .into_response()
+            .map_err(ProcessError::Resource)
+    }
+    pub async fn delivery(
+        self: &Arc<Self>,
+        request: ResourceRequest,
+    ) -> Result<ResourceDelivery, ProcessError> {
         let mut result = self.respond(request.clone()).await;
         if result.as_ref().is_err_and(|error| {
             matches!(
                 error.downcast_ref::<DownloadFailure>(),
                 Some(DownloadFailure::Changed)
-            )
+            ) || error.is::<super::store::PlainCorrupt>()
         }) {
             result = self.respond(request).await;
         }
@@ -209,9 +221,11 @@ impl ResourceCache {
             .acquire_owned()
             .await
             .map_err(|e| anyhow::anyhow!("{e}"))?;
-        passthrough(response, permit).map_err(ProcessError::Internal)
+        passthrough(response, permit)
+            .and_then(ResourceDelivery::into_response)
+            .map_err(ProcessError::Internal)
     }
-    async fn respond(self: &Arc<Self>, request: ResourceRequest) -> Result<Response<ResponseBody>> {
+    async fn respond(self: &Arc<Self>, request: ResourceRequest) -> Result<ResourceDelivery> {
         if *self.stop.borrow() {
             return Err(anyhow::anyhow!("resource service stopped").into());
         }
@@ -444,6 +458,22 @@ impl ResourceCache {
                 return empty(StatusCode::RANGE_NOT_SATISFIABLE, headers);
             }
         };
+        if request.kind == 0 && !request.headers.contains_key("range") {
+            if let Some(client) = self.file_client_for(&request.headers) {
+                match self.storage().local_file(version.clone(), client).await {
+                    Ok(Some(file)) => {
+                        ensure!(
+                            version.is_valid() && prepared.is_valid(),
+                            "provider invalidated"
+                        );
+                        return Ok(ResourceDelivery::LocalFile(file));
+                    }
+                    Err(err) if err.is::<super::store::PlainCorrupt>() => return Err(err),
+                    Err(err) => log::warn!("local file unavailable: {err}"),
+                    Ok(None) => (),
+                }
+            }
+        }
         let position = Arc::new(AtomicU64::new(range.start));
         let only_cached = policy::only_cached(&request.headers);
         if only_cached
@@ -639,7 +669,7 @@ impl ResourceCache {
         } else {
             StatusCode::OK
         };
-        Ok(response)
+        Ok(ResourceDelivery::Body(response))
     }
     async fn block(
         self: &Arc<Self>,
@@ -1186,7 +1216,7 @@ fn client_range(headers: &HeaderMap, meta: &Metadata) -> Result<Option<Range<u64
     };
     Ok((start < end && start < length).then_some(start..end))
 }
-fn empty(status: StatusCode, headers: HeaderMap) -> Result<Response<ResponseBody>> {
+fn empty(status: StatusCode, headers: HeaderMap) -> Result<ResourceDelivery> {
     let mut response = Response::new(ResponseBody::Empty);
     *response.status_mut() = status;
     *response.headers_mut() = headers;
@@ -1195,12 +1225,12 @@ fn empty(status: StatusCode, headers: HeaderMap) -> Result<Response<ResponseBody
             .headers_mut()
             .insert("content-length", "0".parse().unwrap());
     }
-    Ok(response)
+    Ok(ResourceDelivery::Body(response))
 }
 fn passthrough(
     response: reqwest::Response,
     permit: OwnedSemaphorePermit,
-) -> Result<Response<ResponseBody>> {
+) -> Result<ResourceDelivery> {
     let status = response.status();
     let headers = policy::forwarded(response.headers());
     let body = response
@@ -1216,5 +1246,5 @@ fn passthrough(
     )));
     *response.status_mut() = status;
     *response.headers_mut() = headers;
-    Ok(response)
+    Ok(ResourceDelivery::Body(response))
 }

@@ -1,6 +1,5 @@
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
-use openssl::hash::Hasher;
-pub use openssl::hash::MessageDigest;
+pub use openssl::hash::{Hasher, MessageDigest};
 pub use openssl::pkey;
 pub use openssl::rsa::{Padding, Rsa};
 pub use openssl::symm::Cipher;

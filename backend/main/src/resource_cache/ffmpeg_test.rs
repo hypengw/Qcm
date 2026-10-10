@@ -26,6 +26,29 @@ async fn ffmpeg_seeks_through_resource_cache_http() {
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
     let url = format!("http://{}/audio.wav", listener.local_addr().unwrap());
     let prepared = origin.request(None).prepared;
+    body(
+        cache
+            .response(ResourceRequest {
+                provider: 1,
+                kind: 1,
+                scope: "ffmpeg".into(),
+                prepared: prepared.clone(),
+                headers: HeaderMap::new(),
+            })
+            .await
+            .unwrap(),
+    )
+    .await;
+    tokio::time::timeout(Duration::from_secs(8), async {
+        while !std::fs::read_dir(dir.0.join("resources-v1"))
+            .unwrap()
+            .any(|e| e.unwrap().path().extension().is_some_and(|s| s == "ok"))
+        {
+            tokio::time::sleep(Duration::from_millis(10)).await;
+        }
+    })
+    .await
+    .unwrap();
     let server_cache = cache.clone();
     let ranges = Arc::new(Mutex::new(Vec::new()));
     let observed = ranges.clone();
