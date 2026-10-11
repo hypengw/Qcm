@@ -155,9 +155,9 @@ MD.Page {
                     Component {
                         id: m_dg_album
                         MD.ListItem {
+                            id: m_item
                             required index
                             required model
-                            id: m_item
                             width: ListView.view.contentWidth
                             rightPadding: 0
                             text: model.name
@@ -178,7 +178,7 @@ MD.Page {
                                 onClicked: {
                                     const props = {
                                         "itemId": m_item.model.itemId,
-                                        "y": height
+                                        "anchorItem": this
                                     };
                                     MD.Util.showPopup('Qcm.App/AlbumMenu', props, this);
                                 }

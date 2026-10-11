@@ -6,9 +6,9 @@ import Qcm.App as QA
 import Qcm.Material as MD
 
 MD.ListItem {
+    id: root
     required index
     required model
-    id: root
 
     readonly property bool hasModel: visible && index >= 0 && !!model
     readonly property QA.item_id itemId: hasModel ? model.itemId : QA.Util.createItemid()
@@ -148,7 +148,7 @@ MD.ListItem {
                 onClicked: {
                     const props = {
                         "itemId": root.itemId,
-                        "y": height
+                        "anchorItem": this
                     };
                     if (root.canDelete) {
                         props["canDelete"] = true;

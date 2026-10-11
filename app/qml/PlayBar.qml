@@ -68,7 +68,6 @@ MD.Pane {
                     source: QA.Util.image_url(root.currentSongId)
                     displaySize: Qt.size(48, 48)
                     radius: 8
-
                 }
                 ColumnLayout {
                     Layout.leftMargin: 4
@@ -181,12 +180,12 @@ MD.Pane {
                             icon.name: MD.Token.icon.more_vert
 
                             onClicked: {
-                                const popup = MD.Util.showPopup(comp_song_menu, {
+                                MD.Util.showPopup(comp_song_menu, {
                                     "song": root.currentSong,
                                     "itemId": root.currentSongId,
-                                    "y": 0
+                                    "anchorItem": this,
+                                    "preferredPlacement": MD.PopupBase.Above
                                 }, this);
-                                popup.y = -popup.height;
                             }
 
                             Component {
@@ -233,9 +232,7 @@ MD.Pane {
                             MD.CircularIndicator {
                                 anchors.centerIn: parent
                                 indeterminate: false
-                                value: QA.Global.player.duration > 0
-                                       ? QA.Global.player.position / QA.Global.player.duration
-                                       : 0
+                                value: QA.Global.player.duration > 0 ? QA.Global.player.position / QA.Global.player.duration : 0
                             }
                         }
                         MD.IconButton {

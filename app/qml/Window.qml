@@ -167,7 +167,8 @@ MD.ApplicationWindow {
             if (!url)
                 return;
             MD.Util.showPopup(url, Object.assign({}, props, {
-                itemId: id
+                itemId: id,
+                anchorItem: parent
             }), parent);
         }
     }

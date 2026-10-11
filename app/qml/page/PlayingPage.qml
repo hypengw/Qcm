@@ -249,12 +249,12 @@ MD.Page {
                         icon.name: MD.Token.icon.more_vert
 
                         onClicked: {
-                            const popup = MD.Util.showPopup('qrc:/Qcm/App/qml/menu/SongMenu.qml', {
+                            MD.Util.showPopup('qrc:/Qcm/App/qml/menu/SongMenu.qml', {
                                 "song": root.song,
                                 "itemId": root.songId,
-                                "y": 0
+                                "anchorItem": this,
+                                "preferredPlacement": MD.PopupBase.Above
                             }, this);
-                            popup.y = -popup.height;
                         }
                     }
                 }

@@ -416,7 +416,8 @@ MD.Page {
 
         QA.SortMenu {
             id: m_header_sort_menu
-            y: m_header_bar.height
+            anchorItem: m_order_chip
+            anchorAlignment: MD.PopupBase.End
             model: m_header_bar.view?.sortModel ?? null
         }
 
@@ -469,10 +470,10 @@ MD.Page {
                 Layout.preferredWidth: Math.min(maximumContentWidth, Math.max(Layout.minimumWidth, m_header_row.width - m_library_tabs.implicitWidth - m_order_chip.implicitWidth - m_header_row.spacing * 2))
                 actions: m_header_bar.view ? [...m_header_bar.view.headerActions, ...m_header_bar.preActions] : m_header_bar.preActions
                 iconDelegate: MD.StandardIconButton {
+                    id: m_item
                     icon.width: 22
                     icon.height: 22
                     implicitBackgroundSize: 0
-                    id: m_item
                     anchors.verticalCenter: parent.verticalCenter
                     action: MD.ToolBarLayout.action as MD.Action
                     Component.onCompleted: {

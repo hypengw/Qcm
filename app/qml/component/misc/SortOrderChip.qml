@@ -14,7 +14,7 @@ QA.OrderChip {
     }
     QA.SortMenu {
         id: m_header_sort_menu
-        y: parent.height
+        anchorItem: root
         model: root.model
     }
 }

@@ -12,15 +12,16 @@ MD.Action {
     signal selectDisplayMode(int mode)
 
     icon.name: QA.Util.displayModeIcon(displayMode)
-    onTriggered: {
-        const popup = MD.Util.showPopup(m_display_mode_menu, {
-            displayMode: displayMode
-        }, menuParent);
+    onTriggered: source => {
+        const anchor = (source as MD.MenuItemBase)?.menu?.anchorItem ?? (source as Item) ?? menuParent;
+        MD.Util.showPopup(m_display_mode_menu, {
+            displayMode: displayMode,
+            anchorItem: anchor
+        }, anchor);
     }
     Component {
         id: m_display_mode_menu
         QA.DisplayModeMenu {
-            y: parent.height
             modal: true
             dim: false
             onDisplayModeChanged: root.selectDisplayMode(displayMode)

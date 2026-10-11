@@ -88,7 +88,7 @@ MD.ListItem {
                     MD.Util.showPopup('Qcm.App/ProgramMenu', {
                         "itemId": root.dgModel.itemId,
                         "song": root.dgModel.song,
-                        "y": height
+                        "anchorItem": this
                     }, this);
                 }
             }
