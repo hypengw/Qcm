@@ -100,7 +100,7 @@ dependencies = [
 [[packages]]
 name = "qextra"
 version = "0.1.0"
-source = "git+https://github.com/hypengw/QExtra.git#d4626ff70bf5f3b5e9efd9715075c03492ba8f8d"
+source = "git+https://github.com/hypengw/QExtra.git#64cac248540aa9ba214505026e23c467a1e01627"
 dependencies = [
   "lito-qt",
   "ncrequest",
