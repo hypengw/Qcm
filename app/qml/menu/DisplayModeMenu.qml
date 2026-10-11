@@ -16,7 +16,6 @@ MD.Menu {
     }
     component ListItem: MD.MenuItem {
         property int value
-        width: parent.width
         checked: value == root.displayMode
         selected: checked
     }
