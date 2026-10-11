@@ -23,8 +23,7 @@ MD.Dialog {
 
             leader: QA.Image {
                 source: QA.Util.image_url(m_qr.data.item.itemId)
-                sourceSize.height: 48
-                sourceSize.width: 48
+                displaySize: Qt.size(48, 48)
                 radius: 24
             }
             text: m_qr.data.item.name

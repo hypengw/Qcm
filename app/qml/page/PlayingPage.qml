@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Shapes
+import QExtra as QE
 import Qcm.App as QA
 import Qcm.Material as MD
 
@@ -120,7 +121,7 @@ MD.Page {
                     function pickColor() {
                         const src = source;
                         if (lastPickSource != src) {
-                            if (status == Image.Ready && visible) {
+                            if (status == QE.Image.Ready && visible) {
                                 inner.grabToImage(function (res) {
                                     QA.Notifier.specialImageLoaded('playing', res.image);
                                     lastPickSource = src;

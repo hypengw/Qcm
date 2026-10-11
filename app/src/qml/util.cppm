@@ -44,9 +44,9 @@ public:
     Q_INVOKABLE static QUrl            special_route_url(enums::SpecialRoute);
     Q_INVOKABLE static model::RouteMsg route_msg(enums::SpecialRoute);
 
-    Q_INVOKABLE static QUrl image_url(model::ItemId    id,
-                                      enums::ImageType image_type = enums::ImageType::ImagePrimary);
-    Q_INVOKABLE static QUrl image_url(const QString&);
+    Q_INVOKABLE static QUrl imageUrl(model::ItemId    id,
+                                     enums::ImageType image_type = enums::ImageType::ImagePrimary);
+    Q_INVOKABLE static QUrl imageUrl(const QString&);
     Q_INVOKABLE static QUrl audio_url(model::ItemId id);
 
     Q_INVOKABLE static model::ItemId albumArtistId(QString);

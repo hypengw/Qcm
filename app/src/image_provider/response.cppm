@@ -11,11 +11,11 @@ using rstd::sync::atomic::Atomic;
 namespace qcm
 {
 
-auto image_response_count() -> Atomic<i32>&;
+auto qr_image_response_count() -> Atomic<i32>&;
 
-class QcmImageResponse : public QQuickImageResponse {
+class QrImageResponse : public QQuickImageResponse {
 public:
-    ~QcmImageResponse();
+    ~QrImageResponse();
     auto errorString() const -> QString override;
     void cancel() override;
     void setError(QAnyStringView error);
@@ -27,11 +27,11 @@ public:
     }
 
 protected:
-    QcmImageResponse();
+    QrImageResponse();
 
 private:
     void        done();
-    static void rc_deleter(QcmImageResponse* p);
+    static void rc_deleter(QrImageResponse* p);
 
     QString                                      m_error;
     std::mutex                                   m_task_mutex;

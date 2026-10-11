@@ -64,10 +64,9 @@ MD.Pane {
                 Layout.rightMargin: 12
                 Layout.topMargin: 8
 
-                MD.Image {
+                QA.Image {
                     source: QA.Util.image_url(root.currentSongId)
-                    sourceSize.height: 48
-                    sourceSize.width: 48
+                    displaySize: Qt.size(48, 48)
                     radius: 8
 
                 }

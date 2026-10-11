@@ -170,8 +170,7 @@ MD.Page {
                             leader: QA.Image {
                                 radius: 8
                                 source: QA.Util.image_url(model.itemId)
-                                sourceSize.height: 48
-                                sourceSize.width: 48
+                                displaySize: Qt.size(48, 48)
                             }
                             trailing: MD.IconButton {
                                 icon.name: MD.Token.icon.more_vert
@@ -204,8 +203,7 @@ MD.Page {
                             leader: QA.Image {
                                 radius: 8
                                 source: QA.Util.image_url(model.itemId)
-                                sourceSize.height: 48
-                                sourceSize.width: 48
+                                displaySize: Qt.size(48, 48)
                             }
                             onClicked: {
                                 QA.Action.routeItem(model.itemId);

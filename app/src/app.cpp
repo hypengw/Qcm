@@ -123,7 +123,7 @@ App::App(QStringView backend_exe, std::monostate)
 
     LOG_DEBUG("thread pool size: {}", get_pool_size());
     {
-        d->m_backend = Some(Box<Backend>::make(d->m_global->session()));
+        d->m_backend = Some(Box<Backend>::make());
         {
             auto p = this->backend();
             connect(
@@ -204,7 +204,14 @@ void App::init() {
         engine->rootContext()->setContextProperty("modelData", QVariant::fromValue(nullptr));
     }
 
-    engine->addImageProvider("qcm", new QcmImageProvider);
+    auto update_image_sources = [this, engine] {
+        auto backend = this->backend();
+        if (! qextra::image::set_local_file_source(
+                engine, backend->resource_base_url(), backend->cache_directory()))
+            LOG_ERROR("invalid image file source configuration");
+    };
+    connect(this->backend(), &Backend::resourceStateChanged, engine, update_image_sources);
+    update_image_sources();
     engine->loadFromModule("Qcm.App", "Window");
 
     for (auto el : engine->rootObjects()) {
@@ -252,12 +259,10 @@ void App::setProxy(enums::ProxyType t, QString content) {
     case enums::ProxyType::ProxySocks5: scheme = QStringLiteral("socks5"); break;
     case enums::ProxyType::ProxySocks4a: scheme = QStringLiteral("socks4a"); break;
     case enums::ProxyType::ProxySocks5h: scheme = QStringLiteral("socks5h"); break;
-    default:
-        d->m_global->errorOccurred(QStringLiteral("invalid proxy type"));
-        return;
+    default: d->m_global->errorOccurred(QStringLiteral("invalid proxy type")); return;
     }
     auto text = (scheme + QStringLiteral("://") + content).toStdString();
-    auto url = lihttpto::Url::parse(rstd::cppstd::as_str(text).unwrap());
+    auto url  = lihttpto::Url::parse(rstd::cppstd::as_str(text).unwrap());
     if (url.is_err()) {
         d->m_global->errorOccurred(QStringLiteral("invalid proxy URL"));
         return;
@@ -381,7 +386,7 @@ store:
               as_mb(info.mmap),
               as_mb(info.totle_in_use),
               extra.property("pool_obj").toInt(),
-              image_response_count().load(),
+              qr_image_response_count().load(),
               print_mem_stat(mem_mgr().pool_stat),
               print_mem_stat(mem_mgr().session_mem),
               print_mem_stat(mem_mgr().backend_mem),

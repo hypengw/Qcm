@@ -8,9 +8,9 @@ import qextra.qt;
 namespace qcm
 {
 
-class QcmImageResponse;
+class QrImageResponse;
 
-export class QrAsyncImageResponse : public QcmImageResponse {
+export class QrAsyncImageResponse : public QrImageResponse {
 public:
     QQuickTextureFactory* textureFactory() const override {
         return QQuickTextureFactory::textureFactoryForImage(image);

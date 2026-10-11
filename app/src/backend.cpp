@@ -79,42 +79,42 @@ public:
         });
         m_client->set_on_disconnected_callback([this] {
             fail_pending(QStringLiteral("backend disconnected"));
+            Q_EMIT m_backend->disconnected();
         });
-        m_client->set_on_message_callback(
-            [this, cache = QByteArray {}](rstd::slice<rstd::u8> bytes, bool last) mutable {
-                auto chunk = as_byte_array_view(bytes);
-                if (! last) {
-                    cache.append(chunk);
-                    return;
-                }
+        m_client->set_on_message_callback([this, cache = QByteArray {}](rstd::slice<rstd::u8> bytes,
+                                                                        bool last) mutable {
+            auto chunk = as_byte_array_view(bytes);
+            if (! last) {
+                cache.append(chunk);
+                return;
+            }
 
-                msg::QcmMessage message;
-                if (cache.isEmpty()) {
-                    message.deserialize(m_serializer.get(), chunk);
-                } else {
-                    cache.append(chunk);
-                    message.deserialize(m_serializer.get(), cache);
-                    cache.clear();
-                }
+            msg::QcmMessage message;
+            if (cache.isEmpty()) {
+                message.deserialize(m_serializer.get(), chunk);
+            } else {
+                cache.append(chunk);
+                message.deserialize(m_serializer.get(), cache);
+                cache.clear();
+            }
 
-                if (message.type()
-                    != msg::MessageTypeGadget::MessageType::PROVIDER_SYNC_STATUS_MSG) {
-                    LOG_INFO("ws recv: {}", message.type());
-                }
+            if (message.type() != msg::MessageTypeGadget::MessageType::PROVIDER_SYNC_STATUS_MSG) {
+                LOG_INFO("ws recv: {}", message.type());
+            }
 
-                if (auto it = m_handlers.find(message.id_proto()); it != m_handlers.end()) {
-                    (void)it->second.complete(rstd::move(message));
-                    m_handlers.erase(it);
-                    return;
-                }
+            if (auto it = m_handlers.find(message.id_proto()); it != m_handlers.end()) {
+                (void)it->second.complete(rstd::move(message));
+                m_handlers.erase(it);
+                return;
+            }
 
-                (void)QMetaObject::invokeMethod(
-                    m_backend,
-                    [message = rstd::move(message)]() mutable {
-                        qcm::process_msg(rstd::move(message));
-                    },
-                    Qt::QueuedConnection);
-            });
+            (void)QMetaObject::invokeMethod(
+                m_backend,
+                [message = rstd::move(message)]() mutable {
+                    qcm::process_msg(rstd::move(message));
+                },
+                Qt::QueuedConnection);
+        });
     }
 
     void start(QString exe, QString data_dir, QString cache_dir) {
@@ -250,10 +250,9 @@ private:
 
 } // namespace detail
 
-Backend::Backend(Arc<ncrequest::Session> session)
+Backend::Backend()
     : m_thread(Box<QThread>::make()),
       m_transport(new detail::BackendTransport(this)),
-      m_session(rstd::move(session)),
       m_serial(1),
       m_port(0) {
     m_transport->moveToThread(m_thread.get());
@@ -269,6 +268,10 @@ Backend::Backend(Arc<ncrequest::Session> session)
     connect(this, &Backend::started, this, &Backend::on_started);
     connect(this, &Backend::connected, this, &Backend::on_connected);
     connect(this, &Backend::error, this, &Backend::on_error);
+    connect(this, &Backend::disconnected, this, [this] {
+        m_resource_ready = false;
+        Q_EMIT resourceStateChanged();
+    });
 }
 
 Backend::~Backend() {
@@ -305,6 +308,8 @@ auto Backend::start(QStringView exe, QStringView data_dir, QStringView cache_dir
 void Backend::on_retry() { (void)start(m_exe, m_data_dir, m_cache_dir); }
 
 void Backend::on_error(QString) {
+    m_resource_ready = false;
+    Q_EMIT resourceStateChanged();
     (void)QMetaObject::invokeMethod(
         m_transport,
         [transport = m_transport] {
@@ -314,6 +319,8 @@ void Backend::on_error(QString) {
 }
 
 void Backend::on_started(i32 port) {
+    m_resource_ready = false;
+    Q_EMIT resourceStateChanged();
     m_port   = port;
     auto url = rstd::format("ws://127.0.0.1:{}", port);
     (void)QMetaObject::invokeMethod(
@@ -325,6 +332,8 @@ void Backend::on_started(i32 port) {
 }
 
 void Backend::on_connected(i32) {
+    m_resource_ready = true;
+    Q_EMIT resourceStateChanged();
     auto message = msg::QcmMessage();
     message.setType(msg::MessageTypeGadget::MessageType::TEST_REQ);
     message.setTestReq({});
@@ -379,34 +388,16 @@ auto Backend::send(msg::QcmMessage&& message) -> task<Result<msg::QcmMessage, ms
 
 auto Backend::base() const -> std::string { return std::format("http://127.0.0.1:{}", m_port); }
 
-auto Backend::image(QStringView item_type, QStringView id, QStringView image_type)
-    -> Result<ncrequest::Request, msg::Error> {
-    auto url     = rstd::format("{}/image/{}/{}/{}", base(), item_type, id, image_type);
-    auto request = ncrequest::Request::from_url(url.as_str());
-    if (request.is_err()) {
-        auto error = rstd::move(request).unwrap_err_unchecked();
-        return Err(msg::Error {
-            .code    = -1,
-            .message = std::format("invalid image URL at byte {}", error.offset().to_primitive()),
-        });
-    }
-    return Ok(rstd::move(request).unwrap_unchecked());
+auto Backend::resource_base_url() const -> QUrl {
+    return m_resource_ready ? QUrl(QString::fromStdString(base())) : QUrl();
 }
-
-auto Backend::image(model::ItemId id, enums::ImageType image_type)
-    -> Result<ncrequest::Request, msg::Error> {
+auto Backend::cache_directory() const -> QString { return m_cache_dir; }
+auto Backend::image_url(model::ItemId id, enums::ImageType image_type) const -> QUrl {
+    if (! m_resource_ready || id.id() < 0) return {};
     auto type = id.type();
     if (type == enums::ItemType::ItemAlbumArtist) type = enums::ItemType::ItemArtist;
-    auto url     = rstd::format("{}/image/{}/{}/{}", base(), type, id.id(), image_type);
-    auto request = ncrequest::Request::from_url(url.as_str());
-    if (request.is_err()) {
-        auto error = rstd::move(request).unwrap_err_unchecked();
-        return Err(msg::Error {
-            .code    = -1,
-            .message = std::format("invalid image URL at byte {}", error.offset().to_primitive()),
-        });
-    }
-    return Ok(rstd::move(request).unwrap_unchecked());
+    return QUrl(
+        qextra::to_qstring(rstd::format("{}/image/{}/{}/{}", base(), type, id.id(), image_type)));
 }
 
 auto Backend::audio_url(model::ItemId id) -> QUrl {

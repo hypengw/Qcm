@@ -26,11 +26,12 @@ class BackendTransport;
 } // namespace detail
 class Backend : public QObject {
     Q_OBJECT
+    Q_PROPERTY(QUrl resourceBaseUrl READ resource_base_url NOTIFY resourceStateChanged FINAL)
 
     friend class detail::BackendTransport;
 
 public:
-    Backend(Arc<ncrequest::Session>);
+    Backend();
     ~Backend();
 
     auto start(QStringView exe, QStringView data_dir, QStringView cache_dir) -> bool;
@@ -39,10 +40,9 @@ public:
 
     auto send(msg::QcmMessage&& msg) -> task<Result<msg::QcmMessage, msg::Error>>;
 
-    auto image(QStringView item_type, QStringView id, QStringView image_type)
-        -> Result<ncrequest::Request, msg::Error>;
-    auto image(model::ItemId id, enums::ImageType image_type)
-        -> Result<ncrequest::Request, msg::Error>;
+    auto image_url(model::ItemId id, enums::ImageType image_type) const -> QUrl;
+    auto resource_base_url() const -> QUrl;
+    auto cache_directory() const -> QString;
     auto audio_url(model::ItemId id) -> QUrl;
 
     template<typename Req>
@@ -65,6 +65,8 @@ public:
     Q_SIGNAL void started(i32 port);
     Q_SIGNAL void connected(i32 port);
     Q_SIGNAL void error(QString);
+    Q_SIGNAL void disconnected();
+    Q_SIGNAL void resourceStateChanged();
 
     Q_SLOT void on_retry();
 
@@ -79,10 +81,9 @@ private:
     Box<QThread>              m_thread;
     detail::BackendTransport* m_transport;
 
-    Arc<ncrequest::Session> m_session;
-
     Atomic<i32> m_serial;
     i32         m_port;
+    bool        m_resource_ready { false };
     QString     m_exe;
     QString     m_data_dir;
     QString     m_cache_dir;

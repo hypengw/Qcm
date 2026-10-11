@@ -48,15 +48,18 @@ auto Util::create_route_msg(QVariantMap props) -> model::RouteMsg {
 }
 model::RouteMsg Util::routeMsg() { return {}; }
 
-auto Util::image_url(model::ItemId id, enums::ImageType image_type) -> QUrl {
-    auto type = id.type();
-    if (type == enums::ItemType::ItemAlbumArtist) type = enums::ItemType::ItemArtist;
-    return QUrl(qextra::to_qstring(
-        rstd::format("image://qcm/{}/{}/{}", type, id.id(), image_type)));
+auto Util::imageUrl(model::ItemId id, enums::ImageType image_type) -> QUrl {
+    return App::instance()->backend()->image_url(id, image_type);
 }
 
-auto Util::image_url(const QString& url) -> QUrl {
-    return QUrl(qextra::to_qstring(rstd::format("image://qcm/{}", url)));
+auto Util::imageUrl(const QString& url) -> QUrl {
+    if (url.isEmpty()) return {};
+    auto source = QUrl(url, QUrl::StrictMode);
+    if (! source.isValid() || source.isRelative()) return {};
+    const auto scheme = source.scheme();
+    return scheme == u"http"_s || scheme == u"https"_s || scheme == u"file"_s || scheme == u"qrc"_s
+               ? source
+               : QUrl();
 }
 
 auto Util::audio_url(model::ItemId id) -> QUrl { return App::instance()->backend()->audio_url(id); }
@@ -253,12 +256,8 @@ auto gen_prefix(std::string_view in) -> std::string {
 }
 
 inline std::string gen_file_name(std::string_view uniq) {
-    const auto data =
-        QByteArrayView(uniq.data(), static_cast<qsizetype>(uniq.size()));
-    return QCryptographicHash::hash(data, QCryptographicHash::Md5)
-        .toHex()
-        .toUpper()
-        .toStdString();
+    const auto data = QByteArrayView(uniq.data(), static_cast<qsizetype>(uniq.size()));
+    return QCryptographicHash::hash(data, QCryptographicHash::Md5).toHex().toUpper().toStdString();
 }
 
 } // namespace qcm

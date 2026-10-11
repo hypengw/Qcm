@@ -6,7 +6,6 @@ module;
 #include "QExtra/macro_qt.hpp"
 #include "core/log.h"
 
-
 #ifndef NODEBUS
 #    include "mpris/mpris.h"
 #    include "mpris/mediaplayer2.h"
@@ -34,6 +33,7 @@ export class App : public QObject {
     QML_ELEMENT
     QML_SINGLETON
 
+    Q_PROPERTY(qcm::Backend* backend READ backend CONSTANT FINAL)
     Q_PROPERTY(QObject* mpris READ mpris CONSTANT FINAL)
     Q_PROPERTY(bool debug READ debug CONSTANT FINAL)
     Q_PROPERTY(qcm::Global* global READ global CONSTANT FINAL)

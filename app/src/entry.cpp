@@ -12,6 +12,7 @@ module;
 
 Q_IMPORT_QML_PLUGIN(Qcm_AppPlugin)
 Q_IMPORT_QML_PLUGIN(Qcm_MsgPlugin)
+Q_IMPORT_QML_PLUGIN(QExtraPlugin)
 
 #include <kdsingleapplication.h>
 

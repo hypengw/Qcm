@@ -5,6 +5,15 @@ import Qcm.App as QA
 import Qcm.Material as MD
 
 QA.UtilCpp {
+    function image_url(value, type) {
+        const resourceBase = QA.App.backend.resourceBaseUrl;
+        if (value === null || value === undefined)
+            return "";
+        if (typeof value !== "string" && !resourceBase.toString().length)
+            return "";
+        return type === undefined ? imageUrl(value) : imageUrl(value, type);
+    }
+
     function join(arr, del) {
         return arr.filter(e => !!e).join(del);
     }

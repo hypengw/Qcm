@@ -69,7 +69,6 @@ qt.qml_module({
     "qml/component/basic/ImageCard.qml",
     "qml/component/basic/ItemView.qml",
     "qml/component/basic/Leaflet.qml",
-    "qml/component/basic/RoundImage.qml",
     "qml/component/basic/RouteMsg.qml",
     "qml/component/filter/AlbumFilter.qml",
     "qml/component/filter/AlbumTitleFilter.qml",
@@ -177,17 +176,13 @@ qt.qml_module({
     "QtQuick",
     "Qcm.Material",
     "Qcm.Msg",
+    "QExtra",
   },
   moc_files = {
     { source = "src/action.cppm", mode = "module-split", output = "Qcm/action" },
     { source = "src/app.cppm", mode = "module-split", output = "Qcm/app" },
     { source = "src/backend.cppm", mode = "module-split", output = "Qcm/backend" },
     { source = "src/global.cppm", mode = "module-split", output = "Qcm/global" },
-    {
-      source = "src/image_provider/http.cppm",
-      mode = "module-split",
-      output = "Qcm/image_provider/http",
-    },
     { source = "src/model/app_info.cppm", mode = "module-split", output = "Qcm/model/app_info" },
     {
       source = "src/model/empty_model.cppm",

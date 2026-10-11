@@ -88,11 +88,10 @@ ColumnLayout {
     Component {
         id: comp_qr_wait_comfirm
         ColumnLayout {
-            MD.Image {
+            QA.Image {
                 Layout.alignment: Qt.AlignHCenter
                 source: QA.Util.image_url(root.query.data.qrAvatarUrl)
-                sourceSize.height: 96
-                sourceSize.width: 96
+                displaySize: Qt.size(96, 96)
                 radius: height / 2
             }
             MD.Label {
