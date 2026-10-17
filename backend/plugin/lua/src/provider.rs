@@ -29,17 +29,31 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::{path::Path, sync::Arc};
 
 use crate::crypto::create_crypto_module;
-use crate::http::{new_client, LuaResponse};
+use crate::http::LuaResponse;
 use serde::{Deserialize, Serialize};
 
 struct LuaProviderInner {
     common: ProviderCommonData,
-    client: qcm_core::http::HttpClient,
-    stream_client: qcm_core::http::HttpClient,
-    jar: Arc<CookieStoreRwLock>,
+    network: std::sync::RwLock<crate::session::Network>,
+    session: crate::session::Session,
+    tasks: crate::session::Tasks,
+    generation: Arc<AtomicU64>,
 }
 
 struct LuaInner(Arc<LuaProviderInner>);
+
+async fn save_session(inner: &LuaProviderInner, lua: &Lua) -> LuaResult<&'static str> {
+    let _write = inner.session.writes.lock().await;
+    inner.session.check().map_err(LuaError::external)?;
+    let save: LuaFunction = lua.named_registry_value("qcm.provider.save")?;
+    let custom = save.call::<String>(())?;
+    let cookie = qcm_core::http::save_cookie_jar(inner.network.read().unwrap().jar.clone());
+    inner
+        .session
+        .save(inner.common.id(), custom, cookie)
+        .await
+        .map_err(LuaError::external)
+}
 
 impl LuaUserData for LuaInner {
     fn add_fields<F: LuaUserDataFields<Self>>(fields: &mut F) {
@@ -49,6 +63,37 @@ impl LuaUserData for LuaInner {
         fields.add_field_method_get("app_version", |_, _| Ok(env!("CARGO_PKG_VERSION")));
     }
     fn add_methods<M: LuaUserDataMethods<Self>>(methods: &mut M) {
+        methods.add_async_function(
+            "session_task",
+            |_, (ud, key, callback): (LuaAnyUserData, String, LuaFunction)| async move {
+                let inner = ud.borrow::<LuaInner>()?.0.clone();
+                inner.session.check().map_err(LuaError::external)?;
+                let generation = inner.generation.load(Ordering::Acquire);
+                let result = inner.tasks.run(key, callback).await?;
+                inner.session.check().map_err(LuaError::external)?;
+                if inner.generation.load(Ordering::Acquire) != generation {
+                    return Err(LuaError::external(ProviderError::NotAuth));
+                }
+                Ok(result)
+            },
+        );
+        methods.add_method("new_session_id", |_, _, _: ()| {
+            Ok(uuid::Uuid::new_v4().to_string())
+        });
+        methods.add_method("begin_session", |_, this, _: ()| {
+            this.0.session.check().map_err(LuaError::external)?;
+            let next = crate::session::Network::new().map_err(LuaError::external)?;
+            let mut network = this.0.network.write().unwrap();
+            network.invalidate();
+            *network = next;
+            this.0.tasks.cancel();
+            this.0.generation.fetch_add(1, Ordering::AcqRel);
+            Ok(())
+        });
+        methods.add_async_function("save_session", |lua, ud: LuaAnyUserData| async move {
+            let inner = ud.borrow::<LuaInner>()?.0.clone();
+            save_session(&inner, &lua).await
+        });
         methods.add_method("device_id", |_, this, _: ()| {
             Ok(this.0.common.device_id.clone())
         });
@@ -136,20 +181,13 @@ impl LuaProvider {
         capabilities: crate::plugin::Capabilities,
     ) -> Result<Self> {
         capabilities.validate()?;
-        let jar = Arc::new(CookieStoreRwLock::default());
-
         let lua = Lua::new();
-
-        let client = qcm_core::http::client_builder_with_jar(jar.clone())
-            .build()
-            .unwrap();
-        let stream_client=qcm_core::http::client_builder_with_jar(jar.clone())
-            .no_gzip().no_brotli().no_deflate().no_zstd().build()?;
         let inner = Arc::new(LuaProviderInner {
             common: ProviderCommonData::new(id, name, device_id, meta_type),
-            client: client.clone(),
-            stream_client,
-            jar: jar,
+            network: std::sync::RwLock::new(crate::session::Network::new()?),
+            session: crate::session::Session::new(),
+            tasks: Default::default(),
+            generation: Arc::new(AtomicU64::new(1)),
         });
         {
             // set package.path
@@ -181,7 +219,7 @@ impl LuaProvider {
             qcm_table.set(
                 "get_http_client",
                 lua.create_function(move |_, ()| {
-                    Ok(new_client(inner.client.clone(), inner.jar.clone()).with_stream_client(inner.stream_client.clone()))
+                    Ok(inner.network.read().unwrap().lua_client())
                 })?,
             )?;
             qcm_table.set(
@@ -203,8 +241,10 @@ impl LuaProvider {
         let func = lua.load(script_path).into_function()?;
         let provider_table = func.call::<LuaTable>(())?;
 
+        lua.set_named_registry_value("qcm.provider.resource_scope", provider_table.get::<Option<LuaFunction>>("resource_scope")?)?;
+        lua.set_named_registry_value("qcm.provider.save", provider_table.get::<LuaFunction>("save")?)?;
         let provider = Self {
-            inner,
+            inner: inner.clone(),
             funcs: LuaImpl {
                 save: provider_table
                     .get::<LuaFunction>("save")
@@ -244,7 +284,7 @@ impl LuaProvider {
                 home_block_items: provider_table.get::<LuaFunction>("home_block_items").ok(),
             },
             lua,
-            generation: Arc::new(AtomicU64::new(1)),
+            generation: inner.generation.clone(),
             capabilities,
             saved: std::sync::Mutex::new(String::new()),
         };
@@ -269,13 +309,13 @@ impl LuaProvider {
     }
 
     pub fn client(&self) -> HttpClient {
-        return self.inner.client.clone();
+        return self.inner.network.read().unwrap().client.clone();
     }
 }
 
 impl HasCookieJar for LuaProvider {
     fn jar(&self) -> Arc<CookieStoreRwLock> {
-        self.inner.jar.clone()
+        self.inner.network.read().unwrap().jar.clone()
     }
 }
 
@@ -289,9 +329,51 @@ impl HasCommonData for LuaProvider {
 impl Provider for LuaProvider {
     fn invalidate(&self) {
         self.generation.fetch_add(1, Ordering::AcqRel);
+        self.inner.session.invalidate();
+        self.inner.tasks.cancel();
+        self.inner.network.read().unwrap().invalidate();
+    }
+    async fn persist_session(&self) -> Result<(), ProviderError> {
+        if self
+            .capabilities
+            .requires
+            .iter()
+            .any(|c| c == "provider.session.v1")
+        {
+            save_session(&self.inner, &self.lua)
+                .await
+                .map_err(ProviderError::from_err)?;
+        }
+        Ok(())
+    }
+    fn session_key(&self) -> Option<String> {
+        Some(self.inner.session.key())
+    }
+    fn bind_session(&self, db: DatabaseConnection, key: String) {
+        self.inner.session.bind(db, key);
+    }
+    fn resource_scope(&self) -> Result<Option<String>, ProviderError> {
+        self.lua
+            .named_registry_value::<Option<LuaFunction>>("qcm.provider.resource_scope")
+            .and_then(|f| f.map(|f| f.call::<String>(())).transpose())
+            .map_err(ProviderError::from_err)
     }
     fn load(&self, data: &str) {
         self.generation.fetch_add(1, Ordering::AcqRel);
+        self.inner.tasks.cancel();
+        match crate::session::Network::new() {
+            Ok(next) => {
+                let mut current = self.inner.network.write().unwrap();
+                let cookies = qcm_core::http::save_cookie_jar(current.jar.clone());
+                qcm_core::http::load_cookie_jar(next.jar.clone(), &cookies);
+                current.invalidate();
+                *current = next;
+            }
+            Err(error) => {
+                log::error!("Could not restore provider HTTP session: {error}");
+                return;
+            }
+        }
         *self.saved.lock().unwrap() = data.to_owned();
         if let Err(error) = self.funcs.load.call::<()>(data.to_string()) {
             log::error!("Lua provider load failed: {error}");

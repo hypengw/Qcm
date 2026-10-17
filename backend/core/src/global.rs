@@ -95,14 +95,13 @@ pub async fn load_from_db(db: &DatabaseConnection) {
         .await
         .expect("Failed to load providers");
 
-    let mut global = GLOBAL.lock().unwrap();
     for provider_model in providers {
         let meta_type = provider_model.type_.to_ascii_lowercase();
-        if let Some(meta) = global.provider_metas.get(&meta_type) {
+        if let Some(meta) = provider_meta(&meta_type) {
             let provider = (meta.creator)(
                 Some(provider_model.provider_id),
                 &provider_model.name,
-                &global.setting.device_id,
+                &device_id(),
             );
             match provider {
                 Ok(provider) => {
@@ -116,9 +115,24 @@ pub async fn load_from_db(db: &DatabaseConnection) {
                     provider.load_auth_info(&provider_model.base_url, auth_method);
                     // TODO: not ignore
                     let _ = provider.load(&provider_model.custom);
-                    if let Some(id) = provider.id() {
-                        global.providers.insert(id, provider.clone());
+                    if let Some(key) = provider.session_key() {
+                        use sea_orm::{sea_query::Expr, ColumnTrait, EntityTrait, QueryFilter};
+                        let claimed = provider::Entity::update_many()
+                            .col_expr(provider::Column::SessionKey, Expr::value(key.clone()))
+                            .filter(provider::Column::ProviderId.eq(provider_model.provider_id))
+                            .filter(provider::Column::SessionKey.eq(provider_model.session_key))
+                            .exec(db)
+                            .await;
+                        if !matches!(claimed, Ok(result) if result.rows_affected == 1) {
+                            log::error!("Provider session ownership changed during load");
+                            continue;
+                        }
+                        provider.bind_session(db.clone(), key);
+                        if let Err(error) = provider.persist_session().await {
+                            log::error!("Provider session restore could not be persisted: {error}");
+                        }
                     }
+                    add_provider(provider);
                 }
                 Err(e) => {
                     log::error!("{}", e);

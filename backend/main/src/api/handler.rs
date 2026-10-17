@@ -112,7 +112,7 @@ pub async fn handle_request(
                     .unwrap();
                 Ok(rsp)
             }
-            Err(ProcessError::NotAuth) => Ok(Response::builder()
+            Err(ProcessError::NotAuth | ProcessError::AuthRequired { .. }) => Ok(Response::builder()
                 .status(StatusCode::UNAUTHORIZED)
                 .body(ResponseBody::Empty)
                 .unwrap()),

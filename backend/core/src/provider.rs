@@ -145,6 +145,16 @@ pub trait ProviderCommon {
 #[async_trait::async_trait]
 pub trait Provider: ProviderCommon + ProviderSession + Send + Sync {
     fn invalidate(&self) {}
+    async fn persist_session(&self) -> Result<(), ProviderError> {
+        Ok(())
+    }
+    fn session_key(&self) -> Option<String> {
+        None
+    }
+    fn bind_session(&self, _db: DatabaseConnection, _key: String) {}
+    fn resource_scope(&self) -> Result<Option<String>, ProviderError> {
+        Ok(None)
+    }
     fn load(&self, data: &str);
     fn save(&self) -> String;
 

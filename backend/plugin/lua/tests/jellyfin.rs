@@ -40,6 +40,7 @@ async fn context() -> Context {
     )
     .await
     .unwrap();
+    migration::MigrationTrait::up(&migration::m20261017_000001_provider_session::Migration, &migration::SchemaManager::new(&db)).await.unwrap();
     for (table, columns) in [
         ("album", vec!["name", "description"]),
         ("artist", vec!["name", "description"]),
@@ -63,6 +64,7 @@ async fn context() -> Context {
         base_url: Set(String::new()),
         auth_method: Set(None),
         cookie: Set(String::new()),
+        session_key: Set(String::new()),
         custom: Set(String::new()),
         edit_time: Set(chrono::Utc::now()),
     }

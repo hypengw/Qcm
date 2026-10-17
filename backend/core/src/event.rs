@@ -52,7 +52,7 @@ pub enum Event {
 fn sync_state_from_provider_error(e: &crate::error::ProviderError) -> SyncState {
     use crate::error::ProviderError;
     match e {
-        ProviderError::NotAuth => SyncState::NotAuth,
+        ProviderError::NotAuth | ProviderError::AuthRequired { .. } => SyncState::NotAuth,
         ProviderError::Request(_) => SyncState::NetworkError,
         ProviderError::Db(_) => SyncState::DBError,
         ProviderError::IO(_) => SyncState::IOError,

@@ -93,13 +93,14 @@ async fn resource_response(
             });
         }
     };
-    let scope = serde_json::to_string(&(
-        provider.type_name(),
-        provider.base_url(),
-        provider.save(),
-        provider.save_cookie(),
-        representation,
-    ))
+    let scope = match provider.resource_scope()? {
+        Some(identity) => serde_json::to_string(&(
+            provider.type_name(), provider.base_url(), identity, representation,
+        )),
+        None => serde_json::to_string(&(
+            provider.type_name(), provider.base_url(), provider.save(), provider.save_cookie(), representation,
+        )),
+    }
     .map_err(anyhow::Error::from)?;
     ctx.resource_cache
         .response(ResourceRequest {

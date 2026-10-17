@@ -14,7 +14,7 @@ pub trait HasCookieJar {
     fn jar(&self) -> Arc<CookieStoreRwLock>;
 }
 
-fn load_(jar: Arc<CookieStoreRwLock>, data: &str) {
+pub fn load_cookie_jar(jar: Arc<CookieStoreRwLock>, data: &str) {
     match cookie_store::serde::json::load_all(Cursor::new(data)) {
         Ok(loaded) => {
             let mut jar = jar.write().unwrap();
@@ -26,7 +26,7 @@ fn load_(jar: Arc<CookieStoreRwLock>, data: &str) {
         }
     }
 }
-fn save_(jar: Arc<CookieStoreRwLock>) -> String {
+pub fn save_cookie_jar(jar: Arc<CookieStoreRwLock>) -> String {
     let jar = jar.read().unwrap();
     let mut cursor = Cursor::new(Vec::new());
     cookie_store::serde::json::save_incl_expired_and_nonpersistent(&jar, &mut cursor)
@@ -37,11 +37,11 @@ fn save_(jar: Arc<CookieStoreRwLock>) -> String {
 
 impl<T: HasCookieJar> ProviderSession for T {
     fn load_cookie(&self, data: &str) {
-        load_(self.jar(), data);
+        load_cookie_jar(self.jar(), data);
     }
 
     fn save_cookie(&self) -> String {
-        save_(self.jar())
+        save_cookie_jar(self.jar())
     }
 }
 

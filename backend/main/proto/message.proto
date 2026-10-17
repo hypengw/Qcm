@@ -108,6 +108,7 @@ enum ErrorCode {
   ERROR_CODE_HYPER_BODY = 10;
   ERROR_CODE_WRONG_ID = 11;
   ERROR_CODE_PARSE_SUBTITLE = 12;
+  ERROR_CODE_NOT_AUTH = 13;
 
   ERROR_CODE_NO_SUCH_LIBRARY = 100;
   ERROR_CODE_NO_SUCH_PROVIDER = 101;
@@ -125,9 +126,15 @@ enum ErrorCode {
   ERROR_CODE_NOT_IMPLEMENTED = 211;
 }
 
+message AuthRequired {
+  string message = 1;
+  optional string jump_url = 2;
+}
+
 message Rsp {
   ErrorCode code = 1;
   string message = 2;
+  optional AuthRequired auth_required = 3;
 }
 
 message TestReq { string test_data = 1; }

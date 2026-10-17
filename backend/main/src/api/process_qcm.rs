@@ -176,7 +176,7 @@ pub async fn process_qcm(
                     // do update
                     None => {
                         provider.set_name(&req.name);
-                        crate::db::add_provider(&ctx.provider_context.db, provider).await?;
+                        crate::db::rename_provider(&ctx.provider_context.db, provider).await?;
                     }
                 }
                 let _ = ctx

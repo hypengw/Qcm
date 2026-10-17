@@ -13,6 +13,11 @@ pub enum ProcessError {
     Resource(anyhow::Error),
     #[error("Not auth")]
     NotAuth,
+    #[error("{message}")]
+    AuthRequired {
+        message: String,
+        jump_url: Option<String>,
+    },
     #[error("{0}")]
     Internal(#[from] anyhow::Error),
     #[error("Encode error: {0}")]
@@ -95,6 +100,10 @@ impl From<qcm_core::error::ProviderError> for ProcessError {
             ProviderError::Infallible(e) => ProcessError::Infallible(*e),
             ProviderError::NotFound => ProcessError::NotFound,
             ProviderError::NotAuth => ProcessError::NotAuth,
+            ProviderError::AuthRequired { message, jump_url } => ProcessError::AuthRequired {
+                message: message.clone(),
+                jump_url: jump_url.clone(),
+            },
             ProviderError::ParseSubtitle(message) => ProcessError::ParseSubtitle(message.clone()),
             _ => ProcessError::Internal(e.into()),
         }
@@ -229,5 +238,24 @@ mod tests {
         let db_err = sea_orm::error::DbErr::Custom("test".into());
         let converted: ProcessError = db_err.into();
         assert!(matches!(converted, ProcessError::Db(_)));
+    }
+    #[test]
+    fn authentication_challenge_survives_error_and_message_conversion() {
+        use crate::convert::QcmInto;
+        let source = qcm_core::error::ProviderError::WithContext {
+            context: "synthetic traceback".into(),
+            err: std::sync::Arc::new(qcm_core::error::ProviderError::AuthRequired {
+                message: "verification required".into(),
+                jump_url: Some("https://music.163.com/verify".into()),
+            }),
+        };
+        let result: crate::msg::Rsp = ProcessError::from(source).qcm_into();
+        assert_eq!(result.code, crate::msg::ErrorCode::NotAuth as i32);
+        let details = result.auth_required.unwrap();
+        assert_eq!(details.message, "verification required");
+        assert_eq!(
+            details.jump_url.as_deref(),
+            Some("https://music.163.com/verify")
+        );
     }
 }

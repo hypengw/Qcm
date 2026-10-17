@@ -12,6 +12,7 @@ pub struct Model {
     pub base_url: String,
     pub auth_method: Option<Json>,
     pub cookie: String,
+    pub session_key: String,
     pub custom: String,
     #[sea_orm(default_expr = "Expr::current_timestamp()")]
     pub edit_time: DateTimeUtc,

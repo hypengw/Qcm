@@ -24,6 +24,7 @@ async fn database() -> DatabaseConnection {
     )
     .await
     .unwrap();
+    migration::MigrationTrait::up(&migration::m20261017_000001_provider_session::Migration, &migration::SchemaManager::new(&db)).await.unwrap();
     // Exercise production FTS triggers; tokenization itself is tested by the backend.
     for (table, columns) in [
         ("album", vec!["name", "description"]),
@@ -46,6 +47,7 @@ async fn database() -> DatabaseConnection {
             base_url: Set(String::new()),
             auth_method: Set(None),
             cookie: Set(String::new()),
+        session_key: Set(String::new()),
             custom: Set(String::new()),
             edit_time: Set(chrono_now()),
         }

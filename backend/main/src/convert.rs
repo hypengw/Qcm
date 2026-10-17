@@ -505,10 +505,21 @@ impl QcmTryFrom<msg::model::ItemType> for core::model::type_enum::ItemType {
 
 impl QcmFrom<ProcessError> for msg::Rsp {
     fn qcm_from(v: ProcessError) -> Self {
+        let auth_required = match &v {
+            ProcessError::AuthRequired { message, jump_url } => Some(msg::AuthRequired {
+                message: message.clone(),
+                jump_url: jump_url.clone(),
+            }),
+            _ => None,
+        };
         Self {
+            auth_required,
             code: match v {
-                ProcessError::Internal(_) | ProcessError::Resource(_) | ProcessError::NotAuth => {
+                ProcessError::Internal(_) | ProcessError::Resource(_) => {
                     msg::ErrorCode::Internal.into()
+                }
+                ProcessError::NotAuth | ProcessError::AuthRequired { .. } => {
+                    msg::ErrorCode::NotAuth.into()
                 }
                 ProcessError::Encode(_) => msg::ErrorCode::Encode.into(),
                 ProcessError::Decode(_) => msg::ErrorCode::Decode.into(),

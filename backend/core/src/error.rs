@@ -25,6 +25,11 @@ pub enum ProviderError {
     },
     #[error("Not auth")]
     NotAuth,
+    #[error("{message}")]
+    AuthRequired {
+        message: String,
+        jump_url: Option<String>,
+    },
     #[error("Unknown base")]
     UnknownBase,
     #[error("Request error: {0}")]
