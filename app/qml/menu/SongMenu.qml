@@ -6,16 +6,13 @@ import Qcm.Msg as QM
 MD.Menu {
     id: root
 
-    property QA.item_id itemId
+    required property QA.item_id itemId
     property QA.item_id sourceId
     property bool canDelete: false
     // no aot, it's bugly
     property var song: QA.App.empty.song
-    readonly property QA.item_id _itemId: {
-        return itemId.valid ? itemId : song.itemId;
-    }
     readonly property list<var> artists: {
-        const ex = QA.Store.extra(_itemId);
+        const ex = QA.Store.extra(root.itemId);
         return ex?.artists ?? [];
     }
 
@@ -24,15 +21,15 @@ MD.Menu {
     modal: true
 
     QA.PlayAction {
-        itemId: root._itemId
+        itemId: root.itemId
     }
 
     QA.PlayNextAction {
-        itemId: root._itemId
+        itemId: root.itemId
     }
 
     QA.AddToMixAction {
-        songIds: [root._itemId]
+        songIds: [root.itemId]
     }
 
     QA.GoToAlbumAction {
@@ -46,7 +43,7 @@ MD.Menu {
         }
     }
     QA.CommentAction {
-        itemId: root._itemId
+        itemId: root.itemId
     }
 
     MD.Action {
@@ -55,7 +52,7 @@ MD.Menu {
         text: qsTr('delete')
         onTriggered:
         //m_qr_manipulate.mixId = root.sourceId;
-        //m_qr_manipulate.itemIds = [root._itemId];
+        //m_qr_manipulate.itemIds = [root.itemId];
         //m_qr_manipulate.reload();
         {}
     }
@@ -80,7 +77,7 @@ MD.Menu {
             text: qsTr('url')
             icon.name: MD.Token.icon.link
             getCopyString: function () {
-                return '';//QA.Global.server_url(root.song.itemId);
+                return '';//QA.Global.server_url(root.itemId);
             }
         }
     }
