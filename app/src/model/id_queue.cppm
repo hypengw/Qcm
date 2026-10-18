@@ -125,7 +125,6 @@ private:
     qint64                              m_queue_id;
     QObject*                            m_query;
     QObject*                            m_open_query;
-    qint32                              m_last_idx { -1 };
     bool                                m_auto_removing { false };
     bool                                m_configuring { false };
     bool                                m_can_restart;

@@ -290,16 +290,13 @@ void DynamicIdQueue::configure(const QString& key, const QString& value) {
 
 void DynamicIdQueue::on_current_index_changed(qint32 idx) {
     if (m_auto_removing) return;
+    if (idx > 1 && idx < rowCount()) {
+        m_auto_removing = true;
+        removeRows(0, idx - 1);
+        m_auto_removing = false;
+    }
     m_suppress_prefetch = false;
     on_request_next();
-    if (idx > m_last_idx && idx >= 2) {
-        m_auto_removing = true;
-        removeRows(idx - 2, 1);
-        m_auto_removing = false;
-        m_last_idx      = idx - 1;
-    } else {
-        m_last_idx = idx;
-    }
 }
 
 void DynamicIdQueue::on_request_next() {
@@ -365,7 +362,6 @@ void DynamicIdQueue::on_open_finished() {
         ids.emplace_back(enums::ItemType::ItemSong, song.id_proto());
     insert(0, ids);
     setCurrentIndex(0);
-    m_last_idx      = 0;
     m_auto_removing = false;
     sessionChanged();
     configurationChanged();

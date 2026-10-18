@@ -492,9 +492,9 @@ impl Provider for LuaProvider {
             return Ok(());
         }
         if let Some(id) = self.id() {
-            let _write = ctx.sync_coordinator.write(id, None).await?;
+            let write = ctx.sync_coordinator.write(id, None).await?;
             let txn = ctx.db.begin().await?;
-            db::sync::sync_drop_before(&txn, id, now).await?;
+            db::sync::sync_drop_before(&txn, id, now, &write.retained_items()).await?;
             txn.commit().await?;
         }
         Ok(())

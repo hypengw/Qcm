@@ -11,6 +11,7 @@ pub async fn sync_drop_before(
     txn: &DatabaseTransaction,
     provider_id: i64,
     now: DateTimeUtc,
+    retained: &std::collections::HashSet<i64>,
 ) -> Result<(), sea_orm::DbErr> {
     use sea_query::{CommonTableExpression, Expr, Query, WithClause};
 
@@ -58,6 +59,10 @@ pub async fn sync_drop_before(
                         ))
                         .lt(now_ts),
                     )
+                    .cond_where(Condition::any()
+                        .add(Expr::col((sqlm::rel_album_artist::Entity, sqlm::rel_album_artist::Column::AlbumId))
+                            .is_not_in(retained.iter().copied()))
+                        .add(Expr::col((sqlm::item::Entity, sqlm::item::Column::LastSyncAt)).gte(now_ts)))
                     .to_owned(),
             )
             .columns([sqlm::rel_album_artist::Column::AlbumId])
@@ -122,6 +127,10 @@ pub async fn sync_drop_before(
                         ))
                         .lt(now_ts),
                     )
+                    .cond_where(Condition::any()
+                        .add(Expr::col((sqlm::rel_song_artist::Entity, sqlm::rel_song_artist::Column::SongId))
+                            .is_not_in(retained.iter().copied()))
+                        .add(Expr::col((sqlm::item::Entity, sqlm::item::Column::LastSyncAt)).gte(now_ts)))
                     .to_owned(),
             )
             .columns([sqlm::rel_song_artist::Column::SongId])
@@ -161,6 +170,7 @@ pub async fn sync_drop_before(
     sqlm::item::Entity::delete_many()
         .filter(sqlm::item::Column::LastSyncAt.lt(now_ts))
         .filter(sqlm::item::Column::ProviderId.eq(provider_id))
+        .filter(sqlm::item::Column::Id.is_not_in(retained.iter().copied()))
         .exec(txn)
         .await?;
 

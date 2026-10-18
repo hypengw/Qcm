@@ -1,4 +1,5 @@
 use qcm_core::{
+    db::retention::ItemRetention,
     error::ProviderError,
     provider::{Context, Provider, QueueBatch, QueueNextRequest, QueueOpenRequest},
 };
@@ -58,6 +59,7 @@ struct Session {
     closed: AtomicBool,
     touched: Mutex<Instant>,
     data: AsyncMutex<Page>,
+    items: Mutex<Option<ItemRetention>>,
 }
 
 struct Operation {
@@ -261,8 +263,15 @@ impl RadioSessions {
                         closed: AtomicBool::new(false),
                         touched: Mutex::new(Instant::now()),
                         data: AsyncMutex::new(page.clone()),
+                        items: Mutex::new(None),
                     });
-                    let validation = validate_batch(&page.batch, true);
+                    let validation = async {
+                        validate_batch(&page.batch, true)?;
+                        let items = retain_batch(&ctx, &session.target, &page.batch, vec![]).await?;
+                        *session.items.lock().unwrap() = Some(items);
+                        Ok::<_, RadioError>(())
+                    }
+                    .await;
                     let inserted = {
                         let mut sessions = owner.sessions.lock().unwrap();
                         if validation.is_ok()
@@ -329,6 +338,15 @@ impl RadioSessions {
                     if page.batch.exhausted {
                         return Err(RadioError::Invalid("Radio has ended".into()));
                     }
+                    let retained = session.items.lock().unwrap().as_ref().map(|items| {
+                        items.roots().iter()
+                            .filter(|item| {
+                                item.r#type == qcm_core::model::type_enum::ItemType::Song
+                                    && current_native_ids.contains(&item.native_id)
+                            })
+                            .map(|item| item.id)
+                            .collect()
+                    }).unwrap_or_default();
                     let batch = target
                         .provider
                         .next_queue(
@@ -350,6 +368,12 @@ impl RadioSessions {
                             "Radio configuration changed during continuation".into(),
                         ));
                     }
+                    let items = retain_batch(&ctx, &target, &batch, retained).await?;
+                    if !owner.valid(&session) {
+                        page.batch.state = batch.state;
+                        return Err(RadioError::Expired);
+                    }
+                    *session.items.lock().unwrap() = Some(items);
                     page.version += 1;
                     page.batch = batch;
                     Ok(page.clone())
@@ -376,6 +400,7 @@ impl RadioSessions {
                 Ok(Ok(())) => (),
                 result => log::warn!("Radio cleanup failed: {result:?}"),
             }
+            session.items.lock().unwrap().take();
         }
     }
 
@@ -430,6 +455,20 @@ impl RadioSessions {
         self.stopped.store(true, Ordering::Release);
         self.collect(ctx).await;
     }
+}
+
+async fn retain_batch(
+    ctx: &Context,
+    target: &Target,
+    batch: &QueueBatch,
+    mut ids: Vec<i64>,
+) -> Result<ItemRetention, RadioError> {
+    ids.extend(batch.songs.iter().map(|song| song.id));
+    ids.extend(batch.presentation.source_item_id);
+    let provider = target.provider.id().ok_or(RadioError::Expired)?;
+    ctx.sync_coordinator.retain_items(&ctx.db, provider, ids).await
+        .map_err(ProviderError::from)
+        .map_err(RadioError::from)
 }
 
 fn check_operation_id(id: &str) -> Result<(), RadioError> {

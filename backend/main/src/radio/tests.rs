@@ -9,6 +9,7 @@ use qcm_core::{
 };
 use std::sync::atomic::AtomicU64;
 use tokio::sync::Semaphore;
+mod sync_tests;
 
 struct TestProvider {
     common: ProviderCommonData,
@@ -18,6 +19,8 @@ struct TestProvider {
     fail: AtomicBool,
     closed: Mutex<Vec<String>>,
     songs: Mutex<Vec<i64>>,
+    source: Mutex<Option<i64>>,
+    media: Mutex<Option<String>>,
     entered: Semaphore,
     gate: Semaphore,
     delay: AtomicBool,
@@ -31,6 +34,8 @@ impl Default for TestProvider {
             nexts: AtomicU64::new(0),
             fail: AtomicBool::new(false),
             songs: Mutex::new(vec![7]),
+            source: Mutex::new(None),
+            media: Mutex::new(None),
             closed: Mutex::new(vec![]),
             entered: Semaphore::new(0),
             gate: Semaphore::new(0),
@@ -53,6 +58,19 @@ fn batch(state: &str) -> QueueBatch {
     QueueBatch { state: state.into(), songs: vec![serde_json::from_value(serde_json::json!({
         "id": 7, "name": "song", "album_id": null, "track_number": 1, "disc_number": 1, "duration": 1000,
     })).unwrap()], ..Default::default() }
+}
+impl TestProvider {
+    fn recommendation(&self, state: &str) -> QueueBatch {
+        let mut result = batch(state);
+        result.presentation.source_item_id = *self.source.lock().unwrap();
+        let song = result.songs[0].clone();
+        result.songs = self.songs.lock().unwrap().iter().map(|id| {
+            let mut song = song.clone();
+            song.id = *id;
+            song
+        }).collect();
+        result
+    }
 }
 #[async_trait::async_trait]
 impl Provider for TestProvider {
@@ -87,19 +105,21 @@ impl Provider for TestProvider {
     async fn image(
         &self,
         _: &Context,
-        _: &str,
-        _: Option<&str>,
+        item: &str,
+        image: Option<&str>,
         _: ImageType,
     ) -> Result<reqwest::Response, ProviderError> {
-        Err(ProviderError::NotImplemented)
+        let base = self.media.lock().unwrap().clone().ok_or(ProviderError::NotImplemented)?;
+        Ok(reqwest::get(format!("{base}/image/{item}/{}", image.unwrap_or_default())).await?)
     }
     async fn audio(
         &self,
         _: &Context,
-        _: &str,
+        item: &str,
         _: Option<qcm_core::http::HeaderMap>,
     ) -> Result<reqwest::Response, ProviderError> {
-        Err(ProviderError::NotImplemented)
+        let base = self.media.lock().unwrap().clone().ok_or(ProviderError::NotImplemented)?;
+        Ok(reqwest::get(format!("{base}/audio/{item}")).await?)
     }
     async fn subtitle(&self, _: &str) -> Result<Subtitle, ProviderError> {
         Err(ProviderError::NotImplemented)
@@ -118,23 +138,12 @@ impl Provider for TestProvider {
         if req.configuration.contains_key("fail") {
             return Err(ProviderError::NotFound);
         }
-        let mut result = batch(req.previous_state.as_deref().unwrap_or("0"));
+        let mut result = self.recommendation(req.previous_state.as_deref().unwrap_or("0"));
         if let Some(input) = req.input {
             assert_eq!(input.native_id, "native-9");
             assert_eq!(input.item_type, ItemType::Song);
             result.presentation.source_item_id = Some(9);
         }
-        result.songs = self
-            .songs
-            .lock()
-            .unwrap()
-            .iter()
-            .map(|id| {
-                let mut song = result.songs[0].clone();
-                song.id = *id;
-                song
-            })
-            .collect();
         Ok(result)
     }
     async fn next_queue(
@@ -151,7 +160,7 @@ impl Provider for TestProvider {
         if self.fail.swap(false, Ordering::AcqRel) {
             return Err(ProviderError::NotFound);
         }
-        Ok(batch(&(req.state.parse::<u32>().unwrap() + 1).to_string()))
+        Ok(self.recommendation(&(req.state.parse::<u32>().unwrap() + 1).to_string()))
     }
     async fn close_queue(&self, _: &Context, _: &str, state: &str) -> Result<(), ProviderError> {
         self.closed.lock().unwrap().push(state.into());
@@ -169,11 +178,42 @@ fn operation_id() -> String {
     )
 }
 async fn setup() -> (Arc<RadioSessions>, Arc<Context>, Target, Arc<TestProvider>) {
+    setup_provider(1).await
+}
+async fn setup_provider(provider_id: i64) -> (Arc<RadioSessions>, Arc<Context>, Target, Arc<TestProvider>) {
+    use qcm_core::{model as m, provider::ProviderCommon};
+    use sea_orm::{ConnectionTrait, EntityTrait, IntoActiveModel, Schema};
     let owner = Arc::new(RadioSessions {
         validate_provider: Arc::new(|_| true),
         ..Default::default()
     });
     let db = sea_orm::Database::connect("sqlite::memory:").await.unwrap();
+    db.execute_unprepared("PRAGMA foreign_keys=OFF").await.unwrap();
+    let schema = Schema::new(db.get_database_backend());
+    for statement in [
+        schema.create_table_from_entity(m::item::Entity),
+        schema.create_table_from_entity(m::song::Entity),
+        schema.create_table_from_entity(m::artist::Entity),
+        schema.create_table_from_entity(m::album::Entity),
+        schema.create_table_from_entity(m::dynamic::Entity),
+        schema.create_table_from_entity(m::rel_song_artist::Entity),
+        schema.create_table_from_entity(m::rel_album_artist::Entity),
+    ] {
+        db.execute(db.get_database_backend().build(&statement)).await.unwrap();
+    }
+    for (id, item_type) in [(5, ItemType::Radio), (7, ItemType::Song),
+        (9, ItemType::Song), (11, ItemType::Song)] {
+        let model: m::item::Model = serde_json::from_value(serde_json::json!({
+            "id":id,"native_id":format!("native-{id}"),"provider_id":if id == 11 {provider_id+1} else {provider_id},
+            "library_id":null,"type":item_type,
+        })).unwrap();
+        m::item::Entity::insert(model.into_active_model()).exec(&db).await.unwrap();
+    }
+    for id in [7, 9] {
+        let mut song = batch("private").songs.remove(0);
+        song.id = id;
+        m::song::Entity::insert(song.into_active_model()).exec(&db).await.unwrap();
+    }
     let (ev_sender, _) = tokio::sync::mpsc::channel(1);
     let ctx = Arc::new(Context {
         db: db.clone(),
@@ -182,6 +222,7 @@ async fn setup() -> (Arc<RadioSessions>, Arc<Context>, Target, Arc<TestProvider>
         sync_coordinator: Default::default(),
     });
     let provider = Arc::new(TestProvider::default());
+    provider.set_id(Some(provider_id));
     let target = Target {
         queue_id: 5,
         native_id: "radio".into(),
@@ -473,53 +514,11 @@ fn expired_operation_cannot_start_a_new_recommendation() {
 async fn protobuf_dispatch_keeps_song_order_and_private_state_on_backend() {
     use crate::{event::ServiceContext, msg, task::TaskManager};
     use prost::Message;
-    use qcm_core::{model as sqlm, provider::ProviderCommon};
-    use sea_orm::{ConnectionTrait, EntityTrait, IntoActiveModel, Schema};
-    let (_, ctx, mut target, provider) = setup().await;
     let provider_id = 872146;
-    provider.set_id(Some(provider_id));
+    let (_, ctx, mut target, provider) = setup_provider(provider_id).await;
     *provider.songs.lock().unwrap() = vec![9, 7, 9];
     target.queue_id = 5;
     qcm_core::global::add_provider(provider.clone());
-    let db = &ctx.db;
-    db.execute_unprepared("PRAGMA foreign_keys=OFF")
-        .await
-        .unwrap();
-    let schema = Schema::new(db.get_database_backend());
-    for statement in [
-        schema.create_table_from_entity(sqlm::item::Entity),
-        schema.create_table_from_entity(sqlm::song::Entity),
-        schema.create_table_from_entity(sqlm::artist::Entity),
-        schema.create_table_from_entity(sqlm::album::Entity),
-        schema.create_table_from_entity(sqlm::dynamic::Entity),
-        schema.create_table_from_entity(sqlm::rel_song_artist::Entity),
-    ] {
-        db.execute(db.get_database_backend().build(&statement))
-            .await
-            .unwrap();
-    }
-    for (id, item_type) in [
-        (5, ItemType::Radio),
-        (7, ItemType::Song),
-        (9, ItemType::Song),
-        (11, ItemType::Song),
-    ] {
-        let model: sqlm::item::Model = serde_json::from_value(serde_json::json!({
-            "id": id, "native_id": format!("native-{id}"), "provider_id": if id == 11 { provider_id + 1 } else { provider_id }, "library_id": null, "type": item_type,
-        })).unwrap();
-        sqlm::item::Entity::insert(model.into_active_model())
-            .exec(db)
-            .await
-            .unwrap();
-    }
-    for id in [7, 9] {
-        let mut song = batch("private").songs.remove(0);
-        song.id = id;
-        sqlm::song::Entity::insert(song.into_active_model())
-            .exec(db)
-            .await
-            .unwrap();
-    }
     let directory = std::env::temp_dir().join(format!("qcm-radio-{}", uuid::Uuid::new_v4()));
     let cache = crate::resource_cache::ResourceCache::open(directory.clone())
         .await

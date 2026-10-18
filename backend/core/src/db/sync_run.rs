@@ -16,14 +16,15 @@ fn error(message: &str) -> DbErr {
 }
 const MAX_SEEN: usize = 200_000;
 #[derive(Debug, Default)]
-struct WriteState {
+pub(super) struct WriteState {
     revision: u64,
     favorites: HashMap<i64, u64>,
     favorite_overflow: u64,
 }
 #[derive(Debug, Default)]
-struct ProviderState {
-    writes: Arc<AsyncMutex<WriteState>>,
+pub(super) struct ProviderState {
+    pub(super) writes: Arc<AsyncMutex<WriteState>>,
+    pub(super) retained: Arc<super::retention::RetainedItems>,
     active: AtomicU64,
     sequence: AtomicU64,
 }
@@ -32,7 +33,7 @@ pub struct SyncCoordinator {
     providers: Mutex<HashMap<i64, Arc<ProviderState>>>,
 }
 impl SyncCoordinator {
-    fn state(&self, provider: i64) -> Arc<ProviderState> {
+    pub(super) fn state(&self, provider: i64) -> Arc<ProviderState> {
         self.providers
             .lock()
             .unwrap()
@@ -128,6 +129,9 @@ pub struct WriteGuard {
     state: Arc<ProviderState>,
 }
 impl WriteGuard {
+    pub fn retained_items(&self) -> HashSet<i64> {
+        self.state.retained.0.lock().unwrap().keys().copied().collect()
+    }
     pub fn invalidate_sync(&self) {
         self.state.active.store(0, Ordering::Release);
     }
@@ -409,9 +413,13 @@ impl SyncRun {
             self.failed = true;
             return Err(error("prune candidate limit exceeded"));
         }
+        let retained = guard.retained_items();
         for item in candidates {
             let scope = SyncScope::new(item.library_id, item.r#type);
-            if self.scopes.contains(&scope) && !self.seen.contains(&item.id) {
+            if self.scopes.contains(&scope)
+                && !self.seen.contains(&item.id)
+                && !retained.contains(&item.id)
+            {
                 if matches!(item.r#type, ItemType::Mix | ItemType::Radio) {
                     m::mix::Entity::delete_many()
                         .filter(m::mix::Column::RemoteId.eq(item.id))

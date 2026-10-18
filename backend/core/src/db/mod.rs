@@ -1,5 +1,6 @@
 pub mod basic;
 pub mod fts;
+pub mod retention;
 pub mod size;
 pub mod sync;
 pub mod sync_batch;
