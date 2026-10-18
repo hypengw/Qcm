@@ -5,6 +5,11 @@ import Qcm.App as QA
 QA.CardOverlay {
     id: root
     property QA.item_id itemId
+    property MD.Action playAction: QA.PlayAction {
+        itemId: root.itemId
+        icon.name: MD.Token.icon.play_arrow
+        checked: true
+    }
     property bool smallButton: false
     property int buttonAlignment: Qt.AlignCenter
 
@@ -16,11 +21,7 @@ QA.CardOverlay {
             : root.buttonAlignment & Qt.AlignLeft ? 8 : (parent.width - width) / 2
         y: root.buttonAlignment & Qt.AlignBottom ? parent.height - height - 8
             : root.buttonAlignment & Qt.AlignTop ? 8 : (parent.height - height) / 2
-        action: QA.PlayAction {
-            itemId: root.itemId
-            icon.name: MD.Token.icon.play_arrow
-            checked: true
-        }
+        action: root.playAction
         icon.width: root.smallButton ? 20 : 30
         icon.height: root.smallButton ? 20 : 30
         padding: root.smallButton ? 4 : 14

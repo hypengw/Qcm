@@ -53,6 +53,8 @@ pub struct Global {
     pub provider_metas: BTreeMap<String, ProviderMeta>,
     pub providers: BTreeMap<i64, Arc<dyn Provider>>,
     pub tmp_providers: BTreeMap<String, TmpProvider>,
+    provider_stamps: BTreeMap<i64, (u64, u64)>,
+    next_provider_stamp: u64,
     playing: BTreeMap<i64, PlayingInfo>,
     setting: Setting,
 }
@@ -64,6 +66,8 @@ impl Global {
             provider_metas: BTreeMap::new(),
             providers: BTreeMap::new(),
             tmp_providers: BTreeMap::new(),
+            provider_stamps: BTreeMap::new(),
+            next_provider_stamp: 0,
             playing: BTreeMap::new(),
             setting: Setting::new(),
         }
@@ -203,6 +207,18 @@ pub fn provider(id: i64) -> Option<Arc<dyn Provider>> {
     return g.providers.get(&id).map(|p| p.clone());
 }
 
+pub fn provider_snapshot(id: i64) -> Option<(Arc<dyn Provider>, u64)> {
+    let mut g = GLOBAL.lock().unwrap();
+    let provider = g.providers.get(&id)?.clone();
+    let epoch = provider.lifecycle_epoch();
+    if !g.provider_stamps.get(&id).is_some_and(|(known, _)| *known == epoch) {
+        g.next_provider_stamp = g.next_provider_stamp.checked_add(1).expect("provider stamp exhausted");
+        let stamp = g.next_provider_stamp;
+        g.provider_stamps.insert(id, (epoch, stamp));
+    }
+    Some((provider, g.provider_stamps[&id].1))
+}
+
 pub fn providers() -> Vec<Arc<dyn Provider>> {
     let g = GLOBAL.lock().unwrap();
     return g
@@ -214,12 +230,14 @@ pub fn providers() -> Vec<Arc<dyn Provider>> {
 
 pub fn add_provider(p: Arc<dyn Provider>) {
     let mut g = GLOBAL.lock().unwrap();
+    g.provider_stamps.remove(&p.id().unwrap());
     if let Some(old) = g.providers.insert(p.id().unwrap(), p) {
         old.invalidate();
     }
 }
 pub fn remove_provider(id: i64) {
     let mut g = GLOBAL.lock().unwrap();
+    g.provider_stamps.remove(&id);
     if let Some(old) = g.providers.remove(&id) {
         old.invalidate();
     }

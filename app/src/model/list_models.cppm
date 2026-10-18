@@ -99,6 +99,16 @@ public:
     MixListModel(QObject* parent = nullptr);
 };
 
+class ForYouListModel : public kstore::QGadgetListModel,
+    public kstore::QMetaListModelCRTP<model::ForYouCard, ForYouListModel, kstore::ListStoreType::VectorWithMap> {
+    Q_OBJECT
+    QML_ANONYMOUS
+public:
+    ForYouListModel(QObject* parent = nullptr);
+    auto data(const QModelIndex&, int role = 0) const -> QVariant override;
+    auto roleNames() const -> QHash<int, QByteArray> override;
+};
+
 class RadioQueueListModel : public ItemIdListModel,
                             public kstore::QMetaListModelCRTP<model::RadioQueue, RadioQueueListModel, kstore::ListStoreType::Vector> {
     Q_OBJECT

@@ -74,6 +74,7 @@ public:
     Q_INVOKABLE QString  svg(const model::ItemId&) const;
 
     Q_SIGNAL void syncingChanged(bool);
+    Q_SIGNAL void providerSyncFinished(qint64);
     Q_SIGNAL void libraryStatusChanged();
     Q_SIGNAL void activedChanged(i64, bool);
     Q_SIGNAL void activedIdsChanged();

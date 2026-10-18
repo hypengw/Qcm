@@ -95,6 +95,8 @@ enum MessageType {
   GET_HOME_BLOCKS_RSP = 601;
   GET_HOME_BLOCK_ITEMS_REQ = 602;
   GET_HOME_BLOCK_ITEMS_RSP = 603;
+  GET_HOME_RECOMMENDATIONS_REQ = 604;
+  GET_HOME_RECOMMENDATIONS_RSP = 605;
 }
 
 enum ErrorCode {
@@ -502,6 +504,9 @@ message UpdateMixReq {
 
 message SyncItemReq { int64 id = 1; }
 
+message GetHomeRecommendationsReq { repeated int64 provider_ids = 1; }
+message GetHomeRecommendationsRsp { repeated qcm.msg.model.HomeRecommendation providers = 1; }
+
 message GetHomeBlocksReq { int64 provider_id = 1; }
 message GetHomeBlocksRsp { repeated qcm.msg.model.HomeBlock blocks = 1; }
 
@@ -612,5 +617,7 @@ message QcmMessage {
     GetHomeBlocksRsp get_home_blocks_rsp = 601;
     GetHomeBlockItemsReq get_home_block_items_req = 602;
     GetHomeBlockItemsRsp get_home_block_items_rsp = 603;
+    GetHomeRecommendationsReq get_home_recommendations_req = 604;
+    GetHomeRecommendationsRsp get_home_recommendations_rsp = 605;
   }
 }

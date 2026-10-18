@@ -241,8 +241,30 @@ void DynamicIdQueue::close(const QString& id) {
     App::instance()->backend()->send_immediate(std::move(message));
 }
 
+void DynamicIdQueue::invalidateSession() {
+    restarting();
+    static_cast<QueueNextQuery*>(m_query)->reset();
+    static_cast<QueueNextQuery*>(m_open_query)->reset();
+    close(m_session.id_proto());
+    m_auto_removing = true;
+    m_session = {};
+    m_session_expired = false;
+    m_configuring = false;
+    m_suppress_prefetch = false;
+    if (rowCount()) removeRows(0, rowCount());
+    setCurrentIndex(-1);
+    m_auto_removing = false;
+    sessionChanged();
+    configuringChanged();
+}
+
 void DynamicIdQueue::ensureStarted() {
-    if (! m_session.id_proto().isEmpty() || m_configuring) return;
+    if (m_configuring) return;
+    if (m_session_expired) {
+        open(msg::QueueOpenReasonGadget::QueueOpenReason::QUEUE_OPEN_REASON_INITIAL, values());
+        return;
+    }
+    if (!m_session.id_proto().isEmpty()) return;
     auto query = static_cast<QueueNextQuery*>(m_open_query);
     if (query->transportFailure()) {
         m_configuring = true;

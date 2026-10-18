@@ -246,10 +246,22 @@ impl<'a> ProviderWriter<'a> {
         item: &ItemRef,
         expected: &[ItemType],
     ) -> Result<m::item::Model, DbErr> {
+        self.resolve_optional(txn, item, expected).await?
+            .ok_or_else(|| invalid(format!("missing item reference: {item:?}")))
+    }
+    pub async fn resolve_optional(
+        &self,
+        txn: &DatabaseTransaction,
+        item: &ItemRef,
+        expected: &[ItemType],
+    ) -> Result<Option<m::item::Model>, DbErr> {
         let model = match item {
             ItemRef::Id(id) => m::item::Entity::find_by_id(*id).one(txn).await?,
             ItemRef::Key(key) => {
-                let library = self.library(txn, key).await?;
+                if !expected.is_empty() && !expected.contains(&key.r#type) {
+                    return Err(invalid("item reference has wrong type"));
+                }
+                let Some(library) = self.library_optional(txn, key).await? else { return Ok(None) };
                 let mut query = m::item::Entity::find()
                     .filter(m::item::Column::ProviderId.eq(self.provider_id))
                     .filter(m::item::Column::NativeId.eq(&key.native_id))
@@ -266,14 +278,14 @@ impl<'a> ProviderWriter<'a> {
                 }
                 found
             }
-        }
-        .ok_or_else(|| invalid(format!("missing item reference: {item:?}")))?;
+        };
+        let Some(model) = model else { return Ok(None) };
         if model.provider_id != self.provider_id
             || (!expected.is_empty() && !expected.contains(&model.r#type))
         {
             return Err(invalid("item reference has wrong provider or type"));
         }
-        Ok(model)
+        Ok(Some(model))
     }
     pub async fn resolve_unique(
         &self,
@@ -296,21 +308,23 @@ impl<'a> ProviderWriter<'a> {
         }
         Ok(matches.remove(0))
     }
-    pub async fn validate_library(&self, txn: &DatabaseTransaction, id: i64) -> Result<(), DbErr> {
-        let library = m::library::Entity::find_by_id(id)
-            .one(txn)
-            .await?
-            .ok_or_else(|| invalid("missing library"))?;
+    async fn owns_library(&self, txn: &DatabaseTransaction, id: i64) -> Result<bool, DbErr> {
+        let Some(library) = m::library::Entity::find_by_id(id).one(txn).await? else {
+            return Ok(false);
+        };
         if library.provider_id != self.provider_id {
             return Err(invalid("library belongs to another provider"));
         }
+        Ok(true)
+    }
+    pub async fn validate_library(&self, txn: &DatabaseTransaction, id: i64) -> Result<(), DbErr> {
+        if !self.owns_library(txn, id).await? { return Err(invalid("missing library")); }
         Ok(())
     }
-    async fn library(
-        &self,
-        txn: &DatabaseTransaction,
-        key: &ItemKey,
-    ) -> Result<Option<i64>, DbErr> {
+    async fn library(&self, txn: &DatabaseTransaction, key: &ItemKey) -> Result<Option<i64>, DbErr> {
+        self.library_optional(txn, key).await?.ok_or_else(|| invalid("missing library"))
+    }
+    async fn library_optional(&self, txn: &DatabaseTransaction, key: &ItemKey) -> Result<Option<Option<i64>>, DbErr> {
         if key.native_id.is_empty() || key.native_id.len() > 4096 {
             return Err(invalid("invalid native_id"));
         }
@@ -318,11 +332,11 @@ impl<'a> ProviderWriter<'a> {
             return Err(invalid("library_id is required; use null for global items"));
         };
         if let Some(id) = library {
-            self.validate_library(txn, id).await?;
+            if !self.owns_library(txn, id).await? { return Ok(None); }
         } else if !matches!(key.r#type, ItemType::Mix | ItemType::Radio) {
             return Err(invalid("only mixes and radio queues may be global"));
         }
-        Ok(library)
+        Ok(Some(library))
     }
     async fn allocate(
         &self,

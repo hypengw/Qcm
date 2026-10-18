@@ -9,7 +9,7 @@ use qcm_core::db::{self, DbChunkOper};
 use qcm_core::event::{SyncCommit, SyncState};
 use qcm_core::model as sqlm;
 use qcm_core::provider::{
-    AuthResult, HasCommonData, HomeBlock, HomeBlockContent, ProviderCommon, ProviderCommonData,
+    AuthResult, ForYouEntry, HasCommonData, HomeBlock, HomeBlockContent, ProviderCommon, ProviderCommonData,
     QrInfo, QueueBatch, QueueConfigField, QueueDefinition, QueueNextRequest, QueueOpenRequest,
 };
 use qcm_core::{
@@ -120,6 +120,7 @@ struct LuaImpl {
     prepare_image: Option<LuaFunction>,
     prepare_audio: Option<LuaFunction>,
     subtitle: LuaFunction,
+    for_you_items: Option<LuaFunction>,
     home_blocks: Option<LuaFunction>,
     home_block_items: Option<LuaFunction>,
 }
@@ -316,6 +317,7 @@ impl LuaProvider {
                 subtitle: provider_table
                     .get::<LuaFunction>("subtitle")
                     .map_err(|_| anyhow!("subtitle func not found"))?,
+                for_you_items: provider_table.get("for_you_items")?,
                 home_blocks: provider_table.get::<LuaFunction>("home_blocks").ok(),
                 home_block_items: provider_table.get::<LuaFunction>("home_block_items").ok(),
             },
@@ -770,6 +772,13 @@ impl Provider for LuaProvider {
         } else {
             Err(ProviderError::NotFound)
         }
+    }
+
+    async fn for_you_items(&self, ctx: &Context) -> Result<Vec<ForYouEntry>, ProviderError> {
+        let func = self.funcs.for_you_items.as_ref().ok_or(ProviderError::NotImplemented)?;
+        let (call, _guard) = self.context(ctx, None);
+        let val = func.call_async::<LuaValue>(call).await.map_err(ProviderError::from_err)?;
+        self.lua.from_value(val).map_err(ProviderError::from_err)
     }
 
     async fn home_blocks(&self, ctx: &Context) -> Result<Vec<HomeBlock>, ProviderError> {

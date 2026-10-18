@@ -92,6 +92,9 @@ qt.qml_module({
     "qml/component/misc/CardOverlay.qml",
     "qml/component/misc/CardPlayOverlay.qml",
     "qml/component/misc/ImagePlayCard.qml",
+    "qml/component/misc/RecommendationCard.qml",
+    "qml/component/misc/ForYouCard.qml",
+    "qml/component/misc/RadioQueueCard.qml",
     "qml/component/misc/ListDescription.qml",
     "qml/component/misc/ListenIcon.qml",
     "qml/component/misc/OrderChip.qml",
@@ -261,6 +264,7 @@ qt.qml_module({
       output = "Qcm/query/lyric_query",
     },
     { source = "src/query/mix_query.cppm", mode = "module-split", output = "Qcm/query/mix_query" },
+    { source = "src/query/home_query.cppm", mode = "module-split", output = "Qcm/query/home_query" },
     {
       source = "src/query/play_query.cppm",
       mode = "module-split",

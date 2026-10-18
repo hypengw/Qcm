@@ -222,6 +222,7 @@ async fn send_provider_status(
             .map(|p| {
                 let mut status = ProviderStatus::default();
                 status.id = p.id().unwrap_or(-1);
+                status.epoch = global::provider_snapshot(status.id).map_or(0, |(_, epoch)| epoch);
                 status.name = p.name();
                 status.type_name = p.type_name().to_string();
                 status.auth_info = Some(AuthInfo {

@@ -5,12 +5,14 @@ import Qcm.App as QA
 QA.ImageCard {
     id: root
 
+    property alias playAction: m_overlay.playAction
     property alias itemId: m_overlay.itemId
     property alias smallPlayButton: m_overlay.smallButton
     property alias playButtonAlignment: m_overlay.buttonAlignment
 
     QA.CardPlayOverlay {
         id: m_overlay
+        visible: root.playAction !== null
         height: root.picWidth
         width: root.picWidth
         corners: MD.Util.corners(root.mdState.radius)

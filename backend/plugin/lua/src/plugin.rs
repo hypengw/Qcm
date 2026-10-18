@@ -19,6 +19,7 @@ pub const CAPABILITIES: &[&str] = &[
     "provider.session.v1",
     "radio.configuration.v1",
     "radio.lifecycle.v1",
+    "home.for_you.v1",
 ];
 #[derive(Clone, Default, Deserialize, Serialize)]
 pub struct Capabilities {

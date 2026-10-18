@@ -103,6 +103,7 @@ public:
     auto             restartLabel() const -> QString;
     auto             description() const -> QString;
     Q_INVOKABLE void ensureStarted();
+    void invalidateSession();
     Q_INVOKABLE void configure(const QString& key, const QString& value);
     Q_INVOKABLE void restart();
     Q_SIGNAL void    configurationChanged();

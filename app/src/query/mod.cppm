@@ -5,6 +5,7 @@ export import :query.favorite;
 export import :query.lyric;
 export import :query.mix;
 export import :query.play;
+export import :query.home;
 export import :query.provider;
 export import :query.sync;
 export import :query.storage_info;

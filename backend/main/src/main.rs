@@ -5,6 +5,7 @@ mod error;
 mod event;
 mod fts;
 mod global;
+mod home;
 mod http;
 mod msg;
 mod resource_cache;

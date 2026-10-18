@@ -208,6 +208,7 @@ message ProviderStatus {
   ProviderSyncStatus sync_status = 4;
   AuthInfo auth_info = 5;
   repeated Library libraries = 6;
+  uint64 epoch = 7;
 }
 
 message SubtitleItem {
@@ -307,4 +308,50 @@ message QueueSession {
   map<string, string> configuration = 3;
   QueuePresentation presentation = 4;
   bool exhausted = 5;
+}
+
+enum CardAction {
+  CARD_ACTION_NONE = 0;
+  CARD_ACTION_OPEN_ITEM = 1;
+  CARD_ACTION_PLAY_ITEM = 2;
+  CARD_ACTION_ACTIVATE_RADIO = 3;
+}
+enum CardStyle {
+  CARD_STYLE_MEDIA = 0;
+  CARD_STYLE_RADIO = 1;
+}
+enum CardCoverKind {
+  CARD_COVER_KIND_ITEM = 0;
+  CARD_COVER_KIND_RADIO_CURRENT = 1;
+}
+message ImageReference {
+  ItemType type = 1;
+  int64 id = 2;
+}
+message ForYouCard {
+  int64 provider_id = 1;
+  string entry_key = 2;
+  CardStyle style = 3;
+  string title = 4;
+  optional string subtitle = 5;
+  string badge = 6;
+  CardCoverKind cover_kind = 7;
+  ImageReference cover = 8;
+  CardAction primary_action = 9;
+  CardAction play_action = 10;
+  oneof target {
+    Mix mix = 20;
+    Album album = 21;
+    Artist artist = 22;
+    Song song = 23;
+    RadioQueue radio = 24;
+  }
+}
+message HomeRecommendation {
+  int64 provider_id = 1;
+  uint64 epoch = 2;
+  repeated ForYouCard for_you = 3;
+  repeated RadioQueue radios = 4;
+  string error = 5;
+  repeated string diagnostics = 6;
 }

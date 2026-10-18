@@ -1122,48 +1122,14 @@ pub async fn process_qcm(
         }
         MessageType::GetRadioQueuesReq => {
             if let Some(Payload::GetRadioQueuesReq(req)) = payload {
-                let queues = sqlm::remote_mix::Entity::find()
-                    .inner_join(sqlm::item::Entity)
-                    .filter(
-                        Expr::col((sqlm::item::Entity, sqlm::item::Column::ProviderId))
-                            .is_in(req.provider_ids.clone()),
-                    )
-                    .filter(
-                        Expr::col((sqlm::item::Entity, sqlm::item::Column::Type))
-                            .eq(sqlm::type_enum::ItemType::Radio as i32),
-                    )
-                    .filter(sqlm::remote_mix::Column::MixType.eq("queue"))
-                    .select_also(sqlm::item::Entity)
-                    .all(&ctx.provider_context.db)
-                    .await?;
-
-                log::info!(
-                    "provider id: {:?}, queus count: {}",
-                    req.provider_ids,
-                    queues.len()
-                );
-
-                let mut result = Vec::with_capacity(queues.len());
-                for (q, item) in queues {
-                    let item = item.ok_or_else(|| ProcessError::NoSuchProvider(q.id.to_string()))?;
-                    let provider = global::provider(item.provider_id)
-                        .ok_or_else(|| ProcessError::NoSuchProvider(item.provider_id.to_string()))?;
-                    let definition = provider
-                        .queue_definition(&ctx.provider_context, &item.native_id)
-                        .await?;
-                    let configuration = definition.configuration.into_iter().map(QcmInto::qcm_into).collect();
-                    result.push(msg::model::RadioQueue {
-                        id: q.id,
-                        name: q.name,
-                        description: q.description.unwrap_or_default(),
-                        configuration,
-                        can_restart: definition.can_restart,
-                        restart_label: definition.restart_label,
-                    });
-                }
-
+                let result = crate::home::radio_queues(&ctx.provider_context, &req.provider_ids).await?;
                 let rsp = msg::GetRadioQueuesRsp { queues: result };
                 return Ok(rsp.qcm_into());
+            }
+        }
+        MessageType::GetHomeRecommendationsReq => {
+            if let Some(Payload::GetHomeRecommendationsReq(req)) = payload {
+                return Ok(crate::home::recommendations(&ctx.provider_context, &req.provider_ids).await.qcm_into());
             }
         }
         MessageType::GetHomeBlocksReq => {

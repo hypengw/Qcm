@@ -11,6 +11,8 @@ use crate::{
     subtitle::Subtitle,
     Result,
 };
+pub mod home;
+pub use home::{CardAction, CardCover, CardPresentation, CardStyle, ForYouEntry};
 pub mod queue;
 pub use queue::{
     QueueBatch, QueueDefinition, QueueInput, QueueNextRequest, QueueOpenReason, QueueOpenRequest,
@@ -288,6 +290,10 @@ pub trait Provider: ProviderCommon + ProviderSession + Send + Sync {
     ) -> Result<Response, ProviderError>;
 
     async fn subtitle(&self, item_id: &str) -> Result<Subtitle, ProviderError>;
+
+    async fn for_you_items(&self, _ctx: &Context) -> Result<Vec<ForYouEntry>, ProviderError> {
+        Err(ProviderError::NotImplemented)
+    }
 
     async fn home_blocks(&self, ctx: &Context) -> Result<Vec<HomeBlock>, ProviderError> {
         let _ = ctx;

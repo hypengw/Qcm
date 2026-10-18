@@ -18,6 +18,7 @@ const MAX_SEEN: usize = 200_000;
 #[derive(Debug, Default)]
 pub(super) struct WriteState {
     revision: u64,
+    changes: u64,
     favorites: HashMap<i64, u64>,
     favorite_overflow: u64,
 }
@@ -41,6 +42,9 @@ impl SyncCoordinator {
             .or_default()
             .clone()
     }
+    pub async fn read_revision(&self, provider: i64) -> u64 {
+        self.state(provider).writes.lock().await.changes
+    }
     pub async fn write(&self, provider: i64, origin: Option<u64>) -> Result<WriteGuard, DbErr> {
         let state = self.state(provider);
         let mut guard = state.writes.clone().lock_owned().await;
@@ -54,6 +58,7 @@ impl SyncCoordinator {
                 .checked_add(1)
                 .ok_or_else(|| error("write revision exhausted"))?;
         }
+        guard.changes = guard.changes.checked_add(1).ok_or_else(|| error("read revision exhausted"))?;
         Ok(WriteGuard { guard, state })
     }
     pub async fn write_items(

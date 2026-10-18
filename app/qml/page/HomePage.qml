@@ -63,26 +63,10 @@ MD.Page {
     component MixCard: MImagePlayCard {
         subText: qsTr("%1 songs").arg(model.trackCount)
     }
-    component RadioQueueCard: QA.ImagePlayCard {
-        id: m_card
-        required property var model
-        readonly property var dynamicQueue: QA.App.playqueue.dynamicQueue(model.itemId, model.name, model.configuration, model.canRestart, model.restartLabel)
-        text: model.name
-        subText: model.description
-        image.source: QA.Util.image_url(dynamicQueue?.currentId)
-        picWidth: width
-
-        MD.Icon {
-            parent: m_card.image
-            anchors.centerIn: parent
-            visible: m_card.image.source.toString().length === 0
-            name: MD.Token.icon.shuffle
-            size: 48
-        }
-
-        onClicked: {
-            QA.Action.switch_queue(m_card.dynamicQueue);
-        }
+    QA.HomeRecommendationsQuery {
+        id: m_home_query
+        objectName: "homeRecommendations"
+        Component.onCompleted: reload()
     }
 
     MD.PageVerticalFlickable {
@@ -93,45 +77,33 @@ MD.Page {
             width: parent.width
             Block {
                 id: m_for_you_block
+                objectName: "for_you"
                 width: parent.width
-                title: "For You"
-                model: m_daily_mix_query.data
-                delegate: MixCard {
+                title: qsTr("For You")
+                model: m_home_query.forYou
+                delegate: QA.ForYouCard {
+                    query: m_home_query
                     width: m_for_you_block.widthProvider.width
                 }
-                QA.RemoteMixesQuery {
-                    id: m_daily_mix_query
-                    limit: 20
-                    noMore: true
-                    property QM.remoteMixFilter filter1
-                    filter1.typeFilter: {
-                        const f = QA.Util.typeStringFilter();
-                        f.value = "daily";
-                        f.condition = QM.TypeCondition.TYPE_CONDITION_IS;
-                        return f;
-                    }
-                    filters: [filter1]
-                }
+            }
+            MD.Label {
+                x: root.MD.MProp.page.leftMargin
+                width: parent.width - root.MD.MProp.page.leftMargin - root.MD.MProp.page.rightMargin
+                visible: m_home_query.error.length > 0
+                text: m_home_query.error
+                wrapMode: Text.Wrap
+                color: MD.Token.color.error
             }
             Block {
                 id: m_radio_block
                 width: parent.width
                 title: "Radio"
-                model: m_radio_query.data
-                delegate: RadioQueueCard {
+                model: m_home_query.radios
+                delegate: QA.RadioQueueCard {
+                    required property int index
+                    radio: m_home_query.radios.item(index)
+                    query: m_home_query
                     width: m_radio_block.widthProvider.width
-                }
-                QA.RadioQueuesQuery {
-                    id: m_radio_query
-                    Component.onCompleted: reload()
-                    onStatusChanged: {
-                        if (status !== QA.Enum.Finished)
-                            return;
-                        for (const radio of data.items()) {
-                            const queue = QA.App.playqueue.dynamicQueue(QA.Util.itemId(radio), radio.name, radio.configuration, radio.canRestart, radio.restartLabel);
-                            queue.ensureStarted();
-                        }
-                    }
                 }
             }
             Block {

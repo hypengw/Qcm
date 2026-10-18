@@ -85,6 +85,8 @@ sources = [
   "src/query/mix_query.cpp",
   "src/query/mix_query.cppm",
   "src/query/mod.cppm",
+  "src/query/home_query.cpp",
+  "src/query/home_query.cppm",
   "src/query/play_query.cpp",
   "src/query/play_query.cppm",
   "src/query/provider_query.cpp",

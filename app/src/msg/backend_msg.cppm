@@ -30,7 +30,12 @@ using m::QueueConfigOption;
 using m::QueueSession;
 using m::QueuePresentation;
 using m::RadioQueue;
+using m::ForYouCard;
+using m::HomeRecommendation;
 using m::Song;
+namespace CardActionGadget { using m::CardActionGadget::CardAction; }
+namespace CardStyleGadget { using m::CardStyleGadget::CardStyle; }
+namespace CardCoverKindGadget { using m::CardCoverKindGadget::CardCoverKind; }
 namespace MixManipulateOperGadget
 {
 using m::MixManipulateOperGadget::MixManipulateOper;
@@ -267,6 +272,9 @@ QCM_MSG_TRAITS_RSP(GetQueueNextRsp, GetQueueNextReq, getQueueNextRsp)
 QCM_MSG_TRAITS_REQ(GetRadioQueuesReq, GetRadioQueuesRsp, GET_RADIO_QUEUES_REQ, getRadioQueuesReq)
 QCM_MSG_TRAITS_RSP(GetRadioQueuesRsp, GetRadioQueuesReq, getRadioQueuesRsp)
 
+QCM_MSG_TRAITS_REQ(GetHomeRecommendationsReq, GetHomeRecommendationsRsp, GET_HOME_RECOMMENDATIONS_REQ, getHomeRecommendationsReq)
+QCM_MSG_TRAITS_RSP(GetHomeRecommendationsRsp, GetHomeRecommendationsReq, getHomeRecommendationsRsp)
+
 QCM_MSG_TRAITS_REQ(SyncItemReq, Rsp, SYNC_ITEM_REQ, syncItemReq)
 
 template<>
@@ -327,6 +335,7 @@ export {
     using msg::model::Mix;
     using msg::model::ProviderStatus;
     using msg::model::RadioQueue;
+    using msg::model::ForYouCard;
     using msg::model::Song;
 
     inline auto item_id(const Album& value) -> ItemId {
@@ -351,6 +360,19 @@ export {
 
     inline auto item_id(const Song& value) -> ItemId {
         return { enums::ItemType::ItemSong, value.id_proto() };
+    }
+
+    inline auto item_id(const ForYouCard& value) -> ItemId {
+        if (value.hasMix()) return item_id(value.mix());
+        if (value.hasAlbum()) return item_id(value.album());
+        if (value.hasArtist()) return item_id(value.artist());
+        if (value.hasSong()) return item_id(value.song());
+        if (value.hasRadio()) return item_id(value.radio());
+        return {};
+    }
+
+    inline auto cover_id(const ForYouCard& value) -> ItemId {
+        return { static_cast<enums::ItemType>(value.cover().type()), value.cover().id_proto() };
     }
 
     inline void set_item_id(Song& value, const ItemId& id) { value.setId_proto(id.id()); }
@@ -393,6 +415,15 @@ struct kstore::ItemTrait<qcm::model::Mix> {
     using key_type   = i64;
     using store_type = ShareStore<Self, std::pmr::polymorphic_allocator<Self>, qcm::ShareStoreExt>;
     static auto key(const Self& el) noexcept -> i64 { return el.id_proto(); }
+};
+
+template<>
+struct kstore::ItemTrait<qcm::model::ForYouCard> {
+    using Self = qcm::model::ForYouCard;
+    using key_type = QString;
+    static auto key(const Self& el) noexcept -> QString {
+        return QString::number(static_cast<qint64>(el.providerId())) + u':' + el.entryKey();
+    }
 };
 
 template<>

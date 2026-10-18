@@ -82,6 +82,32 @@ MixListModel::MixListModel(QObject* parent)
     : ItemIdListModel(this, parent, enums::ItemType::ItemMix),
       list_crtp_t(list_crtp_t::allocator_type { mem_mgr().store_mem }) {}
 
+ForYouListModel::ForYouListModel(QObject* parent): kstore::QGadgetListModel(this, parent) {}
+auto ForYouListModel::data(const QModelIndex& index, int role) const -> QVariant {
+    if (index.row() < 0 || index.row() >= rowCount()) return {};
+    const auto& card = at(index.row());
+    switch (role) {
+    case Qt::UserRole + 1024: return QVariant::fromValue(card);
+    case Qt::UserRole + 1025: return QVariant::fromValue(item_id(card));
+    case Qt::UserRole + 1026: return QVariant::fromValue(cover_id(card));
+    case Qt::UserRole + 1027:
+        if (card.hasSubtitle()) return card.subtitle();
+        if (card.hasMix()) return tr("%1 songs").arg(static_cast<int>(card.mix().trackCount()));
+        if (card.hasAlbum()) return tr("%1 tracks").arg(static_cast<int>(card.album().trackCount()));
+        if (card.hasRadio()) return card.radio().description();
+        return QString {};
+    }
+    return kstore::QGadgetListModel::data(index, role);
+}
+auto ForYouListModel::roleNames() const -> QHash<int, QByteArray> {
+    auto roles = kstore::QGadgetListModel::roleNames();
+    roles.insert(Qt::UserRole + 1024, "card");
+    roles.insert(Qt::UserRole + 1025, "itemId");
+    roles.insert(Qt::UserRole + 1026, "coverId");
+    roles.insert(Qt::UserRole + 1027, "detail");
+    return roles;
+}
+
 RadioQueueListModel::RadioQueueListModel(QObject* parent)
     : ItemIdListModel(this, parent, enums::ItemType::ItemRadioQueue) {}
 

@@ -44,6 +44,8 @@ void ProviderStatusModel::updateSyncStatus(const msg::model::ProviderSyncStatus&
     auto        id   = s.id_proto();
     if (auto v = this->query(id); v) {
         auto& value = *v;
+        using State = msg::model::SyncStateGadget::SyncState;
+        const bool finished = value.syncStatus().state() == State::SYNC_STATE_SYNCING && s.state() != State::SYNC_STATE_SYNCING;
         value.setSyncStatus(s);
 
         if (s.state() == msg::model::SyncStateGadget::SyncState::SYNC_STATE_SYNCING) {
@@ -56,6 +58,7 @@ void ProviderStatusModel::updateSyncStatus(const msg::model::ProviderSyncStatus&
             auto qidx = this->index(*idx);
             dataChanged(qidx, qidx, { role });
         }
+        if (finished) providerSyncFinished(id);
     }
 }
 

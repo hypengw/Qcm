@@ -623,6 +623,7 @@ impl_from_for_qcm_msg!(SyncRsp);
 impl_from_for_qcm_msg!(GetSongsByIdRsp);
 impl_from_for_qcm_msg!(GetSongIdsRsp);
 
+impl_from_for_qcm_msg!(GetHomeRecommendationsRsp);
 impl_from_for_qcm_msg!(GetHomeBlocksRsp);
 impl_from_for_qcm_msg!(GetHomeBlockItemsRsp);
 
