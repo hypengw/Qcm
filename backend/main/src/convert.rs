@@ -515,6 +515,9 @@ impl QcmFrom<ProcessError> for msg::Rsp {
         Self {
             auth_required,
             code: match v {
+                ProcessError::Radio(crate::radio::RadioError::Expired) => msg::ErrorCode::QueueSessionExpired.into(),
+                ProcessError::Radio(crate::radio::RadioError::Conflict) => msg::ErrorCode::QueueSessionConflict.into(),
+                ProcessError::Radio(_) => msg::ErrorCode::Internal.into(),
                 ProcessError::Internal(_) | ProcessError::Resource(_) => {
                     msg::ErrorCode::Internal.into()
                 }
@@ -612,6 +615,7 @@ impl_from_for_qcm_msg!(SearchRsp);
 impl_from_for_qcm_msg!(GetSubtitleRsp);
 
 impl_from_for_qcm_msg!(GetQueueNextRsp);
+impl_from_for_qcm_msg!(OpenQueueRsp);
 impl_from_for_qcm_msg!(GetRadioQueuesRsp);
 
 impl_from_for_qcm_msg!(GetStorageInfoRsp);
@@ -625,6 +629,28 @@ impl_from_for_qcm_msg!(GetHomeBlockItemsRsp);
 impl QcmFrom<core::model::type_enum::ItemType> for proto::ItemType {
     fn qcm_from(v: core::model::type_enum::ItemType) -> Self {
         proto::ItemType::try_from(v as i32).unwrap_or(proto::ItemType::Unspecified)
+    }
+}
+
+impl QcmFrom<core::provider::QueueConfigOption> for proto::QueueConfigOption {
+    fn qcm_from(value: core::provider::QueueConfigOption) -> Self {
+        Self {
+            value: value.value,
+            name: value.name,
+            description: value.description,
+        }
+    }
+}
+
+impl QcmFrom<core::provider::QueueConfigField> for proto::QueueConfigField {
+    fn qcm_from(value: core::provider::QueueConfigField) -> Self {
+        Self {
+            key: value.key,
+            name: value.name,
+            description: value.description,
+            value: value.value,
+            options: value.options.into_iter().map(QcmInto::qcm_into).collect(),
+        }
     }
 }
 

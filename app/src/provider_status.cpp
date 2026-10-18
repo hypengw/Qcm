@@ -25,6 +25,9 @@ ProviderStatusModel::ProviderStatusModel(QObject* parent)
             this,
             &ProviderStatusModel::libraryStatusChanged);
     connect(this, &ProviderStatusModel::activedChanged, this, &ProviderStatusModel::activedIdsChanged);
+    connect(this, &QAbstractItemModel::rowsInserted, this, &ProviderStatusModel::activedIdsChanged);
+    connect(this, &QAbstractItemModel::rowsRemoved, this, &ProviderStatusModel::activedIdsChanged);
+    connect(this, &QAbstractItemModel::modelReset, this, &ProviderStatusModel::activedIdsChanged);
     connect(this, &ProviderStatusModel::activedChanged, this, [this](i64, bool) {
         QSettings   s;
         QStringList list;

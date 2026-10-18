@@ -10,7 +10,7 @@ use qcm_core::event::{SyncCommit, SyncState};
 use qcm_core::model as sqlm;
 use qcm_core::provider::{
     AuthResult, HasCommonData, HomeBlock, HomeBlockContent, ProviderCommon, ProviderCommonData,
-    QrInfo,
+    QrInfo, QueueBatch, QueueConfigField, QueueDefinition, QueueNextRequest, QueueOpenRequest,
 };
 use qcm_core::{
     anyhow,
@@ -26,7 +26,7 @@ use qcm_core::{
 use reqwest::Response;
 use sea_orm::*;
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::{path::Path, sync::Arc};
+use std::{collections::HashMap, path::Path, sync::Arc};
 
 use crate::crypto::create_crypto_module;
 use crate::http::LuaResponse;
@@ -108,6 +108,11 @@ struct LuaImpl {
     sync: LuaFunction,
     sync_item: LuaFunction,
     get_queue_next: Option<LuaFunction>,
+    queue_configuration: Option<LuaFunction>,
+    queue_definition: Option<LuaFunction>,
+    open_queue: Option<LuaFunction>,
+    next_queue: Option<LuaFunction>,
+    close_queue: Option<LuaFunction>,
     favorite: LuaFunction,
     qr: Option<LuaFunction>,
     image: LuaFunction,
@@ -243,6 +248,32 @@ impl LuaProvider {
 
         lua.set_named_registry_value("qcm.provider.resource_scope", provider_table.get::<Option<LuaFunction>>("resource_scope")?)?;
         lua.set_named_registry_value("qcm.provider.save", provider_table.get::<LuaFunction>("save")?)?;
+        let hooks = ["queue_definition", "open_queue", "next_queue"];
+        let count = hooks
+            .iter()
+            .filter(|name| {
+                provider_table
+                    .get::<Option<LuaFunction>>(**name)
+                    .ok()
+                    .flatten()
+                    .is_some()
+            })
+            .count();
+        let lifecycle = capabilities
+            .requires
+            .iter()
+            .any(|c| c == "radio.lifecycle.v1");
+        if (count != 0 && count != hooks.len()) || (lifecycle && count != hooks.len()) {
+            return Err(anyhow!(
+                "radio.lifecycle.v1 requires queue_definition, open_queue and next_queue together"
+            ));
+        }
+        if count != 0 && !lifecycle {
+            return Err(anyhow!("radio lifecycle hooks require radio.lifecycle.v1"));
+        }
+        if provider_table.contains_key("close_queue")? && count == 0 {
+            return Err(anyhow!("close_queue requires radio.lifecycle.v1"));
+        }
         let provider = Self {
             inner: inner.clone(),
             funcs: LuaImpl {
@@ -265,6 +296,11 @@ impl LuaProvider {
                     .get::<LuaFunction>("sync_item")
                     .map_err(|_| anyhow!("sync_item func not found"))?,
                 get_queue_next: provider_table.get("get_queue_next")?,
+                queue_configuration: provider_table.get("queue_configuration")?,
+                queue_definition: provider_table.get("queue_definition")?,
+                open_queue: provider_table.get("open_queue")?,
+                next_queue: provider_table.get("next_queue")?,
+                close_queue: provider_table.get("close_queue")?,
                 favorite: provider_table
                     .get::<LuaFunction>("favorite")
                     .map_err(|_| anyhow!("favorite func not found"))?,
@@ -327,6 +363,9 @@ impl HasCommonData for LuaProvider {
 
 #[async_trait::async_trait]
 impl Provider for LuaProvider {
+    fn lifecycle_epoch(&self) -> u64 {
+        self.generation.load(Ordering::Acquire)
+    }
     fn invalidate(&self) {
         self.generation.fetch_add(1, Ordering::AcqRel);
         self.inner.session.invalidate();
@@ -476,6 +515,33 @@ impl Provider for LuaProvider {
         native_id: &str,
         current_native_ids: &[String],
     ) -> Result<Vec<sqlm::song::Model>, ProviderError> {
+        self.get_queue_next_configured(ctx, native_id, current_native_ids, &HashMap::new())
+            .await
+    }
+
+    async fn queue_configuration(
+        &self,
+        ctx: &Context,
+        native_id: &str,
+    ) -> Result<Vec<QueueConfigField>, ProviderError> {
+        let Some(function) = &self.funcs.queue_configuration else {
+            return Ok(Vec::new());
+        };
+        let (call, _guard) = self.context(ctx, None);
+        let res: LuaValue = function
+            .call_async((call, native_id.to_string()))
+            .await
+            .map_err(ProviderError::from_err)?;
+        self.lua.from_value(res).map_err(ProviderError::from_err)
+    }
+
+    async fn get_queue_next_configured(
+        &self,
+        ctx: &Context,
+        native_id: &str,
+        current_native_ids: &[String],
+        configuration: &HashMap<String, String>,
+    ) -> Result<Vec<sqlm::song::Model>, ProviderError> {
         let (call, _guard) = self.context(ctx, None);
         let res: LuaValue = self
             .funcs
@@ -486,11 +552,78 @@ impl Provider for LuaProvider {
                 call.clone(),
                 native_id.to_string(),
                 current_native_ids.to_vec(),
+                to_lua(&self.lua, configuration),
             ))
             .await
             .map_err(ProviderError::from_err)?;
 
         self.lua.from_value(res).map_err(ProviderError::from_err)
+    }
+
+    async fn queue_definition(
+        &self,
+        ctx: &Context,
+        native_id: &str,
+    ) -> Result<QueueDefinition, ProviderError> {
+        let Some(function) = &self.funcs.queue_definition else {
+            return Ok(QueueDefinition {
+                configuration: self.queue_configuration(ctx, native_id).await?,
+                ..Default::default()
+            });
+        };
+        let (call, _guard) = self.context(ctx, None);
+        let result = function
+            .call_async::<LuaValue>((call, native_id))
+            .await
+            .map_err(ProviderError::from_err)?;
+        self.lua.from_value(result).map_err(ProviderError::from_err)
+    }
+    async fn open_queue(
+        &self,
+        ctx: &Context,
+        native_id: &str,
+        request: QueueOpenRequest,
+    ) -> Result<QueueBatch, ProviderError> {
+        let Some(function) = &self.funcs.open_queue else {
+            return qcm_core::provider::queue::legacy_open(self, ctx, native_id, request).await;
+        };
+        let (call, _guard) = self.context(ctx, None);
+        let result = function
+            .call_async::<LuaValue>((call, native_id, to_lua(&self.lua, &request)))
+            .await
+            .map_err(ProviderError::from_err)?;
+        self.lua.from_value(result).map_err(ProviderError::from_err)
+    }
+    async fn next_queue(
+        &self,
+        ctx: &Context,
+        native_id: &str,
+        request: QueueNextRequest,
+    ) -> Result<QueueBatch, ProviderError> {
+        let Some(function) = &self.funcs.next_queue else {
+            return qcm_core::provider::queue::legacy_next(self, ctx, native_id, request).await;
+        };
+        let (call, _guard) = self.context(ctx, None);
+        let result = function
+            .call_async::<LuaValue>((call, native_id, to_lua(&self.lua, &request)))
+            .await
+            .map_err(ProviderError::from_err)?;
+        self.lua.from_value(result).map_err(ProviderError::from_err)
+    }
+    async fn close_queue(
+        &self,
+        ctx: &Context,
+        native_id: &str,
+        state: &str,
+    ) -> Result<(), ProviderError> {
+        if let Some(function) = &self.funcs.close_queue {
+            let (call, _guard) = self.context(ctx, None);
+            function
+                .call_async::<()>((call, native_id, state))
+                .await
+                .map_err(ProviderError::from_err)?;
+        }
+        Ok(())
     }
 
     async fn favorite(
@@ -958,10 +1091,15 @@ impl LuaUserData for LuaContext {
                 let _write = this.legacy_write().await?;
                 let txn = this.0.db.begin().await.map_err(mlua::Error::external)?;
 
+                // SQLite defaults lose milliseconds and can precede the sync cleanup cutoff.
+                let now = Timestamp::now();
                 let item_models = models.clone().into_iter().map(|m| sqlm::item::ActiveModel {
                     native_id: Set(m.native_id),
                     provider_id: Set(provider_id),
                     r#type: Set(sqlm::type_enum::ItemType::Radio),
+                    create_at: Set(now),
+                    update_at: Set(now),
+                    last_sync_at: Set(now),
                     ..Default::default()
                 });
                 let ids = qcm_core::db::sync::allocate_items(&txn, item_models)

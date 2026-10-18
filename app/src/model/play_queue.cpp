@@ -341,6 +341,9 @@ void PlayQueue::setSourceModel(QAbstractItemModel* source_model) {
 
     setCanJump(m_options & Option::SupportJump);
     setCanRemove(m_options & Option::SupportUserRemove);
+    // A source switch can select a different song at the same row.
+    setCurrentSong(currentIndex());
+    radioQueueChanged();
 }
 
 auto PlayQueue::currentSong() const -> model::Song {
@@ -376,8 +379,9 @@ auto PlayQueue::currentAlbumId() const -> model::ItemId {
 void PlayQueue::setCurrentSong(rstd::Option<SongItem> s) {
     if (m_current_song != s) {
         m_current_song = std::move(s);
-        currentSongChanged();
     }
+    // Store handles compare identity; their metadata can change in place.
+    currentSongChanged();
 }
 void PlayQueue::setCurrentSong(qint32 idx) {
     setCurrentSong(getId(idx).and_then([this](const auto& id) -> rstd::Option<SongItem> {
@@ -612,7 +616,8 @@ void PlayQueue::checkCanMove() {
     auto count              = rowCount();
     bool support_prev       = m_options.testFlag(Option::SupportPrev);
     bool support_loop       = m_options.testFlag(Option::SupportLoop);
-    bool dynamic            = isDynamic();
+    const auto radio = radioQueue();
+    bool dynamic = isDynamic() && (!radio || !radio->exhausted());
     auto check_on_none_loop = [this, support_prev, count, dynamic] {
         setCanPrev(m_proxy->currentIndex() > 0 && support_prev && count);
         // dynamic sources can always produce more rows, so keep next enabled
@@ -644,11 +649,32 @@ bool PlayQueue::move(qint32 src, qint32 dst, qint32 count) {
     return moveRows(parent, src, count, parent, dst);
 }
 
-auto PlayQueue::dynamicQueue(model::ItemId itemId) -> model::IdQueue* {
+auto PlayQueue::radioQueue() const -> model::DynamicIdQueue* {
+    return qobject_cast<model::DynamicIdQueue*>(sourceModel());
+}
+
+auto PlayQueue::dynamicQueue(model::ItemId itemId, const QString& name,
+                             const QList<msg::model::QueueConfigField>& configuration,
+                             bool can_restart, const QString& restart_label)
+    -> model::DynamicIdQueue* {
     auto queueId = itemId.id();
     auto it      = m_dynamic_queues.find(queueId);
     if (it != m_dynamic_queues.end() && it->second) return it->second;
-    auto* q                   = new model::DynamicIdQueue(queueId, this);
+    auto* q =
+        new model::DynamicIdQueue(queueId, name, configuration, can_restart, restart_label, this);
+    connect(q, &model::DynamicIdQueue::sessionChanged, this, [this, q] {
+        if (radioQueue() == q) {
+            if (q->exhausted()) cancelPendingAdvance();
+            checkCanMove();
+        }
+    });
+    connect(q, &model::DynamicIdQueue::restarting, this, [this, q] {
+        if (radioQueue() == q) cancelPendingAdvance();
+    });
+    connect(q, &model::DynamicIdQueue::restarted, this, [this, q] {
+        if (radioQueue() != q) return;
+        Action::instance()->record(enums::RecordAction::RecordSwitchQueue);
+    });
     m_dynamic_queues[queueId] = q;
     return q;
 }

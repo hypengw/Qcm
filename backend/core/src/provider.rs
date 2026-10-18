@@ -11,9 +11,16 @@ use crate::{
     subtitle::Subtitle,
     Result,
 };
+pub mod queue;
+pub use queue::{
+    QueueBatch, QueueDefinition, QueueInput, QueueNextRequest, QueueOpenReason, QueueOpenRequest,
+    QueuePresentation,
+};
+
 use reqwest::Response;
 use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::mpsc::Sender;
 
@@ -93,6 +100,24 @@ pub enum HomeBlockContent {
     Songs(Vec<SongModel>),
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct QueueConfigOption {
+    pub value: String,
+    pub name: String,
+    #[serde(default)]
+    pub description: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct QueueConfigField {
+    pub key: String,
+    pub name: String,
+    #[serde(default)]
+    pub description: String,
+    pub value: String,
+    pub options: Vec<QueueConfigOption>,
+}
+
 /// Creator for provider
 ///
 /// # Parameters
@@ -145,6 +170,10 @@ pub trait ProviderCommon {
 #[async_trait::async_trait]
 pub trait Provider: ProviderCommon + ProviderSession + Send + Sync {
     fn invalidate(&self) {}
+    /// Changes when the account or authentication context is replaced.
+    fn lifecycle_epoch(&self) -> u64 {
+        0
+    }
     async fn persist_session(&self) -> Result<(), ProviderError> {
         Ok(())
     }
@@ -177,6 +206,59 @@ pub trait Provider: ProviderCommon + ProviderSession + Send + Sync {
     ) -> Result<Vec<SongModel>, ProviderError> {
         let _ = (ctx, native_id, current_native_ids);
         Err(ProviderError::NotImplemented)
+    }
+    async fn queue_configuration(
+        &self,
+        _ctx: &Context,
+        _native_id: &str,
+    ) -> Result<Vec<QueueConfigField>, ProviderError> {
+        Ok(Vec::new())
+    }
+    async fn get_queue_next_configured(
+        &self,
+        ctx: &Context,
+        native_id: &str,
+        current_native_ids: &[String],
+        configuration: &HashMap<String, String>,
+    ) -> Result<Vec<SongModel>, ProviderError> {
+        if !configuration.is_empty() {
+            return Err(ProviderError::NotImplemented);
+        }
+        self.get_queue_next(ctx, native_id, current_native_ids).await
+    }
+    async fn queue_definition(
+        &self,
+        ctx: &Context,
+        native_id: &str,
+    ) -> Result<QueueDefinition, ProviderError> {
+        Ok(QueueDefinition {
+            configuration: self.queue_configuration(ctx, native_id).await?,
+            ..Default::default()
+        })
+    }
+    async fn open_queue(
+        &self,
+        ctx: &Context,
+        native_id: &str,
+        request: QueueOpenRequest,
+    ) -> Result<QueueBatch, ProviderError> {
+        queue::legacy_open(self, ctx, native_id, request).await
+    }
+    async fn next_queue(
+        &self,
+        ctx: &Context,
+        native_id: &str,
+        request: QueueNextRequest,
+    ) -> Result<QueueBatch, ProviderError> {
+        queue::legacy_next(self, ctx, native_id, request).await
+    }
+    async fn close_queue(
+        &self,
+        _ctx: &Context,
+        _native_id: &str,
+        _state: &str,
+    ) -> Result<(), ProviderError> {
+        Ok(())
     }
     async fn favorite(
         &self,

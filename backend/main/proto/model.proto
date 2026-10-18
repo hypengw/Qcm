@@ -49,10 +49,27 @@ enum QueueMode {
   QUEUE_MODE_ROAMING = 1;
 }
 
+message QueueConfigOption {
+  string value = 1;
+  string name = 2;
+  string description = 3;
+}
+
+message QueueConfigField {
+  string key = 1;
+  string name = 2;
+  string description = 3;
+  string value = 4;
+  repeated QueueConfigOption options = 5;
+}
+
 message RadioQueue {
   int64 id = 1;
   string name = 2;
   string description = 3;
+  repeated QueueConfigField configuration = 4;
+  bool can_restart = 5;
+  string restart_label = 6;
 }
 
 message Mix {
@@ -277,4 +294,17 @@ message HomeBlock {
   string description = 4;
   HomeBlockStyle style = 5;
   ItemType item_type = 6;
+}
+
+message QueuePresentation {
+  string description = 1;
+  int64 source_item_id = 2;
+}
+
+message QueueSession {
+  string id = 1;
+  uint64 version = 2;
+  map<string, string> configuration = 3;
+  QueuePresentation presentation = 4;
+  bool exhausted = 5;
 }

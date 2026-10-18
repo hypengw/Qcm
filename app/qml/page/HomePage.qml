@@ -66,11 +66,19 @@ MD.Page {
     component RadioQueueCard: QA.ImagePlayCard {
         id: m_card
         required property var model
-        readonly property var dynamicQueue: QA.App.playqueue.dynamicQueue(model.itemId)
+        readonly property var dynamicQueue: QA.App.playqueue.dynamicQueue(model.itemId, model.name, model.configuration, model.canRestart, model.restartLabel)
         text: model.name
         subText: model.description
         image.source: QA.Util.image_url(dynamicQueue?.currentId)
         picWidth: width
+
+        MD.Icon {
+            parent: m_card.image
+            anchors.centerIn: parent
+            visible: m_card.image.source.toString().length === 0
+            name: MD.Token.icon.shuffle
+            size: 48
+        }
 
         onClicked: {
             QA.Action.switch_queue(m_card.dynamicQueue);
@@ -116,6 +124,14 @@ MD.Page {
                 QA.RadioQueuesQuery {
                     id: m_radio_query
                     Component.onCompleted: reload()
+                    onStatusChanged: {
+                        if (status !== QA.Enum.Finished)
+                            return;
+                        for (const radio of data.items()) {
+                            const queue = QA.App.playqueue.dynamicQueue(QA.Util.itemId(radio), radio.name, radio.configuration, radio.canRestart, radio.restartLabel);
+                            queue.ensureStarted();
+                        }
+                    }
                 }
             }
             Block {

@@ -8,6 +8,7 @@ mod global;
 mod http;
 mod msg;
 mod resource_cache;
+mod radio;
 mod task;
 
 use anyhow;

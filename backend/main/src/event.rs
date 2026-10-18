@@ -31,5 +31,6 @@ pub struct ServiceContext {
     pub provider_context: Arc<provider::Context>,
     pub backend_ev: Sender<BackendEvent>,
     pub oper: TaskManagerOper,
+    pub radio: Arc<crate::radio::RadioSessions>,
     pub resource_cache: Arc<crate::resource_cache::ResourceCache>,
 }

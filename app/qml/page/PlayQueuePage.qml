@@ -10,6 +10,7 @@ MD.Page {
     title: QA.App.playqueue.name
     bottomPadding: radius
     scrolling: !m_view.atYBeginning
+    readonly property QA.DynamicIdQueue radioQueue: QA.App.playqueue.radioQueue
 
     actions: [
         MD.Action {
@@ -36,6 +37,65 @@ MD.Page {
         topMargin: 8
         bottomMargin: 8
         cacheBuffer: 32
+
+        header: Column {
+            width: m_view.width
+
+            QA.SettingRow {
+                width: parent.width
+                visible: root.radioQueue !== null && (root.radioQueue.canRestart || text.length > 0)
+                text: root.radioQueue?.description ?? ""
+                enabled: !root.radioQueue?.configuring
+                trailing: MD.Button {
+                    visible: root.radioQueue?.canRestart ?? false
+                    text: root.radioQueue?.restartLabel || qsTr("Restart radio")
+                    onClicked: root.radioQueue.restart()
+                }
+            }
+
+            Repeater {
+                model: root.radioQueue?.configuration ?? []
+
+                QA.SettingRow {
+                    id: m_config
+                    required property var modelData
+                    width: parent.width
+                    text: modelData.name
+                    supportText: {
+                        const options = modelData.options;
+                        for (let i = 0; i < options.length; ++i) {
+                            if (options[i].value === modelData.value)
+                                return options[i].description;
+                        }
+                        return modelData.description;
+                    }
+                    enabled: !root.radioQueue?.configuring
+
+                    trailing: MD.ComboBox {
+                        id: m_choice
+                        signal clicked
+                        model: m_config.modelData.options
+                        textRole: "name"
+                        valueRole: "value"
+                        Binding {
+                            target: m_choice
+                            property: "currentIndex"
+                            when: !root.radioQueue?.configuring
+                            restoreMode: Binding.RestoreNone
+                            value: {
+                                const options = m_config.modelData.options;
+                                for (let i = 0; i < options.length; ++i) {
+                                    if (options[i].value === m_config.modelData.value) return i;
+                                }
+                                return -1;
+                            }
+                        }
+                        onClicked: popup.open()
+                        onActivated: root.radioQueue.configure(m_config.modelData.key, currentValue)
+                    }
+                }
+            }
+        }
 
         MD.FontMetrics {
             id: item_font_metrics

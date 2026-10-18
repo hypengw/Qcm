@@ -6,3 +6,8 @@ mod helper_extra;
 mod helper_sort;
 pub mod handler;
 pub mod pagination;
+
+mod radio;
+
+#[cfg(test)]
+pub(crate) use process_qcm::process_qcm;

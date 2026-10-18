@@ -17,6 +17,8 @@ pub const CAPABILITIES: &[&str] = &[
     "subtitle.structured.v1",
     "provider.metadata.v1",
     "provider.session.v1",
+    "radio.configuration.v1",
+    "radio.lifecycle.v1",
 ];
 #[derive(Clone, Default, Deserialize, Serialize)]
 pub struct Capabilities {

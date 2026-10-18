@@ -177,72 +177,225 @@ bool IdQueue::move(qint32 src, qint32 dst, qint32 count) {
     return moveRows(p, src, count, p, dst);
 }
 
-DynamicIdQueue::DynamicIdQueue(qint64 queue_id, QObject* parent)
+DynamicIdQueue::DynamicIdQueue(qint64 queue_id, const QString& name,
+                               const QList<msg::model::QueueConfigField>& configuration,
+                               bool can_restart, const QString& restart_label, QObject* parent)
     : IdQueue(parent),
       m_queue_id(queue_id),
       m_query(new QueueNextQuery(this)),
-      m_last_idx(-1),
-      m_auto_removing(false) {
-    setName(QString::number(queue_id));
+      m_open_query(new QueueNextQuery(this)),
+      m_can_restart(can_restart),
+      m_restart_label(restart_label),
+      m_configuration(configuration) {
+    setName(name);
     setOptions(SupportPrev | Dynamic);
-
-    auto query = static_cast<QueueNextQuery*>(m_query);
-    query->setQueueId(m_queue_id);
-    connect(query, &QueueNextQuery::statusChanged, this, &DynamicIdQueue::on_query_finished);
-
-    connect(this, &IdQueue::requestNext, this, &DynamicIdQueue::on_request_next);
-    connect(this,
-            &IdQueue::currentIndexChanged,
+    connect(static_cast<QueueNextQuery*>(m_query),
+            &QueueNextQuery::statusChanged,
             this,
-            &DynamicIdQueue::on_current_index_changed);
-
-    QMetaObject::invokeMethod(this, &DynamicIdQueue::on_request_next, Qt::QueuedConnection);
+            &DynamicIdQueue::on_query_finished);
+    connect(static_cast<QueueNextQuery*>(m_open_query),
+            &QueueNextQuery::statusChanged,
+            this,
+            &DynamicIdQueue::on_open_finished);
+    connect(this, &IdQueue::requestNext, this, [this] {
+        m_suppress_prefetch = false;
+        on_request_next();
+    });
+    connect(this, &IdQueue::currentIndexChanged, this, &DynamicIdQueue::on_current_index_changed);
+    connect(App::instance()->backend(), &Backend::disconnected, this, [this] {
+        if (m_session.id_proto().isEmpty()) return;
+        m_session_expired = true;
+        sessionChanged();
+    });
 }
 
+DynamicIdQueue::~DynamicIdQueue() { close(m_session.id_proto()); }
 auto DynamicIdQueue::queueId() const -> qint64 { return m_queue_id; }
+auto DynamicIdQueue::configuration() const -> const QList<msg::model::QueueConfigField>& {
+    return m_configuration;
+}
+auto DynamicIdQueue::configuring() const -> bool { return m_configuring; }
+auto DynamicIdQueue::exhausted() const -> bool { return m_session.exhausted(); }
+auto DynamicIdQueue::canRestart() const -> bool { return m_can_restart || m_session_expired; }
+auto DynamicIdQueue::restartLabel() const -> QString {
+    return m_session_expired ? tr("Restart radio") : m_restart_label;
+}
+auto DynamicIdQueue::description() const -> QString {
+    const auto description = m_session.presentation().description();
+    if (! m_session_expired) return description;
+    const auto message = tr("Radio session expired. Restart to continue.");
+    return description.isEmpty() ? message : description + QString::fromUtf8(" · ") + message;
+}
+auto DynamicIdQueue::values() const -> QHash<QString, QString> {
+    QHash<QString, QString> values;
+    for (const auto& field : m_configuration) values.insert(field.key(), field.value());
+    return values;
+}
+
+void DynamicIdQueue::close(const QString& id) {
+    if (id.isEmpty()) return;
+    msg::CloseQueueReq req;
+    req.setSessionId(id);
+    msg::QcmMessage message;
+    msg::MsgTraits<msg::CloseQueueReq>::set(message, std::move(req));
+    App::instance()->backend()->send_immediate(std::move(message));
+}
+
+void DynamicIdQueue::ensureStarted() {
+    if (! m_session.id_proto().isEmpty() || m_configuring) return;
+    auto query = static_cast<QueueNextQuery*>(m_open_query);
+    if (query->transportFailure()) {
+        m_configuring = true;
+        configuringChanged();
+        query->reload();
+        return;
+    }
+    open(msg::QueueOpenReasonGadget::QueueOpenReason::QUEUE_OPEN_REASON_INITIAL, values());
+}
+
+void DynamicIdQueue::open(msg::QueueOpenReasonGadget::QueueOpenReason reason,
+                          const QHash<QString, QString>&              configuration) {
+    if (m_configuring) return;
+    msg::OpenQueueReq req;
+    req.setQueueId(m_queue_id);
+    req.setConfiguration(configuration);
+    req.setReason(reason);
+    req.setOperationId(QString::number(QDateTime::currentMSecsSinceEpoch()) + ':' +
+                       QUuid::createUuid().toString(QUuid::WithoutBraces));
+    if (! m_session_expired) req.setPreviousSessionId(m_session.id_proto());
+    auto query = static_cast<QueueNextQuery*>(m_open_query);
+    query->setRequest(req);
+    m_configuring = true;
+    configuringChanged();
+    query->reload();
+}
+
+void DynamicIdQueue::restart() {
+    if (canRestart())
+        open(msg::QueueOpenReasonGadget::QueueOpenReason::QUEUE_OPEN_REASON_RESTART, values());
+}
+
+void DynamicIdQueue::configure(const QString& key, const QString& value) {
+    if (m_configuring) return;
+    const auto field = std::ranges::find(m_configuration, key, &msg::model::QueueConfigField::key);
+    if (field == m_configuration.end() || field->value() == value) return;
+    if (std::ranges::none_of(field->options(), [&value](const auto& option) {
+            return option.value() == value;
+        }))
+        return;
+    auto configuration = values();
+    configuration.insert(key, value);
+    open(msg::QueueOpenReasonGadget::QueueOpenReason::QUEUE_OPEN_REASON_RECONFIGURE, configuration);
+}
 
 void DynamicIdQueue::on_current_index_changed(qint32 idx) {
     if (m_auto_removing) return;
+    m_suppress_prefetch = false;
     on_request_next();
-    // only auto-drop history when moving forward
     if (idx > m_last_idx && idx >= 2) {
         m_auto_removing = true;
         removeRows(idx - 2, 1);
         m_auto_removing = false;
-        // after removing row (idx-2), current shifts down by 1
-        m_last_idx = idx - 1;
+        m_last_idx      = idx - 1;
     } else {
         m_last_idx = idx;
     }
 }
 
 void DynamicIdQueue::on_request_next() {
-    constexpr int k_prefetch_threshold = 3;
+    if (m_session.id_proto().isEmpty() || m_session_expired || m_session.exhausted() ||
+        m_suppress_prefetch)
+        return;
     auto query = static_cast<QueueNextQuery*>(m_query);
-    if (query->querying()) return;
-    // skip when there are still enough rows ahead of the current item
-    if (currentIndex() < rowCount() - k_prefetch_threshold) return;
+    if (query->querying() || currentIndex() < rowCount() - 3) return;
+    request_next();
+}
+
+void DynamicIdQueue::request_next() {
+    auto query = static_cast<QueueNextQuery*>(m_query);
+    if (query->transportFailure()) {
+        query->reload();
+        return;
+    }
+    msg::GetQueueNextReq req;
+    req.setQueueId(m_queue_id);
+    QList<qint64> ids;
+    for (int row = 0; row < rowCount(); ++row)
+        ids.push_back(data(index(row), Qt::DisplayRole).value<model::ItemId>().id());
+    req.setCurrentSongIds({ ids.begin(), ids.end() });
+    req.setSessionId(m_session.id_proto());
+    req.setExpectedVersion(m_session.version());
+    req.setOperationId(QString::number(QDateTime::currentMSecsSinceEpoch()) + ':' +
+                       QUuid::createUuid().toString(QUuid::WithoutBraces));
+    query->setRequest(req);
     query->reload();
+}
+
+void DynamicIdQueue::on_open_finished() {
+    auto query = static_cast<QueueNextQuery*>(m_open_query);
+    if (query->querying()) return;
+    m_configuring = false;
+    if (query->status() != QAsyncResult::Status::Finished || query->tdata().songs().isEmpty() ||
+        query->tdata().session().id_proto().isEmpty()) {
+        if (query->status() == QAsyncResult::Status::Finished) {
+            close(query->tdata().session().id_proto());
+            Global::instance()->errorOccurred(tr("Radio returned no playable songs"));
+        }
+        if (query->sessionExpired()) {
+            m_session_expired = true;
+            sessionChanged();
+        }
+        configuringChanged();
+        configurationChanged();
+        return;
+    }
+    const auto& page     = query->tdata();
+    const auto  previous = m_session.id_proto();
+    restarting();
+    static_cast<QueueNextQuery*>(m_query)->reset();
+    m_auto_removing     = true;
+    m_session           = page.session();
+    m_session_expired   = false;
+    m_suppress_prefetch = false;
+    for (auto& field : m_configuration)
+        field.setValue(m_session.configuration().value(field.key()));
+    if (rowCount()) removeRows(0, rowCount());
+    std::vector<model::ItemId> ids;
+    for (const auto& song : page.songs())
+        ids.emplace_back(enums::ItemType::ItemSong, song.id_proto());
+    insert(0, ids);
+    setCurrentIndex(0);
+    m_last_idx      = 0;
+    m_auto_removing = false;
+    sessionChanged();
+    configurationChanged();
+    configuringChanged();
+    close(previous);
+    restarted();
 }
 
 void DynamicIdQueue::on_query_finished() {
     auto query = static_cast<QueueNextQuery*>(m_query);
-    if (query->status() != QAsyncResult::Status::Finished) return;
-    const bool was_empty = rowCount() == 0;
+    if (query->querying()) return;
+    if (query->status() != QAsyncResult::Status::Finished) {
+        if (query->sessionExpired()) {
+            m_session_expired = true;
+            sessionChanged();
+        }
+        return;
+    }
+    const auto& page = query->tdata();
+    if (page.session().id_proto() != m_session.id_proto() ||
+        page.session().version() <= m_session.version())
+        return;
+    m_session                                 = page.session();
+    const auto                 previous_count = rowCount();
     std::vector<model::ItemId> ids;
-    for (auto& s : query->tdata()) {
-        ids.push_back(model::ItemId(enums::ItemType::ItemSong, s.id_proto()));
-    }
+    for (const auto& song : page.songs())
+        ids.emplace_back(enums::ItemType::ItemSong, song.id_proto());
     insert(rowCount(), ids);
-    // expose a current id on the first batch so cards can show a cover even
-    // before playback ever starts; guard auto_removing so the resulting
-    // on_current_index_changed won't trigger a chained prefetch
-    if (was_empty && currentIndex() < 0 && rowCount() > 0) {
-        m_auto_removing = true;
-        setCurrentIndex(0);
-        m_auto_removing = false;
-        m_last_idx = 0;
-    }
+    m_suppress_prefetch = rowCount() == previous_count;
+    sessionChanged();
 }
 
 } // namespace qcm::model

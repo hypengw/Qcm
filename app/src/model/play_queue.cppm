@@ -95,6 +95,8 @@ class PlayQueue : public QIdentityProxyModel, public kstore::QMetaRoleNames {
     Q_PROPERTY(bool canJump READ canJump NOTIFY canJumpChanged FINAL)
     Q_PROPERTY(bool canRemove READ canRemove NOTIFY canRemoveChanged FINAL)
     Q_PROPERTY(QString name READ name NOTIFY nameChanged FINAL)
+    Q_PROPERTY(
+        qcm::model::DynamicIdQueue* radioQueue READ radioQueue NOTIFY radioQueueChanged FINAL)
 
 public:
     using LoopMode = enums::LoopMode;
@@ -161,7 +163,12 @@ public:
 
     Q_INVOKABLE bool move(qint32 src, qint32 dst, qint32 count = 1);
 
-    Q_INVOKABLE qcm::model::IdQueue* dynamicQueue(model::ItemId queueId);
+    Q_INVOKABLE   qcm::model::DynamicIdQueue*
+                  dynamicQueue(model::ItemId queueId, const QString& name,
+                               const QList<qcm::msg::model::QueueConfigField>& configuration,
+                               bool canRestart, const QString& restartLabel);
+    auto          radioQueue() const -> model::DynamicIdQueue*;
+    Q_SIGNAL void radioQueueChanged();
 
     auto update(std::span<const model::Song>) -> void;
     void updateSourceId(std::span<const model::ItemId> songIds, const model::ItemId& sourceId);
@@ -205,7 +212,7 @@ private:
     QTimer* m_pending_advance_timer;
     bool    m_pending_advance;
 
-    std::unordered_map<qint64, model::DynamicIdQueue*> m_dynamic_queues;
+    std::unordered_map<qint64, QPointer<model::DynamicIdQueue>> m_dynamic_queues;
     QAsyncScope                                        m_background_tasks;
 
     Q_OBJECT_BINDABLE_PROPERTY(PlayQueue, int, m_current_index, &PlayQueue::currentIndexChanged)

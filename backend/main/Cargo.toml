@@ -57,3 +57,6 @@ qcm-plugins = { path = "../plugin" }
 
 [build-dependencies]
 prost-build = "0.13"
+
+[dev-dependencies]
+async-trait.workspace = true

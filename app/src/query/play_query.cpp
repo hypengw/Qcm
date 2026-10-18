@@ -130,20 +130,36 @@ void PlayAllQuery::setAlbumAsc(bool v) {
     }
 }
 
-RadioQueuesQuery::RadioQueuesQuery(QObject* parent): QueryList(parent) {}
+RadioQueuesQuery::RadioQueuesQuery(QObject* parent): QueryList(parent) {
+    connectSyncFinished(this);
+    auto providers = App::instance()->provider_status();
+    m_provider_ids = providers->activedIds();
+    connect(providers, &ProviderStatusModel::activedIdsChanged, this, [this, providers] {
+        auto ids = providers->activedIds();
+        if (m_provider_ids == ids) return;
+        m_provider_ids = std::move(ids);
+        ++m_revision;
+        cancel();
+        tdata()->resetModel(std::vector<model::RadioQueue> {});
+        setStatus(Status::Uninitialized);
+        delayReload();
+    });
+}
 
 void RadioQueuesQuery::reload() {
     setStatus(Status::Querying);
     auto app     = App::instance();
     auto backend = app->backend();
     auto req     = msg::GetRadioQueuesReq {};
-    req.setProviderIds(app->provider_status()->activedIds());
-    auto self = QWatcher { this };
+    m_provider_ids = app->provider_status()->activedIds();
+    req.setProviderIds(m_provider_ids);
+    auto self     = QWatcher { this };
+    auto revision = ++m_revision;
 
-    spawn([self, backend, req] mutable -> task<void> {
+    spawn([self, backend, req, revision] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         if (! co_await QAsyncResult::qexecutor()) co_return;
-        if (! self) co_return;
+        if (! self || self->m_revision != revision) co_return;
         self->inspect_set(rsp, [self](auto& el) {
             auto t    = self->tdata();
             auto view = std::ranges::views::transform(el.queues(), [](auto&& el) {
@@ -155,31 +171,77 @@ void RadioQueuesQuery::reload() {
     });
 }
 
-QueueNextQuery::QueueNextQuery(QObject* parent): Query(parent) {}
-
-auto QueueNextQuery::queueId() const -> qint64 { return m_queue_id; }
-void QueueNextQuery::setQueueId(qint64 v) {
-    if (ycore::cmp_set(m_queue_id, v)) {
-        queueIdChanged();
-    }
+QueueNextQuery::QueueNextQuery(QObject* parent): Query(parent), m_timeout(new QTimer(this)) {
+    auto timer = static_cast<QTimer*>(m_timeout);
+    timer->setSingleShot(true);
+    timer->setInterval(170000);
+    connect(timer, &QTimer::timeout, this, [this] {
+        ++m_revision;
+        cancel();
+        m_transport_failure = true;
+        setError(tr("Radio request timed out"));
+        setStatus(Status::Error);
+    });
 }
 
-void QueueNextQuery::reload() {
-    setStatus(Status::Querying);
-    auto backend = App::instance()->backend();
-    auto req     = msg::GetQueueNextReq {};
-    req.setQueueId(m_queue_id);
-    auto self = QWatcher { this };
+void QueueNextQuery::reset() {
+    static_cast<QTimer*>(m_timeout)->stop();
+    ++m_revision;
+    m_transport_failure = false;
+    m_session_expired   = false;
+    cancel();
+    setStatus(Status::Uninitialized);
+}
+void QueueNextQuery::setRequest(const msg::OpenQueueReq& req) { m_request = req; }
+void QueueNextQuery::setRequest(const msg::GetQueueNextReq& req) { m_request = req; }
+auto QueueNextQuery::sessionExpired() const -> bool { return m_session_expired; }
+auto QueueNextQuery::transportFailure() const -> bool { return m_transport_failure; }
 
-    spawn([self, backend, req] mutable -> task<void> {
-        auto rsp = co_await backend->send(std::move(req));
-        if (! co_await QAsyncResult::qexecutor()) co_return;
-        if (! self) co_return;
-        self->inspect_set(rsp, [self](msg::GetQueueNextRsp& el) {
-            self->set_tdata(el.songs());
-        });
-        co_return;
-    });
+void QueueNextQuery::reload() {
+    static_cast<QTimer*>(m_timeout)->start();
+    const auto revision = ++m_revision;
+    setStatus(Status::Querying);
+    m_session_expired   = false;
+    m_transport_failure = false;
+    auto backend        = App::instance()->backend();
+    auto self           = QWatcher { this };
+    std::visit(
+        [&](auto req) {
+            spawn([self, backend, req, revision] mutable -> task<void> {
+                auto rsp = co_await backend->send(std::move(req));
+                if (! co_await QAsyncResult::qexecutor()) co_return;
+                if (! self || self->m_revision != revision) {
+                    if constexpr (std::is_same_v<decltype(req), msg::OpenQueueReq>) {
+                        if (rsp && ! rsp->session().id_proto().isEmpty()) {
+                            msg::CloseQueueReq close;
+                            close.setSessionId(rsp->session().id_proto());
+                            co_await backend->send(std::move(close));
+                        }
+                    }
+                    co_return;
+                }
+                static_cast<QTimer*>(self->m_timeout)->stop();
+                if (rsp.is_err()) {
+                    self->m_session_expired =
+                        rsp.unwrap_err().code ==
+                            static_cast<int>(msg::ErrorCodeGadget::ErrorCode::
+                                                 ERROR_CODE_QUEUE_SESSION_EXPIRED) ||
+                        rsp.unwrap_err().code ==
+                            static_cast<int>(
+                                msg::ErrorCodeGadget::ErrorCode::ERROR_CODE_QUEUE_SESSION_CONFLICT);
+                    self->m_transport_failure = rsp.unwrap_err().code == -1;
+                }
+                self->inspect_set(rsp, [self](auto& el) {
+                    msg::GetQueueNextRsp page;
+                    page.setSongs(el.songs());
+                    page.setExtras(el.extras());
+                    page.setSession(el.session());
+                    self->set_tdata(page);
+                });
+                co_return;
+            });
+        },
+        m_request);
 }
 
 } // namespace qcm

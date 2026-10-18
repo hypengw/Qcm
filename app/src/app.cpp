@@ -724,7 +724,9 @@ void App::onSwitchQueue(model::IdQueue* queue) {
         if (queue->rowCount() && queue->currentIndex() < 0) {
             queue->setCurrentIndex(0);
         }
-        if (queue->rowCount() <= 1) {
+        if (auto radio = qobject_cast<model::DynamicIdQueue*>(queue)) {
+            radio->ensureStarted();
+        } else if (queue->rowCount() <= 1) {
             queue->requestNext();
         }
         Action::instance()->record(enums::RecordAction::RecordSwitchQueue);

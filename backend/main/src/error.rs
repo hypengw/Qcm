@@ -10,6 +10,8 @@ use tokio::sync::mpsc::error::SendError;
 #[derive(Debug, Error, Default)]
 pub enum ProcessError {
     #[error("{0}")]
+    Radio(crate::radio::RadioError),
+    #[error("{0}")]
     Resource(anyhow::Error),
     #[error("Not auth")]
     NotAuth,
@@ -84,12 +86,18 @@ where
 
 impl From<qcm_core::error::ProviderError> for ProcessError {
     fn from(e: qcm_core::error::ProviderError) -> Self {
+        std::sync::Arc::new(e).into()
+    }
+}
+
+impl From<std::sync::Arc<qcm_core::error::ProviderError>> for ProcessError {
+    fn from(e: std::sync::Arc<qcm_core::error::ProviderError>) -> Self {
         use qcm_core::error::ProviderError;
-        let mut cause = &e;
+        let mut cause = e.as_ref();
         while let ProviderError::WithContext { err, .. } = cause {
             cause = err;
         }
-        if matches!(e, ProviderError::WithContext { .. }) {
+        if matches!(e.as_ref(), ProviderError::WithContext { .. }) {
             if matches!(cause, ProviderError::NotFound) {
                 log::debug!("{e}");
             } else {
@@ -257,5 +265,14 @@ mod tests {
             details.jump_url.as_deref(),
             Some("https://music.163.com/verify")
         );
+    }
+}
+
+impl From<crate::radio::RadioError> for ProcessError {
+    fn from(error: crate::radio::RadioError) -> Self {
+        match error {
+            crate::radio::RadioError::Provider(provider) => provider.into(),
+            error => Self::Radio(error),
+        }
     }
 }

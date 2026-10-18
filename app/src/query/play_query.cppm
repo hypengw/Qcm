@@ -81,24 +81,30 @@ export class RadioQueuesQuery
 public:
     RadioQueuesQuery(QObject* parent = nullptr);
     void reload() override;
+
+private:
+    QtProtobuf::int64List m_provider_ids;
+    quint64              m_revision { 0 };
 };
 
 export class QueueNextQuery : public Query,
-                              public QueryExtra<QList<msg::model::Song>, QueueNextQuery> {
+                              public QueryExtra<msg::GetQueueNextRsp, QueueNextQuery> {
     Q_OBJECT
-
-    Q_PROPERTY(qint64 queueId READ queueId WRITE setQueueId NOTIFY queueIdChanged FINAL)
 public:
     QueueNextQuery(QObject* parent = nullptr);
     void reload() override;
-
-    auto queueId() const -> qint64;
-    void setQueueId(qint64);
-
-    Q_SIGNAL void queueIdChanged();
+    void reset();
+    void setRequest(const msg::OpenQueueReq&);
+    void setRequest(const msg::GetQueueNextReq&);
+    auto sessionExpired() const -> bool;
+    auto transportFailure() const -> bool;
 
 private:
-    qint64 m_queue_id { 0 };
+    QObject*                                              m_timeout;
+    quint64                                               m_revision { 0 };
+    bool                                                  m_session_expired { false };
+    bool                                                  m_transport_failure { false };
+    std::variant<msg::OpenQueueReq, msg::GetQueueNextReq> m_request;
 };
 
 } // namespace qcm

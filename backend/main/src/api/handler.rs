@@ -155,6 +155,7 @@ async fn handle_ws(
         backend_ev: bk_ev_sender,
         oper,
         resource_cache,
+        radio: Arc::new(Default::default()),
     });
 
     // TODO: reg context by real port
@@ -209,6 +210,18 @@ async fn handle_ws(
 
     let _ = ctx.backend_ev.try_send(BackendEvent::Frist);
 
+    let radio_cleanup = tokio::spawn({
+        let ctx = Arc::downgrade(&ctx);
+        async move {
+            let mut interval = tokio::time::interval(std::time::Duration::from_secs(60));
+            loop {
+                interval.tick().await;
+                let Some(ctx) = ctx.upgrade() else { break; };
+                ctx.radio.collect(&ctx.provider_context).await;
+            }
+        }
+    });
+
     // receive from ws
     let mut reader = ws_reader;
     while let Ok(Some(message)) = reader.next().await.transpose() {
@@ -224,6 +237,8 @@ async fn handle_ws(
     }
 
     log::info!("WebSocket connection closed");
+    radio_cleanup.abort();
+    ctx.radio.shutdown(&ctx.provider_context).await;
 
     // end event process
     ctx.provider_context

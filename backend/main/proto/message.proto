@@ -85,6 +85,9 @@ enum MessageType {
   GET_QUEUE_NEXT_RSP = 411;
   GET_RADIO_QUEUES_REQ = 413;
   GET_RADIO_QUEUES_RSP = 414;
+  OPEN_QUEUE_REQ = 415;
+  OPEN_QUEUE_RSP = 416;
+  CLOSE_QUEUE_REQ = 417;
 
   SYNC_ITEM_REQ = 500;
 
@@ -124,6 +127,8 @@ enum ErrorCode {
   ERROR_CODE_UNSUPPORTED_ITEM_TYPE = 200;
   ERROR_CODE_NOT_FOUND = 210;
   ERROR_CODE_NOT_IMPLEMENTED = 211;
+  ERROR_CODE_QUEUE_SESSION_EXPIRED = 212;
+  ERROR_CODE_QUEUE_SESSION_CONFLICT = 213;
 }
 
 message AuthRequired {
@@ -422,12 +427,42 @@ message PlaylogReq {
 message GetQueueNextReq {
   int64 queue_id = 1;
   repeated int64 current_song_ids = 2;
+  map<string, string> configuration = 3;
+  string session_id = 4;
+  // Format: <unix milliseconds>:<UUID>; retries reuse the value for five minutes.
+  string operation_id = 5;
+  uint64 expected_version = 6;
 }
 
 message GetQueueNextRsp {
   repeated qcm.msg.model.Song songs = 1;
   repeated google.protobuf.Struct extras = 2;
+  qcm.msg.model.QueueSession session = 3;
 }
+
+enum QueueOpenReason {
+  QUEUE_OPEN_REASON_INITIAL = 0;
+  QUEUE_OPEN_REASON_RECONFIGURE = 1;
+  QUEUE_OPEN_REASON_RESTART = 2;
+}
+
+message OpenQueueReq {
+  int64 queue_id = 1;
+  map<string, string> configuration = 2;
+  int64 input_id = 3;
+  QueueOpenReason reason = 4;
+  string previous_session_id = 5;
+  // Format: <unix milliseconds>:<UUID>; retries reuse the value for five minutes.
+  string operation_id = 6;
+}
+
+message OpenQueueRsp {
+  repeated qcm.msg.model.Song songs = 1;
+  repeated google.protobuf.Struct extras = 2;
+  qcm.msg.model.QueueSession session = 3;
+}
+
+message CloseQueueReq { string session_id = 1; }
 
 message GetRadioQueuesReq {
   repeated int64 provider_ids = 1;
@@ -567,6 +602,9 @@ message QcmMessage {
     GetQueueNextRsp get_queue_next_rsp = 411;
     GetRadioQueuesReq get_radio_queues_req = 413;
     GetRadioQueuesRsp get_radio_queues_rsp = 414;
+    OpenQueueReq open_queue_req = 415;
+    OpenQueueRsp open_queue_rsp = 416;
+    CloseQueueReq close_queue_req = 417;
 
     SyncItemReq sync_item_req = 500;
 

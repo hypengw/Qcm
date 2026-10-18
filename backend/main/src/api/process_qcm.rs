@@ -64,6 +64,7 @@ pub async fn process_qcm(
                     .exec(&ctx.provider_context.db)
                     .await?;
                 global::remove_provider(id);
+                ctx.radio.invalidate(&ctx.provider_context, id).await;
                 ctx.resource_cache.invalidate(id).await?;
                 let _ = ctx
                     .backend_ev
@@ -131,6 +132,7 @@ pub async fn process_qcm(
                 write.invalidate_sync();
                 crate::db::add_provider(&ctx.provider_context.db, tmp_provider.clone()).await?;
                 global::add_provider(tmp_provider.clone());
+                ctx.radio.invalidate(&ctx.provider_context, req.provider_id).await;
                 ctx.resource_cache.invalidate(req.provider_id).await?;
                 return Ok(Rsp::default().qcm_into());
             }
@@ -166,6 +168,7 @@ pub async fn process_qcm(
                                 )
                                 .await?;
                                 global::add_provider(new_provider);
+                                ctx.radio.invalidate(&ctx.provider_context, req.provider_id).await;
                                 ctx.resource_cache.invalidate(req.provider_id).await?;
                             }
                             e => {
@@ -1101,45 +1104,20 @@ pub async fn process_qcm(
                 return Ok(rsp.qcm_into());
             }
         }
+        MessageType::OpenQueueReq => {
+            if let Some(Payload::OpenQueueReq(req)) = payload {
+                return Ok(super::radio::open(ctx, req).await?.qcm_into());
+            }
+        }
+        MessageType::CloseQueueReq => {
+            if let Some(Payload::CloseQueueReq(req)) = payload {
+                ctx.radio.close(&ctx.provider_context, &req.session_id).await;
+                return Ok(Rsp::default().qcm_into());
+            }
+        }
         MessageType::GetQueueNextReq => {
             if let Some(Payload::GetQueueNextReq(req)) = payload {
-                let (queue_native_id, queue_provider_id): (String, i64) =
-                    sqlm::item::Entity::find_by_id(req.queue_id)
-                        .select_only()
-                        .column(sqlm::item::Column::NativeId)
-                        .column(sqlm::item::Column::ProviderId)
-                        .into_tuple()
-                        .one(&ctx.provider_context.db)
-                        .await?
-                        .ok_or(ProcessError::NoSuchProvider(req.queue_id.to_string()))?;
-
-                let current_native_ids: Vec<String> = sqlm::item::Entity::find()
-                    .select_only()
-                    .column(sqlm::item::Column::NativeId)
-                    .filter(sqlm::item::Column::Id.is_in(req.current_song_ids.clone()))
-                    .into_tuple()
-                    .all(&ctx.provider_context.db)
-                    .await?;
-
-                let provider = global::provider(queue_provider_id)
-                    .ok_or(ProcessError::NoSuchProvider(queue_provider_id.to_string()))?;
-                let new_songs = provider
-                    .get_queue_next(&ctx.provider_context, &queue_native_id, &current_native_ids)
-                    .await?;
-                drop(provider);
-
-                // provider.get_queue_next 内部已 sync songs 并返回带 DB id 的 models，
-                // 直接按 id 读回即可，不要再 sync_songs（会把 DB id 当 native_id 写坏数据）
-                let ids: Vec<i64> = new_songs.iter().map(|s| s.id).collect();
-                let db_songs = sqlm::song::Entity::find()
-                    .filter(sqlm::song::Column::Id.is_in(ids))
-                    .all(&ctx.provider_context.db)
-                    .await?;
-
-                let (songs, extras) =
-                    to_rsp_songs(&ctx.provider_context.db, db_songs, None).await?;
-                let rsp = msg::GetQueueNextRsp { songs, extras };
-                return Ok(rsp.qcm_into());
+                return Ok(super::radio::next(ctx, req).await?.qcm_into());
             }
         }
         MessageType::GetRadioQueuesReq => {
@@ -1155,6 +1133,7 @@ pub async fn process_qcm(
                             .eq(sqlm::type_enum::ItemType::Radio as i32),
                     )
                     .filter(sqlm::remote_mix::Column::MixType.eq("queue"))
+                    .select_also(sqlm::item::Entity)
                     .all(&ctx.provider_context.db)
                     .await?;
 
@@ -1164,16 +1143,26 @@ pub async fn process_qcm(
                     queues.len()
                 );
 
-                let queues = queues
-                    .into_iter()
-                    .map(|q| msg::model::RadioQueue {
+                let mut result = Vec::with_capacity(queues.len());
+                for (q, item) in queues {
+                    let item = item.ok_or_else(|| ProcessError::NoSuchProvider(q.id.to_string()))?;
+                    let provider = global::provider(item.provider_id)
+                        .ok_or_else(|| ProcessError::NoSuchProvider(item.provider_id.to_string()))?;
+                    let definition = provider
+                        .queue_definition(&ctx.provider_context, &item.native_id)
+                        .await?;
+                    let configuration = definition.configuration.into_iter().map(QcmInto::qcm_into).collect();
+                    result.push(msg::model::RadioQueue {
                         id: q.id,
                         name: q.name,
                         description: q.description.unwrap_or_default(),
-                    })
-                    .collect();
+                        configuration,
+                        can_restart: definition.can_restart,
+                        restart_label: definition.restart_label,
+                    });
+                }
 
-                let rsp = msg::GetRadioQueuesRsp { queues };
+                let rsp = msg::GetRadioQueuesRsp { queues: result };
                 return Ok(rsp.qcm_into());
             }
         }

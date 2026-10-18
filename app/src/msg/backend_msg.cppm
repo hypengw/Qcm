@@ -25,6 +25,10 @@ using m::Mix;
 using m::ProviderMeta;
 using m::ProviderStatus;
 using m::ProviderSyncStatus;
+using m::QueueConfigField;
+using m::QueueConfigOption;
+using m::QueueSession;
+using m::QueuePresentation;
 using m::RadioQueue;
 using m::Song;
 namespace MixManipulateOperGadget
@@ -102,6 +106,9 @@ using qcm::msg::Rsp;
 namespace ErrorCodeGadget
 {
 using qcm::msg::ErrorCodeGadget::ErrorCode;
+}
+namespace QueueOpenReasonGadget {
+using qcm::msg::QueueOpenReasonGadget::QueueOpenReason;
 }
 namespace MessageTypeGadget
 {
@@ -250,6 +257,10 @@ QCM_MSG_TRAITS_REQ(GetSongsByIdReq, GetSongsByIdRsp, GET_SONGS_BY_ID_REQ, getSon
 QCM_MSG_TRAITS_RSP(GetSongsByIdRsp, GetSongsByIdReq, getSongsByIdRsp)
 QCM_MSG_TRAITS_REQ(GetSongIdsReq, GetSongIdsRsp, GET_SONG_IDS_REQ, getSongIdsReq)
 QCM_MSG_TRAITS_RSP(GetSongIdsRsp, GetSongIdsReq, getSongIdsRsp)
+
+QCM_MSG_TRAITS_REQ(OpenQueueReq, OpenQueueRsp, OPEN_QUEUE_REQ, openQueueReq)
+QCM_MSG_TRAITS_RSP(OpenQueueRsp, OpenQueueReq, openQueueRsp)
+QCM_MSG_TRAITS_REQ(CloseQueueReq, Rsp, CLOSE_QUEUE_REQ, closeQueueReq)
 
 QCM_MSG_TRAITS_REQ(GetQueueNextReq, GetQueueNextRsp, GET_QUEUE_NEXT_REQ, getQueueNextReq)
 QCM_MSG_TRAITS_RSP(GetQueueNextRsp, GetQueueNextReq, getQueueNextRsp)
