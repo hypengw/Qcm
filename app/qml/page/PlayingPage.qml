@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Shapes
 import QExtra as QE
 import Qcm.App as QA
 import Qcm.Material as MD
@@ -8,7 +7,6 @@ import Qcm.Material as MD
 MD.Page {
     id: root
     showBackground: true
-    backgroundColor: QA.Global.playing_color
     readonly property var song: QA.App.playqueue.currentSong
     readonly property QA.item_id songId: QA.App.playqueue.currentSongId
     readonly property list<var> artists: {
@@ -16,28 +14,12 @@ MD.Page {
         return ex?.artists ?? [];
     }
 
-    background: Rectangle {
-        id: m_background
-        color: root.backgroundColor //m_color_mgr.accentColor
-        border.width: 0
-        MD.Shape {
-            MD.RectPath {
-                strokeColor: "transparent"
-                width: m_background.width
-                height: m_background.height
-                fillGradient: LinearGradient {
-                    y2: m_background.height
-
-                    GradientStop {
-                        position: 0.0
-                        color: Qt.alpha("#000000", 0)
-                    }
-                    GradientStop {
-                        position: 1.0
-                        color: Qt.alpha("#000000", 0.5)
-                    }
-                }
-            }
+    background: QA.PlayingBackground {
+        source: QA.Util.image_url(root.songId)
+        active: root.visible
+        QA.PlayingBackgroundMask {
+            anchors.fill: parent
+            z: 3
         }
     }
 

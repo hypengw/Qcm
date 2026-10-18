@@ -104,6 +104,8 @@ qt.qml_module({
     "qml/component/player/LyricView.qml",
     "qml/component/player/Mpris.qml",
     "qml/component/player/PlaySlider.qml",
+    "qml/component/player/PlayingBackground.qml",
+    "qml/component/player/PlayingBackgroundMask.qml",
     "qml/component/player/VolumeButton.qml",
     "qml/component/setting/SettingRow.qml",
     "qml/component/setting/SettingSection.qml",
@@ -174,6 +176,7 @@ qt.qml_module({
   imports = {
     "QtCore",
     "QtQuick",
+    "QtQuick.Effects",
     "Qcm.Material",
     "Qcm.Msg",
     "QExtra",

@@ -13,3 +13,21 @@ threads = true
 
 [dependencies.qcm-core]
 workspace = true
+
+[dependencies.qextra]
+workspace = true
+
+[external-dependencies.cmake.qt6]
+workspace = true
+targets = [
+  { name = "Qt6::Core" },
+  { name = "Qt6::Gui" },
+  { name = "Qt6::GuiPrivate" },
+  { name = "Qt6::Qml" },
+  { name = "Qt6::Quick" },
+  { name = "Qt6::QuickEffects" },
+]
+
+[[test]]
+name = "playing-background"
+sources = ["src/playing_background.cpp"]

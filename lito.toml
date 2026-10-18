@@ -79,6 +79,7 @@ components = [
   "ProtobufWellKnownTypes",
   "Qml",
   "Quick",
+  "QuickEffects",
   "QuickControls2",
   "QuickPrivate",
   "ShaderTools",
