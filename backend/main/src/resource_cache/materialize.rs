@@ -204,30 +204,6 @@ fn copy_blocks(
     Ok(digest)
 }
 
-pub(super) fn migrate(db: &Database) -> Result<()> {
-    let mut version = db.statement("PRAGMA user_version", &[])?;
-    version.next()?;
-    ensure!(version.int(0) <= 2, "unsupported resource cache schema");
-    drop(version);
-    db.exec("BEGIN IMMEDIATE")?;
-    let result = (|| {
-        db.exec("CREATE TABLE IF NOT EXISTS complete_files(version_id INTEGER PRIMARY KEY, ready INTEGER NOT NULL DEFAULT 0, length INTEGER NOT NULL DEFAULT 0, digest BLOB, retry_at INTEGER NOT NULL DEFAULT 0, format INTEGER NOT NULL DEFAULT 1); CREATE TABLE IF NOT EXISTS file_leases(token TEXT PRIMARY KEY, version_id INTEGER NOT NULL, client TEXT NOT NULL, expires INTEGER NOT NULL); CREATE INDEX IF NOT EXISTS lease_versions ON file_leases(version_id); CREATE TABLE IF NOT EXISTS file_clock(id INTEGER PRIMARY KEY CHECK(id=1), time INTEGER NOT NULL);")?;
-        let mut columns = db.statement("PRAGMA table_info(complete_files)", &[])?;
-        let mut has_format = false;
-        while columns.next()? {
-            has_format |= columns.text(1)? == "format";
-        }
-        drop(columns);
-        if !has_format {
-            db.exec("ALTER TABLE complete_files ADD COLUMN format INTEGER NOT NULL DEFAULT 1")?;
-        }
-        db.exec("PRAGMA user_version=2; COMMIT;")
-    })();
-    if result.is_err() {
-        let _ = db.exec("ROLLBACK");
-    }
-    result
-}
 pub(super) fn private_directory(path: &Path) -> Result<()> {
     #[cfg(unix)]
     {
@@ -262,8 +238,10 @@ fn ticket_reservation(length: u64) -> u64 {
 
 impl Store {
     pub async fn local_file(&self, version: Version, client: String) -> Result<Option<LocalFile>> {
-        self.call(move |s| s.acquire_file(version.id, &client))
-            .await
+        self.call_version(version, move |s, version| {
+            s.acquire_file(version.id, &client)
+        })
+        .await
     }
     pub async fn renew_file(&self, token: String, client: String) -> Result<bool> {
         self.call(move |s| s.renew_file(&token, &client)).await
@@ -281,7 +259,8 @@ impl Store {
     }
     #[cfg(test)]
     pub async fn plain_ready(&self, version: Version) -> Result<bool> {
-        self.call(move |s| s.plain(version.id)).await
+        self.call_version(version, move |s, version| s.plain(version.id))
+            .await
     }
     #[cfg(test)]
     pub async fn test_materialization(&self, enabled: bool) -> Result<()> {
@@ -407,7 +386,12 @@ impl Storage {
                     continue;
                 }
             };
-            if !v.meta.policy.store || !v.index.is_committed() || !v.index.complete() {
+            if v.meta.layout != Layout::Blocks
+                || (v.meta.kind == 1 && v.meta.geometry.length > format::SEGMENT_BYTES)
+                || !v.meta.policy.store
+                || !v.index.is_committed()
+                || !v.index.complete()
+            {
                 continue;
             }
             let version = self.version(id)?;
@@ -522,7 +506,7 @@ impl Storage {
         #[cfg(test)]
         self.crash_at(Fault::CrashMaterializeSql)?;
         let v = self.versions.get_mut(&version.id).unwrap();
-        v.file = file;
+        v.file = Some(file);
         v.plain = true;
         self.building = None;
         if let Err(err) = self.cleanup_plain_data() {
@@ -573,7 +557,10 @@ impl Storage {
         Ok(())
     }
     pub(super) fn remove_managed(&mut self, name: &str) -> Result<()> {
-        ensure!(managed_name(name), "unmanaged cache path");
+        ensure!(
+            managed_name(name) || segments::managed_name(name),
+            "unmanaged cache path"
+        );
         let result = match fs::remove_file(self.root.join(name)) {
             Ok(()) => sync_directory(&self.root),
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => sync_directory(&self.root),
@@ -753,7 +740,7 @@ impl Storage {
         Ok(true)
     }
     #[cfg(test)]
-    fn fail_at(&mut self, fault: Fault) -> Result<()> {
+    pub(super) fn fail_at(&mut self, fault: Fault) -> Result<()> {
         if self.fault == Some(fault) {
             if fault != Fault::MaterializeDelete {
                 self.fault = None;
@@ -763,7 +750,7 @@ impl Storage {
         Ok(())
     }
     #[cfg(test)]
-    fn crash_at(&self, fault: Fault) -> Result<()> {
+    pub(super) fn crash_at(&self, fault: Fault) -> Result<()> {
         if self.fault == Some(fault) {
             std::process::exit(42);
         }

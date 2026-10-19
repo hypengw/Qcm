@@ -175,3 +175,29 @@ impl Drop for Statement<'_> {
         }
     }
 }
+
+pub fn migrate(db: &Database) -> Result<()> {
+    let mut version = db.statement("PRAGMA user_version", &[])?;
+    version.next()?;
+    ensure!(version.int(0) <= 3, "unsupported resource cache schema");
+    drop(version);
+    db.exec("BEGIN IMMEDIATE")?;
+    let result = (|| {
+        db.exec("CREATE TABLE IF NOT EXISTS versions (id INTEGER PRIMARY KEY, resource_key TEXT NOT NULL, provider INTEGER NOT NULL, kind INTEGER NOT NULL, generation TEXT NOT NULL UNIQUE, meta TEXT NOT NULL, blocks BLOB NOT NULL, last_use INTEGER NOT NULL, obsolete INTEGER NOT NULL DEFAULT 0); CREATE INDEX IF NOT EXISTS resource_lookup ON versions(resource_key, id);")?;
+        db.exec("CREATE TABLE IF NOT EXISTS complete_files(version_id INTEGER PRIMARY KEY, ready INTEGER NOT NULL DEFAULT 0, length INTEGER NOT NULL DEFAULT 0, digest BLOB, retry_at INTEGER NOT NULL DEFAULT 0, format INTEGER NOT NULL DEFAULT 1); CREATE TABLE IF NOT EXISTS file_leases(token TEXT PRIMARY KEY, version_id INTEGER NOT NULL, client TEXT NOT NULL, expires INTEGER NOT NULL); CREATE INDEX IF NOT EXISTS lease_versions ON file_leases(version_id); CREATE TABLE IF NOT EXISTS file_clock(id INTEGER PRIMARY KEY CHECK(id=1), time INTEGER NOT NULL);")?;
+        let mut columns = db.statement("PRAGMA table_info(complete_files)", &[])?;
+        let mut has_format = false;
+        while columns.next()? {
+            has_format |= columns.text(1)? == "format";
+        }
+        drop(columns);
+        if !has_format {
+            db.exec("ALTER TABLE complete_files ADD COLUMN format INTEGER NOT NULL DEFAULT 1")?;
+        }
+        db.exec("CREATE TABLE IF NOT EXISTS segments(version_id INTEGER NOT NULL, number INTEGER NOT NULL, token TEXT NOT NULL, length INTEGER NOT NULL, last_use INTEGER NOT NULL, deleting INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(version_id,number)); CREATE INDEX IF NOT EXISTS segment_lru ON segments(deleting,last_use); PRAGMA user_version=3; COMMIT;")
+    })();
+    if result.is_err() {
+        let _ = db.exec("ROLLBACK");
+    }
+    result
+}

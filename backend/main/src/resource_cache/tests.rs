@@ -3,6 +3,8 @@ use super::*;
 mod complete_files;
 #[path = "ffmpeg_test.rs"]
 mod ffmpeg;
+#[path = "live_segments_test.rs"]
+mod live_segments;
 use bytes::Bytes;
 use http_body_util::BodyExt;
 use reqwest::header::HeaderMap;
@@ -41,6 +43,7 @@ fn meta(key: &str, length: u64) -> store::Metadata {
         policy: policy::Policy::from_response(&HeaderMap::new(), policy::now(), policy::now()),
         target: "test".into(),
         ranges: true,
+        layout: format::Layout::Blocks,
     }
 }
 
@@ -386,6 +389,9 @@ struct OriginState {
     ranges: bool,
     ignore_ranges: AtomicBool,
     weak: bool,
+    dates: AtomicBool,
+    no_validator: AtomicBool,
+    changed_date: AtomicBool,
     truncate: AtomicBool,
     unknown: AtomicBool,
     wrong_range: AtomicBool,
@@ -415,6 +421,9 @@ impl Origin {
             ranges,
             ignore_ranges: AtomicBool::new(false),
             weak,
+            dates: AtomicBool::new(false),
+            no_validator: AtomicBool::new(false),
+            changed_date: AtomicBool::new(false),
             truncate: AtomicBool::new(false),
             unknown: AtomicBool::new(false),
             wrong_range: AtomicBool::new(false),
@@ -451,6 +460,13 @@ impl Origin {
                     state.hits.lock().unwrap().push(headers.clone());
                     let version = state.version.load(Ordering::SeqCst);
                     let etag = format!("{}\"v{}\"", if state.weak { "W/" } else { "" }, version);
+                    let modified = if state.changed_date.load(Ordering::SeqCst) {
+                        "Wed, 21 Sep 2022 11:50:20 GMT"
+                    } else {
+                        "Wed, 21 Sep 2022 11:50:18 GMT"
+                    };
+                    let date_mode = state.dates.load(Ordering::SeqCst);
+                    let validator = if date_mode { modified } else { etag.as_str() };
                     let mut status = state.status.load(Ordering::SeqCst);
                     let mut start = 0;
                     let mut end = state.length;
@@ -458,12 +474,17 @@ impl Origin {
                         && headers
                             .get("if-none-match")
                             .is_some_and(|v| v == etag.as_str())
+                        || (status == 200
+                            && date_mode
+                            && headers
+                                .get("if-modified-since")
+                                .is_some_and(|v| v == modified))
                     {
                         status = 304;
                     } else if status == 200
                         && state.ranges
                         && !state.ignore_ranges.load(Ordering::SeqCst)
-                        && headers.get("if-range").is_none_or(|v| v == etag.as_str())
+                        && headers.get("if-range").is_none_or(|v| v == validator)
                     {
                         if let Some(range) = headers
                             .get("range")
@@ -492,6 +513,14 @@ impl Origin {
                         0
                     };
                     let mut response=format!("HTTP/1.1 {status} OK\r\nContent-Type: audio/test\r\nContent-Length: {length}\r\nETag: {etag}\r\nCache-Control: {}\r\nConnection: close\r\n",state.control.lock().unwrap());
+                    if date_mode || state.no_validator.load(Ordering::SeqCst) {
+                        response = response.replace(&format!("ETag: {etag}\r\n"), "");
+                    }
+                    if date_mode {
+                        response.push_str(&format!(
+                            "Last-Modified: {modified}\r\nDate: Mon, 19 Oct 2026 07:35:21 GMT\r\n"
+                        ));
+                    }
                     if status == 304 {
                         response = response.replace("Content-Length: 0\r\n", "");
                     }
@@ -592,19 +621,38 @@ async fn transient_query_reuses_cache_and_keeps_target_validation() {
     let signed = |salt: &str| {
         let mut request = origin.request(None);
         let client = reqwest::Client::new();
-        let upstream = client.get(&origin.url).query(&[("id", "song"), ("salt", salt)]).build().unwrap();
-        request.prepared = Arc::new(qcm_core::resource::PreparedResource::new(client, upstream, Duration::from_secs(5)).unwrap()
-            .with_transient_query(vec!["salt".into()]).unwrap());
+        let upstream = client
+            .get(&origin.url)
+            .query(&[("id", "song"), ("salt", salt)])
+            .build()
+            .unwrap();
+        request.prepared = Arc::new(
+            qcm_core::resource::PreparedResource::new(client, upstream, Duration::from_secs(5))
+                .unwrap()
+                .with_transient_query(vec!["salt".into()])
+                .unwrap(),
+        );
         request
     };
-    assert_eq!(body(cache.response(signed("one")).await.unwrap()).await, origin.expected(0,1024,1));
+    assert_eq!(
+        body(cache.response(signed("one")).await.unwrap()).await,
+        origin.expected(0, 1024, 1)
+    );
     let before = origin.hits().len();
-    assert_eq!(body(cache.response(signed("two")).await.unwrap()).await, origin.expected(0,1024,1));
+    assert_eq!(
+        body(cache.response(signed("two")).await.unwrap()).await,
+        origin.expected(0, 1024, 1)
+    );
     assert_eq!(origin.hits().len(), before);
     *origin.state.control.lock().unwrap() = "private, max-age=0".into();
     let mut request = signed("three");
-    request.headers.insert("cache-control", "no-cache".parse().unwrap());
-    assert_eq!(body(cache.response(request).await.unwrap()).await, origin.expected(0,1024,1));
+    request
+        .headers
+        .insert("cache-control", "no-cache".parse().unwrap());
+    assert_eq!(
+        body(cache.response(request).await.unwrap()).await,
+        origin.expected(0, 1024, 1)
+    );
     assert!(origin.hits().len() > before);
     cache.shutdown().await.unwrap();
 }
@@ -617,8 +665,11 @@ async fn prepared_response_failure_does_not_publish_cache_data() {
     let mut request = origin.request(None);
     let client = reqwest::Client::new();
     let upstream = client.get(&origin.url).build().unwrap();
-    request.prepared = Arc::new(qcm_core::resource::PreparedResource::new(client, upstream, Duration::from_secs(5)).unwrap()
-        .validated_by(|_| Box::pin(async { Err(qcm_core::error::ProviderError::NotFound) })));
+    request.prepared = Arc::new(
+        qcm_core::resource::PreparedResource::new(client, upstream, Duration::from_secs(5))
+            .unwrap()
+            .validated_by(|_| Box::pin(async { Err(qcm_core::error::ProviderError::NotFound) })),
+    );
     assert!(cache.response(request).await.is_err());
     assert_eq!(cache.usage().await.unwrap().audio, 0);
     assert_eq!(origin.hits().len(), 1);
@@ -993,7 +1044,7 @@ async fn malformed_ranges_and_empty_resources_do_not_overflow() {
             .await
             .unwrap()
             .status(),
-        416
+        200
     );
     cache.shutdown().await.unwrap();
 }
@@ -1042,7 +1093,7 @@ async fn changed_strong_version_refreshes_before_response_headers() {
 }
 
 #[tokio::test]
-async fn later_ignored_range_is_sliced_at_its_actual_offset() {
+async fn later_ignored_range_preserves_upstream_full_response() {
     let dir = Directory::new();
     let cache = ResourceCache::open(dir.0.clone()).await.unwrap();
     let origin = Origin::new(6 * 1024 * 1024, true, false, Duration::from_millis(1)).await;
@@ -1054,16 +1105,14 @@ async fn later_ignored_range_is_sliced_at_its_actual_offset() {
     )
     .await;
     origin.state.ignore_ranges.store(true, Ordering::SeqCst);
-    assert_eq!(
-        body(
-            cache
-                .response(origin.request(Some("bytes=5000000-5100000")))
-                .await
-                .unwrap()
-        )
-        .await,
-        origin.expected(5000000, 5100001, 1)
-    );
+    let response = cache
+        .response(origin.request(Some("bytes=5000000-5100000")))
+        .await
+        .unwrap();
+    assert_eq!(response.status(), 200);
+    assert!(!response.headers().contains_key("content-range"));
+    let actual = body(response).await;
+    assert!(actual == origin.expected(0, origin.state.length, 1));
     cache.shutdown().await.unwrap();
 }
 
@@ -1123,5 +1172,187 @@ async fn weak_version_corruption_does_not_mix_new_and_old_blocks() {
         body(cache.response(origin.request(None)).await.unwrap()).await,
         origin.expected(0, 600000, 2)
     );
+    cache.shutdown().await.unwrap();
+}
+
+#[tokio::test]
+async fn date_ranges_seek_across_segments_revalidate_and_preserve_if_range() {
+    let dir = Directory::new();
+    let cache = ResourceCache::open(dir.0.clone()).await.unwrap();
+    let origin = Origin::new(
+        (format::SEGMENT_BYTES * 3 + 17) as usize,
+        true,
+        false,
+        Duration::ZERO,
+    )
+    .await;
+    origin.state.dates.store(true, Ordering::SeqCst);
+    for start in [format::SEGMENT_BYTES - 123, format::SEGMENT_BYTES * 2 + 123] {
+        let response = cache
+            .response(origin.request(Some(&format!("bytes={start}-{}", start + 999))))
+            .await
+            .unwrap();
+        assert_eq!(response.status(), 206);
+        assert!(body(response).await == origin.expected(start as usize, start as usize + 1000, 1));
+    }
+    let hits = origin.hits();
+    assert!(hits.iter().all(|h| h
+        .get("range")
+        .is_some_and(|v| !v.to_str().unwrap().starts_with("bytes=0-"))));
+    assert!(hits.iter().any(|h| h
+        .get("if-range")
+        .is_some_and(|v| v == "Wed, 21 Sep 2022 11:50:18 GMT")));
+    let mut req = origin.request(Some("bytes=100-199"));
+    req.headers
+        .insert("if-range", "Thu, 01 Jan 1970 00:00:00 GMT".parse().unwrap());
+    let response = cache.response(req).await.unwrap();
+    assert_eq!(response.status(), 200);
+    drop(response);
+    cache.shutdown().await.unwrap();
+    let cache = ResourceCache::open(dir.0.clone()).await.unwrap();
+    let start = format::SEGMENT_BYTES * 2 + 123;
+    let mut req = origin.request(Some(&format!("bytes={start}-{}", start + 999)));
+    req.headers
+        .insert("cache-control", "only-if-cached".parse().unwrap());
+    assert!(
+        body(cache.response(req).await.unwrap()).await
+            == origin.expected(start as usize, start as usize + 1000, 1)
+    );
+    // A changed date must not be combined into an already cached representation.
+    origin.state.changed_date.store(true, Ordering::SeqCst);
+    let response = cache
+        .response(origin.request(Some("bytes=40000000-40000100")))
+        .await
+        .unwrap();
+    assert_eq!(response.status(), 206);
+    assert_eq!(
+        response.headers()["last-modified"],
+        "Wed, 21 Sep 2022 11:50:20 GMT"
+    );
+    drop(response);
+    cache.shutdown().await.unwrap();
+}
+
+#[tokio::test]
+async fn unvalidated_cold_seek_passthrough_never_fetches_prefix_or_persists() {
+    for weak in [true, false] {
+        let dir = Directory::new();
+        let cache = ResourceCache::open(dir.0.clone()).await.unwrap();
+        let origin = Origin::new(64 * 1024 * 1024, true, weak, Duration::ZERO).await;
+        origin.state.no_validator.store(!weak, Ordering::SeqCst);
+        let response = cache
+            .response(origin.request(Some("bytes=40000000-40000511")))
+            .await
+            .unwrap();
+        assert_eq!(response.status(), 206);
+        assert!(body(response).await == origin.expected(40000000, 40000512, 1));
+        assert!(origin.hits().iter().all(|h| h
+            .get("range")
+            .is_some_and(|v| !v.to_str().unwrap().starts_with("bytes=0-"))));
+        assert_eq!(cache.usage().await.unwrap().audio, 0);
+        cache.shutdown().await.unwrap();
+    }
+}
+
+#[tokio::test]
+async fn complete_long_audio_stays_segmented_without_plain_copy() {
+    let dir = Directory::new();
+    let cache = ResourceCache::open(dir.0.clone()).await.unwrap();
+    let origin = Origin::new(
+        (format::SEGMENT_BYTES + 17) as usize,
+        true,
+        false,
+        Duration::ZERO,
+    )
+    .await;
+    let actual = body(cache.response(origin.request(None)).await.unwrap()).await;
+    assert!(actual == origin.expected(0, origin.state.length, 1));
+    tokio::time::sleep(Duration::from_millis(1200)).await;
+    let names: Vec<_> = std::fs::read_dir(dir.0.join("resources-v1"))
+        .unwrap()
+        .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+        .collect();
+    assert_eq!(names.iter().filter(|s| s.ends_with(".seg")).count(), 2);
+    assert!(!names
+        .iter()
+        .any(|s| s.ends_with(".ok") || s.ends_with(".ok.tmp") || s.ends_with(".data")));
+    cache.shutdown().await.unwrap();
+}
+
+#[tokio::test]
+async fn date_revalidation_304_retains_original_evidence_and_rejects_changed_date() {
+    let dir = Directory::new();
+    let cache = ResourceCache::open(dir.0.clone()).await.unwrap();
+    let origin = Origin::new(20 * 1024 * 1024, true, false, Duration::ZERO).await;
+    origin.state.dates.store(true, Ordering::SeqCst);
+    *origin.state.control.lock().unwrap() = "private, no-cache".into();
+    body(
+        cache
+            .response(origin.request(Some("bytes=10000000-10000511")))
+            .await
+            .unwrap(),
+    )
+    .await;
+    let before = origin.hits().len();
+    let response = cache
+        .response(origin.request(Some("bytes=10000000-10000511")))
+        .await
+        .unwrap();
+    assert_eq!(response.status(), 206);
+    assert!(body(response).await == origin.expected(10000000, 10000512, 1));
+    assert_eq!(origin.hits().len(), before + 1);
+    assert!(origin
+        .hits()
+        .last()
+        .unwrap()
+        .contains_key("if-modified-since"));
+    origin.state.status.store(304, Ordering::SeqCst);
+    origin.state.changed_date.store(true, Ordering::SeqCst);
+    assert!(cache
+        .response(origin.request(Some("bytes=10000000-10000511")))
+        .await
+        .is_err());
+    cache.shutdown().await.unwrap();
+}
+
+#[tokio::test]
+async fn segmented_far_seek_does_not_wait_for_sequential_reader() {
+    let dir = Directory::new();
+    let cache = ResourceCache::open(dir.0.clone()).await.unwrap();
+    let origin = Origin::new(24 * 1024 * 1024, true, false, Duration::from_millis(10)).await;
+    let sequential = cache.response(origin.request(None)).await.unwrap();
+    let seek = tokio::time::timeout(
+        Duration::from_secs(1),
+        cache.response(origin.request(Some("bytes=20000000-20000511"))),
+    )
+    .await
+    .unwrap()
+    .unwrap();
+    assert!(body(seek).await == origin.expected(20000000, 20000512, 1));
+    cache.invalidate(1).await.unwrap();
+    assert!(sequential.into_body().collect().await.is_err());
+    cache.shutdown().await.unwrap();
+}
+
+#[tokio::test]
+async fn unvalidated_seek_does_not_join_incomplete_full_download() {
+    let dir = Directory::new();
+    let cache = ResourceCache::open(dir.0.clone()).await.unwrap();
+    let origin = Origin::new(24 * 1024 * 1024, true, true, Duration::from_millis(10)).await;
+    let sequential = cache.response(origin.request(None)).await.unwrap();
+    let before = origin.hits().len();
+    let seek = tokio::time::timeout(
+        Duration::from_secs(1),
+        cache.response(origin.request(Some("bytes=20000000-20000511"))),
+    )
+    .await
+    .unwrap()
+    .unwrap();
+    assert_eq!(seek.status(), 206);
+    assert!(body(seek).await == origin.expected(20000000, 20000512, 1));
+    assert!(origin.hits()[before..].iter().all(|h| h
+        .get("range")
+        .is_some_and(|v| !v.to_str().unwrap().starts_with("bytes=0-"))));
+    drop(sequential);
     cache.shutdown().await.unwrap();
 }

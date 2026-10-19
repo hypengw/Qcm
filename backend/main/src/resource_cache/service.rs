@@ -90,6 +90,7 @@ struct Reader {
     only_cached: bool,
     window: u64,
     sequential: u32,
+    _window: super::store::Window,
 }
 impl Drop for Reader {
     fn drop(&mut self) {
@@ -279,8 +280,8 @@ impl ResourceCache {
                 .await
                 .iter()
                 .any(|((id, _, _), d)| *id == old.id && d.strong_count() > 0);
-            if !downloading
-                && (old.meta.policy.strong().is_none() || !old.meta.ranges)
+            if (!downloading || request.headers.contains_key("range"))
+                && (old.meta.policy.range_value().is_none() || !old.meta.ranges)
                 && !self.storage().complete(old.clone()).await?
             {
                 cached = None;
@@ -293,7 +294,7 @@ impl ResourceCache {
         {
             return empty(StatusCode::GATEWAY_TIMEOUT, HeaderMap::new());
         }
-        if bypass {
+        if bypass || (request.headers.contains_key("if-range") && cached.is_none()) {
             return passthrough(
                 self.fetch(&prepared, downstream_request(&base, &request.headers))
                     .await?,
@@ -346,6 +347,7 @@ impl ResourceCache {
                 let headers = policy::merge_validation(&old.meta.headers, response.headers());
                 let mut meta = old.meta.clone();
                 meta.policy = Policy::from_response(&headers, sent, received);
+                meta.policy.range_validator = old.meta.policy.range_validator.clone();
                 meta.headers = policy::saved(&headers);
                 if !meta.policy.store {
                     self.storage().retire(old.clone()).await?;
@@ -365,8 +367,22 @@ impl ResourceCache {
                 ) {
                     return passthrough(response, permit);
                 }
+                let mut policy = Policy::from_response(response.headers(), sent, received);
+                if response.status() == StatusCode::PARTIAL_CONTENT
+                    && policy.range_value().is_none()
+                {
+                    drop(response);
+                    let sent = policy::now();
+                    response = self
+                        .fetch(&prepared, downstream_request(&base, &request.headers))
+                        .await?;
+                    policy = Policy::from_response(response.headers(), sent, policy::now());
+                    if request.headers.contains_key("range") || response.status() != StatusCode::OK
+                    {
+                        return passthrough(response, permit);
+                    }
+                }
                 let total = response_geometry(&response)?;
-                let policy = Policy::from_response(response.headers(), sent, received);
                 if !policy.store || total.is_none() {
                     if response.status() == StatusCode::PARTIAL_CONTENT {
                         drop(response);
@@ -377,39 +393,8 @@ impl ResourceCache {
                     return passthrough(response, permit);
                 }
                 let (length, range) = total.unwrap();
-                if response.status() == StatusCode::PARTIAL_CONTENT && policy.strong().is_none() {
-                    drop(response);
-                    response = self.fetch(&prepared, base.clone()).await?;
-                    ensure!(
-                        response.status() == StatusCode::OK,
-                        "unvalidated partial resource"
-                    );
-                    if !Policy::from_response(response.headers(), sent, policy::now()).store {
-                        return passthrough(response, permit);
-                    }
-                    let Some((length, range)) = response_geometry(&response)? else {
-                        return passthrough(response, permit);
-                    };
-                    response_range = range;
-                    let meta = metadata(
-                        &prepared,
-                        request.provider,
-                        request.kind,
-                        &key,
-                        length,
-                        &response,
-                        sent,
-                        policy::now(),
-                    )?;
-                    let version = match self.storage().create(meta).await {
-                        Ok(version) => version,
-                        Err(err) => {
-                            log::warn!("resource cache unavailable: {err}");
-                            return passthrough(response, permit);
-                        }
-                    };
-                    initial = Some(response);
-                    version
+                if response.status() == StatusCode::OK && request.headers.contains_key("range") {
+                    return passthrough(response, permit);
                 } else {
                     response_range = range;
                     let meta = metadata(
@@ -419,8 +404,7 @@ impl ResourceCache {
                         &key,
                         length,
                         &response,
-                        sent,
-                        received,
+                        policy,
                     )?;
                     let version = match self.storage().create(meta).await {
                         Ok(version) => version,
@@ -475,6 +459,13 @@ impl ResourceCache {
             }
         }
         let position = Arc::new(AtomicU64::new(range.start));
+        let read_window = self
+            .storage()
+            .window(
+                version.clone(),
+                range.start..range.end.min(range.start + FETCH_BYTES),
+            )
+            .await?;
         let only_cached = policy::only_cached(&request.headers);
         if only_cached
             && !self
@@ -591,6 +582,7 @@ impl ResourceCache {
                 super::format::MAX_BLOCK
             },
             sequential: 0,
+            _window: read_window,
         };
         let body = futures_util::stream::try_unfold(reader, |mut reader| async move {
             if *reader.cache.stop.borrow()
@@ -611,6 +603,16 @@ impl ResourceCache {
                 reader.initial = None;
             }
             if reader.block.as_ref().is_none_or(|(i, _)| *i != index) {
+                let start = index * reader.version.meta.geometry.block;
+                reader._window = reader
+                    .cache
+                    .storage()
+                    .window(
+                        reader.version.clone(),
+                        start..reader.end.min(start + reader.window),
+                    )
+                    .await
+                    .map_err(|e| HttpError::Cache(e.to_string()))?;
                 if reader.block.as_ref().is_some_and(|(i, _)| *i + 1 == index) {
                     reader.sequential += 1;
                     if reader.sequential >= 4 {
@@ -687,13 +689,13 @@ impl ResourceCache {
         let download = if let Some(initial) = initial {
             initial
         } else {
-            if version.meta.policy.strong().is_none() {
+            if version.meta.policy.range_value().is_none() {
                 self.storage().retire(version.clone()).await?;
                 return Err(DownloadFailure::Changed.into());
             }
             let block = version.meta.geometry.block;
             let start = index * block;
-            let range = if version.meta.ranges && version.meta.policy.strong().is_some() {
+            let range = if version.meta.ranges && version.meta.policy.range_value().is_some() {
                 start..(start + window).min(version.meta.geometry.length)
             } else {
                 0..version.meta.geometry.length
@@ -740,7 +742,8 @@ impl ResourceCache {
             value.readers.lock().await.push(Arc::downgrade(&position));
             return Ok(value);
         }
-        if response.is_none() && version.meta.ranges && version.meta.policy.strong().is_some() {
+        if response.is_none() && version.meta.ranges && version.meta.policy.range_value().is_some()
+        {
             range = self.storage().missing_range(version.clone(), range).await?;
             if let Some(end) = downloads
                 .iter()
@@ -819,17 +822,19 @@ impl ResourceCache {
         let _request = self.requests.clone().acquire_owned().await?;
         let mut cancel = download.cancel.subscribe();
         ensure!(!*cancel.borrow(), "provider invalidated");
-        let mut skip = 0u64;
-        let mut clipped = false;
+
         let response = if let Some(response) = response {
             response
         } else {
-            if version.meta.ranges && version.meta.policy.strong().is_some() {
+            if version.meta.ranges && version.meta.policy.range_value().is_some() {
                 headers.insert(
                     "range",
                     format!("bytes={}-{}", range.start, range.end - 1).parse()?,
                 );
-                headers.insert("if-range", version.meta.policy.strong().unwrap().parse()?);
+                headers.insert(
+                    "if-range",
+                    version.meta.policy.range_value().unwrap().parse()?,
+                );
             }
             let response = tokio::select! {
                 result=self.execute(&prepared,headers)=>result?,
@@ -850,13 +855,20 @@ impl ResourceCache {
             let (length, actual) = response_geometry(&response)?
                 .ok_or_else(|| anyhow::anyhow!("resource length disappeared"))?;
             if length != version.meta.geometry.length
-                || identity(prepared.cache_url(response.url()).as_str().as_bytes())? != version.meta.target
+                || identity(prepared.cache_url(response.url()).as_str().as_bytes())?
+                    != version.meta.target
             {
                 self.storage().retire(version.clone()).await?;
                 return Err(DownloadFailure::Changed.into());
             }
-            if let Some(expected) = version.meta.policy.strong() {
-                if policy::value(response.headers(), "etag") != Some(expected) {
+            if !policy::value(response.headers(), "content-encoding")
+                .is_none_or(|v| v.eq_ignore_ascii_case("identity"))
+            {
+                self.storage().retire(version.clone()).await?;
+                return Err(DownloadFailure::Changed.into());
+            }
+            if version.meta.policy.range_value().is_some() {
+                if !version.meta.policy.matches_range(response.headers()) {
                     self.storage().retire(version.clone()).await?;
                     return Err(DownloadFailure::Changed.into());
                 }
@@ -871,11 +883,11 @@ impl ResourceCache {
             } else {
                 if range != actual {
                     ensure!(
-                        version.meta.policy.strong().is_some(),
+                        version.meta.policy.range_value().is_some(),
                         "cannot resume unvalidated representation"
                     );
-                    skip = range.start;
-                    clipped = true;
+                    self.storage().retire(version.clone()).await?;
+                    return Err(DownloadFailure::Changed.into());
                 }
             }
             response
@@ -893,9 +905,11 @@ impl ResourceCache {
         let mut persist = cacheable;
         let mut stop = self.stop.subscribe();
         let mut last_commit = tokio::time::Instant::now();
+        let mut window_end = range.start;
+        let mut write_window = None;
         let result:Result<()>=async {
         loop {
-            if clipped && cursor==range.end {break;}
+
             ensure!(
                 version.is_valid() && prepared.is_valid(),
                 "provider invalidated"
@@ -927,13 +941,16 @@ impl ResourceCache {
                 break;
             };
             let mut chunk = chunk.map_err(|err|err.without_url())?;
-            if skip>0 {let taken=skip.min(chunk.len() as u64) as usize;skip-=taken as u64;chunk=chunk.slice(taken..);}
-            if clipped {chunk=chunk.slice(..chunk.len().min((range.end-cursor-buffered.len() as u64) as usize));}
+
             ensure!(
                 cursor + buffered.len() as u64 + chunk.len() as u64 <= range.end,
                 "resource body exceeds declared range"
             );
             while !chunk.is_empty() {
+                if cursor >= window_end {
+                    window_end = range.end.min(cursor + FETCH_BYTES);
+                    write_window = Some(self.storage().window(version.clone(), cursor..window_end).await?);
+                }
                 let index = cursor / version.meta.geometry.block;
                 let block_range = version.meta.geometry.range(index)?;
                 ensure!(cursor == block_range.start, "unaligned upstream range");
@@ -984,6 +1001,7 @@ impl ResourceCache {
         }
         Ok(())
         }.await;
+        drop(write_window);
         if !batch.is_empty() {
             self.flush_batch(download, &version, &mut batch).await;
         }
@@ -1052,8 +1070,7 @@ fn metadata(
     key: &str,
     length: u64,
     response: &reqwest::Response,
-    sent: u64,
-    received: u64,
+    policy: Policy,
 ) -> Result<Metadata> {
     Ok(Metadata {
         key: key.into(),
@@ -1062,12 +1079,17 @@ fn metadata(
         generation: uuid::Uuid::new_v4().simple().to_string(),
         geometry: Geometry::new(length)?,
         headers: policy::saved(response.headers()),
-        policy: Policy::from_response(response.headers(), sent, received),
+        policy,
         target: identity(prepared.cache_url(response.url()).as_str().as_bytes())?,
         ranges: response.status() == StatusCode::PARTIAL_CONTENT,
+        layout: super::format::Layout::Blocks,
     })
 }
-fn ensure_validation(prepared: &PreparedResource, old: &Version, response: &reqwest::Response) -> Result<()> {
+fn ensure_validation(
+    prepared: &PreparedResource,
+    old: &Version,
+    response: &reqwest::Response,
+) -> Result<()> {
     if let Some(length) = policy::value(response.headers(), "content-length") {
         ensure!(
             length.parse::<u64>().ok() == Some(old.meta.geometry.length),
@@ -1082,6 +1104,12 @@ fn ensure_validation(prepared: &PreparedResource, old: &Version, response: &reqw
         ensure!(
             old.meta.policy.etag.as_deref() == Some(etag),
             "304 validator changed"
+        );
+    }
+    if let Some(modified) = policy::value(response.headers(), "last-modified") {
+        ensure!(
+            old.meta.policy.modified.as_deref() == Some(modified),
+            "304 modification date changed"
         );
     }
     Ok(())
@@ -1164,7 +1192,7 @@ fn response_geometry(response: &reqwest::Response) -> Result<Option<(u64, Range<
 }
 fn range_requested(headers: &HeaderMap, meta: &Metadata) -> bool {
     if let Some(if_range) = policy::value(headers, "if-range") {
-        if meta.policy.strong() != Some(if_range) {
+        if meta.policy.range_value() != Some(if_range) {
             return false;
         }
     }

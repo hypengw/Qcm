@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 pub type Headers = Vec<(String, String)>;
+// Date and file modification times can originate from different clocks.
+const DATE_CLOCK_MARGIN: u64 = 60;
 pub fn now() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -101,6 +103,27 @@ fn date(headers: &HeaderMap, name: &str) -> Option<u64> {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum RangeValidator {
+    StrongETag(String),
+    LastModified { value: String, date: u64 },
+}
+impl RangeValidator {
+    pub fn value(&self) -> &str {
+        match self {
+            Self::StrongETag(v) => v,
+            Self::LastModified { value, .. } => value,
+        }
+    }
+    pub fn matches(&self, headers: &HeaderMap) -> bool {
+        match self {
+            Self::StrongETag(v) => value(headers, "etag") == Some(v.as_str()),
+            Self::LastModified { value: v, .. } => {
+                !headers.contains_key("etag") && value(headers, "last-modified") == Some(v.as_str())
+            }
+        }
+    }
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Policy {
     pub stored: u64,
     pub initial_age: u64,
@@ -109,6 +132,8 @@ pub struct Policy {
     pub store: bool,
     pub etag: Option<String>,
     pub modified: Option<String>,
+    #[serde(default)]
+    pub range_validator: Option<RangeValidator>,
 }
 impl Policy {
     pub fn from_response(headers: &HeaderMap, sent: u64, received: u64) -> Self {
@@ -151,6 +176,19 @@ impl Policy {
                     .is_none_or(|v| v.eq_ignore_ascii_case("identity")),
             etag: value(headers, "etag").map(str::to_string),
             modified: value(headers, "last-modified").map(str::to_string),
+            range_validator: if let Some(etag) = value(headers, "etag") {
+                strong_etag(etag).then(|| RangeValidator::StrongETag(etag.into()))
+            } else {
+                date(headers, "last-modified")
+                    .zip(date(headers, "date"))
+                    .filter(|(modified, date)| date.saturating_sub(*modified) >= DATE_CLOCK_MARGIN)
+                    .and_then(|(_, date)| {
+                        value(headers, "last-modified").map(|value| RangeValidator::LastModified {
+                            value: value.into(),
+                            date,
+                        })
+                    })
+            },
         }
     }
     pub fn age(&self) -> u64 {
@@ -188,13 +226,20 @@ impl Policy {
         }
         self.age() < lifetime
     }
-    pub fn strong(&self) -> Option<&str> {
-        self.etag.as_deref().filter(|s| {
-            s.len() >= 2
-                && s.starts_with('"')
-                && s.ends_with('"')
-                && !s[1..s.len() - 1].contains('"')
-        })
+    pub fn range_value(&self) -> Option<&str> {
+        self.range_validator
+            .as_ref()
+            .map(RangeValidator::value)
+            .or_else(|| self.etag.as_deref().filter(|v| strong_etag(v)))
+    }
+    pub fn matches_range(&self, headers: &HeaderMap) -> bool {
+        self.range_validator.as_ref().map_or_else(
+            || {
+                self.range_value()
+                    .is_some_and(|v| value(headers, "etag") == Some(v))
+            },
+            |v| v.matches(headers),
+        )
     }
     pub fn conditional(&self) -> HeaderMap {
         let mut headers = HeaderMap::new();
@@ -209,6 +254,14 @@ impl Policy {
         }
         headers
     }
+}
+fn strong_etag(s: &str) -> bool {
+    s.len() >= 2
+        && s.starts_with('"')
+        && s.ends_with('"')
+        && s.as_bytes()[1..s.len() - 1]
+            .iter()
+            .all(|b| *b == 0x21 || (0x23..=0x7e).contains(b) || *b >= 0x80)
 }
 pub fn request_no_store(headers: &HeaderMap) -> bool {
     directives(headers).iter().any(|(k, _)| k == "no-store")
@@ -262,4 +315,49 @@ pub fn not_modified(policy: &Policy, request: &HeaderMap) -> bool {
         return modified <= UNIX_EPOCH + Duration::from_secs(since);
     }
     false
+}
+
+#[cfg(test)]
+mod range_tests {
+    use super::*;
+    #[test]
+    fn range_validator_requires_original_date_and_prioritizes_entity_tags() {
+        let mut h = HeaderMap::new();
+        h.insert(
+            "last-modified",
+            "Wed, 21 Sep 2022 11:50:18 GMT".parse().unwrap(),
+        );
+        for date in [
+            None,
+            Some("invalid"),
+            Some("Wed, 21 Sep 2022 11:50:17 GMT"),
+            Some("Wed, 21 Sep 2022 11:50:18 GMT"),
+            Some("Wed, 21 Sep 2022 11:50:19 GMT"),
+            Some("Wed, 21 Sep 2022 11:51:17 GMT"),
+        ] {
+            h.remove("date");
+            if let Some(date) = date {
+                h.insert("date", date.parse().unwrap());
+            }
+            assert!(Policy::from_response(&h, 0, 0).range_value().is_none());
+        }
+        h.insert("date", "Wed, 21 Sep 2022 11:51:18 GMT".parse().unwrap());
+        let date_policy = Policy::from_response(&h, 0, 0);
+        assert_eq!(date_policy.range_value(), value(&h, "last-modified"));
+        assert!(date_policy.matches_range(&h));
+        let encoded = serde_json::to_string(&date_policy).unwrap();
+        assert!(encoded.contains("date"));
+        assert!(serde_json::from_str::<Policy>(&encoded)
+            .unwrap()
+            .matches_range(&h));
+        h.insert("etag", "W/\"one\"".parse().unwrap());
+        assert!(Policy::from_response(&h, 0, 0).range_value().is_none());
+        assert!(!date_policy.matches_range(&h));
+        h.insert("etag", "\"one\"".parse().unwrap());
+        let etag_policy = Policy::from_response(&h, 0, 0);
+        assert_eq!(etag_policy.range_value(), Some("\"one\""));
+        assert!(etag_policy.matches_range(&h));
+        h.insert("etag", "\"two\"".parse().unwrap());
+        assert!(!etag_policy.matches_range(&h));
+    }
 }

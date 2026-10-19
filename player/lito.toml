@@ -37,3 +37,7 @@ workspace = true
 [[test]]
 name = "playback"
 sources = ["tests/playback.cpp"]
+
+[[test]]
+name = "resource-seek"
+sources = ["tests/resource_seek.cpp"]

@@ -7,7 +7,52 @@ pub const MIN_BLOCK: u64 = 256 * 1024;
 pub const MAX_BLOCK: u64 = 1024 * 1024;
 pub const HEADER_LEN: u64 = 64;
 pub const ENTRY_LEN: usize = 36;
+pub const SEGMENT_BYTES: u64 = 16 * 1024 * 1024;
+pub const WINDOW_BYTES: u64 = 4 * 1024 * 1024;
 const MAGIC: &[u8; 8] = b"QCMRSC01";
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
+pub enum Layout {
+    #[default]
+    Blocks,
+    Segments {
+        bytes: u64,
+    },
+}
+impl Layout {
+    pub fn for_resource(kind: i32, length: u64) -> Self {
+        if kind == 1 && length > SEGMENT_BYTES {
+            Self::Segments {
+                bytes: SEGMENT_BYTES,
+            }
+        } else {
+            Self::Blocks
+        }
+    }
+    pub fn segment_bytes(self) -> Option<u64> {
+        match self {
+            Self::Blocks => None,
+            Self::Segments { bytes } => Some(bytes),
+        }
+    }
+    pub fn validate(self, geometry: Geometry) -> Result<()> {
+        ensure!(
+            matches!(geometry.block, MIN_BLOCK | 524288 | MAX_BLOCK),
+            "invalid block size"
+        );
+        ensure!(
+            geometry.count() <= 1_000_000,
+            "resource index exceeds memory limit"
+        );
+        if let Some(bytes) = self.segment_bytes() {
+            ensure!(
+                matches!(bytes, SEGMENT_BYTES | 33554432) && bytes % geometry.block == 0,
+                "invalid segment geometry"
+            );
+        }
+        Ok(())
+    }
+}
 
 pub fn hash(data: &[u8]) -> Result<[u8; 32]> {
     digest(MessageDigest::sha256(), data)
@@ -65,6 +110,7 @@ impl Geometry {
     }
 }
 
+#[derive(Clone)]
 pub struct Index {
     bytes: Vec<u8>,
     dirty: Vec<Range<usize>>,
@@ -86,6 +132,18 @@ impl Index {
         let index = Self::load_layout(geometry, bytes, None)?;
         ensure!(index.complete(), "incomplete plain index");
         Ok(index)
+    }
+    pub fn load_segments(geometry: Geometry, bytes: Vec<u8>, size: u64) -> Result<Self> {
+        let value = Self::load_layout(geometry, bytes, None)?;
+        for i in 0..geometry.count() {
+            if let Some((slot, _)) = value.get(i) {
+                ensure!(
+                    u64::from(slot) == i % (size / geometry.block),
+                    "invalid segment slot"
+                );
+            }
+        }
+        Ok(value)
     }
     fn load_layout(geometry: Geometry, bytes: Vec<u8>, slots: Option<u64>) -> Result<Self> {
         ensure!(
