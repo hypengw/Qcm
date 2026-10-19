@@ -128,13 +128,41 @@ pub async fn append_songs(
 
     reorder_append(&db, mix_id).await?;
 
+    update_track_count(db, mix_id, count as i64).await?;
+
+    Ok(count)
+}
+
+pub async fn remove_songs(
+    db: &DatabaseTransaction,
+    mix_id: i64,
+    song_ids: &[i64],
+) -> Result<u64, DbErr> {
+    let result = sqlm::rel_mix_song::Entity::delete_many()
+        .filter(sqlm::rel_mix_song::Column::MixId.eq(mix_id))
+        .filter(sqlm::rel_mix_song::Column::SongId.is_in(song_ids.iter().copied()))
+        .exec(db)
+        .await?;
+    update_track_count(db, mix_id, -(result.rows_affected as i64)).await?;
+    Ok(result.rows_affected)
+}
+
+async fn update_track_count(
+    db: &DatabaseTransaction,
+    mix_id: i64,
+    delta: i64,
+) -> Result<(), DbErr> {
+    if delta == 0 {
+        return Ok(());
+    }
     Entity::update_many()
         .col_expr(
             Column::TrackCount,
-            Expr::val(count).add(Expr::col(Column::TrackCount)).into(),
+            Expr::col(Column::TrackCount).add(delta).into(),
         )
+        .col_expr(Column::UpdateAt, Expr::val(Timestamp::now()).into())
+        .filter(Column::Id.eq(mix_id))
         .exec(db)
         .await?;
-
-    Ok(count)
+    Ok(())
 }

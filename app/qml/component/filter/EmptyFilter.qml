@@ -7,6 +7,6 @@ Flow {
     signal clicked
     MD.InputChip {
         text: qsTr('empty')
-        onClicked: root.clicked()
+        onSelectionRequested: root.clicked()
     }
 }

@@ -24,10 +24,10 @@ MD.Page {
             typescale: MD.Token.typescale.label_large
         }
 
-        MD.Button {
+        MD.ActionButton {
             Layout.alignment: Qt.AlignHCenter
             mdState.type: MD.Enum.BtText
-            action:MD.Action {
+            action: MD.Action {
                 icon.name: MD.Token.icon.refresh
                 text: 'retry'
                 onTriggered: root.retryCallback()
@@ -35,7 +35,7 @@ MD.Page {
         }
     }
 
-    MD.IconButton {
+    MD.ActionIconButton {
         anchors.left: parent.left
         anchors.bottom: parent.bottom
         anchors.leftMargin: 16

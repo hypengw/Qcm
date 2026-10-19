@@ -39,7 +39,7 @@ MD.Page {
             }
         }
 
-        MD.IconButton {
+        MD.ActionIconButton {
             anchors.left: parent.left
             anchors.bottom: parent.bottom
             anchors.leftMargin: 4

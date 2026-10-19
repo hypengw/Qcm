@@ -45,7 +45,7 @@ QA.BaseFilter {
     MD.InputChip {
         id: m_value
         visible: root.condition !== QM.StringCondition.STRING_CONDITION_UNSPECIFIED
-        onClicked: edit = true
+        onSelectionRequested: edit = true
         editDelegate: MD.TextInput {
             text: root.value
             onAccepted: {

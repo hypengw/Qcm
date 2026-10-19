@@ -130,7 +130,7 @@ MD.ListItem {
         MD.Text {
             visible: !root.MD.MProp.size.isCompact
             typescale: MD.Token.typescale.body_medium
-            text: QA.Util.formatDateTime(root.dgModel.duration, 'mm:ss')
+            text: QA.Util.formatDuration(root.dgModel.duration, 'mm:ss')
             verticalAlignment: Qt.AlignVCenter
         }
         Row {
@@ -138,9 +138,18 @@ MD.ListItem {
 
             MD.BusyIconButton {
                 visible: !root.MD.MProp.size.isCompact
-                action: QA.FavoriteAction {
+                readonly property QA.FavoriteAction favoriteAction: QA.FavoriteAction {
                     itemId: root.itemId
                 }
+                MD.ActionCommand.action: favoriteAction
+                enabled: MD.ActionCommand.enabled
+                text: MD.ActionCommand.text
+                icon.actionIcon: MD.ActionCommand.icon
+                icon.fill: favoriteAction.checked
+                mdState.selected: favoriteAction.checked
+                mdState.toggleable: favoriteAction.checkable
+                busy: favoriteAction.busy
+                progress: favoriteAction.progress
             }
             MD.IconButton {
                 icon.name: MD.Token.icon.more_vert

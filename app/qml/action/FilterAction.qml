@@ -5,7 +5,7 @@ import Qcm.Material as MD
 
 MD.Action {
     id: root
-    icon.name: MD.Token.icon.filter_list
+    icon.name: MD.Token.icon.filter_alt
     text: qsTr('filter')
     enabled: model
 

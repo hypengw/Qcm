@@ -16,7 +16,7 @@ local function copy(out, source, target, wire, convert)
     if v ~= nil then out[target] = v == J.null and J.null or convert and convert(v) or v end
 end
 local function date(v) return qcm.time.parse_rfc3339(v) end
-local function duration(v) assert(math.type(v)=='integer' and v>=0, 'invalid duration'); return v // 10 end
+local function duration(v) assert(math.type(v)=='integer' and v>=0, 'invalid duration'); return v // 10000 end
 local function add_images(batch, key, item)
     local tags = value(item.ImageTags)
     if tags then

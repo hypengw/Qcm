@@ -82,17 +82,30 @@ MD.Page {
             }
             MD.StandardIconButton {
                 id: m_display_mode_btn
-                action: QA.SelectDisplayModeAction {
+                readonly property QA.SelectDisplayModeAction displayModeAction: QA.SelectDisplayModeAction {
                     menuParent: m_display_mode_btn
                     displayMode: root.displayMode
                     onSelectDisplayMode: m => root.displayMode = m
                 }
+                MD.ActionCommand.action: displayModeAction
+                text: MD.ActionCommand.text
+                icon.actionIcon: MD.ActionCommand.icon
+                enabled: MD.ActionCommand.enabled
             }
             MD.BusyIconButton {
                 id: btn_fav
-                action: QA.FavoriteAction {
+                readonly property QA.FavoriteAction favoriteAction: QA.FavoriteAction {
                     itemId: root.itemId
                 }
+                MD.ActionCommand.action: favoriteAction
+                text: MD.ActionCommand.text
+                icon.actionIcon: MD.ActionCommand.icon
+                enabled: MD.ActionCommand.enabled
+                icon.fill: favoriteAction.checked
+                mdState.selected: favoriteAction.checked
+                mdState.toggleable: favoriteAction.checkable
+                busy: favoriteAction.busy
+                progress: favoriteAction.progress
             }
         }
     }

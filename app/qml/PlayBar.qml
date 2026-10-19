@@ -133,10 +133,18 @@ MD.Pane {
                     id: comp_ctl
                     RowLayout {
                         MD.BusyIconButton {
-                            enabled: root.currentSongId.valid
-                            action: QA.FavoriteAction {
+                            readonly property QA.FavoriteAction favoriteAction: QA.FavoriteAction {
                                 itemId: root.currentSongId
                             }
+                            MD.ActionCommand.action: favoriteAction
+                            enabled: root.currentSongId.valid && MD.ActionCommand.enabled
+                            text: MD.ActionCommand.text
+                            icon.actionIcon: MD.ActionCommand.icon
+                            icon.fill: favoriteAction.checked
+                            mdState.selected: favoriteAction.checked
+                            mdState.toggleable: favoriteAction.checkable
+                            busy: favoriteAction.busy
+                            progress: favoriteAction.progress
                         }
                         MD.IconButton {
                             enabled: QA.App.playqueue.canPrev
@@ -146,8 +154,9 @@ MD.Pane {
                         }
                         MD.IconButton {
                             mdState.type: MD.Enum.IBtFilled
-                            checked: QA.Global.player.playing
-                            icon.name: checked ? MD.Token.icon.pause : MD.Token.icon.play_arrow
+                            mdState.selected: QA.Global.player.playing
+                            icon.fill: QA.Global.player.playing
+                            icon.name: QA.Global.player.playing ? MD.Token.icon.pause : MD.Token.icon.play_arrow
                             onClicked: QA.Action.toggle()
                         }
                         MD.IconButton {

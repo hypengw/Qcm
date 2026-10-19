@@ -142,14 +142,13 @@ MD.Page {
                             MD.FilterChip {
                                 required property var modelData
                                 text: modelData.name
-                                checkable: false
-                                checked: {
+                                selected: {
                                     const s = QA.App.providerStatus.libraryStatus;
                                     return s.actived(modelData.libraryId)
                                 }
-                                onClicked: {
+                                onSelectionRequested: {
                                     const s = QA.App.providerStatus.libraryStatus;
-                                    s.setActived(modelData.libraryId, !checked);
+                                    s.setActived(modelData.libraryId, !selected);
                                 }
                             }
                         }

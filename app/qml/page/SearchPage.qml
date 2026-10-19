@@ -65,15 +65,8 @@ MD.Page {
             Row {
                 spacing: 4
                 MD.FilterChip {
-                    action: MD.Action {
-                        text: qsTr('local')
-                        icon.name: MD.Token.icon.arrow_drop_down
-                        onTriggered: {}
-                    }
-                }
-
-                MD.ButtonGroup {
-                    id: m_group
+                    text: qsTr('local')
+                    icon.name: MD.Token.icon.arrow_drop_down
                 }
 
                 Repeater {
@@ -81,17 +74,14 @@ MD.Page {
                     MD.FilterChip {
                         required property var model
                         text: model.name
-                        MD.ButtonGroup.group: m_group
+                        selected: m_search_type_model.currentIndex == model.index
 
-                        onClicked: {
+                        onSelectionRequested: {
                             m_search_type_model.currentIndex = model.index;
                             m_stack.currentIndex = model.index;
                             m_stack.updateText(m_search_bar.text);
                         }
 
-                        Component.onCompleted: {
-                            checked = m_search_type_model.currentIndex == model.index;
-                        }
                     }
                 }
             }

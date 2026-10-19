@@ -88,7 +88,7 @@ MD.Page {
                 Layout.fillWidth: true
             }
 
-            MD.IconButton {
+            MD.ActionIconButton {
                 action: QA.AppendListAction {
                     getSongIds: function () {
                         return QA.Util.collect_ids(qr_al.data);
@@ -97,11 +97,20 @@ MD.Page {
             }
             MD.BusyIconButton {
                 id: btn_fav
-                action: QA.FavoriteAction {
+                readonly property QA.FavoriteAction favoriteAction: QA.FavoriteAction {
                     itemId: root.itemId
                 }
+                MD.ActionCommand.action: favoriteAction
+                text: MD.ActionCommand.text
+                icon.actionIcon: MD.ActionCommand.icon
+                enabled: MD.ActionCommand.enabled
+                icon.fill: favoriteAction.checked
+                mdState.selected: favoriteAction.checked
+                mdState.toggleable: favoriteAction.checkable
+                busy: favoriteAction.busy
+                progress: favoriteAction.progress
             }
-            MD.IconButton {
+            MD.ActionIconButton {
                 id: btn_comment
                 // TODO
                 visible: false
@@ -335,12 +344,8 @@ MD.Page {
         anchors.rightMargin: root.MD.MProp.page.rightMargin + 16
         anchors.bottomMargin: root.MD.MProp.page.bottomMargin + 16
         flickable: root.view
-        action: MD.Action {
-            icon.name: MD.Token.icon.play_arrow
-            onTriggered: {
-                QA.Action.switch_songs(QA.Util.collect_ids(qr_al.data));
-            }
-        }
+        icon.name: MD.Token.icon.play_arrow
+        onClicked: QA.Action.switch_songs(QA.Util.collect_ids(qr_al.data))
     }
 
     QA.SongSortFilterModel {

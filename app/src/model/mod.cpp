@@ -110,6 +110,16 @@ auto ForYouListModel::roleNames() const -> QHash<int, QByteArray> {
 
 RadioQueueListModel::RadioQueueListModel(QObject* parent)
     : ItemIdListModel(this, parent, enums::ItemType::ItemRadioQueue) {}
+auto RadioQueueListModel::data(const QModelIndex& index, int role) const -> QVariant {
+    if (index.row() < 0 || index.row() >= rowCount()) return {};
+    if (role == RadioRole) return QVariant::fromValue(at(index.row()));
+    return ItemIdListModel::data(index, role);
+}
+auto RadioQueueListModel::roleNames() const -> QHash<int, QByteArray> {
+    auto roles = ItemIdListModel::roleNames();
+    roles.insert(RadioRole, "radio");
+    return roles;
+}
 
 MixSongListModel::MixSongListModel(QObject* parent)
     : ItemIdListModel(this, parent, enums::ItemType::ItemSong),

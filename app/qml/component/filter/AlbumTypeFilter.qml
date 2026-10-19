@@ -31,7 +31,7 @@ QA.TypeFilter {
         id: m_value
         visible: root.condition !== QM.TypeCondition.TYPE_CONDITION_UNSPECIFIED
         text: root.format(root.value)
-        onClicked: {
+        onSelectionRequested: {
             QA.Action.openPopup(m_menu_comp);
         }
     }

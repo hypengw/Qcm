@@ -11,6 +11,7 @@ message Song {
   int64 album_id = 6;
   int32 track_number = 7;
   int32 disc_number = 8;
+  // Duration in milliseconds.
   double duration = 9;
   bool can_play = 10;
   google.protobuf.Timestamp publish_time = 11;
@@ -79,6 +80,7 @@ message Mix {
   int32 track_count = 6;
   string description = 8;
   MixType mix_type = 9;
+  google.protobuf.Timestamp update_at = 10;
 }
 
 message Library {
@@ -114,6 +116,7 @@ message Album {
   string name = 4;
   string sort_name = 5;
   AlbumType type = 6;
+  // Duration in milliseconds.
   int64 duration = 7;
   int32 track_count = 8;
   int32 disc_count = 9;

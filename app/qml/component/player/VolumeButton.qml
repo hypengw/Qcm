@@ -21,8 +21,9 @@ MD.IconButton {
                 id: slider
                 orientation: Qt.Vertical
                 signal volumeSeted(volume: real)
-                onMoved: {
-                    volumeSeted(value);
+                onValueChangeRequested: requestedValue => {
+                    value = requestedValue;
+                    volumeSeted(requestedValue);
                 }
             }
         }

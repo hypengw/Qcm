@@ -413,8 +413,11 @@ async fn short_pages_restore_playlists_and_failed_sync_preserve_data() {
             .unwrap()
             .unwrap()
             .duration,
-        6000000
+        6000
     );
+    for song in m::song::Entity::find().all(&ctx.db).await.unwrap() {
+        assert_eq!(song.duration, 3000);
+    }
     let playlist = m::item::Entity::find()
         .filter(m::item::Column::Type.eq(ItemType::Mix))
         .one(&ctx.db)

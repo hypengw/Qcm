@@ -52,7 +52,7 @@ QA.BaseFilter {
         id: m_value
         visible: root.condition !== QM.IntCondition.INT_CONDITION_UNSPECIFIED
         text: root.value
-        onClicked: edit = true
+        onSelectionRequested: edit = true
         editDelegate: MD.TextInput {
             text: root.value
             validator: IntValidator {}

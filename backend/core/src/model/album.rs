@@ -18,6 +18,7 @@ pub struct Model {
     #[serde(default)]
     pub r#type: AlbumType,
     #[serde(default)]
+    /// Duration in milliseconds.
     pub duration: i64,
     #[serde(default)]
     pub language: Option<String>,

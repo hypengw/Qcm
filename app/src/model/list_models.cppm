@@ -118,7 +118,10 @@ class RadioQueueListModel : public ItemIdListModel,
     using value_type  = model::RadioQueue;
 
 public:
+    static constexpr int RadioRole = ItemIdRole + 1;
     RadioQueueListModel(QObject* parent = nullptr);
+    auto data(const QModelIndex&, int role = 0) const -> QVariant override;
+    auto roleNames() const -> QHash<int, QByteArray> override;
 };
 
 class MixSongListModel : public ItemIdListModel,

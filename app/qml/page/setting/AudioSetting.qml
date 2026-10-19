@@ -25,7 +25,7 @@ QA.SettingBasePage {
         spacing: 2
 
         QA.SettingRow {
-            text: `${qsTr('Fade When Play/Pause')}: ${m_slider_fade.value} ms`
+            text: `${qsTr('Fade When Play/Pause')}: ${QA.Global.player.fadeTime} ms`
             font.capitalization: Font.MixedCase
             canInput: false
             below: MD.SliderM2 {
@@ -34,21 +34,27 @@ QA.SettingBasePage {
                 from: 0
                 stepSize: 20
                 to: 1000
-                onMoved: {
-                    QA.Global.player.fadeTime = value;
-                }
-                Component.onCompleted: {
-                    value = QA.Global.player.fadeTime;
-                }
+                value: QA.Global.player.fadeTime
+                onValueChangeRequested: requestedValue => QA.Global.player.fadeTime = requestedValue
             }
         }
         QA.SettingRow {
+            id: qualityRow
             text: qsTr('streaming quality')
-            canInput: !m_comb_playing_quality.popup.visible
 
             trailing: MD.ComboBox {
                 id: m_comb_playing_quality
-                signal clicked
+
+                Binding {
+                    qualityRow.canInput: !m_comb_playing_quality.popup.visible
+                }
+
+                Connections {
+                    target: qualityRow
+                    function onClicked() {
+                        m_comb_playing_quality.popup.open();
+                    }
+                }
 
                 textRole: "text"
                 valueRole: "value"
@@ -80,9 +86,6 @@ QA.SettingBasePage {
                     });
                 }
 
-                onClicked: {
-                    popup.open();
-                }
             }
         }
     }

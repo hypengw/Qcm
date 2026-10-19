@@ -111,14 +111,10 @@ MD.Page {
                 delegate: MD.InputChip {
                     required property int index
                     required property var model
-                    action: MD.Action {
-                        icon.name: ''
-                        checked: m_auth_type_view.currentIndex == index
-                        onTriggered: {
-                            m_auth_type_view.currentIndex = index;
-                        }
-                        text: model.name
-                    }
+                    icon.name: ''
+                    selected: m_auth_type_view.currentIndex == index
+                    text: model.name
+                    onSelectionRequested: m_auth_type_view.currentIndex = index
                 }
             }
 
@@ -149,7 +145,6 @@ MD.Page {
                 visible: m_auth_loader.sourceComponent != m_comp_qr
                 mdState.type: MD.Enum.BtFilled
                 font.capitalization: Font.Capitalize
-                highlighted: true
                 text: qsTr('connect')
                 busy: m_auth_query.querying
 

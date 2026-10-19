@@ -349,7 +349,10 @@ impl QcmFrom<proto::Mix> for core::model::mix::Model {
                 .unwrap_or(sqlm::type_enum::MixType::Normal),
             remote_id: None,
             create_at: Timestamp::now(),
-            update_at: Timestamp::now(),
+            update_at: v
+                .update_at
+                .map(QcmInto::qcm_into)
+                .unwrap_or_else(Timestamp::now),
             content_update_at: Timestamp::new(),
         }
     }
@@ -364,6 +367,7 @@ impl QcmFrom<core::model::mix::Model> for proto::Mix {
             mix_type: v.mix_type as i32,
             track_count: v.track_count,
             description: v.description,
+            update_at: (v.update_at.as_millis() > 0).then(|| v.update_at.qcm_into()),
         }
     }
 }
@@ -679,5 +683,33 @@ impl QcmFrom<qcm_core::provider::HomeBlock> for proto::HomeBlock {
             style: style.into(),
             item_type: item_type.into(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn mix_local_update_time_survives_wire_round_trip() {
+        let mut model: sqlm::mix::Model = proto::Mix::default().qcm_into();
+        let timestamp = Timestamp::from_millis(1_792_390_123_456);
+        model.update_at = timestamp;
+        model.content_update_at = Timestamp::from_millis(1_700_000_000_000);
+        let message: proto::Mix = model.qcm_into();
+        let decoded = proto::Mix::decode(message.encode_to_vec().as_slice()).unwrap();
+        let restored: sqlm::mix::Model = decoded.qcm_into();
+        assert_eq!(restored.update_at, timestamp);
+    }
+
+    #[test]
+    fn mix_local_update_time_is_optional_for_legacy_and_unknown_dates() {
+        let legacy = proto::Mix::decode([8, 7].as_slice()).unwrap();
+        assert_eq!(legacy.id, 7);
+        assert!(legacy.update_at.is_none());
+        let mut model: sqlm::mix::Model = legacy.qcm_into();
+        model.update_at = Timestamp::new();
+        let message: proto::Mix = model.qcm_into();
+        assert!(message.update_at.is_none());
     }
 }

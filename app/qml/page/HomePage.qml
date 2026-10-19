@@ -100,8 +100,6 @@ MD.Page {
                 title: "Radio"
                 model: m_home_query.radios
                 delegate: QA.RadioQueueCard {
-                    required property int index
-                    radio: m_home_query.radios.item(index)
                     query: m_home_query
                     width: m_radio_block.widthProvider.width
                 }

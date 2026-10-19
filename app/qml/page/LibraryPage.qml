@@ -179,10 +179,9 @@ MD.Page {
             delegate: MD.FilterChip {
                 required property string modelData
                 required property int index
-                checkable: false
-                checked: index == root.currentIndex
+                selected: index == root.currentIndex
                 text: modelData
-                onClicked: root.currentIndex = index
+                onSelectionRequested: root.currentIndex = index
             }
         }
 
@@ -475,9 +474,13 @@ MD.Page {
                     icon.height: 22
                     implicitBackgroundSize: 0
                     anchors.verticalCenter: parent.verticalCenter
-                    action: MD.ToolBarLayout.action as MD.Action
+                    readonly property MD.Action action: MD.ToolBarLayout.action
+                    MD.ActionCommand.action: action
+                    text: MD.ActionCommand.text
+                    icon.actionIcon: MD.ActionCommand.icon
+                    enabled: MD.ActionCommand.enabled
                     Component.onCompleted: {
-                        if (action.hasOwnProperty('menuParent')) {
+                        if (action && action.hasOwnProperty('menuParent')) {
                             action.menuParent = m_item;
                         }
                     }
@@ -486,7 +489,10 @@ MD.Page {
                     icon.width: 22
                     icon.height: 22
                     implicitBackgroundSize: 0
-                    action: m_tool_bar.moreAction
+                    MD.ActionCommand.action: m_tool_bar.moreAction
+                    text: MD.ActionCommand.text
+                    icon.actionIcon: MD.ActionCommand.icon
+                    enabled: MD.ActionCommand.enabled
                 }
             }
         }

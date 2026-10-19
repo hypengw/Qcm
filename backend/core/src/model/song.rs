@@ -16,6 +16,7 @@ pub struct Model {
     pub album_id: Option<i64>,
     pub track_number: i32,
     pub disc_number: i32,
+    /// Duration in milliseconds.
     pub duration: i64,
     #[serde(default = "default_true")]
     pub can_play: bool,

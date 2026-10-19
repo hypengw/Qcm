@@ -124,6 +124,153 @@ async fn library(
         .library_id
 }
 #[tokio::test]
+async fn mix_local_edits_update_only_the_changed_mix() {
+    use qcm_core::{db::values::Timestamp, model::type_enum::MixType};
+
+    let db = database().await;
+    let coordinator = SyncCoordinator::default();
+    let lib = library(&db, &coordinator, 1, "local").await;
+    let result = ProviderWriter::new(&db, 1, &coordinator)
+        .sync_batch(batch(
+            json!({"songs":[{"item":key(lib,"Song","song"),"name":"Song"}]}),
+        ))
+        .await
+        .unwrap();
+    let song = result.songs[0].id;
+    let old = Timestamp::from_millis(1_000);
+    let mut mixes = Vec::new();
+    for name in ["Changed", "Untouched"] {
+        mixes.push(
+            m::mix::ActiveModel {
+                name: Set(name.into()),
+                mix_type: Set(MixType::Normal),
+                track_count: Set(0),
+                description: Set(String::new()),
+                update_at: Set(old),
+                ..Default::default()
+            }
+            .insert(&db)
+            .await
+            .unwrap(),
+        );
+    }
+    let id = mixes[0].id;
+    let txn = db.begin().await.unwrap();
+    assert_eq!(
+        m::mix::append_songs(&txn, id, &vec![song]).await.unwrap(),
+        1
+    );
+    txn.commit().await.unwrap();
+    let changed = m::mix::Entity::find_by_id(id)
+        .one(&db)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(changed.track_count, 1);
+    assert!(changed.update_at.as_millis() > old.as_millis());
+    assert_eq!(changed.content_update_at, mixes[0].content_update_at);
+
+    let txn = db.begin().await.unwrap();
+    assert_eq!(
+        m::mix::append_songs(&txn, id, &vec![song]).await.unwrap(),
+        0
+    );
+    txn.commit().await.unwrap();
+    assert_eq!(
+        m::mix::Entity::find_by_id(id)
+            .one(&db)
+            .await
+            .unwrap()
+            .unwrap(),
+        changed
+    );
+
+    m::mix::ActiveModel {
+        id: Set(id),
+        update_at: Set(old),
+        ..Default::default()
+    }
+    .update(&db)
+    .await
+    .unwrap();
+    let txn = db.begin().await.unwrap();
+    assert_eq!(m::mix::remove_songs(&txn, id, &[song]).await.unwrap(), 1);
+    txn.commit().await.unwrap();
+    let removed = m::mix::Entity::find_by_id(id)
+        .one(&db)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(removed.track_count, 0);
+    assert!(removed.update_at.as_millis() > old.as_millis());
+    let txn = db.begin().await.unwrap();
+    assert_eq!(m::mix::remove_songs(&txn, id, &[song]).await.unwrap(), 0);
+    txn.commit().await.unwrap();
+    assert_eq!(
+        m::mix::Entity::find_by_id(id)
+            .one(&db)
+            .await
+            .unwrap()
+            .unwrap(),
+        removed
+    );
+    assert_eq!(
+        m::mix::Entity::find_by_id(mixes[1].id)
+            .one(&db)
+            .await
+            .unwrap()
+            .unwrap(),
+        mixes[1]
+    );
+}
+
+#[tokio::test]
+async fn mix_local_update_time_advances_on_content_sync() {
+    use qcm_core::db::values::Timestamp;
+
+    let db = database().await;
+    let coordinator = SyncCoordinator::default();
+    let writer = ProviderWriter::new(&db, 1, &coordinator);
+    let remote = json!({"type":"Mix","native_id":"mix","library_id":null});
+    let result = writer
+        .sync_batch(batch(
+            json!({"remote_mixes":[{"item":remote,"name":"Mix"}]}),
+        ))
+        .await
+        .unwrap();
+    let id = result.remote_mixes[0].id;
+    let mix = m::mix::Entity::find()
+        .filter(m::mix::Column::RemoteId.eq(id))
+        .one(&db)
+        .await
+        .unwrap()
+        .unwrap();
+    let old = Timestamp::from_millis(1_000);
+    m::mix::ActiveModel {
+        id: Set(mix.id),
+        update_at: Set(old),
+        content_update_at: Set(old),
+        ..Default::default()
+    }
+    .update(&db)
+    .await
+    .unwrap();
+    writer
+        .sync_batch(batch(
+            json!({"remote_mix_contents":[{"mix":id,"mode":"replace","songs":[]}]}),
+        ))
+        .await
+        .unwrap();
+    let updated = m::mix::Entity::find_by_id(mix.id)
+        .one(&db)
+        .await
+        .unwrap()
+        .unwrap();
+    assert!(updated.update_at.as_millis() > old.as_millis());
+    assert_eq!(updated.update_at, updated.content_update_at);
+}
+
+#[tokio::test]
 async fn identity_patches_masks_and_local_state() {
     let db = database().await;
     let coordinator = SyncCoordinator::default();

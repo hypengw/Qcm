@@ -65,8 +65,9 @@ MD.Page {
                     text: `${root.mix.trackCount} songs`
                 }
                 MD.Text {
+                    visible: root.mix.hasUpdateAt
                     typescale: MD.Token.typescale.body_medium
-                    text: Qt.formatDateTime(root.mix.updateTime, 'yyyy.MM.dd')
+                    text: root.mix.hasUpdateAt ? qsTr("Locally updated on %1").arg(QA.Util.formatDateTime(root.mix.updateAt, 'yyyy.MM.dd')) : ""
                 }
             }
             QA.ListDescription {
@@ -78,7 +79,7 @@ MD.Page {
                 id: m_control_pane
                 Layout.alignment: Qt.AlignHCenter
 
-                MD.IconButton {
+                MD.ActionIconButton {
                     action: QA.AppendListAction {
                         getSongIds: function () {
                             return QA.Util.collect_ids(qr_pl.data);
@@ -86,14 +87,20 @@ MD.Page {
                     }
                 }
                 MD.BusyIconButton {
-                    action: QA.SyncItemAction {
+                    readonly property QA.SyncItemAction syncAction: QA.SyncItemAction {
                         itemId: root.itemId
                         enabled: root.mix.mixType !== QM.MixType.MIX_TYPE_NORMAL
                         onFinished: {
                             qr_pl.reload();
                         }
                     }
-                    visible: action.enabled
+                    MD.ActionCommand.action: syncAction
+                    text: MD.ActionCommand.text
+                    icon.actionIcon: MD.ActionCommand.icon
+                    enabled: MD.ActionCommand.enabled
+                    busy: syncAction.busy
+                    progress: syncAction.progress
+                    visible: syncAction.enabled
                 }
             }
         }
@@ -202,12 +209,10 @@ MD.Page {
         anchors.rightMargin: root.MD.MProp.page.rightMargin + 16
         anchors.bottomMargin: root.MD.MProp.page.bottomMargin + 16
         flickable: m_view
-        action: MD.Action {
-            icon.name: MD.Token.icon.play_arrow
-            onTriggered: {
-                const songs = QA.Util.collect_ids(qr_pl.data);
-                QA.Action.switch_songs(songs);
-            }
+        icon.name: MD.Token.icon.play_arrow
+        onClicked: {
+            const songs = QA.Util.collect_ids(qr_pl.data);
+            QA.Action.switch_songs(songs);
         }
     }
 

@@ -901,10 +901,12 @@ impl<'a> ProviderWriter<'a> {
             }
             .update(txn)
             .await?;
+            let now = Timestamp::now();
             m::mix::ActiveModel {
                 id: Set(mix.id),
                 track_count: Set(songs.len() as i32),
-                content_update_at: Set(Timestamp::now()),
+                update_at: Set(now),
+                content_update_at: Set(now),
                 ..Default::default()
             }
             .update(txn)

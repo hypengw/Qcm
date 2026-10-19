@@ -1288,6 +1288,7 @@ impl LuaUserData for LuaContext {
 
                 sqlm::mix::Entity::update(sqlm::mix::ActiveModel {
                     id: Set(mix_id),
+                    update_at: Set(now),
                     content_update_at: Set(now),
                     ..Default::default()
                 })

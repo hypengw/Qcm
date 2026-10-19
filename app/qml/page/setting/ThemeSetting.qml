@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Templates as T
 import Qcm.App as QA
 import Qcm.Material as MD
 
@@ -44,28 +43,20 @@ QA.SettingBasePage {
                         return g.color_scheme == MD.Enum.Light ? 1 : 2;
                     }
                 }
-                MD.ActionGroup {
-                    id: m_theme_mode_group
-                }
                 delegate: MD.InputChip {
                     required property int index
                     required property var model
-                    action: MD.Action {
-                        T.ActionGroup.group: m_theme_mode_group
-                        icon.name: ''
-                        checkable: false
-                        checked: m_theme_mode_view.currentIndex == index
-                        text: model.name
-                        onTriggered: {
-                            m_theme_mode_view.currentIndex = index;
-                            const g = QA.Global;
-                            if (index == 1) {
-                                g.color_scheme = MD.Enum.Light;
-                            } else if (index == 2) {
-                                g.color_scheme = MD.Enum.Dark;
-                            }
-                            g.use_system_color_scheme = index == 0;
+                    icon.name: ''
+                    selected: m_theme_mode_view.currentIndex == index
+                    text: model.name
+                    onSelectionRequested: {
+                        const g = QA.Global;
+                        if (index == 1) {
+                            g.color_scheme = MD.Enum.Light;
+                        } else if (index == 2) {
+                            g.color_scheme = MD.Enum.Dark;
                         }
+                        g.use_system_color_scheme = index == 0;
                     }
                 }
             }
@@ -94,23 +85,15 @@ QA.SettingBasePage {
                         return 1;
                     }
                 }
-                MD.ActionGroup {
-                    id: m_color_group
-                    onTriggered: act => {
-                        const g = QA.Global;
-                        g.use_system_accent_color = actions[0] == act;
-                        m_theme_section.columnChanged();
-                    }
-                }
                 delegate: MD.InputChip {
                     required property int index
                     required property var model
-                    action: MD.Action {
-                        T.ActionGroup.group: m_color_group
-                        icon.name: ''
-                        checkable: true
-                        checked: m_accent_color_view.currentIndex == index
-                        text: model.name
+                    icon.name: ''
+                    selected: m_accent_color_view.currentIndex == index
+                    text: model.name
+                    onSelectionRequested: {
+                        QA.Global.use_system_accent_color = index == 0;
+                        m_theme_section.columnChanged();
                     }
                 }
             }
@@ -132,25 +115,13 @@ QA.SettingBasePage {
                 implicitHeight: 40
                 model: MD.PaletteModel {}
                 currentIndex: QA.Global.palette_type
-                MD.ActionGroup {
-                    id: m_palette_group
-                }
                 delegate: MD.InputChip {
                     required property int index
                     required property var model
-                    action: MD.Action {
-                        T.ActionGroup.group: m_palette_group
-                        icon.name: ''
-                        checkable: true
-                        checked: m_palette_view.currentIndex == index
-                        onCheckedChanged: function (c) {
-                            if (c) {
-                                const g = QA.Global;
-                                g.palette_type = index;
-                            }
-                        }
-                        text: model.name
-                    }
+                    icon.name: ''
+                    selected: m_palette_view.currentIndex == index
+                    text: model.name
+                    onSelectionRequested: QA.Global.palette_type = index
                 }
             }
         }

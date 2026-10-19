@@ -102,15 +102,19 @@ MD.Dialog {
                     size: MD.Enum.XS
                     text: qsTr('AND')
                     checked: m_section.currentOp !== QM.LogicOp.LOGIC_OP_OR
-                    onClicked: root.model.setLogicOpAt(m_section.sectionIndex,
-                        QM.LogicOp.LOGIC_OP_AND)
+                    onCheckedChangeRequested: checked => {
+                        if (checked)
+                            root.model.setLogicOpAt(m_section.sectionIndex, QM.LogicOp.LOGIC_OP_AND);
+                    }
                 }
                 MD.SegmentedButton {
                     size: MD.Enum.XS
                     text: qsTr('OR')
                     checked: m_section.currentOp === QM.LogicOp.LOGIC_OP_OR
-                    onClicked: root.model.setLogicOpAt(m_section.sectionIndex,
-                        QM.LogicOp.LOGIC_OP_OR)
+                    onCheckedChangeRequested: checked => {
+                        if (checked)
+                            root.model.setLogicOpAt(m_section.sectionIndex, QM.LogicOp.LOGIC_OP_OR);
+                    }
                 }
             }
 

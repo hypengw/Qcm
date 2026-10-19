@@ -9,6 +9,7 @@ QA.ImageCard {
     property alias itemId: m_overlay.itemId
     property alias smallPlayButton: m_overlay.smallButton
     property alias playButtonAlignment: m_overlay.buttonAlignment
+    hoverEnabled: true
 
     QA.CardPlayOverlay {
         id: m_overlay
@@ -16,7 +17,7 @@ QA.ImageCard {
         height: root.picWidth
         width: root.picWidth
         corners: MD.Util.corners(root.mdState.radius)
-        opacity: root.hovered ? 1 : 0
+        opacity: root.mdState.interactions.hovered ? 1 : 0
 
         Behavior on opacity {
             NumberAnimation {

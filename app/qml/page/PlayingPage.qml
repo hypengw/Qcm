@@ -37,7 +37,7 @@ MD.Page {
         implicitHeight: 0
 
         RowLayout {
-            MD.IconButton {
+            MD.ActionIconButton {
                 id: m_back
                 Layout.alignment: Qt.AlignLeft
                 Layout.leftMargin: 12
@@ -143,7 +143,7 @@ MD.Page {
                     id: row_control
                     Layout.alignment: Qt.AlignHCenter
 
-                    MD.IconButton {
+                    MD.ActionIconButton {
                         action: QA.FavoriteAction {
                             itemId: root.songId
                         }
@@ -156,8 +156,9 @@ MD.Page {
                     }
                     MD.IconButton {
                         mdState.type: MD.Enum.IBtFilled
-                        checked: QA.Global.player.playing
-                        icon.name: checked ? MD.Token.icon.pause : MD.Token.icon.play_arrow
+                        mdState.selected: QA.Global.player.playing
+                        icon.fill: QA.Global.player.playing
+                        icon.name: QA.Global.player.playing ? MD.Token.icon.pause : MD.Token.icon.play_arrow
 
                         onClicked: {
                             const player = QA.Global.player;
@@ -222,7 +223,7 @@ MD.Page {
                             QA.Action.openPopup(QA.Enum.SRQueue);
                         }
                     }
-                    MD.IconButton {
+                    MD.ActionIconButton {
                         action: QA.CommentAction {
                             itemId: root.songId
                         }

@@ -13,7 +13,7 @@ QA.CardOverlay {
     property bool smallButton: false
     property int buttonAlignment: Qt.AlignCenter
 
-    MD.IconButton {
+    MD.ActionIconButton {
         id: m_button
         width: root.smallButton ? 32 + leftInset + rightInset : implicitWidth
         height: root.smallButton ? 32 + topInset + bottomInset : implicitHeight
@@ -25,7 +25,8 @@ QA.CardOverlay {
         icon.width: root.smallButton ? 20 : 30
         icon.height: root.smallButton ? 20 : 30
         padding: root.smallButton ? 4 : 14
-        checked: true
+        mdState.selected: true
+        icon.fill: true
         mdState.type: MD.Enum.IBtFilled
         mdState.isRound: !root.smallButton
         mdState.size: root.smallButton ? MD.Enum.XS : MD.Enum.S

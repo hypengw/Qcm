@@ -528,6 +528,7 @@ pub async fn process_qcm(
 
                 sqlm::mix::Entity::update_many()
                     .col_expr(sqlm::mix::Column::MixType, Expr::val(MixType::Cache).into())
+                    .col_expr(sqlm::mix::Column::UpdateAt, Expr::val(Timestamp::now()).into())
                     .filter(sqlm::mix::Column::Id.is_in(req.ids.clone()))
                     .filter(sqlm::mix::Column::MixType.eq(MixType::Link))
                     .exec(db)
@@ -545,6 +546,7 @@ pub async fn process_qcm(
                     .await?;
                 sqlm::mix::Entity::update_many()
                     .col_expr(sqlm::mix::Column::MixType, Expr::val(MixType::Link).into())
+                    .col_expr(sqlm::mix::Column::UpdateAt, Expr::val(Timestamp::now()).into())
                     .filter(sqlm::mix::Column::Id.is_in(req.ids.clone()))
                     .exec(db)
                     .await?;
@@ -571,21 +573,7 @@ pub async fn process_qcm(
                         rsp.count = count as i64;
                     }
                     msg::model::MixManipulateOper::RemoveSongs => {
-                        let res = sqlm::rel_mix_song::Entity::delete_many()
-                            .filter(sqlm::rel_mix_song::Column::SongId.is_in(req.song_ids.clone()))
-                            .filter(sqlm::rel_mix_song::Column::MixId.eq(req.id))
-                            .exec(&db)
-                            .await?;
-
-                        let count = res.rows_affected;
-                        sqlm::mix::Entity::update_many()
-                            .col_expr(
-                                sqlm::mix::Column::TrackCount,
-                                Expr::col(sqlm::mix::Column::TrackCount).sub(count).into(),
-                            )
-                            .filter(sqlm::mix::Column::Id.eq(req.id))
-                            .exec(&db)
-                            .await?;
+                        let count = sqlm::mix::remove_songs(&db, req.id, &req.song_ids).await?;
 
                         db.commit().await?;
                         rsp.count = count as i64;

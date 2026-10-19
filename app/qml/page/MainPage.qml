@@ -77,9 +77,9 @@ MD.Page {
                         value: root.pageIndex
                     }
 
-                    onClicked: function (model) {
+                    onCurrentIndexChangeRequested: function (index) {
                         m_page_stack.pop_page(null);
-                        QA.Action.routeMain(model.index);
+                        QA.Action.routeMain(index);
                     }
 
                     header: Item {
@@ -138,11 +138,11 @@ MD.Page {
                         MD.RailItem {
                             width: parent.width
                             expand: m_drawer.useLarge
-                            checked: false
+                            selected: false
                             icon.name: MD.Token.icon.hard_drive
                             iconStyle: m_drawer.useLarge ? MD.Enum.IconAndText : MD.Enum.IconOnly
                             text: qsTr('provider')
-                            onClicked: {
+                            onSelectionRequested: {
                                 QA.Action.openPopup(QA.Enum.SRSync);
                                 if (m_drawer.useModal)
                                     m_drawer.close();
@@ -151,10 +151,14 @@ MD.Page {
                         MD.RailItem {
                             width: parent.width
                             expand: m_drawer.useLarge
-                            checked: false
+                            selected: false
                             iconStyle: m_drawer.useLarge ? MD.Enum.IconAndText : MD.Enum.IconOnly
-                            action: QA.SettingAction {}
-                            onClicked: {
+                            readonly property QA.SettingAction settingsAction: QA.SettingAction {}
+                            text: settingsAction.text
+                            icon.actionIcon: settingsAction.icon
+                            enabled: settingsAction.enabled
+                            onSelectionRequested: {
+                                settingsAction.trigger();
                                 if (m_drawer.useModal)
                                     m_drawer.close();
                             }
@@ -163,10 +167,10 @@ MD.Page {
                             visible: m_drawer.useLarge
                             width: parent.width
                             expand: true
-                            checked: false
+                            selected: false
                             icon.name: MD.Token.icon.info
                             text: qsTr('about')
-                            onClicked: {
+                            onSelectionRequested: {
                                 QA.Action.openPopup(QA.Enum.SRAbout);
                                 if (m_drawer.useModal)
                                     m_drawer.close();
@@ -222,8 +226,8 @@ MD.Page {
                                 anchors.bottomMargin: 16
                                 icon.name: parent.model.icon
                                 text: parent.model.name
-                                checked: root.pageIndex == parent.index
-                                onClicked: {
+                                selected: root.pageIndex == parent.index
+                                onSelectionRequested: {
                                     QA.Action.routeMain(parent.index);
                                 }
                             }

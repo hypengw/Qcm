@@ -42,7 +42,7 @@ local function copy(out, source, target, field, convert)
 end
 local function duration(seconds)
     assert(type(seconds) == 'number' and seconds >= 0 and seconds < 1e10, 'invalid duration')
-    return math.floor(seconds * 1000000)
+    return math.floor(seconds * 1000)
 end
 local function date(text) return qcm.time.parse_rfc3339(text) end
 local function release(item)

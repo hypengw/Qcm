@@ -108,6 +108,40 @@ async fn context() -> Context {
     }
 }
 #[tokio::test]
+async fn mapping_keeps_song_and_album_durations_in_milliseconds() {
+    let path = std::env::temp_dir().join(format!(
+        "qcm-jellyfin-duration-{}.lua",
+        std::process::id()
+    ));
+    let search = serde_json::to_string(&format!("{}/src/?.lua", root().display())).unwrap();
+    std::fs::write(
+        &path,
+        format!("package.path={search}..';'..package.path\n") + r#"
+local provider = require('provider')
+local mapping = require('mapping')
+provider.check = function()
+    for _, sample in ipairs {{0,0},{10000,1},{1234567890,123456},{36000000000,3600000}} do
+        local batch = mapping.batch()
+        local item = {Id='00000000000000000000000000000001',Name='Track',RunTimeTicks=sample[1]}
+        mapping.add(batch,nil,'Song',item)
+        mapping.add(batch,nil,'Album',item)
+        assert(batch.songs[1].duration == sample[2])
+        assert(batch.albums[1].duration == sample[2])
+    end
+end
+return provider
+"#,
+    )
+    .unwrap();
+    let caps: Capabilities =
+        serde_json::from_slice(&std::fs::read(root().join("plugin.json")).unwrap()).unwrap();
+    let provider =
+        LuaProvider::with_capabilities(Some(1), "test", "test", "jellyfin", &path, caps).unwrap();
+    provider.check(&context().await).await.unwrap();
+    std::fs::remove_file(path).unwrap();
+}
+
+#[tokio::test]
 async fn capabilities_and_optional_queue() {
     let mut caps = Capabilities::default();
     caps.requires = vec!["unknown.v9".into()];

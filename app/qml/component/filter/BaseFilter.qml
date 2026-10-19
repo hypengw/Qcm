@@ -29,7 +29,7 @@ Flow {
     MD.InputChip {
         id: m_name
         text: root.name
-        onClicked: root.clicked()
+        onSelectionRequested: root.clicked()
     }
     MD.InputChip {
         id: m_condition
@@ -38,7 +38,7 @@ Flow {
             const item = model.find(m => m.value === root.condition);
             return item.name;
         }
-        onClicked: QA.Action.openPopup(m_menu_comp)
+        onSelectionRequested: QA.Action.openPopup(m_menu_comp)
         Component {
             id: m_menu_comp
             MD.Menu {

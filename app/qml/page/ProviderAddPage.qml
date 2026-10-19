@@ -54,13 +54,11 @@ MD.Page {
                         sourceData: model.svg
                         size: 24
                     }
-                    action: MD.Action {
-                        text: model.typeName
-                        onTriggered: {
-                            root.MD.MProp.page.pushItem("qrc:/Qcm/App/qml/page/ProviderMetaPage.qml", {
-                                meta: model
-                            });
-                        }
+                    text: model.typeName
+                    onClicked: {
+                        root.MD.MProp.page.pushItem("qrc:/Qcm/App/qml/page/ProviderMetaPage.qml", {
+                            meta: model
+                        });
                     }
                     mdState.backgroundColor: mdState.ctx.color.surface_container
                     divider: MD.AutoDivider {

@@ -70,7 +70,7 @@ MD.Page {
                 trailing: MD.Icon {
                     name: MD.Token.icon.launch
                 }
-                onClicked: {
+                onSelectionRequested: {
                     Qt.openUrlExternally('https://github.com/hypengw/Qcm');
                 }
             }
@@ -79,7 +79,7 @@ MD.Page {
                 icon.name: MD.Token.icon.flag
                 font.capitalization: Font.Capitalize
                 text: qsTr('report an issue')
-                onClicked: {
+                onSelectionRequested: {
                     Qt.openUrlExternally('https://github.com/hypengw/Qcm/issues');
                 }
                 trailing: MD.Icon {

@@ -62,7 +62,7 @@ MD.Page {
             MD.Space {
                 spacing: 12
             }
-            MD.Button {
+            MD.ActionButton {
                 Layout.alignment: Qt.AlignRight
                 mdState.type: MD.Enum.BtElevated
                 action: MD.Action {
