@@ -585,6 +585,47 @@ async fn body(response: hyper::Response<crate::http::body_type::ResponseBody>) -
 }
 
 #[tokio::test]
+async fn transient_query_reuses_cache_and_keeps_target_validation() {
+    let dir = Directory::new();
+    let cache = ResourceCache::open(dir.0.clone()).await.unwrap();
+    let origin = Origin::new(1024, true, false, Duration::ZERO).await;
+    let signed = |salt: &str| {
+        let mut request = origin.request(None);
+        let client = reqwest::Client::new();
+        let upstream = client.get(&origin.url).query(&[("id", "song"), ("salt", salt)]).build().unwrap();
+        request.prepared = Arc::new(qcm_core::resource::PreparedResource::new(client, upstream, Duration::from_secs(5)).unwrap()
+            .with_transient_query(vec!["salt".into()]).unwrap());
+        request
+    };
+    assert_eq!(body(cache.response(signed("one")).await.unwrap()).await, origin.expected(0,1024,1));
+    let before = origin.hits().len();
+    assert_eq!(body(cache.response(signed("two")).await.unwrap()).await, origin.expected(0,1024,1));
+    assert_eq!(origin.hits().len(), before);
+    *origin.state.control.lock().unwrap() = "private, max-age=0".into();
+    let mut request = signed("three");
+    request.headers.insert("cache-control", "no-cache".parse().unwrap());
+    assert_eq!(body(cache.response(request).await.unwrap()).await, origin.expected(0,1024,1));
+    assert!(origin.hits().len() > before);
+    cache.shutdown().await.unwrap();
+}
+
+#[tokio::test]
+async fn prepared_response_failure_does_not_publish_cache_data() {
+    let dir = Directory::new();
+    let cache = ResourceCache::open(dir.0.clone()).await.unwrap();
+    let origin = Origin::new(1024, true, false, Duration::ZERO).await;
+    let mut request = origin.request(None);
+    let client = reqwest::Client::new();
+    let upstream = client.get(&origin.url).build().unwrap();
+    request.prepared = Arc::new(qcm_core::resource::PreparedResource::new(client, upstream, Duration::from_secs(5)).unwrap()
+        .validated_by(|_| Box::pin(async { Err(qcm_core::error::ProviderError::NotFound) })));
+    assert!(cache.response(request).await.is_err());
+    assert_eq!(cache.usage().await.unwrap().audio, 0);
+    assert_eq!(origin.hits().len(), 1);
+    cache.shutdown().await.unwrap();
+}
+
+#[tokio::test]
 async fn range_reads_seek_suffix_and_cache_hit() {
     let dir = Directory::new();
     let cache = ResourceCache::open(dir.0.clone()).await.unwrap();

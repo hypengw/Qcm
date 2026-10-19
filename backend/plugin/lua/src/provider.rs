@@ -59,6 +59,7 @@ impl LuaUserData for LuaInner {
     fn add_fields<F: LuaUserDataFields<Self>>(fields: &mut F) {
         fields.add_field_method_get("id", |_, this| Ok(this.0.common.id()));
         fields.add_field_method_get("base_url", |_, this| Ok(this.0.common.base_url()));
+        fields.add_field_method_get("auth_method", |lua, this| to_lua(lua, &this.0.common.auth_method()));
         fields.add_field_method_get("app_name", |_, _| Ok(qcm_core::global::APP_NAME));
         fields.add_field_method_get("app_version", |_, _| Ok(env!("CARGO_PKG_VERSION")));
     }
@@ -213,6 +214,8 @@ impl LuaProvider {
             let crypto_module = create_crypto_module(&lua)?;
             crypto_module.set("url", url_module.clone())?;
             qcm_table.set("crypto", crypto_module)?;
+            qcm_table.set("random", mlua_extra::random::create_module(&lua)?)?;
+            qcm_table.set("resource", crate::resource::create_module(&lua)?)?;
             qcm_table.set("url", url_module)?;
             qcm_table.set("json", json::create_module(&lua)?)?;
             qcm_table.set("null", LuaValue::NULL)?;
@@ -683,7 +686,6 @@ impl Provider for LuaProvider {
 
     async fn prepare_resource(&self, resource: qcm_core::resource::Resource) -> Result<qcm_core::resource::PreparedResource, ProviderError> {
         let generation=self.generation.load(Ordering::Acquire);
-        use mlua_extra::http::{LuaRequest, LuaRequestBuilder};
         use qcm_core::resource::Resource;
         let value = match resource {
             Resource::Image { item_id, image_id, kind } => {
@@ -696,17 +698,15 @@ impl Provider for LuaProvider {
             }
         }.map_err(ProviderError::from_err)?;
         let ud = value.as_userdata().ok_or(ProviderError::NotFound)?;
-        let (client, request, timeout) = (|| -> LuaResult<_> {
-            if ud.is::<LuaRequest>() {
-                ud.borrow_mut::<LuaRequest>()?.take_parts()
-            } else {
-                ud.borrow_mut::<LuaRequestBuilder>()?.take_parts()
-            }
-        })().map_err(ProviderError::from_err)?;
+        let prepared = if ud.is::<crate::resource::LuaPreparedResource>() {
+            ud.borrow_mut::<crate::resource::LuaPreparedResource>()
+                .map_err(ProviderError::from_err)?.0.take().ok_or(ProviderError::NotFound)?
+        } else {
+            crate::resource::take_request(ud).map_err(ProviderError::from_err)?
+        };
         let revision=self.generation.clone();
         if revision.load(Ordering::Acquire)!=generation {return Err(ProviderError::NotAuth);}
-        Ok(qcm_core::resource::PreparedResource::new(client, request, timeout.unwrap_or(std::time::Duration::from_secs(30)))?
-            .guarded_by(move ||revision.load(Ordering::Acquire)==generation))
+        Ok(prepared.guarded_by(move ||revision.load(Ordering::Acquire)==generation))
     }
 
     async fn audio(

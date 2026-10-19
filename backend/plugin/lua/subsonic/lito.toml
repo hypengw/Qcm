@@ -1,0 +1,4 @@
+[package]
+name = "qcm-subsonic-lua"
+version.workspace = true
+authors.workspace = true

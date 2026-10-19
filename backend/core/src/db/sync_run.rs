@@ -305,8 +305,8 @@ impl SyncRun {
                         "scope is outside discovered libraries or required types",
                     ));
                 }
-            } else if kind != ItemType::Mix {
-                return Err(error("only remote mixes have a global full-sync scope"));
+            } else if !matches!(kind, ItemType::Mix | ItemType::Radio) {
+                return Err(error("only remote mixes and radios have a global full-sync scope"));
             }
         }
         for id in &self.libraries {

@@ -3,6 +3,7 @@ name = "qcm"
 members = [
   "app",
   "backend/plugin/lua/jellyfin",
+  "backend/plugin/lua/subsonic",
   "app/src/platform",
   "core",
   "mpris",

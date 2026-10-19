@@ -251,7 +251,7 @@ impl ResourceCache {
         let key = identity(&serde_json::to_vec(&(
             request.provider,
             &request.scope,
-            prepared.url().as_str(),
+            prepared.cache_url(prepared.url()).as_str(),
             canonical_headers(&base),
         ))?)?;
         let open = {
@@ -342,7 +342,7 @@ impl ResourceCache {
                 let Some(old) = cached else {
                     return Err(anyhow::anyhow!("unexpected upstream 304"));
                 };
-                ensure_validation(&old, &response)?;
+                ensure_validation(&prepared, &old, &response)?;
                 let headers = policy::merge_validation(&old.meta.headers, response.headers());
                 let mut meta = old.meta.clone();
                 meta.policy = Policy::from_response(&headers, sent, received);
@@ -392,7 +392,7 @@ impl ResourceCache {
                     };
                     response_range = range;
                     let meta = metadata(
-                        &request.scope,
+                        &prepared,
                         request.provider,
                         request.kind,
                         &key,
@@ -413,7 +413,7 @@ impl ResourceCache {
                 } else {
                     response_range = range;
                     let meta = metadata(
-                        &request.scope,
+                        &prepared,
                         request.provider,
                         request.kind,
                         &key,
@@ -850,7 +850,7 @@ impl ResourceCache {
             let (length, actual) = response_geometry(&response)?
                 .ok_or_else(|| anyhow::anyhow!("resource length disappeared"))?;
             if length != version.meta.geometry.length
-                || identity(response.url().as_str().as_bytes())? != version.meta.target
+                || identity(prepared.cache_url(response.url()).as_str().as_bytes())? != version.meta.target
             {
                 self.storage().retire(version.clone()).await?;
                 return Err(DownloadFailure::Changed.into());
@@ -1046,7 +1046,7 @@ impl ResourceCache {
 }
 
 fn metadata(
-    _scope: &str,
+    prepared: &PreparedResource,
     provider: i64,
     kind: i32,
     key: &str,
@@ -1063,11 +1063,11 @@ fn metadata(
         geometry: Geometry::new(length)?,
         headers: policy::saved(response.headers()),
         policy: Policy::from_response(response.headers(), sent, received),
-        target: identity(response.url().as_str().as_bytes())?,
+        target: identity(prepared.cache_url(response.url()).as_str().as_bytes())?,
         ranges: response.status() == StatusCode::PARTIAL_CONTENT,
     })
 }
-fn ensure_validation(old: &Version, response: &reqwest::Response) -> Result<()> {
+fn ensure_validation(prepared: &PreparedResource, old: &Version, response: &reqwest::Response) -> Result<()> {
     if let Some(length) = policy::value(response.headers(), "content-length") {
         ensure!(
             length.parse::<u64>().ok() == Some(old.meta.geometry.length),
@@ -1075,7 +1075,7 @@ fn ensure_validation(old: &Version, response: &reqwest::Response) -> Result<()> 
         );
     }
     ensure!(
-        identity(response.url().as_str().as_bytes())? == old.meta.target,
+        identity(prepared.cache_url(response.url()).as_str().as_bytes())? == old.meta.target,
         "validation target changed"
     );
     if let Some(etag) = policy::value(response.headers(), "etag") {

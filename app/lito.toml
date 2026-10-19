@@ -211,3 +211,6 @@ condition = 'target.os != "android"'
 
 [runtime-dependencies.qcm-jellyfin-lua]
 path = "../backend/plugin/lua/jellyfin"
+
+[runtime-dependencies.qcm-subsonic-lua]
+path = "../backend/plugin/lua/subsonic"

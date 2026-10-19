@@ -1,0 +1,899 @@
+---@meta
+---@alias subsonic_api.Options LuaApiOptions
+---@alias subsonic_api.RequestContext LuaApiRequestContext
+---@alias subsonic_api.models.Schema1 string
+---@class subsonic_api.models.Schema2
+---@field id subsonic_api.models.Schema79
+---@field [string] unknown
+---@alias subsonic_api.models.Schema3 integer
+---@alias subsonic_api.models.Schema4 integer
+---@alias subsonic_api.models.Schema5 integer
+---@alias subsonic_api.models.Schema6 integer
+---@alias subsonic_api.models.Schema7 string
+---@alias subsonic_api.models.Schema8 string
+---@class subsonic_api.models.Schema9
+---@field fromYear? subsonic_api.models.Schema80
+---@field genre? subsonic_api.models.Schema81
+---@field musicFolderId? subsonic_api.models.Schema82
+---@field offset? subsonic_api.models.Schema83
+---@field size? subsonic_api.models.Schema84
+---@field toYear? subsonic_api.models.Schema85
+---@field type subsonic_api.models.AlbumListType
+---@field [string] unknown
+---@alias subsonic_api.models.Schema10 string
+---@class subsonic_api.models.Schema11
+---@field id subsonic_api.models.Schema86
+---@field [string] unknown
+---@alias subsonic_api.models.Schema12 string
+---@class subsonic_api.models.Schema13
+---@field musicFolderId? subsonic_api.models.Schema87
+---@field [string] unknown
+---@alias subsonic_api.models.Schema14 string
+---@alias subsonic_api.models.Schema15 integer
+---@alias subsonic_api.models.Schema16 string
+---@alias subsonic_api.models.Schema17 string
+---@alias subsonic_api.models.Schema18 string
+---@class subsonic_api.models.Schema19
+---@field [string] unknown
+---@alias subsonic_api.models.Schema20 string
+---@alias subsonic_api.models.Schema21 string
+---@alias subsonic_api.models.Schema22 string
+---@class subsonic_api.models.Schema23
+---@field [string] unknown
+---@alias subsonic_api.models.Schema24 string
+---@alias subsonic_api.models.Schema25 string
+---@class subsonic_api.models.Schema26
+---@field artist? subsonic_api.models.Schema88
+---@field title? subsonic_api.models.Schema89
+---@field [string] unknown
+---@alias subsonic_api.models.Schema27 string
+---@alias subsonic_api.models.Schema28 boolean
+---@class subsonic_api.models.Schema29
+---@field enhanced? subsonic_api.models.Schema90
+---@field id subsonic_api.models.Schema91
+---@field [string] unknown
+---@class subsonic_api.models.Schema30
+---@field [string] unknown
+---@class subsonic_api.models.Schema31
+---@field [string] unknown
+---@alias subsonic_api.models.Schema32 string
+---@class subsonic_api.models.Schema33
+---@field id subsonic_api.models.Schema92
+---@field [string] unknown
+---@alias subsonic_api.models.Schema34 string
+---@class subsonic_api.models.Schema35
+---@field username? subsonic_api.models.Schema93
+---@field [string] unknown
+---@alias subsonic_api.models.Schema36 integer
+---@alias subsonic_api.models.Schema37 string
+---@alias subsonic_api.models.Schema38 integer
+---@alias subsonic_api.models.Schema39 integer
+---@alias subsonic_api.models.Schema40 string
+---@class subsonic_api.models.Schema41
+---@field fromYear? subsonic_api.models.Schema94
+---@field genre? subsonic_api.models.Schema95
+---@field musicFolderId? subsonic_api.models.Schema96
+---@field size? subsonic_api.models.Schema97
+---@field toYear? subsonic_api.models.Schema98
+---@field [string] unknown
+---@class subsonic_api.models.Schema42
+---@field [string] unknown
+---@alias subsonic_api.models.Schema43 string
+---@class subsonic_api.models.Schema44
+---@field id subsonic_api.models.Schema99
+---@field [string] unknown
+---@alias subsonic_api.models.Schema45 string
+---@class subsonic_api.models.Schema46
+---@field [string] unknown
+---@class subsonic_api.models.Schema47
+---@field [string] unknown
+---@alias subsonic_api.models.Schema48 string
+---@alias subsonic_api.models.Schema49 integer
+---@alias subsonic_api.models.Schema50 integer
+---@alias subsonic_api.models.Schema51 integer
+---@alias subsonic_api.models.Schema52 integer
+---@alias subsonic_api.models.Schema53 integer
+---@alias subsonic_api.models.Schema54 integer
+---@alias subsonic_api.models.Schema55 string
+---@class subsonic_api.models.Schema56
+---@field albumCount? subsonic_api.models.Schema100
+---@field albumOffset? subsonic_api.models.Schema101
+---@field artistCount? subsonic_api.models.Schema102
+---@field artistOffset? subsonic_api.models.Schema103
+---@field musicFolderId? subsonic_api.models.Schema104
+---@field query subsonic_api.models.Schema105
+---@field songCount? subsonic_api.models.Schema106
+---@field songOffset? subsonic_api.models.Schema107
+---@field [string] unknown
+---@alias subsonic_api.models.Schema57 (subsonic_api.models.Schema108)[]
+---@alias subsonic_api.models.Schema58 (subsonic_api.models.Schema109)[]
+---@alias subsonic_api.models.Schema59 (subsonic_api.models.Schema110)[]
+---@class subsonic_api.models.Schema60
+---@field albumId? subsonic_api.models.Schema111
+---@field artistId? subsonic_api.models.Schema112
+---@field id? subsonic_api.models.Schema113
+---@field [string] unknown
+---@alias subsonic_api.models.Schema61 string
+---@alias subsonic_api.models.Schema62 integer
+---@alias subsonic_api.models.Schema63 string
+---@alias subsonic_api.models.Schema64 integer
+---@alias subsonic_api.models.Schema65 boolean
+---@alias subsonic_api.models.Schema66 boolean
+---@alias subsonic_api.models.Schema67 string
+---@alias subsonic_api.models.Schema68 string
+---@alias subsonic_api.models.Schema69 string
+---@class subsonic_api.models.Schema70
+---@field [string] unknown
+---@alias subsonic_api.models.Schema71 string
+---@alias subsonic_api.models.Schema72 string
+---@alias subsonic_api.models.Schema73 string
+---@class subsonic_api.models.Schema74
+---@field [string] unknown
+---@alias subsonic_api.models.Schema75 (subsonic_api.models.Schema114)[]
+---@alias subsonic_api.models.Schema76 (subsonic_api.models.Schema115)[]
+---@alias subsonic_api.models.Schema77 (subsonic_api.models.Schema116)[]
+---@class subsonic_api.models.Schema78
+---@field albumId? subsonic_api.models.Schema117
+---@field artistId? subsonic_api.models.Schema118
+---@field id? subsonic_api.models.Schema119
+---@field [string] unknown
+---@alias subsonic_api.models.Schema79 string
+---@alias subsonic_api.models.Schema80 integer
+---@alias subsonic_api.models.Schema81 string
+---@alias subsonic_api.models.Schema82 string
+---@alias subsonic_api.models.Schema83 integer
+---@alias subsonic_api.models.Schema84 integer
+---@alias subsonic_api.models.Schema85 integer
+---@alias subsonic_api.models.Schema86 string
+---@alias subsonic_api.models.Schema87 string
+---@alias subsonic_api.models.Schema88 string
+---@alias subsonic_api.models.Schema89 string
+---@alias subsonic_api.models.Schema90 boolean
+---@alias subsonic_api.models.Schema91 string
+---@alias subsonic_api.models.Schema92 string
+---@alias subsonic_api.models.Schema93 string
+---@alias subsonic_api.models.Schema94 integer
+---@alias subsonic_api.models.Schema95 string
+---@alias subsonic_api.models.Schema96 string
+---@alias subsonic_api.models.Schema97 integer
+---@alias subsonic_api.models.Schema98 integer
+---@alias subsonic_api.models.Schema99 string
+---@alias subsonic_api.models.Schema100 integer
+---@alias subsonic_api.models.Schema101 integer
+---@alias subsonic_api.models.Schema102 integer
+---@alias subsonic_api.models.Schema103 integer
+---@alias subsonic_api.models.Schema104 string
+---@alias subsonic_api.models.Schema105 string
+---@alias subsonic_api.models.Schema106 integer
+---@alias subsonic_api.models.Schema107 integer
+---@alias subsonic_api.models.Schema108 string
+---@alias subsonic_api.models.Schema109 string
+---@alias subsonic_api.models.Schema110 string
+---@alias subsonic_api.models.Schema111 (subsonic_api.models.Schema120)[]
+---@alias subsonic_api.models.Schema112 (subsonic_api.models.Schema121)[]
+---@alias subsonic_api.models.Schema113 (subsonic_api.models.Schema122)[]
+---@alias subsonic_api.models.Schema114 string
+---@alias subsonic_api.models.Schema115 string
+---@alias subsonic_api.models.Schema116 string
+---@alias subsonic_api.models.Schema117 any
+---@alias subsonic_api.models.Schema118 any
+---@alias subsonic_api.models.Schema119 any
+---@alias subsonic_api.models.Schema120 string
+---@alias subsonic_api.models.Schema121 string
+---@alias subsonic_api.models.Schema122 string
+---@class subsonic_api.models.GetAlbumResponse
+---@field ["subsonic-response"] subsonic_api.models.Schema124
+---@field [string] unknown
+---@class subsonic_api.models.Schema124
+---@field album? subsonic_api.models.AlbumID3WithSongs
+---@field error? subsonic_api.models.SubsonicError
+---@field openSubsonic? subsonic_api.models.Schema125
+---@field serverVersion? subsonic_api.models.Schema126
+---@field status subsonic_api.models.Schema127
+---@field type? subsonic_api.models.Schema128
+---@field version? subsonic_api.models.Schema129
+---@field [string] unknown
+---@alias subsonic_api.models.Schema125 boolean
+---@alias subsonic_api.models.Schema126 string
+---@alias subsonic_api.models.Schema127 "ok"|"failed"
+---@alias subsonic_api.models.Schema128 string
+---@alias subsonic_api.models.Schema129 string
+---@alias subsonic_api.models.AlbumListType "random"|"newest"|"highest"|"frequent"|"recent"|"alphabeticalByName"|"alphabeticalByArtist"|"starred"|"byYear"|"byGenre"
+---@class subsonic_api.models.GetAlbumList2Response
+---@field ["subsonic-response"] subsonic_api.models.Schema132
+---@field [string] unknown
+---@class subsonic_api.models.Schema132
+---@field albumList2? subsonic_api.models.AlbumList2
+---@field error? subsonic_api.models.SubsonicError
+---@field openSubsonic? subsonic_api.models.Schema133
+---@field serverVersion? subsonic_api.models.Schema134
+---@field status subsonic_api.models.Schema135
+---@field type? subsonic_api.models.Schema136
+---@field version? subsonic_api.models.Schema137
+---@field [string] unknown
+---@alias subsonic_api.models.Schema133 boolean
+---@alias subsonic_api.models.Schema134 string
+---@alias subsonic_api.models.Schema135 "ok"|"failed"
+---@alias subsonic_api.models.Schema136 string
+---@alias subsonic_api.models.Schema137 string
+---@class subsonic_api.models.GetArtistResponse
+---@field ["subsonic-response"] subsonic_api.models.Schema139
+---@field [string] unknown
+---@class subsonic_api.models.Schema139
+---@field artist? subsonic_api.models.ArtistWithAlbumsID3
+---@field error? subsonic_api.models.SubsonicError
+---@field openSubsonic? subsonic_api.models.Schema140
+---@field serverVersion? subsonic_api.models.Schema141
+---@field status subsonic_api.models.Schema142
+---@field type? subsonic_api.models.Schema143
+---@field version? subsonic_api.models.Schema144
+---@field [string] unknown
+---@alias subsonic_api.models.Schema140 boolean
+---@alias subsonic_api.models.Schema141 string
+---@alias subsonic_api.models.Schema142 "ok"|"failed"
+---@alias subsonic_api.models.Schema143 string
+---@alias subsonic_api.models.Schema144 string
+---@class subsonic_api.models.GetArtistsResponse
+---@field ["subsonic-response"] subsonic_api.models.Schema146
+---@field [string] unknown
+---@class subsonic_api.models.Schema146
+---@field artists? subsonic_api.models.ArtistsID3
+---@field error? subsonic_api.models.SubsonicError
+---@field openSubsonic? subsonic_api.models.Schema147
+---@field serverVersion? subsonic_api.models.Schema148
+---@field status subsonic_api.models.Schema149
+---@field type? subsonic_api.models.Schema150
+---@field version? subsonic_api.models.Schema151
+---@field [string] unknown
+---@alias subsonic_api.models.Schema147 boolean
+---@alias subsonic_api.models.Schema148 string
+---@alias subsonic_api.models.Schema149 "ok"|"failed"
+---@alias subsonic_api.models.Schema150 string
+---@alias subsonic_api.models.Schema151 string
+---@class subsonic_api.models.SubsonicResponse
+---@field ["subsonic-response"] subsonic_api.models.Schema153
+---@field [string] unknown
+---@class subsonic_api.models.Schema153
+---@field error? subsonic_api.models.SubsonicError
+---@field openSubsonic? subsonic_api.models.Schema154
+---@field serverVersion? subsonic_api.models.Schema155
+---@field status subsonic_api.models.Schema156
+---@field type? subsonic_api.models.Schema157
+---@field version? subsonic_api.models.Schema158
+---@field [string] unknown
+---@alias subsonic_api.models.Schema154 boolean
+---@alias subsonic_api.models.Schema155 string
+---@alias subsonic_api.models.Schema156 "ok"|"failed"
+---@alias subsonic_api.models.Schema157 string
+---@alias subsonic_api.models.Schema158 string
+---@class subsonic_api.models.GetLyricsResponse
+---@field ["subsonic-response"] subsonic_api.models.Schema160
+---@field [string] unknown
+---@class subsonic_api.models.Schema160
+---@field error? subsonic_api.models.SubsonicError
+---@field lyrics? subsonic_api.models.Lyrics
+---@field openSubsonic? subsonic_api.models.Schema161
+---@field serverVersion? subsonic_api.models.Schema162
+---@field status subsonic_api.models.Schema163
+---@field type? subsonic_api.models.Schema164
+---@field version? subsonic_api.models.Schema165
+---@field [string] unknown
+---@alias subsonic_api.models.Schema161 boolean
+---@alias subsonic_api.models.Schema162 string
+---@alias subsonic_api.models.Schema163 "ok"|"failed"
+---@alias subsonic_api.models.Schema164 string
+---@alias subsonic_api.models.Schema165 string
+---@class subsonic_api.models.GetLyricsBySongIdResponse
+---@field ["subsonic-response"] subsonic_api.models.Schema167
+---@field [string] unknown
+---@class subsonic_api.models.Schema167
+---@field error? subsonic_api.models.SubsonicError
+---@field lyricsList? subsonic_api.models.LyricsList
+---@field openSubsonic? subsonic_api.models.Schema168
+---@field serverVersion? subsonic_api.models.Schema169
+---@field status subsonic_api.models.Schema170
+---@field type? subsonic_api.models.Schema171
+---@field version? subsonic_api.models.Schema172
+---@field [string] unknown
+---@alias subsonic_api.models.Schema168 boolean
+---@alias subsonic_api.models.Schema169 string
+---@alias subsonic_api.models.Schema170 "ok"|"failed"
+---@alias subsonic_api.models.Schema171 string
+---@alias subsonic_api.models.Schema172 string
+---@class subsonic_api.models.GetMusicFoldersResponse
+---@field ["subsonic-response"] subsonic_api.models.Schema174
+---@field [string] unknown
+---@class subsonic_api.models.Schema174
+---@field error? subsonic_api.models.SubsonicError
+---@field musicFolders? subsonic_api.models.MusicFolders
+---@field openSubsonic? subsonic_api.models.Schema175
+---@field serverVersion? subsonic_api.models.Schema176
+---@field status subsonic_api.models.Schema177
+---@field type? subsonic_api.models.Schema178
+---@field version? subsonic_api.models.Schema179
+---@field [string] unknown
+---@alias subsonic_api.models.Schema175 boolean
+---@alias subsonic_api.models.Schema176 string
+---@alias subsonic_api.models.Schema177 "ok"|"failed"
+---@alias subsonic_api.models.Schema178 string
+---@alias subsonic_api.models.Schema179 string
+---@class subsonic_api.models.GetOpenSubsonicExtensionsResponse
+---@field ["subsonic-response"] subsonic_api.models.Schema181
+---@field [string] unknown
+---@class subsonic_api.models.Schema181
+---@field error? subsonic_api.models.SubsonicError
+---@field openSubsonic? subsonic_api.models.Schema182
+---@field openSubsonicExtensions? subsonic_api.models.Schema183
+---@field serverVersion? subsonic_api.models.Schema184
+---@field status subsonic_api.models.Schema185
+---@field type? subsonic_api.models.Schema186
+---@field version? subsonic_api.models.Schema187
+---@field [string] unknown
+---@alias subsonic_api.models.Schema182 boolean
+---@alias subsonic_api.models.Schema183 (subsonic_api.models.OpenSubsonicExtension)[]
+---@alias subsonic_api.models.Schema184 string
+---@alias subsonic_api.models.Schema185 "ok"|"failed"
+---@alias subsonic_api.models.Schema186 string
+---@alias subsonic_api.models.Schema187 string
+---@class subsonic_api.models.GetPlaylistResponse
+---@field ["subsonic-response"] subsonic_api.models.Schema189
+---@field [string] unknown
+---@class subsonic_api.models.Schema189
+---@field error? subsonic_api.models.SubsonicError
+---@field openSubsonic? subsonic_api.models.Schema190
+---@field playlist? subsonic_api.models.PlaylistWithSongs
+---@field serverVersion? subsonic_api.models.Schema191
+---@field status subsonic_api.models.Schema192
+---@field type? subsonic_api.models.Schema193
+---@field version? subsonic_api.models.Schema194
+---@field [string] unknown
+---@alias subsonic_api.models.Schema190 boolean
+---@alias subsonic_api.models.Schema191 string
+---@alias subsonic_api.models.Schema192 "ok"|"failed"
+---@alias subsonic_api.models.Schema193 string
+---@alias subsonic_api.models.Schema194 string
+---@class subsonic_api.models.GetPlaylistsResponse
+---@field ["subsonic-response"] subsonic_api.models.Schema196
+---@field [string] unknown
+---@class subsonic_api.models.Schema196
+---@field error? subsonic_api.models.SubsonicError
+---@field openSubsonic? subsonic_api.models.Schema197
+---@field playlists? subsonic_api.models.Playlists
+---@field serverVersion? subsonic_api.models.Schema198
+---@field status subsonic_api.models.Schema199
+---@field type? subsonic_api.models.Schema200
+---@field version? subsonic_api.models.Schema201
+---@field [string] unknown
+---@alias subsonic_api.models.Schema197 boolean
+---@alias subsonic_api.models.Schema198 string
+---@alias subsonic_api.models.Schema199 "ok"|"failed"
+---@alias subsonic_api.models.Schema200 string
+---@alias subsonic_api.models.Schema201 string
+---@class subsonic_api.models.GetRandomSongsResponse
+---@field ["subsonic-response"] subsonic_api.models.Schema203
+---@field [string] unknown
+---@class subsonic_api.models.Schema203
+---@field error? subsonic_api.models.SubsonicError
+---@field openSubsonic? subsonic_api.models.Schema204
+---@field randomSongs? subsonic_api.models.Songs
+---@field serverVersion? subsonic_api.models.Schema205
+---@field status subsonic_api.models.Schema206
+---@field type? subsonic_api.models.Schema207
+---@field version? subsonic_api.models.Schema208
+---@field [string] unknown
+---@alias subsonic_api.models.Schema204 boolean
+---@alias subsonic_api.models.Schema205 string
+---@alias subsonic_api.models.Schema206 "ok"|"failed"
+---@alias subsonic_api.models.Schema207 string
+---@alias subsonic_api.models.Schema208 string
+---@class subsonic_api.models.GetScanStatusResponse
+---@field ["subsonic-response"] subsonic_api.models.Schema210
+---@field [string] unknown
+---@class subsonic_api.models.Schema210
+---@field error? subsonic_api.models.SubsonicError
+---@field openSubsonic? subsonic_api.models.Schema211
+---@field scanStatus? subsonic_api.models.ScanStatus
+---@field serverVersion? subsonic_api.models.Schema212
+---@field status subsonic_api.models.Schema213
+---@field type? subsonic_api.models.Schema214
+---@field version? subsonic_api.models.Schema215
+---@field [string] unknown
+---@alias subsonic_api.models.Schema211 boolean
+---@alias subsonic_api.models.Schema212 string
+---@alias subsonic_api.models.Schema213 "ok"|"failed"
+---@alias subsonic_api.models.Schema214 string
+---@alias subsonic_api.models.Schema215 string
+---@class subsonic_api.models.GetSongResponse
+---@field ["subsonic-response"] subsonic_api.models.Schema217
+---@field [string] unknown
+---@class subsonic_api.models.Schema217
+---@field error? subsonic_api.models.SubsonicError
+---@field openSubsonic? subsonic_api.models.Schema218
+---@field serverVersion? subsonic_api.models.Schema219
+---@field song? subsonic_api.models.Child
+---@field status subsonic_api.models.Schema220
+---@field type? subsonic_api.models.Schema221
+---@field version? subsonic_api.models.Schema222
+---@field [string] unknown
+---@alias subsonic_api.models.Schema218 boolean
+---@alias subsonic_api.models.Schema219 string
+---@alias subsonic_api.models.Schema220 "ok"|"failed"
+---@alias subsonic_api.models.Schema221 string
+---@alias subsonic_api.models.Schema222 string
+---@class subsonic_api.models.GetStarred2Response
+---@field ["subsonic-response"] subsonic_api.models.Schema224
+---@field [string] unknown
+---@class subsonic_api.models.Schema224
+---@field error? subsonic_api.models.SubsonicError
+---@field openSubsonic? subsonic_api.models.Schema225
+---@field serverVersion? subsonic_api.models.Schema226
+---@field starred2? subsonic_api.models.Starred2
+---@field status subsonic_api.models.Schema227
+---@field type? subsonic_api.models.Schema228
+---@field version? subsonic_api.models.Schema229
+---@field [string] unknown
+---@alias subsonic_api.models.Schema225 boolean
+---@alias subsonic_api.models.Schema226 string
+---@alias subsonic_api.models.Schema227 "ok"|"failed"
+---@alias subsonic_api.models.Schema228 string
+---@alias subsonic_api.models.Schema229 string
+---@class subsonic_api.models.Search3Response
+---@field ["subsonic-response"] subsonic_api.models.Schema231
+---@field [string] unknown
+---@class subsonic_api.models.Schema231
+---@field error? subsonic_api.models.SubsonicError
+---@field openSubsonic? subsonic_api.models.Schema232
+---@field searchResult3? subsonic_api.models.SearchResult3
+---@field serverVersion? subsonic_api.models.Schema233
+---@field status subsonic_api.models.Schema234
+---@field type? subsonic_api.models.Schema235
+---@field version? subsonic_api.models.Schema236
+---@field [string] unknown
+---@alias subsonic_api.models.Schema232 boolean
+---@alias subsonic_api.models.Schema233 string
+---@alias subsonic_api.models.Schema234 "ok"|"failed"
+---@alias subsonic_api.models.Schema235 string
+---@alias subsonic_api.models.Schema236 string
+---@class subsonic_api.models.AlbumID3WithSongs: subsonic_api.models.AlbumID3, subsonic_api.models.Schema238
+---@class subsonic_api.models.Schema238
+---@field song subsonic_api.models.Schema239
+---@field [string] unknown
+---@alias subsonic_api.models.Schema239 (subsonic_api.models.Child)[]
+---@class subsonic_api.models.SubsonicError
+---@field code subsonic_api.models.Schema241
+---@field helpUrl? subsonic_api.models.Schema242
+---@field message? subsonic_api.models.Schema243
+---@field [string] unknown
+---@alias subsonic_api.models.Schema241 0|10|20|30|40|41|42|43|44|50|60|70
+---@alias subsonic_api.models.Schema242 string
+---@alias subsonic_api.models.Schema243 string
+---@class subsonic_api.models.AlbumList2
+---@field album? subsonic_api.models.Schema245
+---@field [string] unknown
+---@alias subsonic_api.models.Schema245 (subsonic_api.models.AlbumID3)[]
+---@class subsonic_api.models.ArtistWithAlbumsID3: subsonic_api.models.ArtistID3, subsonic_api.models.Schema247
+---@class subsonic_api.models.Schema247
+---@field album subsonic_api.models.Schema248
+---@field [string] unknown
+---@alias subsonic_api.models.Schema248 (subsonic_api.models.AlbumID3)[]
+---@class subsonic_api.models.ArtistsID3
+---@field ignoredArticles? subsonic_api.models.Schema250
+---@field index? subsonic_api.models.Schema251
+---@field [string] unknown
+---@alias subsonic_api.models.Schema250 string
+---@alias subsonic_api.models.Schema251 (subsonic_api.models.IndexID3)[]
+---@class subsonic_api.models.Lyrics
+---@field artist? subsonic_api.models.Schema253
+---@field title? subsonic_api.models.Schema254
+---@field value subsonic_api.models.Schema255
+---@field [string] unknown
+---@alias subsonic_api.models.Schema253 string
+---@alias subsonic_api.models.Schema254 string
+---@alias subsonic_api.models.Schema255 string
+---@class subsonic_api.models.LyricsList
+---@field structuredLyrics? subsonic_api.models.Schema257
+---@field [string] unknown
+---@alias subsonic_api.models.Schema257 (subsonic_api.models.StructuredLyrics)[]
+---@class subsonic_api.models.MusicFolders
+---@field musicFolder? subsonic_api.models.Schema259
+---@field [string] unknown
+---@alias subsonic_api.models.Schema259 (subsonic_api.models.MusicFolder)[]
+---@class subsonic_api.models.OpenSubsonicExtension
+---@field name subsonic_api.models.Schema261
+---@field versions subsonic_api.models.Schema262
+---@field [string] unknown
+---@alias subsonic_api.models.Schema261 string
+---@alias subsonic_api.models.Schema262 (subsonic_api.models.Schema263)[]
+---@alias subsonic_api.models.Schema263 integer
+---@class subsonic_api.models.PlaylistWithSongs: subsonic_api.models.Playlist, subsonic_api.models.Schema265
+---@class subsonic_api.models.Schema265
+---@field entry? subsonic_api.models.Schema266
+---@field [string] unknown
+---@alias subsonic_api.models.Schema266 (subsonic_api.models.Child)[]
+---@class subsonic_api.models.Playlists
+---@field playlist? subsonic_api.models.Schema268
+---@field [string] unknown
+---@alias subsonic_api.models.Schema268 (subsonic_api.models.Playlist)[]
+---@class subsonic_api.models.Songs
+---@field song? subsonic_api.models.Schema270
+---@field [string] unknown
+---@alias subsonic_api.models.Schema270 (subsonic_api.models.Child)[]
+---@class subsonic_api.models.ScanStatus
+---@field count? subsonic_api.models.Schema272
+---@field scanning subsonic_api.models.Schema273
+---@field [string] unknown
+---@alias subsonic_api.models.Schema272 integer
+---@alias subsonic_api.models.Schema273 boolean
+---@class subsonic_api.models.Child
+---@field album? subsonic_api.models.Schema275
+---@field albumArtists? subsonic_api.models.Schema276
+---@field albumId? subsonic_api.models.Schema277
+---@field artist? subsonic_api.models.Schema278
+---@field artistId? subsonic_api.models.Schema279
+---@field artists? subsonic_api.models.Schema280
+---@field averageRating? subsonic_api.models.Schema281
+---@field bitDepth? subsonic_api.models.Schema282
+---@field bitRate? subsonic_api.models.Schema283
+---@field bookmarkPosition? subsonic_api.models.Schema284
+---@field bpm? subsonic_api.models.Schema285
+---@field channelCount? subsonic_api.models.Schema286
+---@field comment? subsonic_api.models.Schema287
+---@field contentType? subsonic_api.models.Schema288
+---@field contributors? subsonic_api.models.Schema289
+---@field coverArt? subsonic_api.models.Schema290
+---@field created? subsonic_api.models.Schema291
+---@field discNumber? subsonic_api.models.Schema292
+---@field displayAlbumArtist? subsonic_api.models.Schema293
+---@field displayArtist? subsonic_api.models.Schema294
+---@field displayComposer? subsonic_api.models.Schema295
+---@field duration? subsonic_api.models.Schema296
+---@field explicitStatus? subsonic_api.models.ExplicitStatus
+---@field genre? subsonic_api.models.Schema297
+---@field genres? subsonic_api.models.Schema298
+---@field groupings? subsonic_api.models.Schema299
+---@field id subsonic_api.models.Schema300
+---@field isDir subsonic_api.models.Schema301
+---@field isVideo? subsonic_api.models.Schema302
+---@field isrc? subsonic_api.models.Schema303
+---@field mediaType? subsonic_api.models.MediaType
+---@field moods? subsonic_api.models.Schema304
+---@field movements? subsonic_api.models.Schema305
+---@field musicBrainzId? subsonic_api.models.Schema306
+---@field originalHeight? subsonic_api.models.Schema307
+---@field originalWidth? subsonic_api.models.Schema308
+---@field parent? subsonic_api.models.Schema309
+---@field path? subsonic_api.models.Schema310
+---@field playCount? subsonic_api.models.Schema311
+---@field played? subsonic_api.models.Schema312
+---@field replayGain? subsonic_api.models.Schema313
+---@field samplingRate? subsonic_api.models.Schema314
+---@field size? subsonic_api.models.Schema315
+---@field sortName? subsonic_api.models.Schema316
+---@field starred? subsonic_api.models.Schema317
+---@field suffix? subsonic_api.models.Schema318
+---@field title subsonic_api.models.Schema319
+---@field track? subsonic_api.models.Schema320
+---@field transcodedContentType? subsonic_api.models.Schema321
+---@field transcodedSuffix? subsonic_api.models.Schema322
+---@field type? subsonic_api.models.GenericMediaType
+---@field userRating? subsonic_api.models.Schema323
+---@field works? subsonic_api.models.Schema324
+---@field year? subsonic_api.models.Schema325
+---@field [string] unknown
+---@alias subsonic_api.models.Schema275 string
+---@alias subsonic_api.models.Schema276 (subsonic_api.models.ArtistID3)[]
+---@alias subsonic_api.models.Schema277 string
+---@alias subsonic_api.models.Schema278 string
+---@alias subsonic_api.models.Schema279 string
+---@alias subsonic_api.models.Schema280 (subsonic_api.models.ArtistID3)[]
+---@alias subsonic_api.models.Schema281 number
+---@alias subsonic_api.models.Schema282 integer
+---@alias subsonic_api.models.Schema283 integer
+---@alias subsonic_api.models.Schema284 integer
+---@alias subsonic_api.models.Schema285 integer
+---@alias subsonic_api.models.Schema286 integer
+---@alias subsonic_api.models.Schema287 string
+---@alias subsonic_api.models.Schema288 string
+---@alias subsonic_api.models.Schema289 (subsonic_api.models.Contributor)[]
+---@alias subsonic_api.models.Schema290 string
+---@alias subsonic_api.models.Schema291 string
+---@alias subsonic_api.models.Schema292 integer
+---@alias subsonic_api.models.Schema293 string
+---@alias subsonic_api.models.Schema294 string
+---@alias subsonic_api.models.Schema295 string
+---@alias subsonic_api.models.Schema296 integer
+---@alias subsonic_api.models.Schema297 string
+---@alias subsonic_api.models.Schema298 (subsonic_api.models.ItemGenre)[]
+---@alias subsonic_api.models.Schema299 (subsonic_api.models.Schema326)[]
+---@alias subsonic_api.models.Schema300 string
+---@alias subsonic_api.models.Schema301 boolean
+---@alias subsonic_api.models.Schema302 boolean
+---@alias subsonic_api.models.Schema303 (subsonic_api.models.Schema327)[]
+---@alias subsonic_api.models.Schema304 (subsonic_api.models.Schema328)[]
+---@alias subsonic_api.models.Schema305 (subsonic_api.models.Schema329)[]
+---@alias subsonic_api.models.Schema306 string
+---@alias subsonic_api.models.Schema307 integer
+---@alias subsonic_api.models.Schema308 integer
+---@alias subsonic_api.models.Schema309 string
+---@alias subsonic_api.models.Schema310 string
+---@alias subsonic_api.models.Schema311 integer
+---@alias subsonic_api.models.Schema312 string
+---@alias subsonic_api.models.Schema313 subsonic_api.models.ReplayGain
+---@alias subsonic_api.models.Schema314 integer
+---@alias subsonic_api.models.Schema315 integer
+---@alias subsonic_api.models.Schema316 string
+---@alias subsonic_api.models.Schema317 string
+---@alias subsonic_api.models.Schema318 string
+---@alias subsonic_api.models.Schema319 string
+---@alias subsonic_api.models.Schema320 integer
+---@alias subsonic_api.models.Schema321 string
+---@alias subsonic_api.models.Schema322 string
+---@alias subsonic_api.models.Schema323 integer
+---@alias subsonic_api.models.Schema324 (subsonic_api.models.Schema330)[]
+---@alias subsonic_api.models.Schema325 integer
+---@alias subsonic_api.models.Schema326 string
+---@alias subsonic_api.models.Schema327 string
+---@alias subsonic_api.models.Schema328 string
+---@class subsonic_api.models.Schema329
+---@field count? subsonic_api.models.Schema331
+---@field name subsonic_api.models.Schema332
+---@field number? subsonic_api.models.Schema333
+---@field [string] unknown
+---@class subsonic_api.models.Schema330
+---@field musicBrainzId? subsonic_api.models.Schema334
+---@field name subsonic_api.models.Schema335
+---@field [string] unknown
+---@alias subsonic_api.models.Schema331 integer
+---@alias subsonic_api.models.Schema332 string
+---@alias subsonic_api.models.Schema333 integer
+---@alias subsonic_api.models.Schema334 string
+---@alias subsonic_api.models.Schema335 string
+---@class subsonic_api.models.Starred2
+---@field album? subsonic_api.models.Schema337
+---@field artist? subsonic_api.models.Schema338
+---@field song? subsonic_api.models.Schema339
+---@field [string] unknown
+---@alias subsonic_api.models.Schema337 (subsonic_api.models.AlbumID3)[]
+---@alias subsonic_api.models.Schema338 (subsonic_api.models.ArtistID3)[]
+---@alias subsonic_api.models.Schema339 (subsonic_api.models.Child)[]
+---@class subsonic_api.models.SearchResult3
+---@field album? subsonic_api.models.Schema341
+---@field artist? subsonic_api.models.Schema342
+---@field song? subsonic_api.models.Schema343
+---@field [string] unknown
+---@alias subsonic_api.models.Schema341 (subsonic_api.models.AlbumID3)[]
+---@alias subsonic_api.models.Schema342 (subsonic_api.models.ArtistID3)[]
+---@alias subsonic_api.models.Schema343 (subsonic_api.models.Child)[]
+---@class subsonic_api.models.AlbumID3
+---@field artist? subsonic_api.models.Schema345
+---@field artistId? subsonic_api.models.Schema346
+---@field artists? subsonic_api.models.Schema347
+---@field coverArt? subsonic_api.models.Schema348
+---@field created subsonic_api.models.Schema349
+---@field discTitles? subsonic_api.models.Schema350
+---@field displayArtist? subsonic_api.models.Schema351
+---@field duration subsonic_api.models.Schema352
+---@field explicitStatus? subsonic_api.models.ExplicitStatus
+---@field genre? subsonic_api.models.Schema353
+---@field genres? subsonic_api.models.Schema354
+---@field id subsonic_api.models.Schema355
+---@field isCompilation? subsonic_api.models.Schema356
+---@field moods? subsonic_api.models.Schema357
+---@field musicBrainzId? subsonic_api.models.Schema358
+---@field name subsonic_api.models.Schema359
+---@field originalReleaseDate? subsonic_api.models.Schema360
+---@field playCount? subsonic_api.models.Schema361
+---@field played? subsonic_api.models.Schema362
+---@field recordLabels? subsonic_api.models.Schema363
+---@field releaseDate? subsonic_api.models.Schema364
+---@field releaseTypes? subsonic_api.models.Schema365
+---@field song? subsonic_api.models.Schema366
+---@field songCount subsonic_api.models.Schema367
+---@field sortName? subsonic_api.models.Schema368
+---@field starred? subsonic_api.models.Schema369
+---@field userRating? subsonic_api.models.Schema370
+---@field version? subsonic_api.models.Schema371
+---@field year? subsonic_api.models.Schema372
+---@field [string] unknown
+---@alias subsonic_api.models.Schema345 string
+---@alias subsonic_api.models.Schema346 string
+---@alias subsonic_api.models.Schema347 (subsonic_api.models.ArtistID3)[]
+---@alias subsonic_api.models.Schema348 string
+---@alias subsonic_api.models.Schema349 string
+---@alias subsonic_api.models.Schema350 (subsonic_api.models.DiscTitle)[]
+---@alias subsonic_api.models.Schema351 string
+---@alias subsonic_api.models.Schema352 integer
+---@alias subsonic_api.models.Schema353 string
+---@alias subsonic_api.models.Schema354 (subsonic_api.models.ItemGenre)[]
+---@alias subsonic_api.models.Schema355 string
+---@alias subsonic_api.models.Schema356 boolean
+---@alias subsonic_api.models.Schema357 (subsonic_api.models.Schema373)[]
+---@alias subsonic_api.models.Schema358 string
+---@alias subsonic_api.models.Schema359 string
+---@alias subsonic_api.models.Schema360 subsonic_api.models.ItemDate
+---@alias subsonic_api.models.Schema361 integer
+---@alias subsonic_api.models.Schema362 string
+---@alias subsonic_api.models.Schema363 (subsonic_api.models.RecordLabel)[]
+---@alias subsonic_api.models.Schema364 subsonic_api.models.ItemDate
+---@alias subsonic_api.models.Schema365 (subsonic_api.models.Schema374)[]
+---@alias subsonic_api.models.Schema366 (subsonic_api.models.Child)[]
+---@alias subsonic_api.models.Schema367 integer
+---@alias subsonic_api.models.Schema368 string
+---@alias subsonic_api.models.Schema369 string
+---@alias subsonic_api.models.Schema370 integer
+---@alias subsonic_api.models.Schema371 string
+---@alias subsonic_api.models.Schema372 integer
+---@alias subsonic_api.models.Schema373 string
+---@alias subsonic_api.models.Schema374 string
+---@class subsonic_api.models.ArtistID3
+---@field albumCount? subsonic_api.models.Schema376
+---@field artistImageUrl? subsonic_api.models.Schema377
+---@field coverArt? subsonic_api.models.Schema378
+---@field disambiguation? subsonic_api.models.Schema379
+---@field id subsonic_api.models.Schema380
+---@field musicBrainzId? subsonic_api.models.Schema381
+---@field name subsonic_api.models.Schema382
+---@field roles? subsonic_api.models.Schema383
+---@field sortName? subsonic_api.models.Schema384
+---@field starred? subsonic_api.models.Schema385
+---@field [string] unknown
+---@alias subsonic_api.models.Schema376 integer
+---@alias subsonic_api.models.Schema377 string
+---@alias subsonic_api.models.Schema378 string
+---@alias subsonic_api.models.Schema379 string
+---@alias subsonic_api.models.Schema380 string
+---@alias subsonic_api.models.Schema381 string
+---@alias subsonic_api.models.Schema382 string
+---@alias subsonic_api.models.Schema383 (subsonic_api.models.Schema386)[]
+---@alias subsonic_api.models.Schema384 string
+---@alias subsonic_api.models.Schema385 string
+---@alias subsonic_api.models.Schema386 string
+---@class subsonic_api.models.IndexID3
+---@field artist? subsonic_api.models.Schema388
+---@field name subsonic_api.models.Schema389
+---@field [string] unknown
+---@alias subsonic_api.models.Schema388 (subsonic_api.models.ArtistID3)[]
+---@alias subsonic_api.models.Schema389 string
+---@class subsonic_api.models.StructuredLyrics
+---@field agents? subsonic_api.models.Schema391
+---@field cueLine? subsonic_api.models.Schema392
+---@field displayArtist? subsonic_api.models.Schema393
+---@field displayTitle? subsonic_api.models.Schema394
+---@field kind? subsonic_api.models.Schema395
+---@field lang subsonic_api.models.Schema396
+---@field line subsonic_api.models.Schema397
+---@field offset? subsonic_api.models.Schema398
+---@field synced subsonic_api.models.Schema399
+---@field [string] unknown
+---@alias subsonic_api.models.Schema391 (subsonic_api.models.Agent)[]
+---@alias subsonic_api.models.Schema392 (subsonic_api.models.CueLine)[]
+---@alias subsonic_api.models.Schema393 string
+---@alias subsonic_api.models.Schema394 string
+---@alias subsonic_api.models.Schema395 "main"|"translation"|"pronunciation"
+---@alias subsonic_api.models.Schema396 string
+---@alias subsonic_api.models.Schema397 (subsonic_api.models.Line)[]
+---@alias subsonic_api.models.Schema398 number
+---@alias subsonic_api.models.Schema399 boolean
+---@class subsonic_api.models.MusicFolder
+---@field id subsonic_api.models.Schema401
+---@field name? subsonic_api.models.Schema402
+---@field [string] unknown
+---@alias subsonic_api.models.Schema401 integer
+---@alias subsonic_api.models.Schema402 string
+---@class subsonic_api.models.Playlist
+---@field allowedUser? subsonic_api.models.Schema404
+---@field changed subsonic_api.models.Schema405
+---@field comment? subsonic_api.models.Schema406
+---@field coverArt? subsonic_api.models.Schema407
+---@field created subsonic_api.models.Schema408
+---@field duration subsonic_api.models.Schema409
+---@field id subsonic_api.models.Schema410
+---@field name subsonic_api.models.Schema411
+---@field owner? subsonic_api.models.Schema412
+---@field public? subsonic_api.models.Schema413
+---@field readonly? subsonic_api.models.Schema414
+---@field songCount subsonic_api.models.Schema415
+---@field validUntil? subsonic_api.models.Schema416
+---@field [string] unknown
+---@alias subsonic_api.models.Schema404 (subsonic_api.models.Schema417)[]
+---@alias subsonic_api.models.Schema405 string
+---@alias subsonic_api.models.Schema406 string
+---@alias subsonic_api.models.Schema407 string
+---@alias subsonic_api.models.Schema408 string
+---@alias subsonic_api.models.Schema409 integer
+---@alias subsonic_api.models.Schema410 string
+---@alias subsonic_api.models.Schema411 string
+---@alias subsonic_api.models.Schema412 string
+---@alias subsonic_api.models.Schema413 boolean
+---@alias subsonic_api.models.Schema414 boolean
+---@alias subsonic_api.models.Schema415 integer
+---@alias subsonic_api.models.Schema416 string
+---@alias subsonic_api.models.Schema417 string
+---@alias subsonic_api.models.ExplicitStatus "clean"|"explicit"|""
+---@alias subsonic_api.models.MediaType "song"|"album"|"artist"
+---@alias subsonic_api.models.GenericMediaType "music"|"video"|"podcast"|"audiobook"
+---@class subsonic_api.models.Contributor
+---@field artist subsonic_api.models.ArtistID3
+---@field role subsonic_api.models.Schema422
+---@field subRole? subsonic_api.models.Schema423
+---@field [string] unknown
+---@alias subsonic_api.models.Schema422 string
+---@alias subsonic_api.models.Schema423 string
+---@class subsonic_api.models.ItemGenre
+---@field name subsonic_api.models.Schema425
+---@field [string] unknown
+---@alias subsonic_api.models.Schema425 string
+---@class subsonic_api.models.ReplayGain
+---@field albumGain? subsonic_api.models.Schema427
+---@field albumPeak? subsonic_api.models.Schema428
+---@field baseGain? subsonic_api.models.Schema429
+---@field fallbackGain? subsonic_api.models.Schema430
+---@field trackGain? subsonic_api.models.Schema431
+---@field trackPeak? subsonic_api.models.Schema432
+---@field [string] unknown
+---@alias subsonic_api.models.Schema427 number
+---@alias subsonic_api.models.Schema428 number
+---@alias subsonic_api.models.Schema429 number
+---@alias subsonic_api.models.Schema430 number
+---@alias subsonic_api.models.Schema431 number
+---@alias subsonic_api.models.Schema432 number
+---@class subsonic_api.models.DiscTitle
+---@field coverArt? subsonic_api.models.Schema434
+---@field disc subsonic_api.models.Schema435
+---@field title subsonic_api.models.Schema436
+---@field [string] unknown
+---@alias subsonic_api.models.Schema434 string
+---@alias subsonic_api.models.Schema435 integer
+---@alias subsonic_api.models.Schema436 string
+---@class subsonic_api.models.ItemDate
+---@field day? subsonic_api.models.Schema438
+---@field month? subsonic_api.models.Schema439
+---@field year? subsonic_api.models.Schema440
+---@field [string] unknown
+---@alias subsonic_api.models.Schema438 integer
+---@alias subsonic_api.models.Schema439 integer
+---@alias subsonic_api.models.Schema440 integer
+---@class subsonic_api.models.RecordLabel
+---@field name subsonic_api.models.Schema442
+---@field [string] unknown
+---@alias subsonic_api.models.Schema442 string
+---@class subsonic_api.models.Agent
+---@field id subsonic_api.models.Schema444
+---@field name? subsonic_api.models.Schema445
+---@field role subsonic_api.models.Schema446
+---@field [string] unknown
+---@alias subsonic_api.models.Schema444 string
+---@alias subsonic_api.models.Schema445 string
+---@alias subsonic_api.models.Schema446 "main"|"voice"|"bg"|"group"
+---@class subsonic_api.models.CueLine
+---@field agentId? subsonic_api.models.Schema448
+---@field cue subsonic_api.models.Schema449
+---@field ["end"]? subsonic_api.models.Schema450
+---@field index subsonic_api.models.Schema451
+---@field start? subsonic_api.models.Schema452
+---@field value subsonic_api.models.Schema453
+---@field [string] unknown
+---@alias subsonic_api.models.Schema448 string
+---@alias subsonic_api.models.Schema449 (subsonic_api.models.Cue)[]
+---@alias subsonic_api.models.Schema450 integer
+---@alias subsonic_api.models.Schema451 integer
+---@alias subsonic_api.models.Schema452 integer
+---@alias subsonic_api.models.Schema453 string
+---@class subsonic_api.models.Line
+---@field start? subsonic_api.models.Schema455
+---@field value subsonic_api.models.Schema456
+---@field [string] unknown
+---@alias subsonic_api.models.Schema455 number
+---@alias subsonic_api.models.Schema456 string
+---@class subsonic_api.models.Cue
+---@field byteEnd subsonic_api.models.Schema458
+---@field byteStart subsonic_api.models.Schema459
+---@field ["end"]? subsonic_api.models.Schema460
+---@field start subsonic_api.models.Schema461
+---@field value subsonic_api.models.Schema462
+---@field [string] unknown
+---@alias subsonic_api.models.Schema458 integer
+---@alias subsonic_api.models.Schema459 integer
+---@alias subsonic_api.models.Schema460 integer
+---@alias subsonic_api.models.Schema461 integer
+---@alias subsonic_api.models.Schema462 string

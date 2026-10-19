@@ -60,3 +60,4 @@ prost-build = "0.13"
 
 [dev-dependencies]
 async-trait.workspace = true
+qcm-plugin-lua = { path = "../plugin/lua" }

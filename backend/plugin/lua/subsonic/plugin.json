@@ -1,0 +1,16 @@
+{
+  "name": "subsonic",
+  "script_path": "src/provider.lua",
+  "svg_path": "subsonic.svg",
+  "has_server_url": true,
+  "auth_types": [0],
+  "requires": [
+    "http.request.v1", "http.response.v1", "json.strict.v1",
+    "provider.metadata.v1", "provider.auth_method.v1", "provider.session.v1", "random.hex.v1",
+    "db.sync_batch.v1", "db.explicit_sync.v1", "db.explicit_sync.radio.v1",
+    "resource.response_validation.v1", "resource.cache_identity.v1", "subtitle.structured.v1",
+    "radio.configuration.v1", "radio.lifecycle.v1", "home.for_you.v1"
+  ],
+  "sync_mode": "explicit",
+  "sync_types": ["Artist", "Album", "Song"]
+}

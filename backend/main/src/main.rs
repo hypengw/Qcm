@@ -11,6 +11,8 @@ mod msg;
 mod resource_cache;
 mod radio;
 mod task;
+#[cfg(test)]
+mod subsonic_tests;
 
 use anyhow;
 use clap::{self, Parser};

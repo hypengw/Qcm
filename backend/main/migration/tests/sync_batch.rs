@@ -66,6 +66,48 @@ fn batch(value: Value) -> SyncBatch {
 fn key(library: i64, kind: &str, native: &str) -> Value {
     json!({"library_id":library,"type":kind,"native_id":native})
 }
+
+#[tokio::test]
+async fn explicit_radio_scope_keeps_identity_and_requires_completion() {
+    use qcm_core::{db::sync_run::SyncScope, model::type_enum::ItemType};
+    let db = database().await;
+    let coordinator = SyncCoordinator::default();
+    let lib = library(&db, &coordinator, 1, "music").await;
+    let radio = json!({"library_id":null,"type":"Radio","native_id":"random"});
+    let result = ProviderWriter::new(&db, 1, &coordinator).sync_batch(batch(json!({
+        "remote_mixes":[{"item":radio,"name":"Random","mix_type":"queue"}]
+    }))).await.unwrap();
+    let id = result.items[0].id;
+    let song_scope = SyncScope::new(Some(lib), ItemType::Song);
+    let mix_scope = SyncScope::new(None, ItemType::Mix);
+    let radio_scope = SyncScope::new(None, ItemType::Radio);
+    for invalid in [ItemType::Song, ItemType::Artist, ItemType::Album] {
+        let mut run = coordinator.start(1).await.unwrap();
+        run.observe_libraries(&db, vec![lib]).await.unwrap();
+        assert!(run.declare(vec![song_scope.clone(), mix_scope.clone(), SyncScope::new(None, invalid)], &[ItemType::Song]).is_err());
+    }
+    let mut run = coordinator.start(1).await.unwrap();
+    run.observe_libraries(&db, vec![lib]).await.unwrap();
+    run.declare(vec![song_scope.clone(), mix_scope.clone(), radio_scope.clone()], &[ItemType::Song]).unwrap();
+    run.complete_libraries().unwrap();
+    run.observe_items(&db, &coordinator, &radio_scope, &[serde_json::from_value(radio).unwrap()]).await.unwrap();
+    run.complete(song_scope.clone()).unwrap();
+    run.complete(mix_scope.clone()).unwrap();
+    assert!(run.seal().is_err());
+    run.complete(radio_scope.clone()).unwrap();
+    run.seal().unwrap();
+    run.finalize(&db, &coordinator).await.unwrap();
+    assert!(m::item::Entity::find_by_id(id).one(&db).await.unwrap().is_some());
+    drop(run);
+    let mut run = coordinator.start(1).await.unwrap();
+    run.observe_libraries(&db, vec![lib]).await.unwrap();
+    run.declare(vec![song_scope.clone(), mix_scope.clone(), radio_scope.clone()], &[ItemType::Song]).unwrap();
+    run.complete_libraries().unwrap();
+    for scope in [song_scope,mix_scope,radio_scope] { run.complete(scope).unwrap(); }
+    run.seal().unwrap();
+    run.finalize(&db, &coordinator).await.unwrap();
+    assert!(m::item::Entity::find_by_id(id).one(&db).await.unwrap().is_none());
+}
 async fn library(
     db: &DatabaseConnection,
     coordinator: &SyncCoordinator,

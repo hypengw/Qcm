@@ -4,6 +4,7 @@ pub mod error;
 pub mod http;
 pub mod plugin;
 pub mod provider;
+mod resource;
 mod session;
 
 mod db;

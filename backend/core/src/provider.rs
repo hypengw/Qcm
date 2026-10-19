@@ -344,6 +344,9 @@ impl ProviderCommonData {
     pub fn base_url(&self) -> String {
         self.inner.read().unwrap().base_url.clone()
     }
+    pub fn auth_method(&self) -> Option<AuthMethod> {
+        self.inner.read().unwrap().auth_method.clone()
+    }
     fn set_id(&self, id: Option<i64>) {
         let mut inner = self.inner.write().unwrap();
         inner.id = id;
@@ -375,7 +378,7 @@ impl<T: HasCommonData> ProviderCommon for T {
         self.common().inner.read().unwrap().base_url.clone()
     }
     fn auth_method(&self) -> Option<AuthMethod> {
-        self.common().inner.read().unwrap().auth_method.clone()
+        self.common().auth_method()
     }
     fn load_auth_info(&self, base_url: &str, auth_method: Option<AuthMethod>) {
         let mut inner = self.common().inner.write().unwrap();
