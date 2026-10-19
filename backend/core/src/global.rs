@@ -119,6 +119,10 @@ pub async fn load_from_db(db: &DatabaseConnection) {
                     provider.load_auth_info(&provider_model.base_url, auth_method);
                     // TODO: not ignore
                     let _ = provider.load(&provider_model.custom);
+                    if let Err(error) = crate::db::provider_settings::restore(db, provider.as_ref()).await {
+                        log::error!("Failed to load provider settings: {error}");
+                        continue;
+                    }
                     if let Some(key) = provider.session_key() {
                         use sea_orm::{sea_query::Expr, ColumnTrait, EntityTrait, QueryFilter};
                         let claimed = provider::Entity::update_many()

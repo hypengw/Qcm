@@ -108,6 +108,137 @@ async fn context() -> Context {
     }
 }
 #[tokio::test]
+async fn settings_apply_to_new_playback_and_preserve_open_sessions() {
+    use qcm_core::provider::{settings::SettingsSnapshot, PlaybackKind, PlaybackRequest};
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let base = format!("http://{}", listener.local_addr().unwrap());
+    let server = tokio::spawn(async move {
+        for index in 0..5 {
+            let (mut socket, _) = listener.accept().await.unwrap();
+            let mut bytes = Vec::new();
+            let end = loop {
+                if let Some(end) = bytes.windows(4).position(|v| v == b"\r\n\r\n") {
+                    break end + 4;
+                }
+                let mut part = [0; 4096];
+                let count = socket.read(&mut part).await.unwrap();
+                assert!(count > 0);
+                bytes.extend_from_slice(&part[..count]);
+            };
+            let head = String::from_utf8(bytes[..end].to_vec()).unwrap();
+            let length = head
+                .lines()
+                .find_map(|line| {
+                    line.to_ascii_lowercase()
+                        .strip_prefix("content-length:")
+                        .map(|v| v.trim().parse::<usize>().unwrap())
+                })
+                .unwrap_or(0);
+            while bytes.len() < end + length {
+                let mut part = [0; 4096];
+                let count = socket.read(&mut part).await.unwrap();
+                assert!(count > 0);
+                bytes.extend_from_slice(&part[..count]);
+            }
+            let (status, content_type, body) = if index < 2 {
+                assert!(head.starts_with("POST "));
+                let request: serde_json::Value =
+                    serde_json::from_slice(&bytes[end..end + length]).unwrap();
+                assert_eq!(
+                    request["MaxStreamingBitrate"],
+                    if index == 0 { 320000 } else { 192000 }
+                );
+                let session = format!("session-{index}");
+                ("200 OK", "application/json", serde_json::json!({"PlaySessionId":session,"MediaSources":[{
+                    "Id":"source","SupportsTranscoding":true,"TranscodingSubProtocol":"hls","TranscodingContainer":"ts",
+                    "TranscodingUrl":format!("/Audio/test/master.m3u8?PlaySessionId={session}")
+                }]}).to_string())
+            } else if index == 2 {
+                assert!(head.starts_with("GET /Audio/test/master.m3u8?PlaySessionId=session-0 "));
+                (
+                    "200 OK",
+                    "application/vnd.apple.mpegurl",
+                    "#EXTM3U\n#EXT-X-ENDLIST\n".into(),
+                )
+            } else {
+                assert!(head.starts_with("DELETE /Videos/ActiveEncodings?"));
+                assert!(head.contains(&format!("playSessionId=session-{}", index - 3)));
+                ("204 No Content", "application/json", String::new())
+            };
+            let response = format!("HTTP/1.1 {status}\r\nContent-Type: {content_type}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",body.len());
+            socket.write_all(response.as_bytes()).await.unwrap();
+        }
+    });
+    let p = provider();
+    p.load_auth_info(&base, None);
+    p.load(r#"{"token":"synthetic-token","user_id":"00000000000000000000000000000001"}"#);
+    let request = || PlaybackRequest {
+        item_id: "00000000000000000000000000000002".into(),
+        max_bitrate: Some(320000),
+    };
+    assert_eq!(p.settings().values["playback_mode"], "original");
+    assert_eq!(
+        p.open_playback(request()).await.unwrap().kind,
+        PlaybackKind::ByteResource
+    );
+    let values = p
+        .validate_settings(
+            &serde_json::from_value(serde_json::json!({"playback_mode":"hls"})).unwrap(),
+        )
+        .unwrap();
+    p.set_settings(SettingsSnapshot {
+        revision: 1,
+        values,
+    });
+    let first = p.open_playback(request()).await.unwrap();
+    let epoch = p.lifecycle_epoch();
+    let values = p
+        .validate_settings(
+            &serde_json::from_value(
+                serde_json::json!({"playback_mode":"hls","max_bitrate":192000}),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+    p.set_settings(SettingsSnapshot {
+        revision: 2,
+        values,
+    });
+    let second = p.open_playback(request()).await.unwrap();
+    assert_eq!(p.lifecycle_epoch(), epoch);
+    assert_ne!(first.representation, second.representation);
+    let values = p
+        .validate_settings(
+            &serde_json::from_value(
+                serde_json::json!({"playback_mode":"original","max_bitrate":192000}),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+    p.set_settings(SettingsSnapshot {
+        revision: 3,
+        values,
+    });
+    assert_eq!(
+        p.open_playback(request()).await.unwrap().kind,
+        PlaybackKind::ByteResource
+    );
+    let prepared = p
+        .prepare_playback_resource(&first.state, &first.uri)
+        .await
+        .unwrap();
+    assert!(prepared.is_valid());
+    assert_eq!(
+        prepared.fetch(Default::default()).await.unwrap().status(),
+        200
+    );
+    p.close_playback(&first.state).await.unwrap();
+    p.close_playback(&second.state).await.unwrap();
+    server.await.unwrap();
+}
+
+#[tokio::test]
 async fn mapping_keeps_song_and_album_durations_in_milliseconds() {
     let path = std::env::temp_dir().join(format!(
         "qcm-jellyfin-duration-{}.lua",

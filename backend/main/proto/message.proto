@@ -31,6 +31,8 @@ enum MessageType {
   CREATE_TMP_PROVIDER_REQ = 18;
   CREATE_TMP_PROVIDER_RSP = 19;
   DELETE_TMP_PROVIDER_REQ = 20;
+  GET_PROVIDER_SETTINGS_REQ = 21;
+  GET_PROVIDER_SETTINGS_RSP = 22;
 
   GET_MIXS_REQ = 30;
   GET_MIXS_RSP = 31;
@@ -175,10 +177,21 @@ message UpdateProviderReq {
   int64 provider_id = 1;
   string name = 2;
   qcm.msg.model.AuthInfo auth_info = 3;
+  string settings_json = 4;
+  uint64 settings_revision = 5;
+  string tmp_provider = 6;
 }
 message UpdateProviderRsp {
   qcm.msg.model.AuthResult code = 1;
   string message = 2;
+  map<string, string> field_errors = 3;
+}
+
+message GetProviderSettingsReq { int64 provider_id = 1; }
+message GetProviderSettingsRsp {
+  string definition_json = 1;
+  string values_json = 2;
+  uint64 revision = 3;
 }
 
 message ReplaceProviderReq {
@@ -553,6 +566,8 @@ message QcmMessage {
     CreateTmpProviderReq create_tmp_provider_req = 118;
     CreateTmpProviderRsp create_tmp_provider_rsp = 119;
     DeleteTmpProviderReq delete_tmp_provider_req = 120;
+    GetProviderSettingsReq get_provider_settings_req = 121;
+    GetProviderSettingsRsp get_provider_settings_rsp = 122;
 
     GetMixsReq get_mixs_req = 130;
     GetMixsRsp get_mixs_rsp = 131;

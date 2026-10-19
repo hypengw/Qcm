@@ -12,6 +12,13 @@ pub async fn add_provider(
     db: &DatabaseConnection,
     p: Arc<dyn Provider>,
 ) -> Result<i64, ProcessError> {
+    let id = write_provider(db, &p).await?;
+    p.set_id(Some(id));
+    p.bind_session(db.clone(), p.session_key().unwrap_or_default());
+    Ok(id)
+}
+
+pub async fn write_provider(db: &impl ConnectionTrait, p: &Arc<dyn Provider>) -> Result<i64, ProcessError> {
     let model = sqlm::provider::ActiveModel {
         provider_id: match p.id() {
             Some(id) => Set(id),
@@ -43,21 +50,15 @@ pub async fn add_provider(
         )
         .exec(db)
         .await?;
-    p.set_id(Some(r.last_insert_id));
-    p.bind_session(db.clone(), p.session_key().unwrap_or_default());
     Ok(r.last_insert_id)
 }
 
-pub async fn rename_provider(
-    db: &DatabaseConnection,
-    p: Arc<dyn Provider>,
-) -> Result<(), ProcessError> {
+pub async fn update_provider_name(db: &impl ConnectionTrait, id: i64, session: &str, name: &str) -> Result<(), ProcessError> {
     use sea_orm::sea_query::Expr;
-    let id = p.id().ok_or(ProcessError::NotAuth)?;
     let result = sqlm::provider::Entity::update_many()
-        .col_expr(sqlm::provider::Column::Name, Expr::value(p.name()))
+        .col_expr(sqlm::provider::Column::Name, Expr::value(name))
         .filter(sqlm::provider::Column::ProviderId.eq(id))
-        .filter(sqlm::provider::Column::SessionKey.eq(p.session_key().unwrap_or_default()))
+        .filter(sqlm::provider::Column::SessionKey.eq(session))
         .exec(db)
         .await?;
     if result.rows_affected != 1 {

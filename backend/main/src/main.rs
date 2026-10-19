@@ -11,6 +11,7 @@ mod msg;
 mod resource_cache;
 mod radio;
 mod playback;
+mod provider_settings;
 mod task;
 #[cfg(test)]
 mod subsonic_tests;

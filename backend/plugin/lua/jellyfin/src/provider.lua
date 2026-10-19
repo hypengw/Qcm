@@ -195,8 +195,21 @@ local function playback_state(encoded)
     require_api()
     return state
 end
+function M.settings_definition()
+    return {
+        {key='playback_mode',group='Playback',name='Playback mode',kind='choice',default_value='original',
+            description='Applies the next time a track is opened.',options={
+                {value='original',name='Original file'},{value='hls',name='HLS transcoding'}}},
+        {key='max_bitrate',group='Playback',name='Maximum bitrate',kind='choice',default_value=320000,
+            enabled_when={key='playback_mode',value='hls'},options={
+                {value=128000,name='128 kbps'},{value=192000,name='192 kbps'},
+                {value=256000,name='256 kbps'},{value=320000,name='320 kbps'}}},
+    }
+end
 function M.open_playback(request)
-    local bitrate=map.value(request.max_bitrate) or 320000
+    local settings=qcm.inner:settings()
+    if settings.playback_mode=='original' then return {kind='byte_resource'} end
+    local bitrate=math.min(map.value(request.max_bitrate) or settings.max_bitrate,settings.max_bitrate)
     assert(math.type(bitrate)=='integer' and bitrate>=32000 and bitrate<=512000,'unsupported audio bitrate')
     local profile={Name='Qcm audio HLS',MaxStreamingBitrate=bitrate,DirectPlayProfiles=J.array{},TranscodingProfiles={{
         Container='ts',Type='Audio',AudioCodec='aac',Protocol='hls',Context='Streaming',MaxAudioChannels='2',

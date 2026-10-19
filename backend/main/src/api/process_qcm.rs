@@ -116,82 +116,34 @@ pub async fn process_qcm(
         }
         MessageType::ReplaceProviderReq => {
             if let Some(Payload::ReplaceProviderReq(req)) = payload {
-                let _provider = global::provider(req.provider_id)
+                let provider = global::provider(req.provider_id)
                     .ok_or(ProcessError::NoSuchProvider(req.provider_id.to_string()))?;
-                let tmp_provider = global::get_tmp_provider(&req.tmp_provider)
-                    .ok_or(ProcessError::NoSuchProvider(req.tmp_provider.clone()))?;
-
-                tmp_provider.set_id(Some(req.provider_id));
-                // maybe: try use tmp self?
-                tmp_provider.set_name(&_provider.name());
-
-                let write = ctx
-                    .provider_context
-                    .sync_coordinator
-                    .write(req.provider_id, None)
-                    .await?;
-                write.invalidate_sync();
-                crate::db::add_provider(&ctx.provider_context.db, tmp_provider.clone()).await?;
-                ctx.playback.invalidate(req.provider_id).await;
-                global::add_provider(tmp_provider.clone());
-                ctx.radio.invalidate(&ctx.provider_context, req.provider_id).await;
-                ctx.resource_cache.invalidate(req.provider_id).await?;
-                return Ok(Rsp::default().qcm_into());
+                let settings = provider.settings();
+                let update = msg::UpdateProviderReq {
+                    provider_id: req.provider_id,
+                    name: provider.name(),
+                    settings_json: serde_json::to_string(&settings.values).map_err(anyhow::Error::from)?,
+                    settings_revision: settings.revision,
+                    tmp_provider: req.tmp_provider.clone(),
+                    ..Default::default()
+                };
+                let result = crate::provider_settings::update(ctx, &update).await?;
+                let rsp = if result.code == msg::model::AuthResult::Ok as i32 {
+                    Rsp::default()
+                } else {
+                    Rsp { code: msg::ErrorCode::Internal as i32, message: result.message, ..Default::default() }
+                };
+                return Ok(rsp.qcm_into());
             }
         }
         MessageType::UpdateProviderReq => {
             if let Some(Payload::UpdateProviderReq(req)) = payload {
-                let provider = global::provider(req.provider_id)
-                    .ok_or(ProcessError::NoSuchProvider(req.provider_id.to_string()))?;
-
-                let mut rsp = msg::UpdateProviderRsp::default();
-                rsp.code = msg::model::AuthResult::Ok.into();
-                match &req.auth_info {
-                    // do replace
-                    Some(auth_info) => {
-                        let type_name = provider.type_name();
-                        let meta = global::provider_meta(&type_name)
-                            .ok_or(ProcessError::NoSuchProviderType(type_name))?;
-                        let new_provider =
-                            (meta.creator)(provider.id(), &req.name, &global::device_id())?;
-
-                        let info = auth_info.clone().qcm_into();
-                        match new_provider.auth(&ctx.provider_context, &info).await? {
-                            AuthResult::Ok => {
-                                let write = ctx
-                                    .provider_context
-                                    .sync_coordinator
-                                    .write(req.provider_id, None)
-                                    .await?;
-                                write.invalidate_sync();
-                                crate::db::add_provider(
-                                    &ctx.provider_context.db,
-                                    new_provider.clone(),
-                                )
-                                .await?;
-                                ctx.playback.invalidate(req.provider_id).await;
-                                global::add_provider(new_provider);
-                                ctx.radio.invalidate(&ctx.provider_context, req.provider_id).await;
-                                ctx.resource_cache.invalidate(req.provider_id).await?;
-                            }
-                            e => {
-                                rsp = e.qcm_into();
-                            }
-                        }
-                    }
-                    // do update
-                    None => {
-                        provider.set_name(&req.name);
-                        crate::db::rename_provider(&ctx.provider_context.db, provider).await?;
-                    }
-                }
-                let _ = ctx
-                    .backend_ev
-                    .send(BackendEvent::UpdateProvider {
-                        id: req.provider_id,
-                    })
-                    .await;
-                return Ok(rsp.qcm_into());
+                return Ok(crate::provider_settings::update(ctx, req).await?.qcm_into());
+            }
+        }
+        MessageType::GetProviderSettingsReq => {
+            if let Some(Payload::GetProviderSettingsReq(req)) = payload {
+                return Ok(crate::provider_settings::read(req.provider_id)?.qcm_into());
             }
         }
         MessageType::CreateTmpProviderReq => {

@@ -10,6 +10,7 @@ mod m20251214_145233_create_fts_table;
 pub mod m20261007_000001_image_type_integer;
 
 pub mod m20261017_000001_provider_session;
+pub mod m20261019_000001_provider_settings;
 
 pub struct Migrator;
 pub use cache::CacheDBMigrator;
@@ -49,6 +50,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20251214_145233_create_fts_table::Migration),
             Box::new(m20261007_000001_image_type_integer::Migration),
             Box::new(m20261017_000001_provider_session::Migration),
+            Box::new(m20261019_000001_provider_settings::Migration),
         ]
     }
 

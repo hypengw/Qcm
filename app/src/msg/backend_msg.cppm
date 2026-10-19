@@ -272,6 +272,9 @@ QCM_MSG_TRAITS_RSP(GetQueueNextRsp, GetQueueNextReq, getQueueNextRsp)
 QCM_MSG_TRAITS_REQ(GetRadioQueuesReq, GetRadioQueuesRsp, GET_RADIO_QUEUES_REQ, getRadioQueuesReq)
 QCM_MSG_TRAITS_RSP(GetRadioQueuesRsp, GetRadioQueuesReq, getRadioQueuesRsp)
 
+QCM_MSG_TRAITS_REQ(GetProviderSettingsReq, GetProviderSettingsRsp, GET_PROVIDER_SETTINGS_REQ, getProviderSettingsReq)
+QCM_MSG_TRAITS_RSP(GetProviderSettingsRsp, GetProviderSettingsReq, getProviderSettingsRsp)
+
 QCM_MSG_TRAITS_REQ(GetHomeRecommendationsReq, GetHomeRecommendationsRsp, GET_HOME_RECOMMENDATIONS_REQ, getHomeRecommendationsReq)
 QCM_MSG_TRAITS_RSP(GetHomeRecommendationsRsp, GetHomeRecommendationsReq, getHomeRecommendationsRsp)
 

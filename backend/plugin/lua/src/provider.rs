@@ -98,10 +98,14 @@ impl LuaUserData for LuaInner {
         methods.add_method("device_id", |_, this, _: ()| {
             Ok(this.0.common.device_id.clone())
         });
+        methods.add_method("settings", |lua, this, _: ()| {
+            lua.to_value(&this.0.common.settings().values)
+        });
     }
 }
 
 struct LuaImpl {
+    validate_settings: Option<LuaFunction>,
     load: LuaFunction,
     save: LuaFunction,
     check: LuaFunction,
@@ -158,6 +162,7 @@ impl LuaSyncOption {
 }
 
 pub struct LuaProvider {
+    settings_fields: Vec<qcm_core::provider::settings::SettingField>,
     inner: Arc<LuaProviderInner>,
     funcs: LuaImpl,
     lua: Lua,
@@ -288,9 +293,15 @@ impl LuaProvider {
         if provider_table.contains_key("close_queue")? && count == 0 {
             return Err(anyhow!("close_queue requires radio.lifecycle.v1"));
         }
+        let settings_fields = match provider_table.get::<Option<LuaFunction>>("settings_definition")? {
+            Some(function) => lua.from_value(function.call::<LuaValue>(())?)?,
+            None => Vec::new(),
+        };
         let provider = Self {
+            settings_fields,
             inner: inner.clone(),
             funcs: LuaImpl {
+                validate_settings: provider_table.get("validate_settings")?,
                 save: provider_table
                     .get::<LuaFunction>("save")
                     .map_err(|_| anyhow!("save func not found"))?,
@@ -343,6 +354,8 @@ impl LuaProvider {
             capabilities,
             saved: std::sync::Mutex::new(String::new()),
         };
+        let values = provider.validate_settings(&Default::default())?;
+        provider.set_settings(qcm_core::provider::settings::SettingsSnapshot { values, revision: 0 });
         Ok(provider)
     }
 
@@ -382,6 +395,20 @@ impl HasCommonData for LuaProvider {
 
 #[async_trait::async_trait]
 impl Provider for LuaProvider {
+    fn settings_definition(&self) -> Result<Vec<qcm_core::provider::settings::SettingField>, ProviderError> {
+        Ok(self.settings_fields.clone())
+    }
+    fn validate_settings(&self, values: &qcm_core::provider::settings::SettingValues) -> Result<qcm_core::provider::settings::SettingValues, qcm_core::provider::settings::SettingsError> {
+        use qcm_core::provider::settings::{self, SettingsError};
+        let fields = self.settings_definition().map_err(|e| SettingsError::message(e.to_string()))?;
+        let values = settings::validate(&fields, values)?;
+        if let Some(function) = &self.funcs.validate_settings {
+            let input = self.lua.to_value(&values).map_err(|e| SettingsError::message(e.to_string()))?;
+            let result = function.call::<LuaValue>(input).map_err(|e| SettingsError::message(e.to_string()))?;
+            let result = self.lua.from_value(result).map_err(|e| SettingsError::message(e.to_string()))?;
+            settings::validate(&fields, &result)
+        } else { Ok(values) }
+    }
     fn lifecycle_epoch(&self) -> u64 {
         self.generation.load(Ordering::Acquire)
     }
@@ -699,7 +726,9 @@ impl Provider for LuaProvider {
     }
 
     async fn open_playback(&self, request: qcm_core::provider::PlaybackRequest) -> Result<qcm_core::provider::PreparedPlayback, ProviderError> {
-        let function = self.funcs.open_playback.as_ref().ok_or(ProviderError::NotImplemented)?;
+        let Some(function) = self.funcs.open_playback.as_ref() else {
+            return Ok(qcm_core::provider::PreparedPlayback::byte_resource());
+        };
         let epoch = self.generation.load(Ordering::Acquire);
         let value = function.call_async::<LuaValue>(self.lua.to_value(&request).map_err(ProviderError::from_err)?).await.map_err(ProviderError::from_err)?;
         let result = self.lua.from_value(value).map_err(ProviderError::from_err)?;

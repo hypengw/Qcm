@@ -134,9 +134,10 @@ MD.ApplicationWindow {
                 const purl = 'Qcm.App/PagePopup';
                 const url = QA.Util.special_route_url(s);
                 if (url) {
-                    MD.Util.showPopup(purl, {
-                        'source': url
-                    }, win);
+                    const props = {source: url};
+                    if (s === QA.Enum.SRSetting)
+                        props.implicitWidth = 420;
+                    MD.Util.showPopup(purl, props, win);
                 }
             } else if (typeof s == 'string') {
                 MD.Util.showPopup(s, {}, win);

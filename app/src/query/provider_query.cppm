@@ -71,14 +71,41 @@ private:
     msg::AddProviderReq m_req;
 };
 
+export class ProviderSettingsQuery : public Query {
+    Q_OBJECT
+    QML_ELEMENT
+    Q_PROPERTY(qcm::model::ItemId providerId READ providerId WRITE setProviderId NOTIFY
+                   providerIdChanged FINAL)
+    Q_PROPERTY(QVariantList fields READ fields NOTIFY settingsChanged FINAL)
+    Q_PROPERTY(QVariantMap values READ values NOTIFY settingsChanged FINAL)
+    Q_PROPERTY(quint64 revision READ revision NOTIFY settingsChanged FINAL)
+public:
+    ProviderSettingsQuery(QObject* parent = nullptr);
+    void          reload() override;
+    auto          providerId() const -> model::ItemId { return m_provider_id; }
+    void          setProviderId(const model::ItemId&);
+    auto          fields() const -> QVariantList { return m_fields; }
+    auto          values() const -> QVariantMap { return m_values; }
+    auto          revision() const -> quint64 { return m_revision; }
+    Q_SIGNAL void providerIdChanged();
+    Q_SIGNAL void settingsChanged();
+
+private:
+    model::ItemId m_provider_id;
+    QVariantList  m_fields;
+    QVariantMap   m_values;
+    quint64       m_revision {};
+};
+
 export class UpdateProviderQuery : public Query,
-                            public QueryExtra<msg::UpdateProviderRsp, UpdateProviderQuery> {
+                                   public QueryExtra<msg::UpdateProviderRsp, UpdateProviderQuery> {
     Q_OBJECT
     QML_ELEMENT
 
     Q_PROPERTY(qcm::model::ItemId providerId READ providerId WRITE setProviderId NOTIFY
                    providerIdChanged FINAL)
     Q_PROPERTY(qcm::msg::UpdateProviderReq req READ req WRITE setReq NOTIFY reqChanged FINAL)
+    Q_PROPERTY(QVariantMap fieldErrors READ fieldErrors NOTIFY fieldErrorsChanged FINAL)
 public:
     UpdateProviderQuery(QObject* parent = nullptr);
     void reload() override;
@@ -86,14 +113,17 @@ public:
     auto providerId() const -> model::ItemId;
     void setProviderId(const model::ItemId&);
 
-    auto req() -> msg::UpdateProviderReq&;
-    void setReq(const msg::UpdateProviderReq&);
+    auto          req() -> msg::UpdateProviderReq&;
+    void          setReq(const msg::UpdateProviderReq&);
+    auto          fieldErrors() const -> QVariantMap { return m_field_errors; }
+    Q_SIGNAL void fieldErrorsChanged();
 
     Q_SIGNAL void reqChanged();
     Q_SIGNAL void providerIdChanged();
 
 private:
     msg::UpdateProviderReq m_req;
+    QVariantMap            m_field_errors;
     model::ItemId          m_provider_id;
 };
 

@@ -295,12 +295,12 @@ pub async fn handle(
             })
             .await
         {
-            Ok(source) => source,
-            Err(qcm_core::error::ProviderError::NotImplemented) => {
+            Ok(source) if source.kind == PlaybackKind::ByteResource => {
                 return json_response(
                     json!({"url":format!("/audio/Song/{id}"),"session":null,"time_seekable":false}),
                 )
             }
+            Ok(source) => source,
             Err(error) => return Err(error.into()),
         };
         let token = uuid::Uuid::new_v4().simple().to_string();

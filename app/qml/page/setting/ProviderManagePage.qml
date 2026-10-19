@@ -1,16 +1,24 @@
 pragma ComponentBehavior: Bound
-import QtCore
 import QtQuick
-import QtQuick.Layouts
 import Qcm.App as QA
 import Qcm.Material as MD
 
 MD.Page {
     id: root
     font.capitalization: Font.Capitalize
-    title: qsTr('provider manage')
+    title: qsTr('Provider Manage')
     bottomPadding: radius
     scrolling: !m_view.atYBeginning
+
+    actions: [
+        MD.Action {
+            text: qsTr('Add')
+            icon.name: MD.Token.icon.add
+            onTriggered: {
+                root.MD.MProp.page.pushItem('qrc:/Qcm/App/qml/page/ProviderAddPage.qml');
+            }
+        }
+    ]
 
     QA.DeleteProviderQuery {
         id: m_delete_query
@@ -19,15 +27,19 @@ MD.Page {
     MD.VerticalListView {
         id: m_view
         anchors.fill: parent
-        leftMargin: 0
-        rightMargin: 0
+        leftMargin: 16
+        rightMargin: 16
+        spacing: 2
         expand: true
         model: QA.App.providerStatus
 
-        delegate: MD.ListItem {
+        delegate: QA.SettingRow {
             required index
             required model
-            width: parent.width
+            width: ListView.view.contentWidth
+            start: index === 0
+            end: index === m_view.count - 1
+            font.capitalization: Font.MixedCase
             leader: MD.IconSvg {
                 sourceData: QA.App.providerStatus.svg(index)
                 size: 24
@@ -53,28 +65,5 @@ MD.Page {
             }
         }
 
-        footer: ColumnLayout {
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.leftMargin: 12
-            anchors.rightMargin: 12
-
-            MD.Space {
-                spacing: 12
-            }
-            MD.ActionButton {
-                Layout.alignment: Qt.AlignRight
-                mdState.type: MD.Enum.BtElevated
-                action: MD.Action {
-                    text: qsTr('add')
-                    onTriggered: {
-                        root.MD.MProp.page.pushItem('qrc:/Qcm/App/qml/page/ProviderAddPage.qml');
-                    }
-                }
-            }
-            MD.Space {
-                spacing: 12
-            }
-        }
     }
 }

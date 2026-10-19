@@ -111,6 +111,7 @@ qt.qml_module({
     "qml/component/player/PlayingBackgroundMask.qml",
     "qml/component/player/VolumeButton.qml",
     "qml/component/setting/SettingRow.qml",
+    "qml/component/setting/ProviderSettingsForm.qml",
     "qml/component/setting/SettingSection.qml",
     "qml/component/tag/SongTag.qml",
     "qml/delegate/AlbumCardDelegate.qml",

@@ -1,5 +1,8 @@
 module;
 #include "Qcm/query/provider_query.moc.h"
+#include <QtCore/QJsonDocument>
+#include <QtCore/QJsonArray>
+#include <QtCore/QJsonObject>
 module qcm;
 import :query.provider;
 
@@ -113,6 +116,41 @@ void AddProviderQuery::reload() {
     });
 }
 
+ProviderSettingsQuery::ProviderSettingsQuery(QObject* parent): Query(parent) { setForwardError(true); }
+void ProviderSettingsQuery::setProviderId(const model::ItemId& value) {
+    if (ycore::cmp_set(m_provider_id, value)) providerIdChanged();
+}
+void ProviderSettingsQuery::reload() {
+    setStatus(Status::Querying);
+    auto                        self    = QWatcher { this };
+    auto                        backend = App::instance()->backend();
+    msg::GetProviderSettingsReq req;
+    req.setProviderId(m_provider_id.id());
+    spawn([self, backend, req]() mutable -> task<void> {
+        auto rsp = co_await backend->send(std::move(req));
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
+        if (! rsp) {
+            self->setError(QString::fromStdString(rsp.unwrap_err_unchecked().message));
+            self->setStatus(Status::Error);
+            co_return;
+        }
+        auto fields = QJsonDocument::fromJson(rsp->definitionJson().toUtf8());
+        auto values = QJsonDocument::fromJson(rsp->valuesJson().toUtf8());
+        if (! fields.isArray() || ! values.isObject()) {
+            self->setError(tr("Invalid provider settings response"));
+            self->setStatus(Status::Error);
+            co_return;
+        }
+        self->m_fields   = fields.array().toVariantList();
+        self->m_values   = values.object().toVariantMap();
+        self->m_revision = rsp->revision();
+        self->settingsChanged();
+        self->setError({});
+        self->setStatus(Status::Finished);
+    });
+}
+
 UpdateProviderQuery::UpdateProviderQuery(QObject* parent): Query(parent) { setForwardError(true); }
 
 auto UpdateProviderQuery::req() -> msg::UpdateProviderReq& { return m_req; }
@@ -129,6 +167,8 @@ void UpdateProviderQuery::setProviderId(const model::ItemId& id) {
 }
 
 void UpdateProviderQuery::reload() {
+    m_field_errors.clear();
+    fieldErrorsChanged();
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto self    = QWatcher { this };
@@ -138,6 +178,9 @@ void UpdateProviderQuery::reload() {
         if (! co_await QAsyncResult::qexecutor()) co_return;
         if (! self) co_return;
         if (rsp) {
+            for (auto it = rsp->fieldErrors().cbegin(); it != rsp->fieldErrors().cend(); ++it)
+                self->m_field_errors.insert(it.key(), it.value());
+            self->fieldErrorsChanged();
             auto error = format_auth_res(*rsp);
             if (! error.empty()) {
                 self->setError(QString::fromStdString(error));

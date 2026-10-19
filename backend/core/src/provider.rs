@@ -12,6 +12,7 @@ use crate::{
     Result,
 };
 pub mod playback;
+pub mod settings;
 pub use playback::{PlaybackKind, PlaybackRequest, PreparedPlayback};
 pub mod home;
 pub use home::{CardAction, CardCover, CardPresentation, CardStyle, ForYouEntry};
@@ -169,6 +170,8 @@ pub trait ProviderCommon {
     fn base_url(&self) -> String;
     fn auth_method(&self) -> Option<AuthMethod>;
     fn load_auth_info(&self, base_url: &str, auth_method: Option<AuthMethod>);
+    fn settings(&self) -> settings::SettingsSnapshot;
+    fn set_settings(&self, settings: settings::SettingsSnapshot);
 }
 
 #[async_trait::async_trait]
@@ -191,6 +194,14 @@ pub trait Provider: ProviderCommon + ProviderSession + Send + Sync {
     fn load(&self, data: &str);
     fn save(&self) -> String;
 
+    fn settings_definition(&self) -> Result<Vec<settings::SettingField>, ProviderError> {
+        Ok(Vec::new())
+    }
+    fn validate_settings(&self, values: &settings::SettingValues) -> Result<settings::SettingValues, settings::SettingsError> {
+        let fields = self.settings_definition().map_err(|e| settings::SettingsError::message(e.to_string()))?;
+        settings::validate(&fields, values)
+    }
+
     async fn prepare_resource(
         &self,
         _resource: crate::resource::Resource,
@@ -199,7 +210,7 @@ pub trait Provider: ProviderCommon + ProviderSession + Send + Sync {
     }
 
     async fn open_playback(&self, _request: PlaybackRequest) -> Result<PreparedPlayback, ProviderError> {
-        Err(ProviderError::NotImplemented)
+        Ok(PreparedPlayback::byte_resource())
     }
     async fn prepare_playback_resource(&self, _state: &str, _uri: &str) -> Result<crate::resource::PreparedResource, ProviderError> {
         Err(ProviderError::NotImplemented)
@@ -328,6 +339,7 @@ struct ProviderCommonDataInner {
     name: String,
     base_url: String,
     auth_method: Option<AuthMethod>,
+    settings: settings::SettingsSnapshot,
 }
 
 pub struct ProviderCommonData {
@@ -346,6 +358,7 @@ impl ProviderCommonData {
                 name: name.to_string(),
                 base_url: String::new(),
                 auth_method: None,
+                settings: Default::default(),
             }),
         }
     }
@@ -357,6 +370,9 @@ impl ProviderCommonData {
     }
     pub fn auth_method(&self) -> Option<AuthMethod> {
         self.inner.read().unwrap().auth_method.clone()
+    }
+    pub fn settings(&self) -> settings::SettingsSnapshot {
+        self.inner.read().unwrap().settings.clone()
     }
     fn set_id(&self, id: Option<i64>) {
         let mut inner = self.inner.write().unwrap();
@@ -395,5 +411,11 @@ impl<T: HasCommonData> ProviderCommon for T {
         let mut inner = self.common().inner.write().unwrap();
         inner.base_url = base_url.to_string();
         inner.auth_method = auth_method;
+    }
+    fn settings(&self) -> settings::SettingsSnapshot {
+        self.common().settings()
+    }
+    fn set_settings(&self, settings: settings::SettingsSnapshot) {
+        self.common().inner.write().unwrap().settings = settings;
     }
 }

@@ -12,7 +12,8 @@ MD.Popup {
     required property string source
 
     parent: T.Overlay.overlay
-    width: Math.min(400, parent.width)
+    implicitWidth: 400
+    width: Math.min(implicitWidth, parent.width)
     height: Math.min(implicitHeight, parent.height * 0.8)
 
     mdState.textColor: MD.MProp.color.on_surface

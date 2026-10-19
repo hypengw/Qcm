@@ -479,6 +479,7 @@ impl QcmFrom<AuthResult> for msg::UpdateProviderRsp {
         Self {
             code: code.into(),
             message,
+            field_errors: Default::default(),
         }
     }
 }
@@ -592,6 +593,7 @@ impl_from_for_qcm_msg!(CreateTmpProviderRsp);
 impl_from_for_qcm_msg!(AuthProviderRsp);
 impl_from_for_qcm_msg!(UpdateProviderRsp);
 impl_from_for_qcm_msg!(GetProviderMetasRsp);
+impl_from_for_qcm_msg!(GetProviderSettingsRsp);
 impl_from_for_qcm_msg!(QrAuthUrlRsp);
 impl_from_for_qcm_msg!(TestRsp);
 impl_from_for_qcm_msg!(Rsp);

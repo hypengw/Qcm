@@ -5,7 +5,7 @@ import Qcm.Material as MD
 
 QA.SettingBasePage {
     id: root
-    title: qsTr('settings')
+    title: qsTr('Settings')
 
     ColumnLayout {
         width: parent.width
@@ -15,7 +15,7 @@ QA.SettingBasePage {
             spacing: 2
             QA.SettingRow {
                 icon.name: MD.Token.icon.hard_drive
-                text: 'provider manage'
+                text: qsTr('Provider Manage')
                 supportText: ''
                 onClicked: {
                     root.MD.MProp.page.pushItem('Qcm.App/ProviderManagePage');
