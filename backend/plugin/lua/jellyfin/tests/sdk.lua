@@ -43,6 +43,9 @@ local expected = {
     mark_favorite_item={'POST','/UserFavoriteItems/a%2Fb%20%3F'},
     unmark_favorite_item={'DELETE','/UserFavoriteItems/a%2Fb%20%3F'},get_user_views={'GET','/UserViews'},
 }
+expected.get_posted_playback_info={'POST','/Items/a%2Fb%20%3F/PlaybackInfo'}
+expected.ping_playback_session={'POST','/Sessions/Playing/Ping'}
+expected.stop_encoding_process={'DELETE','/Videos/ActiveEncodings'}
 local ids = {
     authenticate_user_by_name='AuthenticateUserByName', get_album_artists='GetAlbumArtists',
     get_artists='GetArtists', get_audio_stream='GetAudioStream', get_endpoint_info='GetEndpointInfo',
@@ -50,10 +53,15 @@ local ids = {
     get_playlist_items='GetPlaylistItems', get_user_views='GetUserViews', get_virtual_folders='GetVirtualFolders',
     mark_favorite_item='MarkFavoriteItem', unmark_favorite_item='UnmarkFavoriteItem',
 }
+ids.get_posted_playback_info='GetPostedPlaybackInfo'
+ids.ping_playback_session='PingPlaybackSession'
+ids.stop_encoding_process='StopEncodingProcess'
 for name in pairs(expected) do
     local params = {}
     if expected[name][2]:find('a%%2Fb') then params.item_id = 'a/b ?' end
     if name == 'get_playlist_items' then params.playlist_id = params.item_id; params.item_id = nil end
+    if name=='ping_playback_session' or name=='stop_encoding_process' then params.play_session_id='owned-session' end
+    if name=='stop_encoding_process' then params.device_id='owned-device' end
     if name == 'get_item_image' then params.image_type = 'Primary' end
     if name == 'authenticate_user_by_name' then params.body = { Username = 'test', Pw = 'test' } end
     local operation = api.operations[name](params)
@@ -71,7 +79,7 @@ for name in pairs(expected) do
     assert(not ok and err.status == 401 and err.operation_id == ids[name] and rsp.reads == 1)
     count = count + 1
 end
-assert(count == 14)
+assert(count == 17)
 local params = { parent_id = 'abc', recursive = false, start_index = 0, limit = 1, include_item_types = { 'Audio', 'MusicAlbum' } }
 local op = api.operations.get_items(params)
 params.limit = 99
@@ -93,7 +101,15 @@ local too_long = api.operations.get_audio_stream { item_id = 'abc', container = 
 assert(not pcall(too_long.build_request, too_long))
 local object = api.operations.get_audio_stream { item_id = 'abc', stream_options = { one = 'a', two = 'b' } }:build_request()
 assert(has_pair(object.query, 'one', 'a') and has_pair(object.query, 'two', 'b'))
-print('SDK mock: 14 operations, snapshot, query, model, media and stream checks passed')
+print('SDK mock: 17 operations, snapshot, query, model, media and stream checks passed')
 
 assert(api.operations.get_items { include_item_types={} }:build_request())
 assert(not pcall(function() api.operations.get_items {include_item_types=J.object {}}:build_request() end))
+
+local negotiated=api.operations.get_posted_playback_info {item_id='song',body={EnableDirectPlay=false,EnableDirectStream=false,EnableTranscoding=true,DeviceProfile={Name='test',DirectPlayProfiles=J.array{},TranscodingProfiles={{Container='ts',Type='Audio',AudioCodec='aac',Protocol='hls',Context='Streaming',SegmentLength=6}}}}}:build_request()
+local payload=J.decode(negotiated.body)
+assert(payload.EnableDirectPlay==false and payload.DeviceProfile.TranscodingProfiles[1].Protocol=='hls')
+for _,operation in ipairs {api.operations.ping_playback_session {play_session_id='owned'},api.operations.stop_encoding_process {device_id='device',play_session_id='owned'}} do
+    assert(has_pair(operation:build_request().query,'playSessionId','owned'))
+    local empty=response(204,nil,'');assert(operation:parse_response(empty)==nil and empty.closed and empty.reads==0)
+end

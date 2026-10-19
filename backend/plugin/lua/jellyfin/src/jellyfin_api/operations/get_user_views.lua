@@ -2,10 +2,10 @@ local R = require("jellyfin_api.runtime")
 local V = require("jellyfin_api.models")
 
 ---@class (exact) jellyfin_api.get_user_viewsParams
----@field user_id? jellyfin_api.models.Schema239
----@field include_external_content? jellyfin_api.models.Schema240
----@field preset_views? jellyfin_api.models.Schema241
----@field include_hidden? jellyfin_api.models.Schema242
+---@field user_id? jellyfin_api.models.Schema258
+---@field include_external_content? jellyfin_api.models.Schema259
+---@field preset_views? jellyfin_api.models.Schema260
+---@field include_hidden? jellyfin_api.models.Schema261
 
 ---@class jellyfin_api.get_user_viewsOperation
 ---@field private options jellyfin_api.Options
@@ -29,7 +29,7 @@ function get_user_views:build_request(request_context)
     do
         local value = params["user_id"]
         if value ~= nil then
-            R.validate(V.check_Schema239, J, value)
+            R.validate(V.check_Schema258, J, value)
             R.parameter(value ~= J.null, 'null parameter is unsupported')
             query[#query + 1] = { "userId", R.scalar(value) }
         end
@@ -37,7 +37,7 @@ function get_user_views:build_request(request_context)
     do
         local value = params["include_external_content"]
         if value ~= nil then
-            R.validate(V.check_Schema240, J, value)
+            R.validate(V.check_Schema259, J, value)
             R.parameter(value ~= J.null, 'null parameter is unsupported')
             query[#query + 1] = { "includeExternalContent", R.scalar(value) }
         end
@@ -45,7 +45,7 @@ function get_user_views:build_request(request_context)
     do
         local value = params["preset_views"]
         if value ~= nil then
-            R.validate(V.check_Schema241, J, value)
+            R.validate(V.check_Schema260, J, value)
             R.parameter(value ~= J.null, 'null parameter is unsupported')
             local values = {}
             for _, element in ipairs(value) do
@@ -56,13 +56,13 @@ function get_user_views:build_request(request_context)
     do
         local value = params["include_hidden"]
         if value ~= nil then
-            R.validate(V.check_Schema242, J, value)
+            R.validate(V.check_Schema261, J, value)
             R.parameter(value ~= J.null, 'null parameter is unsupported')
             query[#query + 1] = { "includeHidden", R.scalar(value) }
         end
     end
     R.parameters(params, {["user_id"] = true, ["include_external_content"] = true, ["preset_views"] = true, ["include_hidden"] = true, })
-    R.authorize(options, {{["CustomAuthentication"] = {}, }, }, "GetUserViews", query, headers)
+    R.authorize(options, {{["CustomAuthentication"] = {}, }, }, "GetUserViews", query, headers, nil)
     R.extend_headers(headers, request_context and request_context.headers or {})
     headers[#headers + 1] = { 'Accept', options.json_media_type or 'application/json' }
     local builder = options.transport:request("GET", options.url.append_api_path(options.base_url, path))

@@ -3,7 +3,7 @@
 ---@field url table
 ---@field transport MluaHttpClient
 ---@field base_url string
----@field authorize? fun(requirements: table[], operation_id: string): {headers?: string[][], query?: string[][]}
+---@field authorize? fun(requirements: table[], operation_id: string): {headers?: string[][], query?: string[][], form?: string[][]}
 ---@field json_media_type? string
 ---@field headers_timeout_ms? integer
 
@@ -142,12 +142,34 @@ function M.extend_headers(headers, additional)
     end
 end
 
-function M.authorize(options, requirements, operation_id, query, headers)
+function M.form(J, value)
+    M.object(J, value, '')
+    local out = {}
+    for _, key in ipairs(M.sorted_keys(value)) do
+        local child = value[key]
+        if type(child) == 'table' then
+            M.array(J, child, '/' .. key)
+            for _, element in ipairs(child) do out[#out + 1] = { key, M.scalar(element) } end
+        else
+            out[#out + 1] = { key, M.scalar(child) }
+        end
+    end
+    return out
+end
+
+function M.authorize(options, requirements, operation_id, query, headers, form)
     local auth = options.authorize and options.authorize(requirements, operation_id) or {}
     M.extend_headers(headers, auth.headers or {})
     for _, pair in ipairs(auth.query or {}) do
         for _, existing in ipairs(query) do M.parameter(existing[1] ~= pair[1], 'authentication query conflict') end
+        for _, existing in ipairs(form or {}) do M.parameter(existing[1] ~= pair[1], 'authentication form conflict') end
         query[#query + 1] = pair
+    end
+    M.parameter(not auth.form or form ~= nil, 'form authentication requires a form request')
+    for _, pair in ipairs(auth.form or {}) do
+        for _, existing in ipairs(form) do M.parameter(existing[1] ~= pair[1], 'authentication form conflict') end
+        for _, existing in ipairs(query) do M.parameter(existing[1] ~= pair[1], 'authentication query conflict') end
+        form[#form + 1] = pair
     end
 end
 

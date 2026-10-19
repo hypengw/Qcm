@@ -59,6 +59,9 @@ local O = require("jellyfin_api.operations")
 ---@field PersonKind fun(value: jellyfin_api.models.PersonKind): jellyfin_api.models.PersonKind
 ---@field PlayAccess fun(value: jellyfin_api.models.PlayAccess): jellyfin_api.models.PlayAccess
 ---@field PlayMethod fun(value: jellyfin_api.models.PlayMethod): jellyfin_api.models.PlayMethod
+---@field PlaybackErrorCode fun(value: jellyfin_api.models.PlaybackErrorCode): jellyfin_api.models.PlaybackErrorCode
+---@field PlaybackInfoDto fun(value: jellyfin_api.models.PlaybackInfoDto): jellyfin_api.models.PlaybackInfoDto
+---@field PlaybackInfoResponse fun(value: jellyfin_api.models.PlaybackInfoResponse): jellyfin_api.models.PlaybackInfoResponse
 ---@field PlaybackOrder fun(value: jellyfin_api.models.PlaybackOrder): jellyfin_api.models.PlaybackOrder
 ---@field PlayerStateInfo fun(value: jellyfin_api.models.PlayerStateInfo): jellyfin_api.models.PlayerStateInfo
 ---@field ProblemDetails fun(value: jellyfin_api.models.ProblemDetails): jellyfin_api.models.ProblemDetails
@@ -105,9 +108,12 @@ local O = require("jellyfin_api.operations")
 ---@field get_items fun(params: jellyfin_api.get_itemsParams): jellyfin_api.get_itemsOperation
 ---@field get_lyrics fun(params: jellyfin_api.get_lyricsParams): jellyfin_api.get_lyricsOperation
 ---@field get_playlist_items fun(params: jellyfin_api.get_playlist_itemsParams): jellyfin_api.get_playlist_itemsOperation
+---@field get_posted_playback_info fun(params: jellyfin_api.get_posted_playback_infoParams): jellyfin_api.get_posted_playback_infoOperation
 ---@field get_user_views fun(params: jellyfin_api.get_user_viewsParams): jellyfin_api.get_user_viewsOperation
 ---@field get_virtual_folders fun(params: jellyfin_api.get_virtual_foldersParams): jellyfin_api.get_virtual_foldersOperation
 ---@field mark_favorite_item fun(params: jellyfin_api.mark_favorite_itemParams): jellyfin_api.mark_favorite_itemOperation
+---@field ping_playback_session fun(params: jellyfin_api.ping_playback_sessionParams): jellyfin_api.ping_playback_sessionOperation
+---@field stop_encoding_process fun(params: jellyfin_api.stop_encoding_processParams): jellyfin_api.stop_encoding_processOperation
 ---@field unmark_favorite_item fun(params: jellyfin_api.unmark_favorite_itemParams): jellyfin_api.unmark_favorite_itemOperation
 
 ---@class jellyfin_api.Client
@@ -178,6 +184,9 @@ function Client.new(options)
     self.models.PersonKind = function(value) return R.validate(V.check_PersonKind, options.json, value) end
     self.models.PlayAccess = function(value) return R.validate(V.check_PlayAccess, options.json, value) end
     self.models.PlayMethod = function(value) return R.validate(V.check_PlayMethod, options.json, value) end
+    self.models.PlaybackErrorCode = function(value) return R.validate(V.check_PlaybackErrorCode, options.json, value) end
+    self.models.PlaybackInfoDto = function(value) return R.validate(V.check_PlaybackInfoDto, options.json, value) end
+    self.models.PlaybackInfoResponse = function(value) return R.validate(V.check_PlaybackInfoResponse, options.json, value) end
     self.models.PlaybackOrder = function(value) return R.validate(V.check_PlaybackOrder, options.json, value) end
     self.models.PlayerStateInfo = function(value) return R.validate(V.check_PlayerStateInfo, options.json, value) end
     self.models.ProblemDetails = function(value) return R.validate(V.check_ProblemDetails, options.json, value) end
@@ -222,9 +231,12 @@ function Client.new(options)
     self.operations.get_items = function(params) return O.get_items.new(options, params) end
     self.operations.get_lyrics = function(params) return O.get_lyrics.new(options, params) end
     self.operations.get_playlist_items = function(params) return O.get_playlist_items.new(options, params) end
+    self.operations.get_posted_playback_info = function(params) return O.get_posted_playback_info.new(options, params) end
     self.operations.get_user_views = function(params) return O.get_user_views.new(options, params) end
     self.operations.get_virtual_folders = function(params) return O.get_virtual_folders.new(options, params) end
     self.operations.mark_favorite_item = function(params) return O.mark_favorite_item.new(options, params) end
+    self.operations.ping_playback_session = function(params) return O.ping_playback_session.new(options, params) end
+    self.operations.stop_encoding_process = function(params) return O.stop_encoding_process.new(options, params) end
     self.operations.unmark_favorite_item = function(params) return O.unmark_favorite_item.new(options, params) end
     return self
 end
@@ -309,6 +321,14 @@ function Client:get_playlist_items(params)
     return operation:parse_response(self.options.transport:send(request))
 end
 
+---@param params jellyfin_api.get_posted_playback_infoParams
+---@return jellyfin_api.models.PlaybackInfoResponse|jellyfin_api.models.PlaybackInfoResponse|jellyfin_api.models.PlaybackInfoResponse
+function Client:get_posted_playback_info(params)
+    local operation = self.operations.get_posted_playback_info(params)
+    local request = operation:build_request()
+    return operation:parse_response(self.options.transport:send(request))
+end
+
 ---@param params jellyfin_api.get_user_viewsParams
 ---@return jellyfin_api.models.BaseItemDtoQueryResult|jellyfin_api.models.BaseItemDtoQueryResult|jellyfin_api.models.BaseItemDtoQueryResult
 function Client:get_user_views(params)
@@ -318,7 +338,7 @@ function Client:get_user_views(params)
 end
 
 ---@param params jellyfin_api.get_virtual_foldersParams
----@return jellyfin_api.models.Schema223|jellyfin_api.models.Schema224|jellyfin_api.models.Schema225
+---@return jellyfin_api.models.Schema241|jellyfin_api.models.Schema242|jellyfin_api.models.Schema243
 function Client:get_virtual_folders(params)
     local operation = self.operations.get_virtual_folders(params)
     local request = operation:build_request()
@@ -329,6 +349,22 @@ end
 ---@return jellyfin_api.models.UserItemDataDto|jellyfin_api.models.UserItemDataDto|jellyfin_api.models.UserItemDataDto
 function Client:mark_favorite_item(params)
     local operation = self.operations.mark_favorite_item(params)
+    local request = operation:build_request()
+    return operation:parse_response(self.options.transport:send(request))
+end
+
+---@param params jellyfin_api.ping_playback_sessionParams
+---@return nil
+function Client:ping_playback_session(params)
+    local operation = self.operations.ping_playback_session(params)
+    local request = operation:build_request()
+    return operation:parse_response(self.options.transport:send(request))
+end
+
+---@param params jellyfin_api.stop_encoding_processParams
+---@return nil
+function Client:stop_encoding_process(params)
+    local operation = self.operations.stop_encoding_process(params)
     local request = operation:build_request()
     return operation:parse_response(self.options.transport:send(request))
 end

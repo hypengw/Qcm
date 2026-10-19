@@ -21,6 +21,9 @@ use tokio::sync::{mpsc, oneshot};
 mod materialize;
 #[path = "segments.rs"]
 mod segments;
+#[path = "objects.rs"]
+mod objects;
+pub use objects::{Object, ObjectMetadata, MAX_OBJECT};
 use materialize::{Build, Threads};
 pub use materialize::{CommitOutcome, LocalFile, PlainCorrupt, LEASE_SECONDS};
 pub use segments::Window;
@@ -415,13 +418,14 @@ impl Storage {
             }
         }
         self.retain_segments(&mut retained)?;
+        self.retain_packs(&mut retained)?;
         for entry in fs::read_dir(&self.root)? {
             let entry = entry?;
             let name = entry.file_name().to_string_lossy().into_owned();
             if let Some(kind) = retained.get(&name) {
                 self.sizes
                     .insert(name, (allocated(&entry.metadata()?), *kind));
-            } else if materialize::managed_name(&name) || segments::managed_name(&name) {
+            } else if materialize::managed_name(&name) || segments::managed_name(&name) || objects::managed_name(&name) {
                 self.sizes
                     .insert(name.clone(), (allocated(&entry.metadata()?), 0));
                 if let Err(err) = self.remove_managed(&name) {
@@ -800,6 +804,7 @@ impl Storage {
         Ok(())
     }
     fn invalidate(&mut self, provider: i64) -> Result<()> {
+        self.invalidate_packs(provider)?;
         for version in self
             .versions
             .values()
@@ -939,6 +944,7 @@ impl Storage {
             ids.push((rows.int(0), rows.int(1) != 0));
         }
         drop(rows);
+        self.evict_packs(required)?;
         self.evict_segments(required)?;
         let usage = self.usage()?;
         let mut bytes = usage.image + usage.audio + usage.metadata;

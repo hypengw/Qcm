@@ -179,7 +179,7 @@ impl Drop for Statement<'_> {
 pub fn migrate(db: &Database) -> Result<()> {
     let mut version = db.statement("PRAGMA user_version", &[])?;
     version.next()?;
-    ensure!(version.int(0) <= 3, "unsupported resource cache schema");
+    ensure!(version.int(0) <= 4, "unsupported resource cache schema");
     drop(version);
     db.exec("BEGIN IMMEDIATE")?;
     let result = (|| {
@@ -194,7 +194,7 @@ pub fn migrate(db: &Database) -> Result<()> {
         if !has_format {
             db.exec("ALTER TABLE complete_files ADD COLUMN format INTEGER NOT NULL DEFAULT 1")?;
         }
-        db.exec("CREATE TABLE IF NOT EXISTS segments(version_id INTEGER NOT NULL, number INTEGER NOT NULL, token TEXT NOT NULL, length INTEGER NOT NULL, last_use INTEGER NOT NULL, deleting INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(version_id,number)); CREATE INDEX IF NOT EXISTS segment_lru ON segments(deleting,last_use); PRAGMA user_version=3; COMMIT;")
+        db.exec("CREATE TABLE IF NOT EXISTS segments(version_id INTEGER NOT NULL, number INTEGER NOT NULL, token TEXT NOT NULL, length INTEGER NOT NULL, last_use INTEGER NOT NULL, deleting INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(version_id,number)); CREATE INDEX IF NOT EXISTS segment_lru ON segments(deleting,last_use); CREATE TABLE IF NOT EXISTS packs(token TEXT PRIMARY KEY,group_key TEXT NOT NULL,provider INTEGER NOT NULL,length INTEGER NOT NULL,last_use INTEGER NOT NULL,deleting INTEGER NOT NULL DEFAULT 0); CREATE INDEX IF NOT EXISTS pack_group ON packs(group_key,deleting,last_use); CREATE TABLE IF NOT EXISTS objects(resource_key TEXT PRIMARY KEY,pack TEXT NOT NULL,offset INTEGER NOT NULL,length INTEGER NOT NULL,digest BLOB NOT NULL,meta TEXT NOT NULL); CREATE INDEX IF NOT EXISTS object_pack ON objects(pack); PRAGMA user_version=4; COMMIT;")
     })();
     if result.is_err() {
         let _ = db.exec("ROLLBACK");

@@ -16,7 +16,41 @@ pub enum Resource {
     },
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CacheMode {
+    #[default]
+    ByteRange,
+    WholeObject,
+    Document,
+}
+
+pub struct ResourceLifetime(tokio::sync::watch::Sender<bool>);
+impl Default for ResourceLifetime {
+    fn default() -> Self {
+        Self(tokio::sync::watch::channel(false).0)
+    }
+}
+impl ResourceLifetime {
+    pub fn is_valid(&self) -> bool {
+        !*self.0.borrow()
+    }
+    pub fn cancel(&self) -> bool {
+        !self.0.send_replace(true)
+    }
+    async fn cancelled(&self) {
+        let mut receiver = self.0.subscribe();
+        while !*receiver.borrow_and_update() {
+            if receiver.changed().await.is_err() {
+                break;
+            }
+        }
+    }
+}
+
 pub struct PreparedResource {
+    mode: CacheMode,
+    lifetime: Option<Arc<ResourceLifetime>>,
     client: Client,
     request: Request,
     headers_timeout: Duration,
@@ -45,6 +79,8 @@ impl PreparedResource {
             request.headers_mut().remove(name);
         }
         Ok(Self {
+            mode: CacheMode::ByteRange,
+            lifetime: None,
             client,
             request,
             headers_timeout,
@@ -54,6 +90,28 @@ impl PreparedResource {
         })
     }
 
+    pub fn with_cache_mode(mut self, mode: CacheMode) -> Self {
+        self.mode = mode;
+        self
+    }
+    pub fn cache_mode(&self) -> CacheMode {
+        self.mode
+    }
+    pub fn with_lifetime(mut self, lifetime: Arc<ResourceLifetime>) -> Self {
+        self.lifetime = Some(lifetime);
+        self
+    }
+    pub async fn cancelled(&self) {
+        loop {
+            if !self.is_valid() {
+                return;
+            }
+            tokio::select! {
+                _=async { if let Some(lifetime)=&self.lifetime { lifetime.cancelled().await; } else { futures::future::pending::<()>().await; } } => return,
+                _=tokio::time::sleep(Duration::from_millis(100)) => (),
+            }
+        }
+    }
     pub fn headers(&self) -> &HeaderMap {
         self.request.headers()
     }
@@ -96,8 +154,10 @@ impl PreparedResource {
             .try_clone()
             .ok_or_else(|| crate::anyhow!("resource request cannot be cloned"))?;
         request.headers_mut().extend(headers);
-        let response = tokio::time::timeout(self.headers_timeout, self.client.execute(request))
-            .await
+        let response = tokio::select! {
+            response=tokio::time::timeout(self.headers_timeout, self.client.execute(request))=>response,
+            _=self.cancelled()=>return Err(ProviderError::NotAuth),
+        }
             .map_err(|_| crate::anyhow!("resource response headers timed out"))?
             .map_err(|err| ProviderError::Request(err.without_url()))?;
         if !self.is_valid() {
@@ -128,7 +188,8 @@ impl PreparedResource {
         self
     }
     pub fn is_valid(&self) -> bool {
-        self.valid.as_ref().is_none_or(|valid| valid())
+        self.lifetime.as_ref().is_none_or(|l| l.is_valid())
+            && self.valid.as_ref().is_none_or(|valid| valid())
     }
 }
 

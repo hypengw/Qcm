@@ -180,7 +180,7 @@ function get_item_image:build_request(request_context)
         end
     end
     R.parameters(params, {["item_id"] = true, ["image_type"] = true, ["max_width"] = true, ["max_height"] = true, ["width"] = true, ["height"] = true, ["quality"] = true, ["fill_width"] = true, ["fill_height"] = true, ["tag"] = true, ["format"] = true, ["percent_played"] = true, ["unplayed_count"] = true, ["blur"] = true, ["background_color"] = true, ["foreground_layer"] = true, ["image_index"] = true, })
-    R.authorize(options, {}, "GetItemImage", query, headers)
+    R.authorize(options, {}, "GetItemImage", query, headers, nil)
     R.extend_headers(headers, request_context and request_context.headers or {})
     headers[#headers + 1] = { 'Accept', '*/*' }
     local builder = options.transport:request("GET", options.url.append_api_path(options.base_url, path))

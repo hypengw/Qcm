@@ -115,6 +115,7 @@ async fn live_subsonic_home_radio_and_resource_cache() {
         provider_context: ctx.clone(),
         backend_ev,
         oper,
+        playback: Arc::new(Default::default()),
         radio: radio.clone(),
         resource_cache: cache.clone(),
     });

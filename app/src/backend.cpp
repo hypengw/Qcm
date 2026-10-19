@@ -403,6 +403,9 @@ auto Backend::image_url(model::ItemId id, enums::ImageType image_type) const -> 
 auto Backend::audio_url(model::ItemId id) -> QUrl {
     return QUrl(qextra::to_qstring(rstd::format("{}/audio/{}/{}", base(), id.type(), id.id())));
 }
+auto Backend::playback_url(model::ItemId id) -> QUrl {
+    return QUrl(qextra::to_qstring(rstd::format("{}/playback/source/{}/{}", base(), id.type(), id.id())));
+}
 
 auto Backend::serial() -> i32 {
     i32 current = m_serial.load();

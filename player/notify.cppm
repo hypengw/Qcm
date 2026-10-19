@@ -19,7 +19,7 @@ namespace notify
 class info final {
     RSTD_ENUM_DEFAULT(info, (position, 0), (position, (i64 value;)), (duration, (i64 value;)),
                       (playstate, (PlayState value;)), (busy, (bool value;)),
-                      (cache, (float begin; float end;)), (ended))
+                      (cache, (float begin; float end;)), (seekable, (bool value;)), (ended))
 };
 } // namespace notify
 

@@ -62,12 +62,12 @@ impl Storage {
     pub(super) fn restore_segment_clock(&mut self) -> Result<()> {
         let mut row = self
             .db
-            .statement("SELECT COALESCE(MAX(last_use),0) FROM segments", &[])?;
+            .statement("SELECT MAX(n) FROM (SELECT COALESCE(MAX(last_use),0) n FROM segments UNION ALL SELECT COALESCE(MAX(last_use),0) FROM packs)", &[])?;
         row.next()?;
         self.segment_clock = row.int(0).max(0) as u64;
         Ok(())
     }
-    fn segment_tick(&mut self) -> u64 {
+    pub(super) fn segment_tick(&mut self) -> u64 {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap_or_default()

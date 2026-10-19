@@ -10,6 +10,7 @@ mod http;
 mod msg;
 mod resource_cache;
 mod radio;
+mod playback;
 mod task;
 #[cfg(test)]
 mod subsonic_tests;

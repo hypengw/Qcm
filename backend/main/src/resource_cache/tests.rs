@@ -5,6 +5,8 @@ mod complete_files;
 mod ffmpeg;
 #[path = "live_segments_test.rs"]
 mod live_segments;
+#[path = "object_cache_tests.rs"]
+mod objects;
 use bytes::Bytes;
 use http_body_util::BodyExt;
 use reqwest::header::HeaderMap;
@@ -138,6 +140,7 @@ async fn failed_io_and_sql_do_not_publish_partial_indexes() {
             .await
             .is_err());
         drop(version);
+        storage.shutdown().await.unwrap();
         drop(storage);
         let storage = store::Store::open(dir.0.clone()).await.unwrap();
         let version = storage.lookup("failure".into()).await.unwrap().unwrap();
@@ -518,7 +521,7 @@ impl Origin {
                     }
                     if date_mode {
                         response.push_str(&format!(
-                            "Last-Modified: {modified}\r\nDate: Mon, 19 Oct 2026 07:35:21 GMT\r\n"
+                            "Last-Modified: {modified}\r\nDate: {}\r\n", httpdate::fmt_http_date(std::time::SystemTime::now())
                         ));
                     }
                     if status == 304 {

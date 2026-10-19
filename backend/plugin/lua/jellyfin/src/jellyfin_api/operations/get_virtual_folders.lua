@@ -23,7 +23,7 @@ function get_virtual_folders:build_request(request_context)
     local J = options.json
     local path, query, headers = "/Library/VirtualFolders", {}, {}
     R.parameters(params, {})
-    R.authorize(options, {{["CustomAuthentication"] = {}, }, }, "GetVirtualFolders", query, headers)
+    R.authorize(options, {{["CustomAuthentication"] = {}, }, }, "GetVirtualFolders", query, headers, nil)
     R.extend_headers(headers, request_context and request_context.headers or {})
     headers[#headers + 1] = { 'Accept', options.json_media_type or 'application/json' }
     local builder = options.transport:request("GET", options.url.append_api_path(options.base_url, path))
@@ -32,23 +32,23 @@ function get_virtual_folders:build_request(request_context)
 end
 
 ---@param response MluaHttpResponse
----@return jellyfin_api.models.Schema223|jellyfin_api.models.Schema224|jellyfin_api.models.Schema225
+---@return jellyfin_api.models.Schema241|jellyfin_api.models.Schema242|jellyfin_api.models.Schema243
 function get_virtual_folders:parse_response(response)
     local status = response:status()
     local context = { operation_id = "GetVirtualFolders", status = status, content_type = response:header_values('content-type')[1] }
     if status < 200 or status >= 300 then return R.http_error(response, context) end
     if status == 200 then
         if context.content_type == "application/json" then
-            return R.json_response(self.options.json, response, context, V.check_Schema223)
+            return R.json_response(self.options.json, response, context, V.check_Schema241)
         end
         if context.content_type == "application/json; profile=\"CamelCase\"" then
-            return R.json_response(self.options.json, response, context, V.check_Schema224)
+            return R.json_response(self.options.json, response, context, V.check_Schema242)
         end
         if context.content_type == "application/json; profile=\"PascalCase\"" then
-            return R.json_response(self.options.json, response, context, V.check_Schema225)
+            return R.json_response(self.options.json, response, context, V.check_Schema243)
         end
         if R.media_matches(context.content_type, "application/json") then
-            return R.json_response(self.options.json, response, context, V.check_Schema223)
+            return R.json_response(self.options.json, response, context, V.check_Schema241)
         end
         return R.media_error(response, context)
     end

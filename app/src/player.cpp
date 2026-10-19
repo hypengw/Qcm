@@ -9,6 +9,7 @@ module;
 module qcm;
 import qcm.player;
 import :player;
+import qcm.playback.io;
 
 using namespace qcm;
 using namespace qextra::prelude;
@@ -162,7 +163,7 @@ void Player::set_source(const QUrl& value) {
     if (ycore::cmp_set(m_source, value)) {
         set_busy(true);
         auto url = m_source.toString(QUrl::PreferLocalFile);
-        m_player->set_source(url.toStdString());
+        m_player->set_source(url.toStdString(), make_playback_io(m_source));
         sourceChanged();
 
         if (m_source.isLocalFile()) set_cache_progress(QVector2D { 0.0f, 1.0f });
@@ -207,7 +208,7 @@ void Player::stop() {
 }
 
 void Player::set_position(int value) {
-    if (m_duration > 0) {
+    if (m_seekable && m_duration > 0) {
         set_busy(true);
         m_player->seek(value + 50);
     }
@@ -220,7 +221,7 @@ void Player::set_busy(bool value) {
 auto Player::volume() const -> float { return m_player->volume(); }
 auto Player::fadeTime() const -> u32 { return m_player->fade_time() / 1000; }
 
-auto Player::seekable() const -> bool { return true; }
+auto Player::seekable() const -> bool { return m_seekable; }
 
 auto Player::playing() const -> bool { return playback_state() == PlaybackState::PlayingState; }
 
@@ -291,6 +292,9 @@ void Player::processNotify(NotifyInfo info) {
         RSTD_CASE(ended) { Q_EMIT ended(); }
         RSTD_CASE(duration, value) { set_duration(static_cast<int>(value)); }
         RSTD_CASE(playstate, value) { set_playback_state(static_cast<PlaybackState>(value)); }
+        RSTD_CASE(seekable, value) {
+            if (std::exchange(m_seekable, value) != value) Q_EMIT seekableChanged();
+        }
         RSTD_CASE(busy, value) { set_busy(value); }
         RSTD_CASE(cache, begin, end) { set_cache_progress({ begin, end }); }
     }

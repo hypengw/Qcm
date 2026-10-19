@@ -2,8 +2,8 @@ local R = require("jellyfin_api.runtime")
 local V = require("jellyfin_api.models")
 
 ---@class (exact) jellyfin_api.unmark_favorite_itemParams
----@field user_id? jellyfin_api.models.Schema235
----@field item_id jellyfin_api.models.Schema236
+---@field user_id? jellyfin_api.models.Schema254
+---@field item_id jellyfin_api.models.Schema255
 
 ---@class jellyfin_api.unmark_favorite_itemOperation
 ---@field private options jellyfin_api.Options
@@ -27,7 +27,7 @@ function unmark_favorite_item:build_request(request_context)
     do
         local value = params["user_id"]
         if value ~= nil then
-            R.validate(V.check_Schema235, J, value)
+            R.validate(V.check_Schema254, J, value)
             R.parameter(value ~= J.null, 'null parameter is unsupported')
             query[#query + 1] = { "userId", R.scalar(value) }
         end
@@ -35,7 +35,7 @@ function unmark_favorite_item:build_request(request_context)
     do
         local value = params["item_id"]
         if value ~= nil then
-            R.validate(V.check_Schema236, J, value)
+            R.validate(V.check_Schema255, J, value)
             R.parameter(value ~= J.null, 'null parameter is unsupported')
             path = R.path_parameter(options.url, path, "itemId", value)
         else
@@ -43,7 +43,7 @@ function unmark_favorite_item:build_request(request_context)
         end
     end
     R.parameters(params, {["user_id"] = true, ["item_id"] = true, })
-    R.authorize(options, {{["CustomAuthentication"] = {}, }, }, "UnmarkFavoriteItem", query, headers)
+    R.authorize(options, {{["CustomAuthentication"] = {}, }, }, "UnmarkFavoriteItem", query, headers, nil)
     R.extend_headers(headers, request_context and request_context.headers or {})
     headers[#headers + 1] = { 'Accept', options.json_media_type or 'application/json' }
     local builder = options.transport:request("DELETE", options.url.append_api_path(options.base_url, path))

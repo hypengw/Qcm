@@ -188,7 +188,7 @@ fn layouts_and_schema_preserve_legacy_data() {
         if length > 0 {
             assert_eq!(store.read(version.id, 0).unwrap(), Some(data(&meta, 0)));
         }
-        store.db.exec("PRAGMA user_version=4").unwrap();
+        store.db.exec("PRAGMA user_version=5").unwrap();
         drop(store);
         assert!(Storage::open(dir.0.clone()).is_err());
     }

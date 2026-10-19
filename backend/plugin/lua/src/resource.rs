@@ -20,6 +20,12 @@ pub fn take_request(value: &LuaAnyUserData) -> LuaResult<PreparedResource> {
     .map_err(LuaError::external)
 }
 
+pub fn take_prepared(value: &LuaAnyUserData) -> LuaResult<PreparedResource> {
+    if value.is::<LuaPreparedResource>() {
+        value.borrow_mut::<LuaPreparedResource>()?.0.take().ok_or_else(|| LuaError::runtime("resource already consumed"))
+    } else { take_request(value) }
+}
+
 fn prepare(
     lua: &Lua,
     (request, validator, options): (LuaAnyUserData, LuaFunction, Option<LuaTable>),
@@ -27,17 +33,24 @@ fn prepare(
     let lua = lua.clone();
     if let Some(options) = &options {
         for pair in options.pairs::<String, LuaValue>() {
-            if pair?.0 != "transient_query" {
+            if !matches!(pair?.0.as_str(), "transient_query" | "cache_mode") {
                 return Err(LuaError::runtime("unknown resource option"));
             }
         }
     }
+    let mode = options.as_ref().map(|o| o.get::<Option<String>>("cache_mode")).transpose()?.flatten();
+    let mode = match mode.as_deref() {
+        None | Some("byte_range") => qcm_core::resource::CacheMode::ByteRange,
+        Some("whole_object") => qcm_core::resource::CacheMode::WholeObject,
+        Some("document") => qcm_core::resource::CacheMode::Document,
+        _ => return Err(LuaError::runtime("invalid resource cache mode")),
+    };
     let fields = options
         .map(|options| options.get::<Option<Vec<String>>>("transient_query"))
         .transpose()?
         .flatten()
         .unwrap_or_default();
-    let prepared = take_request(&request)?
+    let prepared = take_request(&request)?.with_cache_mode(mode)
         .with_transient_query(fields)
         .map_err(LuaError::external)?
         .validated_by(move |response| {

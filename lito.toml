@@ -2,6 +2,7 @@
 name = "qcm"
 members = [
   "app",
+  "app/playback",
   "backend/plugin/lua/jellyfin",
   "backend/plugin/lua/subsonic",
   "app/src/platform",
@@ -22,13 +23,14 @@ qcm-core = { path = "core" }
 qcm-mpris = { path = "mpris" }
 qcm-platform = { path = "app/src/platform" }
 qcm-player = { path = "player" }
+qcm-playback-io = { path = "app/playback" }
 qcm-qr-code = { path = "third_party/qr_code" }
 rstd-cppstd = { version = "0.1.7" }
 rstd-std = { version = "0.1.7" }
 lito-qt = { version = "0.1.1" }
 ncrequest = { git = "https://github.com/hypengw/ncrequest.git" }
-qextra = { git = "https://github.com/hypengw/QExtra.git" }
-wavsen = { git = "https://github.com/hypengw/wavsen.git" }
+qextra = { git = "https://github.com/hypengw/QExtra.git", rev = "b3fd790bb4a5c5cf7c0cc0384cc140e78e627609" }
+wavsen = { git = "https://github.com/hypengw/wavsen.git", rev = "756437443d84905a027f115c75ec6ae6b19692e7" }
 
 [workspace.external-sources.qcm-proto]
 path = "backend/main/proto"

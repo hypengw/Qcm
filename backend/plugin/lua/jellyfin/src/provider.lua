@@ -11,17 +11,18 @@ local function quoted(value)
     assert(type(value)=='string' and not value:find('[\r\n]'), 'invalid authentication value')
     return '"' .. value:gsub('\\','\\\\'):gsub('"','\\"') .. '"'
 end
+local function authorization(saved_generation)
+    assert(generation==saved_generation,'account changed')
+    local parts={'Client='..quoted(qcm.inner.app_name),'Version='..quoted(qcm.inner.app_version),'Device="Linux"','DeviceId='..quoted(qcm.inner:device_id())}
+    if token then parts[#parts+1]='Token='..quoted(token) end
+    return {{'Authorization','MediaBrowser '..table.concat(parts,', ')}}
+end
 local function client(base_url)
     local saved_generation=generation
     return Client.new {
         base_url=base_url, json=J, url=qcm.url, transport=qcm.get_http_client(),
         json_media_type='application/json; profile="PascalCase"',
-        authorize=function()
-            assert(generation==saved_generation,'account changed')
-            local parts={'Client='..quoted(qcm.inner.app_name),'Version='..quoted(qcm.inner.app_version),'Device="Linux"','DeviceId='..quoted(qcm.inner:device_id())}
-            if token then parts[#parts+1]='Token='..quoted(token) end
-            return {headers={{'Authorization','MediaBrowser '..table.concat(parts,', ')}}}
-        end,
+        authorize=function() return {headers=authorization(saved_generation)} end,
     }
 end
 local function require_api()
@@ -188,6 +189,74 @@ function M.prepare_audio(id)
     return require_api().operations.get_audio_stream {item_id=id,static=true}:build_request()
 end
 function M.audio(id,headers) return stream('get_audio_stream',{item_id=id,static=true},headers) end
+local function playback_state(encoded)
+    local state=J.decode(encoded)
+    assert(state.generation==generation,'playback account changed')
+    require_api()
+    return state
+end
+function M.open_playback(request)
+    local bitrate=map.value(request.max_bitrate) or 320000
+    assert(math.type(bitrate)=='integer' and bitrate>=32000 and bitrate<=512000,'unsupported audio bitrate')
+    local profile={Name='Qcm audio HLS',MaxStreamingBitrate=bitrate,DirectPlayProfiles=J.array{},TranscodingProfiles={{
+        Container='ts',Type='Audio',AudioCodec='aac',Protocol='hls',Context='Streaming',MaxAudioChannels='2',
+        MinSegments=1,SegmentLength=6,EstimateContentLength=false,TranscodeSeekInfo='Auto',
+    }}}
+    local result=perform('get_posted_playback_info',{item_id=request.item_id,body={
+        UserId=user_id,EnableDirectPlay=false,EnableDirectStream=false,EnableTranscoding=true,
+        AllowAudioStreamCopy=false,MaxStreamingBitrate=bitrate,DeviceProfile=profile,
+    }})
+    local session=map.value(result.PlaySessionId)
+    local ok,playback=pcall(function()
+        assert(not map.value(result.ErrorCode),'Jellyfin rejected playback negotiation')
+        assert(type(session)=='string' and session~='','missing playback session')
+        local source
+        for _,candidate in ipairs(result.MediaSources or {}) do
+            if candidate.SupportsTranscoding and candidate.TranscodingSubProtocol=='hls' and candidate.TranscodingContainer=='ts' then source=candidate;break end
+        end
+        assert(source and map.value(source.TranscodingUrl),'Jellyfin did not negotiate supported audio HLS')
+        local uri=assert(qcm.url.join(qcm.inner.base_url:gsub('/?$','/'),source.TranscodingUrl:gsub('^/','')),'invalid playback URI')
+        local root=assert(qcm.url.parse(uri),'invalid playback URI')
+        local state=J.encode {generation=generation,session=session,uri=uri,prefix=assert(root.path:match('^(.*)/[^/]+$'))..'/',device=qcm.inner:device_id()}
+        return {kind='hls_vod',uri=uri,state=state,representation=J.encode {source.Id,map.value(source.ETag) or '',bitrate,'aac','ts',2,session},duration_seconds=map.value(source.RunTimeTicks) and source.RunTimeTicks/10000000}
+    end)
+    if not ok then
+        if type(session)=='string' and session~='' then pcall(perform,'stop_encoding_process',{device_id=qcm.inner:device_id(),play_session_id=session}) end
+        raise(playback)
+    end
+    return playback
+end
+function M.prepare_playback_resource(encoded,uri)
+    local state=playback_state(encoded)
+    local root,target=qcm.url.parse(state.uri),qcm.url.parse(uri)
+    assert(target and target.scheme==root.scheme and target.host==root.host and target.port==root.port and target.path:sub(1,#state.prefix)==state.prefix,'resource outside playback scope')
+    local extension=target.path:match('%.([%w]+)$')
+    assert(extension=='m3u8' or extension=='ts' or extension=='m4s' or extension=='mp4','unsupported playback resource')
+    local query=qcm.url.decode(target.query or '')
+    assert(not query.PlaySessionId or query.PlaySessionId==state.session,'playback session mismatch')
+    local request=qcm.get_http_client():request('GET',uri):header_pairs(authorization(generation)):stream {headers_timeout_ms=10000}:build()
+    return qcm.resource.prepare(request,function(response)
+        local status=response:status()
+        if status==401 or status==403 then qcm.error {code='not_auth'} end
+        if status==404 then qcm.error {code='not_found'} end
+        if status==304 or status==416 then return end
+        assert(status==200 or status==206,'Jellyfin playback HTTP failure')
+        local content=(response:header_values('content-type')[1] or ''):lower():match('^[^;]+')
+        local allowed=extension=='m3u8' and (content=='application/vnd.apple.mpegurl' or content=='application/x-mpegurl' or content=='audio/mpegurl' or content=='audio/x-mpegurl')
+            or extension=='ts' and content=='video/mp2t'
+            or (extension=='mp4' or extension=='m4s') and (content=='video/mp4' or content=='audio/mp4' or content=='application/mp4')
+        assert(allowed,'invalid Jellyfin playback media type')
+    end,{cache_mode=extension=='m3u8' and 'document' or 'whole_object',transient_query={'api_key'}})
+end
+function M.keep_playback(encoded)
+    local state=playback_state(encoded)
+    perform('ping_playback_session',{play_session_id=state.session})
+end
+function M.close_playback(encoded)
+    local state=J.decode(encoded)
+    if state.generation~=generation then return end
+    perform('stop_encoding_process',{device_id=state.device,play_session_id=state.session})
+end
 function M.subtitle(id)
     local response=perform('get_lyrics',{item_id=id})
     if not map.value(response.Lyrics) then qcm.error {code='not_found'} end

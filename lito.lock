@@ -34,11 +34,16 @@ dependencies = [
   "qcm-core",
   "qcm-mpris",
   "qcm-platform",
+  "qcm-playback-io",
   "qcm-player",
   "qcm-qr-code",
   "qextra",
   "rstd-cppstd",
   "rstd-std",
+]
+runtime-dependencies = [
+  "qcm-jellyfin-lua",
+  "qcm-subsonic-lua",
 ]
 
 [[packages.externals]]
@@ -63,6 +68,10 @@ name = "random"
 source = "git+https://github.com/ilqvya/random.git#567e9c62df20f19adbda0e12fa4d88b2b49a7d1c"
 
 [[packages]]
+name = "qcm-jellyfin-lua"
+version = "1.3.5"
+
+[[packages]]
 name = "qcm-mpris"
 version = "1.3.5"
 dependencies = [
@@ -75,6 +84,15 @@ name = "qcm-platform"
 version = "1.3.5"
 dependencies = [
   "rstd-std",
+]
+
+[[packages]]
+name = "qcm-playback-io"
+version = "1.3.5"
+dependencies = [
+  "qcm-core",
+  "rstd-cppstd",
+  "wavsen",
 ]
 
 [[packages]]
@@ -92,15 +110,20 @@ name = "qcm-qr-code"
 version = "1.3.5"
 
 [[packages]]
+name = "qcm-subsonic-lua"
+version = "1.3.5"
+
+[[packages]]
 name = "qcm-test"
 dependencies = [
   "qcm-core",
+  "qextra",
 ]
 
 [[packages]]
 name = "qextra"
 version = "0.1.0"
-source = "git+https://github.com/hypengw/QExtra.git#64cac248540aa9ba214505026e23c467a1e01627"
+source = "git+https://github.com/hypengw/QExtra.git#b3fd790bb4a5c5cf7c0cc0384cc140e78e627609"
 dependencies = [
   "lito-qt",
   "ncrequest",
@@ -206,7 +229,7 @@ dependencies = [
 [[packages]]
 name = "wavsen"
 version = "0.1.0"
-source = "git+https://github.com/hypengw/wavsen.git#bd8a72e0f68fabc42f3d123623787398ed28dbe4"
+source = "git+https://github.com/hypengw/wavsen.git#756437443d84905a027f115c75ec6ae6b19692e7"
 dependencies = [
   "rstd-core",
   "rstd-dlopn",

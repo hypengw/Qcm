@@ -9,8 +9,11 @@ return {
     get_items = require("jellyfin_api.operations.get_items"),
     get_lyrics = require("jellyfin_api.operations.get_lyrics"),
     get_playlist_items = require("jellyfin_api.operations.get_playlist_items"),
+    get_posted_playback_info = require("jellyfin_api.operations.get_posted_playback_info"),
     get_user_views = require("jellyfin_api.operations.get_user_views"),
     get_virtual_folders = require("jellyfin_api.operations.get_virtual_folders"),
     mark_favorite_item = require("jellyfin_api.operations.mark_favorite_item"),
+    ping_playback_session = require("jellyfin_api.operations.ping_playback_session"),
+    stop_encoding_process = require("jellyfin_api.operations.stop_encoding_process"),
     unmark_favorite_item = require("jellyfin_api.operations.unmark_favorite_item"),
 }

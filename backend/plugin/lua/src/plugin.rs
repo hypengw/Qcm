@@ -16,6 +16,7 @@ pub const CAPABILITIES: &[&str] = &[
     "db.explicit_sync.v1",
     "subtitle.structured.v1",
     "provider.metadata.v1",
+    "playback.lifecycle.v1",
     "provider.session.v1",
     "radio.configuration.v1",
     "radio.lifecycle.v1",

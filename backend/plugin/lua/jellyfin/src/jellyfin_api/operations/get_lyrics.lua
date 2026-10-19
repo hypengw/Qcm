@@ -34,7 +34,7 @@ function get_lyrics:build_request(request_context)
         end
     end
     R.parameters(params, {["item_id"] = true, })
-    R.authorize(options, {{["CustomAuthentication"] = {}, }, }, "GetLyrics", query, headers)
+    R.authorize(options, {{["CustomAuthentication"] = {}, }, }, "GetLyrics", query, headers, nil)
     R.extend_headers(headers, request_context and request_context.headers or {})
     headers[#headers + 1] = { 'Accept', options.json_media_type or 'application/json' }
     local builder = options.transport:request("GET", options.url.append_api_path(options.base_url, path))

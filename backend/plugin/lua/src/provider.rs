@@ -120,6 +120,10 @@ struct LuaImpl {
     audio: LuaFunction,
     prepare_image: Option<LuaFunction>,
     prepare_audio: Option<LuaFunction>,
+    open_playback: Option<LuaFunction>,
+    prepare_playback_resource: Option<LuaFunction>,
+    keep_playback: Option<LuaFunction>,
+    close_playback: Option<LuaFunction>,
     subtitle: LuaFunction,
     for_you_items: Option<LuaFunction>,
     home_blocks: Option<LuaFunction>,
@@ -252,6 +256,12 @@ impl LuaProvider {
 
         lua.set_named_registry_value("qcm.provider.resource_scope", provider_table.get::<Option<LuaFunction>>("resource_scope")?)?;
         lua.set_named_registry_value("qcm.provider.save", provider_table.get::<LuaFunction>("save")?)?;
+        let playback_hooks = ["open_playback", "prepare_playback_resource", "keep_playback", "close_playback"];
+        let playback_count = playback_hooks.iter().filter(|name| provider_table.get::<Option<LuaFunction>>(**name).ok().flatten().is_some()).count();
+        let playback_required = capabilities.requires.iter().any(|c| c == "playback.lifecycle.v1");
+        if (playback_count != 0 || playback_required) && (playback_count != playback_hooks.len() || !playback_required) {
+            return Err(anyhow!("playback.lifecycle.v1 requires all playback hooks"));
+        }
         let hooks = ["queue_definition", "open_queue", "next_queue"];
         let count = hooks
             .iter()
@@ -317,6 +327,10 @@ impl LuaProvider {
                     .map_err(|_| anyhow!("audio func not found"))?,
                 prepare_image: provider_table.get("prepare_image")?,
                 prepare_audio: provider_table.get("prepare_audio")?,
+                open_playback: provider_table.get("open_playback")?,
+                prepare_playback_resource: provider_table.get("prepare_playback_resource")?,
+                keep_playback: provider_table.get("keep_playback")?,
+                close_playback: provider_table.get("close_playback")?,
                 subtitle: provider_table
                     .get::<LuaFunction>("subtitle")
                     .map_err(|_| anyhow!("subtitle func not found"))?,
@@ -684,6 +698,32 @@ impl Provider for LuaProvider {
         }
     }
 
+    async fn open_playback(&self, request: qcm_core::provider::PlaybackRequest) -> Result<qcm_core::provider::PreparedPlayback, ProviderError> {
+        let function = self.funcs.open_playback.as_ref().ok_or(ProviderError::NotImplemented)?;
+        let epoch = self.generation.load(Ordering::Acquire);
+        let value = function.call_async::<LuaValue>(self.lua.to_value(&request).map_err(ProviderError::from_err)?).await.map_err(ProviderError::from_err)?;
+        let result = self.lua.from_value(value).map_err(ProviderError::from_err)?;
+        if epoch != self.generation.load(Ordering::Acquire) { return Err(ProviderError::NotAuth); }
+        Ok(result)
+    }
+    async fn prepare_playback_resource(&self, state: &str, uri: &str) -> Result<qcm_core::resource::PreparedResource, ProviderError> {
+        let epoch = self.generation.load(Ordering::Acquire);
+        let function = self.funcs.prepare_playback_resource.as_ref().ok_or(ProviderError::NotImplemented)?;
+        let value = function.call_async::<LuaAnyUserData>((state,uri)).await.map_err(ProviderError::from_err)?;
+        let prepared = crate::resource::take_prepared(&value).map_err(ProviderError::from_err)?;
+        let generation = self.generation.clone();
+        if generation.load(Ordering::Acquire) != epoch { return Err(ProviderError::NotAuth); }
+        Ok(prepared.guarded_by(move || generation.load(Ordering::Acquire) == epoch))
+    }
+    async fn keep_playback(&self, state: &str) -> Result<(), ProviderError> {
+        if let Some(function) = &self.funcs.keep_playback { function.call_async::<()> (state).await.map_err(ProviderError::from_err)?; }
+        Ok(())
+    }
+    async fn close_playback(&self, state: &str) -> Result<(), ProviderError> {
+        if let Some(function) = &self.funcs.close_playback { function.call_async::<()> (state).await.map_err(ProviderError::from_err)?; }
+        Ok(())
+    }
+
     async fn prepare_resource(&self, resource: qcm_core::resource::Resource) -> Result<qcm_core::resource::PreparedResource, ProviderError> {
         let generation=self.generation.load(Ordering::Acquire);
         use qcm_core::resource::Resource;
@@ -698,12 +738,7 @@ impl Provider for LuaProvider {
             }
         }.map_err(ProviderError::from_err)?;
         let ud = value.as_userdata().ok_or(ProviderError::NotFound)?;
-        let prepared = if ud.is::<crate::resource::LuaPreparedResource>() {
-            ud.borrow_mut::<crate::resource::LuaPreparedResource>()
-                .map_err(ProviderError::from_err)?.0.take().ok_or(ProviderError::NotFound)?
-        } else {
-            crate::resource::take_request(ud).map_err(ProviderError::from_err)?
-        };
+        let prepared = crate::resource::take_prepared(ud).map_err(ProviderError::from_err)?;
         let revision=self.generation.clone();
         if revision.load(Ordering::Acquire)!=generation {return Err(ProviderError::NotAuth);}
         Ok(prepared.guarded_by(move ||revision.load(Ordering::Acquire)==generation))

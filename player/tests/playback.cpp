@@ -17,6 +17,7 @@ public:
             RSTD_CASE(ended) { ++ended; }
             RSTD_CASE(duration, value) {}
             RSTD_CASE(cache, begin, end) {}
+            RSTD_CASE(seekable, value) {}
         }
         return true;
     }

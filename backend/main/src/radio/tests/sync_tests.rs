@@ -434,6 +434,7 @@ async fn audio_and_song_cover_http_remain_available_after_sync() {
         backend_ev,
         oper,
         resource_cache: cache.clone(),
+        playback: Arc::new(Default::default()),
         radio: owner.clone(),
     });
     crate::global::reg_context(1, service.clone());

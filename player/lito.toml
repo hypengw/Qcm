@@ -41,3 +41,7 @@ sources = ["tests/playback.cpp"]
 [[test]]
 name = "resource-seek"
 sources = ["tests/resource_seek.cpp"]
+
+[[test]]
+name = "hls-io"
+sources = ["tests/hls_io.cpp"]

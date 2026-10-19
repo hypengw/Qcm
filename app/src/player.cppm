@@ -1,7 +1,6 @@
 module;
 #include "QExtra/macro_qt.hpp"
 
-
 #ifdef Q_MOC_RUN
 #    include "Qcm/player.moc"
 #endif
@@ -33,7 +32,7 @@ export class Player : public QObject {
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged FINAL)
     Q_PROPERTY(QVector2D cacheProgress READ cache_progress NOTIFY cacheProgressChanged FINAL)
 
-    Q_PROPERTY(bool seekable READ seekable CONSTANT FINAL)
+    Q_PROPERTY(bool seekable READ seekable NOTIFY seekableChanged FINAL)
     Q_PROPERTY(bool playing READ playing NOTIFY playbackStateChanged FINAL)
 
 public:
@@ -70,6 +69,7 @@ public:
     Q_SIGNAL void cacheProgressChanged();
     Q_SIGNAL void seeked(double position);
     Q_SIGNAL void ended();
+    Q_SIGNAL void seekableChanged();
     Q_SIGNAL void notify(NotifyInfo);
 
     Q_SLOT void processNotify(NotifyInfo);
@@ -105,6 +105,7 @@ private:
     std::atomic<int> m_position;
     int              m_duration;
     bool             m_busy;
+    bool             m_seekable { false };
     PlaybackState    m_playback_state;
     QVector2D        m_cache_progress;
 };

@@ -155,6 +155,9 @@ workspace = true
 [dependencies.qcm-player]
 workspace = true
 
+[dependencies.qcm-playback-io]
+workspace = true
+
 [dependencies.qcm-qr-code]
 workspace = true
 

@@ -63,6 +63,7 @@ pub async fn process_qcm(
                 sqlm::provider::Entity::delete_by_id(id)
                     .exec(&ctx.provider_context.db)
                     .await?;
+                ctx.playback.invalidate(id).await;
                 global::remove_provider(id);
                 ctx.radio.invalidate(&ctx.provider_context, id).await;
                 ctx.resource_cache.invalidate(id).await?;
@@ -131,6 +132,7 @@ pub async fn process_qcm(
                     .await?;
                 write.invalidate_sync();
                 crate::db::add_provider(&ctx.provider_context.db, tmp_provider.clone()).await?;
+                ctx.playback.invalidate(req.provider_id).await;
                 global::add_provider(tmp_provider.clone());
                 ctx.radio.invalidate(&ctx.provider_context, req.provider_id).await;
                 ctx.resource_cache.invalidate(req.provider_id).await?;
@@ -167,6 +169,7 @@ pub async fn process_qcm(
                                     new_provider.clone(),
                                 )
                                 .await?;
+                                ctx.playback.invalidate(req.provider_id).await;
                                 global::add_provider(new_provider);
                                 ctx.radio.invalidate(&ctx.provider_context, req.provider_id).await;
                                 ctx.resource_cache.invalidate(req.provider_id).await?;

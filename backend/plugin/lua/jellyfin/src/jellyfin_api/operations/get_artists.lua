@@ -362,7 +362,7 @@ function get_artists:build_request(request_context)
         end
     end
     R.parameters(params, {["min_community_rating"] = true, ["start_index"] = true, ["limit"] = true, ["search_term"] = true, ["parent_id"] = true, ["fields"] = true, ["exclude_item_types"] = true, ["include_item_types"] = true, ["filters"] = true, ["is_favorite"] = true, ["media_types"] = true, ["genres"] = true, ["genre_ids"] = true, ["official_ratings"] = true, ["tags"] = true, ["years"] = true, ["enable_user_data"] = true, ["image_type_limit"] = true, ["enable_image_types"] = true, ["person"] = true, ["person_ids"] = true, ["person_types"] = true, ["studios"] = true, ["studio_ids"] = true, ["user_id"] = true, ["name_starts_with_or_greater"] = true, ["name_starts_with"] = true, ["name_less_than"] = true, ["sort_by"] = true, ["sort_order"] = true, ["enable_images"] = true, ["enable_total_record_count"] = true, })
-    R.authorize(options, {{["CustomAuthentication"] = {}, }, }, "GetArtists", query, headers)
+    R.authorize(options, {{["CustomAuthentication"] = {}, }, }, "GetArtists", query, headers, nil)
     R.extend_headers(headers, request_context and request_context.headers or {})
     headers[#headers + 1] = { 'Accept', options.json_media_type or 'application/json' }
     local builder = options.transport:request("GET", options.url.append_api_path(options.base_url, path))

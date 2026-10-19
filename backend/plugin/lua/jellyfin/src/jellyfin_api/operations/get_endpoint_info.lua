@@ -23,7 +23,7 @@ function get_endpoint_info:build_request(request_context)
     local J = options.json
     local path, query, headers = "/System/Endpoint", {}, {}
     R.parameters(params, {})
-    R.authorize(options, {{["CustomAuthentication"] = {}, }, }, "GetEndpointInfo", query, headers)
+    R.authorize(options, {{["CustomAuthentication"] = {}, }, }, "GetEndpointInfo", query, headers, nil)
     R.extend_headers(headers, request_context and request_context.headers or {})
     headers[#headers + 1] = { 'Accept', options.json_media_type or 'application/json' }
     local builder = options.transport:request("GET", options.url.append_api_path(options.base_url, path))

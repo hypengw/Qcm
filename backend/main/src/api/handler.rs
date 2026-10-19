@@ -80,10 +80,10 @@ pub async fn handle_request(
                 .body(ResponseBody::Empty)
                 .unwrap());
         };
-        log::debug!(target: "http", "{}", request.uri());
+        if !request.uri().path().starts_with("/playback/") { log::debug!(target: "http", "{}", request.uri()); }
 
         use hyper::Method;
-        let res = match *request.method() {
+        let res = if request.uri().path().starts_with("/playback/") { crate::playback::handle(&ctx,request).await } else { match *request.method() {
             Method::GET => process_http_get(&ctx, request).await,
             Method::POST => process_http_post(&ctx, request).await,
             _ => {
@@ -93,6 +93,8 @@ pub async fn handle_request(
                     .unwrap();
                 Ok(rsp)
             }
+        }
+
         };
 
         match res {
@@ -156,6 +158,7 @@ async fn handle_ws(
         oper,
         resource_cache,
         radio: Arc::new(Default::default()),
+        playback: Arc::new(Default::default()),
     });
 
     // TODO: reg context by real port
@@ -213,11 +216,12 @@ async fn handle_ws(
     let radio_cleanup = tokio::spawn({
         let ctx = Arc::downgrade(&ctx);
         async move {
-            let mut interval = tokio::time::interval(std::time::Duration::from_secs(60));
+            let mut interval = tokio::time::interval(std::time::Duration::from_secs(15));
             loop {
                 interval.tick().await;
                 let Some(ctx) = ctx.upgrade() else { break; };
                 ctx.radio.collect(&ctx.provider_context).await;
+                ctx.playback.collect().await;
             }
         }
     });
@@ -238,6 +242,7 @@ async fn handle_ws(
 
     log::info!("WebSocket connection closed");
     radio_cleanup.abort();
+    ctx.playback.shutdown().await;
     ctx.radio.shutdown(&ctx.provider_context).await;
 
     // end event process

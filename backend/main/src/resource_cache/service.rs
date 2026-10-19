@@ -27,6 +27,9 @@ use std::{
 };
 use tokio::sync::{watch, Mutex, Notify, OwnedSemaphorePermit, Semaphore};
 
+#[path = "object_service.rs"]
+mod object_service;
+
 const FETCH_BYTES: u64 = 4 * 1024 * 1024;
 const OUTPUT_BYTES: usize = 64 * 1024;
 const MAX_READERS: usize = 16;
@@ -188,6 +191,9 @@ impl ResourceCache {
         self: &Arc<Self>,
         request: ResourceRequest,
     ) -> Result<ResourceDelivery, ProcessError> {
+        if request.prepared.cache_mode() != qcm_core::resource::CacheMode::ByteRange {
+            return self.respond_object(request).await.map(|(r,_)| r).map_err(ProcessError::Resource);
+        }
         let mut result = self.respond(request.clone()).await;
         if result.as_ref().is_err_and(|error| {
             matches!(
@@ -927,6 +933,7 @@ impl ResourceCache {
                 chunk = tokio::time::timeout(Duration::from_secs(30), body.next()) => chunk?,
                 _ = stop.changed() => anyhow::bail!("resource service stopped"),
                 _ = cancel.changed() => anyhow::bail!("provider invalidated"),
+                _ = prepared.cancelled() => anyhow::bail!("resource invalidated"),
                 _ = download.readable.notified() => continue,
                 _ = tokio::time::sleep_until(last_commit+Duration::from_millis(250)), if !batch.is_empty() => {
                     persist=self.flush_batch(download,&version,&mut batch).await;

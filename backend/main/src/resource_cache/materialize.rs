@@ -558,7 +558,7 @@ impl Storage {
     }
     pub(super) fn remove_managed(&mut self, name: &str) -> Result<()> {
         ensure!(
-            managed_name(name) || segments::managed_name(name),
+            managed_name(name) || segments::managed_name(name) || super::objects::managed_name(name),
             "unmanaged cache path"
         );
         let result = match fs::remove_file(self.root.join(name)) {

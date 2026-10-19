@@ -530,6 +530,7 @@ async fn protobuf_dispatch_keeps_song_order_and_private_state_on_backend() {
         backend_ev,
         oper,
         resource_cache: cache.clone(),
+        playback: Arc::new(Default::default()),
         radio: Arc::new(Default::default()),
     });
     let request = msg::QcmMessage {

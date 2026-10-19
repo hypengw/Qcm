@@ -14,6 +14,7 @@ MD.SliderM2 {
         restoreMode: Binding.RestoreNone
     }
 
+    enabled: QA.Global.player.seekable
     live: false
     padding: 0
     to: 1

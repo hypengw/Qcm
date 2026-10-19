@@ -11,6 +11,8 @@ use crate::{
     subtitle::Subtitle,
     Result,
 };
+pub mod playback;
+pub use playback::{PlaybackKind, PlaybackRequest, PreparedPlayback};
 pub mod home;
 pub use home::{CardAction, CardCover, CardPresentation, CardStyle, ForYouEntry};
 pub mod queue;
@@ -195,6 +197,15 @@ pub trait Provider: ProviderCommon + ProviderSession + Send + Sync {
     ) -> Result<crate::resource::PreparedResource, ProviderError> {
         Err(ProviderError::NotImplemented)
     }
+
+    async fn open_playback(&self, _request: PlaybackRequest) -> Result<PreparedPlayback, ProviderError> {
+        Err(ProviderError::NotImplemented)
+    }
+    async fn prepare_playback_resource(&self, _state: &str, _uri: &str) -> Result<crate::resource::PreparedResource, ProviderError> {
+        Err(ProviderError::NotImplemented)
+    }
+    async fn keep_playback(&self, _state: &str) -> Result<(), ProviderError> { Ok(()) }
+    async fn close_playback(&self, _state: &str) -> Result<(), ProviderError> { Ok(()) }
 
     async fn check(&self, ctx: &Context) -> Result<(), ProviderError>;
     async fn auth(&self, ctx: &Context, info: &AuthInfo) -> Result<AuthResult, ProviderError>;

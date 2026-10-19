@@ -26,6 +26,33 @@ fn provider() -> LuaProvider {
     )
     .unwrap()
 }
+
+#[tokio::test]
+#[ignore = "requires the authorized Jellyfin test server and credentials in environment"]
+async fn live_hls_negotiation_and_scoped_cleanup() {
+    use qcm_core::provider::{PlaybackKind,PlaybackRequest};
+    let p=Arc::new(provider());let ctx=context().await;
+    let info=AuthInfo {server_url:std::env::var("JELLYFIN_URL").unwrap(),method:Some(AuthMethod::Username {username:std::env::var("JELLYFIN_USER").unwrap(),pw:std::env::var("JELLYFIN_PASSWORD").unwrap()})};
+    assert!(matches!(p.auth(&ctx,&info).await.unwrap(),AuthResult::Ok));
+    let item_id=std::env::var("JELLYFIN_ITEM").unwrap();
+    let source=p.open_playback(PlaybackRequest {item_id,max_bitrate:Some(128000)}).await.unwrap();
+    let active=p.clone();let playback=source.clone();
+    let result=tokio::spawn(async move {
+        let p=active;let source=playback;
+        assert_eq!(source.kind,PlaybackKind::HlsVod);
+        let prepared=p.prepare_playback_resource(&source.state,&source.uri).await.unwrap();
+        assert_eq!(prepared.cache_mode(),qcm_core::resource::CacheMode::Document);
+        let response=prepared.fetch(Default::default()).await.unwrap();assert_eq!(response.status(),200);
+        let text=response.text().await.unwrap();assert!(text.starts_with("#EXTM3U"));
+        assert!(p.prepare_playback_resource(&source.state,"http://example.test/foreign.ts").await.is_err());
+        p.keep_playback(&source.state).await.unwrap();
+    }).await;
+    p.close_playback(&source.state).await.unwrap();
+    let saved:serde_json::Value=serde_json::from_str(&p.save()).unwrap();
+    let logout=reqwest::Client::new().post(format!("{}/Sessions/Logout",std::env::var("JELLYFIN_URL").unwrap())).header("x-emby-token",saved["token"].as_str().unwrap()).send().await.unwrap();
+    assert_eq!(logout.status(),204);
+    result.unwrap();
+}
 async fn context() -> Context {
     let mut options = ConnectOptions::new("sqlite::memory:");
     options.max_connections(1);

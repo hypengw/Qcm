@@ -84,7 +84,7 @@ Player::~Player() {
     if (worker.is_some()) (void)rn::move(worker.take()).unwrap().join();
 }
 
-void Player::submit(CommandKind kind, std::string source, double value) {
+void Player::submit(CommandKind kind, std::string source, double value, rc<wa::MediaIo> io) {
     auto lock = ingress.lock().unwrap();
     if (closed.load()) return;
     if (kind == CommandKind::Source || kind == CommandKind::Stop)
@@ -98,6 +98,7 @@ void Player::submit(CommandKind kind, std::string source, double value) {
     }
     (void)actions.get<1>().push(Command { kind,
                                           rn::move(source),
+                                          rn::move(io),
                                           value,
                                           requested_revision.load(),
                                           requested_source.load(),
@@ -161,7 +162,9 @@ void Player::stop_device() {
 
 void Player::stop_media() {
     stop_device();
-    decoder       = None();
+    decoder = None();
+    if (media_io) media_io->close();
+    send(notify::info::seekable(false));
     desired       = {};
     playing       = false;
     start_pending = seek_pending = false;
@@ -186,8 +189,8 @@ bool Player::open_device() {
     desired.volume                    = m_volume.load().powf(rn::f32(3));
     desired.identity.application_name = app_name.clone();
     desired.identity.application_id   = String::make("org.qcm.Qcm"_str);
-    auto channel = Box<PcmChannel>::make(rn::move(pcm_pair.get<1>()),
-                                          rn::move(clock_pair.get<0>()));
+    auto channel =
+        Box<PcmChannel>::make(rn::move(pcm_pair.get<1>()), rn::move(clock_pair.get<0>()));
     if (! (*device)->mount(Box<dyn<wa::PullChannelObject>>::from_raw(
                                dyn<wa::PullChannelObject>::from_ptr(rn::move(channel).into_raw())),
                            rn::u64(device_generation)) ||
@@ -220,7 +223,8 @@ void Player::open_source(const std::string& source) {
         fail();
         return;
     }
-    auto media = wa::OpenedMedia::open(url.unwrap(), { .context = this, .cancelled = &interrupt });
+    auto media = wa::OpenedMedia::open(
+        url.unwrap(), { .context = this, .cancelled = &interrupt, .timeout_ms = rn::u32(media_io ? 30000 : 5000), .media_io = media_io.get() });
     if (media.is_err()) {
         fail();
         return;
@@ -231,6 +235,7 @@ void Player::open_source(const std::string& source) {
         return;
     }
     const auto& info = (*decoder)->info();
+    send(notify::info::seekable(info.seekable));
     send(notify::info::duration(
         info.duration_seconds.is_some()
             ? static_cast<int64_t>((*info.duration_seconds).to_primitive() * 1000)
@@ -308,6 +313,8 @@ void Player::command(Command command) {
     busy(true);
     switch (command.kind) {
     case CommandKind::Source:
+        stop_media();
+        media_io       = rn::move(command.media_io);
         current_source = rn::move(command.source);
         open_source(current_source);
         break;
@@ -335,6 +342,8 @@ void Player::tick() {
         fail();
         return;
     }
+    if (media_io) media_io->keep_alive();
+    if (cancelled()) return;
     // Drain clock reports before decoding, including while paused.
     const auto played = (*device)->stream_position_frames().to_primitive();
     for (;;) {
@@ -409,6 +418,8 @@ void Player::tick() {
         send(notify::info::ended());
         stop_device();
         decoder = None();
+        if (media_io) media_io->close();
+        send(notify::info::seekable(false));
     }
 }
 
@@ -456,7 +467,9 @@ auto Player::process_actions() -> coro<void> {
     (void)co_await done.get<0>().next();
     if (worker.is_some()) (void)rn::move(worker.take()).unwrap().join();
 }
-void Player::set_source(std::string_view value) { submit(CommandKind::Source, std::string(value)); }
+void Player::set_source(std::string_view value, rc<wa::MediaIo> io) {
+    submit(CommandKind::Source, std::string(value), 0, rn::move(io));
+}
 void Player::play() { submit(CommandKind::Play); }
 void Player::pause() { submit(CommandKind::Pause); }
 void Player::stop() { submit(CommandKind::Stop); }

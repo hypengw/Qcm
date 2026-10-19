@@ -648,7 +648,7 @@ void App::connect_actions() {
         auto curId = playqueue()->currentId();
         if (! curId || ! curId->valid()) return;
         auto b = this->backend();
-        Action::instance()->playUrl(b->audio_url(*curId), true);
+        Action::instance()->playUrl(b->playback_url(*curId), true);
     });
 
     connect(Action::instance(), &Action::scheduleRenderJob, qApp, [](QRunnable* job, qint32 stage) {

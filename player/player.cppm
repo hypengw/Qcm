@@ -39,7 +39,7 @@ public:
     void stop();
     void seek(int32_t);
 
-    void set_source(std::string_view);
+    void set_source(std::string_view, rc<wa::MediaIo> = {});
 
     auto volume() const -> float;
     void set_volume(float);
@@ -63,31 +63,32 @@ private:
         Volume
     };
     struct Command {
-        CommandKind kind;
-        std::string source;
-        double      value {};
-        uint64_t    revision {}, source_revision {}, id {};
+        CommandKind     kind;
+        std::string     source;
+        rc<wa::MediaIo> media_io;
+        double          value {};
+        uint64_t        revision {}, source_revision {}, id {};
     };
     using Receiver = CompletionQueue<Command>;
     using Done     = CompletionQueue<bool>;
-    void        submit(CommandKind kind, std::string source = {}, double value = 0);
-    bool        cancelled() const;
-    static bool interrupt(void* self) noexcept;
-    void        send(notify::info info);
-    void        busy(bool value);
-    void        state(PlayState value);
-    void        position(int64_t value);
-    void        stop_device();
-    void        stop_media();
-    bool        open_device();
-    void        fail();
-    void        open_source(const std::string& source);
-    void        set_playing(bool value);
-    void        seek_media(double milliseconds);
-    void        command(Command command);
-    void        tick();
-    void        run();
-    Notifier    notify;
+    void submit(CommandKind kind, std::string source = {}, double value = 0, rc<wa::MediaIo> = {});
+    bool cancelled() const;
+    static bool                                     interrupt(void* self) noexcept;
+    void                                            send(notify::info info);
+    void                                            busy(bool value);
+    void                                            state(PlayState value);
+    void                                            position(int64_t value);
+    void                                            stop_device();
+    void                                            stop_media();
+    bool                                            open_device();
+    void                                            fail();
+    void                                            open_source(const std::string& source);
+    void                                            set_playing(bool value);
+    void                                            seek_media(double milliseconds);
+    void                                            command(Command command);
+    void                                            tick();
+    void                                            run();
+    Notifier                                        notify;
     tuple<Receiver, CompletionQueueHandle<Command>> actions;
     tuple<Done, CompletionQueueHandle<bool>>        done;
     Mutex<empty>                                    ingress;
@@ -105,6 +106,7 @@ private:
     Consumer<ClockSpan> clock;
     String              app_name;
     std::string         current_source;
+    rc<wa::MediaIo>     media_io;
     Option<Box<wa::StreamDecoder>> decoder;
     Option<Box<wa::AudioDevice>>   device;
     wa::AudioDeviceDesiredState    desired;

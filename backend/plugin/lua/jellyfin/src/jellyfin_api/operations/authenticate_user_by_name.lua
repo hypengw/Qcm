@@ -2,7 +2,7 @@ local R = require("jellyfin_api.runtime")
 local V = require("jellyfin_api.models")
 
 ---@class (exact) jellyfin_api.authenticate_user_by_nameParams
----@field body jellyfin_api.models.Schema244
+---@field body jellyfin_api.models.Schema263
 
 ---@class jellyfin_api.authenticate_user_by_nameOperation
 ---@field private options jellyfin_api.Options
@@ -24,13 +24,13 @@ function authenticate_user_by_name:build_request(request_context)
     local J = options.json
     local path, query, headers = "/Users/AuthenticateByName", {}, {}
     R.parameters(params, { body = true, })
-    R.authorize(options, {}, "AuthenticateUserByName", query, headers)
+    R.authorize(options, {}, "AuthenticateUserByName", query, headers, nil)
     R.extend_headers(headers, request_context and request_context.headers or {})
     headers[#headers + 1] = { 'Accept', options.json_media_type or 'application/json' }
     local builder = options.transport:request("POST", options.url.append_api_path(options.base_url, path))
         :json_codec('strict'):query_pairs(query):header_pairs(headers)
     if params.body ~= nil then
-        R.validate(V.check_Schema244, J, params.body)
+        R.validate(V.check_Schema263, J, params.body)
         builder = builder:json(params.body)
     else
         R.parameter(false, 'missing request body')

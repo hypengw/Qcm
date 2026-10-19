@@ -44,6 +44,7 @@ public:
     auto resource_base_url() const -> QUrl;
     auto cache_directory() const -> QString;
     auto audio_url(model::ItemId id) -> QUrl;
+    auto playback_url(model::ItemId id) -> QUrl;
 
     template<typename Req>
         requires msg::ReqMsgCP<Req>
