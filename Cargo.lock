@@ -2068,6 +2068,7 @@ dependencies = [
 [[package]]
 name = "mlua-extra"
 version = "0.1.0"
+source = "git+https://github.com/hypengw/mlua-extra?rev=e0238375dc8576c2c9f4c679e3fd3cbfd4175a53#e0238375dc8576c2c9f4c679e3fd3cbfd4175a53"
 dependencies = [
  "base64 0.22.1",
  "chrono",
