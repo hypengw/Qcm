@@ -14,6 +14,13 @@ MD.Page {
 
     actions: [
         MD.Action {
+            text: root.radioQueue?.restartLabel || qsTr("Restart radio")
+            icon.name: MD.Token.icon.refresh
+            visible: root.radioQueue?.canRestart ?? false
+            enabled: visible && !root.radioQueue?.configuring
+            onTriggered: root.radioQueue.restart()
+        },
+        MD.Action {
             icon.name: MD.Token.icon.delete
             onTriggered: {
                 const q = QA.App.playqueue;
@@ -38,61 +45,22 @@ MD.Page {
         bottomMargin: 8
         cacheBuffer: 32
 
-        header: Column {
+        header: Flow {
             width: m_view.width
-
-            QA.SettingRow {
-                width: parent.width
-                visible: root.radioQueue !== null && (root.radioQueue.canRestart || text.length > 0)
-                text: root.radioQueue?.description ?? ""
-                enabled: !root.radioQueue?.configuring
-                trailing: MD.Button {
-                    visible: root.radioQueue?.canRestart ?? false
-                    text: root.radioQueue?.restartLabel || qsTr("Restart radio")
-                    onClicked: root.radioQueue.restart()
-                }
-            }
+            padding: m_configurations.count > 0 ? 8 : 0
+            spacing: 8
 
             Repeater {
+                id: m_configurations
                 model: root.radioQueue?.configuration ?? []
 
-                QA.SettingRow {
-                    id: m_config
+                QA.ComboChip {
                     required property var modelData
-                    width: parent.width
-                    text: modelData.name
-                    supportText: {
-                        const options = modelData.options;
-                        for (let i = 0; i < options.length; ++i) {
-                            if (options[i].value === modelData.value)
-                                return options[i].description;
-                        }
-                        return modelData.description;
-                    }
+                    width: Math.min(implicitWidth, parent.width - parent.leftPadding - parent.rightPadding)
                     enabled: !root.radioQueue?.configuring
-
-                    trailing: MD.ComboBox {
-                        id: m_choice
-                        signal clicked
-                        model: m_config.modelData.options
-                        textRole: "name"
-                        valueRole: "value"
-                        Binding {
-                            target: m_choice
-                            property: "currentIndex"
-                            when: !root.radioQueue?.configuring
-                            restoreMode: Binding.RestoreNone
-                            value: {
-                                const options = m_config.modelData.options;
-                                for (let i = 0; i < options.length; ++i) {
-                                    if (options[i].value === m_config.modelData.value) return i;
-                                }
-                                return -1;
-                            }
-                        }
-                        onClicked: popup.open()
-                        onActivated: root.radioQueue.configure(m_config.modelData.key, currentValue)
-                    }
+                    options: modelData.options
+                    value: modelData.value
+                    onValueChangeRequested: value => root.radioQueue.configure(modelData.key, value)
                 }
             }
         }

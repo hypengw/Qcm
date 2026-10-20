@@ -91,6 +91,7 @@ qt.qml_module({
     "qml/component/filter/YearFilter.qml",
     "qml/component/misc/CardOverlay.qml",
     "qml/component/misc/CardPlayOverlay.qml",
+    "qml/component/misc/ComboChip.qml",
     "qml/component/misc/ImagePlayCard.qml",
     "qml/component/misc/RecommendationCard.qml",
     "qml/component/misc/ForYouCard.qml",
