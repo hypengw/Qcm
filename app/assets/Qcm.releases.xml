@@ -1,4 +1,16 @@
 <releases>
+  <release version="1.3.6" date="2026-10-20">
+    <description>
+      <ul>
+        <li>add Subsonic and migrate Jellyfin to Lua providers</li>
+        <li>add mixed For You recommendations and configurable radio modes</li>
+        <li>add segmented resource caching and Jellyfin HLS playback</li>
+        <li>add provider playback settings and per-provider proxies</li>
+        <li>update navigation, menus, queue controls, and playing backgrounds</li>
+        <li>fix playback queue switching, song duration, and session persistence</li>
+      </ul>
+    </description>
+  </release>
   <release version="1.3.5" date="2026-09-15">
     <description>
       <ul>

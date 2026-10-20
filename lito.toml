@@ -15,7 +15,7 @@ members = [
 default-members = ["app"]
 
 [workspace.package]
-version = "1.3.5"
+version = "1.3.6"
 authors = ["hypengw"]
 
 [workspace.dependencies]
