@@ -12,6 +12,7 @@ mod resource_cache;
 mod radio;
 mod playback;
 mod provider_settings;
+mod network;
 mod task;
 #[cfg(test)]
 mod subsonic_tests;
@@ -150,6 +151,7 @@ async fn main() -> Result<(), anyhow::Error> {
     });
 
     // init other gloabl entry here for log
+    network::restore(&db).await?;
     qcm_core::global::load_from_db(&db).await;
 
     let accept = {

@@ -179,6 +179,7 @@ export class CreateTmpProviderQuery
     QML_ELEMENT
 
     Q_PROPERTY(QString typeName READ typeName WRITE setTypeName NOTIFY typeNameChanged FINAL)
+    Q_PROPERTY(qcm::model::ItemId networkProviderId READ networkProviderId WRITE setNetworkProviderId NOTIFY networkProviderIdChanged FINAL)
 public:
     CreateTmpProviderQuery(QObject* parent = nullptr);
     ~CreateTmpProviderQuery();
@@ -187,10 +188,14 @@ public:
     auto typeName() const -> QString;
     void setTypeName(const QString&);
 
+    auto networkProviderId() const -> model::ItemId { return m_network_provider_id; }
+    void setNetworkProviderId(const model::ItemId&);
+    Q_SIGNAL void networkProviderIdChanged();
     Q_SIGNAL void typeNameChanged();
 
 private:
     QString m_type_name;
+    model::ItemId m_network_provider_id;
 };
 
 export class DeleteTmpProviderQuery : public Query, public QueryExtra<msg::Rsp, DeleteTmpProviderQuery> {

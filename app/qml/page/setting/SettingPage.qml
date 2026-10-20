@@ -57,7 +57,7 @@ QA.SettingBasePage {
                 text: qsTr('Network')
                 supportText: ''
                 onClicked: {
-                    QA.Action.toast(qsTr('Work in progress'));
+                    root.MD.MProp.page.pushItem('Qcm.App/NetworkSetting');
                 }
             }
             QA.SettingRow {

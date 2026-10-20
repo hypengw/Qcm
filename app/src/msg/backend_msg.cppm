@@ -272,6 +272,10 @@ QCM_MSG_TRAITS_RSP(GetQueueNextRsp, GetQueueNextReq, getQueueNextRsp)
 QCM_MSG_TRAITS_REQ(GetRadioQueuesReq, GetRadioQueuesRsp, GET_RADIO_QUEUES_REQ, getRadioQueuesReq)
 QCM_MSG_TRAITS_RSP(GetRadioQueuesRsp, GetRadioQueuesReq, getRadioQueuesRsp)
 
+QCM_MSG_TRAITS_REQ(GetNetworkSettingsReq, GetNetworkSettingsRsp, GET_NETWORK_SETTINGS_REQ, getNetworkSettingsReq)
+QCM_MSG_TRAITS_RSP(GetNetworkSettingsRsp, GetNetworkSettingsReq, getNetworkSettingsRsp)
+QCM_MSG_TRAITS_REQ(UpdateNetworkSettingsReq, Rsp, UPDATE_NETWORK_SETTINGS_REQ, updateNetworkSettingsReq)
+
 QCM_MSG_TRAITS_REQ(GetProviderSettingsReq, GetProviderSettingsRsp, GET_PROVIDER_SETTINGS_REQ, getProviderSettingsReq)
 QCM_MSG_TRAITS_RSP(GetProviderSettingsRsp, GetProviderSettingsReq, getProviderSettingsRsp)
 

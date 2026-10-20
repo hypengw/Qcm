@@ -40,6 +40,14 @@ pub async fn process_qcm(
     *in_id = Some(message.id);
 
     match mtype {
+        MessageType::GetNetworkSettingsReq => {
+            return Ok(crate::network::read(&ctx.provider_context.db).await?.qcm_into());
+        }
+        MessageType::UpdateNetworkSettingsReq => {
+            if let Some(Payload::UpdateNetworkSettingsReq(req)) = payload {
+                return Ok(crate::network::update(&ctx.provider_context.db, req).await?.qcm_into());
+            }
+        }
         MessageType::GetProviderMetasReq => {
             let response = GetProviderMetasRsp {
                 metas: qcm_core::global::with_provider_metas(|metas| {
@@ -65,6 +73,7 @@ pub async fn process_qcm(
                     .await?;
                 ctx.playback.invalidate(id).await;
                 global::remove_provider(id);
+                crate::network::restore(&ctx.provider_context.db).await?;
                 ctx.radio.invalidate(&ctx.provider_context, id).await;
                 ctx.resource_cache.invalidate(id).await?;
                 let _ = ctx
@@ -151,6 +160,11 @@ pub async fn process_qcm(
                 let meta = global::provider_meta(&req.type_name)
                     .ok_or(ProcessError::NoSuchProviderType(req.type_name.clone()))?;
                 let provider = (meta.creator)(None, "", &global::device_id())?;
+                if let Some(id) = req.network_provider_id {
+                    let source = global::provider(id).ok_or(ProcessError::NoSuchProvider(id.to_string()))?;
+                    if source.type_name() != req.type_name { return Err(ProcessError::NotAuth); }
+                    provider.set_network_scope(Some(id));
+                }
                 let key = uuid::Uuid::new_v4().to_string();
                 global::set_tmp_provider(&key, provider.clone());
 

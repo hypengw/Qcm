@@ -12,8 +12,9 @@ use std::sync::{
 use tracing::instrument::WithSubscriber;
 
 pub struct Network {
-    pub client: HttpClient,
-    pub stream: HttpClient,
+    client: HttpClient,
+    stream: HttpClient,
+    policy: qcm_core::network::ClientPolicy,
     pub jar: Arc<CookieStoreRwLock>,
     guard: Arc<SessionCookies>,
 }
@@ -41,10 +42,11 @@ impl Network {
             jar: jar.clone(),
             active: AtomicBool::new(true),
         });
-        let client = HttpClient::builder()
+        let policy = qcm_core::network::ClientPolicy::default();
+        let client = policy.builder()
             .cookie_provider(guard.clone())
             .build()?;
-        let stream = HttpClient::builder()
+        let stream = policy.builder()
             .cookie_provider(guard.clone())
             .no_gzip()
             .no_brotli()
@@ -54,6 +56,7 @@ impl Network {
         Ok(Self {
             client,
             stream,
+            policy,
             jar,
             guard,
         })
@@ -61,10 +64,23 @@ impl Network {
     pub fn invalidate(&self) {
         self.guard.active.store(false, Ordering::Release);
     }
-    pub fn lua_client(&self) -> mlua_extra::http::LuaHttpClient {
-        crate::http::new_client(self.client.clone(), self.guard.clone())
-            .with_stream_client(self.stream.clone())
+    pub fn clients(&mut self, scope: Option<i64>) -> qcm_core::Result<(HttpClient, HttpClient)> {
+        let policy = qcm_core::network::policy(scope);
+        if self.policy != policy {
+            let client = policy.builder().cookie_provider(self.guard.clone()).build()?;
+            let stream = policy.builder().cookie_provider(self.guard.clone())
+                .no_gzip().no_brotli().no_deflate().no_zstd().build()?;
+            self.client = client;
+            self.stream = stream;
+            self.policy = policy;
+        }
+        Ok((self.client.clone(), self.stream.clone()))
     }
+    pub fn lua_client(&mut self, scope: Option<i64>) -> qcm_core::Result<mlua_extra::http::LuaHttpClient> {
+        let (client, stream) = self.clients(scope)?;
+        Ok(crate::http::new_client(client, self.guard.clone()).with_stream_client(stream))
+    }
+
 }
 
 pub struct Session {

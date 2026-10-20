@@ -1,138 +1,95 @@
-import QtCore
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Qcm.App as QA
 import Qcm.Material as MD
 
-MD.Page {
+QA.SettingBasePage {
     id: root
-    font.capitalization: Font.Capitalize
-    title: qsTr('settings')
-    bottomPadding: radius
-    scrolling: !m_flick.atYBeginning
-
-    MD.VerticalFlickable {
-        id: m_flick
-        anchors.fill: parent
-        leftMargin: 0
-        rightMargin: 0
-
-        Settings {
-            id: settings_network
-
-            property int proxy_type: QA.App.PROXY_HTTP
-            property string proxy_content: ''
-            property alias ignore_certificate: item_ignore_cert.checked
-
-            category: 'network'
-
-            function triggerProxy() {
-                QA.App.setProxy(proxy_type, proxy_content);
-            }
-
-            Component.onDestruction: {
-                triggerProxy();
+    title: qsTr("Network")
+    actions: [
+        MD.Action {
+            text: qsTr("Add proxy")
+            icon.name: MD.Token.icon.add
+            onTriggered: root.MD.MProp.page.pushItem("Qcm.App/ProxyEditPage")
+        }
+    ]
+    QA.NetworkSettingsQuery {
+        id: settingsQuery
+        Component.onCompleted: reload()
+    }
+    Connections {
+        target: root.MD.PageStack
+        function onStatusChanged() {
+            if (root.MD.PageStack.status === MD.PageStack.Active && !settingsQuery.querying)
+                settingsQuery.reload();
+        }
+    }
+    ColumnLayout {
+        width: parent.width
+        height: implicitHeight
+        spacing: 12
+        MD.Label {
+            Layout.fillWidth: true
+            text: qsTr("Assign proxies to providers. Unassigned providers connect directly.")
+            font.capitalization: Font.MixedCase
+            wrapMode: Text.Wrap
+        }
+        MD.BusyIndicator {
+            Layout.alignment: Qt.AlignHCenter
+            visible: settingsQuery.querying
+            running: visible
+        }
+        MD.Label {
+            Layout.fillWidth: true
+            visible: settingsQuery.status === QA.Enum.Finished && settingsQuery.proxies.length === 0
+            text: qsTr("No proxies. Use Add to create one.")
+            font.capitalization: Font.MixedCase
+            wrapMode: Text.Wrap
+        }
+        QA.SettingSection {
+            id: proxySection
+            Layout.fillWidth: true
+            title: qsTr("Proxies")
+            visible: settingsQuery.proxies.length > 0
+            spacing: 2
+            Repeater {
+                model: settingsQuery.proxies
+                onItemAdded: proxySection.columnChanged()
+                onItemRemoved: proxySection.columnChanged()
+                delegate: QA.SettingRow {
+                    id: proxyRow
+                    objectName: "proxy/" + modelData.id
+                    required property var modelData
+                    text: modelData.name
+                    font.capitalization: Font.MixedCase
+                    below: MD.Label {
+                        text: proxyRow.modelData.display_url + "\n" + qsTr("%n provider(s)", "", proxyRow.modelData.provider_ids.length)
+                        typescale: MD.Token.typescale.body_medium
+                        font.capitalization: Font.MixedCase
+                        color: proxyRow.mdState.supportTextColor
+                        wrapMode: Text.Wrap
+                    }
+                    trailing: MD.Icon {
+                        name: MD.Token.icon.chevron_right
+                    }
+                    onClicked: root.MD.MProp.page.pushItem("Qcm.App/ProxyEditPage", {
+                        proxyId: modelData.id
+                    })
+                }
             }
         }
-
-        ColumnLayout {
-            height: implicitHeight
-            spacing: 12
-            width: parent.width
-
-            SettingSection {
-                id: sec_network
-                Layout.fillWidth: true
-                title: qsTr('network')
-
-                ColumnLayout {
-                    spacing: 8
-                    Layout.leftMargin: 16
-                    Layout.rightMargin: 16
-
-                    MD.Text {
-                        text: qsTr('proxy')
-                        typescale: MD.Token.typescale.title_small
-                        font.capitalization: Font.Capitalize
-                    }
-                    RowLayout {
-                        MD.ComboBox {
-                            id: comb_proxy
-                            signal clicked
-
-                            textRole: "text"
-                            valueRole: "value"
-                            popup.width: 160
-
-                            model: ListModel {}
-
-                            Component.onCompleted: {
-                                [
-                                    {
-                                        "text": 'http',
-                                        "value": QA.App.PROXY_HTTP
-                                    },
-                                    {
-                                        "text": 'https',
-                                        "value": QA.App.PROXY_HTTPS2
-                                    },
-                                    {
-                                        "text": 'socks4',
-                                        "value": QA.App.PROXY_SOCKS4
-                                    },
-                                    {
-                                        "text": 'socks5',
-                                        "value": QA.App.PROXY_SOCKS5
-                                    },
-                                    {
-                                        "text": 'socks4a',
-                                        "value": QA.App.PROXY_SOCKS4A
-                                    },
-                                    {
-                                        "text": 'socks5h',
-                                        "value": QA.App.PROXY_SOCKS5H
-                                    }
-                                ].map(el => model.append(el));
-                                currentIndex = indexOfValue(settings_network.proxy_type);
-                                currentValueChanged.connect(() => {
-                                    settings_network.proxy_type = comb_proxy.currentValue;
-                                });
-                            }
-
-                            onClicked: {
-                                popup.open();
-                            }
-                        }
-
-                        MD.Text {
-                            text: '://'
-                        }
-
-                        MD.TextField {
-                            id: item_tf_proxy
-                            Layout.fillWidth: true
-                            Component.onCompleted: {
-                                text = settings_network.proxy_content;
-                                settings_network.proxy_content = Qt.binding(() => {
-                                    return item_tf_proxy.text;
-                                });
-                            }
-
-                            onAccepted: focusChanged(focus)
-                            onFocusChanged: settings_network.triggerProxy()
-                        }
-                    }
-                }
-                SettingRow {
-                    Layout.fillWidth: true
-                    text: qsTr('ignore SSL certificate')
-                    actionItem: MD.Switch {
-                        id: item_ignore_cert
-                        checked: false
-                        onCheckedChanged: QA.App.setVerifyCertificate(!checked)
-                    }
-                }
-            }
+        MD.Label {
+            Layout.fillWidth: true
+            visible: settingsQuery.error.length > 0
+            text: settingsQuery.error
+            color: MD.Token.color.error
+            wrapMode: Text.Wrap
+        }
+        MD.Button {
+            visible: settingsQuery.status === QA.Enum.Error
+            text: qsTr("Retry")
+            onClicked: settingsQuery.reload()
         }
     }
 }

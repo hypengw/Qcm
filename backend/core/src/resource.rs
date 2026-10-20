@@ -52,6 +52,7 @@ pub struct PreparedResource {
     mode: CacheMode,
     lifetime: Option<Arc<ResourceLifetime>>,
     client: Client,
+    client_provider: Option<Arc<dyn Fn() -> Result<Client, ProviderError> + Send + Sync>>,
     request: Request,
     headers_timeout: Duration,
     valid: Option<Arc<dyn Fn() -> bool + Send + Sync>>,
@@ -82,6 +83,7 @@ impl PreparedResource {
             mode: CacheMode::ByteRange,
             lifetime: None,
             client,
+            client_provider: None,
             request,
             headers_timeout,
             valid: None,
@@ -90,6 +92,10 @@ impl PreparedResource {
         })
     }
 
+    pub fn with_client_provider(mut self, provider: impl Fn() -> Result<Client, ProviderError> + Send + Sync + 'static) -> Self {
+        self.client_provider = Some(Arc::new(provider));
+        self
+    }
     pub fn with_cache_mode(mut self, mode: CacheMode) -> Self {
         self.mode = mode;
         self
@@ -154,8 +160,9 @@ impl PreparedResource {
             .try_clone()
             .ok_or_else(|| crate::anyhow!("resource request cannot be cloned"))?;
         request.headers_mut().extend(headers);
+        let client = match &self.client_provider { Some(provider) => provider()?, None => self.client.clone() };
         let response = tokio::select! {
-            response=tokio::time::timeout(self.headers_timeout, self.client.execute(request))=>response,
+            response=tokio::time::timeout(self.headers_timeout, client.execute(request))=>response,
             _=self.cancelled()=>return Err(ProviderError::NotAuth),
         }
             .map_err(|_| crate::anyhow!("resource response headers timed out"))?

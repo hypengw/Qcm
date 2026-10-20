@@ -161,6 +161,7 @@ qt.qml_module({
     "qml/page/setting/AudioSetting.qml",
     "qml/page/setting/MiscSetting.qml",
     "qml/page/setting/NetworkSetting.qml",
+    "qml/page/edit/ProxyEditPage.qml",
     "qml/page/setting/ProviderManagePage.qml",
     "qml/page/setting/QueueSetting.qml",
     "qml/page/setting/SettingPage.qml",
@@ -270,6 +271,11 @@ qt.qml_module({
       source = "src/query/play_query.cppm",
       mode = "module-split",
       output = "Qcm/query/play_query",
+    },
+    {
+      source = "src/query/network_query.cppm",
+      mode = "module-split",
+      output = "Qcm/query/network_query",
     },
     {
       source = "src/query/provider_query.cppm",

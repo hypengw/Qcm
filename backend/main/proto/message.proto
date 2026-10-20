@@ -33,6 +33,9 @@ enum MessageType {
   DELETE_TMP_PROVIDER_REQ = 20;
   GET_PROVIDER_SETTINGS_REQ = 21;
   GET_PROVIDER_SETTINGS_RSP = 22;
+  GET_NETWORK_SETTINGS_REQ = 23;
+  GET_NETWORK_SETTINGS_RSP = 24;
+  UPDATE_NETWORK_SETTINGS_REQ = 25;
 
   GET_MIXS_REQ = 30;
   GET_MIXS_RSP = 31;
@@ -153,7 +156,10 @@ message TestRsp { string test_data = 2; }
 message GetProviderMetasReq {}
 message GetProviderMetasRsp { repeated qcm.msg.model.ProviderMeta metas = 1; }
 
-message CreateTmpProviderReq { string type_name = 1; }
+message CreateTmpProviderReq {
+  string type_name = 1;
+  optional int64 network_provider_id = 2;
+}
 message CreateTmpProviderRsp { string key = 1; }
 message DeleteTmpProviderReq { string key = 1; }
 
@@ -185,6 +191,16 @@ message UpdateProviderRsp {
   qcm.msg.model.AuthResult code = 1;
   string message = 2;
   map<string, string> field_errors = 3;
+}
+
+message GetNetworkSettingsReq {}
+message GetNetworkSettingsRsp {
+  string proxies_json = 1;
+  uint64 revision = 2;
+}
+message UpdateNetworkSettingsReq {
+  string proxies_json = 1;
+  uint64 revision = 2;
 }
 
 message GetProviderSettingsReq { int64 provider_id = 1; }
@@ -568,6 +584,9 @@ message QcmMessage {
     DeleteTmpProviderReq delete_tmp_provider_req = 120;
     GetProviderSettingsReq get_provider_settings_req = 121;
     GetProviderSettingsRsp get_provider_settings_rsp = 122;
+    GetNetworkSettingsReq get_network_settings_req = 123;
+    GetNetworkSettingsRsp get_network_settings_rsp = 124;
+    UpdateNetworkSettingsReq update_network_settings_req = 125;
 
     GetMixsReq get_mixs_req = 130;
     GetMixsRsp get_mixs_rsp = 131;

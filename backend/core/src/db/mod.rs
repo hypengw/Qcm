@@ -7,6 +7,7 @@ pub mod sync_batch;
 pub mod sync_run;
 pub mod values;
 pub mod provider_settings;
+pub mod network;
 
 pub use basic::QueryBuilder;
 pub use const_chunks::IteratorConstChunks;

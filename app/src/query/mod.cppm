@@ -7,6 +7,7 @@ export import :query.mix;
 export import :query.play;
 export import :query.home;
 export import :query.provider;
+export import :query.network;
 export import :query.sync;
 export import :query.storage_info;
 export import :query.search;

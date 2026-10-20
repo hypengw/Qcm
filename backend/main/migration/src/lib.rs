@@ -11,6 +11,7 @@ pub mod m20261007_000001_image_type_integer;
 
 pub mod m20261017_000001_provider_session;
 pub mod m20261019_000001_provider_settings;
+pub mod m20261019_000002_network_proxies;
 
 pub struct Migrator;
 pub use cache::CacheDBMigrator;
@@ -51,6 +52,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20261007_000001_image_type_integer::Migration),
             Box::new(m20261017_000001_provider_session::Migration),
             Box::new(m20261019_000001_provider_settings::Migration),
+            Box::new(m20261019_000002_network_proxies::Migration),
         ]
     }
 

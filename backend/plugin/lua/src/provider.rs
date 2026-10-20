@@ -38,6 +38,22 @@ struct LuaProviderInner {
     session: crate::session::Session,
     tasks: crate::session::Tasks,
     generation: Arc<AtomicU64>,
+    network_scope: std::sync::atomic::AtomicI64,
+}
+
+impl LuaProviderInner {
+    fn network_scope(&self) -> Option<i64> {
+        self.common.id().or_else(|| {
+            let id = self.network_scope.load(Ordering::Acquire);
+            (id > 0).then_some(id)
+        })
+    }
+    fn http_client(&self) -> Result<mlua_extra::http::LuaHttpClient> {
+        self.network.write().unwrap().lua_client(self.network_scope())
+    }
+    fn stream_client(&self) -> Result<HttpClient> {
+        Ok(self.network.write().unwrap().clients(self.network_scope())?.1)
+    }
 }
 
 struct LuaInner(Arc<LuaProviderInner>);
@@ -204,6 +220,7 @@ impl LuaProvider {
             session: crate::session::Session::new(),
             tasks: Default::default(),
             generation: Arc::new(AtomicU64::new(1)),
+            network_scope: std::sync::atomic::AtomicI64::new(0),
         });
         {
             // set package.path
@@ -237,7 +254,13 @@ impl LuaProvider {
             qcm_table.set(
                 "get_http_client",
                 lua.create_function(move |_, ()| {
-                    Ok(inner.network.read().unwrap().lua_client())
+                    let inner = inner.clone();
+                    let generation = inner.generation.load(Ordering::Acquire);
+                    Ok(crate::http::ProviderHttpClient::new(move || {
+                        inner.session.check()?;
+                        if inner.generation.load(Ordering::Acquire) != generation { return Err(ProviderError::NotAuth.into()); }
+                        inner.http_client()
+                    }))
                 })?,
             )?;
             qcm_table.set(
@@ -376,8 +399,8 @@ impl LuaProvider {
         "lua"
     }
 
-    pub fn client(&self) -> HttpClient {
-        return self.inner.network.read().unwrap().client.clone();
+    pub fn client(&self) -> Result<HttpClient> {
+        Ok(self.inner.network.write().unwrap().clients(self.inner.network_scope())?.0)
     }
 }
 
@@ -395,6 +418,9 @@ impl HasCommonData for LuaProvider {
 
 #[async_trait::async_trait]
 impl Provider for LuaProvider {
+    fn set_network_scope(&self, provider_id: Option<i64>) {
+        self.inner.network_scope.store(provider_id.unwrap_or(0), Ordering::Release);
+    }
     fn settings_definition(&self) -> Result<Vec<qcm_core::provider::settings::SettingField>, ProviderError> {
         Ok(self.settings_fields.clone())
     }
@@ -739,7 +765,9 @@ impl Provider for LuaProvider {
         let epoch = self.generation.load(Ordering::Acquire);
         let function = self.funcs.prepare_playback_resource.as_ref().ok_or(ProviderError::NotImplemented)?;
         let value = function.call_async::<LuaAnyUserData>((state,uri)).await.map_err(ProviderError::from_err)?;
-        let prepared = crate::resource::take_prepared(&value).map_err(ProviderError::from_err)?;
+        let inner = self.inner.clone();
+        let prepared = crate::resource::take_prepared(&value).map_err(ProviderError::from_err)?
+            .with_client_provider(move || inner.stream_client().map_err(Into::into));
         let generation = self.generation.clone();
         if generation.load(Ordering::Acquire) != epoch { return Err(ProviderError::NotAuth); }
         Ok(prepared.guarded_by(move || generation.load(Ordering::Acquire) == epoch))
@@ -767,7 +795,9 @@ impl Provider for LuaProvider {
             }
         }.map_err(ProviderError::from_err)?;
         let ud = value.as_userdata().ok_or(ProviderError::NotFound)?;
-        let prepared = crate::resource::take_prepared(ud).map_err(ProviderError::from_err)?;
+        let inner = self.inner.clone();
+        let prepared = crate::resource::take_prepared(ud).map_err(ProviderError::from_err)?
+            .with_client_provider(move || inner.stream_client().map_err(Into::into));
         let revision=self.generation.clone();
         if revision.load(Ordering::Acquire)!=generation {return Err(ProviderError::NotAuth);}
         Ok(prepared.guarded_by(move ||revision.load(Ordering::Acquire)==generation))

@@ -91,6 +91,8 @@ sources = [
   "src/query/play_query.cppm",
   "src/query/provider_query.cpp",
   "src/query/provider_query.cppm",
+  "src/query/network_query.cpp",
+  "src/query/network_query.cppm",
   "src/query/qr_query.cpp",
   "src/query/qr_query.cppm",
   "src/query/query.cpp",

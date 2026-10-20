@@ -264,6 +264,7 @@ MD.Page {
                     QA.CreateTmpProviderQuery {
                         id: m_tmp_provider_query
                         typeName: root.model.typeName
+                        networkProviderId: root.itemId
                         Component.onCompleted: reload()
                     }
                     QA.AuthProviderQuery {

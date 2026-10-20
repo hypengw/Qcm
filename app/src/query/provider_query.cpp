@@ -270,13 +270,17 @@ void CreateTmpProviderQuery::setTypeName(const QString& v) {
         typeNameChanged();
     }
 }
+void CreateTmpProviderQuery::setNetworkProviderId(const model::ItemId& id) {
+    if (ycore::cmp_set(m_network_provider_id, id)) networkProviderIdChanged();
+}
 void CreateTmpProviderQuery::reload() {
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto self    = QWatcher { this };
-    spawn([self, backend, t = m_type_name]() mutable -> task<void> {
+    spawn([self, backend, t = m_type_name, id = m_network_provider_id.id()]() mutable -> task<void> {
         auto req = msg::CreateTmpProviderReq {};
         req.setTypeName(t);
+        if (id > 0) req.setNetworkProviderId(id);
         auto rsp = co_await backend->send(std::move(req));
         if (! co_await QAsyncResult::qexecutor()) co_return;
         if (! self) co_return;

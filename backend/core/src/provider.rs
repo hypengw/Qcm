@@ -176,6 +176,7 @@ pub trait ProviderCommon {
 
 #[async_trait::async_trait]
 pub trait Provider: ProviderCommon + ProviderSession + Send + Sync {
+    fn set_network_scope(&self, _provider_id: Option<i64>) {}
     fn invalidate(&self) {}
     /// Changes when the account or authentication context is replaced.
     fn lifecycle_epoch(&self) -> u64 {

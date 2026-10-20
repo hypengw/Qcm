@@ -594,6 +594,7 @@ impl_from_for_qcm_msg!(AuthProviderRsp);
 impl_from_for_qcm_msg!(UpdateProviderRsp);
 impl_from_for_qcm_msg!(GetProviderMetasRsp);
 impl_from_for_qcm_msg!(GetProviderSettingsRsp);
+impl_from_for_qcm_msg!(GetNetworkSettingsRsp);
 impl_from_for_qcm_msg!(QrAuthUrlRsp);
 impl_from_for_qcm_msg!(TestRsp);
 impl_from_for_qcm_msg!(Rsp);
