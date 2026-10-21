@@ -29,8 +29,8 @@ rstd-cppstd = { version = "0.1.7" }
 rstd-std = { version = "0.1.7" }
 lito-qt = { version = "0.1.1" }
 ncrequest = { git = "https://github.com/hypengw/ncrequest.git" }
-qextra = { git = "https://github.com/hypengw/QExtra.git", rev = "b3fd790bb4a5c5cf7c0cc0384cc140e78e627609" }
-wavsen = { git = "https://github.com/hypengw/wavsen.git", rev = "756437443d84905a027f115c75ec6ae6b19692e7" }
+qextra = { git = "https://github.com/hypengw/QExtra.git" }
+wavsen = { git = "https://github.com/hypengw/wavsen.git" }
 
 [workspace.external-sources.qcm-proto]
 path = "backend/main/proto"

@@ -73,7 +73,7 @@ source = "git+https://github.com/KDAB/KDSingleApplication.git#dcf5eb68d70a4a1144
 
 [[packages.externals]]
 name = "qml-material"
-source = "git+https://github.com/hypengw/QmlMaterial.git#f1464c52d42732acb1363122b9b1a2360fd505b3"
+source = "git+https://github.com/hypengw/QmlMaterial.git#317634c16e893137bacceb86e9c8db03f70b4079"
 
 [[packages]]
 name = "qcm-core"
@@ -86,7 +86,7 @@ dependencies = [
 
 [[packages.externals]]
 name = "random"
-source = "git+https://github.com/ilqvya/random.git#74b637693a36a7d8cc47c29f37dfc3370004667d"
+source = "git+https://github.com/ilqvya/random.git#1f29d78faa0f22fc12dec22a85e9e421bf8cc122"
 
 [[packages]]
 name = "qcm-jellyfin-lua"
@@ -250,7 +250,7 @@ dependencies = [
 [[packages]]
 name = "wavsen"
 version = "0.1.0"
-source = "git+https://github.com/hypengw/wavsen.git#756437443d84905a027f115c75ec6ae6b19692e7"
+source = "git+https://github.com/hypengw/wavsen.git#0716fcc69dd67bb1d60384170ee9f0c3b92556ea"
 dependencies = [
   "rstd-core",
   "rstd-dlopn",
