@@ -58,6 +58,8 @@ QA.SettingBasePage {
 
                 textRole: "text"
                 valueRole: "value"
+                currentValue: settings_audio.streaming_quality
+                onSelectionChangeRequested: (index, value) => settings_audio.streaming_quality = value
 
                 model: ListModel {}
 
@@ -80,10 +82,6 @@ QA.SettingBasePage {
                             "value": QA.Enum.AQLossless
                         }
                     ].map(el => model.append(el));
-                    currentIndex = indexOfValue(settings_audio.streaming_quality);
-                    settings_audio.streaming_quality = Qt.binding(() => {
-                        return m_comb_playing_quality.currentValue;
-                    });
                 }
 
             }
