@@ -1,4 +1,13 @@
 <releases>
+  <release version="1.3.8" date="2026-10-21">
+    <description>
+      <ul>
+        <li>fix playback crashes with FFmpeg 7</li>
+        <li>fix streaming quality selection and ComboBox text sizing</li>
+        <li>add smooth popup size transitions</li>
+      </ul>
+    </description>
+  </release>
   <release version="1.3.7" date="2026-10-20">
     <description>
       <ul>
