@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Window
-import QtQuick.Templates as T
 
 import Qcm.Material as MD
 
@@ -11,10 +10,10 @@ MD.Popup {
     property var props: ({})
     required property string source
 
-    parent: T.Overlay.overlay
+    parent: MD.Overlay.overlay
     implicitWidth: 400
     width: Math.min(implicitWidth, parent.width)
-    height: Math.min(implicitHeight, parent.height * 0.8)
+    height: m_size.size.height
 
     mdState.textColor: MD.MProp.color.on_surface
     mdState.backgroundColor: MD.MProp.color.surface
@@ -23,10 +22,6 @@ MD.Popup {
     x: Math.round((parent.width - width) / 2)
     y: Math.round((parent.height - height) / 2)
 
-    Binding on height {
-        value: root.parent.height
-        when: root.fillHeight
-    }
     Binding on width {
         value: root.parent.width
         when: root.fillWidth
@@ -75,20 +70,6 @@ MD.Popup {
                         console.error('remove failed: ', obj);
                     }
                 });
-                attach.statusChanged.connect(item, function () {
-                    if (!attach || !m_stack)
-                        return;
-
-                    if (attach.status == MD.PageStack.Active) {
-                        m_stack.lastImplicitHeight = 0;
-                    } else if (attach.status == MD.PageStack.Deactivating) {
-                        m_stack.lastImplicitHeight = Qt.binding(function () {
-                            return item.implicitHeight;
-                        });
-                    }
-                });
-
-                m_stack.lastImplicitHeight = m_stack.implicitHeight;
             } else {
                 m_pool.removeObject(obj);
             }
@@ -96,18 +77,36 @@ MD.Popup {
     }
 
     onSourceChanged: {
-        m_pool.add(source, props);
+        addPage(source, props);
+    }
+
+    function addPage(source, props) {
+        m_pool.add(source, Object.assign({}, props, {
+            parent: m_page_host
+        }));
     }
 
     contentItem: MD.PageStack {
         id: m_stack
-        property real lastImplicitHeight: 0
-        implicitHeight: Math.max(lastImplicitHeight, currentItem?.implicitHeight ?? 0)
+        implicitHeight: implicitContentHeight
+        clip: true
+        sizeTransition: MD.SizeTransition {
+            id: m_size
+            targetSize: Qt.size(root.width, root.fillHeight ? root.parent.height : root.implicitHeight)
+            maximumSize: Qt.size(root.width, root.parent.height * (root.fillHeight ? 1 : 0.8))
+            enabled: root.opened && !root.fillHeight
+        }
+
+        // Provide the page context before component completion.
+        Item {
+            id: m_page_host
+            visible: false
+        }
 
         MD.MProp.page: m_page_context
         Connections {
             function onPushItem(comp, props) {
-                m_pool.add(comp, props);
+                root.addPage(comp, props);
             }
             function onPop() {
                 if (m_stack.depth > 1)
@@ -116,5 +115,5 @@ MD.Popup {
             target: m_page_context
         }
     }
-    closePolicy: T.Popup.CloseOnEscape | T.Popup.CloseOnPressOutside
+    closePolicy: MD.Popup.CloseOnEscape | MD.Popup.CloseOnPressOutside
 }

@@ -13,15 +13,8 @@ MD.PageStack {
         }
     }
 
-    implicitHeight: currentItem?.implicitHeight ?? 0
-    implicitWidth: currentItem?.implicitWidth ?? 0
-
-    Behavior on implicitHeight {
-        NumberAnimation {
-            easing.type: Easing.InOutQuad
-            duration: 350
-        }
-    }
+    implicitHeight: implicitContentHeight
+    implicitWidth: implicitContentWidth
 
     // Supply the page context before component completion and the enter transition.
     Item {
@@ -49,11 +42,15 @@ MD.PageStack {
     }
 
     function push_page(source, props = {}) {
-        m_push_pool.add(source, Object.assign({}, props, {parent: m_page_host}));
+        m_push_pool.add(source, Object.assign({}, props, {
+            parent: m_page_host
+        }));
     }
 
     function replace_page(source, props = {}) {
-        m_replace_pool.add(source, Object.assign({}, props, {parent: m_page_host}));
+        m_replace_pool.add(source, Object.assign({}, props, {
+            parent: m_page_host
+        }));
     }
 
     function pop_page(bottom) {

@@ -73,7 +73,7 @@ source = "git+https://github.com/KDAB/KDSingleApplication.git#dcf5eb68d70a4a1144
 
 [[packages.externals]]
 name = "qml-material"
-source = "git+https://github.com/hypengw/QmlMaterial.git#317634c16e893137bacceb86e9c8db03f70b4079"
+source = "git+https://github.com/hypengw/QmlMaterial.git#107111f7c7819b57a5edc540ba781c5947025e90"
 
 [[packages]]
 name = "qcm-core"
