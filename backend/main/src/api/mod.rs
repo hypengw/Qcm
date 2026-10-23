@@ -10,4 +10,7 @@ pub mod pagination;
 mod radio;
 
 #[cfg(test)]
+mod song_order_tests;
+
+#[cfg(test)]
 pub(crate) use process_qcm::process_qcm;

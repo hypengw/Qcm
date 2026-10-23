@@ -34,6 +34,8 @@ void PlayQuery::reload() {
                 msg::filter::AlbumIdFilter sub_filter;
                 sub_filter.setValue(m_item_id.id());
                 filter.setAlbumIdFilter(sub_filter);
+                req.setSort(msg::model::SongSortGadget::SongSort::SONG_SORT_TRACK_NUMBER);
+                req.setAsc(true);
             } else if (m_item_id.type() == enums::ItemType::ItemMix) {
                 msg::filter::MixIdFilter sub_filter;
                 sub_filter.setValue(m_item_id.id());

@@ -15,7 +15,7 @@ use sea_orm::{
 
 use crate::api::{
     helper_extra::{extra_insert_artists, extra_insert_dynamic, to_rsp_albums, to_rsp_songs},
-    helper_sort::{album_sort_col, song_sort_col},
+    helper_sort::{album_sort_col, order_songs, song_sort_col},
     pagination::PageParams,
 };
 use crate::convert::QcmInto;
@@ -208,11 +208,14 @@ pub async fn process_qcm(
                 let artists = album.find_related(sqlm::artist::Entity).all(db).await?;
 
                 let (songs, song_extras) = {
-                    let songs = sqlm::song::Entity::find()
-                        .filter(sqlm::song::Column::AlbumId.eq(album.id))
-                        .order_by_asc(sqlm::song::Column::TrackNumber)
-                        .all(db)
-                        .await?;
+                    let songs = order_songs(
+                        sqlm::song::Entity::find()
+                            .filter(sqlm::song::Column::AlbumId.eq(album.id)),
+                        msg::model::SongSort::TrackNumber,
+                        sea_orm::Order::Asc,
+                    )
+                    .all(db)
+                    .await?;
 
                     to_rsp_songs(db, songs, Some(&album)).await?
                 };
@@ -569,6 +572,10 @@ pub async fn process_qcm(
             if let Some(Payload::GetSongIdsReq(req)) = payload {
                 let db = &ctx.provider_context.db;
                 let mut ids = Vec::new();
+                let song_sort: msg::model::SongSort = req
+                    .sort
+                    .try_into()
+                    .map_err(|_| ProcessError::NotImplemented)?;
 
                 if !req.filters.is_empty() {
                     for f in &req.filters {
@@ -587,9 +594,13 @@ pub async fn process_qcm(
                         }
                     }
 
-                    let query = sqlm::song::Entity::find()
-                        .inner_join(sqlm::item::Entity)
-                        .qcm_filters(&req.filters, &req.filter_logics);
+                    let query = order_songs(
+                        sqlm::song::Entity::find()
+                            .inner_join(sqlm::item::Entity)
+                            .qcm_filters(&req.filters, &req.filter_logics),
+                        song_sort,
+                        req.asc.qcm_into(),
+                    );
                     ids = query
                         .select_only()
                         .column(sqlm::song::Column::Id)
@@ -598,11 +609,6 @@ pub async fn process_qcm(
                         .await?;
                 } else {
                     use sea_query::{Alias, CommonTableExpression, Condition, Query, WithClause};
-                    let song_sort: msg::model::SongSort = req
-                        .sort
-                        .try_into()
-                        .map_err(|_| ProcessError::NotImplemented)?;
-
                     let album_sort: msg::model::AlbumSort = req
                         .album_sort
                         .try_into()
