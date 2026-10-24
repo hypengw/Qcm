@@ -682,10 +682,12 @@ void App::onSwitchQueue(model::IdQueue* queue) {
 }
 
 void App::onRouteItem(const model::ItemId& id, const QVariantMap& in_props) {
+    const auto url = id.toPageUrl();
+    if (! id.valid() || url.isEmpty()) return;
+
     Action::instance()->route(enums::SpecialRoute::SRMain);
 
     model::RouteMsg msg;
-    auto            url = id.toPageUrl();
 
     auto props      = in_props;
     msg.dst         = url.toString();

@@ -98,6 +98,7 @@ class EntityView : public QObject {
     QML_ELEMENT
     Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY changed FINAL)
     Q_PROPERTY(QList<qcm::model::Artist> artists READ artists NOTIFY changed FINAL)
+    Q_PROPERTY(qcm::model::ItemId albumId READ albumId NOTIFY changed FINAL)
     Q_PROPERTY(qcm::model::Album album READ album NOTIFY changed FINAL)
     Q_PROPERTY(qcm::msg::entity::ItemState state READ state NOTIFY changed FINAL)
     Q_PROPERTY(bool loaded READ loaded NOTIFY changed FINAL)
@@ -124,6 +125,7 @@ public:
     model::ItemId          itemId() const;
     void                   setItemId(model::ItemId);
     QList<model::Artist>   artists() const;
+    model::ItemId         albumId() const;
     model::Album           album() const;
     msg::entity::ItemState state() const;
     bool                   loaded() const;

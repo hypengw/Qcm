@@ -10,6 +10,7 @@ MD.Pane {
     readonly property var currentSong: QA.App.playqueue.currentSong
     readonly property QA.item_id currentSongId: QA.App.playqueue.currentSongId
     readonly property QA.EntityView entity: QA.Store.item(root.currentSongId)
+    readonly property QA.item_id currentAlbumId: root.entity?.albumId ?? QA.Util.createItemid()
     readonly property list<var> artists: entity?.artists ?? []
 
     backgroundColor: MD.Token.color.surface_container
@@ -83,11 +84,12 @@ MD.Pane {
                         MouseArea {
                             id: ma_name
                             anchors.fill: parent
+                            enabled: root.currentAlbumId.valid
                             cursorShape: Qt.PointingHandCursor
                             hoverEnabled: true
 
                             onClicked: {
-                                QA.Action.routeItem(root.currentSong.albumId);
+                                QA.Action.routeItem(root.currentAlbumId);
                             }
                         }
                     }

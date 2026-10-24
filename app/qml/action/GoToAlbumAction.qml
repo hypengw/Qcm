@@ -8,8 +8,8 @@ MD.Action {
     icon.name: MD.Token.icon.album
     text: qsTr('go to album')
 
-    property var albumId
-    enabled: albumId.valid
+    property QA.item_id albumId
+    enabled: root.albumId.valid
     onTriggered: {
         QA.Action.routeItem(root.albumId);
     }

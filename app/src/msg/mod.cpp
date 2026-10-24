@@ -186,6 +186,12 @@ msg::entity::ItemState AppStore::stateFor(model::ItemId id) const {
 QList<model::Artist> EntityView::artists() const {
     return m_store ? m_store->artistsFor(m_id) : QList<model::Artist>();
 }
+model::ItemId EntityView::albumId() const {
+    if (m_store)
+        if (auto entry = m_store->find(m_id); entry && entry->album)
+            return { enums::ItemType::ItemAlbum, *entry->album };
+    return {};
+}
 model::Album EntityView::album() const {
     return m_store ? m_store->albumFor(m_id) : model::Album();
 }

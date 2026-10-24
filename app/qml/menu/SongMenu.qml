@@ -31,7 +31,7 @@ MD.Menu {
     }
 
     QA.GoToAlbumAction {
-        albumId: root.song.albumId
+        albumId: root.entity?.albumId ?? QA.Util.createItemid()
     }
 
     QA.GoToArtistAction {
