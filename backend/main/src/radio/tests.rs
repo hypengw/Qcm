@@ -196,6 +196,7 @@ async fn setup_provider(provider_id: i64) -> (Arc<RadioSessions>, Arc<Context>, 
         schema.create_table_from_entity(m::artist::Entity),
         schema.create_table_from_entity(m::album::Entity),
         schema.create_table_from_entity(m::dynamic::Entity),
+        schema.create_table_from_entity(m::mix::Entity),
         schema.create_table_from_entity(m::rel_song_artist::Entity),
         schema.create_table_from_entity(m::rel_album_artist::Entity),
     ] {
@@ -534,6 +535,7 @@ async fn protobuf_dispatch_keeps_song_order_and_private_state_on_backend() {
         radio: Arc::new(Default::default()),
     });
     let request = msg::QcmMessage {
+        entities: None,
         id: 17,
         r#type: msg::MessageType::OpenQueueReq.into(),
         payload: Some(msg::qcm_message::Payload::OpenQueueReq(msg::OpenQueueReq {
@@ -551,10 +553,10 @@ async fn protobuf_dispatch_keeps_song_order_and_private_state_on_backend() {
         panic!("wrong response");
     };
     assert_eq!(
-        page.songs.iter().map(|s| s.id).collect::<Vec<_>>(),
+        page.song_ids,
         vec![9, 7]
     );
-    assert_eq!(page.extras.len(), 2);
+    assert_eq!(decoded.entities.as_ref().unwrap().songs.len(), 2);
     assert_eq!(page.session.as_ref().unwrap().version, 1);
     assert_eq!(
         page.session
@@ -583,6 +585,7 @@ async fn protobuf_dispatch_keeps_song_order_and_private_state_on_backend() {
     cache.shutdown().await.unwrap();
     qcm_core::global::remove_provider(provider_id);
     let next_request = msg::QcmMessage {
+        entities: None,
         id: 18,
         r#type: msg::MessageType::GetQueueNextReq.into(),
         payload: Some(msg::qcm_message::Payload::GetQueueNextReq(

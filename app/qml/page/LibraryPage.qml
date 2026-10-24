@@ -261,10 +261,9 @@ MD.Page {
             image: QA.Util.image_url(model.itemId)
             text: model.name
             supportText: {
-                const ex = QA.Store.extra(model.itemId);
                 const tc = model.trackCount;
                 const trackInfo = tc > 0 ? qsTr(`${tc} tracks`) : qsTr('no track');
-                return [QA.Util.joinName(ex?.artists, '/'), trackInfo].filter(e => !!e).join(' - ');
+                return [QA.Util.joinName(model.artists, '/'), trackInfo].filter(e => !!e).join(' - ');
             }
         }
     }

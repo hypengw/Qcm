@@ -9,12 +9,11 @@ use tokio::sync::oneshot;
 
 use qcm_core::model::{self as sqlm};
 use sea_orm::{
-    prelude::Expr, sea_query, ColumnTrait, ConnectionTrait, EntityName, EntityTrait, ModelTrait,
-    PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, RelationTrait, Statement,
+    prelude::Expr, sea_query, ColumnTrait, ConnectionTrait, EntityTrait, QueryFilter, QuerySelect,
+    RelationTrait,
 };
 
 use crate::api::{
-    helper_extra::{extra_insert_artists, extra_insert_dynamic, to_rsp_albums, to_rsp_songs},
     helper_sort::{album_sort_col, order_songs, song_sort_col},
     pagination::PageParams,
 };
@@ -23,29 +22,54 @@ use crate::db::filter::SelectQcmMsgFilters;
 use crate::error::ProcessError;
 use crate::event::{BackendEvent, ServiceContext};
 use crate::msg::{
-    self, AuthProviderRsp, GetAlbumArtistsRsp, GetAlbumsRsp, GetArtistsRsp, GetProviderMetasRsp,
-    GetSongsRsp, GetStorageInfoRsp, MessageType, QcmMessage, QrAuthUrlRsp, Rsp, SyncRsp, TestRsp,
+    self, AuthProviderRsp, GetProviderMetasRsp, GetStorageInfoRsp, MessageType, QcmMessage,
+    QrAuthUrlRsp, Rsp, SyncRsp, TestRsp,
 };
-use sea_orm::DatabaseConnection;
 
 pub async fn process_qcm(
     ctx: &Arc<ServiceContext>,
     data: &[u8],
     in_id: &mut Option<i32>,
 ) -> Result<QcmMessage, ProcessError> {
-    use msg::qcm_message::Payload;
     let message = QcmMessage::decode(data)?;
+    *in_id = Some(message.id);
+
+    if let Some(msg::qcm_message::Payload::GetMixSongsReq(req)) = &message.payload {
+        if let Some((_, item)) =
+            qcm_core::db::sync::check_cache_mix(&ctx.provider_context.db, req.id).await?
+        {
+            let provider = global::provider(item.provider_id)
+                .ok_or(ProcessError::NoSuchProvider(item.provider_id.to_string()))?;
+            provider.sync_item(&ctx.provider_context, item).await?;
+        }
+    }
+    if super::entity_query::handles(message.r#type()) {
+        return super::entity::query(ctx, &message).await;
+    }
+    let mut response = process_request(ctx, &message).await?;
+    super::entity::populate(ctx, &message, &mut response).await?;
+    Ok(response)
+}
+
+async fn process_request(
+    ctx: &Arc<ServiceContext>,
+    message: &QcmMessage,
+) -> Result<QcmMessage, ProcessError> {
+    use msg::qcm_message::Payload;
     let mtype = message.r#type();
     let payload = &message.payload;
-    *in_id = Some(message.id);
 
     match mtype {
         MessageType::GetNetworkSettingsReq => {
-            return Ok(crate::network::read(&ctx.provider_context.db).await?.qcm_into());
+            return Ok(crate::network::read(&ctx.provider_context.db)
+                .await?
+                .qcm_into());
         }
         MessageType::UpdateNetworkSettingsReq => {
             if let Some(Payload::UpdateNetworkSettingsReq(req)) = payload {
-                return Ok(crate::network::update(&ctx.provider_context.db, req).await?.qcm_into());
+                return Ok(crate::network::update(&ctx.provider_context.db, req)
+                    .await?
+                    .qcm_into());
             }
         }
         MessageType::GetProviderMetasReq => {
@@ -71,6 +95,8 @@ pub async fn process_qcm(
                 sqlm::provider::Entity::delete_by_id(id)
                     .exec(&ctx.provider_context.db)
                     .await?;
+                write.invalidate_scope()?;
+                drop(write);
                 ctx.playback.invalidate(id).await;
                 global::remove_provider(id);
                 crate::network::restore(&ctx.provider_context.db).await?;
@@ -131,7 +157,8 @@ pub async fn process_qcm(
                 let update = msg::UpdateProviderReq {
                     provider_id: req.provider_id,
                     name: provider.name(),
-                    settings_json: serde_json::to_string(&settings.values).map_err(anyhow::Error::from)?,
+                    settings_json: serde_json::to_string(&settings.values)
+                        .map_err(anyhow::Error::from)?,
                     settings_revision: settings.revision,
                     tmp_provider: req.tmp_provider.clone(),
                     ..Default::default()
@@ -140,7 +167,11 @@ pub async fn process_qcm(
                 let rsp = if result.code == msg::model::AuthResult::Ok as i32 {
                     Rsp::default()
                 } else {
-                    Rsp { code: msg::ErrorCode::Internal as i32, message: result.message, ..Default::default() }
+                    Rsp {
+                        code: msg::ErrorCode::Internal as i32,
+                        message: result.message,
+                        ..Default::default()
+                    }
                 };
                 return Ok(rsp.qcm_into());
             }
@@ -161,8 +192,11 @@ pub async fn process_qcm(
                     .ok_or(ProcessError::NoSuchProviderType(req.type_name.clone()))?;
                 let provider = (meta.creator)(None, "", &global::device_id())?;
                 if let Some(id) = req.network_provider_id {
-                    let source = global::provider(id).ok_or(ProcessError::NoSuchProvider(id.to_string()))?;
-                    if source.type_name() != req.type_name { return Err(ProcessError::NotAuth); }
+                    let source =
+                        global::provider(id).ok_or(ProcessError::NoSuchProvider(id.to_string()))?;
+                    if source.type_name() != req.type_name {
+                        return Err(ProcessError::NotAuth);
+                    }
                     provider.set_network_scope(Some(id));
                 }
                 let key = uuid::Uuid::new_v4().to_string();
@@ -195,276 +229,12 @@ pub async fn process_qcm(
                 return Ok(rsp.qcm_into());
             }
         }
-        MessageType::GetAlbumReq => {
-            if let Some(Payload::GetAlbumReq(req)) = payload {
-                let db = &ctx.provider_context.db;
 
-                let (album, dy) = sqlm::album::Entity::find_by_id(req.id)
-                    .find_also_related(sqlm::dynamic::Entity)
-                    .one(db)
-                    .await?
-                    .ok_or(ProcessError::NoSuchAlbum(req.id.to_string()))?;
-
-                let artists = album.find_related(sqlm::artist::Entity).all(db).await?;
-
-                let (songs, song_extras) = {
-                    let songs = order_songs(
-                        sqlm::song::Entity::find()
-                            .filter(sqlm::song::Column::AlbumId.eq(album.id)),
-                        msg::model::SongSort::TrackNumber,
-                        sea_orm::Order::Asc,
-                    )
-                    .all(db)
-                    .await?;
-
-                    to_rsp_songs(db, songs, Some(&album)).await?
-                };
-
-                let mut extra = prost_types::Struct::default();
-                extra_insert_artists(&mut extra, &artists);
-                if let Some(dy) = dy {
-                    extra_insert_dynamic(&mut extra, &dy);
-                }
-
-                let rsp = msg::GetAlbumRsp {
-                    item: Some(album.qcm_into()),
-                    extra: Some(extra),
-                    songs,
-                    song_extras,
-                };
-                return Ok(rsp.qcm_into());
-            }
-        }
-        MessageType::GetAlbumsReq => {
-            if let Some(Payload::GetAlbumsReq(req)) = payload {
-                let page_params = PageParams::new(req.page, req.page_size);
-
-                let sort: msg::model::AlbumSort =
-                    req.sort.try_into().unwrap_or(msg::model::AlbumSort::Title);
-                let sort_asc = req.sort_asc.qcm_into();
-
-                let query = sqlm::album::Entity::find()
-                    .inner_join(sqlm::item::Entity)
-                    .left_join(sqlm::dynamic::Entity)
-                    .filter(sqlm::item::Column::LibraryId.is_in(req.library_id.clone()))
-                    .filter(sqlm::dynamic::Column::IsExternal.eq(false))
-                    .qcm_filters(&req.filters, &req.filter_logics)
-                    .order_by(album_sort_col(sort), sort_asc);
-
-                let paginator = query.paginate(&ctx.provider_context.db, page_params.page_size);
-
-                let total = paginator.num_items().await?;
-                let albums = paginator.fetch_page(page_params.page).await?;
-
-                let (items, extras) = to_rsp_albums(&ctx.provider_context.db, albums).await?;
-
-                let rsp = GetAlbumsRsp {
-                    items,
-                    extras,
-                    total: total as i32,
-                    has_more: page_params.has_more(total),
-                };
-                return Ok(rsp.qcm_into());
-            }
-        }
-        MessageType::GetAlbumArtistsReq => {
-            if let Some(Payload::GetAlbumArtistsReq(req)) = payload {
-                let page_params = PageParams::new(req.page, req.page_size);
-
-                let sort: msg::model::ArtistSort =
-                    req.sort.try_into().unwrap_or(msg::model::ArtistSort::Name);
-                let sort_col: sqlm::artist::Column = sort.qcm_into();
-                let paginator = sqlm::artist::Entity::find()
-                    .inner_join(sqlm::item::Entity)
-                    .filter(sqlm::item::Column::LibraryId.is_in(req.library_id.clone()))
-                    .inner_join(sqlm::rel_album_artist::Entity)
-                    .qcm_filters(&req.filters, &req.filter_logics)
-                    .order_by(sort_col, req.sort_asc.qcm_into())
-                    .distinct()
-                    .paginate(&ctx.provider_context.db, page_params.page_size);
-
-                let total = paginator.num_items().await?;
-                let artists = paginator
-                    .fetch_page(page_params.page)
-                    .await?
-                    .into_iter()
-                    .map(|a| a.qcm_into())
-                    .collect();
-
-                let rsp = GetAlbumArtistsRsp {
-                    items: artists,
-                    extras: Vec::new(),
-                    total: total as i32,
-                    has_more: page_params.has_more(total),
-                };
-                return Ok(rsp.qcm_into());
-            }
-        }
-        MessageType::GetArtistsReq => {
-            if let Some(Payload::GetArtistsReq(req)) = payload {
-                let page_params = PageParams::new(req.page, req.page_size);
-                let sort: msg::model::ArtistSort =
-                    req.sort.try_into().unwrap_or(msg::model::ArtistSort::Name);
-                let sort_col: sqlm::artist::Column = sort.qcm_into();
-                let paginator = sqlm::artist::Entity::find()
-                    .inner_join(sqlm::item::Entity)
-                    .filter(sqlm::item::Column::LibraryId.is_in(req.library_id.clone()))
-                    .inner_join(sqlm::rel_song_artist::Entity)
-                    .qcm_filters(&req.filters, &req.filter_logics)
-                    .order_by(sort_col, req.sort_asc.qcm_into())
-                    .distinct()
-                    .paginate(&ctx.provider_context.db, page_params.page_size);
-
-                let total = paginator.num_items().await?;
-                let artists = paginator
-                    .fetch_page(page_params.page)
-                    .await?
-                    .into_iter()
-                    .map(|a| a.qcm_into())
-                    .collect();
-
-                let rsp = GetArtistsRsp {
-                    items: artists,
-                    extras: Vec::new(),
-                    total: total as i32,
-                    has_more: page_params.has_more(total),
-                };
-                return Ok(rsp.qcm_into());
-            }
-        }
-        MessageType::GetArtistReq => {
-            if let Some(Payload::GetArtistReq(req)) = payload {
-                let db = &ctx.provider_context.db;
-
-                let artist = sqlm::artist::Entity::find_by_id(req.id)
-                    .one(db)
-                    .await?
-                    .ok_or(ProcessError::NoSuchArtist(req.id.to_string()))?;
-
-                let rsp = msg::GetArtistRsp {
-                    item: Some(artist.qcm_into()),
-                    extra: None,
-                };
-                return Ok(rsp.qcm_into());
-            }
-        }
-        MessageType::GetMixsReq => {
-            if let Some(Payload::GetMixsReq(req)) = payload {
-                let page_params = PageParams::new(req.page, req.page_size);
-
-                let paginator = sqlm::mix::Entity::find()
-                    .filter(sqlm::mix::Column::MixType.ne(MixType::Cache))
-                    .qcm_filters(&req.filters, &req.filter_logics)
-                    .paginate(&ctx.provider_context.db, page_params.page_size);
-
-                let total = paginator.num_items().await?;
-                let mixes = paginator
-                    .fetch_page(page_params.page)
-                    .await?
-                    .into_iter()
-                    .map(|m| m.qcm_into())
-                    .collect();
-
-                let rsp = msg::GetMixsRsp {
-                    items: mixes,
-                    extras: Vec::new(),
-                    total: total as i32,
-                    has_more: page_params.has_more(total),
-                };
-                return Ok(rsp.qcm_into());
-            }
-        }
-        MessageType::GetRemoteMixsReq => {
-            if let Some(Payload::GetRemoteMixsReq(req)) = payload {
-                let page_params = PageParams::new(req.page, req.page_size);
-
-                let paginator = sqlm::remote_mix::Entity::find()
-                    .qcm_filters(&req.filters, &req.filter_logics)
-                    .find_also_related(sqlm::mix::Entity)
-                    .paginate(&ctx.provider_context.db, page_params.page_size);
-
-                let total = paginator.num_items().await?;
-                let mixes = paginator
-                    .fetch_page(page_params.page)
-                    .await?
-                    .into_iter()
-                    .filter_map(|(_, m)| m.qcm_into())
-                    .collect();
-
-                let rsp = msg::GetRemoteMixsRsp {
-                    items: mixes,
-                    extras: Vec::new(),
-                    total: total as i32,
-                    has_more: page_params.has_more(total),
-                };
-                return Ok(rsp.qcm_into());
-            }
-        }
-        MessageType::GetMixReq => {
-            if let Some(Payload::GetMixReq(req)) = payload {
-                let db = &ctx.provider_context.db;
-
-                let mix = sqlm::mix::Entity::find_by_id(req.id)
-                    .one(db)
-                    .await?
-                    .ok_or(ProcessError::NoSuchMix(req.id.to_string()))?;
-
-                let rsp = msg::GetMixRsp {
-                    item: Some(mix.qcm_into()),
-                    extra: None,
-                };
-                return Ok(rsp.qcm_into());
-            }
-        }
-        MessageType::GetMixSongsReq => {
-            if let Some(Payload::GetMixSongsReq(req)) = payload {
-                let db = &ctx.provider_context.db;
-
-                if let Some((_, item)) = qcm_core::db::sync::check_cache_mix(db, req.id).await? {
-                    let provider = global::provider(item.provider_id)
-                        .ok_or(ProcessError::NoSuchProvider(item.provider_id.to_string()))?;
-                    provider.sync_item(&ctx.provider_context, item).await?;
-                }
-
-                let page_params = PageParams::new(req.page, req.page_size);
-
-                let sort: msg::model::SongSort =
-                    req.sort.try_into().unwrap_or(msg::model::SongSort::Title);
-                let sort_asc = req.sort_asc.qcm_into();
-
-                let query = sqlm::song::Entity::find()
-                    .inner_join(sqlm::item::Entity)
-                    .inner_join(sqlm::rel_mix_song::Entity)
-                    .filter(sqlm::rel_mix_song::Column::MixId.eq(req.id))
-                    .order_by(song_sort_col(sort), sort_asc)
-                    .order_by(sqlm::rel_mix_song::Column::OrderIdx, sea_orm::Order::Desc);
-
-                let paginator = query.paginate(db, page_params.page_size);
-
-                let total = paginator.num_items().await?;
-                let songs = paginator.fetch_page(page_params.page).await?;
-
-                let (items, extras) = to_rsp_songs(db, songs, None).await?;
-
-                let mix = sqlm::mix::Entity::find_by_id(req.id)
-                    .one(db)
-                    .await?
-                    .ok_or(ProcessError::NoSuchMix(req.id.to_string()))?;
-
-                let rsp = msg::GetMixSongsRsp {
-                    mix: Some(mix.qcm_into()),
-                    items,
-                    extras,
-                    total: total as i32,
-                    has_more: page_params.has_more(total),
-                };
-                return Ok(rsp.qcm_into());
-            }
-        }
         MessageType::CreateMixReq => {
             if let Some(Payload::CreateMixReq(req)) = payload {
                 let db = &ctx.provider_context.db;
 
+                let _write = ctx.provider_context.sync_coordinator.write(0, None).await?;
                 let new_mix = sqlm::mix::ActiveModel {
                     name: sea_orm::Set(req.name.clone()),
                     track_count: sea_orm::Set(0),
@@ -497,7 +267,10 @@ pub async fn process_qcm(
 
                 sqlm::mix::Entity::update_many()
                     .col_expr(sqlm::mix::Column::MixType, Expr::val(MixType::Cache).into())
-                    .col_expr(sqlm::mix::Column::UpdateAt, Expr::val(Timestamp::now()).into())
+                    .col_expr(
+                        sqlm::mix::Column::UpdateAt,
+                        Expr::val(Timestamp::now()).into(),
+                    )
                     .filter(sqlm::mix::Column::Id.is_in(req.ids.clone()))
                     .filter(sqlm::mix::Column::MixType.eq(MixType::Link))
                     .exec(db)
@@ -515,7 +288,10 @@ pub async fn process_qcm(
                     .await?;
                 sqlm::mix::Entity::update_many()
                     .col_expr(sqlm::mix::Column::MixType, Expr::val(MixType::Link).into())
-                    .col_expr(sqlm::mix::Column::UpdateAt, Expr::val(Timestamp::now()).into())
+                    .col_expr(
+                        sqlm::mix::Column::UpdateAt,
+                        Expr::val(Timestamp::now()).into(),
+                    )
                     .filter(sqlm::mix::Column::Id.is_in(req.ids.clone()))
                     .exec(db)
                     .await?;
@@ -676,60 +452,7 @@ pub async fn process_qcm(
                 return Ok(rsp.qcm_into());
             }
         }
-        MessageType::GetSongsByIdReq => {
-            if let Some(Payload::GetSongsByIdReq(req)) = payload {
-                let db = &ctx.provider_context.db;
-                let songs = sqlm::song::Entity::find()
-                    .filter(sqlm::song::Column::Id.is_in(req.ids.clone()))
-                    .all(db)
-                    .await?;
 
-                let (items, extras) = to_rsp_songs(db, songs, None).await?;
-
-                let len = items.len();
-
-                let rsp = msg::GetSongsByIdRsp {
-                    items,
-                    extras,
-                    total: len as i32,
-                };
-                return Ok(rsp.qcm_into());
-            }
-        }
-        MessageType::GetArtistAlbumReq => {
-            if let Some(Payload::GetArtistAlbumReq(req)) = payload {
-                let db = &ctx.provider_context.db;
-                let page_params = PageParams::new(req.page, req.page_size);
-                let sort: msg::model::AlbumSort = req
-                    .sort
-                    .try_into()
-                    .unwrap_or(msg::model::AlbumSort::PublishTime);
-                let sort_col = album_sort_col(sort);
-
-                let artist = sqlm::artist::Entity::find_by_id(req.id)
-                    .one(db)
-                    .await?
-                    .ok_or(ProcessError::NoSuchArtist(req.id.to_string()))?;
-
-                let albums_query = artist
-                    .find_related(sqlm::album::Entity)
-                    .order_by(sort_col, req.sort_asc.qcm_into());
-                let paginator = albums_query.paginate(db, page_params.page_size);
-
-                let total = paginator.num_items().await?;
-                let albums = paginator.fetch_page(page_params.page).await?;
-
-                let (items, extras) = to_rsp_albums(db, albums).await?;
-
-                let rsp = msg::GetArtistAlbumRsp {
-                    items,
-                    extras,
-                    total: total as i32,
-                    has_more: page_params.has_more(total),
-                };
-                return Ok(rsp.qcm_into());
-            }
-        }
         MessageType::GetSubtitleReq => {
             if let Some(Payload::GetSubtitleReq(req)) = payload {
                 let db = &ctx.provider_context.db;
@@ -755,133 +478,19 @@ pub async fn process_qcm(
                 return Ok(rsp.qcm_into());
             }
         }
-        MessageType::SearchReq => {
-            if let Some(Payload::SearchReq(req)) = payload {
-                let db = &ctx.provider_context.db;
-                let page_params = PageParams::new(req.page, req.page_size);
-                let search_query = req.query.clone();
-                let mut albums_rsp = None;
-                let mut songs_rsp = None;
-                let mut artists_rsp = None;
 
-                let library_ids = if search_query.is_empty() {
-                    String::new()
-                } else {
-                    req.library_id
-                        .iter()
-                        .map(|id| id.to_string())
-                        .collect::<Vec<_>>()
-                        .join(",")
-                };
-
-                let format_query = |table: &str, fts: &str| {
-                    let db_backend = ctx.provider_context.db.get_database_backend();
-                    let item_table_et = sqlm::item::Entity::default();
-                    let item_table = item_table_et.table_name();
-                    Statement::from_sql_and_values(
-                        db_backend,
-                        format!(
-                            r#"
-                                    SELECT {table}.* FROM {table}
-                                    INNER JOIN {item_table} ON {item_table}.id = {table}.id
-                                    INNER JOIN {fts} ON {table}.id = {fts}.rowid
-                                    WHERE {fts} MATCH ('name:' || qcm_query(?)) AND {item_table}.library_id IN ({library_ids})
-                                    "#
-                        ),
-                        [search_query.clone().into()],
-                    )
-                };
-
-                for search_type in &req.types {
-                    let search_type: msg::SearchType =
-                        msg::SearchType::try_from(search_type.clone())
-                            .map_err(|_| ProcessError::NoSuchSearchType(search_type.to_string()))?;
-                    match search_type {
-                        msg::SearchType::Album => {
-                            let entity = sqlm::album::Entity::default();
-                            let table = entity.table_name();
-                            let fts = format!("{table}_fts");
-                            let albums_query =
-                                sqlm::album::Entity::find().from_raw_sql(format_query(table, &fts));
-
-                            let paginator = albums_query.paginate(db, page_params.page_size);
-                            let total = paginator.num_items().await?;
-                            let albums = paginator.fetch_page(page_params.page).await?;
-
-                            let (items, extras) = to_rsp_albums(db, albums).await?;
-
-                            albums_rsp = Some(GetAlbumsRsp {
-                                items,
-                                extras,
-                                total: total as i32,
-                                has_more: page_params.has_more(total),
-                            });
-                        }
-                        msg::SearchType::Song => {
-                            let entity = sqlm::song::Entity::default();
-                            let table = entity.table_name();
-                            let fts = format!("{table}_fts");
-                            let query =
-                                sqlm::song::Entity::find().from_raw_sql(format_query(table, &fts));
-
-                            let paginator = query.paginate(db, page_params.page_size);
-                            let total = paginator.num_items().await?;
-                            let songs = paginator.fetch_page(page_params.page).await?;
-
-                            let (items, extras) = to_rsp_songs(db, songs, None).await?;
-
-                            songs_rsp = Some(GetSongsRsp {
-                                items,
-                                extras,
-                                total: total as i32,
-                                has_more: page_params.has_more(total),
-                            });
-                        }
-                        msg::SearchType::Artist => {
-                            let entity = sqlm::artist::Entity::default();
-                            let table = entity.table_name();
-                            let fts = format!("{table}_fts");
-                            let query = sqlm::artist::Entity::find()
-                                .from_raw_sql(format_query(table, &fts));
-                            let page_params = PageParams::new(req.page, req.page_size);
-
-                            let paginator = query.paginate(db, page_params.page_size);
-                            let total = paginator.num_items().await?;
-
-                            let artists = paginator
-                                .fetch_page(page_params.page)
-                                .await?
-                                .into_iter()
-                                .map(|a| a.qcm_into())
-                                .collect();
-
-                            artists_rsp = Some(GetArtistsRsp {
-                                items: artists,
-                                extras: Vec::new(),
-                                total: total as i32,
-                                has_more: page_params.has_more(total),
-                            });
-                        }
-                    }
-                }
-
-                let rsp = msg::SearchRsp {
-                    albums: albums_rsp,
-                    artists: artists_rsp,
-                    songs: songs_rsp,
-                };
-                return Ok(rsp.qcm_into());
-            }
-        }
         MessageType::SetFavoriteReq => {
             if let Some(Payload::SetFavoriteReq(req)) = payload {
                 let db = &ctx.provider_context.db;
                 use sqlm::type_enum::ItemType;
-                let item_type: ItemType = req
+                let mut item_type: ItemType = req
                     .item_type
                     .try_into()
                     .map_err(|_| ProcessError::NoSuchItemType(req.item_type.to_string()))?;
 
+                if item_type == ItemType::AlbumArtist {
+                    item_type = ItemType::Artist;
+                }
                 let (provider_id, native_id): (i64, String) = {
                     sqlm::item::Entity::find_by_id(req.id)
                         .select_only()
@@ -946,8 +555,7 @@ pub async fn process_qcm(
                     database_size: db_size
                         .total_disk_bytes
                         .saturating_add(cache_db_size.total_disk_bytes)
-                        .saturating_add(size.metadata)
-                        as i64,
+                        .saturating_add(size.metadata) as i64,
                 };
 
                 return Ok(rsp.qcm_into());
@@ -956,6 +564,11 @@ pub async fn process_qcm(
         MessageType::PlaylogReq => {
             if let Some(Payload::PlaylogReq(req)) = payload {
                 use sea_orm::Set;
+                let _writes = ctx
+                    .provider_context
+                    .sync_coordinator
+                    .write_items(&ctx.provider_context.db, &[req.song_id])
+                    .await?;
 
                 let action = msg::model::PlaylogAction::try_from(req.action)
                     .unwrap_or(msg::model::PlaylogAction::Unspecified);
@@ -1074,7 +687,9 @@ pub async fn process_qcm(
         }
         MessageType::CloseQueueReq => {
             if let Some(Payload::CloseQueueReq(req)) = payload {
-                ctx.radio.close(&ctx.provider_context, &req.session_id).await;
+                ctx.radio
+                    .close(&ctx.provider_context, &req.session_id)
+                    .await;
                 return Ok(Rsp::default().qcm_into());
             }
         }
@@ -1085,14 +700,19 @@ pub async fn process_qcm(
         }
         MessageType::GetRadioQueuesReq => {
             if let Some(Payload::GetRadioQueuesReq(req)) = payload {
-                let result = crate::home::radio_queues(&ctx.provider_context, &req.provider_ids).await?;
+                let result =
+                    crate::home::radio_queues(&ctx.provider_context, &req.provider_ids).await?;
                 let rsp = msg::GetRadioQueuesRsp { queues: result };
                 return Ok(rsp.qcm_into());
             }
         }
         MessageType::GetHomeRecommendationsReq => {
             if let Some(Payload::GetHomeRecommendationsReq(req)) = payload {
-                return Ok(crate::home::recommendations(&ctx.provider_context, &req.provider_ids).await.qcm_into());
+                return Ok(
+                    crate::home::recommendations(&ctx.provider_context, &req.provider_ids)
+                        .await
+                        .qcm_into(),
+                );
             }
         }
         MessageType::GetHomeBlocksReq => {
@@ -1125,26 +745,22 @@ pub async fn process_qcm(
                 use qcm_core::provider::HomeBlockContent as C;
                 let content = match content {
                     C::Albums(items) => Content::Albums(msg::GetAlbumsRsp {
-                        items: items.into_iter().map(|i| i.qcm_into()).collect(),
-                        extras: vec![],
+                        ids: items.into_iter().map(|i| i.id).collect(),
                         total,
                         has_more,
                     }),
                     C::Mixes(items) => Content::Mixes(msg::GetMixsRsp {
-                        items: items.into_iter().map(|i| i.qcm_into()).collect(),
-                        extras: vec![],
+                        ids: items.into_iter().map(|i| i.id).collect(),
                         total,
                         has_more,
                     }),
                     C::Artists(items) => Content::Artists(msg::GetArtistsRsp {
-                        items: items.into_iter().map(|i| i.qcm_into()).collect(),
-                        extras: vec![],
+                        ids: items.into_iter().map(|i| i.id).collect(),
                         total,
                         has_more,
                     }),
                     C::Songs(items) => Content::Songs(msg::GetSongsRsp {
-                        items: items.into_iter().map(|i| i.qcm_into()).collect(),
-                        extras: vec![],
+                        ids: items.into_iter().map(|i| i.id).collect(),
                         total,
                         has_more,
                     }),

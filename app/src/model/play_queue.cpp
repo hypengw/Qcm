@@ -236,21 +236,17 @@ PlayQueue::PlayQueue(QObject* parent)
     connect(m_pending_advance_timer, &QTimer::timeout, this, [this]() {
         m_pending_advance = false;
     });
-    m_notify_handle =
-        AppStore::instance()->songs.store_reg_notify([this](std::span<const i64> ids) {
-            std::vector<model::ItemId> changed_ids;
-            for (auto id : ids) {
-                auto item_id = model::ItemId { enums::ItemType::ItemSong, id };
-                changed_ids.push_back(item_id);
-            }
-            addChangedId(changed_ids);
-        });
+    m_subscription = AppStore::instance()->songs.subscribe([this](i64 id, quint64) {
+        std::vector<model::ItemId> changed_ids { model::ItemId(enums::ItemType::ItemSong, id) };
+        addChangedId(changed_ids);
+    });
 
     loopModeChanged(m_loop_mode);
 }
 PlayQueue::~PlayQueue() { m_background_tasks.cancel(); }
 void PlayQueue::drop_global() {
-    AppStore::instance()->songs.store_unreg_notify(m_notify_handle);
+    m_subscription.reset();
+    m_loads.clear();
     m_songs.clear();
 }
 
@@ -613,12 +609,12 @@ void PlayQueue::onSourceRowsAboutToBeRemoved(const QModelIndex&, int first, int 
 }
 void PlayQueue::onSourceRowsRemoved(const QModelIndex&, int, int) { checkCanMove(); }
 void PlayQueue::checkCanMove() {
-    auto count              = rowCount();
-    bool support_prev       = m_options.testFlag(Option::SupportPrev);
-    bool support_loop       = m_options.testFlag(Option::SupportLoop);
-    const auto radio = radioQueue();
-    bool dynamic = isDynamic() && (!radio || !radio->exhausted());
-    auto check_on_none_loop = [this, support_prev, count, dynamic] {
+    auto       count              = rowCount();
+    bool       support_prev       = m_options.testFlag(Option::SupportPrev);
+    bool       support_loop       = m_options.testFlag(Option::SupportLoop);
+    const auto radio              = radioQueue();
+    bool       dynamic            = isDynamic() && (! radio || ! radio->exhausted());
+    auto       check_on_none_loop = [this, support_prev, count, dynamic] {
         setCanPrev(m_proxy->currentIndex() > 0 && support_prev && count);
         // dynamic sources can always produce more rows, so keep next enabled
         setCanNext((dynamic || count > m_proxy->currentIndex() + 1) && count);
@@ -710,47 +706,43 @@ void PlayQueue::cancelPendingAdvance() {
     m_pending_advance = false;
     m_pending_advance_timer->stop();
 }
+void PlayQueue::reloadEntities() {
+    for (int row = 0; row < rowCount(); ++row)
+        if (auto id = getId(row)) m_pending_ids.insert(*id);
+    fetchSongs();
+}
 void PlayQueue::fetchSongs() {
-    if (m_pending_ids.empty()) return;
+    if (m_pending_ids.empty() || m_loads.size() >= 8) return;
 
     auto backend = App::instance()->backend();
 
-    auto req  = msg::GetSongsByIdReq {};
-    auto view = std::ranges::views::transform(m_pending_ids, [](const auto& id) {
-        return id.id();
-    });
-    req.setIds({ view.begin(), view.end() });
-    m_pending_ids.clear();
-
-    auto self = QWatcher { this };
-    m_background_tasks.spawn([self, backend, req = std::move(req)] mutable -> task<void> {
-        auto rsp = co_await backend->send(std::move(req));
-        if (! co_await QAsyncResult::qexecutor()) co_return;
-        if (! self) co_return;
-
-        if (rsp) {
-            std::unordered_set<model::ItemId> fetched_ids;
-            std::vector<i64>                  id_list;
-
-            auto store  = AppStore::instance();
-            auto handle = self->m_notify_handle;
-            for (auto& song_proto : rsp->items()) {
-                auto song = model::Song { song_proto };
-                fetched_ids.insert(model::item_id(song));
-                id_list.push_back(song.id_proto());
-                auto [item, _] = store->songs.store_insert(song);
-                self->m_songs.insert_or_assign(model::item_id(song), item);
+    QList<i64> ids;
+    for (auto it = m_pending_ids.begin(); it != m_pending_ids.end() && ids.size() < 512;) {
+        ids.push_back(it->id());
+        it = m_pending_ids.erase(it);
+    }
+    auto       self   = QPointer<PlayQueue>(this);
+    const auto ticket = ++m_loadSerial;
+    auto       lease =
+        backend->loadSongs(std::move(ids), this, [self, ticket](const Backend::SongResult& rsp) {
+            if (! self) return;
+            self->m_loads.erase(ticket);
+            if (rsp) {
+                std::unordered_set<model::ItemId> fetched_ids;
+                auto                              store = AppStore::instance();
+                for (auto id : rsp->ids()) {
+                    model::ItemId key(enums::ItemType::ItemSong, id);
+                    if (auto item = store->songs.store_item(id)) {
+                        fetched_ids.insert(key);
+                        self->m_songs.insert_or_assign(key, *item);
+                    }
+                }
+                self->notifyRowsForIds(fetched_ids);
+                self->fetchSongs();
             }
-            for (qsizetype i = 0; i < rsp->extras().size(); i++) {
-                auto id = rsp->items().at(i).id_proto();
-                merge_store_extra(store->songs, id, rsp->extras().at(i));
-            }
-            store->songs.store_changed_callback(id_list, handle);
-            // notify rows directly, bypass debounce timer so freshly fetched
-            // songs don't render as placeholders for up to 200ms
-            self->notifyRowsForIds(fetched_ids);
-        }
-    });
+        });
+    if (lease) m_loads.emplace(ticket, std::move(lease));
+    if (! m_pending_ids.empty() && m_loads.size() < 8) fetchSongs();
 }
 
 } // namespace qcm

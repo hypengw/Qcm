@@ -9,10 +9,8 @@ MD.Page {
     showBackground: true
     readonly property var song: QA.App.playqueue.currentSong
     readonly property QA.item_id songId: QA.App.playqueue.currentSongId
-    readonly property list<var> artists: {
-        const ex = QA.Store.extra(root.songId);
-        return ex?.artists ?? [];
-    }
+    readonly property QA.EntityView entity: QA.Store.item(root.songId)
+    readonly property list<var> artists: entity?.artists ?? []
 
     background: QA.PlayingBackground {
         source: QA.Util.image_url(root.songId)
@@ -130,7 +128,7 @@ MD.Page {
                     Layout.fillWidth: true
                     typescale: MD.Token.typescale.body_medium
                     horizontalAlignment: Text.AlignHCenter
-                    text: QA.Store.extra(root.songId)?.album?.name ?? ""
+                    text: root.entity?.album?.name ?? ""
                 }
                 MD.Text {
                     Layout.alignment: Qt.AlignHCenter

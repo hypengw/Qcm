@@ -21,7 +21,7 @@ MD.ListGridBaseDelegate {
         playButtonAlignment: Qt.AlignRight | Qt.AlignBottom
         image.source: QA.Util.image_url(parent.model.itemId)
         text: parent.model.name
-        subText: QA.Util.joinName(QA.Store.extra(root.model.itemId)?.artists, "/") || qsTr("%1 tracks").arg(root.model.trackCount)
+        subText: QA.Util.joinName(root.model.artists, "/") || qsTr("%1 tracks").arg(root.model.trackCount)
         picWidth: width
         onClicked: root.clicked()
     }

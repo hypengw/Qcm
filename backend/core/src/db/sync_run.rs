@@ -9,7 +9,9 @@ use std::{
         Arc, Mutex,
     },
 };
-use tokio::sync::{Mutex as AsyncMutex, OwnedMutexGuard};
+use tokio::sync::{
+    Mutex as AsyncMutex, OwnedMutexGuard, OwnedRwLockReadGuard, OwnedRwLockWriteGuard, RwLock,
+};
 
 fn error(message: &str) -> DbErr {
     DbErr::Custom(message.into())
@@ -29,11 +31,44 @@ pub(super) struct ProviderState {
     active: AtomicU64,
     sequence: AtomicU64,
 }
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct SyncCoordinator {
     providers: Mutex<HashMap<i64, Arc<ProviderState>>>,
+    projection: Arc<RwLock<()>>,
+    projection_revision: AtomicU64,
+    instance: String,
+    epochs: Arc<Mutex<HashMap<i64, u64>>>,
 }
+impl Default for SyncCoordinator {
+    fn default() -> Self {
+        Self {
+            providers: Default::default(),
+            projection: Arc::new(RwLock::new(())),
+            projection_revision: AtomicU64::new(1),
+            instance: uuid::Uuid::new_v4().to_string(),
+            epochs: Default::default(),
+        }
+    }
+}
+
+pub struct ProjectionRead {
+    _guard: OwnedRwLockWriteGuard<()>,
+    pub instance: String,
+    pub revision: u64,
+    pub epochs: HashMap<i64, u64>,
+}
+
 impl SyncCoordinator {
+    pub async fn read_snapshot(&self) -> ProjectionRead {
+        let guard = self.projection.clone().write_owned().await;
+        ProjectionRead {
+            _guard: guard,
+            instance: self.instance.clone(),
+            revision: self.projection_revision.load(Ordering::Acquire),
+            epochs: self.epochs.lock().unwrap().clone(),
+        }
+    }
+
     pub(super) fn state(&self, provider: i64) -> Arc<ProviderState> {
         self.providers
             .lock()
@@ -46,6 +81,15 @@ impl SyncCoordinator {
         self.state(provider).writes.lock().await.changes
     }
     pub async fn write(&self, provider: i64, origin: Option<u64>) -> Result<WriteGuard, DbErr> {
+        let projection = Arc::new(self.projection.clone().read_owned().await);
+        self.write_guard(provider, origin, projection).await
+    }
+    async fn write_guard(
+        &self,
+        provider: i64,
+        origin: Option<u64>,
+        projection: Arc<OwnedRwLockReadGuard<()>>,
+    ) -> Result<WriteGuard, DbErr> {
         let state = self.state(provider);
         let mut guard = state.writes.clone().lock_owned().await;
         if let Some(token) = origin {
@@ -58,14 +102,29 @@ impl SyncCoordinator {
                 .checked_add(1)
                 .ok_or_else(|| error("write revision exhausted"))?;
         }
-        guard.changes = guard.changes.checked_add(1).ok_or_else(|| error("read revision exhausted"))?;
-        Ok(WriteGuard { guard, state })
+        guard.changes = guard
+            .changes
+            .checked_add(1)
+            .ok_or_else(|| error("read revision exhausted"))?;
+        self.projection_revision
+            .fetch_update(Ordering::AcqRel, Ordering::Acquire, |revision| {
+                revision.checked_add(1)
+            })
+            .map_err(|_| error("projection revision exhausted"))?;
+        Ok(WriteGuard {
+            guard,
+            state,
+            epochs: self.epochs.clone(),
+            owner: provider,
+            _projection: projection,
+        })
     }
     pub async fn write_items(
         &self,
         db: &DatabaseConnection,
         ids: &[i64],
     ) -> Result<Vec<WriteGuard>, DbErr> {
+        let projection = Arc::new(self.projection.clone().read_owned().await);
         let mut providers: Vec<i64> = m::item::Entity::find()
             .select_only()
             .column(m::item::Column::ProviderId)
@@ -75,9 +134,11 @@ impl SyncCoordinator {
             .all(db)
             .await?;
         providers.sort_unstable();
+        providers.insert(0, 0);
+        providers.dedup();
         let mut guards = Vec::new();
         for provider in providers {
-            guards.push(self.write(provider, None).await?);
+            guards.push(self.write_guard(provider, None, projection.clone()).await?);
         }
         Ok(guards)
     }
@@ -132,10 +193,34 @@ impl SyncCoordinator {
 pub struct WriteGuard {
     guard: OwnedMutexGuard<WriteState>,
     state: Arc<ProviderState>,
+    _projection: Arc<OwnedRwLockReadGuard<()>>,
+    epochs: Arc<Mutex<HashMap<i64, u64>>>,
+    owner: i64,
 }
 impl WriteGuard {
+    pub fn invalidate_scope(&self) -> Result<(), DbErr> {
+        let mut epochs = self.epochs.lock().unwrap();
+        let epoch = epochs.entry(self.owner).or_default();
+        *epoch = epoch
+            .checked_add(1)
+            .ok_or_else(|| error("scope epoch exhausted"))?;
+        if self.owner != 0 {
+            let local = epochs.entry(0).or_default();
+            *local = local
+                .checked_add(1)
+                .ok_or_else(|| error("local scope epoch exhausted"))?;
+        }
+        Ok(())
+    }
     pub fn retained_items(&self) -> HashSet<i64> {
-        self.state.retained.0.lock().unwrap().keys().copied().collect()
+        self.state
+            .retained
+            .0
+            .lock()
+            .unwrap()
+            .keys()
+            .copied()
+            .collect()
     }
     pub fn invalidate_sync(&self) {
         self.state.active.store(0, Ordering::Release);
@@ -306,7 +391,9 @@ impl SyncRun {
                     ));
                 }
             } else if !matches!(kind, ItemType::Mix | ItemType::Radio) {
-                return Err(error("only remote mixes and radios have a global full-sync scope"));
+                return Err(error(
+                    "only remote mixes and radios have a global full-sync scope",
+                ));
             }
         }
         for id in &self.libraries {
@@ -456,3 +543,7 @@ impl SyncRun {
         Ok(())
     }
 }
+
+#[cfg(test)]
+#[path = "projection_tests.rs"]
+mod projection_tests;

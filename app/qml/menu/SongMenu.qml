@@ -11,10 +11,8 @@ MD.Menu {
     property bool canDelete: false
     // no aot, it's bugly
     property var song: QA.App.empty.song
-    readonly property list<var> artists: {
-        const ex = QA.Store.extra(root.itemId);
-        return ex?.artists ?? [];
-    }
+    readonly property QA.EntityView entity: QA.Store.item(root.itemId)
+    readonly property list<var> artists: entity?.artists ?? []
 
     dim: false
     font.capitalization: Font.Capitalize
@@ -39,7 +37,7 @@ MD.Menu {
     QA.GoToArtistAction {
         enabled: root.artists.length > 0
         getItemIds: function () {
-            return root.artists.map(el => QA.Util.artistId(el.id));
+            return root.artists.map(el => QA.Util.artistId(el.id_proto));
         }
     }
     QA.CommentAction {
@@ -70,7 +68,7 @@ MD.Menu {
             text: qsTr('album')
             icon.name: MD.Token.icon.album
             getCopyString: function () {
-                return root.song.albumName;
+                return root.entity?.album?.name ?? "";
             }
         }
         QA.CopyAction {

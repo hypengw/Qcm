@@ -11,9 +11,7 @@ import qextra;
 
 export namespace google::protobuf
 {
-using google::protobuf::Struct;
 using google::protobuf::Timestamp;
-using google::protobuf::Value;
 } // namespace google::protobuf
 
 namespace m = qcm::msg::model;
@@ -120,8 +118,6 @@ namespace MessageTypeGadget
 using qcm::msg::MessageTypeGadget::MessageType;
 }
 
-void merge_extra(QQmlPropertyMap&, const google::protobuf::Struct&,
-                 const std::set<QStringView>& is_json_field);
 
 struct Error {
     int         code { 0 };
@@ -396,7 +392,7 @@ template<>
 struct kstore::ItemTrait<qcm::model::Album> {
     using Self       = qcm::model::Album;
     using key_type   = i64;
-    using store_type = ShareStore<Self, std::pmr::polymorphic_allocator<Self>, qcm::ShareStoreExt>;
+    using store_type = qcm::ReadStore<Self>;
     static auto key(const Self& el) noexcept -> i64 { return el.id_proto(); }
 };
 
@@ -404,7 +400,7 @@ template<>
 struct kstore::ItemTrait<qcm::model::Artist> {
     using Self       = qcm::model::Artist;
     using key_type   = i64;
-    using store_type = ShareStore<Self, std::pmr::polymorphic_allocator<Self>, qcm::ShareStoreExt>;
+    using store_type = qcm::ReadStore<Self>;
     static auto key(const Self& el) noexcept -> i64 { return el.id_proto(); }
 };
 
@@ -412,7 +408,7 @@ template<>
 struct kstore::ItemTrait<qcm::model::Song> {
     using Self       = qcm::model::Song;
     using key_type   = i64;
-    using store_type = ShareStore<Self, std::pmr::polymorphic_allocator<Self>, qcm::ShareStoreExt>;
+    using store_type = qcm::ReadStore<Self>;
     static auto key(const Self& el) noexcept -> i64 { return el.id_proto(); }
 };
 
@@ -420,7 +416,7 @@ template<>
 struct kstore::ItemTrait<qcm::model::Mix> {
     using Self       = qcm::model::Mix;
     using key_type   = i64;
-    using store_type = ShareStore<Self, std::pmr::polymorphic_allocator<Self>, qcm::ShareStoreExt>;
+    using store_type = qcm::ReadStore<Self>;
     static auto key(const Self& el) noexcept -> i64 { return el.id_proto(); }
 };
 
@@ -453,11 +449,6 @@ struct kstore::ItemTrait<qcm::model::ProviderStatus> {
     using Self     = qcm::model::ProviderStatus;
     using key_type = i64;
     static auto key(const Self& el) noexcept -> i64 { return el.id_proto(); }
-};
-
-template<>
-struct rstd::Impl<rstd::convert::From<google::protobuf::Value>, QVariant> {
-    static auto from(google::protobuf::Value) -> QVariant;
 };
 
 template<>

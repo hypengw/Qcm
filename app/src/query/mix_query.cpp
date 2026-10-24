@@ -24,15 +24,16 @@ void MixesQuery::reload() {
     auto req     = msg::GetMixsReq {};
     initReqForReload(req);
     req.setFilters(m_filters);
-    auto self = QWatcher { this };
-    spawn([self, backend, req] mutable -> task<void> {
+    auto       self     = QWatcher { this };
+    const auto revision = beginRequest();
+    spawn([self, backend, req, revision] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         if (! co_await QAsyncResult::qexecutor()) co_return;
-        if (! self) co_return;
+        if (! self || ! self->isCurrentRequest(revision)) co_return;
         self->inspect_set(rsp, [self](msg::GetMixsRsp& el) {
             auto t = self->tdata();
             t->setHasMore(false);
-            t->resetModel(el.items());
+            t->resetIds(el.ids());
             t->setHasMore(el.hasMore());
         });
         co_return;
@@ -40,24 +41,22 @@ void MixesQuery::reload() {
 }
 
 void MixesQuery::fetchMore(qint32) {
-    if (noMore()) return;
+    if (noMore() || querying()) return;
 
     setStatus(Status::Querying);
     auto app     = App::instance();
     auto backend = app->backend();
     auto req     = msg::GetMixsReq {};
     initReqForFetchMore(req);
-    auto self = QWatcher { this };
-    spawn([self, backend, req] mutable -> task<void> {
+    auto       self     = QWatcher { this };
+    const auto revision = beginRequest();
+    spawn([self, backend, req, revision] mutable -> task<void> {
         auto offset = req.page();
         auto rsp    = co_await backend->send(std::move(req));
         if (! co_await QAsyncResult::qexecutor()) co_return;
-        if (! self) co_return;
+        if (! self || ! self->isCurrentRequest(revision)) co_return;
         self->inspect_set(rsp, [self, offset](msg::GetMixsRsp& el) {
-            auto view = std::ranges::views::transform(el.items(), [](auto&& el) {
-                return model::Mix(el);
-            });
-            self->tdata()->extend(view);
+            self->tdata()->appendIds(el.ids());
             self->setOffset(offset + 1);
             self->tdata()->setHasMore(el.hasMore());
         });
@@ -79,15 +78,16 @@ void RemoteMixesQuery::reload() {
     initReqForReload(req);
     req.setFilters(m_filters);
 
-    auto self = QWatcher { this };
-    spawn([self, backend, req] mutable -> task<void> {
+    auto       self     = QWatcher { this };
+    const auto revision = beginRequest();
+    spawn([self, backend, req, revision] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         if (! co_await QAsyncResult::qexecutor()) co_return;
-        if (! self) co_return;
+        if (! self || ! self->isCurrentRequest(revision)) co_return;
         self->inspect_set(rsp, [self](msg::GetRemoteMixsRsp& el) {
             auto t = self->tdata();
             t->setHasMore(false);
-            t->resetModel(el.items());
+            t->resetIds(el.ids());
             t->setHasMore(el.hasMore());
         });
         co_return;
@@ -95,12 +95,13 @@ void RemoteMixesQuery::reload() {
 }
 void RemoteMixesQuery::fetchMore(qint32) {}
 
-MixQuery::MixQuery(QObject* parent): Query(parent) {}
+MixQuery::MixQuery(QObject* parent): Query(parent) { connectSyncFinished(this); }
 
 auto MixQuery::itemId() const -> model::ItemId { return m_item_id; }
 
 void MixQuery::setItemId(model::ItemId in) {
     if (ycore::cmp_set(m_item_id, in)) {
+        invalidateRequests();
         itemIdChanged();
     }
 }
@@ -110,15 +111,14 @@ void MixQuery::reload() {
     auto backend = App::instance()->backend();
     auto req     = msg::GetMixReq {};
     req.setId_proto(m_item_id.id());
-    auto self = QWatcher { this };
-    spawn([self, backend, req] mutable -> task<void> {
+    auto       self     = QWatcher { this };
+    const auto revision = beginRequest();
+    spawn([self, backend, req, revision] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         if (! co_await QAsyncResult::qexecutor()) co_return;
-        if (! self) co_return;
+        if (! self || ! self->isCurrentRequest(revision)) co_return;
         self->inspect_set(rsp, [self](msg::GetMixRsp& el) {
-            auto store = AppStore::instance();
-            self->tdata()->setItem(el.item());
-            merge_store_extra(store->mixes, el.item().id_proto(), el.extra());
+            self->tdata()->setItemId(el.id_proto());
         });
         co_return;
     });
@@ -135,6 +135,7 @@ auto MixSongsQuery::itemId() const -> model::ItemId { return m_item_id; }
 
 void MixSongsQuery::setItemId(model::ItemId in) {
     if (ycore::cmp_set(m_item_id, in)) {
+        invalidateRequests();
         itemIdChanged();
     }
 }
@@ -146,30 +147,42 @@ void MixSongsQuery::reload() {
     initReqForReload(req);
     req.setId_proto(m_item_id.id());
 
-    auto self = QWatcher { this };
-    spawn([self, backend, req] mutable -> task<void> {
-        auto offset = req.page();
-        auto rsp    = co_await backend->send(std::move(req));
+    auto       self     = QWatcher { this };
+    const auto revision = beginRequest();
+    spawn([self, backend, req, revision] mutable -> task<void> {
+        auto rsp = co_await backend->send(std::move(req));
         if (! co_await QAsyncResult::qexecutor()) co_return;
-        if (! self) co_return;
-        self->inspect_set(rsp, [self, offset](msg::GetMixSongsRsp& el) {
-            auto view = std::ranges::views::transform(el.items(), [](auto&& el) {
-                return model::Song(el);
-            });
+        if (! self || ! self->isCurrentRequest(revision)) co_return;
+        self->inspect_set(rsp, [self](msg::GetMixSongsRsp& el) {
+            self->tdata()->setMixId(el.mixId());
 
-            self->tdata()->setMix(el.mix());
+            self->tdata()->syncIds(el.ids());
 
-            self->tdata()->extend(view);
-            auto store = AppStore::instance();
-
-            for (qsizetype i = 0; i < el.extras().size(); i++) {
-                auto id = el.items().at(i).id_proto();
-                merge_store_extra(store->songs, id, el.extras().at(i));
-            }
-            self->setOffset(offset + 1);
             self->tdata()->setHasMore(el.hasMore());
         });
         co_return;
+    });
+}
+
+void MixSongsQuery::fetchMore(qint32) {
+    if (noMore() || querying()) return;
+    setStatus(Status::Querying);
+    auto                backend = App::instance()->backend();
+    msg::GetMixSongsReq request;
+    initReqForFetchMore(request);
+    request.setId_proto(m_item_id.id());
+    auto       self     = QWatcher { this };
+    const auto revision = beginRequest();
+    spawn([self, backend, request, revision]() mutable -> task<void> {
+        const auto page     = request.page();
+        auto       response = co_await backend->send(std::move(request));
+        if (! co_await QAsyncResult::qexecutor() || ! self || ! self->isCurrentRequest(revision))
+            co_return;
+        self->inspect_set(response, [self, page](msg::GetMixSongsRsp& value) {
+            self->tdata()->appendIds(value.ids());
+            self->setOffset(page);
+            self->tdata()->setHasMore(value.hasMore());
+        });
     });
 }
 
@@ -178,11 +191,13 @@ auto RemoteMixesQuery::filters() const -> const QList<msg::filter::RemoteMixFilt
 }
 void RemoteMixesQuery::setFilters(const QList<msg::filter::RemoteMixFilter>& filters) {
     m_filters = filters;
+    invalidateRequests();
     filtersChanged();
 }
 auto MixesQuery::filters() const -> const QList<msg::filter::MixFilter>& { return m_filters; }
 void MixesQuery::setFilters(const QList<msg::filter::MixFilter>& filters) {
     m_filters = filters;
+    invalidateRequests();
     filtersChanged();
 }
 

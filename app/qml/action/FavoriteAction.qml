@@ -8,11 +8,10 @@ MD.Action {
     property alias itemId: m_query.itemId
     property alias status: m_query.status
 
+    readonly property QA.EntityView entity: QA.Store.item(itemId)
+
     enabled: itemId.valid
-    checked: {
-        const ex = QA.Store.extra(itemId);
-        return ex?.dynamic?.is_favorite ?? false;
-    }
+    checked: entity?.state?.favorite ?? false
     icon.name: MD.Token.icon.favorite
     text: checked ? qsTr('unfavorite') : qsTr('favorite')
     busy: m_query.querying

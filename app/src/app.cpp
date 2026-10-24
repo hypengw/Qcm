@@ -157,6 +157,9 @@ App::~App() {}
 
 void App::init() {
     C_D(App);
+    connect(backend(),&Backend::connected,d->m_playqueu,&PlayQueue::reloadEntities);
+    connect(AppStore::instance(),&AppStore::scopeChanged,d->m_playqueu,&PlayQueue::reloadEntities);
+    connect(d->provider_status,&ProviderStatusModel::syncingChanged,d->m_playqueu,[queue=d->m_playqueu](bool syncing){if(!syncing) queue->reloadEntities();});
     auto engine = this->engine();
 
     qcm::init_path(std::array { config_path() / "session", data_path() });
@@ -316,15 +319,7 @@ void App::releaseResources(QQuickWindow*, const QJSValue& extra) {
 
     auto store = AppStore::instance();
 
-    LOG_DEBUG(R"(
---- store ---
-albums: {}
-songs: {}
-artists: {}
-)",
-              store->albums.size(),
-              store->songs.size(),
-              store->artists.size());
+    LOG_DEBUG("entity store: {} entries, {} bytes",store->size(),store->bytes());
 
     auto info = plt::mem_info();
     LOG_DEBUG(R"(

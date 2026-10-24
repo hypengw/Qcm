@@ -2,10 +2,9 @@ syntax = "proto3";
 
 package qcm.msg;
 
-import "google/protobuf/struct.proto";
-
 import "filter.proto";
 import "model.proto";
+import "entity.proto";
 
 enum MessageType {
   UNKNOWN = 0;
@@ -232,8 +231,9 @@ message ProviderSyncStatusMsg {
 }
 
 message GetSongsRsp {
-  repeated qcm.msg.model.Song items = 1;
-  repeated google.protobuf.Struct extras = 2;
+  reserved 1, 2;
+  reserved "items", "extras";
+  repeated int64 ids = 5;
   int32 total = 3;
   bool has_more = 4;
 }
@@ -249,8 +249,9 @@ message GetAlbumsReq {
 }
 
 message GetAlbumsRsp {
-  repeated qcm.msg.model.Album items = 1;
-  repeated google.protobuf.Struct extras = 2;
+  reserved 1, 2;
+  reserved "items", "extras";
+  repeated int64 ids = 5;
   int32 total = 3;
   bool has_more = 4;
 }
@@ -258,10 +259,10 @@ message GetAlbumsRsp {
 message GetAlbumReq { int64 id = 1; }
 
 message GetAlbumRsp {
-  qcm.msg.model.Album item = 1;
-  google.protobuf.Struct extra = 2;
-  repeated qcm.msg.model.Song songs = 3;
-  repeated google.protobuf.Struct song_extras = 4;
+  reserved 1, 2, 3, 4;
+  reserved "item", "extra", "songs", "song_extras";
+  int64 id = 5;
+  repeated int64 song_ids = 6;
 }
 
 message GetArtistsReq {
@@ -275,8 +276,9 @@ message GetArtistsReq {
 }
 
 message GetArtistsRsp {
-  repeated qcm.msg.model.Artist items = 1;
-  repeated google.protobuf.Struct extras = 2;
+  reserved 1, 2;
+  reserved "items", "extras";
+  repeated int64 ids = 5;
   int32 total = 3;
   bool has_more = 4;
 }
@@ -292,8 +294,9 @@ message GetAlbumArtistsReq {
 }
 
 message GetAlbumArtistsRsp {
-  repeated qcm.msg.model.Artist items = 1;
-  repeated google.protobuf.Struct extras = 2;
+  reserved 1, 2;
+  reserved "items", "extras";
+  repeated int64 ids = 5;
   int32 total = 3;
   bool has_more = 4;
 }
@@ -301,8 +304,9 @@ message GetAlbumArtistsRsp {
 message GetArtistReq { int64 id = 1; }
 
 message GetArtistRsp {
-  qcm.msg.model.Artist item = 1;
-  google.protobuf.Struct extra = 2;
+  reserved 1, 2;
+  reserved "item", "extra";
+  int64 id = 3;
 }
 
 message GetArtistAlbumReq {
@@ -314,8 +318,9 @@ message GetArtistAlbumReq {
 }
 
 message GetArtistAlbumRsp {
-  repeated qcm.msg.model.Album items = 1;
-  repeated google.protobuf.Struct extras = 2;
+  reserved 1, 2;
+  reserved "items", "extras";
+  repeated int64 ids = 5;
   int32 total = 3;
   bool has_more = 4;
 }
@@ -329,9 +334,10 @@ message GetMixSongsReq {
 }
 
 message GetMixSongsRsp {
-  qcm.msg.model.Mix mix = 1;
-  repeated qcm.msg.model.Song items = 2;
-  repeated google.protobuf.Struct extras = 3;
+  reserved 1, 2, 3;
+  reserved "mix", "items", "extras";
+  int64 mix_id = 6;
+  repeated int64 ids = 7;
   int32 total = 4;
   bool has_more = 5;
 }
@@ -347,8 +353,9 @@ message GetMixsReq {
 }
 
 message GetMixsRsp {
-  repeated qcm.msg.model.Mix items = 1;
-  repeated google.protobuf.Struct extras = 2;
+  reserved 1, 2;
+  reserved "items", "extras";
+  repeated int64 ids = 5;
   int32 total = 3;
   bool has_more = 4;
 }
@@ -363,8 +370,9 @@ message GetRemoteMixsReq {
 }
 
 message GetRemoteMixsRsp {
-  repeated qcm.msg.model.Mix items = 1;
-  repeated google.protobuf.Struct extras = 2;
+  reserved 1, 2;
+  reserved "items", "extras";
+  repeated int64 ids = 5;
   int32 total = 3;
   bool has_more = 4;
 }
@@ -372,14 +380,16 @@ message GetRemoteMixsRsp {
 message GetMixReq { int64 id = 1; }
 
 message GetMixRsp {
-  qcm.msg.model.Mix item = 1;
-  google.protobuf.Struct extra = 2;
+  reserved 1, 2;
+  reserved "item", "extra";
+  int64 id = 3;
 }
 
 message GetSongsByIdReq { repeated int64 ids = 1; }
 message GetSongsByIdRsp {
-  repeated qcm.msg.model.Song items = 1;
-  repeated google.protobuf.Struct extras = 2;
+  reserved 1, 2;
+  reserved "items", "extras";
+  repeated int64 ids = 5;
   int32 total = 3;
 }
 
@@ -466,8 +476,9 @@ message GetQueueNextReq {
 }
 
 message GetQueueNextRsp {
-  repeated qcm.msg.model.Song songs = 1;
-  repeated google.protobuf.Struct extras = 2;
+  reserved 1, 2;
+  reserved "songs", "extras";
+  repeated int64 song_ids = 4;
   qcm.msg.model.QueueSession session = 3;
 }
 
@@ -488,8 +499,9 @@ message OpenQueueReq {
 }
 
 message OpenQueueRsp {
-  repeated qcm.msg.model.Song songs = 1;
-  repeated google.protobuf.Struct extras = 2;
+  reserved 1, 2;
+  reserved "songs", "extras";
+  repeated int64 song_ids = 4;
   qcm.msg.model.QueueSession session = 3;
 }
 
@@ -558,6 +570,7 @@ message GetHomeBlockItemsRsp {
 message QcmMessage {
   MessageType type = 1;
   int32 id = 2;
+  qcm.msg.entity.EntityBatch entities = 3;
 
   oneof payload {
     Rsp rsp = 101;

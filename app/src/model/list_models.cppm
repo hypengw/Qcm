@@ -7,52 +7,40 @@ module;
 export module qcm:model.list_models;
 export import :model.store_item;
 export import :model.item_id_list;
+export import :model.entity_list;
 export import :global;
 
 export namespace qcm::model
 {
 
-template<typename TItem, typename CRTP>
-using MetaListCRTP = kstore::QMetaListModelCRTP<TItem, CRTP, kstore::ListStoreType::Share,
-                                                std::pmr::polymorphic_allocator<TItem>>;
-
-class AlbumListModel : public ItemIdListModel,
-                       public MetaListCRTP<model::Album, AlbumListModel> {
+class AlbumListModel : public EntityList<model::Album> {
     Q_OBJECT
     QML_ANONYMOUS
 
-    using list_crtp_t = MetaListCRTP<model::Album, AlbumListModel>;
     using value_type  = model::Album;
 
 public:
     AlbumListModel(QObject* parent = nullptr);
 
-    Q_INVOKABLE QQmlPropertyMap* extra(i32 idx) const;
 };
 
-class SongListModel : public ItemIdListModel,
-                      public MetaListCRTP<model::Song, SongListModel> {
+class SongListModel : public EntityList<model::Song> {
     Q_OBJECT
     QML_ANONYMOUS
-    using list_crtp_t = MetaListCRTP<model::Song, SongListModel>;
     using value_type  = model::Song;
 
 public:
     SongListModel(QObject* parent = nullptr);
 
-    Q_INVOKABLE QQmlPropertyMap* extra(i32 idx) const;
 };
 
-class AlbumSongListModel : public ItemIdListModel,
-                           public MetaListCRTP<model::Song, AlbumSongListModel> {
+class AlbumSongListModel : public EntityList<model::Song> {
     Q_OBJECT
     QML_ANONYMOUS
 
     Q_PROPERTY(qcm::model::Album album READ album NOTIFY albumChanged FINAL)
-    Q_PROPERTY(QQmlPropertyMap* extra READ extra NOTIFY albumChanged FINAL)
     Q_PROPERTY(qint32 discCount READ discCount NOTIFY discCountChanged FINAL)
 
-    using list_crtp_t = MetaListCRTP<model::Song, AlbumSongListModel>;
     using album_type  = model::Album;
     using value_type  = model::Song;
 
@@ -61,10 +49,9 @@ public:
     ~AlbumSongListModel();
 
     auto album() const -> album_type;
-    auto extra() const -> QQmlPropertyMap*;
     auto discCount() const -> qint32;
 
-    void setAlbum(const album_type&);
+    void setAlbumId(i64);
     void setDiscCount(qint32);
 
     Q_SIGNAL void albumChanged();
@@ -75,24 +62,20 @@ private:
     qint32                m_disc_count;
 };
 
-class ArtistListModel : public ItemIdListModel,
-                        public MetaListCRTP<model::Artist, ArtistListModel> {
+class ArtistListModel : public EntityList<model::Artist> {
     Q_OBJECT
     QML_ANONYMOUS
 
-    using list_crtp_t = MetaListCRTP<model::Artist, ArtistListModel>;
     using value_type  = model::Artist;
 
 public:
     ArtistListModel(QObject* parent = nullptr);
 };
 
-class MixListModel : public ItemIdListModel,
-                     public MetaListCRTP<model::Mix, MixListModel> {
+class MixListModel : public EntityList<model::Mix> {
     Q_OBJECT
     QML_ANONYMOUS
 
-    using list_crtp_t = MetaListCRTP<model::Mix, MixListModel>;
     using value_type  = model::Mix;
 
 public:
@@ -124,16 +107,13 @@ public:
     auto roleNames() const -> QHash<int, QByteArray> override;
 };
 
-class MixSongListModel : public ItemIdListModel,
-                         public MetaListCRTP<model::Song, MixSongListModel> {
+class MixSongListModel : public EntityList<model::Song> {
     Q_OBJECT
     QML_ANONYMOUS
 
     Q_PROPERTY(qcm::model::Mix mix READ mix NOTIFY mixChanged FINAL)
-    Q_PROPERTY(QQmlPropertyMap* extra READ extra NOTIFY mixChanged FINAL)
     Q_PROPERTY(qint32 discCount READ discCount NOTIFY discCountChanged FINAL)
 
-    using list_crtp_t = MetaListCRTP<model::Song, MixSongListModel>;
     using mix_type    = model::Mix;
     using value_type  = model::Song;
 
@@ -142,10 +122,9 @@ public:
     ~MixSongListModel();
 
     auto mix() const -> mix_type;
-    auto extra() const -> QQmlPropertyMap*;
     auto discCount() const -> qint32;
 
-    void setMix(const mix_type&);
+    void setMixId(i64);
     void setDiscCount(qint32);
 
     Q_SIGNAL void mixChanged();

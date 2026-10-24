@@ -3,7 +3,7 @@ use std::{env, path::Path};
 fn main() -> Result<()> {
     let manifest_dir = env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR is not set");
     let proto_inc = Path::new(&manifest_dir).join("proto");
-    let protos = ["proto/model.proto", "proto/filter.proto", "proto/message.proto"].map(|file|{
+    let protos = ["proto/model.proto", "proto/filter.proto", "proto/message.proto", "proto/entity.proto"].map(|file|{
         Path::new(&manifest_dir).join(file)
     });
 

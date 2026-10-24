@@ -354,7 +354,7 @@ void DynamicIdQueue::on_open_finished() {
     auto query = static_cast<QueueNextQuery*>(m_open_query);
     if (query->querying()) return;
     m_configuring = false;
-    if (query->status() != QAsyncResult::Status::Finished || query->tdata().songs().isEmpty() ||
+    if (query->status() != QAsyncResult::Status::Finished || query->tdata().songIds().isEmpty() ||
         query->tdata().session().id_proto().isEmpty()) {
         if (query->status() == QAsyncResult::Status::Finished) {
             close(query->tdata().session().id_proto());
@@ -380,8 +380,8 @@ void DynamicIdQueue::on_open_finished() {
         field.setValue(m_session.configuration().value(field.key()));
     if (rowCount()) removeRows(0, rowCount());
     std::vector<model::ItemId> ids;
-    for (const auto& song : page.songs())
-        ids.emplace_back(enums::ItemType::ItemSong, song.id_proto());
+    for (auto id : page.songIds())
+        ids.emplace_back(enums::ItemType::ItemSong, id);
     insert(0, ids);
     setCurrentIndex(0);
     m_auto_removing = false;
@@ -409,8 +409,8 @@ void DynamicIdQueue::on_query_finished() {
     m_session                                 = page.session();
     const auto                 previous_count = rowCount();
     std::vector<model::ItemId> ids;
-    for (const auto& song : page.songs())
-        ids.emplace_back(enums::ItemType::ItemSong, song.id_proto());
+    for (auto id : page.songIds())
+        ids.emplace_back(enums::ItemType::ItemSong, id);
     insert(rowCount(), ids);
     m_suppress_prefetch = rowCount() == previous_count;
     sessionChanged();

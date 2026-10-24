@@ -9,10 +9,8 @@ MD.Pane {
 
     readonly property var currentSong: QA.App.playqueue.currentSong
     readonly property QA.item_id currentSongId: QA.App.playqueue.currentSongId
-    readonly property var artists: {
-        const ex = QA.Store.extra(root.currentSongId);
-        return ex?.artists ?? [];
-    }
+    readonly property QA.EntityView entity: QA.Store.item(root.currentSongId)
+    readonly property list<var> artists: entity?.artists ?? []
 
     backgroundColor: MD.Token.color.surface_container
     elevation: MD.MProp.size.isCompact ? MD.Token.elevation.level2 : MD.Token.elevation.level0
@@ -120,7 +118,7 @@ MD.Pane {
                             QA.GoToArtistAction {
                                 id: m_go_to_artist_act
                                 getItemIds: function () {
-                                    return root.artists?.map(el => QA.Util.artistId(el.id));
+                                    return root.artists?.map(el => QA.Util.artistId(el.id_proto));
                                 }
                             }
                         }

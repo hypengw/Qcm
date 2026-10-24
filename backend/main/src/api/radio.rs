@@ -1,4 +1,3 @@
-use super::helper_extra::to_rsp_songs;
 use crate::{
     error::ProcessError,
     event::ServiceContext,
@@ -75,19 +74,15 @@ pub async fn open(
         .await?;
     let id = page.session_id.clone();
     let response = response(ctx, page, provider_id).await;
-    if !response
-        .as_ref()
-        .is_ok_and(|(songs, _, _)| !songs.is_empty())
-    {
+    if !response.as_ref().is_ok_and(|(songs, _)| !songs.is_empty()) {
         ctx.radio.close(&ctx.provider_context, &id).await;
         return Err(response.err().unwrap_or_else(|| {
             ProcessError::Internal(anyhow::anyhow!("Radio returned no playable songs"))
         }));
     }
-    let (songs, extras, session) = response?;
+    let (song_ids, session) = response?;
     Ok(msg::OpenQueueRsp {
-        songs,
-        extras,
+        song_ids,
         session: Some(session),
     })
 }
@@ -129,10 +124,9 @@ pub async fn next(
                 &req.configuration,
             )
             .await?;
-        let (songs, extras) = ordered_songs(ctx, songs, provider_id).await?;
+        let song_ids = ordered_songs(ctx, songs, provider_id).await?;
         return Ok(msg::GetQueueNextRsp {
-            songs,
-            extras,
+            song_ids,
             session: None,
         });
     }
@@ -147,10 +141,9 @@ pub async fn next(
             current,
         )
         .await?;
-    let (songs, extras, session) = response(ctx, page, provider_id).await?;
+    let (song_ids, session) = response(ctx, page, provider_id).await?;
     Ok(msg::GetQueueNextRsp {
-        songs,
-        extras,
+        song_ids,
         session: Some(session),
     })
 }
@@ -159,7 +152,7 @@ async fn ordered_songs(
     ctx: &ServiceContext,
     songs: Vec<sqlm::song::Model>,
     provider_id: i64,
-) -> Result<(Vec<msg::model::Song>, Vec<prost_types::Struct>), ProcessError> {
+) -> Result<Vec<i64>, ProcessError> {
     let ids: Vec<_> = songs.iter().map(|s| s.id).collect();
     let songs = sqlm::song::Entity::find()
         .inner_join(sqlm::item::Entity)
@@ -168,27 +161,18 @@ async fn ordered_songs(
         .all(&ctx.provider_context.db)
         .await?;
     let mut songs: HashMap<_, _> = songs.into_iter().map(|s| (s.id, s)).collect();
-    to_rsp_songs(
-        &ctx.provider_context.db,
-        ids.into_iter().filter_map(|id| songs.remove(&id)).collect(),
-        None,
-    )
-    .await
+    Ok(ids
+        .into_iter()
+        .filter(|id| songs.remove(id).is_some())
+        .collect())
 }
 
 async fn response(
     ctx: &ServiceContext,
     page: Page,
     provider_id: i64,
-) -> Result<
-    (
-        Vec<msg::model::Song>,
-        Vec<prost_types::Struct>,
-        msg::model::QueueSession,
-    ),
-    ProcessError,
-> {
-    let (songs, extras) = ordered_songs(ctx, page.batch.songs, provider_id).await?;
+) -> Result<(Vec<i64>, msg::model::QueueSession), ProcessError> {
+    let song_ids = ordered_songs(ctx, page.batch.songs, provider_id).await?;
     if let Some(source_id) = page.batch.presentation.source_item_id {
         let source = sqlm::item::Entity::find_by_id(source_id)
             .one(&ctx.provider_context.db)
@@ -207,5 +191,5 @@ async fn response(
         }),
         exhausted: page.batch.exhausted,
     };
-    Ok((songs, extras, session))
+    Ok((song_ids, session))
 }

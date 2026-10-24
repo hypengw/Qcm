@@ -35,18 +35,12 @@ void SetFavoriteQuery::reload() {
     req.setItemType(rstd::into(m_item_id.type()));
 
     auto self = QWatcher { this };
-    spawn([self, backend, req, value = m_favorite, item_id = m_item_id] mutable -> task<void> {
+    spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         if (! co_await QAsyncResult::qexecutor()) co_return;
         if (! self) co_return;
 
-        self->inspect_set(rsp, [value, item_id](auto&) {
-            if (auto ex = AppStore::instance()->extra(item_id)) {
-                auto val = ex->value("dynamic").toMap();
-                val.insert("is_favorite", value);
-                ex->setProperty("dynamic", val);
-            }
-        });
+        self->inspect_set(rsp, [](auto&) {});
         co_return;
     });
 }

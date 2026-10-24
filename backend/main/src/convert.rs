@@ -581,6 +581,7 @@ macro_rules! impl_from_for_qcm_msg {
                     id: 0,
                     r#type: msg::MessageType::$msg_type.into(),
                     payload: Some(msg::qcm_message::Payload::$msg_type(v)),
+                    entities: None,
                 }
             }
         }

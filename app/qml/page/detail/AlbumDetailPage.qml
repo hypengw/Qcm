@@ -9,6 +9,7 @@ import Qcm.Msg as QM
 MD.Page {
     id: root
 
+    readonly property QA.EntityView entity: QA.Store.item(root.itemId)
     readonly property var album: qr_al.data.album
     property QA.item_id itemId
     title: qsTr("album")
@@ -56,7 +57,7 @@ MD.Page {
             typescale: MD.Token.typescale.body_medium
             action: MD.Action {
                 text: {
-                    const ex = root.model.extra;
+                    const ex = root.entity;
                     const names = QA.Util.joinName(ex?.artists, '/');
                     return names || qsTr("Unknown Artist");
                 }
@@ -67,8 +68,8 @@ MD.Page {
             QA.GoToArtistAction {
                 id: m_go_to_artist_act
                 getItemIds: function () {
-                    const ex = root.model.extra;
-                    return ex?.artists.map(el => QA.Util.albumArtistId(el.id));
+                    const ex = root.entity;
+                    return ex?.artists.map(el => QA.Util.albumArtistId(el.id_proto));
                 }
             }
         }
@@ -265,7 +266,7 @@ MD.Page {
                 leftMargin: 16
                 rightMargin: 16
 
-                subtitle: QA.Util.joinName(QA.Store.extra(model.itemId)?.artists, '/')
+                subtitle: QA.Util.joinName(model.artists, '/')
 
                 onClicked: {
                     QA.Action.play(itemId);

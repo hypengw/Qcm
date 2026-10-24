@@ -7,6 +7,7 @@ module;
 #include <rstd/macro.hpp>
 
 #include "Qcm/backend.moc.h"
+#include "Qcm/message/load_pool.hpp"
 #include "core/log.h"
 
 module qcm;
@@ -33,6 +34,99 @@ using ResponseHandle = rstd::async::CompletionHandle<msg::QcmMessage, msg::Error
 auto transport_error(QString message) -> msg::Error {
     return msg::Error { .code = -1, .message = message.toStdString() };
 }
+
+class EntityLoader : public QObject {
+public:
+    using Callback = std::function<void(const Backend::SongResult&)>;
+    struct Flight {
+        QPointer<Query>         operation;
+        QList<i64>              ids;
+        QMap<quint64, Callback> consumers;
+        ~Flight() {
+            if (operation) {
+                operation->cancel();
+                operation->deleteLater();
+            }
+            for (auto id : ids)
+                AppStore::instance()->unpin(model::ItemId(enums::ItemType::ItemSong, id));
+        }
+    };
+    explicit EntityLoader(Backend* backend): QObject(backend), m_backend(backend) {}
+    StoreSubscription load(QString key, QList<i64> ids, QObject* consumer, Callback callback) {
+        if (ids.isEmpty()) return {};
+        auto [flight, leader] = m_flights.acquire(key, [&] {
+            auto value       = std::make_shared<Flight>();
+            value->ids       = ids;
+            value->operation = new Query(this);
+            for (auto id : ids)
+                AppStore::instance()->pin(model::ItemId(enums::ItemType::ItemSong, id));
+            return value;
+        });
+        if (! flight) {
+            callback(Err(msg::Error { .code = -1, .message = "entity loader capacity exceeded" }));
+            return {};
+        }
+        const auto        ticket = ++m_serial;
+        QPointer<QObject> observer(consumer);
+        flight->consumers.insert(ticket,
+                                 [observer, callback = std::move(callback)](const auto& result) {
+                                     if (observer) callback(result);
+                                 });
+        auto weak  = QPointer<EntityLoader>(this);
+        auto leave = [weak, key, ticket, expected = std::weak_ptr<Flight>(flight)] {
+            if (! weak) return;
+            auto flight = expected.lock();
+            if (! flight) return;
+            flight->consumers.remove(ticket);
+            if (flight->consumers.isEmpty()) (void)weak->m_flights.take(key, flight);
+        };
+        auto connection = connect(consumer, &QObject::destroyed, this, leave);
+        if (leader) {
+            auto backend = QPointer<Backend>(m_backend);
+            flight->operation->spawn(
+                [weak, backend, key, ids, expected = std::weak_ptr<Flight>(flight)]()
+                    -> task<void> {
+                    if (! backend) co_return;
+                    msg::GetSongsByIdReq request;
+                    request.setIds({ ids.begin(), ids.end() });
+                    auto response = co_await backend->send(std::move(request));
+                    if (! co_await QAsyncResult::qexecutor() || ! weak) co_return;
+                    auto flight = weak->m_flights.take(key, expected.lock());
+                    if (! flight) co_return;
+                    const auto consumers = flight->consumers;
+                    for (auto it = consumers.cbegin(); it != consumers.cend(); ++it) {
+                        auto callback = it.value();
+                        callback(response);
+                    }
+                    QTimer::singleShot(0, weak, [flight] {
+                    });
+                });
+        }
+        return StoreSubscription([weak, leave = std::move(leave), connection] {
+            QObject::disconnect(connection);
+            if (weak) {
+                if (QThread::currentThread() == weak->thread())
+                    leave();
+                else
+                    QMetaObject::invokeMethod(weak, leave, Qt::QueuedConnection);
+            }
+        });
+    }
+    void reset() {
+        auto flights = m_flights.clear();
+        auto error   = Backend::SongResult(
+            Err(msg::Error { .code = -1, .message = "entity loader generation changed" }));
+        for (const auto& [key, flight] : flights) {
+            const auto consumers = flight->consumers;
+            for (const auto& callback : consumers) callback(error);
+        }
+    }
+
+private:
+    Backend*                         m_backend;
+    store::LoadPool<QString, Flight> m_flights;
+    quint64                          m_serial {};
+};
 
 class BackendTransport : public QObject {
 public:
@@ -62,6 +156,7 @@ public:
         m_serializer = std::make_unique<QProtobufSerializer>();
         BackendConnectionCallbacks callbacks;
         callbacks.connected = [this] {
+            (void)m_backend->m_generation.fetch_add(1);
             m_connected = true;
             Q_EMIT m_backend->connected(m_port);
         };
@@ -69,6 +164,7 @@ public:
             fail(message);
         };
         callbacks.disconnected = [this] {
+            (void)m_backend->m_generation.fetch_add(1);
             m_connected = false;
             fail_pending(QStringLiteral("backend disconnected"));
             Q_EMIT m_backend->disconnected();
@@ -85,15 +181,35 @@ public:
             }
 
             auto id = message.id_proto();
-            if (id != 0) {
+            if (id != 0 && ! message.hasTestRsp()) {
                 (void)m_pending.complete(id, rstd::move(message));
                 return;
             }
 
             (void)QMetaObject::invokeMethod(
                 m_backend,
-                [message = rstd::move(message)]() mutable {
-                    qcm::process_msg(rstd::move(message));
+                [backend    = m_backend,
+                 generation = m_backend->m_generation.load(),
+                 message    = rstd::move(message)]() mutable {
+                    if (generation != backend->m_generation.load()) return;
+                    if (message.hasEntities()) {
+                        auto batch = message.entities();
+                        AppStore::instance()->deliver(
+                            std::move(batch),
+                            [backend = QPointer<Backend>(backend),
+                             message = std::move(message)](QString error) mutable {
+                                if (! backend) return;
+                                if (! error.isEmpty()) {
+                                    Q_EMIT backend->error(error);
+                                    return;
+                                }
+                                qcm::process_msg(std::move(message));
+                            });
+                    } else if (message.hasTestRsp()) {
+                        Q_EMIT backend->error(
+                            QStringLiteral("Backend does not support entity protocol v1"));
+                    } else
+                        qcm::process_msg(std::move(message));
                 },
                 Qt::QueuedConnection);
         };
@@ -253,6 +369,7 @@ private:
 Backend::Backend()
     : m_thread(Box<QThread>::make()),
       m_transport(new detail::BackendTransport(this)),
+      m_loader(std::make_unique<detail::EntityLoader>(this)),
       m_serial(1),
       m_port(0) {
     m_transport->moveToThread(m_thread.get());
@@ -269,12 +386,15 @@ Backend::Backend()
     connect(this, &Backend::connected, this, &Backend::on_connected);
     connect(this, &Backend::error, this, &Backend::on_error);
     connect(this, &Backend::disconnected, this, [this] {
+        m_loader->reset();
+        AppStore::instance()->markStale();
         m_resource_ready = false;
         Q_EMIT resourceStateChanged();
     });
 }
 
 Backend::~Backend() {
+    m_loader->reset();
     std::shared_future<void> closed;
     (void)QMetaObject::invokeMethod(
         m_transport,
@@ -344,6 +464,8 @@ void Backend::on_started(i32 port) {
 }
 
 void Backend::on_connected(i32) {
+    m_loader->reset();
+    AppStore::instance()->reset();
     m_resource_ready = true;
     Q_EMIT resourceStateChanged();
     auto message = msg::QcmMessage();
@@ -363,7 +485,9 @@ void Backend::send_immediate(msg::QcmMessage&& message) {
 }
 
 auto Backend::send(msg::QcmMessage&& message) -> task<Result<msg::QcmMessage, msg::Error>> {
-    auto request_id = serial();
+    const auto self       = QPointer<Backend>(this);
+    const auto generation = m_generation.load();
+    auto       request_id = serial();
     message.setId_proto(request_id);
 
     auto completion_result = rstd::async::Completion<msg::QcmMessage, msg::Error>::make();
@@ -395,7 +519,56 @@ auto Backend::send(msg::QcmMessage&& message) -> task<Result<msg::QcmMessage, ms
         if (error.is_failed()) co_return Err(rstd::move(error).unwrap_failed());
         co_return Err(msg::Error { .code = -1, .message = "request canceled" });
     }
-    co_return Ok(rstd::move(result).unwrap_unchecked());
+    if (! co_await QAsyncResult::qexecutor())
+        co_return Err(msg::Error { .code = -1, .message = "entity delivery canceled" });
+    if (! self || generation != self->m_generation.load())
+        co_return Err(msg::Error { .code = -1, .message = "backend generation changed" });
+    auto received = rstd::move(result).unwrap_unchecked();
+    if (received.hasEntities()) {
+        auto state = rstd::async::Completion<rstd::empty, QString>::make();
+        if (state.is_err())
+            co_return Err(
+                msg::Error { .code = -1, .message = "entity delivery allocation failed" });
+        auto pair       = std::move(state).unwrap_unchecked();
+        auto completion = std::move(pair.get<0>());
+        auto response   = std::make_shared<rstd::async::CompletionHandle<rstd::empty, QString>>(
+            std::move(pair.get<1>()));
+        AppStore::instance()->deliver(received.entities(), [response](QString error) {
+            if (error.isEmpty())
+                (void)response->complete(rstd::empty {});
+            else
+                (void)response->fail(error);
+        });
+        auto applied = co_await std::move(completion);
+        if (applied.is_err()) {
+            auto error = std::move(applied).unwrap_err_unchecked();
+            co_return Err(msg::Error {
+                .code    = -1,
+                .message = error.is_failed() ? std::move(error).unwrap_failed().toStdString()
+                                             : "entity delivery canceled" });
+        }
+        if (! co_await QAsyncResult::qexecutor() ||
+            (! self || generation != self->m_generation.load()))
+            co_return Err(
+                msg::Error { .code = -1, .message = "backend generation changed during delivery" });
+    } else if (! received.hasRsp() ||
+               received.rsp().code() == msg::ErrorCodeGadget::ErrorCode::ERROR_CODE_OK) {
+        co_return Err(
+            msg::Error { .code = -1, .message = "backend does not support entity protocol v1" });
+    }
+    co_return Ok(rstd::move(received));
+}
+
+StoreSubscription Backend::loadSongs(QList<i64> ids, QObject* consumer,
+                                     std::function<void(const SongResult&)> callback) {
+    Q_ASSERT(QThread::currentThread() == thread());
+    std::sort(ids.begin(), ids.end());
+    ids.erase(std::unique(ids.begin(), ids.end()), ids.end());
+    QStringList parts;
+    parts.push_back(QString::number(m_generation.load()));
+    parts.push_back(QString::number(AppStore::instance()->scopeRevision()));
+    for (auto id : ids) parts.push_back(QString::number(id));
+    return m_loader->load(parts.join(u':'), std::move(ids), consumer, std::move(callback));
 }
 
 auto Backend::base() const -> std::string { return std::format("http://127.0.0.1:{}", m_port); }
@@ -416,7 +589,8 @@ auto Backend::audio_url(model::ItemId id) -> QUrl {
     return QUrl(qextra::to_qstring(rstd::format("{}/audio/{}/{}", base(), id.type(), id.id())));
 }
 auto Backend::playback_url(model::ItemId id) -> QUrl {
-    return QUrl(qextra::to_qstring(rstd::format("{}/playback/source/{}/{}", base(), id.type(), id.id())));
+    return QUrl(
+        qextra::to_qstring(rstd::format("{}/playback/source/{}/{}", base(), id.type(), id.id())));
 }
 
 auto Backend::serial() -> i32 {

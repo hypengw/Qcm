@@ -3,6 +3,8 @@ import QtQuick
 import Qcm.App as QA
 
 Item {
+    readonly property QA.EntityView songEntity: QA.Store.item(playlist.currentSongId)
+    readonly property QA.EntityView albumEntity: QA.Store.item(playlist.currentAlbumId)
     required property QtObject playlist
     required property QA.QcmPlayer player
 
@@ -64,16 +66,16 @@ Item {
             if (root.song_cover)
                 meta[key(QA.MprisMediaPlayer.MetaArtUrl)] = root.song_cover;
             meta[key(QA.MprisMediaPlayer.MetaTitle)] = song.name;
-            meta[key(QA.MprisMediaPlayer.MetaAlbum)] = QA.Store.extra(playlist.currentSongId)?.album?.name ?? "";
+            meta[key(QA.MprisMediaPlayer.MetaAlbum)] = songEntity?.album?.name ?? "";
             {
-                const ex = QA.Store.extra(playlist.currentSongId);
+                const ex = songEntity;
                 const artist = ex?.artists.map(a => {
                     return a.name;
                 }) ?? [];
                 meta[key(QA.MprisMediaPlayer.MetaArtist)] = artist;
             }
             {
-                const ex = QA.Store.extra(playlist.currentAlbumId);
+                const ex = albumEntity;
                 const artist = ex?.artists.map(a => {
                     return a.name;
                 }) ?? [];

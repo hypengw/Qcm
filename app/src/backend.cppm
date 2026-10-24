@@ -1,5 +1,7 @@
 module;
 #include "core/log.h"
+#include <memory>
+#include <functional>
 #include "QExtra/macro_qt.hpp"
 
 #ifdef Q_MOC_RUN
@@ -22,6 +24,7 @@ export namespace qcm
 namespace detail
 {
 class BackendTransport;
+class EntityLoader;
 } // namespace detail
 class Backend : public QObject {
     Q_OBJECT
@@ -36,6 +39,9 @@ public:
     auto start(QStringView exe, QStringView data_dir, QStringView cache_dir) -> bool;
 
     void send_immediate(msg::QcmMessage&& msg);
+    using SongResult = Result<msg::GetSongsByIdRsp, msg::Error>;
+    StoreSubscription loadSongs(QList<i64>, QObject* consumer,
+                                std::function<void(const SongResult&)>);
 
     auto send(msg::QcmMessage&& msg) -> task<Result<msg::QcmMessage, msg::Error>>;
 
@@ -81,11 +87,13 @@ private:
     Box<QThread>              m_thread;
     detail::BackendTransport* m_transport;
 
-    Atomic<i32> m_serial;
-    i32         m_port;
-    bool        m_resource_ready { false };
-    QString     m_exe;
-    QString     m_data_dir;
-    QString     m_cache_dir;
+    std::unique_ptr<detail::EntityLoader> m_loader;
+    Atomic<i32>                           m_serial;
+    Atomic<quint64>                       m_generation { 0 };
+    i32                                   m_port;
+    bool                                  m_resource_ready { false };
+    QString                               m_exe;
+    QString                               m_data_dir;
+    QString                               m_cache_dir;
 };
 } // namespace qcm

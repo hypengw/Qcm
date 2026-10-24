@@ -18,6 +18,7 @@ AlbumsQuery::AlbumsQuery(QObject* parent): QueryList(parent) {
 auto AlbumsQuery::filters() const -> const QList<msg::filter::AlbumFilter>& { return m_filters; }
 void AlbumsQuery::setFilters(const QList<msg::filter::AlbumFilter>& filters) {
     m_filters = filters;
+    invalidateRequests();
     filtersChanged();
 }
 
@@ -26,6 +27,7 @@ auto AlbumsQuery::filterLogics() const -> const QList<msg::filter::FilterLogic>&
 }
 void AlbumsQuery::setFilterLogics(const QList<msg::filter::FilterLogic>& v) {
     m_filter_logics = v;
+    invalidateRequests();
     filterLogicsChanged();
 }
 
@@ -39,23 +41,17 @@ void AlbumsQuery::reload() {
     req.setFilters(m_filters);
     req.setFilterLogics(m_filter_logics);
 
-    auto self = QWatcher { this };
-    spawn([self, backend, req] mutable -> task<void> {
+    auto       self     = QWatcher { this };
+    const auto revision = beginRequest();
+    spawn([self, backend, req, revision] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         if (! co_await QAsyncResult::qexecutor()) co_return;
-        if (! self) co_return;
+        if (! self || ! self->isCurrentRequest(revision)) co_return;
         self->inspect_set(rsp, [self](msg::GetAlbumsRsp& el) {
             auto t = self->tdata();
             t->setHasMore(false);
-            auto view = std::ranges::views::transform(el.items(), [](auto& el) {
-                return model::Album { el };
-            });
-            t->sync(view);
-            auto store = AppStore::instance();
-            for (qsizetype i = 0; i < el.extras().size(); i++) {
-                auto id = el.items().at(i).id_proto();
-                merge_store_extra(store->albums, id, el.extras().at(i));
-            }
+            t->syncIds(el.ids());
+
             t->setHasMore(el.hasMore());
         });
         co_return;
@@ -63,7 +59,7 @@ void AlbumsQuery::reload() {
 }
 
 void AlbumsQuery::fetchMore(qint32) {
-    if (noMore()) return;
+    if (noMore() || querying()) return;
 
     setStatus(Status::Querying);
     auto app     = App::instance();
@@ -74,24 +70,16 @@ void AlbumsQuery::fetchMore(qint32) {
     req.setFilters(m_filters);
     req.setFilterLogics(m_filter_logics);
 
-    auto self = QWatcher { this };
-    spawn([self, backend, req] mutable -> task<void> {
+    auto       self     = QWatcher { this };
+    const auto revision = beginRequest();
+    spawn([self, backend, req, revision] mutable -> task<void> {
         auto offset = req.page();
         auto rsp    = co_await backend->send(std::move(req));
         if (! co_await QAsyncResult::qexecutor()) co_return;
-        if (! self) co_return;
+        if (! self || ! self->isCurrentRequest(revision)) co_return;
         self->inspect_set(rsp, [self, offset](msg::GetAlbumsRsp& el) {
-            auto view = std::ranges::views::transform(el.items(), [](auto&& el) {
-                return model::Album(el);
-            });
+            self->tdata()->appendIds(el.ids());
 
-            self->tdata()->extend(view);
-            auto store = AppStore::instance();
-
-            for (qsizetype i = 0; i < el.extras().size(); i++) {
-                auto id = el.items().at(i).id_proto();
-                merge_store_extra(store->albums, id, el.extras().at(i));
-            }
             self->setOffset(offset + 1);
             self->tdata()->setHasMore(el.hasMore());
         });
@@ -100,11 +88,13 @@ void AlbumsQuery::fetchMore(qint32) {
 }
 
 AlbumQuery::AlbumQuery(QObject* parent): QueryList(parent) {
+    connectSyncFinished(this);
     this->tdata()->set_store(this->tdata(), App::instance()->store()->songs);
 }
 auto AlbumQuery::itemId() const -> model::ItemId { return m_item_id; }
 void AlbumQuery::setItemId(model::ItemId in) {
     if (ycore::cmp_set(m_item_id, in)) {
+        invalidateRequests();
         itemIdChanged();
     }
 }
@@ -114,29 +104,24 @@ void AlbumQuery::reload() {
     auto backend = App::instance()->backend();
     auto req     = msg::GetAlbumReq {};
     req.setId_proto(m_item_id.id());
-    auto self = QWatcher { this };
-    spawn([self, backend, req] mutable -> task<void> {
+    auto       self     = QWatcher { this };
+    const auto revision = beginRequest();
+    spawn([self, backend, req, revision] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         if (! co_await QAsyncResult::qexecutor()) co_return;
-        if (! self) co_return;
+        if (! self || ! self->isCurrentRequest(revision)) co_return;
         self->inspect_set(rsp, [self](msg::GetAlbumRsp& el) {
             auto store = App::instance()->store();
             auto t     = self->tdata();
-            t->setAlbum(el.item());
+            t->setAlbumId(el.id_proto());
 
             i64 disc = 1;
-            for (auto& el : el.songs()) {
-                disc = std::max<i64>(el.discNumber(), disc);
+            for (auto id : el.songIds()) {
+                if (auto song = store->songs.store_query(id))
+                    disc = std::max<i64>(song->discNumber(), disc);
             }
             t->setDiscCount(disc);
-            t->resetModel(el.songs());
-
-            merge_store_extra(store->albums, el.item().id_proto(), el.extra());
-
-            for (qsizetype i = 0; i < el.songExtras().size(); i++) {
-                auto id = el.songs().at(i).id_proto();
-                merge_store_extra(store->songs, id, el.songExtras().at(i));
-            }
+            t->resetIds(el.songIds());
         });
         co_return;
     });

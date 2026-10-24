@@ -1,0 +1,103 @@
+syntax = "proto3";
+package qcm.msg.entity;
+
+import "google/protobuf/timestamp.proto";
+import "model.proto";
+
+message ReadStamp {
+  int64 owner = 1;
+  uint64 epoch = 2;
+  uint64 revision = 3;
+}
+message TextValue { optional string value = 1; }
+message TimeValue { google.protobuf.Timestamp value = 1; }
+message StringList { repeated string values = 1; }
+message EntityIds { repeated int64 ids = 1; }
+message AlbumLink { optional int64 id = 1; }
+message ItemState { optional bool favorite = 1; }
+
+message SongFields {
+  optional string name = 1;
+  TextValue sort_name = 2;
+  optional int32 track_number = 3;
+  optional int32 disc_number = 4;
+  optional double duration = 5;
+  optional bool can_play = 6;
+  TimeValue publish_time = 7;
+  optional double popularity = 8;
+  StringList tags = 9;
+}
+message AlbumFields {
+  optional string name = 1;
+  TextValue sort_name = 2;
+  optional qcm.msg.model.AlbumType type = 3;
+  optional int64 duration = 4;
+  optional int32 track_count = 5;
+  optional int32 disc_count = 6;
+  TextValue description = 7;
+  TextValue company = 8;
+  TextValue language = 9;
+  TimeValue publish_time = 10;
+  TimeValue added_at = 11;
+}
+message ArtistFields {
+  optional string name = 1;
+  TextValue sort_name = 2;
+  optional string description = 3;
+  optional int32 album_count = 4;
+  optional int32 music_count = 5;
+  TimeValue added_at = 6;
+}
+message MixFields {
+  optional string name = 1;
+  TextValue sort_name = 2;
+  optional int32 track_count = 3;
+  optional string description = 4;
+  optional qcm.msg.model.MixType mix_type = 5;
+  TimeValue update_at = 6;
+}
+message SongRelations {
+  AlbumLink album = 1;
+  EntityIds artists = 2;
+}
+message AlbumRelations { EntityIds artists = 1; }
+message SongUpdate {
+  int64 id = 1;
+  ReadStamp stamp = 2;
+  SongFields fields = 3;
+  SongRelations relations = 4;
+  ItemState state = 5;
+}
+message AlbumUpdate {
+  int64 id = 1;
+  ReadStamp stamp = 2;
+  AlbumFields fields = 3;
+  AlbumRelations relations = 4;
+  ItemState state = 5;
+}
+message ArtistUpdate {
+  int64 id = 1;
+  ReadStamp stamp = 2;
+  ArtistFields fields = 3;
+  ItemState state = 4;
+}
+message MixUpdate {
+  int64 id = 1;
+  ReadStamp stamp = 2;
+  MixFields fields = 3;
+}
+message Removal {
+  int64 id = 1;
+  qcm.msg.model.ItemType type = 2;
+  ReadStamp stamp = 3;
+}
+message EntityBatch {
+  uint32 protocol = 1;
+  string instance = 2;
+  repeated SongUpdate songs = 3;
+  repeated AlbumUpdate albums = 4;
+  repeated ArtistUpdate artists = 5;
+  repeated MixUpdate mixes = 6;
+  repeated Removal removals = 7;
+  repeated ReadStamp invalidations = 8;
+}

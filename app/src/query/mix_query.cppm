@@ -84,6 +84,7 @@ export class MixSongsQuery : public QueryList,
 public:
     MixSongsQuery(QObject* parent = nullptr);
     void reload() override;
+    void fetchMore(qint32) override;
 
     auto itemId() const -> model::ItemId;
     void setItemId(model::ItemId);
@@ -184,8 +185,8 @@ public:
 private:
     model::ItemId                                          m_mix_id;
     msg::model::MixManipulateOperGadget::MixManipulateOper m_oper;
-    std::vector<model::ItemId>                    m_song_ids;
-    std::vector<model::ItemId>                    m_album_ids;
+    std::vector<model::ItemId>                             m_song_ids;
+    std::vector<model::ItemId>                             m_album_ids;
 };
 
 } // namespace qcm

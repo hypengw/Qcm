@@ -23,64 +23,37 @@ AppInfo::AppInfo() {
 AppInfo::~AppInfo() {}
 
 } // namespace qcm::model
-namespace qcm::model
-{
-
-SongStoreItem::SongStoreItem(QObject* parent): base_type(AppStore::instance()->songs, parent) {}
-AlbumStoreItem::AlbumStoreItem(QObject* parent): base_type(AppStore::instance()->albums, parent) {}
-ArtistStoreItem::ArtistStoreItem(QObject* parent)
-    : base_type(AppStore::instance()->artists, parent) {}
-MixStoreItem::MixStoreItem(QObject* parent): base_type(AppStore::instance()->mixes, parent) {}
-
-} // namespace qcm::model
-
 
 namespace qcm::model
 {
 AlbumListModel::AlbumListModel(QObject* parent)
-    : ItemIdListModel(this, parent, enums::ItemType::ItemAlbum),
-      list_crtp_t(list_crtp_t::allocator_type { mem_mgr().store_mem }) {}
-QQmlPropertyMap* AlbumListModel::extra(i32 idx) const {
-    if (auto extend = AppStore::instance()->albums.query_extend(this->key_at(idx)); extend) {
-        return extend->extra.get();
-    }
-    return nullptr;
-}
+    : EntityList<model::Album>(parent,enums::ItemType::ItemAlbum,AppStore::instance()->albums) {}
+
 SongListModel::SongListModel(QObject* parent)
-    : ItemIdListModel(this, parent, enums::ItemType::ItemSong),
-      list_crtp_t(list_crtp_t::allocator_type { mem_mgr().store_mem }) {}
-QQmlPropertyMap* SongListModel::extra(i32 idx) const {
-    if (auto extend = AppStore::instance()->songs.query_extend(this->key_at(idx)); extend) {
-        return extend->extra.get();
-    }
-    return nullptr;
-}
+    : EntityList<model::Song>(parent,enums::ItemType::ItemSong,AppStore::instance()->songs) {}
+
 
 AlbumSongListModel::AlbumSongListModel(QObject* parent)
-    : ItemIdListModel(this, parent, enums::ItemType::ItemSong),
-      list_crtp_t(list_crtp_t::allocator_type { mem_mgr().store_mem }),
+    : EntityList<model::Song>(parent,enums::ItemType::ItemSong,AppStore::instance()->songs),
       m_disc_count(1) {
-    connect(&m_item, &model::AlbumStoreItem::itemChanged, this, &AlbumSongListModel::albumChanged);
+    connect(&m_item, &EntityView::changed, this, &AlbumSongListModel::albumChanged);
 }
 AlbumSongListModel::~AlbumSongListModel() {}
 auto AlbumSongListModel::album() const -> album_type { return m_item.item(); }
 auto AlbumSongListModel::discCount() const -> qint32 { return m_disc_count; }
-void AlbumSongListModel::setAlbum(const album_type& album) { m_item.setItem(album); }
+void AlbumSongListModel::setAlbumId(i64 id) { m_item.setItemId(id); }
 void AlbumSongListModel::setDiscCount(qint32 c) {
     if (c != m_disc_count) {
         m_disc_count = c;
         discCountChanged();
     }
 }
-auto AlbumSongListModel::extra() const -> QQmlPropertyMap* { return m_item.extra(); }
 
 ArtistListModel::ArtistListModel(QObject* parent)
-    : ItemIdListModel(this, parent, enums::ItemType::ItemAlbumArtist),
-      list_crtp_t(list_crtp_t::allocator_type { mem_mgr().store_mem }) {}
+    : EntityList<model::Artist>(parent,enums::ItemType::ItemAlbumArtist,AppStore::instance()->artists) {}
 
 MixListModel::MixListModel(QObject* parent)
-    : ItemIdListModel(this, parent, enums::ItemType::ItemMix),
-      list_crtp_t(list_crtp_t::allocator_type { mem_mgr().store_mem }) {}
+    : EntityList<model::Mix>(parent,enums::ItemType::ItemMix,AppStore::instance()->mixes) {}
 
 ForYouListModel::ForYouListModel(QObject* parent): kstore::QGadgetListModel(this, parent) {}
 auto ForYouListModel::data(const QModelIndex& index, int role) const -> QVariant {
@@ -122,22 +95,20 @@ auto RadioQueueListModel::roleNames() const -> QHash<int, QByteArray> {
 }
 
 MixSongListModel::MixSongListModel(QObject* parent)
-    : ItemIdListModel(this, parent, enums::ItemType::ItemSong),
-      list_crtp_t(list_crtp_t::allocator_type { mem_mgr().store_mem }),
+    : EntityList<model::Song>(parent,enums::ItemType::ItemSong,AppStore::instance()->songs),
       m_disc_count(1) {
-    connect(&m_item, &model::MixStoreItem::itemChanged, this, &MixSongListModel::mixChanged);
+    connect(&m_item, &EntityView::changed, this, &MixSongListModel::mixChanged);
 }
 MixSongListModel::~MixSongListModel() {}
 auto MixSongListModel::mix() const -> mix_type { return m_item.item(); }
 auto MixSongListModel::discCount() const -> qint32 { return m_disc_count; }
-void MixSongListModel::setMix(const mix_type& mix) { m_item.setItem(mix); }
+void MixSongListModel::setMixId(i64 id) { m_item.setItemId(id); }
 void MixSongListModel::setDiscCount(qint32 c) {
     if (c != m_disc_count) {
         m_disc_count = c;
         discCountChanged();
     }
 }
-auto MixSongListModel::extra() const -> QQmlPropertyMap* { return m_item.extra(); }
 
 } // namespace qcm::model
 

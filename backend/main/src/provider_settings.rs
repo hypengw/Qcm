@@ -120,17 +120,20 @@ pub async fn update(
     candidate.set_settings(snapshot);
     if replacing {
         write.invalidate_sync();
+        write.invalidate_scope()?;
         candidate.bind_session(db.clone(), candidate.session_key().unwrap_or_default());
-        ctx.playback.invalidate(req.provider_id).await;
         global::add_provider(candidate);
+        drop(write);
+        ctx.playback.invalidate(req.provider_id).await;
         ctx.radio
             .invalidate(&ctx.provider_context, req.provider_id)
             .await;
         if let Err(error) = ctx.resource_cache.invalidate(req.provider_id).await {
             tracing::warn!(provider_id = req.provider_id, %error, "Provider saved but cache invalidation failed");
         }
+    } else {
+        drop(write);
     }
-    drop(write);
     let _ = ctx
         .backend_ev
         .send(BackendEvent::UpdateProvider {

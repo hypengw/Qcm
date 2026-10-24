@@ -7,6 +7,7 @@ import Qcm.Material as MD
 
 MD.ListItem {
     id: root
+    readonly property QA.EntityView entity: QA.Store.item(root.itemId)
     required index
     required model
 
@@ -121,7 +122,7 @@ MD.ListItem {
                         }
                         if (!root.itemId.valid)
                             return "";
-                        const ex = QA.Store.extra(root.itemId);
+                        const ex = root.entity;
                         return QA.Util.join([QA.Util.joinName(ex?.artists), ex?.album?.name], ' - ');
                     }
                 }

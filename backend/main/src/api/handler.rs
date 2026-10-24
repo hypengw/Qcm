@@ -278,6 +278,7 @@ pub async fn handle_ws_message(
             if let Some(id) = id {
                 let rsp: Rsp = err.qcm_into();
                 let msg = QcmMessage {
+                    entities: None,
                     id,
                     r#type: msg::MessageType::Rsp.into(),
                     payload: Some(Payload::Rsp(rsp)),

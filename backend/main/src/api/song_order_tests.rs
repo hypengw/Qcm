@@ -20,6 +20,7 @@ async fn filtered_song_ids_follow_requested_order() {
         schema.create_table_from_entity(sqlm::album::Entity),
         schema.create_table_from_entity(sqlm::artist::Entity),
         schema.create_table_from_entity(sqlm::dynamic::Entity),
+        schema.create_table_from_entity(sqlm::mix::Entity),
         schema.create_table_from_entity(sqlm::rel_album_artist::Entity),
         schema.create_table_from_entity(sqlm::rel_song_artist::Entity),
     ] {
@@ -36,6 +37,7 @@ async fn filtered_song_ids_follow_requested_order() {
          (50,'Other album',2,1,1,1000,1,0,'[]');
          INSERT INTO item(id,native_id,provider_id,type,create_at,update_at,last_sync_at)
          SELECT id,CAST(id AS TEXT),1,101,0,0,0 FROM song;
+         INSERT INTO item(id,native_id,provider_id,type,create_at,update_at,last_sync_at) VALUES(1,'album',1,51,0,0,0);
          INSERT INTO album(id,name,track_count,disc_count,type,duration)
          VALUES(1,'Album',4,2,0,4000);",
     )
@@ -118,12 +120,5 @@ async fn filtered_song_ids_follow_requested_order() {
     let Some(msg::qcm_message::Payload::GetAlbumRsp(response)) = response.payload else {
         panic!("expected album");
     };
-    assert_eq!(
-        response
-            .songs
-            .iter()
-            .map(|song| song.id)
-            .collect::<Vec<_>>(),
-        vec![30, 20, 10, 40]
-    );
+    assert_eq!(response.song_ids, vec![30, 20, 10, 40]);
 }

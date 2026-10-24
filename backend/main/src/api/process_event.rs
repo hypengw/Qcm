@@ -1,4 +1,4 @@
-use crate::event::{EventSink, ServiceContext, BackendEvent, Event};
+use crate::event::{BackendEvent, Event, EventSink, ServiceContext};
 use crate::msg::model::AuthInfo;
 use qcm_core::event::SyncCommit;
 use qcm_core::event::{Event as CoreEvent, SyncState};
@@ -13,8 +13,7 @@ use tokio::sync::oneshot;
 
 use crate::convert::*;
 use crate::msg::{
-    self, model::ProviderStatus, ProviderMetaStatusMsg, ProviderStatusMsg,
-    QcmMessage,
+    self, model::ProviderStatus, ProviderMetaStatusMsg, ProviderStatusMsg, QcmMessage,
 };
 
 pub struct ProcessContext {
@@ -151,11 +150,12 @@ pub async fn process_backend_event(
                     }
                 }
             };
-            let msg: QcmMessage = msg::ProviderSyncStatusMsg {
+            let mut msg: QcmMessage = msg::ProviderSyncStatusMsg {
                 status: Some(status),
                 statuses: Vec::new(),
             }
             .qcm_into();
+            super::entity::populate(&ctx, &QcmMessage::default(), &mut msg).await?;
             sink.send_message(msg).await?;
         }
         BackendEvent::End => return Ok(true),
@@ -212,7 +212,7 @@ async fn send_provider_status(
 ) -> Result<Vec<Arc<dyn Provider>>> {
     let db = &ctx.provider_context.db;
     let providers = global::providers();
-    let msg: QcmMessage = {
+    let mut msg: QcmMessage = {
         let mut msg = ProviderStatusMsg::default();
 
         let libraries = sqlm::library::Entity::find().all(db).await?;
@@ -245,6 +245,7 @@ async fn send_provider_status(
         msg.full = true;
         msg.qcm_into()
     };
+    super::entity::populate(ctx, &QcmMessage::default(), &mut msg).await?;
     sink.send_message(msg).await?;
     Ok(providers)
 }

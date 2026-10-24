@@ -86,7 +86,8 @@ class PlayQueue : public QIdentityProxyModel, public kstore::QMetaRoleNames {
                    bindableCurrentIndex FINAL)
     Q_PROPERTY(qcm::model::Song currentSong READ currentSong NOTIFY currentSongChanged FINAL)
     Q_PROPERTY(qcm::model::ItemId currentSongId READ currentSongId NOTIFY currentSongChanged FINAL)
-    Q_PROPERTY(qcm::model::ItemId currentAlbumId READ currentAlbumId NOTIFY currentSongChanged FINAL)
+    Q_PROPERTY(
+        qcm::model::ItemId currentAlbumId READ currentAlbumId NOTIFY currentSongChanged FINAL)
     Q_PROPERTY(
         qcm::enums::LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged FINAL)
     Q_PROPERTY(bool randomMode READ randomMode WRITE setRandomMode NOTIFY randomModeChanged FINAL)
@@ -108,6 +109,7 @@ public:
     ~PlayQueue();
 
     void drop_global();
+    void reloadEntities();
 
     auto data(const QModelIndex& index, int role) const -> QVariant override;
     void setSourceModel(QAbstractItemModel* sourceModel) override;
@@ -163,10 +165,10 @@ public:
 
     Q_INVOKABLE bool move(qint32 src, qint32 dst, qint32 count = 1);
 
-    Q_INVOKABLE   qcm::model::DynamicIdQueue*
-                  dynamicQueue(model::ItemId queueId, const QString& name,
-                               const QList<qcm::msg::model::QueueConfigField>& configuration,
-                               bool canRestart, const QString& restartLabel);
+    Q_INVOKABLE qcm::model::DynamicIdQueue*
+    dynamicQueue(model::ItemId queueId, const QString& name,
+                 const QList<qcm::msg::model::QueueConfigField>& configuration, bool canRestart,
+                 const QString& restartLabel);
     auto          radioQueue() const -> model::DynamicIdQueue*;
     Q_SIGNAL void radioQueueChanged();
 
@@ -207,13 +209,15 @@ private:
     bool    m_random_mode;
     QString m_name;
 
-    i64     m_notify_handle;
-    QTimer* m_changed_timer;
-    QTimer* m_pending_advance_timer;
-    bool    m_pending_advance;
+    StoreSubscription                    m_subscription;
+    std::map<quint64, StoreSubscription> m_loads;
+    quint64                              m_loadSerial {};
+    QTimer*                              m_changed_timer;
+    QTimer*                              m_pending_advance_timer;
+    bool                                 m_pending_advance;
 
     std::unordered_map<qint64, QPointer<model::DynamicIdQueue>> m_dynamic_queues;
-    QAsyncScope                                        m_background_tasks;
+    QAsyncScope                                                 m_background_tasks;
 
     Q_OBJECT_BINDABLE_PROPERTY(PlayQueue, int, m_current_index, &PlayQueue::currentIndexChanged)
 };

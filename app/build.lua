@@ -18,6 +18,7 @@ qt.protobuf({
     "filter.proto",
     "message.proto",
     "model.proto",
+    "entity.proto",
   },
   proto_includes = { "." },
   output = "Qcm/message",

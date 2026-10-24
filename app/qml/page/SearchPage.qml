@@ -154,8 +154,7 @@ MD.Page {
                             maximumLineCount: 2
                             corners: MD.Util.listCorners(index, count, 16)
                             supportText: {
-                                const ex = QA.Store.extra(model.itemId);
-                                return [QA.Util.joinName(ex?.artists), QA.Util.formatDateTime(model.publishTime, 'yyyy')].filter(e => !!e).join(' • ');
+                                return [QA.Util.joinName(model.artists), QA.Util.formatDateTime(model.publishTime, 'yyyy')].filter(e => !!e).join(' • ');
                             }
                             leader: QA.Image {
                                 radius: 8

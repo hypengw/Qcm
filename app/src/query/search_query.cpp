@@ -45,10 +45,6 @@ SearchModel::SearchModel(QObject* parent)
       m_album_model(new AlbumListModel(this)),
       m_song_model(new SongListModel(this)),
       m_artist_model(new ArtistListModel(this)) {
-    auto store = AppStore::instance();
-    m_album_model->set_store(m_album_model, store->albums);
-    m_song_model->set_store(m_song_model, store->songs);
-    m_artist_model->set_store(m_artist_model, store->artists);
 }
 
 auto SearchModel::songs() -> SongListModel* { return m_song_model; }
@@ -86,6 +82,7 @@ SearchQuery::SearchQuery(QObject* parent)
 auto SearchQuery::text() const -> QString { return m_text; }
 void SearchQuery::setText(QString v) {
     if (ycore::cmp_set(m_text, v)) {
+        invalidateRequests();
         textChanged(m_text);
     }
 }
@@ -93,6 +90,7 @@ void SearchQuery::setText(QString v) {
 auto SearchQuery::location() const -> enums::SearchLocation { return m_location; }
 void SearchQuery::setLocation(enums::SearchLocation v) {
     if (ycore::cmp_set(m_location, v)) {
+        invalidateRequests();
         locationChanged(m_location);
     }
 };
@@ -102,6 +100,7 @@ void SearchQuery::setData(model::SearchModel* v) { return this->set_tdata(v); }
 auto SearchQuery::type() const -> enums::SearchType { return m_type; }
 void SearchQuery::setType(enums::SearchType v) {
     if (ycore::cmp_set(m_type, v)) {
+        invalidateRequests();
         typeChanged(m_type);
     };
 }
@@ -121,26 +120,20 @@ void SearchQuery::reload() {
         req.setTypes(types);
     }
 
-    spawn([self = WatchSelf(this), req]() mutable -> task<void> {
+    const auto revision = beginRequest();
+    spawn([self = WatchSelf(this), req, revision]() mutable -> task<void> {
         auto backend = App::instance()->backend();
         auto query   = req.query();
         auto rsp     = co_await backend->send(std::move(req));
         if (! co_await QAsyncResult::qexecutor()) co_return;
-        if (! self) co_return;
+        if (! self || ! self->isCurrentRequest(revision)) co_return;
         self->inspect_set(rsp, [self, query](msg::SearchRsp& rsp) {
             if (rsp.hasAlbums()) {
                 auto el = rsp.albums();
                 auto t  = self->tdata()->albums();
                 t->setHasMore(false);
-                auto view = std::ranges::views::transform(el.items(), [](auto& el) {
-                    return model::Album { el };
-                });
-                t->sync(view);
-                auto store = AppStore::instance();
-                for (qsizetype i = 0; i < el.extras().size(); i++) {
-                    auto id = el.items().at(i).id_proto();
-                    merge_store_extra(store->albums, id, el.extras().at(i));
-                }
+                t->syncIds(el.ids());
+
                 t->setHasMore(el.hasMore());
                 self->tdata()->setAlbumQuery(query);
             }
@@ -149,15 +142,8 @@ void SearchQuery::reload() {
                 auto el = rsp.songs();
                 auto t  = self->tdata()->songs();
                 t->setHasMore(false);
-                auto view = std::ranges::views::transform(el.items(), [](auto& el) {
-                    return model::Song { el };
-                });
-                t->sync(view);
-                auto store = AppStore::instance();
-                for (qsizetype i = 0; i < el.extras().size(); i++) {
-                    auto id = el.items().at(i).id_proto();
-                    merge_store_extra(store->songs, id, el.extras().at(i));
-                }
+                t->syncIds(el.ids());
+
                 t->setHasMore(el.hasMore());
                 self->tdata()->setSongQuery(query);
             }
@@ -166,10 +152,7 @@ void SearchQuery::reload() {
                 auto el = rsp.artists();
                 auto t  = self->tdata()->artists();
                 t->setHasMore(false);
-                auto view = std::ranges::views::transform(el.items(), [](auto& el) {
-                    return model::Artist { el };
-                });
-                t->sync(view);
+                t->syncIds(el.ids());
                 t->setHasMore(el.hasMore());
                 self->tdata()->setArtistQuery(query);
             }

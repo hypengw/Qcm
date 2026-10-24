@@ -235,8 +235,7 @@ void QueueNextQuery::reload() {
                 }
                 self->inspect_set(rsp, [self](auto& el) {
                     msg::GetQueueNextRsp page;
-                    page.setSongs(el.songs());
-                    page.setExtras(el.extras());
+                    page.setSongIds(el.songIds());
                     page.setSession(el.session());
                     self->set_tdata(page);
                 });
