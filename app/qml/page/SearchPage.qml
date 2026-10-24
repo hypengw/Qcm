@@ -58,7 +58,7 @@ MD.Page {
                 Layout.fillWidth: true
 
                 onAccepted: {
-                    m_stack.updateText(text);
+                    m_stack.updateText(m_search_bar.searchText);
                 }
             }
 
@@ -79,7 +79,7 @@ MD.Page {
                         onSelectionRequested: {
                             m_search_type_model.currentIndex = model.index;
                             m_stack.currentIndex = model.index;
-                            m_stack.updateText(m_search_bar.text);
+                            m_stack.updateText(m_search_bar.searchText);
                         }
 
                     }
