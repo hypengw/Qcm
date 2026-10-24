@@ -20,7 +20,6 @@ Q_IMPORT_QML_PLUGIN(QExtraPlugin)
 
 module qcm.entry;
 
-import ncrequest;
 import platform;
 import qcm;
 import qcm.log;
@@ -56,7 +55,6 @@ void qt_log(QtMsgType type, const QMessageLogContext& context, const QString& ms
 int run(int argc, char** argv) {
     plt::malloc_init();
     auto logger = LogManager::instance();
-    ncrequest::global_init();
 
     qInstallMessageHandler(qt_log);
 

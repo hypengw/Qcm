@@ -163,9 +163,8 @@ workspace = true
 [dependencies.qcm-qr-code]
 workspace = true
 
-[dependencies.ncrequest]
+[dependencies.qcm-backend-connection]
 workspace = true
-features = ["qt"]
 
 [dependencies.qextra]
 workspace = true

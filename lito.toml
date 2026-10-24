@@ -2,6 +2,7 @@
 name = "qcm"
 members = [
   "app",
+  "app/backend",
   "app/playback",
   "backend/plugin/lua/jellyfin",
   "backend/plugin/lua/subsonic",
@@ -19,6 +20,7 @@ version = "1.3.8"
 authors = ["hypengw"]
 
 [workspace.dependencies]
+qcm-backend-connection = { path = "app/backend" }
 qcm-core = { path = "core" }
 qcm-mpris = { path = "mpris" }
 qcm-platform = { path = "app/src/platform" }

@@ -14,10 +14,6 @@ export import :qml.enums;
 export import :util.mem;
 export import :player;
 import qextra;
-import ncrequest;
-
-using rstd::sync::Arc;
-
 
 namespace qcm
 {
@@ -49,10 +45,6 @@ public:
     Global();
     ~Global();
 
-    auto session() -> Arc<ncrequest::Session>;
-    void set_proxy(ncrequest::ProxyOptions);
-    void set_verify_certificate(bool);
-
     auto uuid() const -> const QUuid&;
     auto player() const -> Player*;
 
@@ -63,7 +55,6 @@ public:
     Q_SIGNAL void errorOccurred(QString error, StopSignal stop = {});
     Q_SIGNAL void copyActionCompChanged(StopSignal stop = {});
     Q_SIGNAL void uuidChanged(StopSignal stop = {});
-    Q_SIGNAL void sessionChanged(StopSignal stop = {});
 
     using MetadataImpl = std::function<Metadata(const std::filesystem::path&)>;
     void        set_uuid(const QUuid&);
@@ -103,7 +94,6 @@ public:
     Q_SIGNAL void errorOccurred(QString error, StopSignal stop = {});
     Q_SIGNAL void copyActionCompChanged(StopSignal stop = {});
     Q_SIGNAL void uuidChanged(StopSignal stop = {});
-    Q_SIGNAL void sessionChanged(StopSignal stop = {});
 
 private:
     template<typename R, typename... ARGS>
@@ -132,18 +122,10 @@ public:
     Private(Global* p);
     ~Private();
 
-    Arc<ncrequest::Session> session;
-    ncrequest::ProxyOptions proxy;
-    ncrequest::TlsOptions tls;
-    auto replace_session(ncrequest::ProxyOptions, ncrequest::TlsOptions)
-        -> ncrequest::Result<rstd::empty>;
-
     QUuid uuid;
 
     MetadataImpl metadata_impl;
 
     Player* player;
-
-    mutable std::mutex mutex;
 };
 } // namespace qcm

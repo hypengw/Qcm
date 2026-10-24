@@ -1,7 +1,8 @@
 module;
 #include <cstdio>
+#include <exception>
+#include <future>
 #include <limits>
-#include <map>
 #include <memory>
 #include <rstd/macro.hpp>
 
@@ -11,7 +12,7 @@ module;
 module qcm;
 import :backend;
 import :status.process;
-import ncrequest;
+import qcm.backend.connection;
 import platform;
 import qcm.log;
 import qextra;
@@ -28,11 +29,6 @@ namespace detail
 {
 
 using ResponseHandle = rstd::async::CompletionHandle<msg::QcmMessage, msg::Error>;
-
-auto as_byte_array_view(rstd::slice<rstd::u8> bytes) -> QByteArrayView {
-    return { reinterpret_cast<const char*>(bytes.as_raw_ptr()),
-             static_cast<qsizetype>(bytes.len().to_primitive()) };
-}
 
 auto transport_error(QString message) -> msg::Error {
     return msg::Error { .code = -1, .message = message.toStdString() };
@@ -54,57 +50,43 @@ public:
                 this,
                 [this](int exit_code, QProcess::ExitStatus) {
                     auto message = QStringLiteral("Backend exited: %1").arg(exit_code);
-                    fail_pending(message);
-                    if (! m_shutting_down) Q_EMIT m_backend->error(message);
+                    fail(message);
                 });
         connect(
             m_process.get(), &QProcess::errorOccurred, this, [this](QProcess::ProcessError error) {
                 auto key     = QMetaEnum::fromType<QProcess::ProcessError>().valueToKey(error);
                 auto message = QStringLiteral("Backend %1").arg(QString::fromLatin1(key));
-                fail_pending(message);
-                if (! m_shutting_down) Q_EMIT m_backend->error(message);
+                fail(message);
             });
 
         m_serializer = std::make_unique<QProtobufSerializer>();
-        m_client     = std::make_unique<ncrequest::WebSocketClient>();
-        m_client->set_on_error_callback([this](rstd::ref<rstd::str> error) {
-            auto message = QString::fromUtf8(reinterpret_cast<const char*>(error.data()),
-                                             static_cast<qsizetype>(error.size().to_primitive()));
-            LOG_ERROR("websocket: {}", message.toStdString());
-            fail_pending(message);
-            if (! m_shutting_down) Q_EMIT m_backend->error(message);
-        });
-        m_client->set_on_connected_callback([this] {
+        BackendConnectionCallbacks callbacks;
+        callbacks.connected = [this] {
+            m_connected = true;
             Q_EMIT m_backend->connected(m_port);
-        });
-        m_client->set_on_disconnected_callback([this] {
+        };
+        callbacks.error = [this](QString message) {
+            fail(message);
+        };
+        callbacks.disconnected = [this] {
+            m_connected = false;
             fail_pending(QStringLiteral("backend disconnected"));
             Q_EMIT m_backend->disconnected();
-        });
-        m_client->set_on_message_callback([this, cache = QByteArray {}](rstd::slice<rstd::u8> bytes,
-                                                                        bool last) mutable {
-            auto chunk = as_byte_array_view(bytes);
-            if (! last) {
-                cache.append(chunk);
-                return;
-            }
-
+        };
+        callbacks.message = [this](QByteArray bytes) {
             msg::QcmMessage message;
-            if (cache.isEmpty()) {
-                message.deserialize(m_serializer.get(), chunk);
-            } else {
-                cache.append(chunk);
-                message.deserialize(m_serializer.get(), cache);
-                cache.clear();
+            if (! message.deserialize(m_serializer.get(), bytes)) {
+                fail(QStringLiteral("Invalid backend protobuf message"));
+                return;
             }
 
             if (message.type() != msg::MessageTypeGadget::MessageType::PROVIDER_SYNC_STATUS_MSG) {
                 LOG_INFO("ws recv: {}", message.type());
             }
 
-            if (auto it = m_handlers.find(message.id_proto()); it != m_handlers.end()) {
-                (void)it->second.complete(rstd::move(message));
-                m_handlers.erase(it);
+            auto id = message.id_proto();
+            if (id != 0) {
+                (void)m_pending.complete(id, rstd::move(message));
                 return;
             }
 
@@ -114,11 +96,17 @@ public:
                     qcm::process_msg(rstd::move(message));
                 },
                 Qt::QueuedConnection);
-        });
+        };
+        m_connection = std::make_unique<BackendConnection>(QAsyncResult::runtime_handle(),
+                                                           std::move(callbacks));
     }
 
     void start(QString exe, QString data_dir, QString cache_dir) {
         if (! m_process || m_process->state() != QProcess::NotRunning) return;
+        if (m_shutting_down) return;
+        m_failed    = false;
+        m_connected = false;
+        m_connection->disconnect();
 
         if (m_stdout_connection) QObject::disconnect(m_stdout_connection);
         m_stdout_connection =
@@ -156,43 +144,52 @@ public:
     }
 
     void kill() {
+        m_connected = false;
+        if (m_connection) m_connection->disconnect();
         if (m_process && m_process->state() != QProcess::NotRunning) m_process->kill();
     }
 
     void connect_to(rstd::string::String url, i32 port) {
         m_port = port;
-        if (m_client) (void)m_client->connect(url.as_str());
+        if (m_connection && ! m_shutting_down) m_connection->open(qextra::to_qstring(url));
     }
 
     void send(msg::QcmMessage message, ResponseHandle response) {
-        if (! m_client || ! m_client->is_connected()) {
+        if (! m_connection || ! m_connected || m_shutting_down) {
             (void)response.fail(transport_error(QStringLiteral("backend disconnected")));
             return;
         }
 
         auto id = message.id_proto();
-        m_handlers.insert_or_assign(id, rstd::move(response));
-        send_untracked(rstd::move(message));
+        if (m_pending.contains(id)) {
+            (void)response.fail(transport_error(QStringLiteral("duplicate backend request id")));
+            return;
+        }
+        auto sent = m_connection->send(message.serialize(m_serializer.get()));
+        if (sent.is_err()) {
+            (void)response.fail(transport_error(sent.unwrap_err()));
+            return;
+        }
+        (void)m_pending.add(id, rstd::move(response));
     }
 
     void send_untracked(msg::QcmMessage message) {
-        if (! m_client || ! m_client->is_connected()) return;
-        auto bytes = message.serialize(m_serializer.get());
-        m_client->send(rstd::slice<rstd::u8>::from_raw_parts(
-            reinterpret_cast<const rstd::byte*>(bytes.constData()),
-            rstd::usize(static_cast<std::size_t>(bytes.size()))));
+        if (! m_connection || m_shutting_down) return;
+        auto sent = m_connection->send(message.serialize(m_serializer.get()));
+        if (sent.is_err()) LOG_ERROR("backend send: {}", sent.unwrap_err().toStdString());
     }
 
-    void cancel(i32 request_id) { m_handlers.erase(request_id); }
+    void cancel(i32 request_id) { m_pending.cancel(request_id); }
 
-    void shutdown() {
+    auto shutdown() -> std::shared_future<void> {
         m_shutting_down = true;
+        m_connected     = false;
         fail_pending(QStringLiteral("backend shutting down"));
-        if (m_client) {
-            m_client->disconnect();
-            m_client.reset();
-        }
+        return m_connection->shutdown();
+    }
 
+    void finish_shutdown() {
+        m_connection.reset();
         if (m_process && m_process->state() != QProcess::NotRunning) {
             m_process->terminate();
             if (! m_process->waitForFinished(3000)) {
@@ -205,22 +202,25 @@ public:
     }
 
 private:
-    void fail_pending(const QString& message) {
-        for (auto& [id, handler] : m_handlers) {
-            (void)id;
-            (void)handler.fail(transport_error(message));
-        }
-        m_handlers.clear();
+    void fail(const QString& message) {
+        m_connected = false;
+        fail_pending(message);
+        if (m_connection) m_connection->disconnect();
+        if (! m_shutting_down && ! std::exchange(m_failed, true)) Q_EMIT m_backend->error(message);
     }
+
+    void fail_pending(const QString& message) { m_pending.fail_all(transport_error(message)); }
 
     Backend*                                    m_backend;
     std::unique_ptr<QProcess>                   m_process;
-    std::unique_ptr<ncrequest::WebSocketClient> m_client;
+    std::unique_ptr<BackendConnection>          m_connection;
     std::unique_ptr<QProtobufSerializer>        m_serializer;
-    std::map<i32, ResponseHandle>               m_handlers;
+    BackendPending<msg::QcmMessage, msg::Error> m_pending;
     QMetaObject::Connection                     m_stdout_connection;
     i32                                         m_port { 0 };
     bool                                        m_shutting_down { false };
+    bool                                        m_connected { false };
+    bool                                        m_failed { false };
 };
 
 class RequestGuard {
@@ -275,10 +275,22 @@ Backend::Backend()
 }
 
 Backend::~Backend() {
+    std::shared_future<void> closed;
+    (void)QMetaObject::invokeMethod(
+        m_transport,
+        [transport = m_transport, &closed] {
+            closed = transport->shutdown();
+        },
+        Qt::BlockingQueuedConnection);
+    try {
+        closed.get();
+    } catch (const std::exception& error) {
+        LOG_ERROR("backend shutdown: {}", error.what());
+    }
     (void)QMetaObject::invokeMethod(
         m_transport,
         [transport = m_transport] {
-            transport->shutdown();
+            transport->finish_shutdown();
         },
         Qt::BlockingQueuedConnection);
     m_thread->quit();
@@ -322,7 +334,7 @@ void Backend::on_started(i32 port) {
     m_resource_ready = false;
     Q_EMIT resourceStateChanged();
     m_port   = port;
-    auto url = rstd::format("ws://127.0.0.1:{}", port);
+    auto url = rstd::format("http://127.0.0.1:{}", port);
     (void)QMetaObject::invokeMethod(
         m_transport,
         [transport = m_transport, url = rstd::move(url), port]() mutable {

@@ -95,8 +95,6 @@ public:
 
     Q_SLOT void releaseResources(QQuickWindow*, const QJSValue&);
     Q_SLOT void triggerCacheLimit();
-    Q_SLOT void setProxy(enums::ProxyType, QString);
-    Q_SLOT void setVerifyCertificate(bool);
     Q_SLOT void load_settings();
     Q_SLOT void save_settings();
 

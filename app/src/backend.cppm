@@ -10,7 +10,6 @@ export import :msg;
 export import :status.process;
 export import :util.mem;
 import qextra;
-import ncrequest;
 
 using rstd::boxed::Box;
 using rstd::sync::Arc;
