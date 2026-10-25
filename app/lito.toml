@@ -20,6 +20,9 @@ sources = [
   "src/app.cppm",
   "src/backend.cpp",
   "src/backend.cppm",
+  "src/backend/connection.cpp",
+  "src/backend/connection.cppm",
+  "src/backend/pending.cppm",
   "src/convert.cpp",
   "src/entry.cpp",
   "src/entry.cppm",
@@ -67,6 +70,12 @@ sources = [
   "src/notifier.cppm",
   "src/player.cpp",
   "src/player.cppm",
+  "src/playback/io.cpp",
+  "src/playback/io.cppm",
+  "src/platform/linux.cpp",
+  "src/platform/platform.cpp",
+  "src/platform/platform.cppm",
+  "src/platform/win.cpp",
   "src/provider_status.cpp",
   "src/qml/clipboard.cpp",
   "src/qml/clipboard.cppm",
@@ -155,19 +164,17 @@ workspace = true
 [dependencies.qcm-mpris]
 workspace = true
 
-[dependencies.qcm-platform]
-workspace = true
-
 [dependencies.qcm-player]
-workspace = true
-
-[dependencies.qcm-playback-io]
 workspace = true
 
 [dependencies.qcm-qr-code]
 workspace = true
 
-[dependencies.qcm-backend-connection]
+[dependencies.ncrequest]
+workspace = true
+features = ["qt"]
+
+[dependencies.wavsen]
 workspace = true
 
 [dependencies.qextra]

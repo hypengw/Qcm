@@ -2,7 +2,6 @@ module;
 
 #ifdef _WIN32
 #    include <windows.h>
-#    include <io.h>
 #    include <string>
 #endif
 module platform;
@@ -34,24 +33,6 @@ void set_thread_name(const char* name) {
     }
 }
 
-auto is_terminal() -> bool { return _isatty(_fileno(stdout)); }
-
-auto support_color() -> bool {
-    // Get the handle to the standard output
-    HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
-    if (hStdout == INVALID_HANDLE_VALUE) {
-        return false;
-    }
-
-    // Retrieve the current console mode
-    DWORD consoleMode = 0;
-    if (! GetConsoleMode(hStdout, &consoleMode)) {
-        return false;
-    }
-
-    // Check if the console supports virtual terminal sequences (ANSI colors)
-    return (consoleMode & ENABLE_VIRTUAL_TERMINAL_PROCESSING) != 0;
-}
 } // namespace plt
 
 #endif

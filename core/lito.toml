@@ -34,9 +34,6 @@ condition = 'target.os == "windows"'
 [when.usage]
 public-definitions = ["WIN32_LEAN_AND_MEAN", "NOMINMAX", "NOGDI", "_WIN32_WINNT=0x0A00"]
 
-[dependencies.qcm-platform]
-workspace = true
-
 [dependencies.rstd-cppstd]
 workspace = true
 pub = true

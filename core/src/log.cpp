@@ -4,11 +4,16 @@ module;
 #include <iterator>
 #include <cassert>
 #include <cstdio>
+#include <cstdlib>
 #include <source_location>
+#ifdef _WIN32
+#    include <windows.h>
+#else
+#    include <unistd.h>
+#endif
 
 module qcm.log;
 import qcm.helper;
-import platform;
 
 namespace
 {
@@ -86,6 +91,24 @@ bool check_stderr(qcm::LogLevel lv) {
     }
 }
 
+auto support_color() -> bool {
+#ifdef _WIN32
+    auto  handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    DWORD mode {};
+    return handle != INVALID_HANDLE_VALUE && GetConsoleMode(handle, &mode) &&
+           (mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING) != 0;
+#else
+    if (! isatty(fileno(stdout))) return false;
+    const auto* term = std::getenv("TERM");
+    if (! term) return false;
+    const std::string_view value(term);
+    return value.find("color") != std::string_view::npos ||
+           value.find("xterm") != std::string_view::npos ||
+           value.find("screen") != std::string_view::npos ||
+           value.find("tmux") != std::string_view::npos;
+#endif
+}
+
 struct file_iterator {
     FILE* file;
 
@@ -143,7 +166,7 @@ void log::log_raw(LogLevel level, std::string_view content) {
     if (out == nullptr) return;
 
     file_iterator out_iter(out);
-    if (plt::support_color()) {
+    if (support_color()) {
         std::format_to(out_iter, "{}{}{}", get_log_color(level), content, COLOR_RESET);
     } else {
         std::format_to(out_iter, "{}", content);

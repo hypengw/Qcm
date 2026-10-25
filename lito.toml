@@ -2,12 +2,8 @@
 name = "qcm"
 members = [
   "app",
-  "app/backend",
-  "app/tests",
-  "app/playback",
   "backend/plugin/lua/jellyfin",
   "backend/plugin/lua/subsonic",
-  "app/src/platform",
   "core",
   "mpris",
   "player",
@@ -21,12 +17,9 @@ version = "1.3.8"
 authors = ["hypengw"]
 
 [workspace.dependencies]
-qcm-backend-connection = { path = "app/backend" }
 qcm-core = { path = "core" }
 qcm-mpris = { path = "mpris" }
-qcm-platform = { path = "app/src/platform" }
 qcm-player = { path = "player" }
-qcm-playback-io = { path = "app/playback" }
 qcm-qr-code = { path = "third_party/qr_code" }
 rstd-cppstd = { version = "0.1.7" }
 rstd-std = { version = "0.1.7" }
