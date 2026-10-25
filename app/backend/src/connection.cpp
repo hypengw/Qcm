@@ -2,6 +2,7 @@ module;
 #include <QNetworkAccessManager>
 #include <QNetworkProxy>
 #include <QThread>
+#include <QPointer>
 #include <QtGlobal>
 #include <algorithm>
 #include <chrono>
@@ -19,6 +20,31 @@ using rstd::sync::Arc;
 namespace lf = lifetchto;
 namespace qt = ncrequest::client::qt_network;
 
+namespace qcm
+{
+struct ConnectionExecutor {
+    QPointer<QObject> target;
+    auto              post_job(rstd::async::ExecutorJob job) const -> bool {
+        if (! target) return false;
+        auto owned = std::make_shared<rstd::async::ExecutorJob>(rstd::move(job));
+        return QMetaObject::invokeMethod(
+            target.data(),
+            [owned = std::move(owned)] {
+                owned->run();
+            },
+            Qt::QueuedConnection);
+    }
+    auto is_closed() const -> bool { return target.isNull(); }
+};
+} // namespace qcm
+namespace rstd
+{
+template<>
+struct Impl<async::Executor, qcm::ConnectionExecutor> : ImplBase<qcm::ConnectionExecutor> {
+    auto post_job(async::ExecutorJob job) { return this->self().post_job(rstd::move(job)); }
+    auto is_closed() { return this->self().is_closed(); }
+};
+} // namespace rstd
 namespace qcm
 {
 namespace
@@ -138,8 +164,7 @@ auto run_connection(std::shared_ptr<ConnectionState> state, rstd::async::Runtime
         // IPC stays open for the process lifetime; handshake and close retain their deadlines.
         ws.upgrade.duplex.total_timeout = Some(lf::http::TotalTimeout::disabled());
         ncrequest::WebSocketCallbacks callbacks;
-        callbacks.executor = Some(executor.clone());
-        callbacks.message  = [state, generation](liwebsocketo::Message message) {
+        callbacks.message = [state, generation](liwebsocketo::Message message) {
             if (! state->current(generation) || state->failed) return;
             if (message.kind == liwebsocketo::Kind::Pong) return;
             if (message.kind != liwebsocketo::Kind::Binary) {
@@ -222,7 +247,7 @@ class BackendConnection::Private {
 public:
     std::shared_ptr<ConnectionState> state;
     rstd::async::RuntimeHandle       runtime;
-    qt::CallbackExecutor             callback_executor;
+    rstd::async::AnyExecutor         executor;
     std::shared_future<void>         done;
     rstd::async::JoinHandle<void>    worker;
 
@@ -230,15 +255,14 @@ public:
             BackendConnectionCallbacks callbacks, BackendConnectionLimits limits)
         : state(std::make_shared<ConnectionState>()),
           runtime(rstd::move(handle)),
-          callback_executor(qt::CallbackExecutor::make(owner).unwrap()),
+          executor(rstd::async::AnyExecutor::from_executor(ConnectionExecutor { owner })),
           worker([&] {
               state->callbacks = std::move(callbacks);
               state->limits    = limits;
               auto promise     = std::make_shared<std::promise<void>>();
               done             = promise->get_future().share();
-              auto executor    = rstd::async::AnyExecutor::from_executor(callback_executor.clone());
               return runtime.spawn(finish_connection(
-                  runtime.spawn(run_connection(state, runtime.clone(), std::move(executor))),
+                  runtime.spawn(run_connection(state, runtime.clone(), executor.clone())),
                   std::move(promise)));
           }()) {}
 };
@@ -251,7 +275,6 @@ BackendConnection::BackendConnection(rstd::async::RuntimeHandle runtime,
 
 BackendConnection::~BackendConnection() {
     Q_ASSERT(d->done.wait_for(std::chrono::seconds(0)) == std::future_status::ready);
-    d->callback_executor.close();
 }
 
 void BackendConnection::open(QStringView url) {
@@ -281,7 +304,7 @@ auto BackendConnection::send(QByteArray bytes) -> Result<empty, QString> {
     std::erase_if(state->sends, [](const auto& task) {
         return task.is_finished();
     });
-    auto executor = rstd::async::AnyExecutor::from_executor(d->callback_executor.clone());
+    auto executor = d->executor.clone();
     state->sends.emplace_back(d->runtime.spawn(
         watch_send(state, rstd::move(accepted).unwrap(), state->generation, std::move(executor))));
     return Ok(empty {});

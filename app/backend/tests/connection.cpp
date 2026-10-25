@@ -140,6 +140,7 @@ int main(int argc, char** argv) {
             });
         };
         result.message = [&](QByteArray bytes) {
+            if (bytes.startsWith("sync-")) std::this_thread::sleep_for(1ms);
             if (bytes == "hold-in-flight") {
                 bool delivered = pending.complete(1, std::move(bytes));
                 probe.update([&] {
@@ -342,6 +343,26 @@ int main(int argc, char** argv) {
             });
             std::puts("queue bounds, FIFO, business cancellation, large messages and retry passed");
 
+            auto messages = probe.inspect([&] {
+                return probe.messages.size();
+            });
+            on_peer([&] {
+                for (int i = 0; i < 512; ++i)
+                    peer->sendBinaryMessage("sync-" + QByteArray::number(i));
+            });
+            probe.wait(
+                [&] {
+                    return probe.messages.size() >= messages + 512 || probe.errors.size() > errors;
+                },
+                "sync burst responses timed out");
+            probe.inspect([&] {
+                require(probe.errors.size() == errors, "sync burst disconnected");
+                for (int i = 0; i < 512; ++i)
+                    require(probe.messages[messages + i] == "sync-" + QByteArray::number(i),
+                            "sync burst lost message order");
+            });
+            std::puts("sync burst larger than the receive queue was delivered in order");
+
             std::promise<void> idle;
             auto               elapsed = idle.get_future();
             on_peer([&] {
@@ -355,11 +376,11 @@ int main(int argc, char** argv) {
             });
             probe.wait(
                 [&] {
-                    return probe.messages.size() >= 13;
+                    return probe.messages.size() >= messages + 513;
                 },
                 "idle response timed out");
             probe.inspect([&] {
-                require(probe.messages[12] == "after-idle", "idle response corrupted");
+                require(probe.messages.back() == "after-idle", "idle response corrupted");
                 require(probe.errors.size() == errors, "idle published a failure");
             });
             std::puts("IPC survived the HTTP default total timeout");
@@ -370,7 +391,7 @@ int main(int argc, char** argv) {
             });
             probe.wait(
                 [&] {
-                    return probe.messages.size() >= 14;
+                    return probe.messages.size() >= messages + 514;
                 },
                 "callback shutdown did not start");
             std::shared_future<void> closed;
@@ -433,7 +454,7 @@ int main(int argc, char** argv) {
 
             create({});
             QByteArray response(20 * 1024 * 1024, 'z');
-            auto       messages = probe.inspect([&] {
+            messages = probe.inspect([&] {
                 return probe.messages.size();
             });
             on_peer([&] {
