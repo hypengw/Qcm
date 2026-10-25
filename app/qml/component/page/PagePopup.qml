@@ -7,10 +7,12 @@ MD.Popup {
     id: root
     property bool fillHeight: false
     property bool fillWidth: false
+    property bool backGestureEnabled: false
     property var props: ({})
     required property string source
 
     parent: MD.Overlay.overlay
+    readyForOpen: m_stack.currentItem !== null
     implicitWidth: 400
     width: Math.min(implicitWidth, parent.width)
     height: m_size.size.height
@@ -63,7 +65,7 @@ MD.Popup {
         id: m_pool
         onObjectAdded: function (obj, key) {
             const item = obj as Item;
-            if (m_stack.pushItem(item)) {
+            if (m_stack.pushItem(item, m_stack.depth === 0 ? MD.PageStack.Immediate : MD.PageStack.Animated)) {
                 const attach = item.MD.PageStack;
                 attach.removed.connect(m_pool, function () {
                     if (!m_pool.removeObject(obj)) {
@@ -75,6 +77,8 @@ MD.Popup {
             }
         }
     }
+
+    onAboutToHide: m_stack.abortPreview()
 
     onSourceChanged: {
         addPage(source, props);
@@ -88,7 +92,8 @@ MD.Popup {
 
     contentItem: MD.PageStack {
         id: m_stack
-        implicitHeight: implicitContentHeight
+        implicitHeight: destinationSize.height
+        backGestureEnabled: root.backGestureEnabled && root.MD.MProp.size.isCompact && depth > 1 && !(currentItem?.canBack ?? false)
         clip: true
         sizeTransition: MD.SizeTransition {
             id: m_size

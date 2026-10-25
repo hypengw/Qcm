@@ -127,16 +127,20 @@ MD.ApplicationWindow {
         target: QA.Action
         function onOpenPopup(s) {
             if (s === QA.Enum.SRQueue) {
-                m_queue_popup.open();
+                m_queue_popup.requestOpen();
             } else if (s === QA.Enum.SRSync) {
-                m_sync_popup.open();
+                m_sync_popup.requestOpen();
             } else if (typeof s == 'number') {
                 const purl = 'Qcm.App/PagePopup';
                 const url = QA.Util.special_route_url(s);
                 if (url) {
-                    const props = {source: url};
-                    if (s === QA.Enum.SRSetting)
+                    const props = {
+                        source: url
+                    };
+                    if (s === QA.Enum.SRSetting) {
                         props.implicitWidth = 420;
+                        props.backGestureEnabled = true;
+                    }
                     MD.Util.showPopup(purl, props, win);
                 }
             } else if (typeof s == 'string') {

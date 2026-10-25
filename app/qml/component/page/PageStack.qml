@@ -13,8 +13,8 @@ MD.PageStack {
         }
     }
 
-    implicitHeight: implicitContentHeight
-    implicitWidth: implicitContentWidth
+    implicitHeight: destinationSize.height
+    implicitWidth: destinationSize.width
 
     // Supply the page context before component completion and the enter transition.
     Item {

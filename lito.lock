@@ -73,7 +73,7 @@ source = "git+https://github.com/KDAB/KDSingleApplication.git#dcf5eb68d70a4a1144
 
 [[packages.externals]]
 name = "qml-material"
-source = "git+https://github.com/hypengw/QmlMaterial.git#107111f7c7819b57a5edc540ba781c5947025e90"
+source = "git+https://github.com/hypengw/QmlMaterial.git#12dcf6249ae60197851016ca55c5141346f166f3"
 
 [[packages]]
 name = "qcm-backend-connection"

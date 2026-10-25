@@ -266,16 +266,25 @@ MD.Pane {
                         when: ctl_stack.currentItem
                     }
                     initialItem: Item {}
-                    replaceEnter: Transition {
-                        LineAnimation {
-                            from: 0.5 * ctl_stack.height
-                            property: 'y'
-                            to: 0
+                    replaceMotion: Component {
+                        MD.PageMotion {
+                            id: motion
+                            timeline: MD.SeekableTransition {
+                                MD.RealTrack {
+                                    id: progress
+                                    values: ({
+                                            "from": 0,
+                                            "to": 1
+                                        })
+                                    spec: MD.Motion.tween(200, ({
+                                            type: Easing.OutCubic
+                                        }))
+                                }
+                            }
+                            enterOffset: Qt.point(0, (1 - progress.value) * context.viewport.height * 0.5)
+                            enterOpacity: progress.value
+                            exitOpacity: 1 - progress.value
                         }
-                        FadeIn {}
-                    }
-                    replaceExit: Transition {
-                        FadeOut {}
                     }
 
                     Component.onCompleted: {
@@ -285,20 +294,5 @@ MD.Pane {
                 }
             }
         }
-    }
-
-    component FadeIn: LineAnimation {
-        from: 0.0
-        property: "opacity"
-        to: 1.0
-    }
-    component FadeOut: LineAnimation {
-        from: 1.0
-        property: "opacity"
-        to: 0.0
-    }
-    component LineAnimation: NumberAnimation {
-        duration: 200
-        easing.type: Easing.OutCubic
     }
 }
