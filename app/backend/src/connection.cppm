@@ -25,6 +25,7 @@ struct BackendConnectionLimits {
 };
 
 struct BackendConnectionCallbacks {
+    // Callbacks run on the Qt owner; connected precedes messages and permits send().
     std::function<void()>           connected;
     std::function<void(QByteArray)> message;
     std::function<void(QString)>    error;

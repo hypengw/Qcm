@@ -14,6 +14,7 @@
 #include <mutex>
 #include <stdexcept>
 #include <thread>
+#include <utility>
 #include <vector>
 
 import qcm.backend.connection;
@@ -70,6 +71,7 @@ int main(int argc, char** argv) {
     require(stalled.listen(QHostAddress::LocalHost), "cannot listen for stalled handshake");
     QPointer<QWebSocket> peer;
     QByteArray           held;
+    int                  startup_messages {};
     QObject::connect(&server, &QWebSocketServer::newConnection, &app, [&] {
         auto socket = server.nextPendingConnection();
         peer        = socket;
@@ -88,6 +90,8 @@ int main(int argc, char** argv) {
                     socket->sendBinaryMessage(bytes);
                 }
             });
+        for (int i = 0; i < startup_messages; ++i)
+            socket->sendBinaryMessage("startup-" + QByteArray::number(i));
     });
     QObject::connect(&stalled, &QTcpServer::newConnection, &app, [&] {
         while (stalled.hasPendingConnections()) {
@@ -214,6 +218,123 @@ int main(int argc, char** argv) {
             });
         };
         try {
+            on_peer([&] {
+                startup_messages = 512;
+            });
+            bool startup_send {}, startup_before_connected {};
+            on_owner([&] {
+                auto events      = callbacks();
+                auto connected   = std::move(events.connected);
+                auto message     = std::move(events.message);
+                events.connected = [&, connected = std::move(connected)] {
+                    connected();
+                    startup_send = connection->send("from-connected").is_ok();
+                };
+                events.message = [&, message = std::move(message)](QByteArray bytes) {
+                    probe.update([&] {
+                        startup_before_connected |= probe.connections == 0;
+                    });
+                    message(std::move(bytes));
+                };
+                connection =
+                    new qcm::BackendConnection(runtime.handle(), std::move(events), limits);
+                connection->open(url);
+            });
+            probe.wait(
+                [&] {
+                    return probe.messages.size() >= 513 || ! probe.errors.empty();
+                },
+                "startup messages timed out");
+            on_owner([&] {
+                require(startup_send, "connected callback could not send");
+            });
+            probe.inspect([&] {
+                require(! startup_before_connected, "message preceded connected");
+                require(probe.errors.empty(), "startup burst disconnected");
+                require(probe.messages.size() == 513, "startup messages were lost");
+                for (int i = 0; i < 512; ++i)
+                    require(probe.messages[i] == "startup-" + QByteArray::number(i),
+                            "startup message order failed");
+                require(probe.messages.back() == "from-connected", "startup reply was reordered");
+            });
+            close();
+            on_peer([&] {
+                startup_messages = 2;
+            });
+            auto messages    = probe.inspect([&] {
+                return probe.messages.size();
+            });
+            auto connections = probe.inspect([&] {
+                return probe.connections;
+            });
+            on_owner([&] {
+                auto events      = callbacks();
+                auto connected   = std::move(events.connected);
+                events.connected = [&, connected = std::move(connected)] {
+                    connected();
+                    callback_closed = connection->shutdown();
+                };
+                connection =
+                    new qcm::BackendConnection(runtime.handle(), std::move(events), limits);
+                connection->open(url);
+            });
+            probe.wait(
+                [&] {
+                    return probe.connections > connections;
+                },
+                "startup close did not connect");
+            std::shared_future<void> startup_closed;
+            on_owner([&] {
+                startup_closed = callback_closed;
+            });
+            require(startup_closed.wait_for(6s) == std::future_status::ready,
+                    "shutdown in connected callback deadlocked");
+            startup_closed.get();
+            probe.inspect([&] {
+                require(probe.messages.size() == messages, "startup close delivered messages");
+            });
+            close();
+
+            connections             = probe.inspect([&] {
+                return probe.connections;
+            });
+            bool replace_on_message = true;
+            on_owner([&] {
+                auto events    = callbacks();
+                auto message   = std::move(events.message);
+                events.message = [&, message = std::move(message)](QByteArray bytes) {
+                    message(std::move(bytes));
+                    if (std::exchange(replace_on_message, false)) connection->open(url);
+                };
+                connection =
+                    new qcm::BackendConnection(runtime.handle(), std::move(events), limits);
+                connection->open(url);
+            });
+            probe.wait(
+                [&] {
+                    return probe.connections == connections + 2 &&
+                           probe.messages.size() >= messages + 3;
+                },
+                "startup replacement timed out");
+            probe.inspect([&] {
+                require(probe.messages.size() == messages + 3,
+                        "replacement delivered stale startup messages");
+                require(probe.messages[messages] == "startup-0" &&
+                            probe.messages[messages + 1] == "startup-0" &&
+                            probe.messages[messages + 2] == "startup-1",
+                        "replacement startup order failed");
+                require(probe.errors.empty(), "startup lifecycle published a failure");
+            });
+            close();
+            on_peer([&] {
+                startup_messages = 0;
+            });
+            probe.update([&] {
+                probe.connections = probe.disconnections = probe.received = 0;
+                probe.messages.clear();
+            });
+            std::puts("immediate startup push, connected send, shutdown and replacement passed");
+
             create(limits);
             bool count_limit {}, oversized {};
             on_owner([&] {
@@ -343,7 +464,7 @@ int main(int argc, char** argv) {
             });
             std::puts("queue bounds, FIFO, business cancellation, large messages and retry passed");
 
-            auto messages = probe.inspect([&] {
+            messages = probe.inspect([&] {
                 return probe.messages.size();
             });
             on_peer([&] {

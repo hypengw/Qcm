@@ -6,6 +6,7 @@ module;
 #include <QtGlobal>
 #include <algorithm>
 #include <chrono>
+#include <deque>
 #include <stdexcept>
 #include <optional>
 #include <vector>
@@ -101,6 +102,41 @@ struct ConnectionState {
     }
 };
 
+struct ConnectionInbox {
+    std::deque<QByteArray> messages;
+    std::size_t            bytes {};
+    bool                   ready {}, delivering {};
+
+    static auto charge(const QByteArray& value) -> std::size_t {
+        return std::max(std::size_t(value.size()), sizeof(QByteArray));
+    }
+
+    bool append(QByteArray value, std::size_t limit) {
+        const auto size = charge(value);
+        if (size > limit || bytes > limit - size) return false;
+        bytes += size;
+        messages.push_back(std::move(value));
+        return true;
+    }
+
+    void drain(const std::shared_ptr<ConnectionState>& state, quint64 generation) {
+        if (! ready || delivering) return;
+        delivering = true;
+        while (state->current(generation) && state->connected && ! state->failed &&
+               ! messages.empty()) {
+            auto value = std::move(messages.front());
+            messages.pop_front();
+            bytes -= charge(value);
+            if (state->callbacks.message) state->callbacks.message(std::move(value));
+        }
+        delivering = false;
+        if (! state->current(generation) || ! state->connected || state->failed) {
+            messages.clear();
+            bytes = 0;
+        }
+    }
+};
+
 auto watch_send(std::shared_ptr<ConnectionState> state, ncrequest::PendingSend pending,
                 quint64 generation, rstd::async::AnyExecutor executor) -> coro<void> {
     auto written = co_await pending.written();
@@ -162,20 +198,30 @@ auto run_connection(std::shared_ptr<ConnectionState> state, rstd::async::Runtime
         ws.send_messages        = usize(state->limits.send_messages);
         ws.send_bytes           = usize(state->limits.send_bytes);
         // IPC stays open for the process lifetime; handshake and close retain their deadlines.
-        ws.upgrade.duplex.total_timeout = Some(lf::http::TotalTimeout::disabled());
+        ws.upgrade.duplex.total_timeout     = Some(lf::http::TotalTimeout::disabled());
+        auto                          inbox = std::make_shared<ConnectionInbox>();
         ncrequest::WebSocketCallbacks callbacks;
-        callbacks.message = [state, generation](liwebsocketo::Message message) {
+        callbacks.message = [state, inbox, generation](liwebsocketo::Message message) {
             if (! state->current(generation) || state->failed) return;
             if (message.kind == liwebsocketo::Kind::Pong) return;
             if (message.kind != liwebsocketo::Kind::Binary) {
                 state->fail(generation, QStringLiteral("Expected a binary backend message"));
                 return;
             }
+            if (! state->callbacks.message) return;
             auto bytes = message.data.as_slice();
-            if (state->callbacks.message)
-                state->callbacks.message(
-                    QByteArray(reinterpret_cast<const char*>(bytes.as_raw_ptr()),
-                               static_cast<qsizetype>(bytes.len().to_primitive())));
+            auto value = QByteArray(reinterpret_cast<const char*>(bytes.as_raw_ptr()),
+                                    static_cast<qsizetype>(bytes.len().to_primitive()));
+            if (inbox->ready && ! inbox->delivering && inbox->messages.empty()) {
+                if (state->connected) state->callbacks.message(std::move(value));
+                return;
+            }
+            if (! inbox->append(std::move(value), state->limits.receive_bytes)) {
+                state->fail(generation,
+                            QStringLiteral("Backend receive staging capacity exceeded"));
+                return;
+            }
+            inbox->drain(state, generation);
         };
         callbacks.error = [state, generation](ncrequest::WebSocketError error) {
             state->fail(generation, describe(error));
@@ -198,7 +244,10 @@ auto run_connection(std::shared_ptr<ConnectionState> state, rstd::async::Runtime
             if (state->current(generation) && ! state->failed && ! state->peer_disconnected &&
                 client->is_connected()) {
                 was_connected = state->connected = true;
+                // Native messages can arrive before connect() returns its usable client.
                 if (state->callbacks.connected) state->callbacks.connected();
+                inbox->ready = true;
+                inbox->drain(state, generation);
                 for (;;) {
                     auto changed = state->changed.listen();
                     if (! state->current(generation) || ! state->connected) break;
