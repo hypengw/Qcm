@@ -326,9 +326,7 @@ void PlayQueue::setSourceModel(QAbstractItemModel* source_model) {
     m_proxy->setSourceModel(source_model);
     checkCanMove();
 
-    if (old) {
-        this->onSourceRowsInserted({}, 0, source_model->rowCount());
-    }
+    onSourceRowsInserted({}, 0, source_model->rowCount() - 1);
 
     if (auto p = source_model->property("name"); p.isValid()) {
         m_name = p.toString();
@@ -568,17 +566,21 @@ void PlayQueue::updateSourceId(std::span<const model::ItemId> songIds,
 }
 
 void PlayQueue::onSourceRowsInserted(const QModelIndex&, int first, int last) {
-    auto store = AppStore::instance();
+    auto                              store = AppStore::instance();
+    std::unordered_set<model::ItemId> cached_ids;
     for (int i = first; i <= last; i++) {
         if (auto id = getId(i)) {
             if (m_songs.contains(*id)) continue;
             if (auto song_item = store->songs.store_item(id->id())) {
                 m_songs.insert_or_assign(*id, *song_item);
+                cached_ids.insert(*id);
             } else {
                 m_pending_ids.insert(*id);
             }
         }
     }
+    // Proxy views can read the new rows before their cached song handles are attached.
+    notifyRowsForIds(cached_ids);
     checkCanMove();
     pendingIdsChanged();
 
