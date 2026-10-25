@@ -80,12 +80,24 @@ MD.Page {
         Component.onCompleted: reload()
     }
 
-    MD.PageVerticalFlickable {
+    MD.Scrollable {
         anchors.fill: parent
-        pageMarginEdges: Qt.TopEdge | Qt.BottomEdge
+        clip: true
+        synchronousDrag: true
+        flickableDirection: MD.Scrollable.VerticalFlick
+        maximumFlickVelocity: MD.Token.flick.maximumFlickVelocity
+        flickDeceleration: MD.Token.flick.flickDeceleration
+        contentWidth: width
+        contentHeight: m_content.height
+        topMargin: MD.MProp.page?.topMargin ?? 0
+        bottomMargin: MD.MProp.page?.bottomMargin ?? 0
+        MD.NestedScroll.pressDelay: MD.Token.flick.pressDelay
         MD.NestedScroll.enabled: true
         MD.NestedScroll.axes: Qt.Vertical
+        MD.ScrollBarBase.vertical: MD.ScrollBar {}
+
         Column {
+            id: m_content
             spacing: 0
             width: parent.width
             Block {
