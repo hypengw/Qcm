@@ -204,6 +204,7 @@ qt.qml_module({
       mode = "module-split",
       output = "Qcm/model/filter_rule_model",
     },
+    { source = "src/model/home_item_source.cppm", mode = "module-split", output = "Qcm/model/home_item_source" },
     { source = "src/model/id_queue.cppm", mode = "module-split", output = "Qcm/model/id_queue" },
     {
       source = "src/model/list_models.cppm",

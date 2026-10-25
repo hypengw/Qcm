@@ -7,7 +7,7 @@ QA.RecommendationCard {
     id: root
     required property var model
     required property QA.HomeRecommendationsQuery query
-    objectName: "forYouCard/" + model.card.providerId + "/" + model.entryKey
+    objectName: "forYouCard/" + model.key
     itemId: model.itemId
     text: model.title
     detail: model.detail

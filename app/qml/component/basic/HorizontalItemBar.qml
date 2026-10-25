@@ -5,7 +5,7 @@ MD.Control {
     id: root
 
     property string title
-    property ListView view
+    property MD.LazyList view
 
     contentItem: Item {
         implicitWidth: m_title.implicitWidth + m_tool_row.implicitWidth
@@ -22,23 +22,23 @@ MD.Control {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             MD.IconButton {
+                objectName: "previousItems"
                 icon.name: MD.Token.icon.chevron_left
                 enabled: root.view ? !root.view.atXBeginning : false
                 onClicked: {
                     if (!root.view)
                         return;
-                    for (let i = 0; i < 4; i++)
-                        root.view.decrementCurrentIndex();
+                    root.view.positionAtIndex(Math.max(0, root.view.firstVisibleIndex - 4), 0, 0, MD.LazyList.Smooth);
                 }
             }
             MD.IconButton {
+                objectName: "nextItems"
                 icon.name: MD.Token.icon.chevron_right
                 enabled: root.view ? !root.view.atXEnd : false
                 onClicked: {
                     if (!root.view)
                         return;
-                    for (let i = 0; i < 4; i++)
-                        root.view.incrementCurrentIndex();
+                    root.view.positionAtIndex(Math.min(root.view.count - 1, Math.max(0, root.view.firstVisibleIndex) + 4), 0, 0, MD.LazyList.Smooth);
                 }
             }
         }

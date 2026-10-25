@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QtQml/QQmlEngine>
+#include "qml_material/model/item_source.hpp"
 #include <QtCore/QAbstractListModel>
 #include <QtCore/QIdentityProxyModel>
 #include <QtCore/QSortFilterProxyModel>

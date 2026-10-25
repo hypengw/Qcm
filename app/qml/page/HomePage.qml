@@ -13,7 +13,7 @@ MD.Page {
     component Block: Column {
         id: m_block
         property string title
-        property alias model: m_view.model
+        property alias model: m_source.model
         property alias delegate: m_view.delegate
         property alias widthProvider: m_width_provider
         property alias view: m_view
@@ -25,12 +25,16 @@ MD.Page {
             title: m_block.title
             view: m_view
         }
-        MD.PageHorizontalListView {
+        QA.HomeItemSource {
+            id: m_source
+        }
+        MD.PageHorizontalLazyList {
             id: m_view
             height: 100 + m_width_provider.width
             width: parent.width
             spacing: Math.max(12, rightMargin)
-            highlightRangeMode: ListView.StrictlyEnforceRange
+            source: m_source
+            estimatedItemExtent: m_width_provider.width
 
             MD.WidthProvider {
                 id: m_width_provider
@@ -43,15 +47,22 @@ MD.Page {
         }
     }
 
-    component MImagePlayCard: QA.ImagePlayCard {
-        required property var model
-        itemId: model.itemId
-        text: model.name
-        image.source: QA.Util.image_url(model.itemId)
-        picWidth: width
+    component MImagePlayCard: Item {
+        id: cardDelegate
+        required property MD.LazyRow row
+        readonly property var model: row.value
+        property alias smallPlayButton: card.smallPlayButton
+        property alias playButtonAlignment: card.playButtonAlignment
+        property alias subText: card.subText
 
-        onClicked: {
-            QA.Action.routeItem(model.itemId);
+        QA.ImagePlayCard {
+            id: card
+            width: parent.width
+            itemId: cardDelegate.model.itemId
+            text: cardDelegate.model.name
+            image.source: QA.Util.image_url(cardDelegate.model.itemId)
+            picWidth: width
+            onClicked: QA.Action.routeItem(cardDelegate.model.itemId)
         }
     }
 
@@ -72,6 +83,8 @@ MD.Page {
     MD.PageVerticalFlickable {
         anchors.fill: parent
         pageMarginEdges: Qt.TopEdge | Qt.BottomEdge
+        MD.NestedScroll.enabled: true
+        MD.NestedScroll.axes: Qt.Vertical
         Column {
             spacing: 0
             width: parent.width
@@ -81,9 +94,15 @@ MD.Page {
                 width: parent.width
                 title: qsTr("For You")
                 model: m_home_query.forYou
-                delegate: QA.ForYouCard {
-                    query: m_home_query
+                delegate: Item {
+                    id: forYouDelegate
+                    required property MD.LazyRow row
                     width: m_for_you_block.widthProvider.width
+                    QA.ForYouCard {
+                        width: parent.width
+                        model: forYouDelegate.row.value
+                        query: m_home_query
+                    }
                 }
             }
             MD.Label {
@@ -99,9 +118,15 @@ MD.Page {
                 width: parent.width
                 title: "Radio"
                 model: m_home_query.radios
-                delegate: QA.RadioQueueCard {
-                    query: m_home_query
+                delegate: Item {
+                    id: radioDelegate
+                    required property MD.LazyRow row
                     width: m_radio_block.widthProvider.width
+                    QA.RadioQueueCard {
+                        width: parent.width
+                        model: radioDelegate.row.value
+                        query: m_home_query
+                    }
                 }
             }
             Block {
@@ -150,10 +175,17 @@ MD.Page {
                 title: "Last Played"
                 model: m_last_played_query.data
                 delegate: AlbumCard {
-                    width: m_recent_block.widthProvider.width
+                    width: m_last_played_block.widthProvider.width
                 }
                 QA.AlbumsQuery {
                     id: m_last_played_query
+                    property bool resetPositionAfterReload: false
+                    onStatusChanged: {
+                        if (status === QA.Enum.Finished && resetPositionAfterReload) {
+                            resetPositionAfterReload = false;
+                            m_last_played_block.view.positionAtIndex(0);
+                        }
+                    }
                     sort: QM.AlbumSort.ALBUM_SORT_LAST_PLAYED_AT
                     asc: false
                     property QM.albumFilter filter1
@@ -172,9 +204,7 @@ MD.Page {
                     interval: 500
                     onTriggered: {
                         if (root.visible) {
-                            const view = m_last_played_block.view;
-                            view.currentIndex = -1;
-                            view.contentX = 0;
+                            m_last_played_query.resetPositionAfterReload = true;
                             m_last_played_query.reload();
                         }
                     }

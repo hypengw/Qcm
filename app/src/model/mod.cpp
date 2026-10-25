@@ -55,6 +55,13 @@ ArtistListModel::ArtistListModel(QObject* parent)
 MixListModel::MixListModel(QObject* parent)
     : EntityList<model::Mix>(parent,enums::ItemType::ItemMix,AppStore::instance()->mixes) {}
 
+QString card_detail(const ForYouCard& card) {
+    if (card.hasSubtitle()) return card.subtitle();
+    if (card.hasMix()) return ForYouListModel::tr("%1 songs").arg(static_cast<int>(card.mix().trackCount()));
+    if (card.hasAlbum()) return ForYouListModel::tr("%1 tracks").arg(static_cast<int>(card.album().trackCount()));
+    if (card.hasRadio()) return card.radio().description();
+    return {};
+}
 ForYouListModel::ForYouListModel(QObject* parent): kstore::QGadgetListModel(this, parent) {}
 auto ForYouListModel::data(const QModelIndex& index, int role) const -> QVariant {
     if (index.row() < 0 || index.row() >= rowCount()) return {};
@@ -63,12 +70,7 @@ auto ForYouListModel::data(const QModelIndex& index, int role) const -> QVariant
     case Qt::UserRole + 1024: return QVariant::fromValue(card);
     case Qt::UserRole + 1025: return QVariant::fromValue(item_id(card));
     case Qt::UserRole + 1026: return QVariant::fromValue(cover_id(card));
-    case Qt::UserRole + 1027:
-        if (card.hasSubtitle()) return card.subtitle();
-        if (card.hasMix()) return tr("%1 songs").arg(static_cast<int>(card.mix().trackCount()));
-        if (card.hasAlbum()) return tr("%1 tracks").arg(static_cast<int>(card.album().trackCount()));
-        if (card.hasRadio()) return card.radio().description();
-        return QString {};
+    case Qt::UserRole + 1027: return card_detail(card);
     }
     return kstore::QGadgetListModel::data(index, role);
 }

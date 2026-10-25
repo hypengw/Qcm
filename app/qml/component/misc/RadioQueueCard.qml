@@ -7,7 +7,7 @@ QA.RecommendationCard {
     required property var model
     readonly property var radio: model.radio
     required property QA.HomeRecommendationsQuery query
-    objectName: "radioCard/" + model.itemId.id
+    objectName: "radioCard/" + model.key
     itemId: model.itemId
     text: model.name
     detail: model.description
@@ -17,10 +17,12 @@ QA.RecommendationCard {
         icon.name: MD.Token.icon.play_arrow
         checked: true
         onTriggered: {
-            if (root.radio) root.query.activateRadio(root.radio);
+            if (root.radio)
+                root.query.activateRadio(root.radio);
         }
     }
     onClicked: {
-        if (radio) query.activateRadio(radio);
+        if (radio)
+            query.activateRadio(radio);
     }
 }

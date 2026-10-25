@@ -82,6 +82,8 @@ public:
     MixListModel(QObject* parent = nullptr);
 };
 
+QString card_detail(const ForYouCard&);
+
 class ForYouListModel : public kstore::QGadgetListModel,
     public kstore::QMetaListModelCRTP<model::ForYouCard, ForYouListModel, kstore::ListStoreType::VectorWithMap> {
     Q_OBJECT

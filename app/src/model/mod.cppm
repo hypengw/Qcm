@@ -3,6 +3,7 @@ export import :model.app_info;
 export import :model.page_model;
 export import :model.empty_model;
 export import :model.list_models;
+export import :model.home_item_source;
 export import :model.id_queue;
 export import :model.router_msg;
 export import :model.store_item;
