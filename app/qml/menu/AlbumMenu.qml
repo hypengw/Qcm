@@ -24,6 +24,9 @@ MD.Menu {
         oper: QM.MixManipulateOper.MIX_MANIPULATE_OPER_ADD_ALBUMS
         albumIds: [root.itemId]
     }
+    QA.CopyMenu {
+        itemId: root.itemId
+    }
 
     // QA.CommentAction {
     //     itemId: root.itemId

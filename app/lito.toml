@@ -114,6 +114,8 @@ sources = [
   "src/query/query.cppm",
   "src/query/search_query.cpp",
   "src/query/search_query.cppm",
+  "src/query/share_query.cpp",
+  "src/query/share_query.cppm",
   "src/query/storage_info.cpp",
   "src/query/storage_info.cppm",
   "src/query/sync_query.cpp",

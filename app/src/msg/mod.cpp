@@ -144,7 +144,18 @@ EntityView::~EntityView() {
     if (m_store) m_store->unpin(m_id);
 }
 model::ItemId EntityView::itemId() const { return m_id; }
-void          EntityView::setItemId(model::ItemId id) {
+QString       EntityView::name() const {
+    auto entry = m_store ? m_store->find(m_id) : nullptr;
+    if (! entry || ! entry->known(store::Field::Name)) return {};
+    switch (cacheKey(m_id).type) {
+    case store::Song: return entry->data.value<model::Song>().name();
+    case store::Album: return entry->data.value<model::Album>().name();
+    case store::Artist: return entry->data.value<model::Artist>().name();
+    case store::Mix: return entry->data.value<model::Mix>().name();
+    default: return {};
+    }
+}
+void EntityView::setItemId(model::ItemId id) {
     if (m_id == id) return;
     m_subscription.reset();
     if (m_store) m_store->unpin(m_id);

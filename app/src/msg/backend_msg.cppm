@@ -279,6 +279,8 @@ QCM_MSG_TRAITS_REQ(GetHomeRecommendationsReq, GetHomeRecommendationsRsp, GET_HOM
 QCM_MSG_TRAITS_RSP(GetHomeRecommendationsRsp, GetHomeRecommendationsReq, getHomeRecommendationsRsp)
 
 QCM_MSG_TRAITS_REQ(SyncItemReq, Rsp, SYNC_ITEM_REQ, syncItemReq)
+QCM_MSG_TRAITS_REQ(GetShareLinkReq, GetShareLinkRsp, GET_SHARE_LINK_REQ, getShareLinkReq)
+QCM_MSG_TRAITS_RSP(GetShareLinkRsp, GetShareLinkReq, getShareLinkRsp)
 
 template<>
 struct MsgTraits<msg::Rsp> {

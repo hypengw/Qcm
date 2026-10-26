@@ -11,4 +11,5 @@ export import :query.network;
 export import :query.sync;
 export import :query.storage_info;
 export import :query.search;
+export import :query.share;
 export import :query.qr;

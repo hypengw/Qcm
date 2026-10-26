@@ -15,4 +15,7 @@ MD.Menu {
     QA.MixDeleteAction {
         ids: [root.itemId]
     }
+    QA.CopyMenu {
+        itemId: root.itemId
+    }
 }

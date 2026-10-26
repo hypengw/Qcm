@@ -56,6 +56,11 @@ async fn process_request(
     let payload = &message.payload;
 
     match mtype {
+        MessageType::GetShareLinkReq => {
+            if let Some(Payload::GetShareLinkReq(req)) = payload {
+                return Ok(crate::share::link(&ctx.provider_context, req).await?.qcm_into());
+            }
+        }
         MessageType::GetNetworkSettingsReq => {
             return Ok(crate::network::read(&ctx.provider_context.db)
                 .await?

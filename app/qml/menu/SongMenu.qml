@@ -9,8 +9,6 @@ MD.Menu {
     required property QA.item_id itemId
     property QA.item_id sourceId
     property bool canDelete: false
-    // no aot, it's bugly
-    property var song: QA.App.empty.song
     readonly property QA.EntityView entity: QA.Store.item(root.itemId)
     readonly property list<var> artists: entity?.artists ?? []
 
@@ -59,30 +57,9 @@ MD.Menu {
         {}
     }
 
-    MD.Menu {
-        title: qsTr('copy')
+    QA.CopyMenu {
+        itemId: root.itemId
         delegate: root.delegate
-        QA.CopyAction {
-            text: qsTr('title')
-            icon.name: MD.Token.icon.title
-            getCopyString: function () {
-                return root.song.name;
-            }
-        }
-        QA.CopyAction {
-            text: qsTr('album')
-            icon.name: MD.Token.icon.album
-            getCopyString: function () {
-                return root.entity?.album?.name ?? "";
-            }
-        }
-        QA.CopyAction {
-            text: qsTr('url')
-            icon.name: MD.Token.icon.link
-            getCopyString: function () {
-                return '';//QA.Global.server_url(root.itemId);
-            }
-        }
     }
     // QA.MixManipulateQuery {
     //     id: m_qr_manipulate

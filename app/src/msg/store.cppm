@@ -97,6 +97,7 @@ class EntityView : public QObject {
     Q_OBJECT
     QML_ELEMENT
     Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY changed FINAL)
+    Q_PROPERTY(QString name READ name NOTIFY changed FINAL)
     Q_PROPERTY(QList<qcm::model::Artist> artists READ artists NOTIFY changed FINAL)
     Q_PROPERTY(qcm::model::ItemId albumId READ albumId NOTIFY changed FINAL)
     Q_PROPERTY(qcm::model::Album album READ album NOTIFY changed FINAL)
@@ -123,6 +124,7 @@ public:
     explicit EntityView(QObject* parent = nullptr);
     ~EntityView();
     model::ItemId          itemId() const;
+    QString                name() const;
     void                   setItemId(model::ItemId);
     QList<model::Artist>   artists() const;
     model::ItemId         albumId() const;

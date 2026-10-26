@@ -132,6 +132,7 @@ qt.qml_module({
     "qml/dialog/MixLinkDialog.qml",
     "qml/menu/AlbumFilterMenu.qml",
     "qml/menu/AlbumMenu.qml",
+    "qml/menu/CopyMenu.qml",
     "qml/menu/ArtistFilterMenu.qml",
     "qml/menu/ArtistMenu.qml",
     "qml/menu/DisplayModeMenu.qml",
@@ -292,6 +293,11 @@ qt.qml_module({
       source = "src/query/search_query.cppm",
       mode = "module-split",
       output = "Qcm/query/search_query",
+    },
+    {
+      source = "src/query/share_query.cppm",
+      mode = "module-split",
+      output = "Qcm/query/share_query",
     },
     {
       source = "src/query/storage_info.cppm",

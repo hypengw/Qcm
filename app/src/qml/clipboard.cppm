@@ -2,7 +2,7 @@ module;
 
 #include "QExtra/macro_qt.hpp"
 #ifdef Q_MOC_RUN
-#include "Qcm/qml/clipboard.moc"
+#    include "Qcm/qml/clipboard.moc"
 #endif
 export module qcm:qml.clipboard;
 import qextra;
@@ -16,6 +16,7 @@ export class Clipboard : public QObject {
 
     Q_PROPERTY(QString text READ text WRITE setText NOTIFY changed FINAL)
     Q_PROPERTY(QClipboard::Mode mode READ mode WRITE setMode NOTIFY modeChanged FINAL)
+    Q_PROPERTY(bool supported READ supported NOTIFY modeChanged FINAL)
 
 public:
     Clipboard(QObject* parent = nullptr);
@@ -24,7 +25,9 @@ public:
 
     QClipboard::Mode mode() const;
     void             setMode(QClipboard::Mode);
+    bool             supported() const;
 
+    Q_INVOKABLE bool copyText(const QString&);
     Q_INVOKABLE void clear();
 
     Q_SIGNAL void changed();

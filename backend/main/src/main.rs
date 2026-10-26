@@ -9,6 +9,7 @@ mod home;
 mod http;
 mod msg;
 mod mix;
+mod share;
 mod resource_cache;
 mod radio;
 mod playback;

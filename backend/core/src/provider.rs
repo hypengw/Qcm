@@ -192,6 +192,10 @@ pub trait Provider: ProviderCommon + ProviderSession + Send + Sync {
     fn resource_scope(&self) -> Result<Option<String>, ProviderError> {
         Ok(None)
     }
+    /// Returns a public item page without credentials or transient media URLs.
+    fn share_url(&self, _native_id: &str, _item_type: ItemType) -> Result<Option<reqwest::Url>, ProviderError> {
+        Ok(None)
+    }
     fn load(&self, data: &str);
     fn save(&self) -> String;
 

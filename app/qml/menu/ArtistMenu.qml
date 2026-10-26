@@ -15,4 +15,7 @@ MD.Menu {
     QA.CollectAction {
         itemId: root.itemId
     }
+    QA.CopyMenu {
+        itemId: root.itemId
+    }
 }

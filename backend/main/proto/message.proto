@@ -93,6 +93,9 @@ enum MessageType {
   OPEN_QUEUE_RSP = 416;
   CLOSE_QUEUE_REQ = 417;
 
+  GET_SHARE_LINK_REQ = 420;
+  GET_SHARE_LINK_RSP = 421;
+
   SYNC_ITEM_REQ = 500;
 
   GET_HOME_BLOCKS_REQ = 600;
@@ -546,6 +549,12 @@ message UpdateMixReq {
 
 message SyncItemReq { int64 id = 1; }
 
+message GetShareLinkReq {
+  int64 id = 1;
+  qcm.msg.model.ItemType item_type = 2;
+}
+message GetShareLinkRsp { optional string url = 1; }
+
 message GetHomeRecommendationsReq { repeated int64 provider_ids = 1; }
 message GetHomeRecommendationsRsp { repeated qcm.msg.model.HomeRecommendation providers = 1; }
 
@@ -658,6 +667,9 @@ message QcmMessage {
     OpenQueueReq open_queue_req = 415;
     OpenQueueRsp open_queue_rsp = 416;
     CloseQueueReq close_queue_req = 417;
+
+    GetShareLinkReq get_share_link_req = 420;
+    GetShareLinkRsp get_share_link_rsp = 421;
 
     SyncItemReq sync_item_req = 500;
 

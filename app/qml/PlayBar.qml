@@ -190,7 +190,6 @@ MD.Pane {
 
                             onClicked: {
                                 MD.Util.showPopup(comp_song_menu, {
-                                    "song": root.currentSong,
                                     "itemId": root.currentSongId,
                                     "anchorItem": this,
                                     "preferredPlacement": MD.PopupBase.Above

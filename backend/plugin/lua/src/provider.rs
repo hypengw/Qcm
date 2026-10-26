@@ -122,6 +122,7 @@ impl LuaUserData for LuaInner {
 
 struct LuaImpl {
     validate_settings: Option<LuaFunction>,
+    share_url: Option<LuaFunction>,
     load: LuaFunction,
     save: LuaFunction,
     check: LuaFunction,
@@ -325,6 +326,7 @@ impl LuaProvider {
             inner: inner.clone(),
             funcs: LuaImpl {
                 validate_settings: provider_table.get("validate_settings")?,
+                share_url: provider_table.get("share_url")?,
                 save: provider_table
                     .get::<LuaFunction>("save")
                     .map_err(|_| anyhow!("save func not found"))?,
@@ -468,6 +470,14 @@ impl Provider for LuaProvider {
             .named_registry_value::<Option<LuaFunction>>("qcm.provider.resource_scope")
             .and_then(|f| f.map(|f| f.call::<String>(())).transpose())
             .map_err(ProviderError::from_err)
+    }
+    fn share_url(&self, native_id: &str, item_type: sqlm::type_enum::ItemType) -> Result<Option<reqwest::Url>, ProviderError> {
+        let Some(function) = &self.funcs.share_url else { return Ok(None); };
+        let value = function.call::<Option<String>>((native_id, item_type as i32))
+            .map_err(ProviderError::from_err)?;
+        value.map(|value| reqwest::Url::parse(&value)
+            .map_err(|error| ProviderError::Internal(anyhow!("invalid share URL: {error}"))))
+            .transpose()
     }
     fn load(&self, data: &str) {
         self.generation.fetch_add(1, Ordering::AcqRel);

@@ -231,7 +231,6 @@ MD.Page {
 
                         onClicked: {
                             MD.Util.showPopup('qrc:/Qcm/App/qml/menu/SongMenu.qml', {
-                                "song": root.song,
                                 "itemId": root.songId,
                                 "anchorItem": this,
                                 "preferredPlacement": MD.PopupBase.Above
