@@ -128,6 +128,7 @@ MixSongsQuery::MixSongsQuery(QObject* parent): QueryList(parent) {
     auto app = App::instance();
     this->tdata()->set_store(this->tdata(), app->store()->songs);
     connectSyncFinished(this);
+    this->connect_requet_reload(&MixSongsQuery::itemIdChanged, this);
     this->setLimit(1000);
 }
 
@@ -136,24 +137,35 @@ auto MixSongsQuery::itemId() const -> model::ItemId { return m_item_id; }
 void MixSongsQuery::setItemId(model::ItemId in) {
     if (ycore::cmp_set(m_item_id, in)) {
         invalidateRequests();
+        setOffset(0);
         itemIdChanged();
     }
 }
 
-void MixSongsQuery::reload() {
+void MixSongsQuery::reload() { load(false); }
+
+void MixSongsQuery::refresh() {
+    if (! querying()) load(true);
+}
+
+void MixSongsQuery::load(bool force_refresh) {
+    if (! m_item_id.valid()) return;
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::GetMixSongsReq {};
     initReqForReload(req);
     req.setId_proto(m_item_id.id());
+    req.setForceRefresh(force_refresh);
+    if (force_refresh) req.setPageSize(limit());
 
     auto       self     = QWatcher { this };
     const auto revision = beginRequest();
-    spawn([self, backend, req, revision] mutable -> task<void> {
+    spawn([self, backend, req, revision, force_refresh] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         if (! co_await QAsyncResult::qexecutor()) co_return;
         if (! self || ! self->isCurrentRequest(revision)) co_return;
-        self->inspect_set(rsp, [self](msg::GetMixSongsRsp& el) {
+        self->inspect_set(rsp, [self, force_refresh](msg::GetMixSongsRsp& el) {
+            if (force_refresh) self->setOffset(0);
             self->tdata()->setMixId(el.mixId());
 
             self->tdata()->syncIds(el.ids());

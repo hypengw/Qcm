@@ -87,20 +87,14 @@ MD.Page {
                     }
                 }
                 MD.BusyIconButton {
-                    readonly property QA.SyncItemAction syncAction: QA.SyncItemAction {
-                        itemId: root.itemId
-                        enabled: root.mix.mixType !== QM.MixType.MIX_TYPE_NORMAL
-                        onFinished: {
-                            qr_pl.reload();
-                        }
-                    }
-                    MD.ActionCommand.action: syncAction
-                    text: MD.ActionCommand.text
-                    icon.actionIcon: MD.ActionCommand.icon
-                    enabled: MD.ActionCommand.enabled
-                    busy: syncAction.busy
-                    progress: syncAction.progress
-                    visible: syncAction.enabled
+                    text: qsTr("Refresh")
+                    MD.ToolTip.text: text
+                    MD.ToolTip.visible: hovered
+                    icon.name: MD.Token.icon.refresh
+                    enabled: root.itemId.valid && !qr_pl.querying
+                    busy: qr_pl.querying
+                    visible: root.mix.mixType !== QM.MixType.MIX_TYPE_NORMAL
+                    onClicked: qr_pl.refresh()
                 }
             }
         }

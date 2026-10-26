@@ -157,6 +157,7 @@ async fn handle_ws(
         backend_ev: bk_ev_sender,
         oper,
         resource_cache,
+        mix_refresh: Default::default(),
         radio: Arc::new(Default::default()),
         playback: Arc::new(Default::default()),
     });

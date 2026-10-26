@@ -78,6 +78,7 @@ async fn provider_settings_commit_restore_reject_and_replace_authentication() {
         provider_context: context,
         backend_ev,
         oper,
+        mix_refresh: Default::default(),
         playback: Default::default(),
         radio: Default::default(),
         resource_cache: cache.clone(),

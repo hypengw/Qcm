@@ -81,6 +81,7 @@ async fn jellyfin_hls_session_cache_and_native_player() {
         provider_context: context,
         backend_ev,
         oper,
+        mix_refresh: Default::default(),
         resource_cache: cache.clone(),
         radio: Arc::new(Default::default()),
         playback: Arc::new(Default::default()),

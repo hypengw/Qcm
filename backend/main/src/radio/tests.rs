@@ -530,6 +530,7 @@ async fn protobuf_dispatch_keeps_song_order_and_private_state_on_backend() {
         provider_context: ctx.clone(),
         backend_ev,
         oper,
+        mix_refresh: Default::default(),
         resource_cache: cache.clone(),
         playback: Arc::new(Default::default()),
         radio: Arc::new(Default::default()),

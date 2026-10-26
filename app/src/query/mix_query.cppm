@@ -83,8 +83,9 @@ export class MixSongsQuery : public QueryList,
 
 public:
     MixSongsQuery(QObject* parent = nullptr);
-    void reload() override;
-    void fetchMore(qint32) override;
+    void        reload() override;
+    void        fetchMore(qint32) override;
+    Q_SLOT void refresh();
 
     auto itemId() const -> model::ItemId;
     void setItemId(model::ItemId);
@@ -92,6 +93,7 @@ public:
     Q_SIGNAL void itemIdChanged();
 
 private:
+    void          load(bool force_refresh);
     model::ItemId m_item_id;
 };
 

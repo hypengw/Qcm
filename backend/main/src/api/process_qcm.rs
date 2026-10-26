@@ -35,13 +35,9 @@ pub async fn process_qcm(
     *in_id = Some(message.id);
 
     if let Some(msg::qcm_message::Payload::GetMixSongsReq(req)) = &message.payload {
-        if let Some((_, item)) =
-            qcm_core::db::sync::check_cache_mix(&ctx.provider_context.db, req.id).await?
-        {
-            let provider = global::provider(item.provider_id)
-                .ok_or(ProcessError::NoSuchProvider(item.provider_id.to_string()))?;
-            provider.sync_item(&ctx.provider_context, item).await?;
-        }
+        ctx.mix_refresh
+            .refresh(&ctx.provider_context, req.id, req.force_refresh)
+            .await?;
     }
     if super::entity_query::handles(message.r#type()) {
         return super::entity::query(ctx, &message).await;
@@ -357,14 +353,9 @@ async fn process_request(
                     for f in &req.filters {
                         match f.payload {
                             Some(msg::filter::song_filter::Payload::MixIdFilter(id)) => {
-                                if let Some((_, item)) =
-                                    qcm_core::db::sync::check_cache_mix(db, id.value).await?
-                                {
-                                    let provider = global::provider(item.provider_id).ok_or(
-                                        ProcessError::NoSuchProvider(item.provider_id.to_string()),
-                                    )?;
-                                    provider.sync_item(&ctx.provider_context, item).await?;
-                                }
+                                ctx.mix_refresh
+                                    .refresh(&ctx.provider_context, id.value, false)
+                                    .await?;
                             }
                             _ => {}
                         }

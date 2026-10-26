@@ -50,6 +50,7 @@ async fn entity_projection_keeps_presence_relations_and_authoritative_state() {
         }),
         backend_ev,
         oper,
+        mix_refresh: Default::default(),
         resource_cache: cache.clone(),
         radio: Default::default(),
         playback: Default::default(),

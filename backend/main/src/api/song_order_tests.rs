@@ -63,6 +63,7 @@ async fn filtered_song_ids_follow_requested_order() {
         }),
         backend_ev,
         oper,
+        mix_refresh: Default::default(),
         resource_cache: cache,
         radio: Default::default(),
         playback: Default::default(),

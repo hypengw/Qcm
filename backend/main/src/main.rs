@@ -8,6 +8,7 @@ mod global;
 mod home;
 mod http;
 mod msg;
+mod mix;
 mod resource_cache;
 mod radio;
 mod playback;

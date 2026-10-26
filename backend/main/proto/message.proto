@@ -331,6 +331,7 @@ message GetMixSongsReq {
   int32 page_size = 3;
   qcm.msg.model.SongSort sort = 4;
   bool sort_asc = 5;
+  bool force_refresh = 6;
 }
 
 message GetMixSongsRsp {

@@ -412,16 +412,28 @@ pub async fn check_cache_mix<DB>(
 where
     DB: sea_orm::ConnectionTrait,
 {
-    let out = sqlm::remote_mix::Entity::find()
+    remote_mix_for_refresh(db, id, false).await
+}
+
+pub async fn remote_mix_for_refresh<DB>(
+    db: &DB,
+    id: i64,
+    force: bool,
+) -> Result<Option<(sqlm::remote_mix::Model, sqlm::item::Model)>, DbErr>
+where
+    DB: sea_orm::ConnectionTrait,
+{
+    let mut query = sqlm::remote_mix::Entity::find()
         .inner_join(sqlm::mix::Entity)
         .find_also_related(sqlm::item::Entity)
-        .filter(Expr::col((sqlm::mix::Entity, sqlm::mix::Column::Id)).eq(id))
-        .filter(
+        .filter(Expr::col((sqlm::mix::Entity, sqlm::mix::Column::Id)).eq(id));
+    if !force {
+        query = query.filter(
             Expr::col((sqlm::mix::Entity, sqlm::mix::Column::ContentUpdateAt))
                 .lte(Timestamp::now().as_millis() - 30 * 60 * 1000),
-        )
-        .one(db)
-        .await?;
+        );
+    }
+    let out = query.one(db).await?;
 
     if let Some((mix, Some(item))) = out {
         Ok(Some((mix, item)))

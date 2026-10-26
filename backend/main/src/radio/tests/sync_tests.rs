@@ -433,6 +433,7 @@ async fn audio_and_song_cover_http_remain_available_after_sync() {
         provider_context: ctx.clone(),
         backend_ev,
         oper,
+        mix_refresh: Default::default(),
         resource_cache: cache.clone(),
         playback: Arc::new(Default::default()),
         radio: owner.clone(),
