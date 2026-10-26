@@ -13,6 +13,7 @@ MD.Page {
     actions: [
         MD.Action {
             text: qsTr('Add')
+            tooltip: qsTr("Add provider")
             icon.name: MD.Token.icon.add
             onTriggered: {
                 root.MD.MProp.page.pushItem('qrc:/Qcm/App/qml/page/ProviderAddPage.qml');

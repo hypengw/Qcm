@@ -90,6 +90,9 @@ MD.Page {
             }
 
             MD.ActionIconButton {
+                hoverEnabled: true
+                MD.ToolTip.text: action?.tooltip || text
+                MD.ToolTip.visible: mdState.interactions.hovered && !mdState.interactions.pressed && MD.ToolTip.text.length > 0
                 action: QA.AppendListAction {
                     getSongIds: function () {
                         return QA.Util.collect_ids(qr_al.data);
@@ -105,6 +108,9 @@ MD.Page {
                 text: MD.ActionCommand.text
                 icon.actionIcon: MD.ActionCommand.icon
                 enabled: MD.ActionCommand.enabled
+                hoverEnabled: true
+                MD.ToolTip.text: favoriteAction.tooltip || text
+                MD.ToolTip.visible: mdState.interactions.hovered && !mdState.interactions.pressed && MD.ToolTip.text.length > 0
                 icon.fill: favoriteAction.checked
                 mdState.selected: favoriteAction.checked
                 mdState.toggleable: favoriteAction.checkable

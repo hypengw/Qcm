@@ -80,6 +80,9 @@ MD.Page {
                 Layout.alignment: Qt.AlignHCenter
 
                 MD.ActionIconButton {
+                    hoverEnabled: true
+                    MD.ToolTip.text: action?.tooltip || text
+                    MD.ToolTip.visible: mdState.interactions.hovered && !mdState.interactions.pressed && MD.ToolTip.text.length > 0
                     action: QA.AppendListAction {
                         getSongIds: function () {
                             return QA.Util.collect_ids(qr_pl.data);
@@ -88,8 +91,9 @@ MD.Page {
                 }
                 MD.BusyIconButton {
                     text: qsTr("Refresh")
+                    hoverEnabled: true
                     MD.ToolTip.text: text
-                    MD.ToolTip.visible: hovered
+                    MD.ToolTip.visible: mdState.interactions.hovered && !mdState.interactions.pressed
                     icon.name: MD.Token.icon.refresh
                     enabled: root.itemId.valid && !qr_pl.querying
                     busy: qr_pl.querying

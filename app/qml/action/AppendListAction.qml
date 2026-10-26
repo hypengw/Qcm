@@ -7,6 +7,7 @@ MD.Action {
     id: root
     icon.name: MD.Token.icon.playlist_add
     text: qsTr('add to list')
+    tooltip: qsTr("Add songs to queue")
     onTriggered: {
         if (getSongIds) {
             QA.Action.queue(root.getSongIds());

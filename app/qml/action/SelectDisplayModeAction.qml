@@ -11,6 +11,8 @@ MD.Action {
     property Item menuParent
     signal selectDisplayMode(int mode)
 
+    text: qsTr("Display mode")
+    tooltip: qsTr("Change display mode")
     icon.name: QA.Util.displayModeIcon(displayMode)
     onTriggered: source => {
         const anchor = (source as MD.MenuItemBase)?.menu?.anchorItem ?? (source as Item) ?? menuParent;

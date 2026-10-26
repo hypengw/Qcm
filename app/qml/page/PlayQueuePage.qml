@@ -21,6 +21,7 @@ MD.Page {
             onTriggered: root.radioQueue.restart()
         },
         MD.Action {
+            text: qsTr("Clear queue")
             icon.name: MD.Token.icon.delete
             onTriggered: {
                 const q = QA.App.playqueue;

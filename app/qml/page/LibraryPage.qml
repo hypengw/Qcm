@@ -337,6 +337,9 @@ MD.Page {
                     text: MD.ActionCommand.text
                     icon.actionIcon: MD.ActionCommand.icon
                     enabled: MD.ActionCommand.enabled
+                    hoverEnabled: true
+                    MD.ToolTip.text: action?.tooltip || text
+                    MD.ToolTip.visible: mdState.interactions.hovered && !mdState.interactions.pressed && MD.ToolTip.text.length > 0
                     Component.onCompleted: {
                         if (action && action.hasOwnProperty('menuParent')) {
                             action.menuParent = m_item;
@@ -351,6 +354,9 @@ MD.Page {
                     text: MD.ActionCommand.text
                     icon.actionIcon: MD.ActionCommand.icon
                     enabled: MD.ActionCommand.enabled
+                    hoverEnabled: true
+                    MD.ToolTip.text: m_tool_bar.moreAction.tooltip || text
+                    MD.ToolTip.visible: mdState.interactions.hovered && !mdState.interactions.pressed && MD.ToolTip.text.length > 0
                 }
             }
         }
