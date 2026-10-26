@@ -41,6 +41,8 @@ sources = [
   "src/model/app_info.cppm",
   "src/model/empty_model.cppm",
   "src/model/entity_list.cppm",
+  "src/model/library_item_source.cppm",
+  "src/model/library_item_source.cpp",
   "src/model/home_item_source.cppm",
   "src/model/home_item_source.cpp",
   "src/model/filter_rule_model.cpp",

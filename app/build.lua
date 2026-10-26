@@ -69,6 +69,7 @@ qt.qml_module({
     "qml/component/basic/Image.qml",
     "qml/component/basic/ImageCard.qml",
     "qml/component/basic/ItemView.qml",
+    "qml/component/basic/LibraryView.qml",
     "qml/component/basic/Leaflet.qml",
     "qml/component/basic/RouteMsg.qml",
     "qml/component/filter/AlbumFilter.qml",
@@ -204,6 +205,7 @@ qt.qml_module({
       mode = "module-split",
       output = "Qcm/model/filter_rule_model",
     },
+    { source = "src/model/library_item_source.cppm", mode = "module-split", output = "Qcm/model/library_item_source" },
     { source = "src/model/home_item_source.cppm", mode = "module-split", output = "Qcm/model/home_item_source" },
     { source = "src/model/id_queue.cppm", mode = "module-split", output = "Qcm/model/id_queue" },
     {

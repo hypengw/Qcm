@@ -46,23 +46,6 @@ MD.Page {
                 Layout.fillWidth: true
                 clip: true
 
-                MD.FlickablePane {
-                    corners: MD.Util.corners(0, MD.Token.shape.corner.large)
-                    view: {
-                        const view = m_lib_view.currentView;
-                        return view?.displayMode == 0 ? null : view;
-                    }
-                }
-
-                MD.WidthProvider {
-                    id: m_wp
-                    total: m_stack_layout.width
-                    minimum: 140
-                    spacing: 12
-                    leftMargin: 8
-                    rightMargin: 8
-                }
-
                 StackLayout {
                     id: m_stack_layout
                     anchors.fill: parent
@@ -76,10 +59,6 @@ MD.Page {
                         id: m_view_album
                         busy: qr_albums.querying
                         displayMode: m_album_setting.display_mode
-                        delegate: {
-                            const d = displayMode;
-                            return [dg_albumlist, dg_album_card, dg_album_card][d];
-                        }
                         filterModel: m_album_filter_model
                         headerActions: [
                             QA.PlayAllAction {
@@ -110,14 +89,10 @@ MD.Page {
                             QA.MixCreateAction {},
                             QA.MixLinkAction {}
                         ]
+                        type: "mix"
                         model: qr_mix.data
                         sortModel: m_mix_sort_type
                         onSelectDisplayMode: m => m_mix_setting.display_mode = m
-
-                        delegate: {
-                            const d = displayMode;
-                            return [dg_mixlist, dg_mix_card, dg_mix_card][d];
-                        }
                     }
                     BaseView {
                         id: m_view_album_artist
@@ -129,10 +104,6 @@ MD.Page {
                         sortModel: m_album_artist_sort_type
                         type: 'albumartist'
                         onSelectDisplayMode: m => m_album_artist_setting.display_mode = m
-                        delegate: {
-                            const d = displayMode;
-                            return [dg_artistlist, dg_artist_card, dg_artist_card][d];
-                        }
                     }
 
                     BaseView {
@@ -145,10 +116,6 @@ MD.Page {
                         sortModel: m_artist_sort_type
                         type: 'artist'
                         onSelectDisplayMode: m => m_artist_setting.display_mode = m
-                        delegate: {
-                            const d = displayMode;
-                            return [dg_artistlist, dg_artist_card, dg_artist_card][d];
-                        }
                     }
                 }
             }
@@ -255,81 +222,6 @@ MD.Page {
         initialItem: Item {}
     }
 
-    Component {
-        id: dg_albumlist
-        BaseItem {
-            image: QA.Util.image_url(model.itemId)
-            text: model.name
-            supportText: {
-                const tc = model.trackCount;
-                const trackInfo = tc > 0 ? qsTr(`${tc} tracks`) : qsTr('no track');
-                return [QA.Util.joinName(model.artists, '/'), trackInfo].filter(e => !!e).join(' - ');
-            }
-        }
-    }
-    Component {
-        id: dg_album_card
-        QA.AlbumCardDelegate {
-            widthProvider: m_wp
-            mdState.backgroundOpacity: (ListView.view as BaseView).displayMode == QA.Enum.DGrid ? 0 : 1
-            onClicked: {
-                m_content.route(model.itemId);
-                ListView.view.currentIndex = index;
-            }
-        }
-    }
-    Component {
-        id: dg_mix_card
-        QA.MixCardDelegate {
-            widthProvider: m_wp
-            mdState.backgroundOpacity: (ListView.view as BaseView).displayMode == QA.Enum.DGrid ? 0 : 1
-            onClicked: {
-                m_content.route(model.itemId);
-                ListView.view.currentIndex = index;
-            }
-        }
-    }
-    Component {
-        id: dg_artist_card
-        QA.ArtistCardDelegate {
-            widthProvider: m_wp
-            mdState.backgroundOpacity: (ListView.view as BaseView).displayMode == QA.Enum.DGrid ? 0 : 1
-            onClicked: {
-                const itemId = model.itemId.clone();
-                const view = ListView.view as BaseView;
-                if (view?.type == "artist") {
-                    itemId.type = QA.Enum.ItemArtist;
-                }
-                m_content.route(itemId);
-                ListView.view.currentIndex = index;
-            }
-        }
-    }
-    Component {
-        id: dg_artistlist
-        BaseItem {
-            image: QA.Util.image_url(model.itemId)
-            text: model.name
-            // supportText: `${model.albumCount} albums`
-        }
-    }
-    Component {
-        id: dg_mixlist
-        BaseItem {
-            image: QA.Util.image_url(model.itemId)
-            text: model.name
-            supportText: `${model.trackCount} songs`
-        }
-    }
-    Component {
-        id: dg_djradiolist
-        BaseItem {
-            image: QA.Util.image_url(model.itemId)
-            text: model.name
-            supportText: `${model.programCount} programs`
-        }
-    }
-
     MD.SplitView {
         anchors.fill: parent
         anchors.leftMargin: root.MD.MProp.page.leftMargin
@@ -364,45 +256,12 @@ MD.Page {
     //     rightPage: MD.PageStack {}
     // }
 
-    component BaseView: QA.ItemView {
-        id: m_view_base
-        bottomMargin: root.MD.MProp.page.bottomMargin
-
-        property bool dirty: false
+    component BaseView: QA.LibraryView {
         property QA.FilterRuleModel filterModel
         property list<MD.Action> headerActions
         property var sortModel
-        property string type
         signal selectDisplayMode(int mode)
-        clip: false
-
-        currentIndex: -1
-        footer: ColumnLayout {
-            width: parent.width
-            MD.Space {
-                spacing: 8
-            }
-            QA.SyncingLabel {
-                Layout.alignment: Qt.AlignHCenter
-                Layout.maximumWidth: parent.width
-            }
-            MD.Space {
-                spacing: 8
-            }
-        }
-    }
-
-    component BaseItem: QA.ListItemDelegate {
-        onClicked: {
-            const view = ListView.view as BaseView;
-            if (view?.type == "artist") {
-                const itemId_ = itemId.clone();
-                itemId_.type = QA.Enum.ItemArtist;
-                m_content.route(itemId_);
-            } else {
-                m_content.route(itemId);
-            }
-        }
+        onActivated: itemId => m_content.route(itemId)
     }
 
     component HeaderToolBar: MD.Control {
