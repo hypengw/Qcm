@@ -18,6 +18,10 @@ MD.Menu {
     font.capitalization: Font.Capitalize
     modal: true
 
+    delegate: MD.ActionMenuItem {
+        font.capitalization: root.font.capitalization
+    }
+
     QA.PlayAction {
         itemId: root.itemId
     }
@@ -57,6 +61,7 @@ MD.Menu {
 
     MD.Menu {
         title: qsTr('copy')
+        delegate: root.delegate
         QA.CopyAction {
             text: qsTr('title')
             icon.name: MD.Token.icon.title

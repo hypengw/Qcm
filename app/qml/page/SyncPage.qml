@@ -9,7 +9,7 @@ import Qcm.Msg as QM
 MD.Page {
     id: root
     font.capitalization: Font.Capitalize
-    title: qsTr('provider')
+    title: qsTr('Provider')
     bottomPadding: radius
     scrolling: !m_view.atYBeginning
 

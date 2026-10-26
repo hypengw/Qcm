@@ -5,7 +5,7 @@ import Qcm.Material as MD
 MD.Dialog {
     id: root
     property list<var> itemIds
-    title: qsTr('go to artist')
+    title: qsTr('Go To Artist')
     standardButtons: MD.Dialog.Cancel
 
    MD.VerticalListView {
