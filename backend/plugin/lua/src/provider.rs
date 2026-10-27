@@ -121,6 +121,9 @@ impl LuaUserData for LuaInner {
 }
 
 struct LuaImpl {
+    comments: Option<LuaFunction>,
+    comment_replies: Option<LuaFunction>,
+    set_comment_like: Option<LuaFunction>,
     validate_settings: Option<LuaFunction>,
     share_url: Option<LuaFunction>,
     load: LuaFunction,
@@ -189,6 +192,22 @@ pub struct LuaProvider {
 }
 
 impl LuaProvider {
+    async fn comment_page(&self, ctx: &Context, target: qcm_core::provider::CommentTarget, parent: Option<&str>, request: qcm_core::provider::CommentPageRequest) -> Result<Option<qcm_core::provider::CommentPage>, ProviderError> {
+        let function = if parent.is_some() { &self.funcs.comment_replies } else { &self.funcs.comments };
+        let Some(function) = function else { return Ok(None); };
+        let epoch = self.lifecycle_epoch();
+        let (call, _guard) = self.context(ctx, None);
+        let target = to_lua(&self.lua, &target).map_err(ProviderError::from_err)?;
+        let params = to_lua(&self.lua, &request).map_err(ProviderError::from_err)?;
+        let response = match parent {
+            Some(parent) => function.call_async::<LuaValue>((call, target, parent, params)).await,
+            None => function.call_async::<LuaValue>((call, target, params)).await,
+        }.map_err(ProviderError::from_err)?;
+        if self.lifecycle_epoch() != epoch { return Err(ProviderError::NotAuth); }
+        let page: Option<qcm_core::provider::CommentPage> = self.lua.from_value(response).map_err(ProviderError::from_err)?;
+        if let Some(page) = &page { page.validate(&request)?; }
+        Ok(page)
+    }
     pub fn new(
         id: Option<i64>,
         name: &str,
@@ -325,6 +344,9 @@ impl LuaProvider {
             settings_fields,
             inner: inner.clone(),
             funcs: LuaImpl {
+                comments: provider_table.get("comments")?,
+                comment_replies: provider_table.get("comment_replies")?,
+                set_comment_like: provider_table.get("set_comment_like")?,
                 validate_settings: provider_table.get("validate_settings")?,
                 share_url: provider_table.get("share_url")?,
                 save: provider_table
@@ -478,6 +500,23 @@ impl Provider for LuaProvider {
         value.map(|value| reqwest::Url::parse(&value)
             .map_err(|error| ProviderError::Internal(anyhow!("invalid share URL: {error}"))))
             .transpose()
+    }
+    async fn comments(&self, ctx: &Context, target: qcm_core::provider::CommentTarget, request: qcm_core::provider::CommentPageRequest) -> Result<Option<qcm_core::provider::CommentPage>, ProviderError> {
+        self.comment_page(ctx, target, None, request).await
+    }
+    async fn comment_replies(&self, ctx: &Context, target: qcm_core::provider::CommentTarget, parent: &str, request: qcm_core::provider::CommentPageRequest) -> Result<Option<qcm_core::provider::CommentPage>, ProviderError> {
+        self.comment_page(ctx, target, Some(parent), request).await
+    }
+    async fn set_comment_like(&self, ctx: &Context, target: qcm_core::provider::CommentTarget, comment_id: &str, value: bool) -> Result<qcm_core::provider::CommentLikeResult, ProviderError> {
+        let function = self.funcs.set_comment_like.as_ref().ok_or(ProviderError::NotImplemented)?;
+        let epoch = self.lifecycle_epoch();
+        let (call, _guard) = self.context(ctx, None);
+        let target = to_lua(&self.lua, &target).map_err(ProviderError::from_err)?;
+        let response = function.call_async::<LuaValue>((call, target, comment_id, value)).await.map_err(ProviderError::from_err)?;
+        if self.lifecycle_epoch() != epoch { return Err(ProviderError::NotAuth); }
+        let result: qcm_core::provider::CommentLikeResult = self.lua.from_value(response).map_err(ProviderError::from_err)?;
+        if result.liked != value { return Err(ProviderError::Internal(anyhow!("unexpected comment reaction"))); }
+        Ok(result)
     }
     fn load(&self, data: &str) {
         self.generation.fetch_add(1, Ordering::AcqRel);

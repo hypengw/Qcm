@@ -10,22 +10,23 @@ MD.Popup {
     property bool backGestureEnabled: false
     property var props: ({})
     required property string source
+    property bool m_complete: false
 
     parent: MD.Overlay.overlay
     readyForOpen: m_stack.currentItem !== null
     implicitWidth: 400
-    width: Math.min(implicitWidth, parent.width)
+    width: Math.min(implicitWidth, parent?.width ?? 0)
     height: m_size.size.height
 
     mdState.textColor: MD.MProp.color.on_surface
     mdState.backgroundColor: MD.MProp.color.surface
     MD.MProp.backgroundColor: MD.MProp.color.surface
 
-    x: Math.round((parent.width - width) / 2)
-    y: Math.round((parent.height - height) / 2)
+    x: Math.round(((parent?.width ?? 0) - width) / 2)
+    y: Math.round(((parent?.height ?? 0) - height) / 2)
 
     Binding on width {
-        value: root.parent.width
+        value: root.parent?.width ?? 0
         when: root.fillWidth
     }
 
@@ -81,7 +82,14 @@ MD.Popup {
     onAboutToHide: m_stack.abortPreview()
 
     onSourceChanged: {
-        addPage(source, props);
+        if (m_complete && source.length)
+            addPage(source, props);
+    }
+
+    Component.onCompleted: {
+        m_complete = true;
+        if (source.length)
+            addPage(source, props);
     }
 
     function addPage(source, props) {
@@ -97,8 +105,8 @@ MD.Popup {
         clip: true
         sizeTransition: MD.SizeTransition {
             id: m_size
-            targetSize: Qt.size(root.width, root.fillHeight ? root.parent.height : root.implicitHeight)
-            maximumSize: Qt.size(root.width, root.parent.height * (root.fillHeight ? 1 : 0.8))
+            targetSize: Qt.size(root.width, root.fillHeight ? (root.parent?.height ?? 0) : root.implicitHeight)
+            maximumSize: Qt.size(root.width, (root.parent?.height ?? 0) * (root.fillHeight ? 1 : 0.8))
             enabled: root.opened && !root.fillHeight
         }
 

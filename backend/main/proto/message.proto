@@ -95,6 +95,12 @@ enum MessageType {
 
   GET_SHARE_LINK_REQ = 420;
   GET_SHARE_LINK_RSP = 421;
+  GET_COMMENTS_REQ = 430;
+  GET_COMMENTS_RSP = 431;
+  GET_COMMENT_REPLIES_REQ = 432;
+  GET_COMMENT_REPLIES_RSP = 433;
+  SET_COMMENT_LIKE_REQ = 434;
+  SET_COMMENT_LIKE_RSP = 435;
 
   SYNC_ITEM_REQ = 500;
 
@@ -555,6 +561,29 @@ message GetShareLinkReq {
 }
 message GetShareLinkRsp { optional string url = 1; }
 
+message GetCommentsReq {
+  int64 id = 1;
+  qcm.msg.model.ItemType item_type = 2;
+  qcm.msg.model.CommentOrder order = 3;
+  optional string token = 4;
+  uint32 limit = 5;
+}
+message GetCommentsRsp { qcm.msg.model.CommentsResult result = 1; }
+message GetCommentRepliesReq {
+  GetCommentsReq query = 1;
+  string parent_id = 2;
+  string scope = 3;
+}
+message GetCommentRepliesRsp { qcm.msg.model.CommentsResult result = 1; }
+message SetCommentLikeReq {
+  int64 id = 1;
+  qcm.msg.model.ItemType item_type = 2;
+  string comment_id = 3;
+  bool value = 4;
+  string scope = 5;
+}
+message SetCommentLikeRsp { qcm.msg.model.CommentLikeResult result = 1; }
+
 message GetHomeRecommendationsReq { repeated int64 provider_ids = 1; }
 message GetHomeRecommendationsRsp { repeated qcm.msg.model.HomeRecommendation providers = 1; }
 
@@ -670,6 +699,12 @@ message QcmMessage {
 
     GetShareLinkReq get_share_link_req = 420;
     GetShareLinkRsp get_share_link_rsp = 421;
+    GetCommentsReq get_comments_req = 430;
+    GetCommentsRsp get_comments_rsp = 431;
+    GetCommentRepliesReq get_comment_replies_req = 432;
+    GetCommentRepliesRsp get_comment_replies_rsp = 433;
+    SetCommentLikeReq set_comment_like_req = 434;
+    SetCommentLikeRsp set_comment_like_rsp = 435;
 
     SyncItemReq sync_item_req = 500;
 

@@ -1,43 +1,20 @@
 use crate::{error::ProcessError, msg};
-use qcm_core::{global, model as m, model::type_enum::ItemType, provider::Context};
-use sea_orm::EntityTrait;
+use qcm_core::provider::Context;
+#[cfg(test)]
+use qcm_core::{global, model as m, model::type_enum::ItemType};
 
 pub async fn link(
     ctx: &Context,
     request: &msg::GetShareLinkReq,
 ) -> Result<msg::GetShareLinkRsp, ProcessError> {
-    if request.id <= 0 {
-        return Err(ProcessError::WrongId(request.id.to_string()));
-    }
-    let mut kind = ItemType::try_from(request.item_type)
-        .map_err(|_| ProcessError::NoSuchItemType(request.item_type.to_string()))?;
-    if kind == ItemType::AlbumArtist {
-        kind = ItemType::Artist;
-    }
-    let item_id = match kind {
-        ItemType::Mix => {
-            let mix = m::mix::Entity::find_by_id(request.id)
-                .one(&ctx.db)
-                .await?
-                .ok_or_else(|| ProcessError::NoSuchMix(request.id.to_string()))?;
-            let Some(remote) = mix.remote_id else {
-                return Ok(msg::GetShareLinkRsp::default());
-            };
-            remote
-        }
-        ItemType::Song | ItemType::Album | ItemType::Artist => request.id,
-        _ => return Ok(msg::GetShareLinkRsp::default()),
+    let Some(target) =
+        crate::provider_item::resolve_provider_item(ctx, request.id, request.item_type).await?
+    else {
+        return Ok(msg::GetShareLinkRsp::default());
     };
-    let item = m::item::Entity::find_by_id(item_id)
-        .one(&ctx.db)
-        .await?
-        .ok_or(ProcessError::NotFound)?;
-    if item.r#type != kind {
-        return Err(ProcessError::WrongId(request.id.to_string()));
-    }
-    let provider = global::provider(item.provider_id)
-        .ok_or_else(|| ProcessError::NoSuchProvider(item.provider_id.to_string()))?;
-    let url = provider.share_url(&item.native_id, kind)?;
+    let url = target
+        .provider
+        .share_url(&target.item.native_id, target.item.r#type)?;
     if url.as_ref().is_some_and(|url| {
         !matches!(url.scheme(), "http" | "https")
             || url.host_str().is_none()

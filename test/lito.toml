@@ -31,3 +31,7 @@ targets = [
 [[test]]
 name = "playing-background"
 sources = ["src/playing_background.cpp"]
+
+[[test]]
+name = "comment-reaction"
+sources = ["src/comment_reaction.cpp"]

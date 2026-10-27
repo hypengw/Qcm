@@ -145,6 +145,7 @@ qt.qml_module({
     "qml/menu/SortMenu.qml",
     "qml/page/AboutPage.qml",
     "qml/page/CommentPage.qml",
+    "qml/component/page/CommentPopup.qml",
     "qml/page/DescriptionPage.qml",
     "qml/page/FilterPage.qml",
     "qml/page/HomePage.qml",
@@ -298,6 +299,11 @@ qt.qml_module({
       source = "src/query/share_query.cppm",
       mode = "module-split",
       output = "Qcm/query/share_query",
+    },
+    {
+      source = "src/query/comments_query.cppm",
+      mode = "module-split",
+      output = "Qcm/query/comments_query",
     },
     {
       source = "src/query/storage_info.cppm",

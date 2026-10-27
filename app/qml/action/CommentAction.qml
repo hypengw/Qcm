@@ -5,12 +5,13 @@ import Qcm.Material as MD
 
 MD.Action {
     id: root
-    required property var itemId
+    required property QA.item_id itemId
     icon.name: MD.Token.icon.comment
-    text: qsTr('comment')
+    text: qsTr('Comments')
+    enabled: itemId.valid && [QA.Enum.ItemSong, QA.Enum.ItemAlbum, QA.Enum.ItemMix].includes(itemId.type)
     onTriggered: {
-        const msg = Util.routeMsg();
-        msg.dst = 'qrc:/Qcm/App/qml/page/CommentPage.qml';
+        const msg = QA.Util.routeMsg();
+        msg.dst = 'Qcm.App/CommentPopup';
         msg.props = {
             itemId: root.itemId
         };

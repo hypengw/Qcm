@@ -18,4 +18,7 @@ MD.Menu {
     QA.CopyMenu {
         itemId: root.itemId
     }
+    QA.CommentAction {
+        itemId: root.itemId
+    }
 }

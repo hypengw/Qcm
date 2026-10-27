@@ -17,6 +17,13 @@ using google::protobuf::Timestamp;
 namespace m = qcm::msg::model;
 export namespace qcm::msg::model
 {
+using m::Comment;
+using m::CommentAuthor;
+using m::CommentQuote;
+using m::CommentPage;
+using m::CommentsResult;
+using m::CommentLikeResult;
+namespace CommentOrderGadget { using m::CommentOrderGadget::CommentOrder; }
 using m::Album;
 using m::Artist;
 using m::Mix;
@@ -281,6 +288,12 @@ QCM_MSG_TRAITS_RSP(GetHomeRecommendationsRsp, GetHomeRecommendationsReq, getHome
 QCM_MSG_TRAITS_REQ(SyncItemReq, Rsp, SYNC_ITEM_REQ, syncItemReq)
 QCM_MSG_TRAITS_REQ(GetShareLinkReq, GetShareLinkRsp, GET_SHARE_LINK_REQ, getShareLinkReq)
 QCM_MSG_TRAITS_RSP(GetShareLinkRsp, GetShareLinkReq, getShareLinkRsp)
+QCM_MSG_TRAITS_REQ(GetCommentsReq, GetCommentsRsp, GET_COMMENTS_REQ, getCommentsReq)
+QCM_MSG_TRAITS_RSP(GetCommentsRsp, GetCommentsReq, getCommentsRsp)
+QCM_MSG_TRAITS_REQ(GetCommentRepliesReq, GetCommentRepliesRsp, GET_COMMENT_REPLIES_REQ, getCommentRepliesReq)
+QCM_MSG_TRAITS_RSP(GetCommentRepliesRsp, GetCommentRepliesReq, getCommentRepliesRsp)
+QCM_MSG_TRAITS_REQ(SetCommentLikeReq, SetCommentLikeRsp, SET_COMMENT_LIKE_REQ, setCommentLikeReq)
+QCM_MSG_TRAITS_RSP(SetCommentLikeRsp, SetCommentLikeReq, setCommentLikeRsp)
 
 template<>
 struct MsgTraits<msg::Rsp> {

@@ -100,6 +100,9 @@ MD.Page {
                     visible: root.mix.mixType !== QM.MixType.MIX_TYPE_NORMAL
                     onClicked: qr_pl.refresh()
                 }
+                MD.ActionIconButton {
+                    action: QA.CommentAction { itemId: root.itemId }
+                }
             }
         }
 

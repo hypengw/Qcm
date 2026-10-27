@@ -12,6 +12,8 @@ use crate::{
     Result,
 };
 pub mod playback;
+pub mod comment;
+pub use comment::{Comment, CommentAuthor, CommentLikeResult, CommentOrder, CommentPage, CommentPageRequest, CommentQuote, CommentTarget};
 pub mod settings;
 pub use playback::{PlaybackKind, PlaybackRequest, PreparedPlayback};
 pub mod home;
@@ -195,6 +197,15 @@ pub trait Provider: ProviderCommon + ProviderSession + Send + Sync {
     /// Returns a public item page without credentials or transient media URLs.
     fn share_url(&self, _native_id: &str, _item_type: ItemType) -> Result<Option<reqwest::Url>, ProviderError> {
         Ok(None)
+    }
+    async fn comments(&self, _ctx: &Context, _target: CommentTarget, _request: CommentPageRequest) -> Result<Option<CommentPage>, ProviderError> {
+        Ok(None)
+    }
+    async fn comment_replies(&self, _ctx: &Context, _target: CommentTarget, _parent: &str, _request: CommentPageRequest) -> Result<Option<CommentPage>, ProviderError> {
+        Ok(None)
+    }
+    async fn set_comment_like(&self, _ctx: &Context, _target: CommentTarget, _comment_id: &str, _value: bool) -> Result<CommentLikeResult, ProviderError> {
+        Err(ProviderError::NotImplemented)
     }
     fn load(&self, data: &str);
     fn save(&self) -> String;

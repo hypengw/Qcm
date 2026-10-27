@@ -10,6 +10,8 @@ mod http;
 mod msg;
 mod mix;
 mod share;
+mod comments;
+mod provider_item;
 mod resource_cache;
 mod radio;
 mod playback;

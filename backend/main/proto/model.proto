@@ -358,3 +358,52 @@ message HomeRecommendation {
   string error = 5;
   repeated string diagnostics = 6;
 }
+
+enum CommentOrder {
+  COMMENT_ORDER_LATEST = 0;
+  COMMENT_ORDER_HOT = 1;
+}
+message CommentAuthor {
+  string id = 1;
+  string name = 2;
+  optional string avatar_url = 3;
+}
+message CommentQuote {
+  string id = 1;
+  CommentAuthor author = 2;
+  string content = 3;
+  bool deleted = 4;
+}
+message Comment {
+  string id = 1;
+  CommentAuthor author = 2;
+  string content = 3;
+  optional int64 time_ms = 4;
+  optional bool liked = 5;
+  optional uint64 like_count = 6;
+  optional uint64 reply_count = 7;
+  bool deleted = 8;
+  CommentQuote quote = 9;
+  repeated Comment previews = 10;
+}
+message CommentPage {
+  repeated Comment comments = 1;
+  CommentOrder order = 2;
+  repeated CommentOrder orders = 3;
+  optional uint64 total = 4;
+  bool has_more = 5;
+  optional string next_token = 6;
+  bool can_reply = 7;
+  bool can_like = 8;
+}
+message CommentsResult {
+  bool supported = 1;
+  string scope = 2;
+  int64 provider_id = 3;
+  uint64 epoch = 4;
+  CommentPage page = 5;
+}
+message CommentLikeResult {
+  bool liked = 1;
+  optional uint64 like_count = 2;
+}

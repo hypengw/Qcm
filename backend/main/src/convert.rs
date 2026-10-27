@@ -631,6 +631,9 @@ impl_from_for_qcm_msg!(SyncRsp);
 impl_from_for_qcm_msg!(GetSongsByIdRsp);
 impl_from_for_qcm_msg!(GetSongIdsRsp);
 impl_from_for_qcm_msg!(GetShareLinkRsp);
+impl_from_for_qcm_msg!(GetCommentsRsp);
+impl_from_for_qcm_msg!(GetCommentRepliesRsp);
+impl_from_for_qcm_msg!(SetCommentLikeRsp);
 
 impl_from_for_qcm_msg!(GetHomeRecommendationsRsp);
 impl_from_for_qcm_msg!(GetHomeBlocksRsp);

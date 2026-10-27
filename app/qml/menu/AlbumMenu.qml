@@ -28,7 +28,7 @@ MD.Menu {
         itemId: root.itemId
     }
 
-    // QA.CommentAction {
-    //     itemId: root.itemId
-    // }
+    QA.CommentAction {
+        itemId: root.itemId
+    }
 }

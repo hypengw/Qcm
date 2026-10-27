@@ -56,6 +56,22 @@ async fn process_request(
     let payload = &message.payload;
 
     match mtype {
+        MessageType::GetCommentsReq => {
+            if let Some(Payload::GetCommentsReq(req)) = payload {
+                return Ok(msg::GetCommentsRsp { result: Some(crate::comments::list(&ctx.provider_context, req, None, None).await?) }.qcm_into());
+            }
+        }
+        MessageType::GetCommentRepliesReq => {
+            if let Some(Payload::GetCommentRepliesReq(req)) = payload {
+                let query = req.query.as_ref().ok_or_else(|| ProcessError::MissingFields("query".into()))?;
+                return Ok(msg::GetCommentRepliesRsp { result: Some(crate::comments::list(&ctx.provider_context, query, Some(&req.parent_id), Some(&req.scope)).await?) }.qcm_into());
+            }
+        }
+        MessageType::SetCommentLikeReq => {
+            if let Some(Payload::SetCommentLikeReq(req)) = payload {
+                return Ok(crate::comments::like(&ctx.provider_context, req).await?.qcm_into());
+            }
+        }
         MessageType::GetShareLinkReq => {
             if let Some(Payload::GetShareLinkReq(req)) = payload {
                 return Ok(crate::share::link(&ctx.provider_context, req).await?.qcm_into());
