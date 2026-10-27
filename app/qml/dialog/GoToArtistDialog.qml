@@ -22,7 +22,7 @@ MD.Dialog {
             corners: MD.Util.listCorners(index, count, 16)
 
             leader: QA.Image {
-                source: QA.Util.image_url(m_qr.data.item.itemId)
+                source: QA.Util.image_url(m_qr.itemId)
                 displaySize: Qt.size(48, 48)
                 radius: 24
             }
