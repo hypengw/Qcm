@@ -5,6 +5,7 @@ import Qcm.Material as MD
 MD.Card {
     id: root
 
+    property MD.LazyRow itemRow
     property alias image: image
     property string subText
     property int picWidth: 160
@@ -21,6 +22,7 @@ MD.Card {
         spacing: 8
         QA.Image {
             id: image
+            itemRow: root.itemRow
             width: displaySize.width
             height: displaySize.height
             displaySize: Qt.size(root.picWidth, root.picWidth)

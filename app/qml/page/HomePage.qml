@@ -57,6 +57,7 @@ MD.Page {
 
         QA.ImagePlayCard {
             id: card
+            itemRow: cardDelegate.row
             width: parent.width
             itemId: cardDelegate.model.itemId
             text: cardDelegate.model.name
@@ -111,6 +112,7 @@ MD.Page {
                     required property MD.LazyRow row
                     width: m_for_you_block.widthProvider.width
                     QA.ForYouCard {
+                        itemRow: forYouDelegate.row
                         width: parent.width
                         model: forYouDelegate.row.value
                         query: m_home_query
@@ -135,6 +137,7 @@ MD.Page {
                     required property MD.LazyRow row
                     width: m_radio_block.widthProvider.width
                     QA.RadioQueueCard {
+                        itemRow: radioDelegate.row
                         width: parent.width
                         model: radioDelegate.row.value
                         query: m_home_query

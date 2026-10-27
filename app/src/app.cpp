@@ -233,6 +233,7 @@ void App::init() {
     for (auto el : engine->rootObjects()) {
         if (auto win = qobject_cast<QQuickWindow*>(el)) {
             d->m_main_win = win;
+            qextra::image::set_texture_cache_limit(win, 32ull * 1024 * 1024);
         }
     }
 

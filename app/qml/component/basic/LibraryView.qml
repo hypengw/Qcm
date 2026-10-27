@@ -141,6 +141,7 @@ Item {
         id: cardDelegate
         QA.ImagePlayCard {
             id: card
+            itemRow: row
             required property MD.LazyRow row
             readonly property var entry: row.value
             text: entry.name
@@ -175,6 +176,7 @@ Item {
             radius: MD.Token.shape.corner.large
             corners: MD.Util.corners(0, row.index + 1 === root.count ? radius : 0)
             leader: QA.Image {
+                itemRow: listItem.row
                 source: QA.Util.image_url(listItem.entry.itemId)
                 radius: 8
                 displaySize: Qt.size(48, 48)

@@ -6,6 +6,9 @@ import Qcm.Material as MD
 Item {
     id: root
 
+    property MD.LazyRow itemRow
+    property alias loadingMode: image.loadingMode
+    property alias preparationScope: image.preparationScope
     property size displaySize: Qt.size(0, 0)
     property bool fixedSize: true
     property int radius: 0
@@ -39,6 +42,8 @@ Item {
     }
     QE.Image {
         id: image
+        loadingMode: !root.itemRow ? QE.Image.Automatic : root.itemRow.usage === MD.LazyRow.Visible ? QE.Image.Automatic : root.itemRow.usage === MD.LazyRow.Cached ? QE.Image.Prefetch : QE.Image.Suspended
+        preparationScope: root.itemRow?.view ?? null
         anchors.fill: parent
         fillMode: QE.Image.PreserveAspectCrop
         retainWhileLoading: true
