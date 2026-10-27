@@ -93,6 +93,7 @@ public:
 
     std::optional<player::Notifier> m_player_sender;
     QPointer<QQuickWindow>          m_main_win;
+    Option<Box<QmlNetworkDiskCache>> m_image_cache;
     up<QQmlApplicationEngine>       m_qml_engine;
 };
 
@@ -162,6 +163,11 @@ void App::init() {
     connect(d->provider_status,&ProviderStatusModel::syncingChanged,d->m_playqueu,[queue=d->m_playqueu](bool syncing){if(!syncing) queue->reloadEntities();});
     auto engine = this->engine();
 
+    d->m_image_cache = Some(Box<QmlNetworkDiskCache>::make(
+        QDir(QString::fromStdString(cache_path().string())).filePath(u"qml-images"_s),
+        128 * 1024 * 1024));
+    (*d->m_image_cache)->install(engine);
+
     qcm::init_path(std::array { config_path() / "session", data_path() });
 
     // uuid
@@ -212,8 +218,15 @@ void App::init() {
         if (! qextra::image::set_local_file_source(
                 engine, backend->resource_base_url(), backend->cache_directory()))
             LOG_ERROR("invalid image file source configuration");
+        QList<QUrl> origins;
+        if (!backend->resource_base_url().isEmpty())
+            origins.append(backend->resource_base_url());
+        if (!qextra::image::set_network_cache(engine, origins, 300))
+            LOG_ERROR("invalid image network cache configuration");
     };
     connect(this->backend(), &Backend::resourceStateChanged, engine, update_image_sources);
+    connect(AppStore::instance(), &AppStore::scopeChanged, engine,
+            [engine] { qextra::image::clear_network_cache(engine); });
     update_image_sources();
     engine->loadFromModule("Qcm.App", "Window");
 
