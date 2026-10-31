@@ -55,5 +55,6 @@ private:
     void                           rebuild(int first = -1, int last = -1);
     QPointer<QAbstractItemModel>   m_model;
     QList<QMetaObject::Connection> m_connections;
+    quint64                        m_projectionGeneration = 0;
 };
 } // namespace qcm::model

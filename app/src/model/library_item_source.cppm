@@ -43,7 +43,8 @@ private:
     QList<QMetaObject::Connection> m_connections;
     qml_material::ItemDemand       m_demand;
     std::optional<int>             m_requestedCount;
-    quint64                        m_generation  = 0;
-    bool                           m_fetchQueued = false;
+    quint64                        m_generation           = 0;
+    bool                           m_fetchQueued          = false;
+    quint64                        m_projectionGeneration = 0;
 };
 } // namespace qcm::model
