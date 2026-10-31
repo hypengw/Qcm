@@ -1,3 +1,0 @@
-module Qcm.App
-singleton Clipboard 1.0 Clipboard.qml
-singleton Action 1.0 Action.qml

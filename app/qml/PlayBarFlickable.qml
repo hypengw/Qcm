@@ -1,143 +1,154 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Window
 import Qcm.App as QA
+import Qcm.Material as MD
 
 Flickable {
     id: root
+    objectName: "playbackHost"
 
-    implicitHeight: m_bar.implicitHeight
+    property rect closedBarRect: Qt.rect(0, height - barHeight, width, barHeight)
+    property real barMargin: 0
+    property Item backdropSource
+    property bool floating: true
+    readonly property real barHeight: bar.implicitHeight
+    readonly property real travel: Math.max(0, closedBarRect.y)
+    readonly property real expansion: travel > 0 ? Math.max(0, Math.min(1, contentY / travel)) : 0
+    readonly property bool closed: playbackState === "close" && !motion.running && expansion === 0
+    readonly property bool expanded: playbackState === "open" && !motion.running
+    property real previousTravel: 0
+    property bool ready: false
+    property Item returnFocusItem
+
+    contentHeight: height + travel
+    contentWidth: width
     boundsBehavior: Flickable.StopAtBounds
+    flickableDirection: Flickable.VerticalFlick
+    property string playbackState: "close"
+    containmentMask: QtObject {
+        function contains(point: point): bool {
+            if (!root.closed)
+                return point.x >= 0 && point.y >= 0 && point.x < root.width && point.y < root.height;
+            const rect = root.closedBarRect;
+            return point.x >= rect.x && point.y >= rect.y && point.x < rect.x + rect.width && point.y < rect.y + rect.height;
+        }
+    }
+    MD.InputBlock {
+        target: root
+        acceptWheel: false
+        acceptHover: true
+        acceptTouch: true
+        acceptMouseButtons: Qt.LeftButton
+    }
 
-    // manual topMargin
-    contentHeight: windowHeight + Math.abs(y)
-    readonly property int windowHeight: Window.height
-    readonly property real contentYRadio: visibleArea.yPosition / Math.max((1 - visibleArea.heightRatio), 0.001)
-    property bool closed: true
-
+    function rememberFocus() {
+        if (playbackState === "close" && !motion.running)
+            returnFocusItem = root.Window.window?.activeFocusItem ?? null;
+    }
+    onExpandedChanged: if (expanded)
+        page.forceActiveFocus(Qt.OtherFocusReason)
+    onClosedChanged: {
+        if (closed && returnFocusItem) {
+            if (returnFocusItem.visible && returnFocusItem.enabled)
+                returnFocusItem.forceActiveFocus(Qt.OtherFocusReason);
+            returnFocusItem = null;
+        }
+    }
+    function settle() {
+        if (!ready || playbackState === "drag")
+            return;
+        motion.stop();
+        motion.from = contentY;
+        motion.to = playbackState === "open" ? travel : 0;
+        if (Math.abs(motion.from - motion.to) < 0.5)
+            contentY = motion.to;
+        else
+            motion.start();
+    }
+    function chooseState() {
+        if (playbackState !== "drag")
+            return;
+        const open = flicking ? verticalVelocity > 0 : expansion > 0.5;
+        playbackState = open ? "open" : "close";
+    }
+    function back() {
+        if (expanded && page.canBack)
+            page.back();
+        else
+            playbackState = "close";
+    }
     onMovementStarted: {
-        state = 'drag';
+        rememberFocus();
+        motion.stop();
+        playbackState = "drag";
     }
     onFlickStarted: {
         chooseState();
         cancelFlick();
     }
-    onMovementEnded: {
-        chooseState();
-    }
-    function chooseState() {
-        if (state != 'drag')
+    onMovementEnded: chooseState()
+    onPlaybackStateChanged: settle()
+    onTravelChanged: {
+        if (!ready)
             return;
-        let toOpen = contentY > m_content.y / 2;
-        if (flicking) {
-            if (verticalVelocity > 0) {
-                toOpen = true;
-            } else if (verticalVelocity < 0) {
-                toOpen = false;
-            }
-        }
-        state = toOpen ? 'open' : 'close';
+        const fraction = previousTravel > 0 ? contentY / previousTravel : (playbackState === "open" ? 1 : 0);
+        motion.stop();
+        previousTravel = travel;
+        contentY = Math.max(0, Math.min(1, fraction)) * travel;
+        settle();
     }
-
-    state: 'close'
-
-    states: [
-        State {
-            name: 'close'
-            PropertyChanges {
-                root.contentY: 0
-                root.closed: true
-                m_page.visible: false
-                m_bar.visible: true
-                restoreEntryValues: false
-            }
-        },
-        State {
-            name: 'drag'
-            PropertyChanges {
-                root.closed: false
-                m_page.visible: true
-                m_bar.visible: true
-                restoreEntryValues: false
-            }
-        },
-        State {
-            name: 'open'
-            PropertyChanges {
-                root.contentY: m_content.y
-                root.closed: false
-                m_page.visible: true
-                m_bar.visible: false
-                restoreEntryValues: false
-            }
-        }
-    ]
-
-    transitions: [
-        Transition {
-            to: 'close'
-            SequentialAnimation {
-                PropertyAction {
-                    property: 'visible'
-                    target: m_bar
-                }
-                NumberAnimation {
-                    property: 'contentY'
-                    duration: 300
-                }
-                PropertyAction {
-                    property: 'visible'
-                }
-                PropertyAction {
-                    property: 'closed'
-                }
-            }
-        },
-        Transition {
-            to: 'open'
-            SequentialAnimation {
-                PropertyAction {
-                    property: 'visible'
-                    target: m_page
-                }
-                NumberAnimation {
-                    property: 'contentY'
-                    duration: 300
-                }
-                PropertyAction {
-                    properties: 'visible'
-                }
-            }
-        }
-    ]
-
+    onFloatingChanged: {
+        cancelFlick();
+        if (playbackState === "drag")
+            playbackState = expansion > 0.5 ? "open" : "close";
+    }
+    Component.onCompleted: {
+        previousTravel = travel;
+        ready = true;
+        settle();
+    }
+    NumberAnimation {
+        id: motion
+        target: root
+        property: "contentY"
+        duration: root.MD.MProp.motion.reducedMotion ? 0 : Math.round(300 * root.MD.MProp.motion.durationScale)
+        easing.type: Easing.OutCubic
+    }
+    Shortcut {
+        sequences: ["Space"]
+        enabled: root.visible
+        onActivated: QA.Action.toggle()
+    }
     Connections {
-        function onTogglePlaybar() {
-            if (root.state != 'drag') {
-                root.state = root.state == 'close' ? 'open' : 'close';
-            }
-        }
         target: QA.Action
-    }
-
-    Item {
-        height: root.contentHeight
-        width: parent.width
-
-        Item {
-            id: m_content
-            y: parent.height - height
-            height: root.windowHeight
-            width: parent.width
-            QA.PlayingPage {
-                id: m_page
-                anchors.fill: parent
-                opacity: root.contentYRadio
-            }
-            QA.PlayBar {
-                id: m_bar
-                width: parent.width
-                opacity: Math.max(1 - root.contentYRadio * 2, 0)
+        function onTogglePlaybar() {
+            if (root.playbackState !== "drag") {
+                root.rememberFocus();
+                root.playbackState = root.playbackState === "close" ? "open" : "close";
             }
         }
+    }
+    QA.PlayingPage {
+        id: page
+        objectName: "playingPage"
+        y: root.travel
+        width: root.width
+        height: root.height
+        visible: !root.closed
+        enabled: root.expanded
+        opacity: root.expansion
+    }
+    QA.PlayBar {
+        id: bar
+        x: root.closedBarRect.x * (1 - root.expansion)
+        y: root.travel
+        width: root.closedBarRect.width + (root.width - root.closedBarRect.width) * root.expansion
+        height: implicitHeight
+        layoutWidth: Math.max(0, root.width - 2 * root.barMargin)
+        floating: root.floating
+        backdropSource: root.backdropSource
+        visible: root.expansion < 0.5
+        opacity: Math.max(1 - root.expansion * 2, 0)
     }
 }

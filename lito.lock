@@ -117,13 +117,6 @@ name = "qcm-subsonic-lua"
 version = "1.3.8"
 
 [[packages]]
-name = "qcm-test"
-dependencies = [
-  "qcm-core",
-  "qextra",
-]
-
-[[packages]]
 name = "qextra"
 version = "0.1.0"
 source = "git+https://github.com/hypengw/QExtra.git#104ec357e61cabf0b0b14ce6183eedf120b9b458"

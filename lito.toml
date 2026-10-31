@@ -7,7 +7,6 @@ members = [
   "core",
   "mpris",
   "player",
-  "test",
   "third_party/qr_code",
 ]
 default-members = ["app"]

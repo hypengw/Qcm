@@ -1,295 +1,260 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Layouts
 import Qcm.App as QA
 import Qcm.Material as MD
 
 MD.Pane {
     id: root
+    objectName: "playBar"
 
+    property Item backdropSource
+    property bool floating: true
+    property real layoutWidth: width
+    readonly property bool isSmall: layoutWidth < 650
     readonly property var currentSong: QA.App.playqueue.currentSong
     readonly property QA.item_id currentSongId: QA.App.playqueue.currentSongId
-    readonly property QA.EntityView entity: QA.Store.item(root.currentSongId)
-    readonly property QA.item_id currentAlbumId: root.entity?.albumId ?? QA.Util.createItemid()
+    readonly property QA.EntityView entity: QA.Store.item(currentSongId)
+    readonly property QA.item_id currentAlbumId: entity?.albumId ?? QA.Util.createItemid()
     readonly property list<var> artists: entity?.artists ?? []
 
-    backgroundColor: MD.Token.color.surface_container
-    elevation: MD.MProp.size.isCompact ? MD.Token.elevation.level2 : MD.Token.elevation.level0
-
-    readonly property bool isSmall: root.width > 0 && root.width < 650
+    implicitHeight: floating ? (isSmall ? 72 : 104) : 64
     padding: 0
+    radius: floating ? 24 : 0
+    backgroundColor: MD.MProp.color.surface_container
+    MD.MProp.textColor: MD.MProp.color.on_surface
 
-    Item {
-        anchors.fill: parent
-        implicitHeight: m_content.implicitHeight
-        implicitWidth: m_content.implicitWidth
+    background: Item {
+        MD.Elevation {
+            anchors.fill: parent
+            visible: root.floating
+            corners: MD.Util.corners(root.radius)
+            elevation: MD.Token.elevation.level2
+        }
+        MD.BackdropSurface {
+            objectName: "playBarBackdrop"
+            anchors.fill: parent
+            sourceItem: root.backdropSource
+            active: root.floating && root.visible && root.opacity > 0
+            radius: root.radius
+            fallbackColor: root.backgroundColor
+        }
+        Rectangle {
+            anchors.fill: parent
+            visible: root.floating
+            radius: root.radius
+            color: "transparent"
+            border.width: 1
+            border.color: Qt.rgba(MD.Token.color.outline.r, MD.Token.color.outline.g, MD.Token.color.outline.b, 0.12)
+        }
+    }
+
+    component FavoriteButton: MD.BusyIconButton {
+        readonly property QA.FavoriteAction favoriteAction: QA.FavoriteAction {
+            itemId: root.currentSongId
+        }
+        MD.ActionCommand.action: favoriteAction
+        enabled: root.currentSongId.valid && MD.ActionCommand.enabled
+        text: MD.ActionCommand.text
+        icon.actionIcon: MD.ActionCommand.icon
+        icon.fill: favoriteAction.checked
+        mdState.selected: favoriteAction.checked
+        mdState.toggleable: favoriteAction.checkable
+        busy: favoriteAction.busy
+        progress: favoriteAction.progress
+    }
+    component PlayButton: MD.IconButton {
+        mdState.type: MD.Enum.IBtFilled
+        mdState.selected: QA.Global.player.playing
+        icon.fill: true
+        icon.name: QA.Global.player.playing ? MD.Token.icon.pause : MD.Token.icon.play_arrow
+        Accessible.name: QA.Global.player.playing ? qsTr("Pause") : qsTr("Play")
+        onClicked: QA.Action.toggle()
+    }
+
+    contentItem: Item {
         MouseArea {
             anchors.fill: parent
             cursorShape: Qt.PointingHandCursor
-            hoverEnabled: true
+            onClicked: QA.Action.togglePlaybar()
+        }
 
-            onClicked: {
-                QA.Action.togglePlaybar();
+        Item {
+            id: metadata
+            x: 16
+            y: (parent.height - height) / 2
+            width: root.isSmall ? auxiliary.x - x - 12 : Math.max(170, Math.min(300, root.layoutWidth * 0.29))
+            height: root.isSmall ? 48 : 56
+            QA.Image {
+                id: cover
+                displaySize: Qt.size(metadata.height, metadata.height)
+                radius: 10
+                source: QA.Util.image_url(root.currentSongId)
+            }
+            Column {
+                x: cover.width + 12
+                anchors.verticalCenter: parent.verticalCenter
+                width: Math.max(0, parent.width - x - (favorite.visible ? favorite.width + 4 : 0))
+                spacing: 2
+                MD.Text {
+                    width: parent.width
+                    maximumLineCount: 1
+                    elide: Text.ElideRight
+                    typescale: MD.Token.typescale.body_medium
+                    text: root.currentSong.name
+                    MD.MProp.textColor: albumLink.containsMouse ? MD.Token.color.primary : root.MD.MProp.textColor
+                    MouseArea {
+                        id: albumLink
+                        anchors.fill: parent
+                        enabled: root.currentAlbumId.valid
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: QA.Action.routeItem(root.currentAlbumId)
+                    }
+                }
+                MD.ActionLabel {
+                    width: parent.width
+                    maximumLineCount: 1
+                    typescale: MD.Token.typescale.body_small
+                    opacity: 0.7
+                    action: MD.Action {
+                        text: QA.Util.joinName(root.artists, '/')
+                        onTriggered: artistAction.trigger()
+                    }
+                    QA.GoToArtistAction {
+                        id: artistAction
+                        getItemIds: function () {
+                            return root.artists.map(el => QA.Util.artistId(el.id_proto));
+                        }
+                    }
+                }
+                Row {
+                    spacing: 2
+                    visible: children.length > 0
+                    Repeater {
+                        model: root.currentSong.tags
+                        QA.SongTag {
+                            required property var modelData
+                            tag: modelData
+                        }
+                    }
+                }
+            }
+            FavoriteButton {
+                id: favorite
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                visible: !root.isSmall && root.layoutWidth >= 820
             }
         }
 
-        ColumnLayout {
-            id: m_content
-            anchors.fill: parent
-            spacing: 0
-
-            Shortcut {
-                sequences: ["Space"]
-                onActivated: QA.Action.toggle()
+        Item {
+            id: center
+            visible: !root.isSmall
+            x: metadata.x + metadata.width + 12
+            width: Math.max(0, auxiliary.x - x - 12)
+            height: parent.height
+            Row {
+                id: playbackControls
+                anchors.horizontalCenter: parent.horizontalCenter
+                y: 4
+                height: 52
+                spacing: 4
+                MD.IconButton {
+                    anchors.verticalCenter: parent.verticalCenter
+                    enabled: QA.App.playqueue.canPrev
+                    icon.name: MD.Token.icon.skip_previous
+                    Accessible.name: qsTr("Previous")
+                    onClicked: QA.App.playqueue.prev()
+                }
+                PlayButton {
+                    objectName: "playButton"
+                    width: 64
+                    height: 52
+                }
+                MD.IconButton {
+                    anchors.verticalCenter: parent.verticalCenter
+                    enabled: QA.App.playqueue.canNext
+                    icon.name: MD.Token.icon.skip_next
+                    Accessible.name: qsTr("Next")
+                    onClicked: QA.App.playqueue.next()
+                }
             }
-
             Item {
-                Layout.fillWidth: true
-                implicitHeight: 4
-                visible: !root.isSmall
-                clip: false
+                y: 56
+                width: parent.width
+                height: 48
+                MD.Text {
+                    id: elapsed
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: QA.Util.formatDuration(QA.Global.player.duration * slider.position)
+                    typescale: MD.Token.typescale.label_small
+                }
                 QA.PlaySlider {
                     id: slider
+                    objectName: "playBarSlider"
+                    anchors.left: elapsed.right
+                    anchors.right: duration.left
+                    anchors.margins: 8
+                    height: parent.height
                     handle: null
-                    implicitHeight: 20
-                    anchors.centerIn: parent
-                    width: parent.width
-                    z: 1
+                    wavy: true
+                }
+                MD.Text {
+                    id: duration
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: QA.Util.formatDuration(QA.Global.player.duration)
+                    typescale: MD.Token.typescale.label_small
                 }
             }
-            RowLayout {
-                Layout.bottomMargin: 8
-                Layout.leftMargin: 12
-                Layout.rightMargin: 12
-                Layout.topMargin: 8
+        }
 
-                QA.Image {
-                    source: QA.Util.image_url(root.currentSongId)
-                    displaySize: Qt.size(48, 48)
-                    radius: 8
+        Row {
+            id: auxiliary
+            x: parent.width - width - 12
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 0
+            PlayButton {
+                objectName: "smallPlayButton"
+                visible: root.isSmall
+                mdState.type: root.MD.MProp.size.isCompact ? MD.Enum.IBtStandard : MD.Enum.IBtFilled
+                mdState.selected: !root.MD.MProp.size.isCompact && QA.Global.player.playing
+                icon.fill: !root.MD.MProp.size.isCompact
+                MD.CircularIndicator {
+                    anchors.centerIn: parent
+                    indeterminate: false
+                    value: QA.Global.player.duration > 0 ? QA.Global.player.position / QA.Global.player.duration : 0
                 }
-                ColumnLayout {
-                    Layout.leftMargin: 4
-                    spacing: 0
-
-                    MD.Text {
-                        Layout.fillWidth: true
-                        Layout.maximumWidth: implicitWidth + 10
-                        MD.MProp.textColor: ma_name.containsMouse ? MD.Token.color.primary : MD.Token.color.on_background
-                        verticalAlignment: Qt.AlignVCenter
-                        typescale: MD.Token.typescale.body_medium
-                        maximumLineCount: 1
-
-                        text: root.currentSong.name
-                        MouseArea {
-                            id: ma_name
-                            anchors.fill: parent
-                            enabled: root.currentAlbumId.valid
-                            cursorShape: Qt.PointingHandCursor
-                            hoverEnabled: true
-
-                            onClicked: {
-                                QA.Action.routeItem(root.currentAlbumId);
-                            }
-                        }
-                    }
-                    RowLayout {
-                        Repeater {
-                            model: root.currentSong.tags
-
-                            delegate: ColumnLayout {
-                                QA.SongTag {
-                                    tag: modelData
-                                }
-                            }
-                        }
-                        MD.ActionLabel {
-                            id: subtitle_label
-                            Layout.fillWidth: true
-                            Layout.maximumWidth: implicitWidth + 10
-                            opacity: 0.6
-                            verticalAlignment: Qt.AlignVCenter
-                            maximumLineCount: 1
-                            action: MD.Action {
-                                text: QA.Util.joinName(root.artists, '/')
-                                onTriggered: {
-                                    m_go_to_artist_act.trigger();
-                                }
-                            }
-
-                            QA.GoToArtistAction {
-                                id: m_go_to_artist_act
-                                getItemIds: function () {
-                                    return root.artists?.map(el => QA.Util.artistId(el.id_proto));
-                                }
-                            }
-                        }
-                    }
-                }
-                Item {
-                    Layout.fillWidth: true
-                }
+            }
+            MD.IconButton {
+                visible: !root.isSmall && root.layoutWidth >= 760
+                icon.name: QA.Util.loopModeIcon(QA.App.playqueue.loopMode)
+                Accessible.name: qsTr("Playback order")
+                onClicked: QA.App.playqueue.iterLoopMode()
+            }
+            MD.IconButton {
+                icon.name: MD.Token.icon.playlist_play
+                Accessible.name: qsTr("Queue")
+                onClicked: QA.Action.openPopup(QA.Enum.SRQueue)
+            }
+            QA.VolumeButton {
+                visible: !root.isSmall
+                volume: QA.Global.player.volume
+                onVolumeSeted: volume_ => QA.Global.player.volume = volume_
+            }
+            MD.IconButton {
+                visible: !root.isSmall
+                icon.name: MD.Token.icon.more_vert
+                Accessible.name: qsTr("More")
+                onClicked: MD.Util.showPopup(songMenu, {
+                    "itemId": root.currentSongId,
+                    "anchorItem": this,
+                    "preferredPlacement": MD.PopupBase.Above
+                }, this)
                 Component {
-                    id: comp_ctl
-                    RowLayout {
-                        MD.BusyIconButton {
-                            readonly property QA.FavoriteAction favoriteAction: QA.FavoriteAction {
-                                itemId: root.currentSongId
-                            }
-                            MD.ActionCommand.action: favoriteAction
-                            enabled: root.currentSongId.valid && MD.ActionCommand.enabled
-                            text: MD.ActionCommand.text
-                            icon.actionIcon: MD.ActionCommand.icon
-                            icon.fill: favoriteAction.checked
-                            mdState.selected: favoriteAction.checked
-                            mdState.toggleable: favoriteAction.checkable
-                            busy: favoriteAction.busy
-                            progress: favoriteAction.progress
-                        }
-                        MD.IconButton {
-                            enabled: QA.App.playqueue.canPrev
-                            icon.name: MD.Token.icon.skip_previous
-
-                            onClicked: QA.App.playqueue.prev()
-                        }
-                        MD.IconButton {
-                            mdState.type: MD.Enum.IBtFilled
-                            mdState.selected: QA.Global.player.playing
-                            icon.fill: QA.Global.player.playing
-                            icon.name: QA.Global.player.playing ? MD.Token.icon.pause : MD.Token.icon.play_arrow
-                            onClicked: QA.Action.toggle()
-                        }
-                        MD.IconButton {
-                            enabled: QA.App.playqueue.canNext
-                            icon.name: MD.Token.icon.skip_next
-
-                            onClicked: QA.App.playqueue.next()
-                        }
-                        MD.IconButton {
-                            icon.name: QA.Util.loopModeIcon(QA.App.playqueue.loopMode)
-
-                            onClicked: {
-                                QA.App.playqueue.iterLoopMode();
-                            }
-                        }
-                        MD.IconButton {
-                            icon.name: MD.Token.icon.playlist_play
-
-                            onClicked: {
-                                QA.Action.openPopup(QA.Enum.SRQueue);
-                            }
-                        }
-                        QA.VolumeButton {
-                            volume: QA.Global.player.volume
-                            onVolumeSeted: volume_ => {
-                                QA.Global.player.volume = volume_;
-                            }
-                        }
-                        MD.IconButton {
-                            icon.name: MD.Token.icon.more_vert
-
-                            onClicked: {
-                                MD.Util.showPopup(comp_song_menu, {
-                                    "itemId": root.currentSongId,
-                                    "anchorItem": this,
-                                    "preferredPlacement": MD.PopupBase.Above
-                                }, this);
-                            }
-
-                            Component {
-                                id: comp_song_menu
-                                QA.SongMenu {}
-                            }
-                        }
-                        RowLayout {
-                            spacing: 0
-                            MD.FontMetrics {
-                                id: fm_time
-                                typescale: MD.Token.typescale.body_medium
-                            }
-                            MD.Text {
-                                Layout.preferredWidth: fm_time.rect("00:00").width + 2
-                                horizontalAlignment: Qt.AlignHCenter
-                                verticalAlignment: Qt.AlignVCenter
-                                typescale: MD.Token.typescale.body_medium
-                                text: QA.Util.formatDuration(QA.Global.player.duration * slider.position)
-                            }
-                            MD.Text {
-                                verticalAlignment: Qt.AlignVCenter
-                                typescale: MD.Token.typescale.body_medium
-                                text: '/'
-                            }
-                            MD.Text {
-                                Layout.preferredWidth: fm_time.rect("00:00").width + 2
-                                horizontalAlignment: Qt.AlignHCenter
-                                verticalAlignment: Qt.AlignVCenter
-                                typescale: MD.Token.typescale.body_medium
-                                text: QA.Util.formatDuration(QA.Global.player.duration)
-                            }
-                        }
-                    }
-                }
-                Component {
-                    id: comp_ctl_small
-                    RowLayout {
-                        MD.IconButton {
-                            icon.name: QA.Global.player.playing ? MD.Token.icon.pause : MD.Token.icon.play_arrow
-
-                            onClicked: QA.Action.toggle()
-
-                            MD.CircularIndicator {
-                                anchors.centerIn: parent
-                                indeterminate: false
-                                value: QA.Global.player.duration > 0 ? QA.Global.player.position / QA.Global.player.duration : 0
-                            }
-                        }
-                        MD.IconButton {
-                            icon.name: MD.Token.icon.playlist_play
-
-                            onClicked: {
-                                QA.Action.openPopup(QA.Enum.SRQueue);
-                            }
-                        }
-                    }
-                }
-                MD.PageContainer {
-                    id: ctl_stack
-                    function switch_to() {
-                        switchTo(root.isSmall ? comp_ctl_small : comp_ctl, {}, false);
-                    }
-
-                    Layout.fillHeight: true
-
-                    Binding on implicitWidth {
-                        value: ctl_stack.currentItem.implicitWidth
-                        when: ctl_stack.currentItem
-                    }
-                    initialItem: Item {}
-                    replaceMotion: Component {
-                        MD.PageMotion {
-                            id: motion
-                            timeline: MD.SeekableTransition {
-                                MD.RealTrack {
-                                    id: progress
-                                    values: ({
-                                            "from": 0,
-                                            "to": 1
-                                        })
-                                    spec: MD.Motion.tween(200, ({
-                                            type: Easing.OutCubic
-                                        }))
-                                }
-                            }
-                            enterOffset: Qt.point(0, (1 - progress.value) * context.viewport.height * 0.5)
-                            enterOpacity: progress.value
-                            exitOpacity: 1 - progress.value
-                        }
-                    }
-
-                    Component.onCompleted: {
-                        root.isSmallChanged.connect(switch_to);
-                        root.isSmallChanged();
-                    }
+                    id: songMenu
+                    QA.SongMenu {}
                 }
             }
         }

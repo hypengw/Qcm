@@ -32,11 +32,9 @@ MD.IconButton {
     onClicked: {
         const popup = MD.Util.showPopup(comp_popup, {
             "value": control.volume,
-            "y": 0
+            "anchorItem": control,
+            "preferredPlacement": MD.PopupBase.Above
         }, this);
-        popup.x = (control.width - popup.width) / 2.0;
-        popup.y = -popup.height;
-        const slider = popup.contentItem;
         popup.contentItem.volumeSeted.connect(control.volumeSeted);
     }
 }

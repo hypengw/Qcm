@@ -15,19 +15,24 @@ MD.Page {
     showHeader: false
 
     title: m_page_stack.currentItem?.title ?? ""
-    canBack: m_page_stack.canBack
+    canBack: !m_play_bar_flick.closed || m_page_stack.canBack
 
     backgroundColor: MD.MProp.backgroundColor
 
     property var model: QA.App.pages
-    readonly property bool useLarge: MD.MProp.size.windowClass >= MD.Enum.WindowClassLarge
     readonly property int pageLeftMargin: 4
     readonly property int pageRightMargin: 12
     readonly property int pageTopMargin: MD.MProp.size.isCompact ? 0 : MD.MProp.size.verticalPadding
-    readonly property int pageBottomMargin: MD.MProp.size.isCompact ? 0 : MD.MProp.size.verticalPadding
+    readonly property real playBarMargin: 12
+    readonly property real bottomNavigationHeight: MD.MProp.size.isCompact && bottomNavigation.visible ? bottomNavigation.height : 0
+    readonly property real playBarInset: Math.max(0, m_play_bar_flick.height - bottomNavigationHeight - m_play_bar_flick.closedBarRect.y)
+    readonly property int pageBottomMargin: (MD.MProp.size.isCompact ? 0 : MD.MProp.size.verticalPadding) + Math.ceil(playBarInset)
 
     function back() {
-        m_page_stack.back();
+        if (!m_play_bar_flick.closed)
+            m_play_bar_flick.back();
+        else
+            m_page_stack.back();
     }
 
     onPageIndexChanged: {
@@ -59,176 +64,179 @@ MD.Page {
     }
 
     contentItem: Item {
-        ColumnLayout {
-            id: m_large_layout
+        Item {
+            id: backgroundRoot
+            objectName: "playbackBackground"
             anchors.fill: parent
-            visible: false
+            Rectangle {
+                anchors.fill: parent
+                color: root.backgroundColor
+            }
+            ColumnLayout {
+                id: m_large_layout
+                anchors.fill: parent
+                visible: !root.MD.MProp.size.isCompact
 
-            RowLayout {
-                MD.NavigationRail {
-                    id: m_drawer
+                RowLayout {
                     Layout.fillHeight: true
-                    model: root.model
-                    hideWhenCollapsed: true
+                    Layout.fillWidth: true
+                    MD.NavigationRail {
+                        id: m_drawer
+                        Layout.fillHeight: true
+                        model: root.model
+                        hideWhenCollapsed: true
 
-                    Binding {
-                        target: m_drawer
-                        property: "currentIndex"
-                        value: root.pageIndex
-                    }
+                        Binding {
+                            target: m_drawer
+                            property: "currentIndex"
+                            value: root.pageIndex
+                        }
 
-                    onCurrentIndexChangeRequested: function (index) {
-                        m_page_stack.pop_page(null);
-                        QA.Action.routeMain(index);
-                    }
+                        onCurrentIndexChangeRequested: function (index) {
+                            m_page_stack.pop_page(null);
+                            QA.Action.routeMain(index);
+                        }
 
-                    header: Item {
-                        implicitWidth: m_drawer.useLarge ? m_drawer.expandedWidth : m_drawer.collapsedWidth
-                        implicitHeight: m_logo.y + m_logo.height + 12
+                        header: Item {
+                            implicitWidth: m_drawer.useLarge ? m_drawer.expandedWidth : m_drawer.collapsedWidth
+                            implicitHeight: m_logo.y + m_logo.height + 12
 
-                        MD.StandardIconButton {
-                            id: m_menu_button
-                            x: m_drawer.useLarge ? (32 - (width - 24) / 2) : (m_drawer.collapsedWidth - width) / 2
-                            y: 4
-                            icon.name: root.canBack ? MD.Token.icon.arrow_back : (m_drawer.useLarge ? MD.Token.icon.menu_open : MD.Token.icon.menu)
-                            onClicked: {
-                                if (root.canBack)
-                                    root.back();
-                                else
-                                    m_drawer.toggle();
+                            MD.StandardIconButton {
+                                id: m_menu_button
+                                x: m_drawer.useLarge ? (32 - (width - 24) / 2) : (m_drawer.collapsedWidth - width) / 2
+                                y: 4
+                                icon.name: root.canBack ? MD.Token.icon.arrow_back : (m_drawer.useLarge ? MD.Token.icon.menu_open : MD.Token.icon.menu)
+                                onClicked: {
+                                    if (root.canBack)
+                                        root.back();
+                                    else
+                                        m_drawer.toggle();
+                                }
+
+                                Behavior on x {
+                                    NumberAnimation {
+                                        duration: MD.Token.duration.long2
+                                        easing: MD.Token.easing.emphasized
+                                    }
+                                }
                             }
+                            Image {
+                                id: m_logo
+                                width: 32
+                                height: 32
+                                x: m_drawer.useLarge ? 32 : (m_drawer.collapsedWidth - width) / 2
+                                y: m_menu_button.y + m_menu_button.height + 16
+                                source: "qrc:/Qcm/App/assets/Qcm.svg"
+                                fillMode: Image.PreserveAspectFit
+                                sourceSize: Qt.size(64, 64)
 
-                            Behavior on x {
-                                NumberAnimation {
-                                    duration: MD.Token.duration.long2
-                                    easing: MD.Token.easing.emphasized
+                                Behavior on x {
+                                    NumberAnimation {
+                                        duration: MD.Token.duration.long2
+                                        easing: MD.Token.easing.emphasized
+                                    }
+                                }
+                            }
+                            MD.Label {
+                                visible: m_drawer.useLarge
+                                anchors.left: m_logo.right
+                                anchors.leftMargin: 12
+                                anchors.verticalCenter: m_logo.verticalCenter
+                                text: "Qcm"
+                                typescale: MD.Token.typescale.title_large
+                            }
+                        }
+
+                        footer: Column {
+                            bottomPadding: m_drawer.useModal ? 0 : root.playBarInset
+                            spacing: m_drawer.useLarge ? 0 : 12
+
+                            MD.RailItem {
+                                width: parent.width
+                                expand: m_drawer.useLarge
+                                selected: false
+                                icon.name: MD.Token.icon.hard_drive
+                                iconStyle: m_drawer.useLarge ? MD.Enum.IconAndText : MD.Enum.IconOnly
+                                text: qsTr('provider')
+                                onSelectionRequested: {
+                                    QA.Action.openPopup(QA.Enum.SRSync);
+                                    if (m_drawer.useModal)
+                                        m_drawer.close();
+                                }
+                            }
+                            MD.RailItem {
+                                width: parent.width
+                                expand: m_drawer.useLarge
+                                selected: false
+                                iconStyle: m_drawer.useLarge ? MD.Enum.IconAndText : MD.Enum.IconOnly
+                                readonly property QA.SettingAction settingsAction: QA.SettingAction {}
+                                text: settingsAction.text
+                                icon.actionIcon: settingsAction.icon
+                                enabled: settingsAction.enabled
+                                onSelectionRequested: {
+                                    settingsAction.trigger();
+                                    if (m_drawer.useModal)
+                                        m_drawer.close();
+                                }
+                            }
+                            MD.RailItem {
+                                visible: m_drawer.useLarge
+                                width: parent.width
+                                expand: true
+                                selected: false
+                                icon.name: MD.Token.icon.info
+                                text: qsTr('about')
+                                onSelectionRequested: {
+                                    QA.Action.openPopup(QA.Enum.SRAbout);
+                                    if (m_drawer.useModal)
+                                        m_drawer.close();
                                 }
                             }
                         }
-                        Image {
-                            id: m_logo
-                            width: 32
-                            height: 32
-                            x: m_drawer.useLarge ? 32 : (m_drawer.collapsedWidth - width) / 2
-                            y: m_menu_button.y + m_menu_button.height + 16
-                            source: "qrc:/Qcm/App/assets/Qcm.svg"
-                            fillMode: Image.PreserveAspectFit
-                            sourceSize: Qt.size(64, 64)
-
-                            Behavior on x {
-                                NumberAnimation {
-                                    duration: MD.Token.duration.long2
-                                    easing: MD.Token.easing.emphasized
-                                }
-                            }
-                        }
-                        MD.Label {
-                            visible: m_drawer.useLarge
-                            anchors.left: m_logo.right
-                            anchors.leftMargin: 12
-                            anchors.verticalCenter: m_logo.verticalCenter
-                            text: "Qcm"
-                            typescale: MD.Token.typescale.title_large
-                        }
                     }
 
-                    footer: Column {
-                        spacing: m_drawer.useLarge ? 0 : 12
-
-                        MD.RailItem {
-                            width: parent.width
-                            expand: m_drawer.useLarge
-                            selected: false
-                            icon.name: MD.Token.icon.hard_drive
-                            iconStyle: m_drawer.useLarge ? MD.Enum.IconAndText : MD.Enum.IconOnly
-                            text: qsTr('provider')
-                            onSelectionRequested: {
-                                QA.Action.openPopup(QA.Enum.SRSync);
-                                if (m_drawer.useModal)
-                                    m_drawer.close();
-                            }
-                        }
-                        MD.RailItem {
-                            width: parent.width
-                            expand: m_drawer.useLarge
-                            selected: false
-                            iconStyle: m_drawer.useLarge ? MD.Enum.IconAndText : MD.Enum.IconOnly
-                            readonly property QA.SettingAction settingsAction: QA.SettingAction {}
-                            text: settingsAction.text
-                            icon.actionIcon: settingsAction.icon
-                            enabled: settingsAction.enabled
-                            onSelectionRequested: {
-                                settingsAction.trigger();
-                                if (m_drawer.useModal)
-                                    m_drawer.close();
-                            }
-                        }
-                        MD.RailItem {
-                            visible: m_drawer.useLarge
-                            width: parent.width
-                            expand: true
-                            selected: false
-                            icon.name: MD.Token.icon.info
-                            text: qsTr('about')
-                            onSelectionRequested: {
-                                QA.Action.openPopup(QA.Enum.SRAbout);
-                                if (m_drawer.useModal)
-                                    m_drawer.close();
-                            }
-                        }
+                    LayoutItemProxy {
+                        target: m_content
                     }
                 }
+            }
+            ColumnLayout {
+                id: m_small_layout
+                visible: root.MD.MProp.size.isCompact
+                anchors.fill: parent
+                spacing: 0
 
                 LayoutItemProxy {
                     target: m_content
                 }
-            }
-            LayoutItemProxy {
-                Layout.fillWidth: true
-                z: m_play_bar_flick.closed ? -99 : 99
-                target: m_play_bar
-            }
-        }
-        ColumnLayout {
-            id: m_small_layout
-            visible: false
-            anchors.fill: parent
-            spacing: 0
 
-            LayoutItemProxy {
-                target: m_content
-            }
-
-            LayoutItemProxy {
-                Layout.fillWidth: true
-                z: m_play_bar_flick.closed ? -99 : 1
-                target: m_play_bar
-            }
-
-            MD.Pane {
-                Layout.fillWidth: true
-                visible: m_page_stack.depth <= 1
-                padding: 0
-                backgroundColor: MD.MProp.color.surface_container
-                elevation: MD.Token.elevation.level2
-                RowLayout {
-                    anchors.fill: parent
-                    Repeater {
-                        model: root.model
-                        Item {
-                            Layout.fillWidth: true
-                            implicitHeight: 12 + children[0].implicitHeight + 16
-                            required property var model
-                            required property int index
-                            MD.BarItem {
-                                anchors.fill: parent
-                                anchors.topMargin: 12
-                                anchors.bottomMargin: 16
-                                icon.name: parent.model.icon
-                                text: parent.model.name
-                                selected: root.pageIndex == parent.index
-                                onSelectionRequested: {
-                                    QA.Action.routeMain(parent.index);
+                MD.Pane {
+                    id: bottomNavigation
+                    objectName: "bottomNavigation"
+                    Layout.fillWidth: true
+                    visible: m_page_stack.depth <= 1
+                    padding: 0
+                    backgroundColor: MD.MProp.color.surface_container
+                    elevation: MD.Token.elevation.level2
+                    RowLayout {
+                        anchors.fill: parent
+                        Repeater {
+                            model: root.model
+                            Item {
+                                Layout.fillWidth: true
+                                implicitHeight: 12 + children[0].implicitHeight + 16
+                                required property var model
+                                required property int index
+                                MD.BarItem {
+                                    anchors.fill: parent
+                                    anchors.topMargin: 12
+                                    anchors.bottomMargin: 16
+                                    icon.name: parent.model.icon
+                                    text: parent.model.name
+                                    selected: root.pageIndex == parent.index
+                                    onSelectionRequested: {
+                                        QA.Action.routeMain(parent.index);
+                                    }
                                 }
                             }
                         }
@@ -236,37 +244,16 @@ MD.Page {
                 }
             }
         }
+        QA.PlayBarFlickable {
+            id: m_play_bar_flick
+            anchors.fill: parent
+            backdropSource: backgroundRoot
+            barMargin: root.playBarMargin
+            closedBarRect: Qt.rect(root.playBarMargin, height - root.bottomNavigationHeight - barHeight - root.playBarMargin, Math.max(0, width - 2 * root.playBarMargin), barHeight)
+        }
     }
     Item {
         visible: false
-
-        Item {
-            id: m_play_bar
-            implicitHeight: children[0].implicitHeight
-            property point origin: Qt.point(0, 0)
-            function updateOrigin() {
-                const p = m_play_bar.mapFromGlobal(0, 0);
-                origin = p;
-            }
-            onParentChanged: updateOrigin()
-            onYChanged: updateOrigin()
-
-            MD.InputBlock {
-                target: m_play_bar_flick
-                acceptWheel: false
-                acceptHover: true
-                acceptTouch: true
-                acceptMouseButtons: Qt.LeftButton
-            }
-
-            QA.PlayBarFlickable {
-                id: m_play_bar_flick
-                y: m_play_bar.origin.y
-                width: parent.width
-                height: windowHeight
-                onHeightChanged: m_play_bar.updateOrigin()
-            }
-        }
 
         ColumnLayout {
             id: m_content
@@ -326,25 +313,7 @@ MD.Page {
                         QA.Action.openDrawer();
                     }
                 }
-
             }
-        }
-    }
-
-    Connections {
-        target: root.MD.MProp.size
-        function onWindowClassChanged() {
-            const size = root.MD.MProp.size;
-            if (size.isCompact) {
-                m_small_layout.visible = true;
-                m_large_layout.visible = false;
-            } else {
-                m_large_layout.visible = true;
-                m_small_layout.visible = false;
-            }
-        }
-        Component.onCompleted: {
-            this.onWindowClassChanged();
         }
     }
 }
