@@ -5,6 +5,7 @@ import Qcm.Material as MD
 MD.ItemModelSource {
     id: root
     keyMode: MD.ItemModelSource.PersistentIndexKey
+    deferDataChanges: true
     readonly property Connections fetchStateObserver: Connections {
         target: root.model
         ignoreUnknownSignals: true

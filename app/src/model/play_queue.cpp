@@ -728,16 +728,25 @@ void PlayQueue::addChangedId(std::span<const model::ItemId> ids) {
 void PlayQueue::notifyRowsForIds(const std::unordered_set<model::ItemId>& ids) {
     if (ids.empty()) return;
     if (! sourceModel()) return;
-    auto count = rowCount();
+    const auto count          = rowCount();
+    int        first          = -1;
+    bool       currentChanged = false;
+    const auto notify         = [&](int last) {
+        if (first < 0) return;
+        dataChanged(index(first, 0), index(last, 0));
+        first = -1;
+    };
     for (int row = 0; row < count; row++) {
         auto id = getId(row);
-        if (! id || ! ids.contains(*id)) continue;
-        auto idx = index(row, 0);
-        dataChanged(idx, idx);
-        if (row == m_current_index) {
-            setCurrentSong(currentIndex());
+        if (id && ids.contains(*id)) {
+            if (first < 0) first = row;
+            currentChanged |= row == m_current_index;
+        } else {
+            notify(row - 1);
         }
     }
+    notify(count - 1);
+    if (currentChanged) setCurrentSong(currentIndex());
 }
 
 auto PlayQueue::isDynamic() const -> bool { return m_options.testFlag(Option::Dynamic); }

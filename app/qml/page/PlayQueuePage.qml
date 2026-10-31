@@ -41,6 +41,7 @@ MD.Page {
         currentIndex: source.model.currentIndex
         source: QA.ItemModelSource {
             model: QA.App.playqueue
+            roles: ["itemId", "name"]
         }
         extraTopMargin: 8
         extraBottomMargin: 8
