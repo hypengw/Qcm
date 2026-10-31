@@ -52,10 +52,12 @@ Item {
                 active: root.active && root.style === PlayBarBackground.Cover
                 source: root.coverSource
                 retainWhileLoading: root.changingTrack
-                QA.PlayingBackgroundMask {
-                    anchors.fill: parent
-                    z: 3
-                }
+                // Blend covers before inheriting the surface opacity.
+                layer.enabled: cover.rendering
+            }
+            QA.PlayingBackgroundMask {
+                anchors.fill: parent
+                z: 3
             }
         }
         Rectangle {
