@@ -3,19 +3,36 @@ import QtQuick
 import QtQuick.Window
 import QtQuick.Effects
 import QExtra as QE
+import Qcm.Material as MD
 
 Item {
     id: root
 
     property url source
     property bool active: true
+    property bool retainWhileLoading: false
     property color fallbackColor: "#262626"
+    property color fallbackAccent: "#2d466b"
     property int transitionDuration: 250
     readonly property bool supported: GraphicsInfo.api !== GraphicsInfo.Software && GraphicsInfo.api !== GraphicsInfo.Unknown
     readonly property bool rendering: active && visible && width > 0 && height > 0 && supported && Window.window !== null && Window.window.visible && Window.window.visibility !== Window.Minimized
     readonly property real pixelRatio: Screen.devicePixelRatio
     property BackgroundSlot current: null
     property BackgroundSlot candidate: null
+    readonly property bool ready: current !== null
+    readonly property url displayedSource: current ? current.source : ""
+    readonly property bool transitioning: fade.running
+    readonly property bool loading: candidate !== null && !transitioning
+    readonly property color accentColor: {
+        if (!current)
+            return fallbackAccent;
+        if (!candidate || !fade.running)
+            return current.accentColor;
+        const a = current.accentColor;
+        const b = candidate.accentColor;
+        const t = candidate.opacity;
+        return Qt.rgba(a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t, 1);
+    }
 
     clip: true
 
@@ -41,8 +58,13 @@ Item {
     }
 
     function refresh() {
-        if (!rendering || source.toString() === "") {
+        if (!rendering) {
             reset();
+            return;
+        }
+        if (source.toString() === "") {
+            if (!retainWhileLoading)
+                reset();
             return;
         }
         if (fade.running)
@@ -86,6 +108,7 @@ Item {
     }
 
     onSourceChanged: refresh()
+    onRetainWhileLoadingChanged: refresh()
     onRenderingChanged: refresh()
     onPixelRatioChanged: {
         reset();
@@ -143,10 +166,27 @@ Item {
         required property real workSide
         required property int decodeSide
         property bool frozen: false
+        property bool colorReady: false
+        property color accentColor: root.fallbackAccent
         property int stage: 0
         signal completed
         signal failed
         z: -1
+
+        function finish() {
+            if (frozen && colorReady)
+                completed();
+        }
+
+        MD.ImageColorPicker {
+            id: palette
+            onPicked: {
+                slot.accentColor = color;
+                slot.colorReady = true;
+                clearImage();
+                slot.finish();
+            }
+        }
 
         Loader {
             id: pipeline
@@ -170,6 +210,10 @@ Item {
                         maxSize: Qt.size(512, 512)
                         fillMode: QE.Image.PreserveAspectCrop
                         retainWhileLoading: false
+                        onFrameReady: (source, image) => {
+                            palette.image = image;
+                            palette.pick();
+                        }
                         onStatusChanged: {
                             if (status === QE.Image.Ready) {
                                 slot.stage = 1;
@@ -228,7 +272,7 @@ Item {
                     if (slot.stage === 2) {
                         slot.stage = 3;
                         slot.frozen = true;
-                        slot.completed();
+                        slot.finish();
                     }
                 }
             }

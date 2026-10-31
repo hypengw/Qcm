@@ -19,8 +19,7 @@ QA.GlobalWrapper {
     property bool use_system_accent_color: true
     property color primary_color: MD.Token.color.accentColor
     property int palette_type: MD.Token.color.paletteType
-
-    property color playing_color: m_picker.color
+    property int playbar_background_style: QA.PlayBarBackground.PageBlur
 
     property int cover_quality: -1
 
@@ -51,6 +50,7 @@ QA.GlobalWrapper {
         property alias use_system_accent_color: root.use_system_accent_color
         property alias primary_color: root.primary_color
         property alias palette_type: root.palette_type
+        property alias playbar_background_style: root.playbar_background_style
         category: 'theme'
 
         Component.onCompleted: {
@@ -76,17 +76,5 @@ QA.GlobalWrapper {
         id: m_mpris
         player: root.player
         playlist: QA.App.playqueue
-    }
-
-    MD.ImageColorPicker {
-        id: m_picker
-    }
-
-    Connections {
-        target: QA.Notifier
-        function onSpecialImageLoaded(name, img) {
-            m_picker.image = img;
-            m_picker.pick();
-        }
     }
 }

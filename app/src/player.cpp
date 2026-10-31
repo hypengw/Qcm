@@ -181,6 +181,10 @@ void Player::reset_source() {
 auto Player::position() const -> int { return m_position; }
 auto Player::duration() const -> int { return m_duration; }
 auto Player::busy() const -> bool { return m_busy; }
+auto Player::changingTrack() const -> bool { return m_changing_track; }
+void Player::setChangingTrack(bool value) {
+    if (std::exchange(m_changing_track, value) != value) changingTrackChanged();
+}
 auto Player::playback_state() const -> Player::PlaybackState { return m_playback_state; }
 auto Player::cache_progress() const -> QVector2D { return m_cache_progress; }
 

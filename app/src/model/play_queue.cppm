@@ -85,6 +85,7 @@ class PlayQueue : public QIdentityProxyModel, public kstore::QMetaRoleNames {
     Q_PROPERTY(qint32 currentIndex READ currentIndex NOTIFY currentIndexChanged BINDABLE
                    bindableCurrentIndex FINAL)
     Q_PROPERTY(qcm::model::Song currentSong READ currentSong NOTIFY currentSongChanged FINAL)
+    Q_PROPERTY(bool changingTrack READ changingTrack NOTIFY changingTrackChanged FINAL)
     Q_PROPERTY(qcm::model::ItemId currentSongId READ currentSongId NOTIFY currentSongChanged FINAL)
     Q_PROPERTY(
         qcm::model::ItemId currentAlbumId READ currentAlbumId NOTIFY currentSongChanged FINAL)
@@ -130,6 +131,10 @@ public:
     void          setCurrentSong(rstd::Option<SongItem>);
     Q_SLOT void   setCurrentSong(qint32 idx);
     Q_SIGNAL void currentSongChanged();
+    auto          changingTrack() const -> bool;
+    void          beginCurrentUpdate();
+    void          endCurrentUpdate();
+    Q_SIGNAL void changingTrackChanged();
 
     auto          loopMode() const noexcept -> enums::LoopMode;
     void          setLoopMode(enums::LoopMode mode);
@@ -198,6 +203,7 @@ private:
     model::IdQueue::Options m_options;
 
     mutable std::unordered_set<model::ItemId>                m_pending_ids;
+    std::map<quint64, std::unordered_set<model::ItemId>>      m_loading_ids;
     mutable std::unordered_set<model::ItemId>                m_changed_ids;
     mutable std::unordered_map<model::ItemId, SongItem>      m_songs;
     mutable std::unordered_map<model::ItemId, model::ItemId> m_source_map;
@@ -215,6 +221,8 @@ private:
     QTimer*                              m_changed_timer;
     QTimer*                              m_pending_advance_timer;
     bool                                 m_pending_advance;
+    int                                  m_current_update_depth {};
+    bool                                 m_radio_restarting {};
 
     std::unordered_map<qint64, QPointer<model::DynamicIdQueue>> m_dynamic_queues;
     QAsyncScope                                                 m_background_tasks;

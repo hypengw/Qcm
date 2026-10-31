@@ -30,6 +30,7 @@ export class Player : public QObject {
     Q_PROPERTY(qcm::enums::PlaybackState playbackState READ playback_state NOTIFY
                    playbackStateChanged FINAL)
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged FINAL)
+    Q_PROPERTY(bool changingTrack READ changingTrack NOTIFY changingTrackChanged FINAL)
     Q_PROPERTY(QVector2D cacheProgress READ cache_progress NOTIFY cacheProgressChanged FINAL)
 
     Q_PROPERTY(bool seekable READ seekable NOTIFY seekableChanged FINAL)
@@ -49,6 +50,8 @@ public:
     auto        position() const -> int;
     auto        duration() const -> int;
     auto        busy() const -> bool;
+    auto        changingTrack() const -> bool;
+    void        setChangingTrack(bool);
     auto        playback_state() const -> PlaybackState;
     auto        volume() const -> float;
     auto        fadeTime() const -> u32;
@@ -65,6 +68,7 @@ public:
     Q_SIGNAL void volumeChanged(float);
     Q_SIGNAL void fadeTimeChanged(u32);
     Q_SIGNAL void busyChanged();
+    Q_SIGNAL void changingTrackChanged();
     Q_SIGNAL void playbackStateChanged(PlaybackState old, PlaybackState new_);
     Q_SIGNAL void cacheProgressChanged();
     Q_SIGNAL void seeked(double position);
@@ -105,6 +109,7 @@ private:
     std::atomic<int> m_position;
     int              m_duration;
     bool             m_busy;
+    bool             m_changing_track { false };
     bool             m_seekable { false };
     PlaybackState    m_playback_state;
     QVector2D        m_cache_progress;

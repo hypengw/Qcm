@@ -8,6 +8,7 @@ MD.Pane {
     objectName: "playBar"
 
     property Item backdropSource
+    property int backgroundStyle: QA.Global.playbar_background_style
     property bool floating: true
     property real layoutWidth: width
     readonly property bool isSmall: layoutWidth < 650
@@ -22,6 +23,14 @@ MD.Pane {
     radius: floating ? 24 : 0
     backgroundColor: MD.MProp.color.surface_container
     MD.MProp.textColor: MD.MProp.color.on_surface
+    MD.MProp.color: playBarBackground.usingCover ? coverColors : (parent ? parent.MD.MProp.color : MD.Token.color)
+
+    MD.MdColorMgr {
+        id: coverColors
+        useSysColorSM: false
+        accentColor: playBarBackground.accentColor
+        mode: MD.Enum.Dark
+    }
 
     background: Item {
         MD.Elevation {
@@ -30,13 +39,16 @@ MD.Pane {
             corners: MD.Util.corners(root.radius)
             elevation: MD.Token.elevation.level2
         }
-        MD.BackdropSurface {
-            objectName: "playBarBackdrop"
+        QA.PlayBarBackground {
+            id: playBarBackground
+            objectName: "playBarBackground"
             anchors.fill: parent
+            style: root.backgroundStyle
             sourceItem: root.backdropSource
+            coverSource: root.currentSongId.valid ? QA.Util.image_url(root.currentSongId) : ""
+            changingTrack: QA.Global.player.changingTrack
             active: root.floating && root.visible && root.opacity > 0
             radius: root.radius
-            fallbackColor: root.backgroundColor
         }
         Rectangle {
             anchors.fill: parent
@@ -44,7 +56,7 @@ MD.Pane {
             radius: root.radius
             color: "transparent"
             border.width: 1
-            border.color: Qt.rgba(MD.Token.color.outline.r, MD.Token.color.outline.g, MD.Token.color.outline.b, 0.12)
+            border.color: Qt.rgba(root.MD.MProp.color.outline.r, root.MD.MProp.color.outline.g, root.MD.MProp.color.outline.b, 0.12)
         }
     }
 
@@ -101,7 +113,7 @@ MD.Pane {
                     elide: Text.ElideRight
                     typescale: MD.Token.typescale.body_medium
                     text: root.currentSong.name
-                    MD.MProp.textColor: albumLink.containsMouse ? MD.Token.color.primary : root.MD.MProp.textColor
+                    MD.MProp.textColor: albumLink.containsMouse ? root.MD.MProp.color.primary : root.MD.MProp.textColor
                     MouseArea {
                         id: albumLink
                         anchors.fill: parent
@@ -115,7 +127,7 @@ MD.Pane {
                     width: parent.width
                     maximumLineCount: 1
                     typescale: MD.Token.typescale.body_small
-                    opacity: 0.7
+                    opacity: playBarBackground.usingCover ? 0.9 : 0.7
                     action: MD.Action {
                         text: QA.Util.joinName(root.artists, '/')
                         onTriggered: artistAction.trigger()

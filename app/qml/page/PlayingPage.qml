@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Layouts
-import QExtra as QE
 import Qcm.App as QA
 import Qcm.Material as MD
 
@@ -13,8 +12,10 @@ MD.Page {
     readonly property list<var> artists: entity?.artists ?? []
 
     background: QA.PlayingBackground {
+        id: playingBackground
         source: QA.Util.image_url(root.songId)
         active: root.visible
+        retainWhileLoading: QA.Global.player.changingTrack
         QA.PlayingBackgroundMask {
             anchors.fill: parent
             z: 3
@@ -26,7 +27,7 @@ MD.Page {
     MD.MProp.color: MD.MdColorMgr {
         id: m_color_mgr
         useSysColorSM: false
-        accentColor: QA.Global.playing_color
+        accentColor: playingBackground.accentColor
         mode: MD.Enum.Dark
     }
 
@@ -96,22 +97,6 @@ MD.Page {
                     displaySize: Qt.size(size, size)
                     fixedSize: false
                     readonly property real size: Math.max(240, (root.Window.window?.width ?? 8) / 4.0)
-                    property url lastPickSource
-
-                    function pickColor() {
-                        const src = source;
-                        if (lastPickSource != src) {
-                            if (status == QE.Image.Ready && visible) {
-                                inner.grabToImage(function (res) {
-                                    QA.Notifier.specialImageLoaded('playing', res.image);
-                                    lastPickSource = src;
-                                });
-                            }
-                        }
-                    }
-
-                    onStatusChanged: pickColor()
-                    onVisibleChanged: pickColor()
                 }
                 MD.Text {
                     Layout.alignment: Qt.AlignHCenter

@@ -474,6 +474,9 @@ void App::register_meta_type() {
 }
 
 void App::connect_components() {
+    connect(playqueue(), &PlayQueue::changingTrackChanged, global()->player(), [this] {
+        global()->player()->setChangingTrack(playqueue()->changingTrack());
+    });
     connect(provider_status(),
             &ProviderStatusModel::libraryStatusChanged,
             this,
@@ -623,6 +626,7 @@ void App::connect_actions() {
 }
 
 void App::onPlay(model::ItemId songId, model::ItemId sourceId) {
+    playqueue()->beginCurrentUpdate();
     switchPlayIdQueue();
 
     auto q   = App::instance()->play_id_queue();
@@ -631,10 +635,12 @@ void App::onPlay(model::ItemId songId, model::ItemId sourceId) {
     if (sourceId.valid())
         App::instance()->playqueue()->updateSourceId(std::array { songId }, sourceId);
     q->setCurrentIndex(songId);
+    playqueue()->endCurrentUpdate();
     Action::instance()->record(enums::RecordAction::RecordSwitch);
 }
 
 void App::onQueueNext(const std::vector<model::ItemId>& songIds, model::ItemId sourceId) {
+    playqueue()->beginCurrentUpdate();
     switchPlayIdQueue();
 
     auto q        = App::instance()->play_id_queue();
@@ -645,10 +651,12 @@ void App::onQueueNext(const std::vector<model::ItemId>& songIds, model::ItemId s
         if (sourceId.valid()) q->updateSourceId(songIds, sourceId);
         q->startIfNoCurrent();
     }
+    playqueue()->endCurrentUpdate();
     Action::instance()->toast(QString::fromStdString(
         inserted > 0 ? std::format("Add {} songs to queue", inserted) : "Already added"s));
 }
 void App::onQueue(const std::vector<model::ItemId>& songIds, model::ItemId sourceId) {
+    playqueue()->beginCurrentUpdate();
     switchPlayIdQueue();
 
     auto q        = App::instance()->play_id_queue();
@@ -658,10 +666,12 @@ void App::onQueue(const std::vector<model::ItemId>& songIds, model::ItemId sourc
         if (sourceId.valid()) q->updateSourceId(songIds, sourceId);
         q->startIfNoCurrent();
     }
+    playqueue()->endCurrentUpdate();
     Action::instance()->toast(QString::fromStdString(
         inserted > 0 ? std::format("Add {} songs to queue", inserted) : "Already added"s));
 }
 void App::onSwitch(const std::vector<model::ItemId>& songIds, model::ItemId sourceId) {
+    playqueue()->beginCurrentUpdate();
     switchPlayIdQueue();
 
     auto q = App::instance()->play_id_queue();
@@ -672,6 +682,7 @@ void App::onSwitch(const std::vector<model::ItemId>& songIds, model::ItemId sour
         if (sourceId.valid()) q->updateSourceId(songIds, sourceId);
         q->startIfNoCurrent();
     }
+    playqueue()->endCurrentUpdate();
 }
 
 void App::onRecord(enums::RecordAction) {}
@@ -680,6 +691,7 @@ void App::onSwitchQueue(model::IdQueue* queue) {
     if (queue == nullptr) {
         LOG_INFO("queue is null");
     } else {
+        playqueue()->beginCurrentUpdate();
         this->playqueue()->setSourceModel(queue);
         // preserve queue's existing position (e.g. resumed dynamic queue);
         // only jump to the first row when the queue has no current item
@@ -691,6 +703,7 @@ void App::onSwitchQueue(model::IdQueue* queue) {
         } else if (queue->rowCount() <= 1) {
             queue->requestNext();
         }
+        playqueue()->endCurrentUpdate();
         Action::instance()->record(enums::RecordAction::RecordSwitchQueue);
     }
 }

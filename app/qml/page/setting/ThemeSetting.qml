@@ -63,6 +63,34 @@ QA.SettingBasePage {
         }
         QA.SettingRow {
             canInput: false
+            text: qsTr('playback bar background')
+            below: MD.HorizontalListView {
+                id: backgroundStyleView
+                objectName: "playbarBackgroundStyle"
+                expand: true
+                spacing: 8
+                implicitHeight: 40
+                model: ListModel {
+                    ListElement {
+                        name: qsTr("Page blur")
+                    }
+                    ListElement {
+                        name: qsTr("Album art")
+                    }
+                }
+                currentIndex: QA.Global.playbar_background_style
+                delegate: MD.InputChip {
+                    required property int index
+                    required property var model
+                    icon.name: ''
+                    selected: backgroundStyleView.currentIndex == index
+                    text: model.name
+                    onSelectionRequested: QA.Global.playbar_background_style = index
+                }
+            }
+        }
+        QA.SettingRow {
+            canInput: false
             text: qsTr('accent color')
             below: MD.HorizontalListView {
                 id: m_accent_color_view

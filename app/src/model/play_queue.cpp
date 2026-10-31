@@ -202,6 +202,7 @@ PlayQueue::PlayQueue(QObject* parent)
       m_pending_advance_timer(new QTimer(this)),
       m_pending_advance(false) {
     updateRoleNames(qcm::model::Song::staticMetaObject, this, {});
+    connect(this, &PlayQueue::currentSongChanged, this, &PlayQueue::changingTrackChanged);
     connect(this, &PlayQueue::currentIndexChanged, this, [this](qint32 idx) {
         setCurrentSong(idx);
 
@@ -235,6 +236,7 @@ PlayQueue::PlayQueue(QObject* parent)
     m_pending_advance_timer->setInterval(5000);
     connect(m_pending_advance_timer, &QTimer::timeout, this, [this]() {
         m_pending_advance = false;
+        changingTrackChanged();
     });
     m_subscription = AppStore::instance()->songs.subscribe([this](i64 id, quint64) {
         std::vector<model::ItemId> changed_ids { model::ItemId(enums::ItemType::ItemSong, id) };
@@ -294,6 +296,9 @@ void PlayQueue::setSourceModel(QAbstractItemModel* source_model) {
 
     if (old == source_model) return;
 
+    beginCurrentUpdate();
+    m_radio_restarting = false;
+    cancelPendingAdvance();
     QIdentityProxyModel::setSourceModel(source_model);
 #ifdef _WIN32
     connect(source_model, SIGNAL(currentIndexChanged(qint32)), this, SLOT(setCurrentIndex(qint32)));
@@ -338,6 +343,7 @@ void PlayQueue::setSourceModel(QAbstractItemModel* source_model) {
     // A source switch can select a different song at the same row.
     setCurrentSong(currentIndex());
     radioQueueChanged();
+    endCurrentUpdate();
 }
 
 auto PlayQueue::currentSong() const -> model::Song {
@@ -361,6 +367,31 @@ auto PlayQueue::currentSong() const -> model::Song {
 
 auto PlayQueue::currentSongId() const -> model::ItemId {
     return currentId().unwrap_or(model::ItemId {});
+}
+
+auto PlayQueue::changingTrack() const -> bool {
+    if (m_current_update_depth || m_radio_restarting || m_pending_advance) return true;
+    if (auto radio = radioQueue(); radio && radio->configuring()) return true;
+    if (auto id = currentId()) {
+        const bool ready = m_current_song && m_current_song->item();
+        return !ready &&
+               (m_pending_ids.contains(*id) ||
+                std::ranges::any_of(m_loading_ids, [&](const auto& load) {
+                    return load.second.contains(*id);
+                }));
+    }
+    return false;
+}
+
+void PlayQueue::beginCurrentUpdate() {
+    ++m_current_update_depth;
+    changingTrackChanged();
+}
+
+void PlayQueue::endCurrentUpdate() {
+    Q_ASSERT(m_current_update_depth > 0);
+    --m_current_update_depth;
+    changingTrackChanged();
 }
 
 auto PlayQueue::currentAlbumId() const -> model::ItemId {
@@ -541,7 +572,10 @@ void PlayQueue::startIfNoCurrent() {
     }
 }
 
-void PlayQueue::clear() { removeRows(0, rowCount()); }
+void PlayQueue::clear() {
+    cancelPendingAdvance();
+    removeRows(0, rowCount());
+}
 
 auto PlayQueue::update(std::span<const model::Song> in) -> void {
     auto store = AppStore::instance();
@@ -667,7 +701,14 @@ auto PlayQueue::dynamicQueue(model::ItemId itemId, const QString& name,
         }
     });
     connect(q, &model::DynamicIdQueue::restarting, this, [this, q] {
-        if (radioQueue() == q) cancelPendingAdvance();
+        if (radioQueue() != q) return;
+        m_radio_restarting = true;
+        cancelPendingAdvance();
+    });
+    connect(q, &model::DynamicIdQueue::configuringChanged, this, [this, q] {
+        if (radioQueue() != q) return;
+        if (!q->configuring()) m_radio_restarting = false;
+        changingTrackChanged();
     });
     connect(q, &model::DynamicIdQueue::restarted, this, [this, q] {
         if (radioQueue() != q) return;
@@ -678,6 +719,8 @@ auto PlayQueue::dynamicQueue(model::ItemId itemId, const QString& name,
 }
 
 void PlayQueue::addChangedId(std::span<const model::ItemId> ids) {
+    if (auto id = currentId(); id && std::ranges::find(ids, *id) != ids.end())
+        setCurrentSong(currentIndex());
     m_changed_ids.insert(ids.begin(), ids.end());
     m_changed_timer->start();
 }
@@ -702,11 +745,13 @@ auto PlayQueue::isDynamic() const -> bool { return m_options.testFlag(Option::Dy
 void PlayQueue::schedulePendingAdvance() {
     m_pending_advance = true;
     m_pending_advance_timer->start();
+    changingTrackChanged();
 }
 
 void PlayQueue::cancelPendingAdvance() {
     m_pending_advance = false;
     m_pending_advance_timer->stop();
+    changingTrackChanged();
 }
 void PlayQueue::reloadEntities() {
     for (int row = 0; row < rowCount(); ++row)
@@ -719,16 +764,21 @@ void PlayQueue::fetchSongs() {
     auto backend = App::instance()->backend();
 
     QList<i64> ids;
+    std::unordered_set<model::ItemId> loading;
     for (auto it = m_pending_ids.begin(); it != m_pending_ids.end() && ids.size() < 512;) {
         ids.push_back(it->id());
+        loading.insert(*it);
         it = m_pending_ids.erase(it);
     }
     auto       self   = QPointer<PlayQueue>(this);
     const auto ticket = ++m_loadSerial;
+    m_loading_ids.emplace(ticket, std::move(loading));
+    changingTrackChanged();
     auto       lease =
         backend->loadSongs(std::move(ids), this, [self, ticket](const Backend::SongResult& rsp) {
             if (! self) return;
             self->m_loads.erase(ticket);
+            self->m_loading_ids.erase(ticket);
             if (rsp) {
                 std::unordered_set<model::ItemId> fetched_ids;
                 auto                              store = AppStore::instance();
@@ -740,10 +790,15 @@ void PlayQueue::fetchSongs() {
                     }
                 }
                 self->notifyRowsForIds(fetched_ids);
-                self->fetchSongs();
             }
+            self->changingTrackChanged();
+            self->fetchSongs();
         });
     if (lease) m_loads.emplace(ticket, std::move(lease));
+    else {
+        m_loading_ids.erase(ticket);
+        changingTrackChanged();
+    }
     if (! m_pending_ids.empty() && m_loads.size() < 8) fetchSongs();
 }
 

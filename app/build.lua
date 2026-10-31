@@ -110,6 +110,7 @@ qt.qml_module({
     "qml/component/player/LyricView.qml",
     "qml/component/player/Mpris.qml",
     "qml/component/player/PlaySlider.qml",
+    "qml/component/player/PlayBarBackground.qml",
     "qml/component/player/PlayingBackground.qml",
     "qml/component/player/PlayingBackgroundMask.qml",
     "qml/component/player/VolumeButton.qml",
