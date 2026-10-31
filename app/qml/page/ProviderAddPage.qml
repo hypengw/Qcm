@@ -35,19 +35,21 @@ MD.Page {
                 Component.onCompleted: reload()
             }
 
-            MD.VerticalListView {
+            MD.VerticalLazyList {
                 id: m_view
                 Layout.fillHeight: true
-                model: m_meta_query.data.metasData
+                source: QA.ItemModelSource {
+                    model: m_meta_query.data.metasData
+                }
                 expand: true
                 implicitWidth: Math.min(400, root.width)
                 leftMargin: 16
                 rightMargin: 16
 
                 delegate: MD.ListItem {
-                    required index
-                    required model
-                    width: ListView.view.contentWidth
+                    required property MD.LazyRow row
+                    itemRow: row
+
 
                     corners: MD.Util.listCorners(index, count, 16)
                     leader: MD.IconSvg {

@@ -39,28 +39,30 @@ MD.Dialog {
         }
     }
 
-    MD.VerticalListView {
+    MD.VerticalLazyList {
         id: m_view
         anchors.fill: parent
         expand: true
-        topMargin: 8
-        bottomMargin: 8
+        extraTopMargin: 8
+        extraBottomMargin: 8
 
         busy: m_qr_mixes.status === QA.Enum.Querying
-        model: m_qr_mixes.data
+        source: QA.ItemModelSource {
+            model: m_qr_mixes.data
+        }
         header: Column {
-            width: ListView.view.width
+            width: m_view.contentWidth
             MD.ActionToolBar {
                 width: parent.width
                 actions: []
             }
         }
         delegate: MD.ListItem {
-            required index
-            required model
+            required property MD.LazyRow row
+            itemRow: row
             text: model.name
             supportText: `${model.trackCount} songs`
-            width: ListView.view.width
+
             maximumLineCount: 2
             leader: QA.Image {
                 radius: 8
@@ -69,7 +71,7 @@ MD.Dialog {
             }
             corners: MD.Util.listCorners(index, count, 16)
             onImplicitWidthChanged: {
-                const v = ListView.view;
+                const v = m_view;
                 v.implicitWidth = Math.max(v.implicitWidth, implicitWidth);
             }
             onClicked: {

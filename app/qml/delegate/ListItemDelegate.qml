@@ -3,19 +3,19 @@ import Qcm.App as QA
 import Qcm.Material as MD
 
 MD.ListItem {
-    required index
-    required model
+    required property MD.LazyRow row
+    itemRow: row
     id: root
     property var itemId: model.itemId
     property string image
 
-    width: ListView.view.width
     maximumLineCount: 2
 
     radius: MD.Token.shape.corner.large
     corners: MD.Util.corners(0, index + 1 == count ? root.radius : 0)
 
     leader: QA.Image {
+        itemRow: root.row
         radius: 8
         source: root.image
         implicitWidth: displaySize.width

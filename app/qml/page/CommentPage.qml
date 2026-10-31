@@ -68,12 +68,14 @@ MD.Page {
                 typescale: MD.Token.typescale.label_medium
             }
         }
-        MD.PageVerticalListView {
+        MD.PageVerticalLazyList {
             id: m_view
             objectName: "commentsList"
             Layout.fillWidth: true
             Layout.fillHeight: true
-            model: m_query.model
+            source: QA.ItemModelSource {
+                model: m_query.model
+            }
             pageMarginEdges: Qt.LeftEdge | Qt.RightEdge | Qt.BottomEdge
             header: Loader {
                 width: m_view.contentWidth
@@ -86,6 +88,8 @@ MD.Page {
                 }
             }
             delegate: QA.CommentDelegate {
+                required property MD.LazyRow row
+                commentView: row.value.commentView
                 width: m_view.contentWidth
                 store: root.store
                 canReply: m_query.canReply

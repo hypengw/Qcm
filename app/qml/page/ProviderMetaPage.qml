@@ -82,7 +82,7 @@ MD.Page {
                 text: qsTr('auth')
             }
 
-            MD.HorizontalListView {
+            MD.HorizontalLazyList {
                 id: m_auth_type_view
                 Layout.fillWidth: true
                 implicitHeight: 36
@@ -107,10 +107,13 @@ MD.Page {
                     }
                 ]
                 currentIndex: 0
-                model: root.meta.authTypes.map(el => models[el])
+                source: MD.ListSnapshotSource {
+                    items: root.meta.authTypes.map(el => models[el])
+                }
                 delegate: MD.InputChip {
-                    required property int index
-                    required property var model
+                    required property MD.LazyRow row
+                    readonly property int index: row.index
+                    readonly property var model: row.value
                     icon.name: ''
                     selected: m_auth_type_view.currentIndex == index
                     text: model.name
@@ -129,7 +132,7 @@ MD.Page {
             Loader {
                 id: m_auth_loader
                 Layout.fillWidth: true
-                sourceComponent: m_auth_type_view.model[m_auth_type_view.currentIndex].comp
+                sourceComponent: m_auth_type_view.source.items[m_auth_type_view.currentIndex].comp
             }
 
             MD.Label {

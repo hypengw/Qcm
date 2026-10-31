@@ -8,8 +8,14 @@ import Qcm.Material as MD
 
 MD.ItemDelegate {
     id: root
-    required property var model
-    required property int index
+    required property MD.LazyRow row
+    required property QA.FilterRuleModel ruleModel
+    required property MD.ItemModelSource itemSource
+    readonly property int index: row.index
+    readonly property var model: {
+        void row.revision;
+        return itemSource.objectForKey(row.key);
+    }
 
     font.capitalization: Font.MixedCase
 
@@ -28,7 +34,7 @@ MD.ItemDelegate {
 
                 property string filterUrl: {
                     const base = 'qrc:/Qcm/App/qml/component/filter/';
-                    switch (root.model.type) {
+                    switch (root.model?.type) {
                     case QM.FilterType.FILTER_TYPE_NAME:
                         return base + 'NameFilter.qml';
                     case QM.FilterType.FILTER_TYPE_YEAR:
@@ -43,8 +49,11 @@ MD.ItemDelegate {
                 Component.onCompleted: {
                     reload();
                     filterUrlChanged.connect(reload);
+                    root.modelChanged.connect(reload);
                 }
                 function reload() {
+                    source = "";
+                    if (!root.model) return;
                     setSource(m_loader.filterUrl, {
                         filter: root.model
                     });
@@ -67,17 +76,15 @@ MD.ItemDelegate {
             id: m_act
             icon.name: MD.Token.icon.close
             onClicked: {
-                const v = root.ListView.view;
-                v.model.removeRow(root.index);
+                root.ruleModel.removeRow(root.index);
             }
         }
     }
 
     background: MD.Rectangle {
         corners: {
-            const v = root.ListView.view;
-            const m = v.model;
-            void(v.count);
+            const m = root.ruleModel;
+            void(root.row.revision);
             return MD.Util.listCorners(m.rowIndexInGroup(root.index),
                                        m.rowCountInGroupOf(root.index), 12);
         }

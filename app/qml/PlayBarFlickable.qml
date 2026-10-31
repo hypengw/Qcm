@@ -4,7 +4,7 @@ import QtQuick.Window
 import Qcm.App as QA
 import Qcm.Material as MD
 
-Flickable {
+MD.Scrollable {
     id: root
     objectName: "playbackHost"
 
@@ -23,9 +23,9 @@ Flickable {
 
     contentHeight: height + travel
     contentWidth: width
-    boundsBehavior: Flickable.StopAtBounds
-    flickableDirection: Flickable.VerticalFlick
+    flickableDirection: MD.Scrollable.VerticalFlick
     property string playbackState: "close"
+    property string releaseState: ""
     containmentMask: QtObject {
         function contains(point: point): bool {
             if (!root.closed)
@@ -79,15 +79,26 @@ Flickable {
             playbackState = "close";
     }
     onMovementStarted: {
+        if (releaseState.length) return;
         rememberFocus();
         motion.stop();
         playbackState = "drag";
     }
-    onFlickStarted: {
-        chooseState();
-        cancelFlick();
+    onDragReleased: velocity => {
+        releaseState = Math.abs(velocity.y) >= 75 ? (velocity.y > 0 ? "open" : "close")
+                                                : (expansion > 0.5 ? "open" : "close");
+        // Snap after the scroll coordinator has finished releasing its grab.
+        Qt.callLater(finishRelease);
     }
-    onMovementEnded: chooseState()
+    function finishRelease() {
+        if (!releaseState.length) return;
+        const target = releaseState;
+        cancelFlick();
+        releaseState = "";
+        playbackState = target;
+        settle();
+    }
+    onMovementEnded: if (!releaseState.length) chooseState()
     onPlaybackStateChanged: settle()
     onTravelChanged: {
         if (!ready)

@@ -25,19 +25,21 @@ MD.Page {
         id: m_delete_query
     }
 
-    MD.VerticalListView {
+    MD.VerticalLazyList {
         id: m_view
         anchors.fill: parent
         leftMargin: 16
         rightMargin: 16
         spacing: 2
         expand: true
-        model: QA.App.providerStatus
+        source: QA.ItemModelSource {
+            model: QA.App.providerStatus
+        }
 
         delegate: QA.SettingRow {
-            required index
-            required model
-            width: ListView.view.contentWidth
+            required property MD.LazyRow row
+            itemRow: row
+
             start: index === 0
             end: index === m_view.count - 1
             font.capitalization: Font.MixedCase

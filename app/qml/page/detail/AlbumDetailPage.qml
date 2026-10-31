@@ -18,7 +18,7 @@ MD.Page {
     scrolling: !view?.atYBeginning
 
     readonly property var model: qr_al.data
-    property Flickable view: null
+    property Item view: null
     property Item viewHeaderItem: null
 
     Item {
@@ -131,18 +131,17 @@ MD.Page {
     MD.FlickablePane {
         id: m_view_pane
         view: root.view
-        excludeBegin: {
-            return ((view)?.headerItem?.height ?? 0) - m_control_pane.height + view.topMargin;
-        }
+        excludeBegin: -m_control_pane.height
         radius: root.radius
         includeHorizontalMargins: false
         bottomMargin: root.MD.MProp.page.bottomMargin
+        topMargin: 0
     }
 
     MD.Loader {
         id: m_loader
         anchors.fill: parent
-        sourceComponent: m_list_comp // m_table_comp
+        sourceComponent: m_list_comp
     }
 
     Component {
@@ -252,99 +251,65 @@ MD.Page {
     Component {
         id: m_list_comp
 
-        MD.PageVerticalListView {
+        MD.PageVerticalLazyList {
             id: m_view
             anchors.fill: parent
-            reuseItems: true
-            contentY: 0
 
             extraBottomMargin: 16
 
-            model: m_sort_filter_model
+            source: QA.ItemModelSource {
+                model: m_sort_filter_model
+            }
 
             header: m_list_header_comp
 
-            section.property: 'discNumber'
-            section.criteria: ViewSection.FullString
-            section.delegate: root.model.discCount > 1 ? m_list_section_comp : null
-            delegate: QA.SongDelegate {
-                width: ListView.view.contentWidth
-                leftMargin: 16
-                rightMargin: 16
-
-                subtitle: QA.Util.joinName(model.artists, '/')
-
-                onClicked: {
-                    QA.Action.play(itemId);
+            delegate: Column {
+                id: songRow
+                required property MD.LazyRow row
+                readonly property var entry: row.value
+                readonly property bool firstInDisc: {
+                    void row.revision;
+                    return row.index === 0 || m_view.source.valueAt(row.index - 1)?.discNumber !== entry.discNumber;
+                }
+                readonly property bool lastInDisc: {
+                    void row.revision;
+                    return row.index + 1 === m_view.count || m_view.source.valueAt(row.index + 1)?.discNumber !== entry.discNumber;
+                }
+                MD.Control {
+                    width: parent.width
+                    visible: root.model.discCount > 1 && songRow.firstInDisc
+                    verticalPadding: 4
+                    leftPadding: 24
+                    contentItem: MD.Text {
+                        text: qsTr('Disc: ') + songRow.entry.discNumber
+                        typescale: MD.Token.typescale.title_medium
+                    }
+                }
+                QA.SongDelegate {
+                    row: songRow.row
+                    width: parent.width
+                    leftMargin: 16
+                    rightMargin: 16
+                    prevSameSection: !songRow.firstInDisc
+                    nextSameSection: !songRow.lastInDisc
+                    subtitle: QA.Util.joinName(model.artists, '/')
+                    onClicked: QA.Action.play(itemId)
                 }
             }
 
             footer: MD.ListBusyFooter {
                 running: qr_al.querying
-                width: ListView.view.contentWidth
+
             }
 
             Component.onCompleted: {
                 root.view = m_view;
             }
-            Component {
-                id: m_list_section_comp
-                MD.Control {
-                    id: m_list_section_root
-                    required property string section
-                    width: ListView.view.contentWidth
-                    height: implicitHeight
-                    verticalPadding: 4
-                    leftPadding: 16 + 8
 
-                    contentItem: MD.Text {
-                        text: qsTr('Disc: ') + m_list_section_root.section
-                        typescale: MD.Token.typescale.title_medium
-                    }
-                }
-            }
         }
     }
 
-    Component {
-        id: m_table_comp
-        Item {
-            QA.TableProxyModel {
-                id: m_table_model
-                sourceModel: m_sort_filter_model
-                columnNames: ["name", "albumName", "duration"]
-            }
-            MD.TableView {
-                id: m_view
 
-                readonly property bool single: false
-                anchors.fill: parent
-                model: m_table_model
-                columnWidthProvider: function (column) {
-                    let w = explicitColumnWidth(column);
-                    if (w >= 0)
-                        return w;
-                    return m_view.viewportContentWidth / m_view.columns;
-                    // return implicitColumnWidth(column);
-                }
-                leftMargin: root.MD.MProp.page.leftMargin
-                rightMargin: root.MD.MProp.page.rightMargin
-                topMargin: root.MD.MProp.page.topMargin + m_header.height
-                bottomMargin: root.MD.MProp.page.bottomMargin
-                delegate: MD.TableViewDelegate {}
-
-                Component.onCompleted: {
-                    root.view = m_view;
-                }
-            }
-            MD.HorizontalHeaderView {
-                id: m_header
-                followSyncViewMargins: true
-                y: -m_view.contentY - height
-                syncView: m_view
-            }
-        }
-    }
     MD.FAB {
         anchors.right: parent.right
         anchors.bottom: parent.bottom

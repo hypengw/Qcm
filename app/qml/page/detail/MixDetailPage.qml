@@ -18,21 +18,22 @@ MD.Page {
     MD.FlickablePane {
         id: m_view_pane
         view: m_view
-        excludeBegin: m_view.headerItem.height - m_control_pane.height + view.topMargin
+        excludeBegin: -m_control_pane.height
         radius: root.radius
         includeHorizontalMargins: false
         bottomMargin: root.MD.MProp.page.bottomMargin
+        topMargin: 0
     }
 
-    MD.PageVerticalListView {
+    MD.PageVerticalLazyList {
         id: m_view
         anchors.fill: parent
-        reuseItems: true
-        contentY: 0
 
         extraBottomMargin: 16
 
-        model: qr_pl.data
+        source: QA.ItemModelSource {
+            model: qr_pl.data
+        }
         readonly property bool single: width < m_cover.displaySize.width * (1.0 + 1.5) + 8
         readonly property bool canDelete: false
 
@@ -189,10 +190,10 @@ MD.Page {
             }
         }
         delegate: QA.SongDelegate {
-            width: ListView.view.contentWidth
+
             leftMargin: 16
             rightMargin: 16
-            canDelete: ListView.view.canDelete
+            canDelete: m_view.canDelete
             useTracknumber: false
 
             onClicked: {
@@ -201,7 +202,7 @@ MD.Page {
         }
         footer: MD.ListBusyFooter {
             running: qr_pl.status === QA.Enum.Querying
-            width: ListView.view.contentWidth
+            width: m_view.contentWidth
         }
     }
     MD.FAB {

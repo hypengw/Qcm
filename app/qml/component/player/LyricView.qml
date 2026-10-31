@@ -1,132 +1,47 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Layouts
 import Qcm.Material as MD
 import Qcm.App as QA
 
-MD.VerticalListView {
+MD.VerticalLazyList {
     id: root
-
-    function posTo(idx) {
-        if (!visible)
-            return;
-        if (idx === -1) {
-            anim_scroll.manual_stop();
-            positionViewAtIndex(0, ListView.Center);
-            forceLayout();
-        } else {
-            anim_scroll.from = contentY;
-            positionViewAtIndex(idx, ListView.Center);
-            anim_scroll.to = contentY;
-            contentY = anim_scroll.from;
-            anim_scroll.running = !moving;
-        }
-    // seem when not visible, this is not accurate
-    // use a timer to sync
+    property QA.LyricModel model
+    source: QA.ItemModelSource {
+        model: root.model
     }
-    function timer_restart() {
-        if (visible)
-            timer_scroll.restart();
-    }
-
-    highlightFollowsCurrentItem: false
-    highlightRangeMode: ListView.NoHighlightRange
-    reuseItems: true
     spacing: 4
+    extraTopMargin: height / 2
+    extraBottomMargin: height / 2
+    footer: null
 
-    SmoothedAnimation {//on contentY {
-        id: anim_scroll
-        target: root
-        property: 'contentY'
-        running: false
-
-        property bool manual_stopped: false
-
-        function manual_stop() {
-            manual_stopped = true;
-            stop();
-        }
-
-        duration: 1000
-        velocity: 200
-
-        onStopped: {
-            return;
-            if (manual_stopped) {
-                manual_stopped = false;
-                return;
-            }
-
-            if (root.count === 0)
-                return;
-
-            const cur = root.itemAtIndex(root.model.currentIndex);
-            if (cur) {
-                const center = cur.y + cur.height / 2;
-                const list_center = root.contentY + root.height / 2;
-                const diff = Math.abs(center - list_center);
-                if (diff > 10) {
-                    timer_scroll.triggered();
-                }
-            } else {
-                root.timer_restart();
-            }
-        }
+    function posTo(index) {
+        if (visible && count > 0 && !dragging)
+            positionAtIndex(Math.max(0, index), 0.5, 0, MD.LazyList.Smooth);
     }
+    function syncPosition() { posTo(model?.currentIndex ?? -1); }
+    onCountChanged: Qt.callLater(syncPosition)
+    onVisibleChanged: if (visible) Qt.callLater(syncPosition)
+    onWidthChanged: Qt.callLater(syncPosition)
+    onHeightChanged: Qt.callLater(syncPosition)
+
     delegate: MD.ItemDelegate {
-        id: m_lyric_item
-        required property int index
-        required property var model
-
-        readonly property bool current: root.model.currentIndex === index
-        width: ListView.view.width
-
-        contentItem: Column {
-            MD.Text {
-                width: parent.width
-                typescale: {
-                    const ts = MD.Token.typescale.title_large.fresh();
-                    ts.weight = Font.DemiBold;
-                    return ts;
-                }
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-                text: m_lyric_item.model.content
-                color: root.MD.MProp.textColor
-                maximumLineCount: -1
-                opacity: m_lyric_item.current ? 1 : 0.8
+        id: lyricItem
+        required property MD.LazyRow row
+        readonly property var entry: row.value
+        readonly property bool current: root.model?.currentIndex === row.index
+        contentItem: MD.Text {
+            typescale: {
+                const ts = MD.Token.typescale.title_large.fresh();
+                ts.weight = Font.DemiBold;
+                return ts;
             }
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            text: lyricItem.entry.content
+            color: root.MD.MProp.textColor
+            maximumLineCount: -1
+            opacity: lyricItem.current ? 1 : 0.8
         }
-
-        onClicked: {
-            QA.Global.player.position = model.milliseconds;
-        }
-    }
-    footer: Item {
-        height: ListView.view.height / 2
-    }
-    header: Item {
-        height: ListView.view.height / 2
-    }
-
-    onHeightChanged: timer_restart()
-    onMovingChanged: {
-        if (moving)
-            anim_scroll.manual_stop();
-    }
-    onVisibleChanged: timer_restart()
-    // onWheelMoved: anim_scroll.manual_stop()
-    onWidthChanged: timer_restart()
-
-    Timer {
-        id: timer_scroll
-        interval: 400
-        repeat: false
-        running: true
-
-        onTriggered: {
-            const idx = root.model.currentIndex;
-            root.model.currentIndexChanged(idx);
-        }
+        onClicked: QA.Global.player.position = entry.milliseconds
     }
 }

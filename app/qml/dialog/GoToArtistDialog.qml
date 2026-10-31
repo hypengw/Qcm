@@ -8,17 +8,21 @@ MD.Dialog {
     title: qsTr('Go To Artist')
     standardButtons: MD.Dialog.Cancel
 
-   MD.VerticalListView {
+    MD.VerticalLazyList {
+        id: m_view
         anchors.fill: parent
-        model: root.itemIds
+        source: MD.ListSnapshotSource {
+            items: root.itemIds
+        }
 
         expand: true
 
         delegate: MD.ListItem {
-            required index
-            required property var modelData
+            required property MD.LazyRow row
+            itemRow: row
+            readonly property var modelData: row.value
             model: null
-            width: ListView.view.width
+
             corners: MD.Util.listCorners(index, count, 16)
 
             leader: QA.Image {
@@ -28,7 +32,7 @@ MD.Dialog {
             }
             text: m_qr.data.item.name
             onImplicitWidthChanged: {
-                const v = ListView.view;
+                const v = m_view;
                 v.implicitWidth = Math.max(v.implicitWidth, implicitWidth);
             }
 

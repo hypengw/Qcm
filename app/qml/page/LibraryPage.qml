@@ -131,28 +131,31 @@ MD.Page {
         implicitHeight: textOnly ? m_text_tab_view.implicitHeight : m_chip_tab_view.implicitHeight
         implicitWidth: textOnly ? m_text_tab_view.implicitWidth : m_chip_tab_view.implicitWidth
 
-        MD.HorizontalListView {
+        MD.HorizontalLazyList {
             id: m_chip_tab_view
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
-            implicitHeight: contentItem.childrenRect.height
+            implicitHeight: 32
             spacing: 8
             leftMargin: 8
             rightMargin: 8
             width: Math.min(implicitWidth, parent.width)
             visible: !m_library_tab_bar.textOnly
-            model: root.tabs
+            source: MD.ListSnapshotSource {
+                items: root.tabs
+            }
 
             delegate: MD.FilterChip {
-                required property string modelData
-                required property int index
+                required property MD.LazyRow row
+                readonly property int index: row.index
+                readonly property var modelData: row.value
                 selected: index == root.currentIndex
                 text: modelData
                 onSelectionRequested: root.currentIndex = index
             }
         }
 
-        MD.HorizontalListView {
+        MD.HorizontalLazyList {
             id: m_text_tab_view
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
@@ -162,14 +165,16 @@ MD.Page {
             rightMargin: 4
             width: Math.min(implicitWidth, parent.width)
             visible: m_library_tab_bar.textOnly
-            model: root.tabs
+            source: MD.ListSnapshotSource {
+                items: root.tabs
+            }
 
             delegate: T.Button {
                 id: m_text_tab
 
-                required property string modelData
-                required property int index
-
+                required property MD.LazyRow row
+                readonly property int index: row.index
+                readonly property var modelData: row.value
                 activeFocusOnTab: true
                 checkable: false
                 checked: index == root.currentIndex

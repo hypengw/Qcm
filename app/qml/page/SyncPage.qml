@@ -13,26 +13,28 @@ MD.Page {
     bottomPadding: radius
     scrolling: !m_view.atYBeginning
 
-    MD.VerticalListView {
+    MD.VerticalLazyList {
         id: m_view
         width: root.width
         leftMargin: 12
         rightMargin: 12
-        topMargin: 8
-        bottomMargin: 8
+        extraTopMargin: 8
+        extraBottomMargin: 8
         spacing: 8
         expand: true
 
-        model: QA.App.providerStatus
+        source: QA.ItemModelSource {
+            model: QA.App.providerStatus
+        }
 
         delegate: MD.Control {
             id: m_item
-            required property int index
-            required property var model
+            required property MD.LazyRow row
+            readonly property int index: row.index
+            readonly property var model: row.value
             readonly property var libraries: model.librariesData
             readonly property bool syncing: model.syncStatus.state == QM.SyncState.SYNC_STATE_SYNCING
 
-            width: ListView.view.contentWidth
             topPadding: 0
             bottomPadding: 12
 

@@ -19,20 +19,21 @@ QA.SettingBasePage {
         QA.SettingRow {
             canInput: false
             text: qsTr('theme mode')
-            below: MD.HorizontalListView {
+            below: MD.HorizontalLazyList {
                 id: m_theme_mode_view
-                expand: true
                 spacing: 8
                 implicitHeight: 40
-                model: ListModel {
-                    ListElement {
-                        name: qsTr("system")
-                    }
-                    ListElement {
-                        name: qsTr("light")
-                    }
-                    ListElement {
-                        name: qsTr("dark")
+                source: QA.ItemModelSource {
+                    model: ListModel {
+                        ListElement {
+                            name: qsTr("system")
+                        }
+                        ListElement {
+                            name: qsTr("light")
+                        }
+                        ListElement {
+                            name: qsTr("dark")
+                        }
                     }
                 }
                 currentIndex: {
@@ -44,8 +45,9 @@ QA.SettingBasePage {
                     }
                 }
                 delegate: MD.InputChip {
-                    required property int index
-                    required property var model
+                    required property MD.LazyRow row
+                    readonly property int index: row.index
+                    readonly property var model: row.value
                     icon.name: ''
                     selected: m_theme_mode_view.currentIndex == index
                     text: model.name
@@ -64,24 +66,26 @@ QA.SettingBasePage {
         QA.SettingRow {
             canInput: false
             text: qsTr('playback bar background')
-            below: MD.HorizontalListView {
+            below: MD.HorizontalLazyList {
                 id: backgroundStyleView
                 objectName: "playbarBackgroundStyle"
-                expand: true
                 spacing: 8
                 implicitHeight: 40
-                model: ListModel {
-                    ListElement {
-                        name: qsTr("Page blur")
-                    }
-                    ListElement {
-                        name: qsTr("Album art")
+                source: QA.ItemModelSource {
+                    model: ListModel {
+                        ListElement {
+                            name: qsTr("Page blur")
+                        }
+                        ListElement {
+                            name: qsTr("Album art")
+                        }
                     }
                 }
                 currentIndex: QA.Global.playbar_background_style
                 delegate: MD.InputChip {
-                    required property int index
-                    required property var model
+                    required property MD.LazyRow row
+                    readonly property int index: row.index
+                    readonly property var model: row.value
                     icon.name: ''
                     selected: backgroundStyleView.currentIndex == index
                     text: model.name
@@ -92,17 +96,18 @@ QA.SettingBasePage {
         QA.SettingRow {
             canInput: false
             text: qsTr('accent color')
-            below: MD.HorizontalListView {
+            below: MD.HorizontalLazyList {
                 id: m_accent_color_view
-                expand: true
                 spacing: 8
                 implicitHeight: 40
-                model: ListModel {
-                    ListElement {
-                        name: "system"
-                    }
-                    ListElement {
-                        name: "custom"
+                source: QA.ItemModelSource {
+                    model: ListModel {
+                        ListElement {
+                            name: "system"
+                        }
+                        ListElement {
+                            name: "custom"
+                        }
                     }
                 }
                 currentIndex: {
@@ -114,8 +119,9 @@ QA.SettingBasePage {
                     }
                 }
                 delegate: MD.InputChip {
-                    required property int index
-                    required property var model
+                    required property MD.LazyRow row
+                    readonly property int index: row.index
+                    readonly property var model: row.value
                     icon.name: ''
                     selected: m_accent_color_view.currentIndex == index
                     text: model.name
@@ -136,16 +142,18 @@ QA.SettingBasePage {
         QA.SettingRow {
             canInput: false
             text: qsTr('palette')
-            below: MD.HorizontalListView {
+            below: MD.HorizontalLazyList {
                 id: m_palette_view
-                expand: true
                 spacing: 8
                 implicitHeight: 40
-                model: MD.PaletteModel {}
+                source: QA.ItemModelSource {
+                    model: MD.PaletteModel {}
+                }
                 currentIndex: QA.Global.palette_type
                 delegate: MD.InputChip {
-                    required property int index
-                    required property var model
+                    required property MD.LazyRow row
+                    readonly property int index: row.index
+                    readonly property var model: row.value
                     icon.name: ''
                     selected: m_palette_view.currentIndex == index
                     text: model.name

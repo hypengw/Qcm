@@ -18,17 +18,15 @@ MD.Page {
 
     title: qsTr("artist")
     padding: 0
-    scrolling: !m_view.atYBeginning
+    scrolling: !(m_view.view?.atYBeginning ?? true)
 
     MD.FlickablePane {
         id: m_view_pane
-        view: m_view
-        excludeBegin: {
-            return (root.viewHeaderItem?.height ?? 0) - m_control_pane.height + view.topMargin;
-        }
+        view: m_view.view
+        excludeBegin: -m_control_pane.height
         radius: root.radius
         includeHorizontalMargins: false
-        topMargin: root.MD.MProp.page.topMargin
+        topMargin: 0
         bottomMargin: 0
     }
     Item {
@@ -110,15 +108,6 @@ MD.Page {
         }
     }
 
-    MD.WidthProvider {
-        id: m_wp
-        total: m_view.contentWidth
-        minimum: 140
-        spacing: 12
-        leftMargin: 8
-        rightMargin: 8
-    }
-
     Component {
         id: dg_albumlist
         QA.ListItemDelegate {
@@ -130,7 +119,7 @@ MD.Page {
                 return [QA.Util.joinName(model.artists, '/'), trackInfo].filter(e => !!e).join(' - ');
             }
             onClicked: {
-                ListView.view.currentIndex = index;
+                m_view.view.currentIndex = row.index;
                 QA.Action.routeItem(model.itemId);
             }
         }
@@ -139,11 +128,10 @@ MD.Page {
     Component {
         id: dg_album_card
         QA.AlbumCardDelegate {
-            widthProvider: m_wp
-            mdState.backgroundOpacity: (ListView.view as QA.ItemView).displayMode == QA.Enum.DGrid ? 0 : 1
+            mdState.backgroundOpacity: root.displayMode == QA.Enum.DGrid ? 0 : 1
             subText: QA.Util.formatDateTime(model.publishTime, 'yyyy')
             onClicked: {
-                ListView.view.currentIndex = index;
+                m_view.view.currentIndex = row.index;
                 QA.Action.routeItem(model.itemId);
             }
         }
@@ -155,7 +143,9 @@ MD.Page {
 
         displayMode: root.displayMode
         pageMarginEdges: Qt.LeftEdge | Qt.RightEdge | Qt.TopEdge | Qt.BottomEdge
-        model: qr_artist_albums.data
+        source: QA.ItemModelSource {
+            model: qr_artist_albums.data
+        }
         delegate: {
             const d = displayMode;
             return [dg_albumlist, dg_album_card, dg_album_card][d];

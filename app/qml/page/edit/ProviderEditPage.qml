@@ -140,7 +140,7 @@ MD.Page {
                 title: qsTr("Authentication")
                 spacing: 12
 
-                MD.HorizontalListView {
+                MD.HorizontalLazyList {
                     id: m_auth_type_view
                     Layout.fillWidth: true
                     implicitHeight: 36
@@ -178,16 +178,19 @@ MD.Page {
                     ]
                     currentIndex: {
                         const info = root.model.authInfo;
-                        for (let i = 0; i < model.length; i++) {
-                            if (model[i].is(info))
+                        for (let i = 0; i < source.items.length; i++) {
+                            if (source.items[i].is(info))
                                 return i;
                         }
                         return 0;
                     }
-                    model: root.meta.authTypes.map(el => models[el])
+                    source: MD.ListSnapshotSource {
+                        items: root.meta.authTypes.map(el => models[el])
+                    }
                     delegate: MD.InputChip {
-                        required property int index
-                        required property var model
+                        required property MD.LazyRow row
+                        readonly property int index: row.index
+                        readonly property var model: row.value
                         icon.name: ''
                         selected: m_auth_type_view.currentIndex == index
                         text: model.name
@@ -208,7 +211,7 @@ MD.Page {
                     id: m_auth_loader
                     enabled: m_settings_query.status === QA.Enum.Finished && !m_update_query.querying
                     Layout.fillWidth: true
-                    sourceComponent: m_auth_type_view.model[m_auth_type_view.currentIndex].comp
+                    sourceComponent: m_auth_type_view.source.items[m_auth_type_view.currentIndex].comp
                 }
             }
 

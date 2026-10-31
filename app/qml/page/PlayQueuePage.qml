@@ -34,17 +34,17 @@ MD.Page {
         }
     ]
 
-    MD.VerticalListView {
+    MD.VerticalLazyList {
         id: m_view
         anchors.fill: parent
         expand: true
-        currentIndex: model.currentIndex
-        highlightMoveDuration: 1000
-        highlightMoveVelocity: -1
-        model: QA.App.playqueue
-        topMargin: 8
-        bottomMargin: 8
-        cacheBuffer: 32
+        currentIndex: source.model.currentIndex
+        source: QA.ItemModelSource {
+            model: QA.App.playqueue
+        }
+        extraTopMargin: 8
+        extraBottomMargin: 8
+        cacheExtent: 32
 
         header: Flow {
             width: m_view.width
@@ -76,20 +76,20 @@ MD.Page {
 
         delegate: DropArea {
             id: m_delegate
-            required property int index
-            required property var model
-            readonly property bool is_playing: ListView.isCurrentItem
-            width: ListView.view.width
+            required property MD.LazyRow row
+            readonly property int index: row.index
+            readonly property var model: row.value
+            readonly property bool is_playing: m_view.currentIndex === index
+
             implicitHeight: m_item.implicitHeight
 
             onEntered: drag => {
-                QA.App.playqueue.move(drag.source.model.index, model.index);
+                QA.App.playqueue.move(drag.source.row.index, row.index);
             }
 
             MD.ListItem {
                 id: m_item
-                index: m_delegate.index
-                model: m_delegate.model
+                itemRow: m_delegate.row
                 anchors {
                     horizontalCenter: parent.horizontalCenter
                     verticalCenter: parent.verticalCenter
@@ -99,7 +99,7 @@ MD.Page {
 
                 rightPadding: 4
                 onClicked: {
-                    const m = m_delegate.ListView.view.model;
+                    const m = m_view.source.model;
                     if (m.canJump) {
                         QA.Action.play(model.itemId);
                     } else {
@@ -147,7 +147,7 @@ MD.Page {
                     QA.ListenIcon {
                         Layout.fillWidth: false
                         Layout.minimumWidth: item_font_metrics.minimumWidth + 2
-                        index: model.index
+                        index: m_delegate.row.index
                         isPlaying: m_delegate.is_playing
                     }
 
@@ -165,7 +165,7 @@ MD.Page {
                         onClicked: {
                             const q = QA.App.playqueue;
                             if (q.canRemove) {
-                                m_view.model.removeRow(model.index);
+                                m_view.source.model.removeRow(m_delegate.row.index);
                             } else {
                                 QA.Action.toast(`Not support for ${q.name}`);
                             }

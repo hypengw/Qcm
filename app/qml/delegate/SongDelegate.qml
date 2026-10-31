@@ -8,9 +8,8 @@ import Qcm.Material as MD
 MD.ListItem {
     id: root
     readonly property QA.EntityView entity: QA.Store.item(root.itemId)
-    required index
-    required model
-
+    required property MD.LazyRow row
+    itemRow: row
     readonly property bool hasModel: visible && index >= 0 && !!model
     readonly property QA.item_id itemId: hasModel ? model.itemId : QA.Util.createItemid()
     readonly property bool isPlaying: itemId.valid && QA.App.playqueue.currentSongId === itemId
@@ -81,6 +80,7 @@ MD.ListItem {
                 Component {
                     id: m_comp_song_image
                     QA.Image {
+                        itemRow: root.row
                         radius: 8
                         source: QA.Util.image_url(root.itemId)
                         displaySize: Qt.size(48, 48)

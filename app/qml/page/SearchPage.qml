@@ -20,7 +20,7 @@ MD.Page {
         id: m_search_type_model
     }
 
-    component BaseView: MD.PageVerticalListView {
+    component BaseView: MD.PageVerticalLazyList {
         property string text
         readonly property alias query: m_query
 
@@ -111,7 +111,9 @@ MD.Page {
                         model: m_search_type_model
                         BaseView {
                             required property int index
-                            model: root.models[index]
+                            source: QA.ItemModelSource {
+                                model: root.models[index]
+                            }
                             delegate: root.delegates[index]
                             Component.onCompleted: {
                                 // workaround for async and qt stacklayout > 6.5
@@ -134,7 +136,7 @@ MD.Page {
                     Component {
                         id: m_dg_song
                         QA.SongDelegate {
-                            width: ListView.view.contentWidth
+
                             mdState.backgroundColor: mdState.ctx.color.surface
                             useTracknumber: false
                             onClicked: {
@@ -146,9 +148,9 @@ MD.Page {
                         id: m_dg_album
                         MD.ListItem {
                             id: m_item
-                            required index
-                            required model
-                            width: ListView.view.contentWidth
+                            required property MD.LazyRow row
+                            itemRow: row
+
                             rightPadding: 0
                             text: model.name
                             maximumLineCount: 2
@@ -174,7 +176,7 @@ MD.Page {
                             }
                             onClicked: {
                                 QA.Action.routeItem(model.itemId);
-                                ListView.view.currentIndex = index;
+                                row.view.currentIndex = index;
                             }
                         }
                     }
@@ -182,9 +184,9 @@ MD.Page {
                     Component {
                         id: m_dg_artist
                         MD.ListItem {
-                            required index
-                            required model
-                            width: ListView.view.contentWidth
+                            required property MD.LazyRow row
+                            itemRow: row
+
                             text: model.name
                             maximumLineCount: 2
                             corners: MD.Util.listCorners(index, count, 16)
@@ -196,7 +198,7 @@ MD.Page {
                             }
                             onClicked: {
                                 QA.Action.routeItem(model.itemId);
-                                ListView.view.currentIndex = index;
+                                row.view.currentIndex = index;
                             }
                         }
                     }

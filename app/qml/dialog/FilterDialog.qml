@@ -49,31 +49,63 @@ MD.Dialog {
             }
         }
 
-        MD.VerticalListView {
+        MD.VerticalLazyList {
+            id: filterView
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.leftMargin: -16
             Layout.rightMargin: -16
 
-            model: root.model
-            delegate: {
-                if (root.model instanceof QA.AlbumFilterRuleModel) {
-                    return m_dg_album;
-                } else if (root.model instanceof QA.ArtistFilterRuleModel) {
-                    return m_dg_artist;
-                } else if (root.model instanceof QA.MixFilterRuleModel) {
-                    return m_dg_mix;
+            source: QA.ItemModelSource {
+                model: root.model
+            }
+            delegate: Column {
+                id: ruleRow
+                required property MD.LazyRow row
+                readonly property bool firstInGroup: {
+                    void row.revision;
+                    return row.index === 0 || filterView.source.valueAt(row.index - 1)?.group !== row.value.group;
                 }
-                return null;
+                Loader {
+                    width: parent.width
+                    active: ruleRow.firstInGroup
+                    sourceComponent: m_section_dg
+                    readonly property int groupId: ruleRow.row.value.group
+                }
+                Loader {
+                    width: parent.width
+                    sourceComponent: root.model instanceof QA.AlbumFilterRuleModel ? albumRule
+                        : root.model instanceof QA.ArtistFilterRuleModel ? artistRule : mixRule
+                }
+                Component {
+                    id: albumRule
+                    QA.AlbumFilter {
+                        row: ruleRow.row
+                        ruleModel: root.model
+                        itemSource: filterView.source
+                    }
+                }
+                Component {
+                    id: artistRule
+                    QA.ArtistFilter {
+                        row: ruleRow.row
+                        ruleModel: root.model
+                        itemSource: filterView.source
+                    }
+                }
+                Component {
+                    id: mixRule
+                    QA.MixFilter {
+                        row: ruleRow.row
+                        ruleModel: root.model
+                        itemSource: filterView.source
+                    }
+                }
             }
             implicitHeight: contentHeight
             spacing: 2
             leftMargin: 16
             rightMargin: 16
-
-            section.property: "group"
-            section.criteria: ViewSection.FullString
-            section.delegate: m_section_dg
         }
     }
 
@@ -81,10 +113,8 @@ MD.Dialog {
         id: m_section_dg
         RowLayout {
             id: m_section
-            width: ListView.view.contentWidth
             spacing: 8
-            required property string section
-            readonly property int groupId: parseInt(m_section.section)
+            readonly property int groupId: parent.groupId
             readonly property int sectionIndex: root.model
                 ? root.model.sectionIndexForGroup(m_section.groupId) : -1
             readonly property int currentOp: root.model && m_section.sectionIndex > 0
@@ -135,24 +165,4 @@ MD.Dialog {
         }
     }
 
-    Component {
-        id: m_dg_album
-        QA.AlbumFilter {
-            width: ListView.view.contentWidth
-        }
-    }
-
-    Component {
-        id: m_dg_artist
-        QA.ArtistFilter {
-            width: ListView.view.contentWidth
-        }
-    }
-
-    Component {
-        id: m_dg_mix
-        QA.MixFilter {
-            width: ListView.view.contentWidth
-        }
-    }
 }

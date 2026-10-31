@@ -17,21 +17,22 @@ MD.Page {
     MD.FlickablePane {
         id: m_view_pane
         view: m_view
-        excludeBegin: m_view.headerItem.height - m_control_pane.height + view.topMargin
+        excludeBegin: -m_control_pane.height
         radius: root.radius
         includeHorizontalMargins: false
         bottomMargin: root.MD.MProp.page.bottomMargin
+        topMargin: 0
     }
 
-   MD.PageVerticalListView {
+   MD.PageVerticalLazyList {
         id: m_view
         anchors.fill: parent
-        reuseItems: true
-        contentY: 0
 
         extraBottomMargin: 16
 
-        model: root.itemData
+        source: QA.ItemModelSource {
+            model: root.itemData
+        }
 
         readonly property bool single: width < m_cover.displaySize.width * (1.0 + 1.5) + 8
 
@@ -79,7 +80,7 @@ MD.Page {
                 MD.IconButton {
                     action: QA.AppendListAction {
                         getSongs: function () {
-                            return m_view.model.collectSongs();
+                            return m_view.source.model.collectSongs();
                         }
                     }
                 }
@@ -184,9 +185,11 @@ MD.Page {
             }
         }
         delegate: QA.ProgramDelegate {
-            required property int index
-            required property var model
-            width: ListView.view.contentWidth
+            required property MD.LazyRow row
+            itemRow: row
+            readonly property int index: row.index
+            readonly property var model: row.value
+
 
             leftMargin: 16
             rightMargin: 16
@@ -194,12 +197,12 @@ MD.Page {
             dgModel: model
 
             onClicked: {
-                QA.Action.play(m_view.model.song(index));
+                QA.Action.play(m_view.source.model.song(index));
             }
         }
         footer: MD.ListBusyFooter {
             running: qr_dj.status === QA.Enum.Querying
-            width: ListView.view.contentWidth
+            width: m_view.contentWidth
         }
     }
     MD.FAB {
@@ -212,7 +215,7 @@ MD.Page {
             icon.name: MD.Token.icon.play_arrow
 
             onTriggered: {
-                const songs = m_view.model.collectSongs();
+                const songs = m_view.source.model.collectSongs();
                 console.error(songs);
                 QA.Action.switch_songs(songs);
             }
