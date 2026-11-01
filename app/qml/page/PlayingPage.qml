@@ -241,12 +241,6 @@ MD.Page {
                 songId: root.song.id_proto
             }
 
-            Connections {
-                target: m_query.data
-                function onCurrentIndexChanged(idx) {
-                    lyric_view.posTo(idx);
-                }
-            }
             Binding {
                 target: m_query.data
                 property: 'position'

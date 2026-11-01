@@ -1,6 +1,6 @@
 module;
 #include "Qcm/model/lyric.moc.h"
-#include <limits>
+#include <algorithm>
 #include "core/log.h"
 
 module qcm;
@@ -13,6 +13,10 @@ using namespace qcm;
 LyricModel::LyricModel(QObject* parent)
     : kstore::QGadgetListModel(this, parent), m_cur_idx(-1), m_position(0) {
     connect(this, &LyricModel::positionChanged, this, &LyricModel::refreshIndex);
+    connect(this, &LyricModel::modelReset, this, &LyricModel::refreshIndex);
+    connect(this, &LyricModel::rowsInserted, this, &LyricModel::refreshIndex);
+    connect(this, &LyricModel::rowsRemoved, this, &LyricModel::refreshIndex);
+    connect(this, &LyricModel::dataChanged, this, &LyricModel::refreshIndex);
 }
 LyricModel::~LyricModel() {}
 
@@ -39,38 +43,13 @@ void    LyricModel::setSource(QString v) {
 }
 
 void LyricModel::refreshIndex() {
-    auto old   = m_cur_idx;
-    auto begin = this->begin();
-    auto end   = this->end();
-
-    if (begin < end) {
-        auto it = begin + m_cur_idx;
-
-        auto pos = m_position < 0 ? 0 : m_position;
-
-        auto milli = [begin, end](auto it) -> qlonglong {
-            if (it < begin)
-                return -1;
-            else if (it >= end)
-                return std::numeric_limits<qlonglong>::max();
-            else
-                return it->milliseconds;
-        };
-
-        while (milli(it) > pos) {
-            it--;
-        }
-
-        while (milli(it + 1) <= pos) {
-            it++;
-        }
-        m_cur_idx = std::distance(begin, it);
-    } else
-        m_cur_idx = -1;
-
-    if (old != m_cur_idx) {
-        emit currentIndexChanged(m_cur_idx);
-    }
+    const auto next = std::upper_bound(begin(),
+                                       end(),
+                                       std::max<qlonglong>(m_position, 0),
+                                       [](qlonglong position, const LyricItem& item) {
+                                           return position < item.milliseconds;
+                                       });
+    setCurrentIndex(std::distance(begin(), next) - 1);
 }
 
 #include "Qcm/model/lyric.moc.cpp"

@@ -2,7 +2,7 @@ module;
 #include "QExtra/macro_qt.hpp"
 
 #ifdef Q_MOC_RUN
-#include "Qcm/model/lyric.moc"
+#    include "Qcm/model/lyric.moc"
 #endif
 
 export module qcm:model.lyric;
@@ -18,12 +18,13 @@ public:
     Q_PROPERTY(qlonglong milliseconds MEMBER milliseconds FINAL)
     Q_PROPERTY(QString content MEMBER content FINAL)
 
-    qlonglong milliseconds;
+    qlonglong milliseconds {};
     QString   content;
 };
 
-export class LyricModel : public kstore::QGadgetListModel,
-                          public kstore::QMetaListModelCRTP<LyricItem, LyricModel, kstore::ListStoreType::Vector> {
+export class LyricModel
+    : public kstore::QGadgetListModel,
+      public kstore::QMetaListModelCRTP<LyricItem, LyricModel, kstore::ListStoreType::Vector> {
     Q_OBJECT
     QML_ELEMENT
 

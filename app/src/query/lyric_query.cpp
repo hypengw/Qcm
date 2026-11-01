@@ -29,12 +29,9 @@ void LyricQuery::reload() {
                 auto view = std::ranges::views::transform(el.subtitle().items(), [](auto& el) {
                     return LyricItem { .milliseconds = el.start(), .content = el.text() };
                 });
-                t->setCurrentIndex(-1);
                 t->resetModel(view);
-                t->setCurrentIndex(-1);
             } else {
                 t->resetModel();
-                t->setCurrentIndex(-1);
             }
             self->setStatus(Status::Finished);
             co_return;
@@ -43,7 +40,6 @@ void LyricQuery::reload() {
         cancel();
         auto t = this->tdata();
         t->resetModel();
-        t->setCurrentIndex(-1);
         setStatus(Status::Finished);
     }
 }
