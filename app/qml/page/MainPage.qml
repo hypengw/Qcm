@@ -25,7 +25,7 @@ MD.Page {
     readonly property int pageTopMargin: MD.MProp.size.isCompact ? 0 : MD.MProp.size.verticalPadding
     readonly property real playBarMargin: 12
     readonly property real bottomNavigationHeight: MD.MProp.size.isCompact && bottomNavigation.visible ? bottomNavigation.height : 0
-    readonly property real playBarInset: Math.max(0, m_play_bar_flick.height - bottomNavigationHeight - m_play_bar_flick.closedBarRect.y)
+    readonly property real playBarInset: Math.max(0, m_play_bar_flick.height - bottomNavigationHeight - m_play_bar_flick.closedBarRect.y) * m_play_bar_flick.presentationProgress
     readonly property int pageBottomMargin: (MD.MProp.size.isCompact ? 0 : MD.MProp.size.verticalPadding) + Math.ceil(playBarInset)
 
     function back() {
