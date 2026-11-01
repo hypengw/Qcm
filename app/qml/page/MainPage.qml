@@ -83,6 +83,7 @@ MD.Page {
                     MD.NavigationRail {
                         id: m_drawer
                         Layout.fillHeight: true
+                        bottomPadding: root.playBarInset
                         model: root.model
                         hideWhenCollapsed: true
 
@@ -148,7 +149,6 @@ MD.Page {
                         }
 
                         footer: Column {
-                            bottomPadding: m_drawer.useModal ? 0 : root.playBarInset
                             spacing: m_drawer.useLarge ? 0 : 12
 
                             MD.RailItem {
@@ -282,6 +282,7 @@ MD.Page {
                         rightMargin: root.pageRightMargin
                         topMargin: root.pageTopMargin
                         bottomMargin: root.pageBottomMargin
+                        bottomInset: Math.ceil(root.playBarInset)
                     }
                 }
 
@@ -296,6 +297,7 @@ MD.Page {
                     rightMargin: root.pageRightMargin
                     topMargin: root.pageTopMargin
                     bottomMargin: root.pageBottomMargin
+                    bottomInset: Math.ceil(root.playBarInset)
                 }
 
                 MD.Action {

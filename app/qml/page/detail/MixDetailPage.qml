@@ -22,7 +22,7 @@ MD.Page {
         excludeBegin: -m_control_pane.height
         radius: root.radius
         includeHorizontalMargins: false
-        bottomMargin: root.MD.MProp.page.bottomMargin
+        bottomMargin: Math.max(0, root.MD.MProp.page.bottomMargin - root.MD.MProp.page.bottomInset)
         topMargin: 0
     }
 
