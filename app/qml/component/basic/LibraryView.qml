@@ -8,6 +8,7 @@ Item {
 
     property var model
     property int displayMode: QA.Enum.DList
+    property int gridSpacing: 12
     property string type
     property bool busy: false
     property string currentKey
@@ -119,8 +120,9 @@ Item {
             source: itemSource
             delegate: cardDelegate
             minimumCellExtent: 140
-            itemExtent: cellCrossExtent + 72
-            crossSpacing: 12
+            itemExtent: cellCrossExtent + QA.ImageCardMetrics.extraHeight
+            crossSpacing: root.gridSpacing
+            mainSpacing: root.gridSpacing
             leftMargin: 8
             rightMargin: 8
             bottomMargin: root.MD.MProp.page.bottomMargin + footer.height
@@ -146,6 +148,7 @@ Item {
             subText: root.subtitle(entry)
             image.source: QA.Util.image_url(entry.itemId)
             picWidth: width
+            labelLineHeight: QA.ImageCardMetrics.labelHeight
             smallPlayButton: true
             playButtonAlignment: Qt.AlignRight | Qt.AlignBottom
             playAction: root.type === "album" ? albumPlay : null

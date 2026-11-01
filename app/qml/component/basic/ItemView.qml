@@ -9,6 +9,8 @@ Item {
     property Component delegate
     property Component header
     property int displayMode: QA.Enum.DList
+    property int gridSpacing: 12
+    property real gridExtraHeight: 0
     property int pageMarginEdges: 0
     readonly property var view: viewLoader.item
     readonly property real contentWidth: view?.contentWidth ?? width
@@ -59,9 +61,9 @@ Item {
             header: root.header
             pageMarginEdges: root.pageMarginEdges
             minimumCellExtent: 140
-            itemExtent: cellCrossExtent + 72
-            crossSpacing: 12
-            mainSpacing: 12
+            itemExtent: cellCrossExtent + root.gridExtraHeight
+            crossSpacing: root.gridSpacing
+            mainSpacing: root.gridSpacing
             cacheExtent: 300
             layoutDirection: Qt.application.layoutDirection
         }

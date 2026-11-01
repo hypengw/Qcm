@@ -61,6 +61,14 @@ QA.SettingBasePage {
                 }
             }
             QA.SettingRow {
+                icon.name: MD.Token.icon.speed
+                text: qsTr('Performance')
+                supportText: ''
+                onClicked: {
+                    root.MD.MProp.page.pushItem('Qcm.App/PerformanceSetting');
+                }
+            }
+            QA.SettingRow {
                 icon.name: MD.Token.icon.storage
                 text: qsTr('Storage')
                 supportText: ''

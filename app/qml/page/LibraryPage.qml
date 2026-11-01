@@ -59,6 +59,7 @@ MD.Page {
                         id: m_view_album
                         busy: qr_albums.querying
                         displayMode: m_album_setting.display_mode
+                        gridSpacing: m_album_setting.grid_spacing
                         filterModel: m_album_filter_model
                         headerActions: [
                             QA.PlayAllAction {
@@ -78,12 +79,14 @@ MD.Page {
                         sortModel: m_album_sort_type
                         type: 'album'
                         onSelectDisplayMode: m => m_album_setting.display_mode = m
+                        onSelectGridSpacing: spacing => m_album_setting.grid_spacing = spacing
                     }
 
                     BaseView {
                         id: m_view_mix
                         busy: qr_mix.querying
                         displayMode: m_mix_setting.display_mode
+                        gridSpacing: m_mix_setting.grid_spacing
                         filterModel: m_mix_filter_model
                         headerActions: [
                             QA.MixCreateAction {},
@@ -93,29 +96,34 @@ MD.Page {
                         model: qr_mix.data
                         sortModel: m_mix_sort_type
                         onSelectDisplayMode: m => m_mix_setting.display_mode = m
+                        onSelectGridSpacing: spacing => m_mix_setting.grid_spacing = spacing
                     }
                     BaseView {
                         id: m_view_album_artist
                         busy: qr_album_artists.querying
                         displayMode: m_album_artist_setting.display_mode
+                        gridSpacing: m_album_artist_setting.grid_spacing
                         filterModel: m_album_artist_filter_model
                         headerActions: []
                         model: qr_album_artists.data
                         sortModel: m_album_artist_sort_type
                         type: 'albumartist'
                         onSelectDisplayMode: m => m_album_artist_setting.display_mode = m
+                        onSelectGridSpacing: spacing => m_album_artist_setting.grid_spacing = spacing
                     }
 
                     BaseView {
                         id: m_view_artist
                         busy: qr_artists.querying
                         displayMode: m_artist_setting.display_mode
+                        gridSpacing: m_artist_setting.grid_spacing
                         filterModel: m_artist_filter_model
                         headerActions: []
                         model: qr_artists.data
                         sortModel: m_artist_sort_type
                         type: 'artist'
                         onSelectDisplayMode: m => m_artist_setting.display_mode = m
+                        onSelectGridSpacing: spacing => m_artist_setting.grid_spacing = spacing
                     }
                 }
             }
@@ -264,6 +272,7 @@ MD.Page {
         property list<MD.Action> headerActions
         property var sortModel
         signal selectDisplayMode(int mode)
+        signal selectGridSpacing(int spacing)
         onActivated: (itemId, properties) => m_content.route(itemId, properties)
     }
 
@@ -286,7 +295,9 @@ MD.Page {
         readonly property list<MD.Action> preActions: [
             QA.SelectDisplayModeAction {
                 displayMode: m_header_bar.view?.displayMode ?? 0
+                gridSpacing: m_header_bar.view?.gridSpacing ?? 12
                 onSelectDisplayMode: m => m_header_bar.view?.selectDisplayMode(m)
+                onSelectGridSpacing: spacing => m_header_bar.view?.selectGridSpacing(spacing)
             },
             QA.FilterAction {
                 model: m_header_bar.view?.filterModel ?? null
@@ -497,10 +508,12 @@ MD.Page {
         id: m_album_setting
         category: "library.album"
         property int display_mode: 0
+        property int grid_spacing: 12
         property alias sort: m_album_sort_type.currentType
         property alias asc: m_album_sort_type.asc
         property string filter
         Component.onCompleted: {
+            m_album_setting.grid_spacing = Math.max(0, Math.min(16, m_album_setting.grid_spacing));
             m_album_filter_model.reset();
             m_album_filter_model.doQuery();
         }
@@ -510,10 +523,12 @@ MD.Page {
         id: m_mix_setting
         category: "library.mix"
         property int display_mode: 0
+        property int grid_spacing: 12
         property alias sort: m_mix_sort_type.currentType
         property alias asc: m_mix_sort_type.asc
         property string filter
         Component.onCompleted: {
+            m_mix_setting.grid_spacing = Math.max(0, Math.min(16, m_mix_setting.grid_spacing));
             m_mix_filter_model.reset();
             m_mix_filter_model.doQuery();
         }
@@ -523,10 +538,12 @@ MD.Page {
         id: m_artist_setting
         category: "library.artist"
         property int display_mode: 0
+        property int grid_spacing: 12
         property alias sort: m_artist_sort_type.currentType
         property alias asc: m_artist_sort_type.asc
         property string filter
         Component.onCompleted: {
+            m_artist_setting.grid_spacing = Math.max(0, Math.min(16, m_artist_setting.grid_spacing));
             m_artist_filter_model.reset();
             m_artist_filter_model.doQuery();
         }
@@ -536,11 +553,13 @@ MD.Page {
         id: m_album_artist_setting
         category: "library.album_artist"
         property int display_mode: 0
+        property int grid_spacing: 12
         property alias sort: m_album_artist_sort_type.currentType
         property alias asc: m_album_artist_sort_type.asc
         property string filter
 
         Component.onCompleted: {
+            m_album_artist_setting.grid_spacing = Math.max(0, Math.min(16, m_album_artist_setting.grid_spacing));
             m_artist_filter_model.reset();
             m_artist_filter_model.doQuery();
         }

@@ -16,6 +16,7 @@ MD.Page {
     readonly property bool single: m_view.width < m_cover.displaySize.width * (1.0 + 1.5) + 8
     property Item viewHeaderItem: null
     property int displayMode: QA.Enum.DCardGrid
+    property int gridSpacing: 12
 
     title: qsTr("artist")
     padding: 0
@@ -84,7 +85,9 @@ MD.Page {
                 readonly property QA.SelectDisplayModeAction displayModeAction: QA.SelectDisplayModeAction {
                     menuParent: m_display_mode_btn
                     displayMode: root.displayMode
+                    gridSpacing: root.gridSpacing
                     onSelectDisplayMode: m => root.displayMode = m
+                    onSelectGridSpacing: spacing => root.gridSpacing = spacing
                 }
                 MD.ActionCommand.action: displayModeAction
                 text: MD.ActionCommand.text
@@ -129,6 +132,7 @@ MD.Page {
     Component {
         id: dg_album_card
         QA.AlbumCardDelegate {
+            labelLineHeight: QA.ImageCardMetrics.labelHeight
             mdState.backgroundOpacity: root.displayMode == QA.Enum.DGrid ? 0 : 1
             subText: QA.Util.formatDateTime(model.publishTime, 'yyyy')
             onClicked: {
@@ -143,6 +147,8 @@ MD.Page {
         anchors.fill: parent
 
         displayMode: root.displayMode
+        gridSpacing: root.gridSpacing
+        gridExtraHeight: QA.ImageCardMetrics.extraHeight
         pageMarginEdges: Qt.LeftEdge | Qt.RightEdge | Qt.TopEdge | Qt.BottomEdge
         source: QA.ItemModelSource {
             model: qr_artist_albums.data
@@ -274,7 +280,9 @@ MD.Page {
         id: m_album_setting
         category: "detail.artist.album"
         property alias display_mode: root.displayMode
+        property alias grid_spacing: root.gridSpacing
         property alias sort: m_album_sort_type.currentType
         property alias asc: m_album_sort_type.asc
+        Component.onCompleted: root.gridSpacing = Math.max(0, Math.min(16, root.gridSpacing))
     }
 }

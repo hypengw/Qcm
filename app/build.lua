@@ -54,6 +54,7 @@ qt.qml_module({
     "qml/component/basic/HorizontalItemBar.qml",
     "qml/component/basic/Image.qml",
     "qml/component/basic/ImageCard.qml",
+    "qml/component/basic/ImageCardMetrics.qml",
     "qml/component/basic/ItemView.qml",
     "qml/component/basic/ItemModelSource.qml",
     "qml/component/basic/LibraryView.qml",
@@ -152,6 +153,7 @@ qt.qml_module({
     "qml/page/edit/ProviderEditPage.qml",
     "qml/page/setting/AudioSetting.qml",
     "qml/page/setting/MiscSetting.qml",
+    "qml/page/setting/PerformanceSetting.qml",
     "qml/page/setting/NetworkSetting.qml",
     "qml/page/edit/ProxyEditPage.qml",
     "qml/page/setting/ProviderManagePage.qml",
@@ -164,6 +166,7 @@ qt.qml_module({
     "qml/page/toplevel/WelcomePage.qml",
   },
   singletons = {
+    "qml/component/basic/ImageCardMetrics.qml",
     "qml/Global.qml",
     "qml/Util.qml",
   },

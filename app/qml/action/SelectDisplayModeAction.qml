@@ -8,8 +8,10 @@ MD.Action {
     id: root
 
     property int displayMode
+    property int gridSpacing: 12
     property Item menuParent
     signal selectDisplayMode(int mode)
+    signal selectGridSpacing(int spacing)
 
     text: qsTr("Display mode")
     tooltip: qsTr("Change display mode")
@@ -26,7 +28,9 @@ MD.Action {
         QA.DisplayModeMenu {
             modal: true
             dim: false
+            gridSpacing: root.gridSpacing
             onDisplayModeChanged: root.selectDisplayMode(displayMode)
+            onGridSpacingChangeRequested: spacing => root.selectGridSpacing(spacing)
         }
     }
 }

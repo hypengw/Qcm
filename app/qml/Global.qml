@@ -5,6 +5,7 @@ import QtQuick
 import Qcm.App as QA
 import Qcm.Msg as QM
 import Qcm.Material as MD
+import QExtra as QE
 
 QA.GlobalWrapper {
     id: root
@@ -22,6 +23,32 @@ QA.GlobalWrapper {
     property int playbar_background_style: QA.PlayBarBackground.PageBlur
 
     property int cover_quality: -1
+    property int image_decode_cache_mib: 16
+    property int image_gpu_cache_mib: 32
+
+    function applyImageTextureCache() {
+        if (main_win)
+            QE.ImageCache.setTextureCapacityMiB(main_win, image_gpu_cache_mib);
+    }
+
+    onMain_winChanged: applyImageTextureCache()
+    onImage_gpu_cache_mibChanged: applyImageTextureCache()
+
+    Binding {
+        target: QE.ImageCache
+        property: "capacityMiB"
+        value: root.image_decode_cache_mib
+    }
+
+    Settings {
+        category: "image_cache"
+        property alias decode_capacity_mib: root.image_decode_cache_mib
+        property alias gpu_capacity_mib: root.image_gpu_cache_mib
+        Component.onCompleted: {
+            root.image_decode_cache_mib = Math.max(0, Math.min(128, root.image_decode_cache_mib));
+            root.image_gpu_cache_mib = Math.max(0, Math.min(256, root.image_gpu_cache_mib));
+        }
+    }
 
     toastActionComp: Component {
         QA.CopyAction {
