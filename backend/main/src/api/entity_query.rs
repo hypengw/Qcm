@@ -1,3 +1,4 @@
+use crate::identity::{IdField, IdList};
 use crate::{
     api::{
         helper_sort::{album_sort_col, order_songs, song_sort_col},
@@ -50,15 +51,12 @@ pub async fn execute(
     match message.r#type() {
         MessageType::GetAlbumReq => {
             if let Some(Payload::GetAlbumReq(req)) = payload {
-                if sqlm::album::Entity::find_by_id(req.id)
-                    .one(db)
-                    .await?
-                    .is_none()
-                {
-                    return Err(ProcessError::NoSuchAlbum(req.id.to_string()));
+                let id = req.id.required("album_id")?;
+                if sqlm::album::Entity::find_by_id(id).one(db).await?.is_none() {
+                    return Err(ProcessError::NoSuchAlbum(id.to_string()));
                 }
                 let songs = order_songs(
-                    sqlm::song::Entity::find().filter(sqlm::song::Column::AlbumId.eq(req.id)),
+                    sqlm::song::Entity::find().filter(sqlm::song::Column::AlbumId.eq(id)),
                     msg::model::SongSort::TrackNumber,
                     sea_orm::Order::Asc,
                 )
@@ -68,8 +66,8 @@ pub async fn execute(
                 .all(db)
                 .await?;
                 return Ok(msg::GetAlbumRsp {
-                    id: req.id,
-                    song_ids: songs,
+                    id: req.id.clone(),
+                    song_ids: Some(songs.into()),
                 }
                 .qcm_into());
             }
@@ -85,7 +83,10 @@ pub async fn execute(
                 let query = sqlm::album::Entity::find()
                     .inner_join(sqlm::item::Entity)
                     .left_join(sqlm::dynamic::Entity)
-                    .filter(sqlm::item::Column::LibraryId.is_in(req.library_id.clone()))
+                    .filter(
+                        sqlm::item::Column::LibraryId
+                            .is_in(req.library_id.checked("library_ids")?.iter().copied()),
+                    )
                     .filter(sqlm::dynamic::Column::IsExternal.eq(false))
                     .qcm_filters(&req.filters, &req.filter_logics)
                     .order_by(album_sort_col(sort), sort_asc);
@@ -102,7 +103,7 @@ pub async fn execute(
                 let ids = albums;
 
                 let rsp = GetAlbumsRsp {
-                    ids,
+                    ids: Some(ids.into()),
                     total: total as i32,
                     has_more: page_params.has_more(total),
                 };
@@ -118,7 +119,10 @@ pub async fn execute(
                 let sort_col: sqlm::artist::Column = sort.qcm_into();
                 let paginator = sqlm::artist::Entity::find()
                     .inner_join(sqlm::item::Entity)
-                    .filter(sqlm::item::Column::LibraryId.is_in(req.library_id.clone()))
+                    .filter(
+                        sqlm::item::Column::LibraryId
+                            .is_in(req.library_id.checked("library_ids")?.iter().copied()),
+                    )
                     .inner_join(sqlm::rel_album_artist::Entity)
                     .qcm_filters(&req.filters, &req.filter_logics)
                     .order_by(sort_col, req.sort_asc.qcm_into())
@@ -132,7 +136,7 @@ pub async fn execute(
                 let artists = paginator.fetch_page(page_params.page).await?;
 
                 let rsp = GetAlbumArtistsRsp {
-                    ids: artists,
+                    ids: Some(artists.into()),
                     total: total as i32,
                     has_more: page_params.has_more(total),
                 };
@@ -147,7 +151,10 @@ pub async fn execute(
                 let sort_col: sqlm::artist::Column = sort.qcm_into();
                 let paginator = sqlm::artist::Entity::find()
                     .inner_join(sqlm::item::Entity)
-                    .filter(sqlm::item::Column::LibraryId.is_in(req.library_id.clone()))
+                    .filter(
+                        sqlm::item::Column::LibraryId
+                            .is_in(req.library_id.checked("library_ids")?.iter().copied()),
+                    )
                     .inner_join(sqlm::rel_song_artist::Entity)
                     .qcm_filters(&req.filters, &req.filter_logics)
                     .order_by(sort_col, req.sort_asc.qcm_into())
@@ -161,7 +168,7 @@ pub async fn execute(
                 let artists = paginator.fetch_page(page_params.page).await?;
 
                 let rsp = GetArtistsRsp {
-                    ids: artists,
+                    ids: Some(artists.into()),
                     total: total as i32,
                     has_more: page_params.has_more(total),
                 };
@@ -170,12 +177,15 @@ pub async fn execute(
         }
         MessageType::GetArtistReq => {
             if let Some(Payload::GetArtistReq(req)) = payload {
-                let artist = sqlm::artist::Entity::find_by_id(req.id)
+                let id = req.id.required("artist_id")?;
+                let artist = sqlm::artist::Entity::find_by_id(id)
                     .one(db)
                     .await?
-                    .ok_or(ProcessError::NoSuchArtist(req.id.to_string()))?;
+                    .ok_or(ProcessError::NoSuchArtist(id.to_string()))?;
 
-                let rsp = msg::GetArtistRsp { id: artist.id };
+                let rsp = msg::GetArtistRsp {
+                    id: Some(artist.id.into()),
+                };
                 return Ok(rsp.qcm_into());
             }
         }
@@ -195,7 +205,7 @@ pub async fn execute(
                 let mixes = paginator.fetch_page(page_params.page).await?;
 
                 let rsp = msg::GetMixsRsp {
-                    ids: mixes,
+                    ids: Some(mixes.into()),
                     total: total as i32,
                     has_more: page_params.has_more(total),
                 };
@@ -212,7 +222,7 @@ pub async fn execute(
                     .paginate(db, page_params.page_size);
 
                 let total = paginator.num_items().await?;
-                let mixes = paginator
+                let mixes: Vec<_> = paginator
                     .fetch_page(page_params.page)
                     .await?
                     .into_iter()
@@ -220,7 +230,7 @@ pub async fn execute(
                     .collect();
 
                 let rsp = msg::GetRemoteMixsRsp {
-                    ids: mixes,
+                    ids: Some(mixes.into()),
                     total: total as i32,
                     has_more: page_params.has_more(total),
                 };
@@ -229,17 +239,21 @@ pub async fn execute(
         }
         MessageType::GetMixReq => {
             if let Some(Payload::GetMixReq(req)) = payload {
-                let mix = sqlm::mix::Entity::find_by_id(req.id)
+                let id = req.id.required("mix_id")?;
+                let mix = sqlm::mix::Entity::find_by_id(id)
                     .one(db)
                     .await?
-                    .ok_or(ProcessError::NoSuchMix(req.id.to_string()))?;
+                    .ok_or(ProcessError::NoSuchMix(id.to_string()))?;
 
-                let rsp = msg::GetMixRsp { id: mix.id };
+                let rsp = msg::GetMixRsp {
+                    id: Some(mix.id.into()),
+                };
                 return Ok(rsp.qcm_into());
             }
         }
         MessageType::GetMixSongsReq => {
             if let Some(Payload::GetMixSongsReq(req)) = payload {
+                let id = req.id.required("mix_id")?;
                 let page_params = PageParams::new(req.page, req.page_size);
 
                 let sort: msg::model::SongSort =
@@ -249,7 +263,7 @@ pub async fn execute(
                 let query = sqlm::song::Entity::find()
                     .inner_join(sqlm::item::Entity)
                     .inner_join(sqlm::rel_mix_song::Entity)
-                    .filter(sqlm::rel_mix_song::Column::MixId.eq(req.id))
+                    .filter(sqlm::rel_mix_song::Column::MixId.eq(id))
                     .order_by(song_sort_col(sort), sort_asc)
                     .order_by(sqlm::rel_mix_song::Column::OrderIdx, sea_orm::Order::Desc);
 
@@ -264,14 +278,14 @@ pub async fn execute(
 
                 let ids = songs;
 
-                let mix = sqlm::mix::Entity::find_by_id(req.id)
+                let mix = sqlm::mix::Entity::find_by_id(id)
                     .one(db)
                     .await?
-                    .ok_or(ProcessError::NoSuchMix(req.id.to_string()))?;
+                    .ok_or(ProcessError::NoSuchMix(id.to_string()))?;
 
                 let rsp = msg::GetMixSongsRsp {
-                    mix_id: mix.id,
-                    ids,
+                    mix_id: Some(mix.id.into()),
+                    ids: Some(ids.into()),
                     total: total as i32,
                     has_more: page_params.has_more(total),
                 };
@@ -280,18 +294,20 @@ pub async fn execute(
         }
         MessageType::GetSongsByIdReq => {
             if let Some(Payload::GetSongsByIdReq(req)) = payload {
-                if req.ids.len() > 20000 || req.ids.iter().any(|id| *id <= 0) {
+                let ids = req.ids.checked("song_ids")?;
+                if ids.len() > 20000 {
                     return Err(ProcessError::WrongId("song IDs".into()));
                 }
                 return Ok(msg::GetSongsByIdRsp {
-                    ids: req.ids.clone(),
-                    total: req.ids.len() as i32,
+                    ids: Some(ids.to_vec().into()),
+                    total: ids.len() as i32,
                 }
                 .qcm_into());
             }
         }
         MessageType::GetArtistAlbumReq => {
             if let Some(Payload::GetArtistAlbumReq(req)) = payload {
+                let id = req.id.required("artist_id")?;
                 let page_params = PageParams::new(req.page, req.page_size);
                 let sort: msg::model::AlbumSort = req
                     .sort
@@ -299,10 +315,10 @@ pub async fn execute(
                     .unwrap_or(msg::model::AlbumSort::PublishTime);
                 let sort_col = album_sort_col(sort);
 
-                let artist = sqlm::artist::Entity::find_by_id(req.id)
+                let artist = sqlm::artist::Entity::find_by_id(id)
                     .one(db)
                     .await?
-                    .ok_or(ProcessError::NoSuchArtist(req.id.to_string()))?;
+                    .ok_or(ProcessError::NoSuchArtist(id.to_string()))?;
 
                 let albums_query = artist
                     .find_related(sqlm::album::Entity)
@@ -319,7 +335,7 @@ pub async fn execute(
                 let ids = albums;
 
                 let rsp = msg::GetArtistAlbumRsp {
-                    ids,
+                    ids: Some(ids.into()),
                     total: total as i32,
                     has_more: page_params.has_more(total),
                 };
@@ -338,6 +354,7 @@ pub async fn execute(
                     String::new()
                 } else {
                     req.library_id
+                        .checked("library_ids")?
                         .iter()
                         .map(|id| id.to_string())
                         .collect::<Vec<_>>()
@@ -379,10 +396,10 @@ pub async fn execute(
                             let total = paginator.num_items().await?;
                             let albums = paginator.fetch_page(page_params.page).await?;
 
-                            let ids = albums.into_iter().map(|item| item.id).collect();
+                            let ids: Vec<_> = albums.into_iter().map(|item| item.id).collect();
 
                             albums_rsp = Some(GetAlbumsRsp {
-                                ids,
+                                ids: Some(ids.into()),
                                 total: total as i32,
                                 has_more: page_params.has_more(total),
                             });
@@ -399,10 +416,10 @@ pub async fn execute(
                             let total = paginator.num_items().await?;
                             let songs = paginator.fetch_page(page_params.page).await?;
 
-                            let ids = songs.into_iter().map(|item| item.id).collect();
+                            let ids: Vec<_> = songs.into_iter().map(|item| item.id).collect();
 
                             songs_rsp = Some(GetSongsRsp {
-                                ids,
+                                ids: Some(ids.into()),
                                 total: total as i32,
                                 has_more: page_params.has_more(total),
                             });
@@ -419,7 +436,7 @@ pub async fn execute(
                             let paginator = query.paginate(db, page_params.page_size);
                             let total = paginator.num_items().await?;
 
-                            let artists = paginator
+                            let artists: Vec<_> = paginator
                                 .fetch_page(page_params.page)
                                 .await?
                                 .into_iter()
@@ -427,7 +444,7 @@ pub async fn execute(
                                 .collect();
 
                             artists_rsp = Some(GetArtistsRsp {
-                                ids: artists,
+                                ids: Some(artists.into()),
                                 total: total as i32,
                                 has_more: page_params.has_more(total),
                             });

@@ -72,7 +72,7 @@ private:
     QHash<QString, CommentView*> m_entries;
     model::ItemId                m_item_id;
     QString                      m_scope;
-    qint64                       m_provider_id {};
+    msg::id::ProviderId          m_provider_id;
     quint64                      m_epoch {};
     quint64                      m_generation {};
     quint64                      m_clock {};

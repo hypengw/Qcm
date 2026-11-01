@@ -159,19 +159,24 @@ void AlbumArtistsQuery::fetchMore(qint32) {
 }
 
 ArtistQuery::ArtistQuery(QObject* parent): Query(parent) { connectSyncFinished(this); }
-auto ArtistQuery::itemId() const -> model::ItemId { return m_item_id; }
-void ArtistQuery::setItemId(model::ItemId in) {
-    if (ycore::cmp_set(m_item_id, in)) {
+auto ArtistQuery::artistId() const -> msg::id::ArtistId { return m_artist_id; }
+void ArtistQuery::setArtistId(const msg::id::ArtistId& in) {
+    if (ycore::cmp_set(m_artist_id, in)) {
         invalidateRequests();
-        itemIdChanged();
+        artistIdChanged();
     }
 }
 
 void ArtistQuery::reload() {
+    if (! identity::valid(m_artist_id)) {
+        setError(tr("Invalid artist ID"));
+        setStatus(Status::Error);
+        return;
+    }
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::GetArtistReq {};
-    req.setId_proto(m_item_id.id());
+    req.setId_proto(m_artist_id);
     auto       self     = QWatcher { this };
     const auto revision = beginRequest();
     spawn([self, backend, req, revision] mutable -> task<void> {
@@ -190,20 +195,25 @@ ArtistAlbumQuery::ArtistAlbumQuery(QObject* parent): QueryList(parent) {
     this->tdata()->set_store(this->tdata(), AppStore::instance()->albums);
 }
 
-auto ArtistAlbumQuery::itemId() const -> model::ItemId { return m_item_id; }
-void ArtistAlbumQuery::setItemId(model::ItemId in) {
-    if (ycore::cmp_set(m_item_id, in)) {
+auto ArtistAlbumQuery::artistId() const -> msg::id::ArtistId { return m_artist_id; }
+void ArtistAlbumQuery::setArtistId(const msg::id::ArtistId& in) {
+    if (ycore::cmp_set(m_artist_id, in)) {
         invalidateRequests();
-        itemIdChanged();
+        artistIdChanged();
     }
 }
 
 void ArtistAlbumQuery::reload() {
+    if (! identity::valid(m_artist_id)) {
+        setError(tr("Invalid artist ID"));
+        setStatus(Status::Error);
+        return;
+    }
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::GetArtistAlbumReq {};
     initReqForReload(req);
-    req.setId_proto(m_item_id.id());
+    req.setId_proto(m_artist_id);
 
     auto       self     = QWatcher { this };
     const auto revision = beginRequest();
@@ -221,11 +231,16 @@ void ArtistAlbumQuery::reload() {
 }
 
 void ArtistAlbumQuery::fetchMore(qint32) {
+    if (! identity::valid(m_artist_id)) {
+        setError(tr("Invalid artist ID"));
+        setStatus(Status::Error);
+        return;
+    }
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::GetArtistAlbumReq {};
     initReqForFetchMore(req);
-    req.setId_proto(m_item_id.id());
+    req.setId_proto(m_artist_id);
 
     auto       self     = QWatcher { this };
     const auto revision = beginRequest();

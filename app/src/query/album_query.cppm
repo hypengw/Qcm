@@ -45,18 +45,18 @@ export class AlbumQuery : public QueryList, public QueryExtra<model::AlbumSongLi
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
+    Q_PROPERTY(qcm::msg::id::AlbumId albumId READ albumId WRITE setAlbumId NOTIFY albumIdChanged)
 public:
     AlbumQuery(QObject* parent = nullptr);
     void reload() override;
 
-    auto itemId() const -> model::ItemId;
-    void setItemId(model::ItemId);
+    auto albumId() const -> msg::id::AlbumId;
+    void setAlbumId(msg::id::AlbumId);
 
-    Q_SIGNAL void itemIdChanged();
+    Q_SIGNAL void albumIdChanged();
 
 private:
-    model::ItemId m_item_id;
+    msg::id::AlbumId m_album_id;
 };
 
 } 

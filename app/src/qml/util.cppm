@@ -49,9 +49,6 @@ public:
     Q_INVOKABLE static QUrl imageUrl(const QString&);
     Q_INVOKABLE static QUrl audio_url(model::ItemId id);
 
-    Q_INVOKABLE static model::ItemId albumArtistId(QString);
-    Q_INVOKABLE static model::ItemId artistId(QString);
-    Q_INVOKABLE static model::ItemId itemId(const QJSValue&);
     Q_INVOKABLE static QString       mprisTrackid(model::ItemId);
     Q_INVOKABLE static QString       joinName(const QJSValue&, const QString& = "/");
     Q_INVOKABLE static QString       formatDateTime(const QJSValue&, const QString&);

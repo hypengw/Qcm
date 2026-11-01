@@ -14,7 +14,7 @@ Item {
     readonly property var view: viewLoader.item
     readonly property int count: itemSource.count
     readonly property bool scrolling: view?.moving ?? false
-    signal activated(var itemId)
+    signal activated(var itemId, var properties)
 
     property bool ready: false
     property string anchorKey
@@ -37,10 +37,7 @@ Item {
         currentKey = entry.key;
         view.currentKey = currentKey;
         view.forceActiveFocus();
-        const itemId = entry.itemId.clone();
-        if (type === "artist")
-            itemId.type = QA.Enum.ItemArtist;
-        activated(itemId);
+        activated(entry.itemId, type === "artist" || type === "albumartist" ? {"albumArtist": type === "albumartist"} : {});
     }
     function subtitle(entry) {
         if (type === "album")

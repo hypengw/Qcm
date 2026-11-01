@@ -75,6 +75,7 @@ async fn provider_settings_commit_restore_reject_and_replace_authentication() {
     let (backend_ev, _) = tokio::sync::mpsc::channel(1);
     let (oper, _) = crate::task::TaskManager::new();
     let service = Arc::new(ServiceContext {
+        protocol: crate::protocol::Session::testing(),
         provider_context: context,
         backend_ev,
         oper,
@@ -84,7 +85,7 @@ async fn provider_settings_commit_restore_reject_and_replace_authentication() {
         resource_cache: cache.clone(),
     });
     let mut req = msg::UpdateProviderReq {
-        provider_id: id,
+        provider_id: Some(id.into()),
         name: "Edited".into(),
         settings_json: r#"{"playback_mode":"original","max_bitrate":192000}"#.into(),
         ..Default::default()

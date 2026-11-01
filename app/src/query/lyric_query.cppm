@@ -18,18 +18,18 @@ export class LyricQuery : public Query, public QueryExtra<LyricModel, LyricQuery
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
+    Q_PROPERTY(qcm::msg::id::SongId songId READ songId WRITE setSongId NOTIFY songIdChanged)
 public:
     LyricQuery(QObject* parent = nullptr);
     void reload() override;
 
-    auto itemId() const -> model::ItemId;
-    void setItemId(model::ItemId);
+    auto songId() const -> msg::id::SongId;
+    void setSongId(msg::id::SongId);
 
-    Q_SIGNAL void itemIdChanged();
+    Q_SIGNAL void songIdChanged();
 
 private:
-    model::ItemId m_item_id;
+    msg::id::SongId m_song_id;
 };
 
 } // namespace qcm

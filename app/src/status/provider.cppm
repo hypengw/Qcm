@@ -28,21 +28,20 @@ export class LibraryStatus : public QObject {
     Q_OBJECT
     QML_ANONYMOUS
 
-    Q_PROPERTY(QtProtobuf::int64List activedIds READ activedIds NOTIFY activedIdsChanged)
+    Q_PROPERTY(qcm::msg::id::LibraryIds activedIds READ activedIds NOTIFY activedIdsChanged)
 public:
     LibraryStatus(QObject* parent = nullptr);
     ~LibraryStatus();
-    auto activedIds() -> const QtProtobuf::int64List&;
+    auto activedIds() const -> msg::id::LibraryIds;
 
-    Q_INVOKABLE bool actived(i64 id) const;
-    Q_INVOKABLE void setActived(i64 id, bool);
+    Q_INVOKABLE bool actived(const qcm::msg::id::LibraryId&) const;
+    Q_INVOKABLE void setActived(const qcm::msg::id::LibraryId&, bool);
 
-    Q_SIGNAL void activedChanged(i64, bool);
+    Q_SIGNAL void activedChanged(const qcm::msg::id::LibraryId&, bool);
     Q_SIGNAL void activedIdsChanged();
 
 private:
     std::set<i64>         m_inactived;
-    QtProtobuf::int64List m_ids;
 };
 
 export class ProviderStatusModel
@@ -55,7 +54,7 @@ export class ProviderStatusModel
     Q_PROPERTY(bool syncing READ syncing NOTIFY syncingChanged FINAL)
     Q_PROPERTY(
         qcm::LibraryStatus* libraryStatus READ libraryStatus NOTIFY libraryStatusChanged FINAL)
-    Q_PROPERTY(QtProtobuf::int64List activedIds READ activedIds NOTIFY activedIdsChanged FINAL)
+    Q_PROPERTY(qcm::msg::id::ProviderIds activedIds READ activedIds NOTIFY activedIdsChanged FINAL)
 
 public:
     ProviderStatusModel(QObject* parent = nullptr);
@@ -64,19 +63,19 @@ public:
     void updateSyncStatus(const msg::model::ProviderSyncStatus&);
     auto syncing() const -> bool;
     auto libraryStatus() const -> LibraryStatus*;
-    auto activedIds() -> const QtProtobuf::int64List&;
+    auto activedIds() const -> msg::id::ProviderIds;
 
-    Q_INVOKABLE bool    actived(i64 id) const;
-    Q_INVOKABLE void    setActived(i64 id, bool);
-    Q_INVOKABLE QVariant itemById(const model::ItemId&) const;
-    Q_INVOKABLE QVariant metaById(const model::ItemId&) const;
-    Q_INVOKABLE QString  svg(qint32) const;
-    Q_INVOKABLE QString  svg(const model::ItemId&) const;
+    Q_INVOKABLE bool     actived(const qcm::msg::id::ProviderId&) const;
+    Q_INVOKABLE void     setActived(const qcm::msg::id::ProviderId&, bool);
+    Q_INVOKABLE QVariant itemById(const qcm::msg::id::ProviderId&) const;
+    Q_INVOKABLE QVariant metaById(const qcm::msg::id::ProviderId&) const;
+    Q_INVOKABLE QString  svgAt(qint32) const;
+    Q_INVOKABLE QString  svg(const qcm::msg::id::ProviderId&) const;
 
     Q_SIGNAL void syncingChanged(bool);
-    Q_SIGNAL void providerSyncFinished(qint64);
+    Q_SIGNAL void providerSyncFinished(const qcm::msg::id::ProviderId&);
     Q_SIGNAL void libraryStatusChanged();
-    Q_SIGNAL void activedChanged(i64, bool);
+    Q_SIGNAL void activedChanged(const qcm::msg::id::ProviderId&, bool);
     Q_SIGNAL void activedIdsChanged();
 
 private:
@@ -86,7 +85,6 @@ private:
     bool                  m_syncing;
     LibraryStatus*        m_lib_status;
     std::set<i64>      m_inactived;
-    QtProtobuf::int64List m_actived_ids;
 };
 
 } // namespace qcm

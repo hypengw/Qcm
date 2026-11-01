@@ -9,6 +9,10 @@ use tokio::sync::mpsc::error::SendError;
 
 #[derive(Debug, Error, Default)]
 pub enum ProcessError {
+    #[error("Unsupported protocol version {0}; expected 2")]
+    ProtocolVersion(u32),
+    #[error("Backend protocol handshake is not complete")]
+    ProtocolNotReady,
     #[error("{0}")]
     Radio(crate::radio::RadioError),
     #[error("{0}")]

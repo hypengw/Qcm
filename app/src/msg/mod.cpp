@@ -1,6 +1,7 @@
 module;
 #include "Qcm/msg/store.moc.h"
 #include "Qcm/message/entity_store.hpp"
+#include "Qcm/message/wire_type.hpp"
 #include "core/log.h"
 module qcm;
 import :msg;
@@ -9,7 +10,7 @@ import qcm.log;
 
 auto rstd::Impl<rstd::convert::From<qcm::enums::ItemType>,
                 qcm::msg::model::ItemTypeGadget::ItemType>::from(in_t t) -> out_t {
-    return static_cast<out_t>(static_cast<int>(t));
+    return qcm::identity::wireItemType(t);
 }
 
 namespace qcm
@@ -176,7 +177,7 @@ QList<model::Artist> AppStore::artistsFor(model::ItemId id) const {
                 values.push_back(*item);
             else {
                 model::Artist value;
-                value.setId_proto(target);
+                value.setId_proto(identity::fromValue<msg::id::ArtistId>(target));
                 values.push_back(value);
             }
         }

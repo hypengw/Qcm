@@ -1,6 +1,7 @@
 import QtQuick
 
 import Qcm.App as QA
+import Qcm.Msg as QM
 import Qcm.Material as MD
 
 MD.Action {
@@ -8,19 +9,20 @@ MD.Action {
     icon.name: MD.Token.icon.person
     text: qsTr('go to artist')
 
-    property var getItemIds: null
+    property QM.artistIds artistIds
+    property bool albumArtist: false
 
     onTriggered: {
-        if (!getItemIds)
-            return;
-        const itemIds = root.getItemIds();
+        const itemIds = QM.Ids.artistItems(root.artistIds);
+        if (itemIds.length === 0) return;
         if (itemIds.length === 1) {
-            QA.Action.routeItem(itemIds[0]);
+            QA.Action.routeItem(itemIds[0], {"albumArtist": root.albumArtist});
         } else {
             const msg = QA.Util.routeMsg();
             msg.dst = 'Qcm.App/GoToArtistDialog';
             msg.props = {
-                'itemIds': itemIds
+                'artistIds': root.artistIds,
+                'albumArtist': root.albumArtist
             };
             QA.Action.openPopup(msg);
         }

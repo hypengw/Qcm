@@ -469,9 +469,7 @@ auto App::app_state() const -> AppState* {
     return d->app_state;
 }
 
-void App::register_meta_type() {
-    QMetaType::registerConverter<model::ItemId, QString>(&model::ItemId::toString);
-}
+void App::register_meta_type() { model::registerIdConverters(); }
 
 void App::connect_components() {
     connect(playqueue(), &PlayQueue::changingTrackChanged, global()->player(), [this] {
@@ -584,12 +582,13 @@ void App::connect_actions() {
                     auto       backend  = this->backend();
                     auto       req      = msg::PlaylogReq {};
                     const auto now      = system_clock::now();
-
-                    req.setSongId(song_id.id());
+                    auto       song     = song_id.toSongId();
+                    if (! song) return;
+                    req.setSongId(*song);
                     req.setAction(act);
                     req.setTimestamp(duration_cast<milliseconds>(now.time_since_epoch()).count());
                     req.setSourceId(source.id());
-                    req.setSourceType((msg::model::ItemTypeGadget::ItemType)source.type());
+                    req.setSourceType(rstd::into(source.type()));
 
                     d_func()->m_background_tasks.spawn([backend, req] mutable -> task<void> {
                         (void)co_await backend->send(std::move(req));
@@ -708,6 +707,27 @@ void App::onSwitchQueue(model::IdQueue* queue) {
     }
 }
 
+auto App::itemRouteProperties(const model::ItemId& id, const QVariantMap& in_props) const
+    -> QVariantMap {
+    auto props = in_props;
+    props.remove("itemId");
+    props.remove("artistId");
+    props.remove("albumId");
+    props.remove("mixId");
+    if (auto artist = id.toArtistId()) {
+        props["artistId"] = QVariant::fromValue(*artist);
+        if (! props.contains("albumArtist"))
+            props["albumArtist"] = id.type() == enums::ItemType::ItemAlbumArtist;
+    } else if (auto album = id.toAlbumId()) {
+        props["albumId"] = QVariant::fromValue(*album);
+    } else if (auto mix = id.toMixId()) {
+        props["mixId"] = QVariant::fromValue(*mix);
+    } else {
+        props["itemId"] = QVariant::fromValue(id);
+    }
+    return props;
+}
+
 void App::onRouteItem(const model::ItemId& id, const QVariantMap& in_props) {
     const auto url = id.toPageUrl();
     if (! id.valid() || url.isEmpty()) return;
@@ -716,10 +736,8 @@ void App::onRouteItem(const model::ItemId& id, const QVariantMap& in_props) {
 
     model::RouteMsg msg;
 
-    auto props      = in_props;
     msg.dst         = url.toString();
-    props["itemId"] = QVariant::fromValue(id);
-    msg.props       = std::move(props);
+    msg.props       = itemRouteProperties(id, in_props);
 
     Action::instance()->route(QVariant::fromValue(msg));
 }

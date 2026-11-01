@@ -11,6 +11,8 @@ export namespace qcm::model
 template<class T>
 class EntityList : public ItemIdListModel, public kstore::QListInterface {
 public:
+    using Id                         = std::remove_cvref_t<decltype(std::declval<T>().id_proto())>;
+    using Ids                        = typename identity::IdTraits<Id>::List;
     static constexpr int ArtistsRole = ItemIdRole + 1;
     static constexpr int AlbumRole   = ItemIdRole + 2;
     static constexpr int StateRole   = ItemIdRole + 3;
@@ -26,7 +28,7 @@ public:
     }
     void set_store(QAbstractListModel*, ReadStore<T> source) {
         if (m_bound && m_source == source) return;
-        if (m_bound) resetIds(QList<i64>());
+        if (m_bound) resetIds(Ids {});
         m_subscription.reset();
         m_source       = std::move(source);
         m_bound        = true;
@@ -58,7 +60,7 @@ public:
         auto id = m_ids.at(row);
         if (auto value = m_source.store_query(id)) return const_cast<T*>(value);
         auto& placeholder = m_placeholders[id];
-        placeholder.setId_proto(id);
+        placeholder.setId_proto(identity::fromValue<Id>(id));
         return &placeholder;
     }
     void     rawAssign(qint32, const QVariant&) override {}
@@ -106,8 +108,19 @@ public:
         auto it = m_rows.constFind(id);
         return it == m_rows.cend() ? std::nullopt : std::optional<qsizetype>(it.value());
     }
+    void resetIds(const Ids& ids) {
+        if (identity::valid(ids)) resetKeys(ids.values());
+    }
+    void appendIds(const Ids& ids) {
+        if (identity::valid(ids)) appendKeys(ids.values());
+    }
+    void syncIds(const Ids& ids) {
+        if (identity::valid(ids)) syncKeys(ids.values());
+    }
+
+private:
     template<class Range>
-    void resetIds(const Range& ids) {
+    void resetKeys(const Range& ids) {
         beginResetModel();
         for (auto id : m_ids) m_source.unpin(id);
         m_ids.clear();
@@ -123,7 +136,7 @@ public:
         pruneSelection();
     }
     template<class Range>
-    void syncIds(const Range& ids) {
+    void syncKeys(const Range& ids) {
         QList<i64> wanted;
         QSet<i64>  set;
         for (auto id : ids)
@@ -158,10 +171,10 @@ public:
         pruneSelection();
     }
     template<class Range>
-    void appendIds(const Range& ids) {
+    void appendKeys(const Range& ids) {
         auto combined = m_ids;
         for (auto id : ids) combined.push_back(id);
-        syncIds(combined);
+        syncKeys(combined);
     }
 
 private:

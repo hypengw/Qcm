@@ -10,21 +10,8 @@ if lito.profile == "debug" then
   lito.target_add_generated_definition(app, "QT_QML_DEBUG")
 end
 
-qt.protobuf({
-  target = app,
-  qt = qt6,
-  source = proto,
-  proto_files = {
-    "filter.proto",
-    "message.proto",
-    "model.proto",
-    "entity.proto",
-  },
-  proto_includes = { "." },
-  output = "Qcm/message",
-  qml_uri = "Qcm.Msg",
-  qml_version = "1.0",
-})
+local message = require("@qcm.message.build")
+message(app, qt6, proto, "src/message/include/Qcm/message/id_foreign.hpp")
 
 qt.qml_module({
   target = app,

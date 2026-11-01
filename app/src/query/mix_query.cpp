@@ -97,20 +97,25 @@ void RemoteMixesQuery::fetchMore(qint32) {}
 
 MixQuery::MixQuery(QObject* parent): Query(parent) { connectSyncFinished(this); }
 
-auto MixQuery::itemId() const -> model::ItemId { return m_item_id; }
+auto MixQuery::mixId() const -> msg::id::MixId { return m_mix_id; }
 
-void MixQuery::setItemId(model::ItemId in) {
-    if (ycore::cmp_set(m_item_id, in)) {
+void MixQuery::setMixId(msg::id::MixId in) {
+    if (ycore::cmp_set(m_mix_id, in)) {
         invalidateRequests();
-        itemIdChanged();
+        mixIdChanged();
     }
 }
 
 void MixQuery::reload() {
+    if (! identity::valid(m_mix_id)) {
+        setError(tr("Invalid mix ID"));
+        setStatus(Status::Error);
+        return;
+    }
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::GetMixReq {};
-    req.setId_proto(m_item_id.id());
+    req.setId_proto(m_mix_id);
     auto       self     = QWatcher { this };
     const auto revision = beginRequest();
     spawn([self, backend, req, revision] mutable -> task<void> {
@@ -128,17 +133,17 @@ MixSongsQuery::MixSongsQuery(QObject* parent): QueryList(parent) {
     auto app = App::instance();
     this->tdata()->set_store(this->tdata(), app->store()->songs);
     connectSyncFinished(this);
-    this->connect_requet_reload(&MixSongsQuery::itemIdChanged, this);
+    this->connect_requet_reload(&MixSongsQuery::mixIdChanged, this);
     this->setLimit(1000);
 }
 
-auto MixSongsQuery::itemId() const -> model::ItemId { return m_item_id; }
+auto MixSongsQuery::mixId() const -> msg::id::MixId { return m_mix_id; }
 
-void MixSongsQuery::setItemId(model::ItemId in) {
-    if (ycore::cmp_set(m_item_id, in)) {
+void MixSongsQuery::setMixId(msg::id::MixId in) {
+    if (ycore::cmp_set(m_mix_id, in)) {
         invalidateRequests();
         setOffset(0);
-        itemIdChanged();
+        mixIdChanged();
     }
 }
 
@@ -149,12 +154,12 @@ void MixSongsQuery::refresh() {
 }
 
 void MixSongsQuery::load(bool force_refresh) {
-    if (! m_item_id.valid()) return;
+    if (! identity::valid(m_mix_id)) return;
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::GetMixSongsReq {};
     initReqForReload(req);
-    req.setId_proto(m_item_id.id());
+    req.setId_proto(m_mix_id);
     req.setForceRefresh(force_refresh);
     if (force_refresh) req.setPageSize(limit());
 
@@ -177,12 +182,17 @@ void MixSongsQuery::load(bool force_refresh) {
 }
 
 void MixSongsQuery::fetchMore(qint32) {
+    if (! identity::valid(m_mix_id)) {
+        setError(tr("Invalid mix ID"));
+        setStatus(Status::Error);
+        return;
+    }
     if (noMore() || querying()) return;
     setStatus(Status::Querying);
     auto                backend = App::instance()->backend();
     msg::GetMixSongsReq request;
     initReqForFetchMore(request);
-    request.setId_proto(m_item_id.id());
+    request.setId_proto(m_mix_id);
     auto       self     = QWatcher { this };
     const auto revision = beginRequest();
     spawn([self, backend, request, revision]() mutable -> task<void> {
@@ -243,19 +253,21 @@ void CreateMixQuery::setName(const QString& in) {
 }
 
 DeleteMixQuery::DeleteMixQuery(QObject* parent): Query(parent) {}
-auto DeleteMixQuery::ids() const -> std::vector<model::ItemId> { return m_ids; }
-void DeleteMixQuery::setIds(const std::vector<model::ItemId>& ids) {
+auto DeleteMixQuery::ids() const -> msg::id::MixIds { return m_ids; }
+void DeleteMixQuery::setIds(const msg::id::MixIds& ids) {
     m_ids = ids;
     idsChanged();
 }
 void DeleteMixQuery::reload() {
+    if (! identity::valid(m_ids)) {
+        setError(tr("Invalid mix IDs"));
+        setStatus(Status::Error);
+        return;
+    }
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::DeleteMixReq {};
-    auto view    = std::ranges::views::transform(m_ids, [](const auto& el) {
-        return el.id();
-    });
-    req.setIds({ view.begin(), view.end() });
+    req.setIds(m_ids);
     auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
@@ -271,19 +283,21 @@ void DeleteMixQuery::reload() {
 }
 
 LinkMixQuery::LinkMixQuery(QObject* parent): Query(parent) {}
-auto LinkMixQuery::ids() const -> std::vector<model::ItemId> { return m_ids; }
-void LinkMixQuery::setIds(const std::vector<model::ItemId>& ids) {
+auto LinkMixQuery::ids() const -> msg::id::MixIds { return m_ids; }
+void LinkMixQuery::setIds(const msg::id::MixIds& ids) {
     m_ids = ids;
     idsChanged();
 }
 void LinkMixQuery::reload() {
+    if (! identity::valid(m_ids)) {
+        setError(tr("Invalid mix IDs"));
+        setStatus(Status::Error);
+        return;
+    }
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::LinkMixReq {};
-    auto view    = std::ranges::views::transform(m_ids, [](const auto& el) {
-        return el.id();
-    });
-    req.setIds({ view.begin(), view.end() });
+    req.setIds(m_ids);
     auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
@@ -300,23 +314,19 @@ void LinkMixQuery::reload() {
 
 MixManipulateQuery::MixManipulateQuery(QObject* parent): Query(parent) {}
 void MixManipulateQuery::reload() {
+    if (! identity::valid(m_mix_id) || ! identity::valid(m_song_ids) ||
+        ! identity::valid(m_album_ids)) {
+        setError(tr("Invalid mix operation IDs"));
+        setStatus(Status::Error);
+        return;
+    }
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::MixManipulateReq {};
-    req.setId_proto(m_mix_id.id());
+    req.setId_proto(m_mix_id);
     req.setOper(m_oper);
-    {
-        auto view = std::ranges::views::transform(m_song_ids, [](const auto& el) {
-            return el.id();
-        });
-        req.setSongIds({ view.begin(), view.end() });
-    }
-    {
-        auto view = std::ranges::views::transform(m_album_ids, [](const auto& el) {
-            return el.id();
-        });
-        req.setAlbumIds({ view.begin(), view.end() });
-    }
+    req.setSongIds(m_song_ids);
+    req.setAlbumIds(m_album_ids);
     auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
@@ -329,19 +339,19 @@ void MixManipulateQuery::reload() {
         co_return;
     });
 }
-auto MixManipulateQuery::mixId() const -> model::ItemId { return m_mix_id; }
-void MixManipulateQuery::setMixId(const model::ItemId& id) {
+auto MixManipulateQuery::mixId() const -> msg::id::MixId { return m_mix_id; }
+void MixManipulateQuery::setMixId(const msg::id::MixId& id) {
     if (ycore::cmp_set(m_mix_id, id)) {
         mixIdChanged();
     }
 }
-auto MixManipulateQuery::songIds() const -> std::vector<model::ItemId> { return m_song_ids; }
-void MixManipulateQuery::setSongIds(const std::vector<model::ItemId>& ids) {
+auto MixManipulateQuery::songIds() const -> msg::id::SongIds { return m_song_ids; }
+void MixManipulateQuery::setSongIds(const msg::id::SongIds& ids) {
     m_song_ids = ids;
     songIdsChanged();
 }
-auto MixManipulateQuery::albumIds() const -> std::vector<model::ItemId> { return m_album_ids; }
-void MixManipulateQuery::setAlbumIds(const std::vector<model::ItemId>& ids) {
+auto MixManipulateQuery::albumIds() const -> msg::id::AlbumIds { return m_album_ids; }
+void MixManipulateQuery::setAlbumIds(const msg::id::AlbumIds& ids) {
     m_album_ids = ids;
     albumIdsChanged();
 }

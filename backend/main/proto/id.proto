@@ -1,0 +1,22 @@
+syntax = "proto3";
+package qcm.msg.id;
+
+message SongId { int64 value = 1; }
+message AlbumId { int64 value = 1; }
+message ArtistId { int64 value = 1; }
+message MixId { int64 value = 1; }
+message ProviderId { int64 value = 1; }
+message LibraryId { int64 value = 1; }
+message RadioQueueId { int64 value = 1; }
+message RadioId { int64 value = 1; }
+message ProgramId { int64 value = 1; }
+
+message SongIds { repeated int64 values = 1; }
+message AlbumIds { repeated int64 values = 1; }
+message ArtistIds { repeated int64 values = 1; }
+message MixIds { repeated int64 values = 1; }
+message ProviderIds { repeated int64 values = 1; }
+message LibraryIds { repeated int64 values = 1; }
+message RadioQueueIds { repeated int64 values = 1; }
+message RadioIds { repeated int64 values = 1; }
+message ProgramIds { repeated int64 values = 1; }

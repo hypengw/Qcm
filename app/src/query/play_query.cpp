@@ -18,6 +18,13 @@ void PlayQuery::setItemId(model::ItemId v) {
 }
 
 void PlayQuery::reload() {
+    if (! m_item_id.valid() || (m_item_id.type() != enums::ItemType::ItemSong &&
+                                m_item_id.type() != enums::ItemType::ItemAlbum &&
+                                m_item_id.type() != enums::ItemType::ItemMix)) {
+        setError(tr("Unsupported playback identity"));
+        setStatus(Status::Error);
+        return;
+    }
     if (m_item_id.type() == enums::ItemType::ItemSong) {
         cancel();
         setStatus(Status::Finished);
@@ -32,13 +39,13 @@ void PlayQuery::reload() {
             msg::filter::SongFilter filter;
             if (m_item_id.type() == enums::ItemType::ItemAlbum) {
                 msg::filter::AlbumIdFilter sub_filter;
-                sub_filter.setValue(m_item_id.id());
+                sub_filter.setValue(*m_item_id.toAlbumId());
                 filter.setAlbumIdFilter(sub_filter);
                 req.setSort(msg::model::SongSortGadget::SongSort::SONG_SORT_TRACK_NUMBER);
                 req.setAsc(true);
             } else if (m_item_id.type() == enums::ItemType::ItemMix) {
                 msg::filter::MixIdFilter sub_filter;
-                sub_filter.setValue(m_item_id.id());
+                sub_filter.setValue(*m_item_id.toMixId());
                 filter.setMixIdFilter(sub_filter);
             }
             req.setFilters({ filter });
@@ -50,7 +57,7 @@ void PlayQuery::reload() {
             if (! self) co_return;
             if (rsp) {
                 std::vector<model::ItemId> ids;
-                for (auto id : rsp->ids()) {
+                for (auto id : rsp->ids().values()) {
                     ids.push_back(model::ItemId(enums::ItemType::ItemSong, id));
                 }
                 Action::instance()->switch_songs(ids);
@@ -93,7 +100,7 @@ void PlayAllQuery::reload() {
         if (! self) co_return;
         if (rsp) {
             std::vector<model::ItemId> ids;
-            for (auto id : rsp->ids()) {
+            for (auto id : rsp->ids().values()) {
                 ids.push_back(model::ItemId(enums::ItemType::ItemSong, id));
             }
             Action::instance()->switch_songs(ids);
@@ -200,6 +207,20 @@ auto QueueNextQuery::sessionExpired() const -> bool { return m_session_expired; 
 auto QueueNextQuery::transportFailure() const -> bool { return m_transport_failure; }
 
 void QueueNextQuery::reload() {
+    const bool valid = std::visit(
+        [](const auto& request) {
+            if (! identity::valid(request.queueId())) return false;
+            if constexpr (std::same_as<std::remove_cvref_t<decltype(request)>,
+                                       msg::GetQueueNextReq>)
+                return identity::valid(request.currentSongIds());
+            return true;
+        },
+        m_request);
+    if (! valid) {
+        setError(tr("Invalid radio queue IDs"));
+        setStatus(Status::Error);
+        return;
+    }
     static_cast<QTimer*>(m_timeout)->start();
     const auto revision = ++m_revision;
     setStatus(Status::Querying);

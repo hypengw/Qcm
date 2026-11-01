@@ -89,7 +89,7 @@ MD.Page {
                     RowLayout {
                         width: parent.width
                         MD.IconSvg {
-                            sourceData: QA.App.providerStatus.svg(m_item.index)
+                            sourceData: QA.App.providerStatus.svgAt(m_item.index)
                             size: 24
                         }
                         MD.Text {

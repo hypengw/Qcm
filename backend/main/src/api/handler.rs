@@ -9,7 +9,7 @@ use crate::msg::{self, QcmMessage, Rsp};
 use crate::task::TaskManagerOper;
 use crate::{
     error::ProcessError,
-    event::{self, BackendEvent, EventSink, ServiceContext},
+    event::{self, EventSink, ServiceContext},
 };
 use futures_util::{SinkExt, StreamExt};
 use http_body_util::BodyExt;
@@ -29,15 +29,20 @@ use super::process_event::{process_backend_event, process_event, ProcessContext}
 /// WebSocket 传输层的 EventSink 实现
 struct WsEventSink {
     tx: async_mpsc::Sender<WsMessage>,
+    protocol: Arc<crate::protocol::Session>,
 }
 
 impl EventSink for WsEventSink {
     fn send_message(
         &self,
-        msg: QcmMessage,
+        mut msg: QcmMessage,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = qcm_core::Result<()>> + Send + '_>>
     {
         Box::pin(async move {
+            if !self.protocol.ready() {
+                return Ok(());
+            }
+            msg.protocol_version = crate::protocol::VERSION;
             let mut buf = Vec::new();
             msg.encode(&mut buf)?;
             self.tx.send(WsMessage::Binary(buf.into())).await?;
@@ -80,21 +85,25 @@ pub async fn handle_request(
                 .body(ResponseBody::Empty)
                 .unwrap());
         };
-        if !request.uri().path().starts_with("/playback/") { log::debug!(target: "http", "{}", request.uri()); }
-
-        use hyper::Method;
-        let res = if request.uri().path().starts_with("/playback/") { crate::playback::handle(&ctx,request).await } else { match *request.method() {
-            Method::GET => process_http_get(&ctx, request).await,
-            Method::POST => process_http_post(&ctx, request).await,
-            _ => {
-                let rsp = Response::builder()
-                    .status(StatusCode::METHOD_NOT_ALLOWED)
-                    .body(ResponseBody::Empty)
-                    .unwrap();
-                Ok(rsp)
-            }
+        if !request.uri().path().starts_with("/playback/") {
+            log::debug!(target: "http", "{}", request.uri());
         }
 
+        use hyper::Method;
+        let res = if request.uri().path().starts_with("/playback/") {
+            crate::playback::handle(&ctx, request).await
+        } else {
+            match *request.method() {
+                Method::GET => process_http_get(&ctx, request).await,
+                Method::POST => process_http_post(&ctx, request).await,
+                _ => {
+                    let rsp = Response::builder()
+                        .status(StatusCode::METHOD_NOT_ALLOWED)
+                        .body(ResponseBody::Empty)
+                        .unwrap();
+                    Ok(rsp)
+                }
+            }
         };
 
         match res {
@@ -114,10 +123,12 @@ pub async fn handle_request(
                     .unwrap();
                 Ok(rsp)
             }
-            Err(ProcessError::NotAuth | ProcessError::AuthRequired { .. }) => Ok(Response::builder()
-                .status(StatusCode::UNAUTHORIZED)
-                .body(ResponseBody::Empty)
-                .unwrap()),
+            Err(ProcessError::NotAuth | ProcessError::AuthRequired { .. }) => {
+                Ok(Response::builder()
+                    .status(StatusCode::UNAUTHORIZED)
+                    .body(ResponseBody::Empty)
+                    .unwrap())
+            }
             Err(ProcessError::Resource(err)) => {
                 log::debug!("resource request failed: {err}");
                 Ok(Response::builder()
@@ -143,11 +154,14 @@ async fn handle_ws(
     let (ev_sender, mut ev_receiver) = async_mpsc::channel::<event::Event>(1024);
     let (bk_ev_sender, mut bk_ev_receiver) = async_mpsc::channel::<event::BackendEvent>(1024);
 
+    let protocol = Arc::new(crate::protocol::Session::default());
     let sink: Arc<dyn EventSink> = Arc::new(WsEventSink {
         tx: ws_sender.clone(),
+        protocol: protocol.clone(),
     });
 
     let ctx = Arc::new(ServiceContext {
+        protocol,
         provider_context: Arc::new(Context {
             db,
             cache_db,
@@ -212,15 +226,15 @@ async fn handle_ws(
         }
     });
 
-    let _ = ctx.backend_ev.try_send(BackendEvent::Frist);
-
     let radio_cleanup = tokio::spawn({
         let ctx = Arc::downgrade(&ctx);
         async move {
             let mut interval = tokio::time::interval(std::time::Duration::from_secs(15));
             loop {
                 interval.tick().await;
-                let Some(ctx) = ctx.upgrade() else { break; };
+                let Some(ctx) = ctx.upgrade() else {
+                    break;
+                };
                 ctx.radio.collect(&ctx.provider_context).await;
                 ctx.playback.collect().await;
             }
@@ -242,6 +256,7 @@ async fn handle_ws(
     }
 
     log::info!("WebSocket connection closed");
+    ctx.protocol.close();
     radio_cleanup.abort();
     ctx.playback.shutdown().await;
     ctx.radio.shutdown(&ctx.provider_context).await;
@@ -269,16 +284,21 @@ pub async fn handle_ws_message(
 
     match process_ws(&ctx, &ws_sender, &msg, &mut id).await {
         Ok(msg_rsp) => {
+            let hello = matches!(msg_rsp.payload, Some(Payload::TestRsp(_)));
             log::debug!("send {}", msg_rsp.r#type);
             let mut buf = Vec::new();
             msg_rsp.encode(&mut buf)?;
             ws_sender.send(WsMessage::Binary(buf.into())).await?;
+            if hello {
+                crate::protocol::complete_handshake(&ctx).await?;
+            }
         }
         Err(ProcessError::None) => {}
         Err(err) => {
             if let Some(id) = id {
                 let rsp: Rsp = err.qcm_into();
                 let msg = QcmMessage {
+                    protocol_version: crate::protocol::VERSION,
                     entities: None,
                     id,
                     r#type: msg::MessageType::Rsp.into(),

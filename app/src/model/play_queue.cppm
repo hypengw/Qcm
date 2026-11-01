@@ -171,7 +171,7 @@ public:
     Q_INVOKABLE bool move(qint32 src, qint32 dst, qint32 count = 1);
 
     Q_INVOKABLE qcm::model::DynamicIdQueue*
-    dynamicQueue(model::ItemId queueId, const QString& name,
+    dynamicQueue(const qcm::msg::id::RadioQueueId& queueId, const QString& name,
                  const QList<qcm::msg::model::QueueConfigField>& configuration, bool canRestart,
                  const QString& restartLabel);
     auto          radioQueue() const -> model::DynamicIdQueue*;

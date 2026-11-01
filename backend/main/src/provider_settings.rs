@@ -40,8 +40,9 @@ pub async fn update(
     ctx: &Arc<ServiceContext>,
     req: &msg::UpdateProviderReq,
 ) -> Result<msg::UpdateProviderRsp, ProcessError> {
-    let old = global::provider(req.provider_id)
-        .ok_or(ProcessError::NoSuchProvider(req.provider_id.to_string()))?;
+    let provider_id = crate::identity::IdField::required(&req.provider_id, "provider_id")?;
+    let old = global::provider(provider_id)
+        .ok_or(ProcessError::NoSuchProvider(provider_id.to_string()))?;
     if req.auth_info.is_some() && !req.tmp_provider.is_empty() {
         return Ok(invalid(SettingsError::message(
             "Choose one authentication update",
@@ -92,24 +93,24 @@ pub async fn update(
     let write = ctx
         .provider_context
         .sync_coordinator
-        .write(req.provider_id, None)
+        .write(provider_id, None)
         .await?;
-    if global::provider(req.provider_id).is_none_or(|current| !Arc::ptr_eq(&old, &current)) {
+    if global::provider(provider_id).is_none_or(|current| !Arc::ptr_eq(&old, &current)) {
         return Err(ProcessError::NotAuth);
     }
     let db = &ctx.provider_context.db;
     let txn = db.begin().await?;
     let snapshot =
-        qcm_core::db::provider_settings::save(&txn, req.provider_id, req.settings_revision, values)
+        qcm_core::db::provider_settings::save(&txn, provider_id, req.settings_revision, values)
             .await?;
     if replacing {
-        candidate.set_id(Some(req.provider_id));
+        candidate.set_id(Some(provider_id));
         candidate.set_name(&req.name);
         crate::db::write_provider(&txn, &candidate).await?;
     } else {
         crate::db::update_provider_name(
             &txn,
-            req.provider_id,
+            provider_id,
             &old.session_key().unwrap_or_default(),
             &req.name,
         )
@@ -124,21 +125,19 @@ pub async fn update(
         candidate.bind_session(db.clone(), candidate.session_key().unwrap_or_default());
         global::add_provider(candidate);
         drop(write);
-        ctx.playback.invalidate(req.provider_id).await;
+        ctx.playback.invalidate(provider_id).await;
         ctx.radio
-            .invalidate(&ctx.provider_context, req.provider_id)
+            .invalidate(&ctx.provider_context, provider_id)
             .await;
-        if let Err(error) = ctx.resource_cache.invalidate(req.provider_id).await {
-            tracing::warn!(provider_id = req.provider_id, %error, "Provider saved but cache invalidation failed");
+        if let Err(error) = ctx.resource_cache.invalidate(provider_id).await {
+            tracing::warn!(provider_id = provider_id, %error, "Provider saved but cache invalidation failed");
         }
     } else {
         drop(write);
     }
     let _ = ctx
         .backend_ev
-        .send(BackendEvent::UpdateProvider {
-            id: req.provider_id,
-        })
+        .send(BackendEvent::UpdateProvider { id: provider_id })
         .await;
     Ok(msg::UpdateProviderRsp {
         code: msg::model::AuthResult::Ok as i32,

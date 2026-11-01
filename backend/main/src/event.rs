@@ -28,6 +28,7 @@ pub enum BackendEvent {
 
 /// 传输无关的服务上下文，可被任意 IPC 层复用
 pub struct ServiceContext {
+    pub protocol: Arc<crate::protocol::Session>,
     pub provider_context: Arc<provider::Context>,
     pub backend_ev: Sender<BackendEvent>,
     pub oper: TaskManagerOper,

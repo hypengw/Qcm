@@ -82,7 +82,7 @@ qsizetype EntityStore::bytes() const {
 
 ApplyResult EntityStore::apply(const wire::EntityBatch& batch) {
     ApplyResult result;
-    if (batch.protocol() != 1 || batch.instance().isEmpty()) {
+    if (batch.protocol() != 2 || batch.instance().isEmpty()) {
         result.error = QStringLiteral("Unsupported entity protocol");
         return result;
     }
@@ -302,14 +302,14 @@ ApplyResult EntityStore::apply(const wire::EntityBatch& batch) {
                    });
         if (previous && entry.favorite != previous) result.stateChanges.push_back(key);
     };
-    auto artists = [&](Key key, Entry& entry, const wire::EntityIds& value, quint64 revision) {
-        if (value.ids().size() > 10000) {
+    auto artists = [&](Key key, Entry& entry, const msg::id::ArtistIds& value, quint64 revision) {
+        if (value.values().size() > 10000) {
             fail(QStringLiteral("Artist relation budget exceeded"));
             return;
         }
         QList<qint64> ids;
         QSet<qint64>  seen;
-        for (auto id : value.ids()) {
+        for (auto id : value.values()) {
             if (id <= 0 || seen.contains(id)) {
                 fail(QStringLiteral("Invalid artist relation"));
                 return;
@@ -331,7 +331,7 @@ ApplyResult EntityStore::apply(const wire::EntityBatch& batch) {
     for (const auto& update : batch.songs()) {
         model::Song data;
         data.setId_proto(update.id_proto());
-        Key  key { Song, update.id_proto() };
+        Key  key { Song, update.id_proto().value() };
         auto entry = prepare(key, update.stamp(), QVariant::fromValue(data));
         if (! entry) continue;
         const auto        revision = update.stamp().revision();
@@ -341,18 +341,23 @@ ApplyResult EntityStore::apply(const wire::EntityBatch& batch) {
             artists(key, *entry, update.relations().artists(), revision);
         if (update.relations().hasAlbum()) {
             const auto& link = update.relations().album();
-            if (link.hasId_proto() && link.id_proto() <= 0) {
+            if (link.hasId_proto() && link.id_proto().value() <= 0) {
                 fail(QStringLiteral("Invalid album relation"));
                 continue;
             }
-            QVariant incoming = link.hasId_proto() ? QVariant(qint64(link.id_proto())) : QVariant();
+            QVariant incoming =
+                link.hasId_proto() ? QVariant(qint64(link.id_proto().value())) : QVariant();
             QVariant previous = entry->album ? QVariant(*entry->album) : QVariant();
             assign(
                 key, *entry, Field::Album, revision, incoming, ! link.hasId_proto(), previous, [&] {
-                    entry->album =
-                        link.hasId_proto() ? std::optional<qint64>(link.id_proto()) : std::nullopt;
+                    entry->album = link.hasId_proto()
+                                       ? std::optional<qint64>(link.id_proto().value())
+                                       : std::nullopt;
                     auto song = entry->data.value<model::Song>();
-                    song.setAlbumId(entry->album.value_or(0));
+                    if (link.hasId_proto())
+                        song.setAlbumId(link.id_proto());
+                    else
+                        song.clearAlbumId();
                     entry->data = QVariant::fromValue(song);
                 });
         }
@@ -360,7 +365,7 @@ ApplyResult EntityStore::apply(const wire::EntityBatch& batch) {
     for (const auto& update : batch.albums()) {
         model::Album data;
         data.setId_proto(update.id_proto());
-        Key  key { Album, update.id_proto() };
+        Key  key { Album, update.id_proto().value() };
         auto entry = prepare(key, update.stamp(), QVariant::fromValue(data));
         if (! entry) continue;
         metadata.template operator()<model::Album>(
@@ -372,7 +377,7 @@ ApplyResult EntityStore::apply(const wire::EntityBatch& batch) {
     for (const auto& update : batch.artists()) {
         model::Artist data;
         data.setId_proto(update.id_proto());
-        Key  key { Artist, update.id_proto() };
+        Key  key { Artist, update.id_proto().value() };
         auto entry = prepare(key, update.stamp(), QVariant::fromValue(data));
         if (! entry) continue;
         metadata.template operator()<model::Artist>(
@@ -382,7 +387,7 @@ ApplyResult EntityStore::apply(const wire::EntityBatch& batch) {
     for (const auto& update : batch.mixes()) {
         model::Mix data;
         data.setId_proto(update.id_proto());
-        Key  key { Mix, update.id_proto() };
+        Key  key { Mix, update.id_proto().value() };
         auto entry = prepare(key, update.stamp(), QVariant::fromValue(data));
         if (! entry) continue;
         metadata.template operator()<model::Mix>(
@@ -423,9 +428,21 @@ ApplyResult EntityStore::apply(const wire::EntityBatch& batch) {
             Fields knowledge = 0;
             for (unsigned i = 0; i < unsigned(Field::Count); ++i)
                 if (previous->known(Field(i)) != it->known(Field(i))) knowledge |= quint64(1) << i;
-            constexpr auto metadata = (quint64(1) << unsigned(Field::Album)) - 1;
-            if (previous->data == it->data && previous->nulls == it->nulls)
-                fields &= ~metadata | knowledge;
+            const auto* meta = it->data.metaType().metaObject();
+            if (meta && previous->data.metaType() == it->data.metaType()) {
+                for (int i = meta->propertyOffset(); i < meta->propertyCount(); ++i) {
+                    const auto property = meta->property(i);
+                    const auto slot     = field(property.name());
+                    if (! slot || unsigned(*slot) >= unsigned(Field::Album) ||
+                        (knowledge & bit(*slot)) ||
+                        bool(previous->nulls & bit(*slot)) != bool(it->nulls & bit(*slot)))
+                        continue;
+                    if (! it->known(*slot) || (it->nulls & bit(*slot)) ||
+                        property.readOnGadget(previous->data.constData()) ==
+                            property.readOnGadget(it->data.constData()))
+                        fields &= ~bit(*slot);
+                }
+            }
             if (previous->artists == it->artists && ! (knowledge & bit(Field::Artists)))
                 fields &= ~bit(Field::Artists);
             if (previous->album == it->album && ! (knowledge & bit(Field::Album)))

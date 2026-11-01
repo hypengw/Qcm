@@ -98,7 +98,7 @@ pub async fn reorder_append(db: &DatabaseTransaction, mix_id: i64) -> Result<(),
 pub async fn append_songs(
     db: &DatabaseTransaction,
     mix_id: i64,
-    song_ids: &Vec<i64>,
+    song_ids: &[i64],
 ) -> Result<u64, DbErr> {
     let models = song_ids
         .iter()

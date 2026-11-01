@@ -16,18 +16,18 @@ export class SyncQuery : public Query, public QueryExtra<msg::SyncRsp, SyncQuery
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(
-        qcm::model::ItemId providerId READ providerId WRITE setProviderId NOTIFY providerIdChanged)
+    Q_PROPERTY(qcm::msg::id::ProviderId providerId READ providerId WRITE setProviderId NOTIFY
+                   providerIdChanged)
 public:
     SyncQuery(QObject* parent = nullptr);
     void reload() override;
-    auto providerId() const -> model::ItemId;
-    void setProviderId(const model::ItemId& v);
+    auto providerId() const -> msg::id::ProviderId;
+    void setProviderId(const msg::id::ProviderId& v);
 
     Q_SIGNAL void providerIdChanged();
 
 private:
-    model::ItemId m_provider_id;
+    msg::id::ProviderId m_provider_id;
 };
 
 export class SyncItemQuery : public Query, public QueryExtra<msg::Rsp, SyncItemQuery> {

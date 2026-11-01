@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package qcm.msg.filter;
+import "id.proto";
 
 enum FilterType {
   FILTER_TYPE_UNSPECIFIED = 0;
@@ -106,10 +107,10 @@ message ArtistNameFilter {
   string value = 1;
   StringCondition condition = 2;
 }
-message AlbumIdFilter { int64 value = 1; }
-message MixIdFilter { int64 value = 1; }
-message AlbumArtistIdFilter { int64 value = 1; }
-message ArtistIdFilter { int64 value = 1; }
+message AlbumIdFilter { reserved 1; qcm.msg.id.AlbumId value = 1001; }
+message MixIdFilter { reserved 1; qcm.msg.id.MixId value = 1001; }
+message AlbumArtistIdFilter { reserved 1; qcm.msg.id.ArtistId value = 1001; }
+message ArtistIdFilter { reserved 1; qcm.msg.id.ArtistId value = 1001; }
 
 message TrackCountFilter {
   int32 value = 1;

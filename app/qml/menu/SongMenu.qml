@@ -29,7 +29,7 @@ MD.Menu {
     }
 
     QA.AddToMixAction {
-        songIds: [root.itemId]
+        songIds: QM.Ids.songIds([root.itemId])
     }
 
     QA.GoToAlbumAction {
@@ -38,9 +38,7 @@ MD.Menu {
 
     QA.GoToArtistAction {
         enabled: root.artists.length > 0
-        getItemIds: function () {
-            return root.artists.map(el => QA.Util.artistId(el.id_proto));
-        }
+        artistIds: QM.Ids.artistIds(root.artists.map(el => el.id_proto))
     }
     QA.CommentAction {
         itemId: root.itemId

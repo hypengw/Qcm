@@ -145,25 +145,6 @@ json: {}
     }
 }
 
-auto Util::albumArtistId(QString id) -> model::ItemId {
-    return { enums::ItemType::ItemAlbumArtist, id.toLongLong() };
-}
-
-auto Util::artistId(QString id) -> model::ItemId {
-    return { enums::ItemType::ItemArtist, id.toLongLong() };
-}
-
-auto Util::itemId(const QJSValue& value) -> model::ItemId {
-    const auto variant = value.toVariant();
-    if (const auto* item = get_if<model::Album>(&variant)) return model::item_id(*item);
-    if (const auto* item = get_if<model::Artist>(&variant)) return model::item_id(*item);
-    if (const auto* item = get_if<model::Mix>(&variant)) return model::item_id(*item);
-    if (const auto* item = get_if<model::ProviderStatus>(&variant)) return model::item_id(*item);
-    if (const auto* item = get_if<model::RadioQueue>(&variant)) return model::item_id(*item);
-    if (const auto* item = get_if<model::Song>(&variant)) return model::item_id(*item);
-    return {};
-}
-
 QString Util::joinName(const QJSValue& v, const QString& sp) {
     auto to_name = [](const QJSValue& v) {
         if (v.hasProperty("name")) {

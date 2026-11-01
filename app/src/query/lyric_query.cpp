@@ -7,7 +7,7 @@ namespace qcm
 {
 
 LyricQuery::LyricQuery(QObject* parent): Query(parent) {
-    connect_requet_reload(&LyricQuery::itemIdChanged);
+    connect_requet_reload(&LyricQuery::songIdChanged);
 }
 void LyricQuery::reload() {
     setStatus(Status::Querying);
@@ -15,8 +15,8 @@ void LyricQuery::reload() {
     auto backend = app->backend();
     auto req     = msg::GetSubtitleReq {};
 
-    if (m_item_id.valid()) {
-        req.setSongId(m_item_id.id());
+    if (identity::valid(m_song_id)) {
+        req.setSongId(m_song_id);
 
         auto self = QWatcher { this };
         spawn([self, backend, req] mutable -> task<void> {
@@ -48,10 +48,10 @@ void LyricQuery::reload() {
     }
 }
 
-auto LyricQuery::itemId() const -> model::ItemId { return m_item_id; }
-void LyricQuery::setItemId(model::ItemId id) {
-    if (ycore::cmp_set(m_item_id, id)) {
-        itemIdChanged();
+auto LyricQuery::songId() const -> msg::id::SongId { return m_song_id; }
+void LyricQuery::setSongId(msg::id::SongId id) {
+    if (ycore::cmp_set(m_song_id, id)) {
+        songIdChanged();
     }
 }
 

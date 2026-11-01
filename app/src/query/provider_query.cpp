@@ -117,15 +117,20 @@ void AddProviderQuery::reload() {
 }
 
 ProviderSettingsQuery::ProviderSettingsQuery(QObject* parent): Query(parent) { setForwardError(true); }
-void ProviderSettingsQuery::setProviderId(const model::ItemId& value) {
+void ProviderSettingsQuery::setProviderId(const msg::id::ProviderId& value) {
     if (ycore::cmp_set(m_provider_id, value)) providerIdChanged();
 }
 void ProviderSettingsQuery::reload() {
+    if (! identity::valid(m_provider_id)) {
+        setError(tr("Invalid provider ID"));
+        setStatus(Status::Error);
+        return;
+    }
     setStatus(Status::Querying);
     auto                        self    = QWatcher { this };
     auto                        backend = App::instance()->backend();
     msg::GetProviderSettingsReq req;
-    req.setProviderId(m_provider_id.id());
+    req.setProviderId(m_provider_id);
     spawn([self, backend, req]() mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         if (! co_await QAsyncResult::qexecutor()) co_return;
@@ -159,20 +164,25 @@ void UpdateProviderQuery::setReq(const msg::UpdateProviderReq& req) {
         reqChanged();
     }
 }
-auto UpdateProviderQuery::providerId() const -> model::ItemId { return m_provider_id; }
-void UpdateProviderQuery::setProviderId(const model::ItemId& id) {
+auto UpdateProviderQuery::providerId() const -> msg::id::ProviderId { return m_provider_id; }
+void UpdateProviderQuery::setProviderId(const msg::id::ProviderId& id) {
     if (ycore::cmp_set(m_provider_id, id)) {
         providerIdChanged();
     }
 }
 
 void UpdateProviderQuery::reload() {
+    if (! identity::valid(m_provider_id)) {
+        setError(tr("Invalid provider ID"));
+        setStatus(Status::Error);
+        return;
+    }
     m_field_errors.clear();
     fieldErrorsChanged();
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto self    = QWatcher { this };
-    m_req.setProviderId(m_provider_id.id());
+    m_req.setProviderId(m_provider_id);
     spawn([self, backend, req = m_req]() mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         if (! co_await QAsyncResult::qexecutor()) co_return;
@@ -196,17 +206,22 @@ void UpdateProviderQuery::reload() {
 }
 
 DeleteProviderQuery::DeleteProviderQuery(QObject* parent): Query(parent) { setForwardError(true); }
-auto DeleteProviderQuery::providerId() const -> model::ItemId { return m_provider_id; }
-void DeleteProviderQuery::setProviderId(const model::ItemId& id) {
+auto DeleteProviderQuery::providerId() const -> msg::id::ProviderId { return m_provider_id; }
+void DeleteProviderQuery::setProviderId(const msg::id::ProviderId& id) {
     if (ycore::cmp_set(m_provider_id, id)) {
         providerIdChanged();
     }
 }
 void DeleteProviderQuery::reload() {
+    if (! identity::valid(m_provider_id)) {
+        setError(tr("Invalid provider ID"));
+        setStatus(Status::Error);
+        return;
+    }
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto self    = QWatcher { this };
-    m_req.setProviderId(m_provider_id.id());
+    m_req.setProviderId(m_provider_id);
     spawn([self, backend, req = m_req]() mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
         if (! co_await QAsyncResult::qexecutor()) co_return;
@@ -220,8 +235,8 @@ ReplaceProviderQuery::ReplaceProviderQuery(QObject* parent): Query(parent) {
     setForwardError(true);
 }
 
-auto ReplaceProviderQuery::providerId() const -> model::ItemId { return m_provider_id; }
-void ReplaceProviderQuery::setProviderId(const model::ItemId& id) {
+auto ReplaceProviderQuery::providerId() const -> msg::id::ProviderId { return m_provider_id; }
+void ReplaceProviderQuery::setProviderId(const msg::id::ProviderId& id) {
     if (ycore::cmp_set(m_provider_id, id)) {
         providerIdChanged();
     }
@@ -235,11 +250,16 @@ void ReplaceProviderQuery::setTmpProvider(const QString& v) {
 }
 
 void ReplaceProviderQuery::reload() {
+    if (! identity::valid(m_provider_id)) {
+        setError(tr("Invalid provider ID"));
+        setStatus(Status::Error);
+        return;
+    }
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto self    = QWatcher { this };
     auto req     = msg::ReplaceProviderReq {};
-    req.setProviderId(m_provider_id.id());
+    req.setProviderId(m_provider_id);
     req.setTmpProvider(m_tmp_provider);
     spawn([self, backend, req]() mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
@@ -270,17 +290,17 @@ void CreateTmpProviderQuery::setTypeName(const QString& v) {
         typeNameChanged();
     }
 }
-void CreateTmpProviderQuery::setNetworkProviderId(const model::ItemId& id) {
+void CreateTmpProviderQuery::setNetworkProviderId(const msg::id::ProviderId& id) {
     if (ycore::cmp_set(m_network_provider_id, id)) networkProviderIdChanged();
 }
 void CreateTmpProviderQuery::reload() {
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto self    = QWatcher { this };
-    spawn([self, backend, t = m_type_name, id = m_network_provider_id.id()]() mutable -> task<void> {
+    spawn([self, backend, t = m_type_name, id = m_network_provider_id]() mutable -> task<void> {
         auto req = msg::CreateTmpProviderReq {};
         req.setTypeName(t);
-        if (id > 0) req.setNetworkProviderId(id);
+        if (identity::valid(id)) req.setNetworkProviderId(id);
         auto rsp = co_await backend->send(std::move(req));
         if (! co_await QAsyncResult::qexecutor()) co_return;
         if (! self) co_return;

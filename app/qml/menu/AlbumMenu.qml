@@ -22,7 +22,7 @@ MD.Menu {
 
     QA.AddToMixAction {
         oper: QM.MixManipulateOper.MIX_MANIPULATE_OPER_ADD_ALBUMS
-        albumIds: [root.itemId]
+        albumIds: QM.Ids.albumIds([root.itemId])
     }
     QA.CopyMenu {
         itemId: root.itemId

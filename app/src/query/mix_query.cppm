@@ -59,19 +59,19 @@ export class MixQuery : public Query, public QueryExtra<model::MixStoreItem, Mix
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
+    Q_PROPERTY(qcm::msg::id::MixId mixId READ mixId WRITE setMixId NOTIFY mixIdChanged)
 
 public:
     MixQuery(QObject* parent = nullptr);
     void reload() override;
 
-    auto itemId() const -> model::ItemId;
-    void setItemId(model::ItemId);
+    auto mixId() const -> msg::id::MixId;
+    void setMixId(msg::id::MixId);
 
-    Q_SIGNAL void itemIdChanged();
+    Q_SIGNAL void mixIdChanged();
 
 private:
-    model::ItemId m_item_id;
+    msg::id::MixId m_mix_id;
 };
 
 export class MixSongsQuery : public QueryList,
@@ -79,7 +79,7 @@ export class MixSongsQuery : public QueryList,
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
+    Q_PROPERTY(qcm::msg::id::MixId mixId READ mixId WRITE setMixId NOTIFY mixIdChanged)
 
 public:
     MixSongsQuery(QObject* parent = nullptr);
@@ -87,14 +87,14 @@ public:
     void        fetchMore(qint32) override;
     Q_SLOT void refresh();
 
-    auto itemId() const -> model::ItemId;
-    void setItemId(model::ItemId);
+    auto mixId() const -> msg::id::MixId;
+    void setMixId(msg::id::MixId);
 
-    Q_SIGNAL void itemIdChanged();
+    Q_SIGNAL void mixIdChanged();
 
 private:
     void          load(bool force_refresh);
-    model::ItemId m_item_id;
+    msg::id::MixId m_mix_id;
 };
 
 export class CreateMixQuery : public Query, public QueryExtra<msg::CreateMixRsp, CreateMixQuery> {
@@ -120,36 +120,36 @@ export class DeleteMixQuery : public Query, public QueryExtra<msg::Rsp, DeleteMi
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(std::vector<model::ItemId> ids READ ids WRITE setIds NOTIFY idsChanged FINAL)
+    Q_PROPERTY(qcm::msg::id::MixIds ids READ ids WRITE setIds NOTIFY idsChanged FINAL)
 public:
     DeleteMixQuery(QObject* parent = nullptr);
     void reload() override;
 
-    auto ids() const -> std::vector<model::ItemId>;
-    void setIds(const std::vector<model::ItemId>&);
+    auto ids() const -> msg::id::MixIds;
+    void setIds(const msg::id::MixIds&);
 
     Q_SIGNAL void idsChanged();
 
 private:
-    std::vector<model::ItemId> m_ids;
+    msg::id::MixIds m_ids;
 };
 
 export class LinkMixQuery : public Query, public QueryExtra<msg::Rsp, LinkMixQuery> {
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(std::vector<model::ItemId> ids READ ids WRITE setIds NOTIFY idsChanged FINAL)
+    Q_PROPERTY(qcm::msg::id::MixIds ids READ ids WRITE setIds NOTIFY idsChanged FINAL)
 public:
     LinkMixQuery(QObject* parent = nullptr);
     void reload() override;
 
-    auto ids() const -> std::vector<model::ItemId>;
-    void setIds(const std::vector<model::ItemId>&);
+    auto ids() const -> msg::id::MixIds;
+    void setIds(const msg::id::MixIds&);
 
     Q_SIGNAL void idsChanged();
 
 private:
-    std::vector<model::ItemId> m_ids;
+    msg::id::MixIds m_ids;
 };
 
 export class MixManipulateQuery : public Query,
@@ -157,24 +157,24 @@ export class MixManipulateQuery : public Query,
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(qcm::model::ItemId mixId READ mixId WRITE setMixId NOTIFY mixIdChanged FINAL)
+    Q_PROPERTY(qcm::msg::id::MixId mixId READ mixId WRITE setMixId NOTIFY mixIdChanged FINAL)
     Q_PROPERTY(qcm::msg::model::MixManipulateOperGadget::MixManipulateOper oper READ oper WRITE
                    setOper NOTIFY operChanged FINAL)
-    Q_PROPERTY(std::vector<qcm::model::ItemId> songIds READ songIds WRITE setSongIds NOTIFY
-                   songIdsChanged FINAL)
-    Q_PROPERTY(std::vector<qcm::model::ItemId> albumIds READ albumIds WRITE setAlbumIds NOTIFY
+    Q_PROPERTY(
+        qcm::msg::id::SongIds songIds READ songIds WRITE setSongIds NOTIFY songIdsChanged FINAL)
+    Q_PROPERTY(qcm::msg::id::AlbumIds albumIds READ albumIds WRITE setAlbumIds NOTIFY
                    albumIdsChanged FINAL)
 public:
     MixManipulateQuery(QObject* parent = nullptr);
     void reload() override;
 
-    auto mixId() const -> model::ItemId;
-    void setMixId(const model::ItemId&);
+    auto mixId() const -> msg::id::MixId;
+    void setMixId(const msg::id::MixId&);
 
-    auto songIds() const -> std::vector<model::ItemId>;
-    void setSongIds(const std::vector<model::ItemId>&);
-    auto albumIds() const -> std::vector<model::ItemId>;
-    void setAlbumIds(const std::vector<model::ItemId>&);
+    auto songIds() const -> msg::id::SongIds;
+    void setSongIds(const msg::id::SongIds&);
+    auto albumIds() const -> msg::id::AlbumIds;
+    void setAlbumIds(const msg::id::AlbumIds&);
 
     auto oper() const -> msg::model::MixManipulateOperGadget::MixManipulateOper;
     void setOper(msg::model::MixManipulateOperGadget::MixManipulateOper);
@@ -185,10 +185,10 @@ public:
     Q_SIGNAL void operChanged();
 
 private:
-    model::ItemId                                          m_mix_id;
+    msg::id::MixId                                         m_mix_id;
     msg::model::MixManipulateOperGadget::MixManipulateOper m_oper;
-    std::vector<model::ItemId>                             m_song_ids;
-    std::vector<model::ItemId>                             m_album_ids;
+    msg::id::SongIds                                       m_song_ids;
+    msg::id::AlbumIds                                      m_album_ids;
 };
 
 } // namespace qcm

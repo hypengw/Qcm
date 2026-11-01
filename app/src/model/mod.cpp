@@ -41,7 +41,7 @@ AlbumSongListModel::AlbumSongListModel(QObject* parent)
 AlbumSongListModel::~AlbumSongListModel() {}
 auto AlbumSongListModel::album() const -> album_type { return m_item.item(); }
 auto AlbumSongListModel::discCount() const -> qint32 { return m_disc_count; }
-void AlbumSongListModel::setAlbumId(i64 id) { m_item.setItemId(id); }
+void AlbumSongListModel::setAlbumId(const msg::id::AlbumId& id) { m_item.setItemId(id); }
 void AlbumSongListModel::setDiscCount(qint32 c) {
     if (c != m_disc_count) {
         m_disc_count = c;
@@ -50,7 +50,8 @@ void AlbumSongListModel::setDiscCount(qint32 c) {
 }
 
 ArtistListModel::ArtistListModel(QObject* parent)
-    : EntityList<model::Artist>(parent,enums::ItemType::ItemAlbumArtist,AppStore::instance()->artists) {}
+    : EntityList<model::Artist>(parent, enums::ItemType::ItemArtist,
+                                AppStore::instance()->artists) {}
 
 MixListModel::MixListModel(QObject* parent)
     : EntityList<model::Mix>(parent,enums::ItemType::ItemMix,AppStore::instance()->mixes) {}
@@ -104,7 +105,7 @@ MixSongListModel::MixSongListModel(QObject* parent)
 MixSongListModel::~MixSongListModel() {}
 auto MixSongListModel::mix() const -> mix_type { return m_item.item(); }
 auto MixSongListModel::discCount() const -> qint32 { return m_disc_count; }
-void MixSongListModel::setMixId(i64 id) { m_item.setItemId(id); }
+void MixSongListModel::setMixId(const msg::id::MixId& id) { m_item.setItemId(id); }
 void MixSongListModel::setDiscCount(qint32 c) {
     if (c != m_disc_count) {
         m_disc_count = c;

@@ -40,7 +40,7 @@ public:
 
     void send_immediate(msg::QcmMessage&& msg);
     using SongResult = Result<msg::GetSongsByIdRsp, msg::Error>;
-    StoreSubscription loadSongs(QList<i64>, QObject* consumer,
+    StoreSubscription loadSongs(const msg::id::SongIds&, QObject* consumer,
                                 std::function<void(const SongResult&)>);
 
     auto send(msg::QcmMessage&& msg) -> task<Result<msg::QcmMessage, msg::Error>>;

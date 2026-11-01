@@ -35,10 +35,9 @@ CommentStore::CommentStore(QObject* parent): QObject(parent) {
 }
 CommentStore::~CommentStore() = default;
 void CommentStore::reconcileProvider() {
-    if (! m_provider_id) return;
+    if (! identity::valid(m_provider_id)) return;
     auto providers = App::instance()->provider_status();
-    auto value     = providers->itemById({ enums::ItemType::ItemProvider, m_provider_id })
-                         .value<model::ProviderStatus>();
+    auto value     = providers->itemById(m_provider_id).value<model::ProviderStatus>();
     if (! providers->actived(m_provider_id) || value.epoch() != m_epoch) clear();
 }
 CommentView* CommentStore::view(const QString& id) {
@@ -52,7 +51,7 @@ void CommentStore::clear() {
     m_jobs.cancel();
     m_scope.clear();
     m_item_id     = model::ItemId{};
-    m_provider_id = 0;
+    m_provider_id = {};
     m_can_like    = false;
     for (auto entry : std::as_const(m_entries)) entry->deleteLater();
     m_entries.clear();

@@ -3,6 +3,7 @@ package qcm.msg.entity;
 
 import "google/protobuf/timestamp.proto";
 import "model.proto";
+import "id.proto";
 
 message ReadStamp {
   int64 owner = 1;
@@ -12,8 +13,7 @@ message ReadStamp {
 message TextValue { optional string value = 1; }
 message TimeValue { google.protobuf.Timestamp value = 1; }
 message StringList { repeated string values = 1; }
-message EntityIds { repeated int64 ids = 1; }
-message AlbumLink { optional int64 id = 1; }
+message AlbumLink { reserved 1; qcm.msg.id.AlbumId id = 1001; }
 message ItemState { optional bool favorite = 1; }
 
 message SongFields {
@@ -58,31 +58,39 @@ message MixFields {
 }
 message SongRelations {
   AlbumLink album = 1;
-  EntityIds artists = 2;
+  reserved 2;
+  qcm.msg.id.ArtistIds artists = 1002;
 }
-message AlbumRelations { EntityIds artists = 1; }
+message AlbumRelations {
+  reserved 1;
+  qcm.msg.id.ArtistIds artists = 1001;
+}
 message SongUpdate {
-  int64 id = 1;
+  reserved 1;
+  qcm.msg.id.SongId id = 1001;
   ReadStamp stamp = 2;
   SongFields fields = 3;
   SongRelations relations = 4;
   ItemState state = 5;
 }
 message AlbumUpdate {
-  int64 id = 1;
+  reserved 1;
+  qcm.msg.id.AlbumId id = 1001;
   ReadStamp stamp = 2;
   AlbumFields fields = 3;
   AlbumRelations relations = 4;
   ItemState state = 5;
 }
 message ArtistUpdate {
-  int64 id = 1;
+  reserved 1;
+  qcm.msg.id.ArtistId id = 1001;
   ReadStamp stamp = 2;
   ArtistFields fields = 3;
   ItemState state = 4;
 }
 message MixUpdate {
-  int64 id = 1;
+  reserved 1;
+  qcm.msg.id.MixId id = 1001;
   ReadStamp stamp = 2;
   MixFields fields = 3;
 }

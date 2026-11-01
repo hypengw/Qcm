@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import Qcm.App as QA
+import Qcm.Msg as QM
 import Qcm.Material as MD
 
 MD.Pane {
@@ -134,9 +135,7 @@ MD.Pane {
                     }
                     QA.GoToArtistAction {
                         id: artistAction
-                        getItemIds: function () {
-                            return root.artists.map(el => QA.Util.artistId(el.id_proto));
-                        }
+                        artistIds: QM.Ids.artistIds(root.artists.map(el => el.id_proto))
                     }
                 }
                 Row {

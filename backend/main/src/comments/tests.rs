@@ -149,6 +149,7 @@ async fn comments_round_trip_paging_reactions_and_provider_replacement() {
     let (backend_ev, _) = tokio::sync::mpsc::channel(1);
     let (oper, _) = crate::task::TaskManager::new();
     let service = Arc::new(crate::event::ServiceContext {
+        protocol: crate::protocol::Session::testing(),
         provider_context: ctx.clone(),
         backend_ev,
         oper,
@@ -176,6 +177,7 @@ async fn comments_round_trip_paging_reactions_and_provider_replacement() {
         ),
     ] {
         let wire = msg::QcmMessage {
+            protocol_version: crate::protocol::VERSION,
             r#type: kind as i32,
             payload: Some(payload),
             ..Default::default()

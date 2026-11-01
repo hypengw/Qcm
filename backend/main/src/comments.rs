@@ -181,7 +181,7 @@ pub async fn list(
     Ok(msg::model::CommentsResult {
         supported: true,
         scope,
-        provider_id: target.item.provider_id,
+        provider_id: Some(target.item.provider_id.into()),
         epoch: global::provider_snapshot(target.item.provider_id)
             .ok_or(ProcessError::NotAuth)?
             .1,

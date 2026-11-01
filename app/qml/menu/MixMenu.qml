@@ -13,7 +13,7 @@ MD.Menu {
     modal: true
 
     QA.MixDeleteAction {
-        ids: [root.itemId]
+        ids: QM.Ids.mixIds([root.itemId])
     }
     QA.CopyMenu {
         itemId: root.itemId

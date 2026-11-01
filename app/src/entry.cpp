@@ -17,6 +17,7 @@ Q_IMPORT_QML_PLUGIN(QExtraPlugin)
 #include <kdsingleapplication.h>
 
 #include "core/log.h"
+#include "Qcm/message/item_id.hpp"
 
 module qcm.entry;
 
@@ -59,6 +60,7 @@ int run(int argc, char** argv) {
     qInstallMessageHandler(qt_log);
 
     QGuiApplication gui_app(argc, argv);
+    model::registerIdConverters();
     auto            main_qthread = gui_app.thread();
     QString         backend_exe;
 

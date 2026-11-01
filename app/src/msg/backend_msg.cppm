@@ -356,29 +356,17 @@ export {
     using msg::model::ForYouCard;
     using msg::model::Song;
 
-    inline auto item_id(const Album& value) -> ItemId {
-        return { enums::ItemType::ItemAlbum, value.id_proto() };
-    }
+    inline auto item_id(const Album& value) -> ItemId { return ItemId(value.id_proto()); }
 
-    inline auto item_id(const Artist& value) -> ItemId {
-        return { enums::ItemType::ItemAlbumArtist, value.id_proto() };
-    }
+    inline auto item_id(const Artist& value) -> ItemId { return ItemId(value.id_proto()); }
 
-    inline auto item_id(const Mix& value) -> ItemId {
-        return { enums::ItemType::ItemMix, value.id_proto() };
-    }
+    inline auto item_id(const Mix& value) -> ItemId { return ItemId(value.id_proto()); }
 
-    inline auto item_id(const ProviderStatus& value) -> ItemId {
-        return { enums::ItemType::ItemProvider, value.id_proto() };
-    }
+    inline auto item_id(const ProviderStatus& value) -> ItemId { return ItemId(value.id_proto()); }
 
-    inline auto item_id(const RadioQueue& value) -> ItemId {
-        return { enums::ItemType::ItemRadioQueue, value.id_proto() };
-    }
+    inline auto item_id(const RadioQueue& value) -> ItemId { return ItemId(value.id_proto()); }
 
-    inline auto item_id(const Song& value) -> ItemId {
-        return { enums::ItemType::ItemSong, value.id_proto() };
-    }
+    inline auto item_id(const Song& value) -> ItemId { return ItemId(value.id_proto()); }
 
     inline auto item_id(const ForYouCard& value) -> ItemId {
         if (value.hasMix()) return item_id(value.mix());
@@ -393,11 +381,14 @@ export {
         return { static_cast<enums::ItemType>(value.cover().type()), value.cover().id_proto() };
     }
 
-    inline void set_item_id(Song& value, const ItemId& id) { value.setId_proto(id.id()); }
-
-    inline auto album_item_id(const Song& value) -> ItemId {
-        return { enums::ItemType::ItemAlbum, value.albumId() };
+    inline void set_item_id(Song& value, const ItemId& id) {
+        if (auto song = id.toSongId())
+            value.setId_proto(*song);
+        else
+            value.clearId_proto();
     }
+
+    inline auto album_item_id(const Song& value) -> ItemId { return ItemId(value.albumId()); }
 }
 } // namespace qcm::model
 
@@ -408,7 +399,7 @@ struct kstore::ItemTrait<qcm::model::Album> {
     using Self       = qcm::model::Album;
     using key_type   = i64;
     using store_type = qcm::ReadStore<Self>;
-    static auto key(const Self& el) noexcept -> i64 { return el.id_proto(); }
+    static auto key(const Self& el) noexcept -> i64 { return el.id_proto().value(); }
 };
 
 template<>
@@ -416,7 +407,7 @@ struct kstore::ItemTrait<qcm::model::Artist> {
     using Self       = qcm::model::Artist;
     using key_type   = i64;
     using store_type = qcm::ReadStore<Self>;
-    static auto key(const Self& el) noexcept -> i64 { return el.id_proto(); }
+    static auto key(const Self& el) noexcept -> i64 { return el.id_proto().value(); }
 };
 
 template<>
@@ -424,7 +415,7 @@ struct kstore::ItemTrait<qcm::model::Song> {
     using Self       = qcm::model::Song;
     using key_type   = i64;
     using store_type = qcm::ReadStore<Self>;
-    static auto key(const Self& el) noexcept -> i64 { return el.id_proto(); }
+    static auto key(const Self& el) noexcept -> i64 { return el.id_proto().value(); }
 };
 
 template<>
@@ -432,7 +423,7 @@ struct kstore::ItemTrait<qcm::model::Mix> {
     using Self       = qcm::model::Mix;
     using key_type   = i64;
     using store_type = qcm::ReadStore<Self>;
-    static auto key(const Self& el) noexcept -> i64 { return el.id_proto(); }
+    static auto key(const Self& el) noexcept -> i64 { return el.id_proto().value(); }
 };
 
 template<>
@@ -440,7 +431,7 @@ struct kstore::ItemTrait<qcm::model::ForYouCard> {
     using Self = qcm::model::ForYouCard;
     using key_type = QString;
     static auto key(const Self& el) noexcept -> QString {
-        return QString::number(static_cast<qint64>(el.providerId())) + u':' + el.entryKey();
+        return QString::number(static_cast<qint64>(el.providerId().value())) + u':' + el.entryKey();
     }
 };
 
@@ -448,7 +439,7 @@ template<>
 struct kstore::ItemTrait<qcm::model::RadioQueue> {
     using Self     = qcm::model::RadioQueue;
     using key_type = i64;
-    static auto key(const Self& el) noexcept -> i64 { return el.id_proto(); }
+    static auto key(const Self& el) noexcept -> i64 { return el.id_proto().value(); }
 };
 
 template<>
@@ -463,7 +454,7 @@ template<>
 struct kstore::ItemTrait<qcm::model::ProviderStatus> {
     using Self     = qcm::model::ProviderStatus;
     using key_type = i64;
-    static auto key(const Self& el) noexcept -> i64 { return el.id_proto(); }
+    static auto key(const Self& el) noexcept -> i64 { return el.id_proto().value(); }
 };
 
 template<>

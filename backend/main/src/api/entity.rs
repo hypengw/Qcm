@@ -1,10 +1,11 @@
+use crate::identity::IdList;
 use crate::{convert::QcmInto, error::ProcessError, event::ServiceContext, msg};
 use msg::{entity as e, qcm_message::Payload};
 use qcm_core::{db::sync_run::ProjectionRead, model as m};
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, QueryOrder, TransactionTrait};
 use std::collections::{BTreeSet, HashMap};
 
-pub const PROTOCOL: u32 = 1;
+pub const PROTOCOL: u32 = crate::protocol::VERSION;
 
 #[derive(Default)]
 struct References {
@@ -16,50 +17,50 @@ struct References {
 impl References {
     fn payload(&mut self, payload: &Payload) {
         match payload {
-            Payload::GetSongsByIdRsp(v) => self.songs.extend(&v.ids),
-            Payload::GetAlbumsRsp(v) => self.albums.extend(&v.ids),
-            Payload::GetArtistAlbumRsp(v) => self.albums.extend(&v.ids),
+            Payload::GetSongsByIdRsp(v) => self.songs.extend(v.ids.values()),
+            Payload::GetAlbumsRsp(v) => self.albums.extend(v.ids.values()),
+            Payload::GetArtistAlbumRsp(v) => self.albums.extend(v.ids.values()),
             Payload::GetAlbumRsp(v) => {
-                self.albums.insert(v.id);
-                self.songs.extend(&v.song_ids);
+                self.albums.extend(v.id.as_ref().map(|id| id.value));
+                self.songs.extend(v.song_ids.values());
             }
-            Payload::GetArtistsRsp(v) => self.artists.extend(&v.ids),
-            Payload::GetAlbumArtistsRsp(v) => self.artists.extend(&v.ids),
+            Payload::GetArtistsRsp(v) => self.artists.extend(v.ids.values()),
+            Payload::GetAlbumArtistsRsp(v) => self.artists.extend(v.ids.values()),
             Payload::GetArtistRsp(v) => {
-                self.artists.insert(v.id);
+                self.artists.extend(v.id.as_ref().map(|id| id.value));
             }
-            Payload::GetMixsRsp(v) => self.mixes.extend(&v.ids),
-            Payload::GetRemoteMixsRsp(v) => self.mixes.extend(&v.ids),
+            Payload::GetMixsRsp(v) => self.mixes.extend(v.ids.values()),
+            Payload::GetRemoteMixsRsp(v) => self.mixes.extend(v.ids.values()),
             Payload::GetMixRsp(v) => {
-                self.mixes.insert(v.id);
+                self.mixes.extend(v.id.as_ref().map(|id| id.value));
             }
             Payload::GetMixSongsRsp(v) => {
-                self.mixes.insert(v.mix_id);
-                self.songs.extend(&v.ids);
+                self.mixes.extend(v.mix_id.as_ref().map(|id| id.value));
+                self.songs.extend(v.ids.values());
             }
             Payload::CreateMixRsp(v) => {
-                self.mixes.insert(v.id);
+                self.mixes.extend(v.id.as_ref().map(|id| id.value));
             }
-            Payload::OpenQueueRsp(v) => self.songs.extend(&v.song_ids),
-            Payload::GetQueueNextRsp(v) => self.songs.extend(&v.song_ids),
+            Payload::OpenQueueRsp(v) => self.songs.extend(v.song_ids.values()),
+            Payload::GetQueueNextRsp(v) => self.songs.extend(v.song_ids.values()),
             Payload::SearchRsp(v) => {
                 if let Some(v) = &v.songs {
-                    self.songs.extend(&v.ids);
+                    self.songs.extend(v.ids.values());
                 }
                 if let Some(v) = &v.albums {
-                    self.albums.extend(&v.ids);
+                    self.albums.extend(v.ids.values());
                 }
                 if let Some(v) = &v.artists {
-                    self.artists.extend(&v.ids);
+                    self.artists.extend(v.ids.values());
                 }
             }
             Payload::GetHomeBlockItemsRsp(v) => {
                 use msg::get_home_block_items_rsp::Content;
                 match &v.content {
-                    Some(Content::Songs(v)) => self.songs.extend(&v.ids),
-                    Some(Content::Albums(v)) => self.albums.extend(&v.ids),
-                    Some(Content::Artists(v)) => self.artists.extend(&v.ids),
-                    Some(Content::Mixes(v)) => self.mixes.extend(&v.ids),
+                    Some(Content::Songs(v)) => self.songs.extend(v.ids.values()),
+                    Some(Content::Albums(v)) => self.albums.extend(v.ids.values()),
+                    Some(Content::Artists(v)) => self.artists.extend(v.ids.values()),
+                    Some(Content::Mixes(v)) => self.mixes.extend(v.ids.values()),
                     None => (),
                 }
             }
@@ -69,16 +70,16 @@ impl References {
                     for card in &provider.for_you {
                         match &card.target {
                             Some(Target::Song(v)) => {
-                                self.songs.insert(v.id);
+                                self.songs.extend(v.id.as_ref().map(|id| id.value));
                             }
                             Some(Target::Album(v)) => {
-                                self.albums.insert(v.id);
+                                self.albums.extend(v.id.as_ref().map(|id| id.value));
                             }
                             Some(Target::Artist(v)) => {
-                                self.artists.insert(v.id);
+                                self.artists.extend(v.id.as_ref().map(|id| id.value));
                             }
                             Some(Target::Mix(v)) => {
-                                self.mixes.insert(v.id);
+                                self.mixes.extend(v.id.as_ref().map(|id| id.value));
                             }
                             _ => (),
                         }
@@ -103,7 +104,7 @@ impl References {
                 _ => (),
             },
             Payload::MixManipulateReq(v) => {
-                self.mixes.insert(v.id);
+                self.mixes.extend(v.id.as_ref().map(|id| id.value));
             }
             _ => (),
         }
@@ -163,8 +164,8 @@ async fn populate_at(
     if let Some(payload) = &request.payload {
         refs.request(payload);
         match payload {
-            Payload::DeleteMixReq(v) => refs.mixes.extend(&v.ids),
-            Payload::LinkMixReq(v) => refs.mixes.extend(&v.ids),
+            Payload::DeleteMixReq(v) => refs.mixes.extend(v.ids.values()),
+            Payload::LinkMixReq(v) => refs.mixes.extend(v.ids.values()),
             _ => (),
         }
     }
@@ -252,7 +253,7 @@ async fn populate_at(
     for song in songs {
         refs.songs.remove(&song.id);
         batch.songs.push(e::SongUpdate {
-            id: song.id,
+            id: Some(song.id.into()),
             stamp: stamp(snapshot, owner(song.id)?),
             fields: Some(e::SongFields {
                 name: Some(song.name),
@@ -274,9 +275,11 @@ async fn populate_at(
                 }),
             }),
             relations: Some(e::SongRelations {
-                album: Some(e::AlbumLink { id: song.album_id }),
-                artists: Some(e::EntityIds {
-                    ids: song_artists
+                album: Some(e::AlbumLink {
+                    id: song.album_id.map(Into::into),
+                }),
+                artists: Some(msg::id::ArtistIds {
+                    values: song_artists
                         .iter()
                         .filter(|rel| rel.song_id == song.id)
                         .map(|rel| rel.artist_id)
@@ -289,7 +292,7 @@ async fn populate_at(
     for album in albums {
         refs.albums.remove(&album.id);
         batch.albums.push(e::AlbumUpdate {
-            id: album.id,
+            id: Some(album.id.into()),
             stamp: stamp(snapshot, owner(album.id)?),
             fields: Some(e::AlbumFields {
                 name: Some(album.name),
@@ -305,8 +308,8 @@ async fn populate_at(
                 added_at: time(album.added_at),
             }),
             relations: Some(e::AlbumRelations {
-                artists: Some(e::EntityIds {
-                    ids: album_artists
+                artists: Some(msg::id::ArtistIds {
+                    values: album_artists
                         .iter()
                         .filter(|rel| rel.album_id == album.id)
                         .map(|rel| rel.artist_id)
@@ -319,7 +322,7 @@ async fn populate_at(
     for artist in artists {
         refs.artists.remove(&artist.id);
         batch.artists.push(e::ArtistUpdate {
-            id: artist.id,
+            id: Some(artist.id.into()),
             stamp: stamp(snapshot, owner(artist.id)?),
             fields: Some(e::ArtistFields {
                 name: Some(artist.name),
@@ -335,7 +338,7 @@ async fn populate_at(
     for mix in mixes {
         refs.mixes.remove(&mix.id);
         batch.mixes.push(e::MixUpdate {
-            id: mix.id,
+            id: Some(mix.id.into()),
             stamp: stamp(snapshot, 0),
             fields: Some(e::MixFields {
                 name: Some(mix.name),

@@ -8,10 +8,15 @@ namespace qcm
 
 SyncQuery::SyncQuery(QObject* parent): Query(parent) {}
 void SyncQuery::reload() {
+    if (! identity::valid(m_provider_id)) {
+        setError(tr("Invalid provider ID"));
+        setStatus(Status::Error);
+        return;
+    }
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::SyncReq {};
-    req.setProviderId(m_provider_id.id());
+    req.setProviderId(m_provider_id);
     auto self = QWatcher { this };
     spawn([self, backend, req] mutable -> task<void> {
         auto rsp = co_await backend->send(std::move(req));
@@ -22,8 +27,8 @@ void SyncQuery::reload() {
         co_return;
     });
 }
-auto SyncQuery::providerId() const -> model::ItemId { return m_provider_id; }
-void SyncQuery::setProviderId(const model::ItemId& v) {
+auto SyncQuery::providerId() const -> msg::id::ProviderId { return m_provider_id; }
+void SyncQuery::setProviderId(const msg::id::ProviderId& v) {
     if (ycore::cmp_set(m_provider_id, v)) {
         m_provider_id = v;
         providerIdChanged();
@@ -32,6 +37,15 @@ void SyncQuery::setProviderId(const model::ItemId& v) {
 
 SyncItemQuery::SyncItemQuery(QObject* parent): Query(parent) {}
 void SyncItemQuery::reload() {
+    using T         = enums::ItemType;
+    const auto kind = m_item_id.type();
+    if (! m_item_id.valid() ||
+        (kind != T::ItemSong && kind != T::ItemAlbum && kind != T::ItemArtist &&
+         kind != T::ItemAlbumArtist && kind != T::ItemRadio && kind != T::ItemProgram)) {
+        setError(tr("Unsupported sync identity"));
+        setStatus(Status::Error);
+        return;
+    }
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::SyncItemReq {};

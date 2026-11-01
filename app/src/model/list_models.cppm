@@ -51,7 +51,7 @@ public:
     auto album() const -> album_type;
     auto discCount() const -> qint32;
 
-    void setAlbumId(i64);
+    void setAlbumId(const msg::id::AlbumId&);
     void setDiscCount(qint32);
 
     Q_SIGNAL void albumChanged();
@@ -126,7 +126,7 @@ public:
     auto mix() const -> mix_type;
     auto discCount() const -> qint32;
 
-    void setMixId(i64);
+    void setMixId(const msg::id::MixId&);
     void setDiscCount(qint32);
 
     Q_SIGNAL void mixChanged();

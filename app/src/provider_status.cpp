@@ -28,20 +28,21 @@ ProviderStatusModel::ProviderStatusModel(QObject* parent)
     connect(this, &QAbstractItemModel::rowsInserted, this, &ProviderStatusModel::activedIdsChanged);
     connect(this, &QAbstractItemModel::rowsRemoved, this, &ProviderStatusModel::activedIdsChanged);
     connect(this, &QAbstractItemModel::modelReset, this, &ProviderStatusModel::activedIdsChanged);
-    connect(this, &ProviderStatusModel::activedChanged, this, [this](i64, bool) {
-        QSettings   s;
-        QStringList list;
-        for (auto el : m_inactived) list.emplaceBack(QString::number(el));
-        s.setValue(inactived_provider_key, list);
-        m_lib_status->activedIdsChanged();
-    });
+    connect(
+        this, &ProviderStatusModel::activedChanged, this, [this](const msg::id::ProviderId&, bool) {
+            QSettings   s;
+            QStringList list;
+            for (auto el : m_inactived) list.emplaceBack(QString::number(el));
+            s.setValue(inactived_provider_key, list);
+            m_lib_status->activedIdsChanged();
+        });
 }
 ProviderStatusModel::~ProviderStatusModel() {}
 
 void ProviderStatusModel::updateSyncStatus(const msg::model::ProviderSyncStatus& s) {
     static auto role = Qt::UserRole + 1 +
                        msg::model::ProviderStatus::staticMetaObject.indexOfProperty("syncStatus");
-    auto        id   = s.id_proto();
+    auto id = s.id_proto().value();
     if (auto v = this->query(id); v) {
         auto& value = *v;
         using State = msg::model::SyncStateGadget::SyncState;
@@ -58,12 +59,13 @@ void ProviderStatusModel::updateSyncStatus(const msg::model::ProviderSyncStatus&
             auto qidx = this->index(*idx);
             dataChanged(qidx, qidx, { role });
         }
-        if (finished) providerSyncFinished(id);
+        if (finished) providerSyncFinished(s.id_proto());
     }
 }
 
-auto ProviderStatusModel::metaById(const model::ItemId& item_id) const -> QVariant {
-    auto p = this->query(item_id.id());
+auto ProviderStatusModel::metaById(const msg::id::ProviderId& item_id) const -> QVariant {
+    if (! identity::valid(item_id)) return {};
+    auto p = this->query(item_id.value());
     if (p) {
         auto metas = App::instance()->provider_meta_status();
         if (auto m = metas->query(p->typeName())) return QVariant::fromValue(*m);
@@ -71,7 +73,7 @@ auto ProviderStatusModel::metaById(const model::ItemId& item_id) const -> QVaria
     return {};
 }
 
-auto ProviderStatusModel::svg(qint32 idx) const -> QString {
+auto ProviderStatusModel::svgAt(qint32 idx) const -> QString {
     if (this->rowCount() > idx && idx >= 0) {
         auto& p     = this->at(idx);
         auto  metas = App::instance()->provider_meta_status();
@@ -80,8 +82,9 @@ auto ProviderStatusModel::svg(qint32 idx) const -> QString {
     return "";
 }
 
-auto ProviderStatusModel::svg(const model::ItemId& item_id) const -> QString {
-    auto p = this->query(item_id.id());
+auto ProviderStatusModel::svg(const msg::id::ProviderId& item_id) const -> QString {
+    if (! identity::valid(item_id)) return {};
+    auto p = this->query(item_id.value());
     if (p) {
         auto metas = App::instance()->provider_meta_status();
         if (auto m = metas->query(p->typeName())) return m->svg();
@@ -89,8 +92,9 @@ auto ProviderStatusModel::svg(const model::ItemId& item_id) const -> QString {
     return "";
 }
 
-QVariant ProviderStatusModel::itemById(const model::ItemId& item_id) const {
-    auto p = this->query(item_id.id());
+QVariant ProviderStatusModel::itemById(const msg::id::ProviderId& item_id) const {
+    if (! identity::valid(item_id)) return {};
+    auto p = this->query(item_id.value());
     if (p) return QVariant::fromValue(*p);
     return {};
 }
@@ -119,24 +123,27 @@ void ProviderStatusModel::checkSyncing() {
 
 auto ProviderStatusModel::libraryStatus() const -> LibraryStatus* { return m_lib_status; }
 
-auto ProviderStatusModel::activedIds() -> const QtProtobuf::int64List& {
-    m_actived_ids.clear();
+auto ProviderStatusModel::activedIds() const -> msg::id::ProviderIds {
+    QtProtobuf::int64List ids;
     for (auto i = 0; i < rowCount(); ++i) {
         auto id = this->at(i).id_proto();
-        if (actived(id)) m_actived_ids.emplaceBack(id);
+        if (actived(id)) ids.emplaceBack(id.value());
     }
-    return m_actived_ids;
+    return identity::fromValues<msg::id::ProviderIds>(ids);
 }
 
-bool ProviderStatusModel::actived(i64 id) const { return ! m_inactived.contains(id); }
+bool ProviderStatusModel::actived(const msg::id::ProviderId& id) const {
+    return identity::valid(id) && ! m_inactived.contains(id.value());
+}
 
-void ProviderStatusModel::setActived(i64 id, bool value) {
-    bool active = ! m_inactived.contains(id);
+void ProviderStatusModel::setActived(const msg::id::ProviderId& id, bool value) {
+    if (! identity::valid(id)) return;
+    bool active = ! m_inactived.contains(id.value());
     if (active == value) return;
     if (active) {
-        m_inactived.insert(id);
+        m_inactived.insert(id.value());
     } else {
-        m_inactived.erase(id);
+        m_inactived.erase(id.value());
     }
     activedChanged(id, value);
 }
@@ -150,7 +157,7 @@ LibraryStatus::LibraryStatus(QObject* parent): QObject(parent) {
     }
 
     connect(this, &LibraryStatus::activedChanged, this, &LibraryStatus::activedIdsChanged);
-    connect(this, &LibraryStatus::activedChanged, this, [this](i64, bool) {
+    connect(this, &LibraryStatus::activedChanged, this, [this](const msg::id::LibraryId&, bool) {
         QSettings   s;
         QStringList list;
         for (auto el : m_inactived) list.emplaceBack(QString::number(el));
@@ -160,29 +167,32 @@ LibraryStatus::LibraryStatus(QObject* parent): QObject(parent) {
 
 LibraryStatus::~LibraryStatus() {}
 
-auto LibraryStatus::activedIds() -> const QtProtobuf::int64List& {
-    m_ids.clear();
+auto LibraryStatus::activedIds() const -> msg::id::LibraryIds {
+    QtProtobuf::int64List ids;
     auto providers = App::instance()->provider_status();
     for (auto i = 0; i < providers->rowCount(); ++i) {
         auto& provider = providers->at(i);
         if (! providers->actived(provider.id_proto())) continue;
         for (auto& library : provider.libraries()) {
             auto id = library.libraryId();
-            if (actived(id)) m_ids.emplaceBack(id);
+            if (actived(id)) ids.emplaceBack(id.value());
         }
     }
-    return m_ids;
+    return identity::fromValues<msg::id::LibraryIds>(ids);
 }
 
-bool LibraryStatus::actived(i64 id) const { return ! m_inactived.contains(id); }
+bool LibraryStatus::actived(const msg::id::LibraryId& id) const {
+    return identity::valid(id) && ! m_inactived.contains(id.value());
+}
 
-void LibraryStatus::setActived(i64 id, bool value) {
-    bool active = ! m_inactived.contains(id);
+void LibraryStatus::setActived(const msg::id::LibraryId& id, bool value) {
+    if (! identity::valid(id)) return;
+    bool active = ! m_inactived.contains(id.value());
     if (active == value) return;
     if (active) {
-        m_inactived.insert(id);
+        m_inactived.insert(id.value());
     } else {
-        m_inactived.erase(id);
+        m_inactived.erase(id.value());
     }
     activedChanged(id, value);
 }

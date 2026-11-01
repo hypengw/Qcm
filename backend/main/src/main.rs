@@ -8,6 +8,8 @@ mod global;
 mod home;
 mod http;
 mod msg;
+mod protocol;
+mod identity;
 mod mix;
 mod share;
 mod comments;

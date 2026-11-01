@@ -10,9 +10,9 @@ import Qcm.Msg as QM
 MD.Page {
     id: root
 
-    required property QA.item_id itemId
-    readonly property var model: QA.App.providerStatus.itemById(itemId)
-    readonly property var meta: QA.App.providerStatus.metaById(itemId)
+    required property QM.providerId providerId
+    readonly property var model: QA.App.providerStatus.itemById(providerId)
+    readonly property var meta: QA.App.providerStatus.metaById(providerId)
     property string pendingTmpProvider: ""
     property bool waitingForSettings: false
     readonly property bool modified: model.name != m_tf_name.text || authInfoModified || m_settings_form.modified || pendingTmpProvider.length > 0
@@ -75,7 +75,7 @@ MD.Page {
     }
     QA.ProviderSettingsQuery {
         id: m_settings_query
-        providerId: root.itemId
+        providerId: root.providerId
         Component.onCompleted: reload()
         onStatusChanged: {
             if (status === QA.Enum.Finished && root.waitingForSettings)
@@ -85,7 +85,7 @@ MD.Page {
 
     QA.UpdateProviderQuery {
         id: m_update_query
-        providerId: root.itemId
+        providerId: root.providerId
         onFieldErrorsChanged: m_settings_form.fieldErrors = fieldErrors
         onStatusChanged: {
             if (status == QA.Enum.Finished)
@@ -267,7 +267,7 @@ MD.Page {
                     QA.CreateTmpProviderQuery {
                         id: m_tmp_provider_query
                         typeName: root.model.typeName
-                        networkProviderId: root.itemId
+                        networkProviderId: root.providerId
                         Component.onCompleted: reload()
                     }
                     QA.AuthProviderQuery {

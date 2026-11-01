@@ -190,7 +190,7 @@ async fn home_recommendation_contract_and_snapshot() {
     assert!(legacy.error.is_empty(), "{}", legacy.error);
     assert_eq!(legacy.for_you.len(), 1);
     assert_eq!(legacy.radios.len(), 2);
-    assert!(matches!(&legacy.for_you[0].target, Some(Target::Mix(v)) if v.id == 98765));
+    assert!(matches!(&legacy.for_you[0].target, Some(Target::Mix(v)) if v.id.as_ref().map(|id| id.value) == Some(98765)));
     let mut cards = vec![
         entry("daily", daily, CardAction::OpenItem),
         entry("radio", radio, CardAction::ActivateRadio),

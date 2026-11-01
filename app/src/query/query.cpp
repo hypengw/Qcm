@@ -8,9 +8,13 @@ namespace qcm
 {
 
 void connectSyncFinished(Query* q) {
-    QObject::connect(AppStore::instance(), &AppStore::stateChanged, q, &Query::delayReload);
-    QObject::connect(AppStore::instance(), &AppStore::scopeChanged, q, &Query::delayReload);
-    QObject::connect(App::instance()->backend(), &Backend::connected, q, &Query::delayReload);
+    auto backend = App::instance()->backend();
+    auto reload  = [q, backend] {
+        if (! backend->resource_base_url().isEmpty()) q->delayReload();
+    };
+    QObject::connect(AppStore::instance(), &AppStore::stateChanged, q, reload);
+    QObject::connect(AppStore::instance(), &AppStore::scopeChanged, q, reload);
+    QObject::connect(backend, &Backend::resourceStateChanged, q, reload);
     q->connect(App::instance()->provider_status(),
                &ProviderStatusModel::syncingChanged,
                q,

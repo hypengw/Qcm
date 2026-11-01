@@ -55,6 +55,7 @@ async fn filtered_song_ids_follow_requested_order() {
     let (backend_ev, _) = tokio::sync::mpsc::channel(1);
     let (oper, _) = crate::task::TaskManager::new();
     let service = Arc::new(ServiceContext {
+        protocol: crate::protocol::Session::testing(),
         provider_context: Arc::new(Context {
             db: db.clone(),
             cache_db: db,
@@ -83,6 +84,7 @@ async fn filtered_song_ids_follow_requested_order() {
         (msg::model::SongSort::Title, true, vec![20, 30, 10, 40]),
     ] {
         let request = msg::QcmMessage {
+            protocol_version: crate::protocol::VERSION,
             r#type: msg::MessageType::GetSongIdsReq.into(),
             payload: Some(msg::qcm_message::Payload::GetSongIdsReq(
                 msg::GetSongIdsReq {
@@ -90,7 +92,9 @@ async fn filtered_song_ids_follow_requested_order() {
                     asc,
                     filters: vec![msg::filter::SongFilter {
                         payload: Some(msg::filter::song_filter::Payload::AlbumIdFilter(
-                            msg::filter::AlbumIdFilter { value: 1 },
+                            msg::filter::AlbumIdFilter {
+                                value: Some(1.into()),
+                            },
                         )),
                         ..Default::default()
                     }],
@@ -105,13 +109,18 @@ async fn filtered_song_ids_follow_requested_order() {
         let Some(msg::qcm_message::Payload::GetSongIdsRsp(response)) = response.payload else {
             panic!("expected song IDs");
         };
-        assert_eq!(response.ids, expected, "{sort:?}, ascending: {asc}");
+        assert_eq!(
+            crate::identity::IdList::values(&response.ids),
+            expected,
+            "{sort:?}, ascending: {asc}"
+        );
     }
 
     let request = msg::QcmMessage {
+        protocol_version: crate::protocol::VERSION,
         r#type: msg::MessageType::GetAlbumReq.into(),
         payload: Some(msg::qcm_message::Payload::GetAlbumReq(msg::GetAlbumReq {
-            id: 1,
+            id: Some(1.into()),
         })),
         ..Default::default()
     };
@@ -121,5 +130,8 @@ async fn filtered_song_ids_follow_requested_order() {
     let Some(msg::qcm_message::Payload::GetAlbumRsp(response)) = response.payload else {
         panic!("expected album");
     };
-    assert_eq!(response.song_ids, vec![30, 20, 10, 40]);
+    assert_eq!(
+        crate::identity::IdList::values(&response.song_ids),
+        &[30, 20, 10, 40]
+    );
 }

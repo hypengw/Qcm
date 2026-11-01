@@ -141,7 +141,7 @@ QA.SettingBasePage {
                     supportText: root.assignedName(model.itemId.id)
                     font.capitalization: Font.MixedCase
                     leader: MD.IconSvg {
-                        sourceData: QA.App.providerStatus.svg(providerRow.index)
+                        sourceData: QA.App.providerStatus.svgAt(providerRow.index)
                         size: 24
                     }
                     trailing: MD.CheckBox {

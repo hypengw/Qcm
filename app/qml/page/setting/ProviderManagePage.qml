@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import Qcm.App as QA
+import Qcm.Msg as QM
 import Qcm.Material as MD
 
 MD.Page {
@@ -37,14 +38,16 @@ MD.Page {
         }
 
         delegate: QA.SettingRow {
+            id: providerRow
             required property MD.LazyRow row
+            readonly property QM.providerId providerId: model.itemId
             itemRow: row
 
             start: index === 0
             end: index === m_view.count - 1
             font.capitalization: Font.MixedCase
             leader: MD.IconSvg {
-                sourceData: QA.App.providerStatus.svg(index)
+                sourceData: QA.App.providerStatus.svgAt(index)
                 size: 24
             }
             text: model.name
@@ -52,18 +55,18 @@ MD.Page {
                 icon.name: MD.Token.icon.close
                 busy: {
                     const query = m_delete_query;
-                    return query.providerId == model.itemId && query.querying;
+                    return query.providerId == providerRow.providerId && query.querying;
                 }
                 onClicked: {
                     const query = m_delete_query;
-                    query.providerId = model.itemId;
+                    query.providerId = providerRow.providerId;
                     query.reload();
                 }
             }
 
             onClicked: {
                 root.MD.MProp.page.pushItem('qrc:/Qcm/App/qml/page/edit/ProviderEditPage.qml', {
-                    itemId: model.itemId
+                    providerId: providerRow.providerId
                 });
             }
         }

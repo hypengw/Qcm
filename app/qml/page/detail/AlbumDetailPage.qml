@@ -11,7 +11,8 @@ MD.Page {
 
     readonly property QA.EntityView entity: QA.Store.item(root.itemId)
     readonly property var album: qr_al.data.album
-    property QA.item_id itemId
+    property alias albumId: qr_al.albumId
+    readonly property QA.item_id itemId: albumId
     title: qsTr("album")
 
     padding: 0
@@ -67,9 +68,10 @@ MD.Page {
             }
             QA.GoToArtistAction {
                 id: m_go_to_artist_act
-                getItemIds: function () {
+                albumArtist: true
+                artistIds: {
                     const ex = root.entity;
-                    return ex?.artists.map(el => QA.Util.albumArtistId(el.id_proto));
+                    return QM.Ids.artistIds(ex?.artists.map(el => el.id_proto) ?? []);
                 }
             }
         }
@@ -333,7 +335,6 @@ MD.Page {
 
     QA.AlbumQuery {
         id: qr_al
-        itemId: root.itemId
         Component.onCompleted: reload()
     }
 }

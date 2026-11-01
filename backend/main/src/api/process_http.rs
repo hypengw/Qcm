@@ -14,6 +14,7 @@ use sea_orm::{Condition, QueryFilter};
 use std::str::FromStr;
 use std::sync::Arc;
 
+use crate::convert::QcmInto;
 use crate::error::ProcessError;
 use crate::event::ServiceContext;
 use crate::http::body_type::ResponseBody;
@@ -31,21 +32,19 @@ pub async fn process_http_post(
         .await
         .map_err(|e| ProcessError::Internal(anyhow!("{}", e)))?
         .to_bytes();
-    let mut qcm_msg = process_qcm(ctx, &data[..], &mut in_id).await;
-    if let (Some(id), Ok(qcm_msg)) = (in_id, &mut qcm_msg) {
-        qcm_msg.id = id;
+    let mut message = match process_qcm(ctx, &data[..], &mut in_id).await {
+        Ok(message) => message,
+        Err(error) => {
+            let response: crate::msg::Rsp = error.qcm_into();
+            response.qcm_into()
+        }
     };
-
-    qcm_msg.and_then(|qcm_msg| -> Result<_, ProcessError> {
-        let mut buf = Vec::new();
-        qcm_msg.encode(&mut buf)?;
-        // let stream = futures_util::stream::once(async {
-        //     Ok::<_, std::io::Error>(Frame::data(Bytes::from(buf)))
-        // });
-        Ok(Response::new(ResponseBody::Boxed(
-            Full::new(Bytes::from(buf)).map_err(|e| e.into()).boxed(),
-        )))
-    })
+    message.id = in_id.unwrap_or_default();
+    let mut buf = Vec::new();
+    message.encode(&mut buf)?;
+    Ok(Response::new(ResponseBody::Boxed(
+        Full::new(Bytes::from(buf)).map_err(|e| e.into()).boxed(),
+    )))
 }
 
 fn filter_image_type(image_type: ImageType) -> Condition {
@@ -225,8 +224,14 @@ pub async fn process_http_get(
 
             let item_type = ItemType::from_str(&item_type_str)
                 .map_err(|_| ProcessError::NoSuchItemType(item_type_str.to_string()))?;
-            process_http_get_image(ctx, item_type, image_type, parse_id(id)?, req.headers().clone())
-                .await
+            process_http_get_image(
+                ctx,
+                item_type,
+                image_type,
+                parse_id(id)?,
+                req.headers().clone(),
+            )
+            .await
         }
         ["audio", item_type, id] => {
             match ItemType::from_str(&item_type)

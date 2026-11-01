@@ -18,7 +18,7 @@ public:
         if (auto entry = store()->find(itemId())) return entry->data.value<Song>();
         return {};
     }
-    void setItemId(i64 id) { EntityView::setItemId(ItemId(enums::ItemType::ItemSong, id)); }
+    void setItemId(const msg::id::SongId& id) { EntityView::setItemId(ItemId(id)); }
 };
 class AlbumStoreItem : public EntityView {
     Q_OBJECT
@@ -29,7 +29,7 @@ public:
         if (auto entry = store()->find(itemId())) return entry->data.value<Album>();
         return {};
     }
-    void setItemId(i64 id) { EntityView::setItemId(ItemId(enums::ItemType::ItemAlbum, id)); }
+    void setItemId(const msg::id::AlbumId& id) { EntityView::setItemId(ItemId(id)); }
 };
 class ArtistStoreItem : public EntityView {
     Q_OBJECT
@@ -40,7 +40,7 @@ public:
         if (auto entry = store()->find(itemId())) return entry->data.value<Artist>();
         return {};
     }
-    void setItemId(i64 id) { EntityView::setItemId(ItemId(enums::ItemType::ItemArtist, id)); }
+    void setItemId(const msg::id::ArtistId& id) { EntityView::setItemId(ItemId(id)); }
 };
 class MixStoreItem : public EntityView {
     Q_OBJECT
@@ -51,6 +51,6 @@ public:
         if (auto entry = store()->find(itemId())) return entry->data.value<Mix>();
         return {};
     }
-    void setItemId(i64 id) { EntityView::setItemId(ItemId(enums::ItemType::ItemMix, id)); }
+    void setItemId(const msg::id::MixId& id) { EntityView::setItemId(ItemId(id)); }
 };
 } // namespace qcm::model

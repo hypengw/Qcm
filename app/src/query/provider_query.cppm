@@ -74,7 +74,7 @@ private:
 export class ProviderSettingsQuery : public Query {
     Q_OBJECT
     QML_ELEMENT
-    Q_PROPERTY(qcm::model::ItemId providerId READ providerId WRITE setProviderId NOTIFY
+    Q_PROPERTY(qcm::msg::id::ProviderId providerId READ providerId WRITE setProviderId NOTIFY
                    providerIdChanged FINAL)
     Q_PROPERTY(QVariantList fields READ fields NOTIFY settingsChanged FINAL)
     Q_PROPERTY(QVariantMap values READ values NOTIFY settingsChanged FINAL)
@@ -82,8 +82,8 @@ export class ProviderSettingsQuery : public Query {
 public:
     ProviderSettingsQuery(QObject* parent = nullptr);
     void          reload() override;
-    auto          providerId() const -> model::ItemId { return m_provider_id; }
-    void          setProviderId(const model::ItemId&);
+    auto          providerId() const -> msg::id::ProviderId { return m_provider_id; }
+    void          setProviderId(const msg::id::ProviderId&);
     auto          fields() const -> QVariantList { return m_fields; }
     auto          values() const -> QVariantMap { return m_values; }
     auto          revision() const -> quint64 { return m_revision; }
@@ -91,7 +91,7 @@ public:
     Q_SIGNAL void settingsChanged();
 
 private:
-    model::ItemId m_provider_id;
+    msg::id::ProviderId m_provider_id;
     QVariantList  m_fields;
     QVariantMap   m_values;
     quint64       m_revision {};
@@ -102,7 +102,7 @@ export class UpdateProviderQuery : public Query,
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(qcm::model::ItemId providerId READ providerId WRITE setProviderId NOTIFY
+    Q_PROPERTY(qcm::msg::id::ProviderId providerId READ providerId WRITE setProviderId NOTIFY
                    providerIdChanged FINAL)
     Q_PROPERTY(qcm::msg::UpdateProviderReq req READ req WRITE setReq NOTIFY reqChanged FINAL)
     Q_PROPERTY(QVariantMap fieldErrors READ fieldErrors NOTIFY fieldErrorsChanged FINAL)
@@ -110,8 +110,8 @@ public:
     UpdateProviderQuery(QObject* parent = nullptr);
     void reload() override;
 
-    auto providerId() const -> model::ItemId;
-    void setProviderId(const model::ItemId&);
+    auto providerId() const -> msg::id::ProviderId;
+    void setProviderId(const msg::id::ProviderId&);
 
     auto          req() -> msg::UpdateProviderReq&;
     void          setReq(const msg::UpdateProviderReq&);
@@ -124,34 +124,34 @@ public:
 private:
     msg::UpdateProviderReq m_req;
     QVariantMap            m_field_errors;
-    model::ItemId          m_provider_id;
+    msg::id::ProviderId    m_provider_id;
 };
 
 export class DeleteProviderQuery : public Query, public QueryExtra<msg::Rsp, DeleteProviderQuery> {
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(qcm::model::ItemId providerId READ providerId WRITE setProviderId NOTIFY
+    Q_PROPERTY(qcm::msg::id::ProviderId providerId READ providerId WRITE setProviderId NOTIFY
                    providerIdChanged FINAL)
 public:
     DeleteProviderQuery(QObject* parent = nullptr);
     void reload() override;
 
-    auto providerId() const -> model::ItemId;
-    void setProviderId(const model::ItemId&);
+    auto providerId() const -> msg::id::ProviderId;
+    void setProviderId(const msg::id::ProviderId&);
 
     Q_SIGNAL void reqChanged();
     Q_SIGNAL void providerIdChanged();
 
 private:
-    model::ItemId          m_provider_id;
+    msg::id::ProviderId    m_provider_id;
     msg::DeleteProviderReq m_req;
 };
 
 export class ReplaceProviderQuery : public Query, public QueryExtra<msg::Rsp, ReplaceProviderQuery> {
     Q_OBJECT
     QML_ELEMENT
-    Q_PROPERTY(qcm::model::ItemId providerId READ providerId WRITE setProviderId NOTIFY
+    Q_PROPERTY(qcm::msg::id::ProviderId providerId READ providerId WRITE setProviderId NOTIFY
                    providerIdChanged FINAL)
     Q_PROPERTY(
         QString tmpProvider READ tmpProvider WRITE setTmpProvider NOTIFY tmpProviderChanged FINAL)
@@ -159,8 +159,8 @@ public:
     ReplaceProviderQuery(QObject* parent = nullptr);
     void reload() override;
 
-    auto providerId() const -> model::ItemId;
-    void setProviderId(const model::ItemId&);
+    auto providerId() const -> msg::id::ProviderId;
+    void setProviderId(const msg::id::ProviderId&);
     auto tmpProvider() const -> QString;
     void setTmpProvider(const QString&);
 
@@ -169,7 +169,7 @@ public:
 
 private:
     QString       m_tmp_provider;
-    model::ItemId m_provider_id;
+    msg::id::ProviderId m_provider_id;
 };
 
 export class CreateTmpProviderQuery
@@ -179,7 +179,8 @@ export class CreateTmpProviderQuery
     QML_ELEMENT
 
     Q_PROPERTY(QString typeName READ typeName WRITE setTypeName NOTIFY typeNameChanged FINAL)
-    Q_PROPERTY(qcm::model::ItemId networkProviderId READ networkProviderId WRITE setNetworkProviderId NOTIFY networkProviderIdChanged FINAL)
+    Q_PROPERTY(qcm::msg::id::ProviderId networkProviderId READ networkProviderId WRITE
+                   setNetworkProviderId NOTIFY networkProviderIdChanged FINAL)
 public:
     CreateTmpProviderQuery(QObject* parent = nullptr);
     ~CreateTmpProviderQuery();
@@ -188,14 +189,14 @@ public:
     auto typeName() const -> QString;
     void setTypeName(const QString&);
 
-    auto networkProviderId() const -> model::ItemId { return m_network_provider_id; }
-    void setNetworkProviderId(const model::ItemId&);
+    auto          networkProviderId() const -> msg::id::ProviderId { return m_network_provider_id; }
+    void          setNetworkProviderId(const msg::id::ProviderId&);
     Q_SIGNAL void networkProviderIdChanged();
     Q_SIGNAL void typeNameChanged();
 
 private:
     QString m_type_name;
-    model::ItemId m_network_provider_id;
+    msg::id::ProviderId m_network_provider_id;
 };
 
 export class DeleteTmpProviderQuery : public Query, public QueryExtra<msg::Rsp, DeleteTmpProviderQuery> {

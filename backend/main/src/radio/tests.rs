@@ -527,6 +527,7 @@ async fn protobuf_dispatch_keeps_song_order_and_private_state_on_backend() {
     let (oper, _) = TaskManager::new();
     let (backend_ev, _) = tokio::sync::mpsc::channel(1);
     let service = Arc::new(ServiceContext {
+        protocol: crate::protocol::Session::testing(),
         provider_context: ctx.clone(),
         backend_ev,
         oper,
@@ -536,11 +537,12 @@ async fn protobuf_dispatch_keeps_song_order_and_private_state_on_backend() {
         radio: Arc::new(Default::default()),
     });
     let request = msg::QcmMessage {
+        protocol_version: crate::protocol::VERSION,
         entities: None,
         id: 17,
         r#type: msg::MessageType::OpenQueueReq.into(),
         payload: Some(msg::qcm_message::Payload::OpenQueueReq(msg::OpenQueueReq {
-            queue_id: 5,
+            queue_id: Some(5.into()),
             input_id: 9,
             operation_id: operation_id(),
             ..Default::default()
@@ -554,8 +556,8 @@ async fn protobuf_dispatch_keeps_song_order_and_private_state_on_backend() {
         panic!("wrong response");
     };
     assert_eq!(
-        page.song_ids,
-        vec![9, 7]
+        crate::identity::IdList::values(&page.song_ids),
+        &[9, 7]
     );
     assert_eq!(decoded.entities.as_ref().unwrap().songs.len(), 2);
     assert_eq!(page.session.as_ref().unwrap().version, 1);
@@ -586,12 +588,13 @@ async fn protobuf_dispatch_keeps_song_order_and_private_state_on_backend() {
     cache.shutdown().await.unwrap();
     qcm_core::global::remove_provider(provider_id);
     let next_request = msg::QcmMessage {
+        protocol_version: crate::protocol::VERSION,
         entities: None,
         id: 18,
         r#type: msg::MessageType::GetQueueNextReq.into(),
         payload: Some(msg::qcm_message::Payload::GetQueueNextReq(
             msg::GetQueueNextReq {
-                queue_id: 5,
+                queue_id: Some(5.into()),
                 session_id: handle,
                 operation_id: operation_id(),
                 expected_version: 1,

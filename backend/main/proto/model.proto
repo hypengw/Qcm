@@ -3,12 +3,14 @@ syntax = "proto3";
 package qcm.msg.model;
 
 import "google/protobuf/timestamp.proto";
+import "id.proto";
 
 message Song {
-  int64 id = 1;
+  reserved 1, 6;
+  qcm.msg.id.SongId id = 1001;
   string name = 4;
   string sort_name = 5;
-  int64 album_id = 6;
+  qcm.msg.id.AlbumId album_id = 1006;
   int32 track_number = 7;
   int32 disc_number = 8;
   // Duration in milliseconds.
@@ -20,7 +22,8 @@ message Song {
 }
 
 message Radio {
-  int64 id = 1;
+  reserved 1;
+  qcm.msg.id.RadioId id = 1001;
   string name = 4;
   string sort_name = 5;
   string description = 6;
@@ -28,7 +31,8 @@ message Radio {
 }
 
 message Program {
-  int64 id = 1;
+  reserved 1;
+  qcm.msg.id.ProgramId id = 1001;
   string name = 4;
   string sort_name = 5;
   string description = 6;
@@ -65,7 +69,8 @@ message QueueConfigField {
 }
 
 message RadioQueue {
-  int64 id = 1;
+  reserved 1;
+  qcm.msg.id.RadioQueueId id = 1001;
   string name = 2;
   string description = 3;
   repeated QueueConfigField configuration = 4;
@@ -74,7 +79,8 @@ message RadioQueue {
 }
 
 message Mix {
-  int64 id = 1;
+  reserved 1;
+  qcm.msg.id.MixId id = 1001;
   string name = 4;
   string sort_name = 5;
   int32 track_count = 6;
@@ -84,15 +90,17 @@ message Mix {
 }
 
 message Library {
-  int64 library_id = 1;
+  reserved 1, 3;
+  qcm.msg.id.LibraryId library_id = 1001;
   string name = 2;
-  int64 provider_id = 3;
+  qcm.msg.id.ProviderId provider_id = 1003;
   string native_id = 4;
   google.protobuf.Timestamp edit_time = 5;
 }
 
 message Artist {
-  int64 id = 1;
+  reserved 1;
+  qcm.msg.id.ArtistId id = 1001;
   string name = 3;
   string sort_name = 4;
   string description = 6;
@@ -112,7 +120,8 @@ enum AlbumType {
 }
 
 message Album {
-  int64 id = 1;
+  reserved 1;
+  qcm.msg.id.AlbumId id = 1001;
   string name = 4;
   string sort_name = 5;
   AlbumType type = 6;
@@ -197,7 +206,8 @@ enum SyncState {
 }
 
 message ProviderSyncStatus {
-  int64 id = 1;
+  reserved 1;
+  qcm.msg.id.ProviderId id = 1001;
   SyncState state = 2;
   int32 album = 3;
   int32 artist = 4;
@@ -205,7 +215,8 @@ message ProviderSyncStatus {
 }
 
 message ProviderStatus {
-  int64 id = 1;
+  reserved 1;
+  qcm.msg.id.ProviderId id = 1001;
   string name = 2;
   string type_name = 3;
   ProviderSyncStatus sync_status = 4;
@@ -332,7 +343,8 @@ message ImageReference {
   int64 id = 2;
 }
 message ForYouCard {
-  int64 provider_id = 1;
+  reserved 1;
+  qcm.msg.id.ProviderId provider_id = 1001;
   string entry_key = 2;
   CardStyle style = 3;
   string title = 4;
@@ -351,7 +363,8 @@ message ForYouCard {
   }
 }
 message HomeRecommendation {
-  int64 provider_id = 1;
+  reserved 1;
+  qcm.msg.id.ProviderId provider_id = 1001;
   uint64 epoch = 2;
   repeated ForYouCard for_you = 3;
   repeated RadioQueue radios = 4;
@@ -399,7 +412,8 @@ message CommentPage {
 message CommentsResult {
   bool supported = 1;
   string scope = 2;
-  int64 provider_id = 3;
+  reserved 3;
+  qcm.msg.id.ProviderId provider_id = 1003;
   uint64 epoch = 4;
   CommentPage page = 5;
 }

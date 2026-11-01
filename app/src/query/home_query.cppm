@@ -31,7 +31,7 @@ private:
     model::ForYouListModel                       m_for_you;
     model::RadioQueueListModel                   m_radios;
     PlayQuery                                    m_play;
-    QtProtobuf::int64List                        m_provider_ids;
+    msg::id::ProviderIds                         m_provider_ids;
     QMap<qint64, quint64>                        m_epochs;
     QMap<qint64, msg::model::HomeRecommendation> m_snapshots;
     quint64                                      m_revision { 0 };

@@ -2,6 +2,7 @@
 name = "qcm"
 members = [
   "app",
+  "app/src/message/generator",
   "backend/plugin/lua/jellyfin",
   "backend/plugin/lua/subsonic",
   "core",
@@ -22,7 +23,8 @@ qcm-player = { path = "player" }
 qcm-qr-code = { path = "third_party/qr_code" }
 rstd-cppstd = { version = "0.1.7" }
 rstd-std = { version = "0.1.7" }
-lito-qt = { version = "0.1.1" }
+lito-qt = { version = "0.1.2" }
+qcm-message-build = { path = "app/src/message/generator" }
 ncrequest = { git = "https://github.com/hypengw/ncrequest.git" }
 qextra = { git = "https://github.com/hypengw/QExtra.git" }
 wavsen = { git = "https://github.com/hypengw/wavsen.git" }

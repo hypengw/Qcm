@@ -2,6 +2,7 @@ use std::ops::Deref;
 
 use crate::db::filter::album_filter_to_expr;
 use crate::error::ProcessError;
+use crate::identity::IdField;
 use crate::msg::model as proto;
 use crate::msg::{self, QcmMessage};
 use chrono::Timelike;
@@ -179,24 +180,25 @@ impl QcmFrom<core::provider::AuthInfo> for proto::AuthInfo {
     }
 }
 
-impl QcmFrom<proto::Library> for core::model::library::Model {
-    fn qcm_from(v: proto::Library) -> Self {
-        Self {
-            provider_id: v.provider_id,
+impl QcmTryFrom<proto::Library> for core::model::library::Model {
+    type Error = ProcessError;
+    fn qcm_try_from(v: proto::Library) -> Result<Self, Self::Error> {
+        Ok(Self {
+            provider_id: v.provider_id.required("provider_id")?,
             native_id: v.native_id,
-            library_id: v.library_id,
+            library_id: v.library_id.required("library_id")?,
             name: v.name,
             edit_time: v.edit_time.unwrap_or_default().qcm_into(),
-        }
+        })
     }
 }
 
 impl QcmFrom<core::model::library::Model> for proto::Library {
     fn qcm_from(v: core::model::library::Model) -> Self {
         Self {
-            provider_id: v.provider_id,
+            provider_id: Some(v.provider_id.into()),
             native_id: v.native_id,
-            library_id: v.library_id,
+            library_id: Some(v.library_id.into()),
             name: v.name,
             edit_time: Some(v.edit_time.qcm_into()),
         }
@@ -212,10 +214,11 @@ impl QcmFrom<bool> for sea_orm::Order {
     }
 }
 
-impl QcmFrom<proto::Album> for core::model::album::Model {
-    fn qcm_from(v: proto::Album) -> Self {
-        Self {
-            id: v.id,
+impl QcmTryFrom<proto::Album> for core::model::album::Model {
+    type Error = ProcessError;
+    fn qcm_try_from(v: proto::Album) -> Result<Self, Self::Error> {
+        Ok(Self {
+            id: v.id.required("album_id")?,
             name: v.name,
             sort_name: match v.sort_name.is_empty() {
                 true => Some(v.sort_name),
@@ -233,14 +236,14 @@ impl QcmFrom<proto::Album> for core::model::album::Model {
             description: v.description.opt(),
             company: v.company.opt(),
             added_at: v.added_at.qcm_into(),
-        }
+        })
     }
 }
 
 impl QcmFrom<core::model::album::Model> for proto::Album {
     fn qcm_from(v: core::model::album::Model) -> Self {
         Self {
-            id: v.id,
+            id: Some(v.id.into()),
             name: v.name,
             sort_name: v.sort_name.unwrap_or_default(),
             duration: v.duration,
@@ -256,24 +259,26 @@ impl QcmFrom<core::model::album::Model> for proto::Album {
     }
 }
 
-impl QcmFrom<proto::Artist> for core::model::artist::Model {
-    fn qcm_from(v: proto::Artist) -> Self {
-        Self {
-            id: v.id,
+impl QcmTryFrom<proto::Artist> for core::model::artist::Model {
+    type Error = ProcessError;
+    fn qcm_try_from(v: proto::Artist) -> Result<Self, Self::Error> {
+        use crate::identity::IdField;
+        Ok(Self {
+            id: v.id.required("artist_id")?,
             name: v.name,
             sort_name: v.sort_name.qcm_into(),
             description: v.description,
             album_count: v.album_count,
             music_count: v.music_count,
             added_at: v.added_at.qcm_into(),
-        }
+        })
     }
 }
 
 impl QcmFrom<core::model::artist::Model> for proto::Artist {
     fn qcm_from(v: core::model::artist::Model) -> Self {
         Self {
-            id: v.id,
+            id: Some(v.id.into()),
             name: v.name,
             sort_name: v.sort_name.qcm_into(),
             description: v.description,
@@ -284,13 +289,14 @@ impl QcmFrom<core::model::artist::Model> for proto::Artist {
     }
 }
 
-impl QcmFrom<proto::Song> for core::model::song::Model {
-    fn qcm_from(v: proto::Song) -> Self {
-        Self {
-            id: v.id,
+impl QcmTryFrom<proto::Song> for core::model::song::Model {
+    type Error = ProcessError;
+    fn qcm_try_from(v: proto::Song) -> Result<Self, Self::Error> {
+        Ok(Self {
+            id: v.id.required("song_id")?,
             name: v.name,
             sort_name: v.sort_name.qcm_into(),
-            album_id: Some(v.album_id),
+            album_id: v.album_id.optional("album_id")?,
             track_number: v.track_number,
             disc_number: v.disc_number,
             duration: v.duration as i64,
@@ -304,17 +310,17 @@ impl QcmFrom<proto::Song> for core::model::song::Model {
                     .collect(),
             ),
             added_at: None,
-        }
+        })
     }
 }
 
 impl QcmFrom<core::model::song::Model> for proto::Song {
     fn qcm_from(v: core::model::song::Model) -> Self {
         Self {
-            id: v.id,
+            id: Some(v.id.into()),
             name: v.name,
             sort_name: v.sort_name.qcm_into(),
-            album_id: v.album_id.unwrap_or_default(),
+            album_id: v.album_id.map(Into::into),
             track_number: v.track_number,
             disc_number: v.disc_number,
             duration: v.duration as f64,
@@ -335,10 +341,11 @@ impl QcmFrom<core::model::song::Model> for proto::Song {
     }
 }
 
-impl QcmFrom<proto::Mix> for core::model::mix::Model {
-    fn qcm_from(v: proto::Mix) -> Self {
-        Self {
-            id: v.id,
+impl QcmTryFrom<proto::Mix> for core::model::mix::Model {
+    type Error = ProcessError;
+    fn qcm_try_from(v: proto::Mix) -> Result<Self, Self::Error> {
+        Ok(Self {
+            id: v.id.required("mix_id")?,
             name: v.name,
             sort_name: v.sort_name.qcm_into(),
             track_count: v.track_count,
@@ -354,14 +361,14 @@ impl QcmFrom<proto::Mix> for core::model::mix::Model {
                 .map(QcmInto::qcm_into)
                 .unwrap_or_else(Timestamp::now),
             content_update_at: Timestamp::new(),
-        }
+        })
     }
 }
 
 impl QcmFrom<core::model::mix::Model> for proto::Mix {
     fn qcm_from(v: core::model::mix::Model) -> Self {
         Self {
-            id: v.id,
+            id: Some(v.id.into()),
             name: v.name,
             sort_name: v.sort_name.qcm_into(),
             mix_type: v.mix_type as i32,
@@ -520,8 +527,14 @@ impl QcmFrom<ProcessError> for msg::Rsp {
         Self {
             auth_required,
             code: match v {
-                ProcessError::Radio(crate::radio::RadioError::Expired) => msg::ErrorCode::QueueSessionExpired.into(),
-                ProcessError::Radio(crate::radio::RadioError::Conflict) => msg::ErrorCode::QueueSessionConflict.into(),
+                ProcessError::ProtocolVersion(_) => msg::ErrorCode::ProtocolVersion.into(),
+                ProcessError::ProtocolNotReady => msg::ErrorCode::ProtocolNotReady.into(),
+                ProcessError::Radio(crate::radio::RadioError::Expired) => {
+                    msg::ErrorCode::QueueSessionExpired.into()
+                }
+                ProcessError::Radio(crate::radio::RadioError::Conflict) => {
+                    msg::ErrorCode::QueueSessionConflict.into()
+                }
                 ProcessError::Radio(_) => msg::ErrorCode::Internal.into(),
                 ProcessError::Internal(_) | ProcessError::Resource(_) => {
                     msg::ErrorCode::Internal.into()
@@ -578,6 +591,7 @@ macro_rules! impl_from_for_qcm_msg {
         impl QcmFrom<msg::$msg_type> for QcmMessage {
             fn qcm_from(v: msg::$msg_type) -> Self {
                 Self {
+                    protocol_version: crate::protocol::VERSION,
                     id: 0,
                     r#type: msg::MessageType::$msg_type.into(),
                     payload: Some(msg::qcm_message::Payload::$msg_type(v)),
@@ -700,22 +714,33 @@ mod tests {
 
     #[test]
     fn mix_local_update_time_survives_wire_round_trip() {
-        let mut model: sqlm::mix::Model = proto::Mix::default().qcm_into();
+        let mut model: sqlm::mix::Model = proto::Mix {
+            id: Some(7.into()),
+            ..Default::default()
+        }
+        .qcm_try_into()
+        .unwrap();
         let timestamp = Timestamp::from_millis(1_792_390_123_456);
         model.update_at = timestamp;
         model.content_update_at = Timestamp::from_millis(1_700_000_000_000);
         let message: proto::Mix = model.qcm_into();
         let decoded = proto::Mix::decode(message.encode_to_vec().as_slice()).unwrap();
-        let restored: sqlm::mix::Model = decoded.qcm_into();
+        let restored: sqlm::mix::Model = decoded.qcm_try_into().unwrap();
         assert_eq!(restored.update_at, timestamp);
     }
 
     #[test]
-    fn mix_local_update_time_is_optional_for_legacy_and_unknown_dates() {
+    fn mix_legacy_id_is_rejected_and_unknown_dates_stay_optional() {
         let legacy = proto::Mix::decode([8, 7].as_slice()).unwrap();
-        assert_eq!(legacy.id, 7);
+        assert!(legacy.id.is_none());
         assert!(legacy.update_at.is_none());
-        let mut model: sqlm::mix::Model = legacy.qcm_into();
+        assert!(sqlm::mix::Model::qcm_try_from(legacy).is_err());
+        let mut model: sqlm::mix::Model = proto::Mix {
+            id: Some(7.into()),
+            ..Default::default()
+        }
+        .qcm_try_into()
+        .unwrap();
         model.update_at = Timestamp::new();
         let message: proto::Mix = model.qcm_into();
         assert!(message.update_at.is_none());

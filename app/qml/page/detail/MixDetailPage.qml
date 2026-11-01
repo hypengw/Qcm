@@ -9,7 +9,8 @@ MD.Page {
     id: root
 
     readonly property var mix: qr_pl.data.mix
-    property alias itemId: qr_pl.itemId
+    property alias mixId: qr_pl.mixId
+    readonly property QA.item_id itemId: mixId
 
     title: qsTr("Mix")
     padding: 0

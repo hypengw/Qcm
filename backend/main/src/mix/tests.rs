@@ -10,7 +10,7 @@ use qcm_core::{
     },
     subtitle::Subtitle,
 };
-use sea_orm::{ConnectOptions, ConnectionTrait, Database, EntityTrait, Schema};
+use sea_orm::{ConnectOptions, ConnectionTrait, Database, EntityTrait, PaginatorTrait, Schema};
 use std::{
     path::PathBuf,
     sync::atomic::{AtomicBool, AtomicI64, AtomicUsize, Ordering},
@@ -29,6 +29,7 @@ struct MixProvider {
     wait: AtomicBool,
     entered: Notify,
     release: Notify,
+    favorites: std::sync::Mutex<Vec<(String, m::type_enum::ItemType, bool)>>,
 }
 impl HasCommonData for MixProvider {
     fn common(&self) -> &ProviderCommonData {
@@ -91,10 +92,14 @@ impl Provider for MixProvider {
     async fn favorite(
         &self,
         _: &Context,
-        _: &str,
-        _: m::type_enum::ItemType,
-        _: bool,
+        id: &str,
+        kind: m::type_enum::ItemType,
+        value: bool,
     ) -> Result<(), ProviderError> {
+        self.favorites
+            .lock()
+            .unwrap()
+            .push((id.into(), kind, value));
         Ok(())
     }
     async fn image(
@@ -174,6 +179,7 @@ impl TestContext {
             wait: AtomicBool::new(false),
             entered: Notify::new(),
             release: Notify::new(),
+            favorites: Default::default(),
         });
         global::add_provider(provider.clone());
         let directory =
@@ -185,6 +191,7 @@ impl TestContext {
         let (backend_ev, _) = tokio::sync::mpsc::channel(8);
         let (oper, _) = crate::task::TaskManager::new();
         let service = Arc::new(ServiceContext {
+            protocol: crate::protocol::Session::testing(),
             provider_context: Arc::new(Context {
                 db: db.clone(),
                 cache_db: db,
@@ -223,10 +230,11 @@ async fn songs(
     force_refresh: bool,
 ) -> Result<msg::QcmMessage, ProcessError> {
     let request = msg::QcmMessage {
+        protocol_version: crate::protocol::VERSION,
         r#type: msg::MessageType::GetMixSongsReq as i32,
         payload: Some(msg::qcm_message::Payload::GetMixSongsReq(
             msg::GetMixSongsReq {
-                id,
+                id: Some(id.into()),
                 force_refresh,
                 page_size: 20,
                 sort_asc: true,
@@ -241,7 +249,164 @@ fn ids(response: &msg::QcmMessage) -> &[i64] {
     let Some(msg::qcm_message::Payload::GetMixSongsRsp(value)) = &response.payload else {
         panic!("expected mix songs");
     };
-    &value.ids
+    crate::identity::IdList::values(&value.ids)
+}
+
+#[tokio::test]
+async fn protocol_rejects_before_mix_refresh_or_write() {
+    let ctx = TestContext::new(false).await;
+    let mut request = msg::QcmMessage {
+        id: 17,
+        r#type: msg::MessageType::GetMixSongsReq as i32,
+        payload: Some(msg::qcm_message::Payload::GetMixSongsReq(
+            msg::GetMixSongsReq {
+                id: Some(MIX.into()),
+                force_refresh: true,
+                ..Default::default()
+            },
+        )),
+        ..Default::default()
+    };
+    for version in [0, 1, 3] {
+        request.protocol_version = version;
+        let error = process_qcm(&ctx.service, &request.encode_to_vec(), &mut None)
+            .await
+            .unwrap_err();
+        assert!(matches!(error, ProcessError::ProtocolVersion(v) if v == version));
+    }
+    ctx.service.protocol.close();
+    request.protocol_version = crate::protocol::VERSION;
+    assert!(matches!(
+        process_qcm(&ctx.service, &request.encode_to_vec(), &mut None).await,
+        Err(ProcessError::ProtocolNotReady)
+    ));
+    assert_eq!(ctx.calls(), 0);
+    let before = m::mix::Entity::find()
+        .count(&ctx.service.provider_context.db)
+        .await
+        .unwrap();
+    request.r#type = msg::MessageType::CreateMixReq as i32;
+    request.payload = Some(msg::qcm_message::Payload::CreateMixReq(msg::CreateMixReq {
+        name: "must not be created".into(),
+        ..Default::default()
+    }));
+    assert!(matches!(
+        process_qcm(&ctx.service, &request.encode_to_vec(), &mut None).await,
+        Err(ProcessError::ProtocolNotReady)
+    ));
+    assert_eq!(
+        m::mix::Entity::find()
+            .count(&ctx.service.provider_context.db)
+            .await
+            .unwrap(),
+        before
+    );
+    ctx.finish().await;
+}
+
+#[tokio::test]
+async fn favorite_mix_resolves_local_identity_to_remote_item() {
+    let ctx = TestContext::new(true).await;
+    let request = msg::QcmMessage {
+        protocol_version: crate::protocol::VERSION,
+        r#type: msg::MessageType::SetFavoriteReq as i32,
+        payload: Some(msg::qcm_message::Payload::SetFavoriteReq(
+            msg::SetFavoriteReq {
+                id: MIX,
+                item_type: msg::model::ItemType::Mix as i32,
+                value: true,
+            },
+        )),
+        ..Default::default()
+    };
+    process_qcm(&ctx.service, &request.encode_to_vec(), &mut None)
+        .await
+        .unwrap();
+    assert_eq!(
+        *ctx.provider.favorites.lock().unwrap(),
+        vec![("daily".into(), m::type_enum::ItemType::Mix, true)]
+    );
+    ctx.finish().await;
+}
+
+#[tokio::test]
+async fn invalid_domain_ids_reject_before_refresh_or_write() {
+    let ctx = TestContext::new(false).await;
+    for id in [None, Some(0.into()), Some((-1).into())] {
+        let request = msg::QcmMessage {
+            protocol_version: crate::protocol::VERSION,
+            r#type: msg::MessageType::GetMixSongsReq as i32,
+            payload: Some(msg::qcm_message::Payload::GetMixSongsReq(
+                msg::GetMixSongsReq {
+                    id,
+                    force_refresh: true,
+                    ..Default::default()
+                },
+            )),
+            ..Default::default()
+        };
+        assert!(
+            process_qcm(&ctx.service, &request.encode_to_vec(), &mut None)
+                .await
+                .is_err()
+        );
+    }
+    let mut request = msg::QcmMessage {
+        protocol_version: crate::protocol::VERSION,
+        r#type: msg::MessageType::GetSongIdsReq as i32,
+        payload: Some(msg::qcm_message::Payload::GetSongIdsReq(
+            msg::GetSongIdsReq {
+                filters: vec![
+                    msg::filter::SongFilter {
+                        payload: Some(msg::filter::song_filter::Payload::MixIdFilter(
+                            msg::filter::MixIdFilter {
+                                value: Some(MIX.into()),
+                            },
+                        )),
+                        ..Default::default()
+                    },
+                    msg::filter::SongFilter {
+                        payload: Some(msg::filter::song_filter::Payload::AlbumIdFilter(
+                            msg::filter::AlbumIdFilter {
+                                value: Some(0.into()),
+                            },
+                        )),
+                        ..Default::default()
+                    },
+                ],
+                ..Default::default()
+            },
+        )),
+        ..Default::default()
+    };
+    assert!(
+        process_qcm(&ctx.service, &request.encode_to_vec(), &mut None)
+            .await
+            .is_err()
+    );
+    assert_eq!(ctx.calls(), 0);
+    let before = m::mix::Entity::find()
+        .count(&ctx.service.provider_context.db)
+        .await
+        .unwrap();
+    request.r#type = msg::MessageType::CreateMixReq as i32;
+    request.payload = Some(msg::qcm_message::Payload::CreateMixReq(msg::CreateMixReq {
+        name: "must not be created".into(),
+        song_ids: Some(vec![502, 0].into()),
+    }));
+    assert!(
+        process_qcm(&ctx.service, &request.encode_to_vec(), &mut None)
+            .await
+            .is_err()
+    );
+    assert_eq!(
+        m::mix::Entity::find()
+            .count(&ctx.service.provider_context.db)
+            .await
+            .unwrap(),
+        before
+    );
+    ctx.finish().await;
 }
 
 #[tokio::test]
@@ -289,6 +454,7 @@ async fn filtered_playback_ids_refresh_expired_mix_membership() {
         .await
         .unwrap();
     let request = msg::QcmMessage {
+        protocol_version: crate::protocol::VERSION,
         r#type: msg::MessageType::GetSongIdsReq as i32,
         payload: Some(msg::qcm_message::Payload::GetSongIdsReq(
             msg::GetSongIdsReq {
@@ -296,7 +462,9 @@ async fn filtered_playback_ids_refresh_expired_mix_membership() {
                 asc: true,
                 filters: vec![msg::filter::SongFilter {
                     payload: Some(msg::filter::song_filter::Payload::MixIdFilter(
-                        msg::filter::MixIdFilter { value: MIX },
+                        msg::filter::MixIdFilter {
+                            value: Some(MIX.into()),
+                        },
                     )),
                     ..Default::default()
                 }],
@@ -311,7 +479,7 @@ async fn filtered_playback_ids_refresh_expired_mix_membership() {
     let Some(msg::qcm_message::Payload::GetSongIdsRsp(response)) = response.payload else {
         panic!("expected playback IDs");
     };
-    assert_eq!(response.ids, vec![503]);
+    assert_eq!(crate::identity::IdList::values(&response.ids), &[503]);
     assert_eq!(ctx.calls(), 1);
     assert_eq!(ids(&ctx.songs(MIX, false).await.unwrap()), &[503]);
     assert_eq!(ctx.calls(), 1);

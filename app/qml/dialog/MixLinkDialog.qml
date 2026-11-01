@@ -75,7 +75,7 @@ MD.Dialog {
                 v.implicitWidth = Math.max(v.implicitWidth, implicitWidth);
             }
             onClicked: {
-                m_qr_link.ids = [model.itemId];
+                m_qr_link.ids = QM.Ids.mixIds([model.itemId]);
                 m_qr_link.reload();
             }
         }

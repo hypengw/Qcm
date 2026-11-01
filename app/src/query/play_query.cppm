@@ -83,7 +83,7 @@ public:
     void reload() override;
 
 private:
-    QtProtobuf::int64List m_provider_ids;
+    msg::id::ProviderIds m_provider_ids;
     quint64              m_revision { 0 };
 };
 

@@ -10,11 +10,12 @@ MD.Page {
     id: root
 
     property var artist: qr_artist.data.item
-    property alias itemId: qr_artist.itemId
+    property alias artistId: qr_artist.artistId
+    readonly property QA.item_id itemId: artistId
+    property bool albumArtist: false
     readonly property bool single: m_view.width < m_cover.displaySize.width * (1.0 + 1.5) + 8
     property Item viewHeaderItem: null
     property int displayMode: QA.Enum.DCardGrid
-    readonly property bool isAlbumArtistId: itemId.type == QA.Enum.ItemAlbumArtist
 
     title: qsTr("artist")
     padding: 0
@@ -254,16 +255,16 @@ MD.Page {
         property QM.albumFilter filter1
         filter1.albumArtistIdFilter: {
             const f = QA.Util.albumArtistIdFilter();
-            f.value = qr_artist.itemId.id;
+            f.value = root.artistId;
             return f;
         }
         property QM.albumFilter filter2
         filter2.artistIdFilter: {
             const f = QA.Util.artistIdFilter();
-            f.value = qr_artist.itemId.id;
+            f.value = root.artistId;
             return f;
         }
-        filters: [root.isAlbumArtistId ? filter1 : filter2]
+        filters: [root.albumArtist ? filter1 : filter2]
         asc: m_album_sort_type.asc
         sort: m_album_sort_type.currentType
         onAscChanged: reload()

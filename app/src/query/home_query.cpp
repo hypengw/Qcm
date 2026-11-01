@@ -18,10 +18,13 @@ HomeRecommendationsQuery::HomeRecommendationsQuery(QObject* parent)
     connect(providers, &QAbstractItemModel::dataChanged, this, [this] {
         reconcileProviders();
     });
-    connect(providers, &ProviderStatusModel::providerSyncFinished, this, [this](qint64) {
-        invalidate();
-        delayReload();
-    });
+    connect(providers,
+            &ProviderStatusModel::providerSyncFinished,
+            this,
+            [this](const msg::id::ProviderId&) {
+                invalidate();
+                delayReload();
+            });
     connect(providers, &ProviderStatusModel::syncingChanged, this, [this](bool syncing) {
         invalidate();
         if (! syncing) delayReload();
@@ -32,7 +35,8 @@ HomeRecommendationsQuery::HomeRecommendationsQuery(QObject* parent)
         m_epochs.clear();
         apply();
     });
-    connect(app->backend(), &Backend::connected, this, [this] {
+    connect(app->backend(), &Backend::resourceStateChanged, this, [this, backend = app->backend()] {
+        if (backend->resource_base_url().isEmpty()) return;
         reconcileProviders();
         delayReload();
     });
@@ -48,8 +52,8 @@ void HomeRecommendationsQuery::reconcileProviders() {
     auto                  providers = App::instance()->provider_status();
     auto                  ids       = providers->activedIds();
     QMap<qint64, quint64> epochs;
-    for (auto id : ids) {
-        auto value = providers->itemById({ enums::ItemType::ItemProvider, id })
+    for (auto id : ids.values()) {
+        auto value = providers->itemById(identity::fromValue<msg::id::ProviderId>(id))
                          .value<model::ProviderStatus>();
         epochs.insert(id, value.epoch());
     }
@@ -58,9 +62,11 @@ void HomeRecommendationsQuery::reconcileProviders() {
     for (auto it = m_snapshots.begin(); it != m_snapshots.end();) {
         if (! epochs.contains(it.key()) || m_epochs.value(it.key()) != epochs.value(it.key())) {
             if (epochs.contains(it.key())) {
-                for (const auto& radio : it->radios()) radioQueue(radio)->invalidateSession();
+                for (const auto& radio : it->radios())
+                    if (auto queue = radioQueue(radio)) queue->invalidateSession();
                 for (const auto& card : it->forYou())
-                    if (card.hasRadio()) radioQueue(card.radio())->invalidateSession();
+                    if (card.hasRadio())
+                        if (auto queue = radioQueue(card.radio())) queue->invalidateSession();
             }
             it = m_snapshots.erase(it);
         } else
@@ -74,7 +80,7 @@ void HomeRecommendationsQuery::reconcileProviders() {
 void HomeRecommendationsQuery::apply() {
     QList<model::ForYouCard> cards;
     QList<model::RadioQueue> radios;
-    for (auto id : m_provider_ids) {
+    for (auto id : m_provider_ids.values()) {
         if (! m_snapshots.contains(id)) continue;
         const auto& snapshot = m_snapshots[id];
         cards.append(snapshot.forYou());
@@ -103,7 +109,7 @@ void HomeRecommendationsQuery::reload() {
         QStringList                     errors;
         QMap<qint64, model::RadioQueue> prepare;
         for (const auto& candidate : rsp->providers()) {
-            auto id = candidate.providerId();
+            auto id = candidate.providerId().value();
             if (! self->m_epochs.contains(id) || self->m_epochs[id] != candidate.epoch()) continue;
             if (! candidate.error().isEmpty()) {
                 errors.append(candidate.error());
@@ -113,11 +119,13 @@ void HomeRecommendationsQuery::reload() {
                 qWarning().noquote() << "home:" << id << diagnostic;
             self->m_snapshots.insert(id, candidate);
             for (const auto& card : candidate.forYou())
-                if (card.hasRadio()) prepare.insert(card.radio().id_proto(), card.radio());
-            for (const auto& radio : candidate.radios()) prepare.insert(radio.id_proto(), radio);
+                if (card.hasRadio()) prepare.insert(card.radio().id_proto().value(), card.radio());
+            for (const auto& radio : candidate.radios())
+                prepare.insert(radio.id_proto().value(), radio);
         }
         self->apply();
-        for (const auto& radio : prepare) self->radioQueue(radio)->ensureStarted();
+        for (const auto& radio : prepare)
+            if (auto queue = self->radioQueue(radio)) queue->ensureStarted();
         self->setError(errors.join(u'\n'));
         self->setStatus(errors.isEmpty() ? Status::Finished : Status::Error);
         co_return;
@@ -125,14 +133,14 @@ void HomeRecommendationsQuery::reload() {
 }
 auto HomeRecommendationsQuery::radioQueue(const model::RadioQueue& radio)
     -> model::DynamicIdQueue* {
-    return App::instance()->playqueue()->dynamicQueue(model::item_id(radio),
+    return App::instance()->playqueue()->dynamicQueue(radio.id_proto(),
                                                       radio.name(),
                                                       radio.configuration(),
                                                       radio.canRestart(),
                                                       radio.restartLabel());
 }
 void HomeRecommendationsQuery::activateRadio(const model::RadioQueue& radio) {
-    Action::instance()->switch_queue(radioQueue(radio));
+    if (auto queue = radioQueue(radio)) Action::instance()->switch_queue(queue);
 }
 void HomeRecommendationsQuery::activate(const model::ForYouCard& card, bool playButton) {
     using A     = msg::model::CardActionGadget::CardAction;

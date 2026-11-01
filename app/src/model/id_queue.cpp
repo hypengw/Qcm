@@ -177,7 +177,7 @@ bool IdQueue::move(qint32 src, qint32 dst, qint32 count) {
     return moveRows(p, src, count, p, dst);
 }
 
-DynamicIdQueue::DynamicIdQueue(qint64 queue_id, const QString& name,
+DynamicIdQueue::DynamicIdQueue(const msg::id::RadioQueueId& queue_id, const QString& name,
                                const QList<msg::model::QueueConfigField>& configuration,
                                bool can_restart, const QString& restart_label, QObject* parent)
     : IdQueue(parent),
@@ -210,7 +210,7 @@ DynamicIdQueue::DynamicIdQueue(qint64 queue_id, const QString& name,
 }
 
 DynamicIdQueue::~DynamicIdQueue() { close(m_session.id_proto()); }
-auto DynamicIdQueue::queueId() const -> qint64 { return m_queue_id; }
+auto DynamicIdQueue::queueId() const -> msg::id::RadioQueueId { return m_queue_id; }
 auto DynamicIdQueue::configuration() const -> const QList<msg::model::QueueConfigField>& {
     return m_configuration;
 }
@@ -341,7 +341,7 @@ void DynamicIdQueue::request_next() {
     QList<qint64> ids;
     for (int row = 0; row < rowCount(); ++row)
         ids.push_back(data(index(row), Qt::DisplayRole).value<model::ItemId>().id());
-    req.setCurrentSongIds({ ids.begin(), ids.end() });
+    req.setCurrentSongIds(identity::fromValues<msg::id::SongIds>(ids));
     req.setSessionId(m_session.id_proto());
     req.setExpectedVersion(m_session.version());
     req.setOperationId(QString::number(QDateTime::currentMSecsSinceEpoch()) + ':' +
@@ -354,7 +354,8 @@ void DynamicIdQueue::on_open_finished() {
     auto query = static_cast<QueueNextQuery*>(m_open_query);
     if (query->querying()) return;
     m_configuring = false;
-    if (query->status() != QAsyncResult::Status::Finished || query->tdata().songIds().isEmpty() ||
+    if (query->status() != QAsyncResult::Status::Finished ||
+        query->tdata().songIds().values().isEmpty() ||
         query->tdata().session().id_proto().isEmpty()) {
         if (query->status() == QAsyncResult::Status::Finished) {
             close(query->tdata().session().id_proto());
@@ -380,8 +381,7 @@ void DynamicIdQueue::on_open_finished() {
         field.setValue(m_session.configuration().value(field.key()));
     if (rowCount()) removeRows(0, rowCount());
     std::vector<model::ItemId> ids;
-    for (auto id : page.songIds())
-        ids.emplace_back(enums::ItemType::ItemSong, id);
+    for (auto id : page.songIds().values()) ids.emplace_back(enums::ItemType::ItemSong, id);
     insert(0, ids);
     setCurrentIndex(0);
     m_auto_removing = false;
@@ -409,8 +409,7 @@ void DynamicIdQueue::on_query_finished() {
     m_session                                 = page.session();
     const auto                 previous_count = rowCount();
     std::vector<model::ItemId> ids;
-    for (auto id : page.songIds())
-        ids.emplace_back(enums::ItemType::ItemSong, id);
+    for (auto id : page.songIds().values()) ids.emplace_back(enums::ItemType::ItemSong, id);
     insert(rowCount(), ids);
     m_suppress_prefetch = rowCount() == previous_count;
     sessionChanged();

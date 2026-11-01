@@ -10,6 +10,9 @@ default = false
 [dependencies.lito-qt]
 workspace = true
 
+[dependencies.qcm-message-build]
+workspace = true
+
 [[bin]]
 name = "Qcm"
 module = "qcm.entry"

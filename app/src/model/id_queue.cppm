@@ -91,11 +91,11 @@ export class DynamicIdQueue : public IdQueue {
     Q_PROPERTY(QString restartLabel READ restartLabel NOTIFY sessionChanged FINAL)
     Q_PROPERTY(QString description READ description NOTIFY sessionChanged FINAL)
 public:
-    DynamicIdQueue(qint64 queue_id, const QString& name,
+    DynamicIdQueue(const msg::id::RadioQueueId& queue_id, const QString& name,
                    const QList<msg::model::QueueConfigField>& configuration, bool can_restart,
                    const QString& restart_label, QObject* parent = nullptr);
     ~DynamicIdQueue();
-    auto             queueId() const -> qint64;
+    auto             queueId() const -> msg::id::RadioQueueId;
     auto             configuration() const -> const QList<msg::model::QueueConfigField>&;
     auto             configuring() const -> bool;
     auto             exhausted() const -> bool;
@@ -123,7 +123,7 @@ private:
     void on_current_index_changed(qint32 idx);
     auto values() const -> QHash<QString, QString>;
 
-    qint64                              m_queue_id;
+    msg::id::RadioQueueId               m_queue_id;
     QObject*                            m_query;
     QObject*                            m_open_query;
     bool                                m_auto_removing { false };

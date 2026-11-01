@@ -74,37 +74,39 @@ export class ArtistQuery : public Query, public QueryExtra<model::ArtistStoreIte
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
+    Q_PROPERTY(
+        qcm::msg::id::ArtistId artistId READ artistId WRITE setArtistId NOTIFY artistIdChanged)
 public:
     ArtistQuery(QObject* parent = nullptr);
     void reload() override;
 
-    auto itemId() const -> model::ItemId;
-    void setItemId(model::ItemId);
+    auto artistId() const -> msg::id::ArtistId;
+    void setArtistId(const msg::id::ArtistId&);
 
-    Q_SIGNAL void itemIdChanged();
+    Q_SIGNAL void artistIdChanged();
 
 private:
-    model::ItemId m_item_id;
+    msg::id::ArtistId m_artist_id;
 };
 
 export class ArtistAlbumQuery : public QueryList,
                                 public QueryExtra<model::AlbumListModel, ArtistAlbumQuery> {
     Q_OBJECT
     QML_ELEMENT
-    Q_PROPERTY(qcm::model::ItemId itemId READ itemId WRITE setItemId NOTIFY itemIdChanged)
+    Q_PROPERTY(
+        qcm::msg::id::ArtistId artistId READ artistId WRITE setArtistId NOTIFY artistIdChanged)
 public:
     ArtistAlbumQuery(QObject* parent = nullptr);
     void reload() override;
     void fetchMore(qint32) override;
 
-    auto itemId() const -> model::ItemId;
-    void setItemId(model::ItemId);
+    auto artistId() const -> msg::id::ArtistId;
+    void setArtistId(const msg::id::ArtistId&);
 
-    Q_SIGNAL void itemIdChanged();
+    Q_SIGNAL void artistIdChanged();
 
 private:
-    model::ItemId m_item_id;
+    msg::id::ArtistId m_artist_id;
 };
 
 } // namespace qcm

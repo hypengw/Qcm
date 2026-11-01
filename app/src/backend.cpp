@@ -8,6 +8,7 @@ module;
 
 #include "Qcm/backend.moc.h"
 #include "Qcm/message/load_pool.hpp"
+#include "Qcm/message/protocol.hpp"
 #include "core/log.h"
 
 module qcm;
@@ -88,7 +89,7 @@ public:
                     -> task<void> {
                     if (! backend) co_return;
                     msg::GetSongsByIdReq request;
-                    request.setIds({ ids.begin(), ids.end() });
+                    request.setIds(identity::fromValues<msg::id::SongIds>(ids));
                     auto response = co_await backend->send(std::move(request));
                     if (! co_await QAsyncResult::qexecutor() || ! weak) co_return;
                     auto flight = weak->m_flights.take(key, expected.lock());
@@ -134,6 +135,11 @@ public:
 
     void initialize() {
         plt::set_thread_name("backend");
+        m_handshake_timer = new QTimer(this);
+        m_handshake_timer->setSingleShot(true);
+        connect(m_handshake_timer, &QTimer::timeout, this, [this] {
+            fail(QStringLiteral("Backend handshake timed out"));
+        });
 
         m_process = std::make_unique<QProcess>();
         m_process->setWorkingDirectory(QCoreApplication::applicationDirPath());
@@ -156,6 +162,7 @@ public:
         m_serializer = std::make_unique<QProtobufSerializer>();
         BackendConnectionCallbacks callbacks;
         callbacks.connected = [this] {
+            reset_protocol();
             (void)m_backend->m_generation.fetch_add(1);
             m_connected = true;
             Q_EMIT m_backend->connected(m_port);
@@ -164,6 +171,7 @@ public:
             fail(message);
         };
         callbacks.disconnected = [this] {
+            reset_protocol();
             (void)m_backend->m_generation.fetch_add(1);
             m_connected = false;
             fail_pending(QStringLiteral("backend disconnected"));
@@ -175,6 +183,11 @@ public:
                 fail(QStringLiteral("Invalid backend protobuf message"));
                 return;
             }
+            if (auto error = m_protocol.accept(message); ! error.isEmpty()) {
+                fail(error);
+                return;
+            }
+            if (m_protocol.ready()) m_handshake_timer->stop();
 
             if (message.type() != msg::MessageTypeGadget::MessageType::PROVIDER_SYNC_STATUS_MSG) {
                 LOG_INFO("ws recv: {}", message.type());
@@ -203,11 +216,15 @@ public:
                                     Q_EMIT backend->error(error);
                                     return;
                                 }
+                                if (message.hasTestRsp()) {
+                                    backend->m_resource_ready = true;
+                                    Q_EMIT backend->resourceStateChanged();
+                                }
                                 qcm::process_msg(std::move(message));
                             });
                     } else if (message.hasTestRsp()) {
                         Q_EMIT backend->error(
-                            QStringLiteral("Backend does not support entity protocol v1"));
+                            QStringLiteral("Backend does not support entity protocol v2"));
                     } else
                         qcm::process_msg(std::move(message));
                 },
@@ -260,6 +277,7 @@ public:
     }
 
     void kill() {
+        reset_protocol();
         m_connected = false;
         if (m_connection) m_connection->disconnect();
         if (m_process && m_process->state() != QProcess::NotRunning) m_process->kill();
@@ -275,6 +293,11 @@ public:
             (void)response.fail(transport_error(QStringLiteral("backend disconnected")));
             return;
         }
+        if (! m_protocol.ready()) {
+            (void)response.fail(transport_error(QStringLiteral("backend handshake not complete")));
+            return;
+        }
+        message.setProtocolVersion(protocol::Version);
 
         auto id = message.id_proto();
         if (m_pending.contains(id)) {
@@ -290,7 +313,16 @@ public:
     }
 
     void send_untracked(msg::QcmMessage message) {
-        if (! m_connection || m_shutting_down) return;
+        if (! m_connection || ! m_connected || m_shutting_down) return;
+        if (! m_protocol.ready()) {
+            if (! message.hasTestReq()) {
+                fail(QStringLiteral("backend handshake not complete"));
+                return;
+            }
+            m_protocol.begin(message.id_proto());
+            m_handshake_timer->start(5000);
+        }
+        message.setProtocolVersion(protocol::Version);
         auto sent = m_connection->send(message.serialize(m_serializer.get()));
         if (sent.is_err()) LOG_ERROR("backend send: {}", sent.unwrap_err().toStdString());
     }
@@ -298,6 +330,7 @@ public:
     void cancel(i32 request_id) { m_pending.cancel(request_id); }
 
     auto shutdown() -> std::shared_future<void> {
+        reset_protocol();
         m_shutting_down = true;
         m_connected     = false;
         fail_pending(QStringLiteral("backend shutting down"));
@@ -318,7 +351,12 @@ public:
     }
 
 private:
+    void reset_protocol() {
+        m_protocol.reset();
+        if (m_handshake_timer) m_handshake_timer->stop();
+    }
     void fail(const QString& message) {
+        reset_protocol();
         m_connected = false;
         fail_pending(message);
         if (m_connection) m_connection->disconnect();
@@ -328,6 +366,8 @@ private:
     void fail_pending(const QString& message) { m_pending.fail_all(transport_error(message)); }
 
     Backend*                                    m_backend;
+    protocol::Session                           m_protocol;
+    QTimer*                                     m_handshake_timer {};
     std::unique_ptr<QProcess>                   m_process;
     std::unique_ptr<BackendConnection>          m_connection;
     std::unique_ptr<QProtobufSerializer>        m_serializer;
@@ -466,7 +506,7 @@ void Backend::on_started(i32 port) {
 void Backend::on_connected(i32) {
     m_loader->reset();
     AppStore::instance()->reset();
-    m_resource_ready = true;
+    m_resource_ready = false;
     Q_EMIT resourceStateChanged();
     auto message = msg::QcmMessage();
     message.setType(msg::MessageTypeGadget::MessageType::TEST_REQ);
@@ -559,9 +599,16 @@ auto Backend::send(msg::QcmMessage&& message) -> task<Result<msg::QcmMessage, ms
     co_return Ok(rstd::move(received));
 }
 
-StoreSubscription Backend::loadSongs(QList<i64> ids, QObject* consumer,
+StoreSubscription Backend::loadSongs(const msg::id::SongIds& input, QObject* consumer,
                                      std::function<void(const SongResult&)> callback) {
     Q_ASSERT(QThread::currentThread() == thread());
+    if (! identity::valid(input)) {
+        callback(Err(msg::Error { .code = -1, .message = "invalid song IDs" }));
+        return {};
+    }
+    QList<i64> ids;
+    ids.reserve(input.values().size());
+    for (auto id : input.values()) ids.push_back(id);
     std::sort(ids.begin(), ids.end());
     ids.erase(std::unique(ids.begin(), ids.end()), ids.end());
     QStringList parts;
@@ -578,7 +625,7 @@ auto Backend::resource_base_url() const -> QUrl {
 }
 auto Backend::cache_directory() const -> QString { return m_cache_dir; }
 auto Backend::image_url(model::ItemId id, enums::ImageType image_type) const -> QUrl {
-    if (! m_resource_ready || id.id() < 0) return {};
+    if (! m_resource_ready || ! id.valid()) return {};
     auto type = id.type();
     if (type == enums::ItemType::ItemAlbumArtist) type = enums::ItemType::ItemArtist;
     return QUrl(

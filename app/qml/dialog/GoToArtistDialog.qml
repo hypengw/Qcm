@@ -1,10 +1,12 @@
 import QtQuick
 import Qcm.App as QA
+import Qcm.Msg as QM
 import Qcm.Material as MD
 
 MD.Dialog {
     id: root
-    property list<var> itemIds
+    property QM.artistIds artistIds
+    property bool albumArtist: false
     title: qsTr('Go To Artist')
     standardButtons: MD.Dialog.Cancel
 
@@ -12,7 +14,7 @@ MD.Dialog {
         id: m_view
         anchors.fill: parent
         source: MD.ListSnapshotSource {
-            items: root.itemIds
+            items: QM.Ids.artistItems(root.artistIds)
         }
 
         expand: true
@@ -26,7 +28,7 @@ MD.Dialog {
             corners: MD.Util.listCorners(index, count, 16)
 
             leader: QA.Image {
-                source: QA.Util.image_url(m_qr.itemId)
+                source: QA.Util.image_url(modelData)
                 displaySize: Qt.size(48, 48)
                 radius: 24
             }
@@ -38,14 +40,14 @@ MD.Dialog {
 
             QA.ArtistQuery {
                 id: m_qr
-                itemId: modelData
-                onItemIdChanged: {
+                artistId: modelData
+                onArtistIdChanged: {
                     reload();
                 }
             }
             onClicked: {
                 MD.Util.closePopup(root);
-                QA.Action.routeItem(modelData);
+                QA.Action.routeItem(modelData, {"albumArtist": root.albumArtist});
             }
         }
     }

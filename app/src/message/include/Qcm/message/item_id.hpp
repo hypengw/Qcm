@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Qcm/message/item_type.hpp"
+#include "Qcm/message/id.hpp"
 
 #include <QtCore/qstring.h>
 #include <QtCore/qurl.h>
@@ -9,6 +10,7 @@
 
 #include <compare>
 #include <functional>
+#include <optional>
 #include <string_view>
 
 namespace qcm::model
@@ -20,7 +22,7 @@ class ItemId {
     Q_GADGET
     QML_VALUE_TYPE(item_id)
     Q_PROPERTY(QtProtobuf::int64 id READ pid)
-    Q_PROPERTY(qcm::enums::ItemType type READ type WRITE setType)
+    Q_PROPERTY(qcm::enums::ItemType type READ type)
     Q_PROPERTY(QString sid READ idStr)
     Q_PROPERTY(bool valid READ valid)
     Q_PROPERTY(QUrl url READ toUrl)
@@ -29,6 +31,12 @@ public:
     ItemId();
     ItemId(std::nullptr_t);
     ItemId(qcm::enums::ItemType, qint64 id);
+
+#define QCM_ID_METHODS(Name, Kind, QmlName) \
+    ItemId(const msg::id::Name##Id&);       \
+    auto to##Name##Id() const -> std::optional<msg::id::Name##Id>;
+    QCM_ID_TYPES(QCM_ID_METHODS)
+#undef QCM_ID_METHODS
 
     explicit ItemId(const QUrl&);
     ItemId(const ItemId&)                = default;
@@ -71,6 +79,11 @@ private:
 };
 
 } // namespace qcm::model
+
+namespace qcm::model
+{
+void registerIdConverters();
+}
 
 template<>
 struct std::hash<qcm::model::ItemId> {

@@ -580,7 +580,7 @@ void PlayQueue::clear() {
 auto PlayQueue::update(std::span<const model::Song> in) -> void {
     auto store = AppStore::instance();
     for (auto& el : in) {
-        auto item = store->songs.store_item(el.id_proto());
+        auto item = store->songs.store_item(el.id_proto().value());
         if (item) {
             m_songs.insert_or_assign(model::item_id(el), *item);
         }
@@ -685,15 +685,16 @@ auto PlayQueue::radioQueue() const -> model::DynamicIdQueue* {
     return qobject_cast<model::DynamicIdQueue*>(sourceModel());
 }
 
-auto PlayQueue::dynamicQueue(model::ItemId itemId, const QString& name,
+auto PlayQueue::dynamicQueue(const msg::id::RadioQueueId& itemId, const QString& name,
                              const QList<msg::model::QueueConfigField>& configuration,
                              bool can_restart, const QString& restart_label)
     -> model::DynamicIdQueue* {
-    auto queueId = itemId.id();
+    if (! identity::valid(itemId)) return nullptr;
+    auto queueId = itemId.value();
     auto it      = m_dynamic_queues.find(queueId);
     if (it != m_dynamic_queues.end() && it->second) return it->second;
     auto* q =
-        new model::DynamicIdQueue(queueId, name, configuration, can_restart, restart_label, this);
+        new model::DynamicIdQueue(itemId, name, configuration, can_restart, restart_label, this);
     connect(q, &model::DynamicIdQueue::sessionChanged, this, [this, q] {
         if (radioQueue() == q) {
             if (q->exhausted()) cancelPendingAdvance();
@@ -783,26 +784,27 @@ void PlayQueue::fetchSongs() {
     const auto ticket = ++m_loadSerial;
     m_loading_ids.emplace(ticket, std::move(loading));
     changingTrackChanged();
-    auto       lease =
-        backend->loadSongs(std::move(ids), this, [self, ticket](const Backend::SongResult& rsp) {
-            if (! self) return;
-            self->m_loads.erase(ticket);
-            self->m_loading_ids.erase(ticket);
-            if (rsp) {
-                std::unordered_set<model::ItemId> fetched_ids;
-                auto                              store = AppStore::instance();
-                for (auto id : rsp->ids()) {
-                    model::ItemId key(enums::ItemType::ItemSong, id);
-                    if (auto item = store->songs.store_item(id)) {
-                        fetched_ids.insert(key);
-                        self->m_songs.insert_or_assign(key, *item);
-                    }
-                }
-                self->notifyRowsForIds(fetched_ids);
-            }
-            self->changingTrackChanged();
-            self->fetchSongs();
-        });
+    auto lease = backend->loadSongs(identity::fromValues<msg::id::SongIds>(ids),
+                                    this,
+                                    [self, ticket](const Backend::SongResult& rsp) {
+                                        if (! self) return;
+                                        self->m_loads.erase(ticket);
+                                        self->m_loading_ids.erase(ticket);
+                                        if (rsp) {
+                                            std::unordered_set<model::ItemId> fetched_ids;
+                                            auto store = AppStore::instance();
+                                            for (auto id : rsp->ids().values()) {
+                                                model::ItemId key(enums::ItemType::ItemSong, id);
+                                                if (auto item = store->songs.store_item(id)) {
+                                                    fetched_ids.insert(key);
+                                                    self->m_songs.insert_or_assign(key, *item);
+                                                }
+                                            }
+                                            self->notifyRowsForIds(fetched_ids);
+                                        }
+                                        self->changingTrackChanged();
+                                        self->fetchSongs();
+                                    });
     if (lease) m_loads.emplace(ticket, std::move(lease));
     else {
         m_loading_ids.erase(ticket);

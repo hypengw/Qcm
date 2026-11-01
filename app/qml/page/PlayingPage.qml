@@ -238,7 +238,7 @@ MD.Page {
 
             QA.LyricQuery {
                 id: m_query
-                itemId: root.songId
+                songId: root.song.id_proto
             }
 
             Connections {

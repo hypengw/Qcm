@@ -430,6 +430,7 @@ async fn audio_and_song_cover_http_remain_available_after_sync() {
     let (oper, _) = TaskManager::new();
     let (backend_ev, _) = tokio::sync::mpsc::channel(1);
     let service = Arc::new(ServiceContext {
+        protocol: crate::protocol::Session::testing(),
         provider_context: ctx.clone(),
         backend_ev,
         oper,

@@ -78,6 +78,7 @@ async fn jellyfin_hls_session_cache_and_native_player() {
     let (oper, _) = crate::task::TaskManager::new();
     let (backend_ev, _) = tokio::sync::mpsc::channel(1);
     let service = Arc::new(ServiceContext {
+        protocol: crate::protocol::Session::testing(),
         provider_context: context,
         backend_ev,
         oper,

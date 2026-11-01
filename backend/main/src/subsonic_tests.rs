@@ -112,6 +112,7 @@ async fn live_subsonic_home_radio_and_resource_cache() {
     let (oper, _) = TaskManager::new();
     let (backend_ev, _) = tokio::sync::mpsc::channel(1);
     let service = Arc::new(ServiceContext {
+        protocol: crate::protocol::Session::testing(),
         provider_context: ctx.clone(),
         backend_ev,
         oper,
@@ -121,10 +122,11 @@ async fn live_subsonic_home_radio_and_resource_cache() {
         resource_cache: cache.clone(),
     });
     let request = msg::QcmMessage {
+        protocol_version: crate::protocol::VERSION,
         r#type: msg::MessageType::GetHomeRecommendationsReq as i32,
         payload: Some(msg::qcm_message::Payload::GetHomeRecommendationsReq(
             msg::GetHomeRecommendationsReq {
-                provider_ids: vec![ID],
+                provider_ids: Some(vec![ID].into()),
             },
         )),
         ..Default::default()
@@ -148,7 +150,7 @@ async fn live_subsonic_home_radio_and_resource_cache() {
     let queues = crate::home::radio_queues(&ctx, &[ID]).await.unwrap();
     assert_eq!(queues.len(), 1);
     let target = Target {
-        queue_id: queues[0].id,
+        queue_id: queues[0].id.as_ref().unwrap().value,
         native_id: "random".into(),
         provider: p.clone(),
     };
@@ -268,6 +270,7 @@ async fn live_subsonic_home_radio_and_resource_cache() {
         std::fs::create_dir_all(&path).unwrap();
         std::fs::write(path.join("home.pb"), snapshot.encode_to_vec()).unwrap();
         let queues = msg::QcmMessage {
+            protocol_version: crate::protocol::VERSION,
             r#type: msg::MessageType::GetRadioQueuesRsp as i32,
             payload: Some(msg::qcm_message::Payload::GetRadioQueuesRsp(
                 msg::GetRadioQueuesRsp { queues },

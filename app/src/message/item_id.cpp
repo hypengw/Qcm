@@ -1,6 +1,7 @@
 #include "Qcm/message/item_id.hpp"
 #include <QString>
 #include <QHashFunctions>
+#include <mutex>
 
 using namespace Qt::Literals::StringLiterals;
 
@@ -16,6 +17,40 @@ ItemId::ItemId(enums::ItemType type, qint64 id): ItemId() {
 }
 
 ItemId::ItemId(const QUrl& u): ItemId() { setUrl(u); }
+
+#define QCM_ID_METHODS(Name, Kind, QmlName)                                                    \
+    ItemId::ItemId(const msg::id::Name##Id& id): ItemId() {                                    \
+        if (identity::valid(id)) {                                                             \
+            m_type = enums::ItemType::Kind;                                                    \
+            m_id   = id.value();                                                               \
+        }                                                                                      \
+    }                                                                                          \
+    auto ItemId::to##Name##Id() const->std::optional<msg::id::Name##Id> {                      \
+        auto actual =                                                                          \
+            m_type == enums::ItemType::ItemAlbumArtist ? enums::ItemType::ItemArtist : m_type; \
+        if (! valid() || actual != enums::ItemType::Kind) return {};                           \
+        return identity::fromValue<msg::id::Name##Id>(m_id);                                   \
+    }
+QCM_ID_TYPES(QCM_ID_METHODS)
+#undef QCM_ID_METHODS
+
+void registerIdConverters() {
+    static std::once_flag once;
+    std::call_once(once, [] {
+#define QCM_REGISTER_ID(Name, Kind, QmlName)                                       \
+    QMetaType::registerConverter<msg::id::Name##Id, ItemId>(                       \
+        [](const msg::id::Name##Id& id) -> std::optional<ItemId> {                 \
+            if (! identity::valid(id)) return {};                                  \
+            return ItemId(id);                                                     \
+        });                                                                        \
+    QMetaType::registerConverter<ItemId, msg::id::Name##Id>([](const ItemId& id) { \
+        return id.to##Name##Id();                                                  \
+    });
+        QCM_ID_TYPES(QCM_REGISTER_ID)
+#undef QCM_REGISTER_ID
+        QMetaType::registerConverter<ItemId, QString>(&ItemId::toString);
+    });
+}
 
 ItemId& ItemId::operator=(const QUrl& url) {
     setUrl(url);
@@ -45,7 +80,16 @@ void ItemId::setUrl(const QUrl& u) {
     setId(u.path().sliced(1));
 }
 
-bool ItemId::valid() const { return m_type != enums::ItemType::ItemInvalid && m_id >= 0; }
+bool ItemId::valid() const {
+    if (m_id <= 0) return false;
+    switch (m_type) {
+#define QCM_VALID_ID(Name, Kind, QmlName) case enums::ItemType::Kind:
+        QCM_ID_TYPES(QCM_VALID_ID)
+#undef QCM_VALID_ID
+    case enums::ItemType::ItemAlbumArtist: return true;
+    default: return false;
+    }
+}
 
 QUrl ItemId::toUrl() const {
     QUrl url;

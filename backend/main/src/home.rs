@@ -50,7 +50,7 @@ pub async fn radio_queues(
             .ok_or_else(|| ProcessError::NoSuchProvider(item.provider_id.to_string()))?;
         let definition = provider.queue_definition(ctx, &item.native_id).await?;
         result.push(wire::RadioQueue {
-            id: q.id,
+            id: Some(q.id.into()),
             name: q.name,
             description: q.description.unwrap_or_default(),
             configuration: definition
@@ -75,14 +75,15 @@ fn action(value: CardAction) -> i32 {
         CardAction::ActivateRadio => wire::CardAction::ActivateRadio,
     }) as i32
 }
-fn identity(target: &Target) -> (ItemType, i64, &str) {
-    match target {
-        Target::Mix(v) => (ItemType::Mix, v.id, &v.name),
-        Target::Album(v) => (ItemType::Album, v.id, &v.name),
-        Target::Artist(v) => (ItemType::Artist, v.id, &v.name),
-        Target::Song(v) => (ItemType::Song, v.id, &v.name),
-        Target::Radio(v) => (ItemType::Radio, v.id, &v.name),
-    }
+fn identity(target: &Target) -> Result<(ItemType, i64, &str), ProcessError> {
+    use crate::identity::IdField;
+    Ok(match target {
+        Target::Mix(v) => (ItemType::Mix, v.id.required("mix_id")?, &v.name),
+        Target::Album(v) => (ItemType::Album, v.id.required("album_id")?, &v.name),
+        Target::Artist(v) => (ItemType::Artist, v.id.required("artist_id")?, &v.name),
+        Target::Song(v) => (ItemType::Song, v.id.required("song_id")?, &v.name),
+        Target::Radio(v) => (ItemType::Radio, v.id.required("radio_queue_id")?, &v.name),
+    })
 }
 async fn target(
     db: &sea_orm::DatabaseTransaction,
@@ -149,12 +150,21 @@ async fn candidate(
         return Err(invalid("too many For You entries"));
     }
     let radios = radio_queues(ctx, &[provider_id]).await?;
-    let by_id: HashMap<_, _> = radios.iter().map(|q| (q.id, q.clone())).collect();
+    use crate::identity::IdField;
+    let radio_ids = radios
+        .iter()
+        .map(|q| q.id.required("radio_queue_id"))
+        .collect::<Result<Vec<_>, _>>()?;
+    let by_id: HashMap<_, _> = radio_ids
+        .iter()
+        .copied()
+        .zip(radios.iter().cloned())
+        .collect();
     let txn = ctx.db.begin().await?;
     let resolver =
         qcm_core::db::sync_batch::ProviderWriter::new(&ctx.db, provider_id, &ctx.sync_coordinator);
     let mut result = wire::HomeRecommendation {
-        provider_id,
+        provider_id: Some(provider_id.into()),
         epoch,
         ..Default::default()
     };
@@ -212,7 +222,7 @@ async fn candidate(
                 .push(format!("{}: missing target metadata", entry.entry_key));
             continue;
         };
-        let (kind, id, name) = identity(&target);
+        let (kind, id, name) = identity(&target)?;
         let mut cover = wire::ImageReference {
             r#type: kind as i32,
             id,
@@ -233,14 +243,14 @@ async fn candidate(
                     .push(format!("{}: missing cover metadata", entry.entry_key));
                 continue;
             };
-            let (kind, id, _) = identity(image);
+            let (kind, id, _) = identity(image)?;
             cover = wire::ImageReference {
                 r#type: kind as i32,
                 id,
             };
         }
         let card = wire::ForYouCard {
-            provider_id,
+            provider_id: Some(provider_id.into()),
             entry_key: entry.entry_key,
             title: entry.presentation.title.unwrap_or_else(|| name.to_owned()),
             subtitle: entry.presentation.subtitle,
@@ -265,9 +275,11 @@ async fn candidate(
         result.for_you.push(card);
     }
     txn.commit().await?;
-    result.radios = radios
+    result.radios = radio_ids
         .into_iter()
-        .filter(|q| !placed.contains(&q.id))
+        .zip(radios)
+        .filter(|(id, _)| !placed.contains(id))
+        .map(|(_, radio)| radio)
         .collect();
     if ctx.sync_coordinator.read_revision(provider_id).await != revision
         || !global::provider_snapshot(provider_id)
@@ -298,7 +310,7 @@ pub async fn recommendations(ctx: &Context, ids: &[i64]) -> msg::GetHomeRecommen
         providers.push(result.unwrap_or_else(|error| {
             log::warn!("home provider {provider_id}: {error}");
             wire::HomeRecommendation {
-                provider_id,
+                provider_id: Some(provider_id.into()),
                 epoch,
                 error: error.to_string(),
                 ..Default::default()

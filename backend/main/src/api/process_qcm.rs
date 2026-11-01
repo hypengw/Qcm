@@ -21,6 +21,7 @@ use crate::convert::QcmInto;
 use crate::db::filter::SelectQcmMsgFilters;
 use crate::error::ProcessError;
 use crate::event::{BackendEvent, ServiceContext};
+use crate::identity::{IdField, IdList};
 use crate::msg::{
     self, AuthProviderRsp, GetProviderMetasRsp, GetStorageInfoRsp, MessageType, QcmMessage,
     QrAuthUrlRsp, Rsp, SyncRsp, TestRsp,
@@ -33,10 +34,16 @@ pub async fn process_qcm(
 ) -> Result<QcmMessage, ProcessError> {
     let message = QcmMessage::decode(data)?;
     *in_id = Some(message.id);
+    ctx.protocol.check(&message)?;
+    crate::identity::validate_request(&message)?;
 
     if let Some(msg::qcm_message::Payload::GetMixSongsReq(req)) = &message.payload {
         ctx.mix_refresh
-            .refresh(&ctx.provider_context, req.id, req.force_refresh)
+            .refresh(
+                &ctx.provider_context,
+                req.id.required("mix_id")?,
+                req.force_refresh,
+            )
             .await?;
     }
     if super::entity_query::handles(message.r#type()) {
@@ -58,23 +65,46 @@ async fn process_request(
     match mtype {
         MessageType::GetCommentsReq => {
             if let Some(Payload::GetCommentsReq(req)) = payload {
-                return Ok(msg::GetCommentsRsp { result: Some(crate::comments::list(&ctx.provider_context, req, None, None).await?) }.qcm_into());
+                return Ok(msg::GetCommentsRsp {
+                    result: Some(
+                        crate::comments::list(&ctx.provider_context, req, None, None).await?,
+                    ),
+                }
+                .qcm_into());
             }
         }
         MessageType::GetCommentRepliesReq => {
             if let Some(Payload::GetCommentRepliesReq(req)) = payload {
-                let query = req.query.as_ref().ok_or_else(|| ProcessError::MissingFields("query".into()))?;
-                return Ok(msg::GetCommentRepliesRsp { result: Some(crate::comments::list(&ctx.provider_context, query, Some(&req.parent_id), Some(&req.scope)).await?) }.qcm_into());
+                let query = req
+                    .query
+                    .as_ref()
+                    .ok_or_else(|| ProcessError::MissingFields("query".into()))?;
+                return Ok(msg::GetCommentRepliesRsp {
+                    result: Some(
+                        crate::comments::list(
+                            &ctx.provider_context,
+                            query,
+                            Some(&req.parent_id),
+                            Some(&req.scope),
+                        )
+                        .await?,
+                    ),
+                }
+                .qcm_into());
             }
         }
         MessageType::SetCommentLikeReq => {
             if let Some(Payload::SetCommentLikeReq(req)) = payload {
-                return Ok(crate::comments::like(&ctx.provider_context, req).await?.qcm_into());
+                return Ok(crate::comments::like(&ctx.provider_context, req)
+                    .await?
+                    .qcm_into());
             }
         }
         MessageType::GetShareLinkReq => {
             if let Some(Payload::GetShareLinkReq(req)) = payload {
-                return Ok(crate::share::link(&ctx.provider_context, req).await?.qcm_into());
+                return Ok(crate::share::link(&ctx.provider_context, req)
+                    .await?
+                    .qcm_into());
             }
         }
         MessageType::GetNetworkSettingsReq => {
@@ -102,7 +132,7 @@ async fn process_request(
         }
         MessageType::DeleteProviderReq => {
             if let Some(Payload::DeleteProviderReq(req)) = payload {
-                let id = req.provider_id;
+                let id = req.provider_id.required("provider_id")?;
                 let write = ctx
                     .provider_context
                     .sync_coordinator
@@ -168,11 +198,12 @@ async fn process_request(
         }
         MessageType::ReplaceProviderReq => {
             if let Some(Payload::ReplaceProviderReq(req)) = payload {
-                let provider = global::provider(req.provider_id)
-                    .ok_or(ProcessError::NoSuchProvider(req.provider_id.to_string()))?;
+                let provider_id = req.provider_id.required("provider_id")?;
+                let provider = global::provider(provider_id)
+                    .ok_or(ProcessError::NoSuchProvider(provider_id.to_string()))?;
                 let settings = provider.settings();
                 let update = msg::UpdateProviderReq {
-                    provider_id: req.provider_id,
+                    provider_id: req.provider_id.clone(),
                     name: provider.name(),
                     settings_json: serde_json::to_string(&settings.values)
                         .map_err(anyhow::Error::from)?,
@@ -200,7 +231,10 @@ async fn process_request(
         }
         MessageType::GetProviderSettingsReq => {
             if let Some(Payload::GetProviderSettingsReq(req)) = payload {
-                return Ok(crate::provider_settings::read(req.provider_id)?.qcm_into());
+                return Ok(crate::provider_settings::read(
+                    req.provider_id.required("provider_id")?,
+                )?
+                .qcm_into());
             }
         }
         MessageType::CreateTmpProviderReq => {
@@ -208,7 +242,7 @@ async fn process_request(
                 let meta = global::provider_meta(&req.type_name)
                     .ok_or(ProcessError::NoSuchProviderType(req.type_name.clone()))?;
                 let provider = (meta.creator)(None, "", &global::device_id())?;
-                if let Some(id) = req.network_provider_id {
+                if let Some(id) = req.network_provider_id.optional("network_provider_id")? {
                     let source =
                         global::provider(id).ok_or(ProcessError::NoSuchProvider(id.to_string()))?;
                     if source.type_name() != req.type_name {
@@ -249,6 +283,7 @@ async fn process_request(
 
         MessageType::CreateMixReq => {
             if let Some(Payload::CreateMixReq(req)) = payload {
+                req.song_ids.checked("song_ids")?;
                 let db = &ctx.provider_context.db;
 
                 let _write = ctx.provider_context.sync_coordinator.write(0, None).await?;
@@ -263,21 +298,22 @@ async fn process_request(
                 let res = sqlm::mix::Entity::insert(new_mix).exec(db).await?;
 
                 let rsp = msg::CreateMixRsp {
-                    id: res.last_insert_id,
+                    id: Some(res.last_insert_id.into()),
                 };
                 return Ok(rsp.qcm_into());
             }
         }
         MessageType::DeleteMixReq => {
             if let Some(Payload::DeleteMixReq(req)) = payload {
+                let ids = req.ids.checked("mix_ids")?;
                 let db = &ctx.provider_context.db;
                 let _writes = ctx
                     .provider_context
                     .sync_coordinator
-                    .write_mixes(db, &req.ids, &[])
+                    .write_mixes(db, ids, &[])
                     .await?;
                 sqlm::mix::Entity::delete_many()
-                    .filter(sqlm::mix::Column::Id.is_in(req.ids.clone()))
+                    .filter(sqlm::mix::Column::Id.is_in(ids.iter().copied()))
                     .filter(sqlm::mix::Column::MixType.eq(MixType::Normal))
                     .exec(db)
                     .await?;
@@ -288,7 +324,7 @@ async fn process_request(
                         sqlm::mix::Column::UpdateAt,
                         Expr::val(Timestamp::now()).into(),
                     )
-                    .filter(sqlm::mix::Column::Id.is_in(req.ids.clone()))
+                    .filter(sqlm::mix::Column::Id.is_in(ids.iter().copied()))
                     .filter(sqlm::mix::Column::MixType.eq(MixType::Link))
                     .exec(db)
                     .await?;
@@ -297,11 +333,12 @@ async fn process_request(
         }
         MessageType::LinkMixReq => {
             if let Some(Payload::LinkMixReq(req)) = payload {
+                let ids = req.ids.checked("mix_ids")?;
                 let db = &ctx.provider_context.db;
                 let _writes = ctx
                     .provider_context
                     .sync_coordinator
-                    .write_mixes(db, &req.ids, &[])
+                    .write_mixes(db, ids, &[])
                     .await?;
                 sqlm::mix::Entity::update_many()
                     .col_expr(sqlm::mix::Column::MixType, Expr::val(MixType::Link).into())
@@ -309,7 +346,7 @@ async fn process_request(
                         sqlm::mix::Column::UpdateAt,
                         Expr::val(Timestamp::now()).into(),
                     )
-                    .filter(sqlm::mix::Column::Id.is_in(req.ids.clone()))
+                    .filter(sqlm::mix::Column::Id.is_in(ids.iter().copied()))
                     .exec(db)
                     .await?;
                 return Ok(Rsp::default().qcm_into());
@@ -317,25 +354,32 @@ async fn process_request(
         }
         MessageType::MixManipulateReq => {
             if let Some(Payload::MixManipulateReq(req)) = payload {
-                let mut affected = req.song_ids.clone();
-                affected.extend_from_slice(&req.album_ids);
+                let mix_id = req.id.required("mix_id")?;
+                let song_ids = req.song_ids.checked("song_ids")?;
+                let album_ids = req.album_ids.checked("album_ids")?;
+                let mut affected = song_ids.to_vec();
+                affected.extend_from_slice(album_ids);
                 let _writes = ctx
                     .provider_context
                     .sync_coordinator
-                    .write_mixes(&ctx.provider_context.db, &[req.id], &affected)
+                    .write_mixes(&ctx.provider_context.db, &[mix_id], &affected)
                     .await?;
                 let db = ctx.provider_context.db.begin().await?;
 
-                let mut rsp = msg::MixManipulateRsp::default();
+                let mut rsp = msg::MixManipulateRsp {
+                    id: req.id.clone(),
+                    oper: req.oper,
+                    ..Default::default()
+                };
                 match req.oper() {
                     msg::model::MixManipulateOper::AddSongs => {
-                        let count = sqlm::mix::append_songs(&db, req.id, &req.song_ids).await?;
+                        let count = sqlm::mix::append_songs(&db, mix_id, song_ids).await?;
 
                         db.commit().await?;
                         rsp.count = count as i64;
                     }
                     msg::model::MixManipulateOper::RemoveSongs => {
-                        let count = sqlm::mix::remove_songs(&db, req.id, &req.song_ids).await?;
+                        let count = sqlm::mix::remove_songs(&db, mix_id, song_ids).await?;
 
                         db.commit().await?;
                         rsp.count = count as i64;
@@ -344,12 +388,12 @@ async fn process_request(
                         let ids: Vec<i64> = sqlm::song::Entity::find()
                             .select_only()
                             .column(sqlm::song::Column::Id)
-                            .filter(sqlm::song::Column::AlbumId.is_in(req.album_ids.clone()))
+                            .filter(sqlm::song::Column::AlbumId.is_in(album_ids.iter().copied()))
                             .into_tuple()
                             .all(&db)
                             .await?;
 
-                        let count = sqlm::mix::append_songs(&db, req.id, &ids).await?;
+                        let count = sqlm::mix::append_songs(&db, mix_id, &ids).await?;
 
                         db.commit().await?;
                         rsp.count = count as i64;
@@ -363,8 +407,9 @@ async fn process_request(
         }
         MessageType::GetSongIdsReq => {
             if let Some(Payload::GetSongIdsReq(req)) = payload {
+                let library_ids = req.library_ids.checked("library_ids")?;
                 let db = &ctx.provider_context.db;
-                let mut ids = Vec::new();
+                let mut ids: Vec<i64> = Vec::new();
                 let song_sort: msg::model::SongSort = req
                     .sort
                     .try_into()
@@ -375,7 +420,11 @@ async fn process_request(
                         match f.payload {
                             Some(msg::filter::song_filter::Payload::MixIdFilter(id)) => {
                                 ctx.mix_refresh
-                                    .refresh(&ctx.provider_context, id.value, false)
+                                    .refresh(
+                                        &ctx.provider_context,
+                                        id.value.required("mix_filter")?,
+                                        false,
+                                    )
                                     .await?;
                             }
                             _ => {}
@@ -420,7 +469,10 @@ async fn process_request(
                         .cond_where(
                             Condition::all()
                                 .add(sqlm::dynamic::Column::IsExternal.eq(false))
-                                .add(sqlm::item::Column::LibraryId.is_in(req.library_ids.clone())),
+                                .add(
+                                    sqlm::item::Column::LibraryId
+                                        .is_in(library_ids.iter().copied()),
+                                ),
                         )
                         .to_owned();
 
@@ -460,17 +512,20 @@ async fn process_request(
                         .filter_map(|col| col.try_get::<i64>("", "id").ok())
                         .collect();
                 }
-                let rsp = msg::GetSongIdsRsp { ids };
+                let rsp = msg::GetSongIdsRsp {
+                    ids: Some(ids.into()),
+                };
                 return Ok(rsp.qcm_into());
             }
         }
 
         MessageType::GetSubtitleReq => {
             if let Some(Payload::GetSubtitleReq(req)) = payload {
+                let song_id = req.song_id.required("song_id")?;
                 let db = &ctx.provider_context.db;
 
                 let (native_id, provider_id): (String, i64) =
-                    sqlm::song::Entity::find_by_id(req.song_id)
+                    sqlm::song::Entity::find_by_id(song_id)
                         .inner_join(sqlm::item::Entity)
                         .select_only()
                         .column(sqlm::item::Column::NativeId)
@@ -478,7 +533,7 @@ async fn process_request(
                         .into_tuple()
                         .one(db)
                         .await?
-                        .ok_or(ProcessError::NoSuchSong(req.song_id.to_string()))?;
+                        .ok_or(ProcessError::NoSuchSong(song_id.to_string()))?;
 
                 let provider = global::provider(provider_id)
                     .ok_or(ProcessError::NoSuchProvider(provider_id.to_string()))?;
@@ -495,30 +550,23 @@ async fn process_request(
             if let Some(Payload::SetFavoriteReq(req)) = payload {
                 let db = &ctx.provider_context.db;
                 use sqlm::type_enum::ItemType;
-                let mut item_type: ItemType = req
-                    .item_type
-                    .try_into()
-                    .map_err(|_| ProcessError::NoSuchItemType(req.item_type.to_string()))?;
-
-                if item_type == ItemType::AlbumArtist {
-                    item_type = ItemType::Artist;
-                }
-                let (provider_id, native_id): (i64, String) = {
-                    sqlm::item::Entity::find_by_id(req.id)
-                        .select_only()
-                        .column(sqlm::item::Column::ProviderId)
-                        .column(sqlm::item::Column::NativeId)
-                        .into_tuple()
-                        .one(db)
-                        .await?
-                        .ok_or(ProcessError::NotFound)?
-                };
-
-                let provider = global::provider(provider_id)
-                    .ok_or(ProcessError::NoSuchProvider(provider_id.to_string()))?;
-
-                provider
-                    .favorite(&ctx.provider_context, &native_id, item_type, req.value)
+                let target = crate::provider_item::resolve_provider_item(
+                    &ctx.provider_context,
+                    req.id,
+                    req.item_type,
+                )
+                .await?
+                .ok_or_else(|| ProcessError::UnsupportedItemType(req.item_type.to_string()))?;
+                let provider_id = target.item.provider_id;
+                let item_type = target.item.r#type;
+                target
+                    .provider
+                    .favorite(
+                        &ctx.provider_context,
+                        &target.item.native_id,
+                        item_type,
+                        req.value,
+                    )
                     .await?;
 
                 use sea_orm::Set;
@@ -527,11 +575,11 @@ async fn process_request(
                     .sync_coordinator
                     .write(provider_id, None)
                     .await?;
-                write.favorite(req.id);
+                write.favorite(target.item.id);
                 match item_type {
                     ItemType::Album | ItemType::Song | ItemType::Artist => {
                         let m = sqlm::dynamic::ActiveModel {
-                            id: Set(req.id),
+                            id: Set(target.item.id),
                             favorite_at: Set(match req.value {
                                 true => Some(Timestamp::now()),
                                 false => None,
@@ -575,17 +623,22 @@ async fn process_request(
         }
         MessageType::PlaylogReq => {
             if let Some(Payload::PlaylogReq(req)) = payload {
+                let song_id = req.song_id.required("song_id")?;
                 use sea_orm::Set;
                 let _writes = ctx
                     .provider_context
                     .sync_coordinator
-                    .write_items(&ctx.provider_context.db, &[req.song_id])
+                    .write_items(&ctx.provider_context.db, &[song_id])
                     .await?;
+                let song = sqlm::song::Entity::find_by_id(song_id)
+                    .one(&ctx.provider_context.db)
+                    .await?
+                    .ok_or_else(|| ProcessError::NoSuchSong(song_id.to_string()))?;
 
                 let action = msg::model::PlaylogAction::try_from(req.action)
                     .unwrap_or(msg::model::PlaylogAction::Unspecified);
 
-                let item_info: Option<(i64, String)> = sqlm::item::Entity::find_by_id(req.song_id)
+                let item_info: Option<(i64, String)> = sqlm::item::Entity::find_by_id(song_id)
                     .select_only()
                     .column(sqlm::item::Column::ProviderId)
                     .column(sqlm::item::Column::NativeId)
@@ -599,7 +652,7 @@ async fn process_request(
                             global::set_playing(
                                 *provider_id,
                                 global::PlayingInfo {
-                                    song_id: req.song_id,
+                                    song_id,
                                     native_id: native_id.clone(),
                                 },
                             );
@@ -611,16 +664,11 @@ async fn process_request(
                     }
                 }
 
-                let album_id: Option<i64> = sqlm::song::Entity::find_by_id(req.song_id)
-                    .select_only()
-                    .column(sqlm::song::Column::AlbumId)
-                    .into_tuple()
-                    .one(&ctx.provider_context.db)
-                    .await?;
+                let album_id = song.album_id;
 
                 let mut dys = Vec::new();
                 dys.push(sqlm::dynamic::ActiveModel {
-                    id: Set(req.song_id),
+                    id: Set(song_id),
                     last_played_at: Set(Some(Timestamp::from_millis(req.timestamp))),
                     play_count: Set(1),
                     ..Default::default()
@@ -650,11 +698,12 @@ async fn process_request(
         }
         MessageType::SyncReq => {
             if let Some(Payload::SyncReq(req)) = payload {
+                let provider_id = req.provider_id.required("provider_id")?;
                 let (tx, rx) = oneshot::channel::<i64>();
                 ctx.provider_context
                     .ev_sender
                     .send(CoreEvent::ProviderSync {
-                        id: req.provider_id,
+                        id: provider_id,
                         oneshot: Some(tx),
                     })
                     .await?;
@@ -712,25 +761,30 @@ async fn process_request(
         }
         MessageType::GetRadioQueuesReq => {
             if let Some(Payload::GetRadioQueuesReq(req)) = payload {
-                let result =
-                    crate::home::radio_queues(&ctx.provider_context, &req.provider_ids).await?;
+                let result = crate::home::radio_queues(
+                    &ctx.provider_context,
+                    req.provider_ids.checked("provider_ids")?,
+                )
+                .await?;
                 let rsp = msg::GetRadioQueuesRsp { queues: result };
                 return Ok(rsp.qcm_into());
             }
         }
         MessageType::GetHomeRecommendationsReq => {
             if let Some(Payload::GetHomeRecommendationsReq(req)) = payload {
-                return Ok(
-                    crate::home::recommendations(&ctx.provider_context, &req.provider_ids)
-                        .await
-                        .qcm_into(),
-                );
+                return Ok(crate::home::recommendations(
+                    &ctx.provider_context,
+                    req.provider_ids.checked("provider_ids")?,
+                )
+                .await
+                .qcm_into());
             }
         }
         MessageType::GetHomeBlocksReq => {
             if let Some(Payload::GetHomeBlocksReq(req)) = payload {
-                let provider = global::provider(req.provider_id)
-                    .ok_or(ProcessError::NoSuchProvider(req.provider_id.to_string()))?;
+                let provider_id = req.provider_id.required("provider_id")?;
+                let provider = global::provider(provider_id)
+                    .ok_or(ProcessError::NoSuchProvider(provider_id.to_string()))?;
                 let blocks = provider.home_blocks(&ctx.provider_context).await?;
                 let rsp = msg::GetHomeBlocksRsp {
                     blocks: blocks.into_iter().map(|b| b.qcm_into()).collect(),
@@ -740,8 +794,9 @@ async fn process_request(
         }
         MessageType::GetHomeBlockItemsReq => {
             if let Some(Payload::GetHomeBlockItemsReq(req)) = payload {
-                let provider = global::provider(req.provider_id)
-                    .ok_or(ProcessError::NoSuchProvider(req.provider_id.to_string()))?;
+                let provider_id = req.provider_id.required("provider_id")?;
+                let provider = global::provider(provider_id)
+                    .ok_or(ProcessError::NoSuchProvider(provider_id.to_string()))?;
                 let page_params = PageParams::new(req.page, req.page_size);
                 let (content, total) = provider
                     .home_block_items(
@@ -757,22 +812,22 @@ async fn process_request(
                 use qcm_core::provider::HomeBlockContent as C;
                 let content = match content {
                     C::Albums(items) => Content::Albums(msg::GetAlbumsRsp {
-                        ids: items.into_iter().map(|i| i.id).collect(),
+                        ids: Some(items.into_iter().map(|i| i.id).collect::<Vec<_>>().into()),
                         total,
                         has_more,
                     }),
                     C::Mixes(items) => Content::Mixes(msg::GetMixsRsp {
-                        ids: items.into_iter().map(|i| i.id).collect(),
+                        ids: Some(items.into_iter().map(|i| i.id).collect::<Vec<_>>().into()),
                         total,
                         has_more,
                     }),
                     C::Artists(items) => Content::Artists(msg::GetArtistsRsp {
-                        ids: items.into_iter().map(|i| i.id).collect(),
+                        ids: Some(items.into_iter().map(|i| i.id).collect::<Vec<_>>().into()),
                         total,
                         has_more,
                     }),
                     C::Songs(items) => Content::Songs(msg::GetSongsRsp {
-                        ids: items.into_iter().map(|i| i.id).collect(),
+                        ids: Some(items.into_iter().map(|i| i.id).collect::<Vec<_>>().into()),
                         total,
                         has_more,
                     }),

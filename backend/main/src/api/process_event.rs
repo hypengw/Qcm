@@ -144,7 +144,7 @@ pub async fn process_backend_event(
                     None => {
                         let mut p = msg::model::ProviderSyncStatus::default();
                         merge_sync_status(&mut p, commit);
-                        p.id = id;
+                        p.id = Some(id.into());
                         pctx.sync_status.insert(id, p);
                         p
                     }
@@ -219,10 +219,11 @@ async fn send_provider_status(
 
         msg.statuses = providers
             .iter()
-            .map(|p| {
+            .filter_map(|p| {
+                let id = p.id()?;
                 let mut status = ProviderStatus::default();
-                status.id = p.id().unwrap_or(-1);
-                status.epoch = global::provider_snapshot(status.id).map_or(0, |(_, epoch)| epoch);
+                status.id = Some(id.into());
+                status.epoch = global::provider_snapshot(id).map_or(0, |(_, epoch)| epoch);
                 status.name = p.name();
                 status.type_name = p.type_name().to_string();
                 status.auth_info = Some(AuthInfo {
@@ -235,10 +236,10 @@ async fn send_provider_status(
                         status.libraries.push(lib.clone().qcm_into());
                     }
                 }
-                if let Some(s) = sync_status.get(&status.id) {
+                if let Some(s) = sync_status.get(&id) {
                     status.sync_status = Some(s.clone());
                 }
-                return status;
+                Some(status)
             })
             .collect();
 

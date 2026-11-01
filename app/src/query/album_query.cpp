@@ -91,19 +91,24 @@ AlbumQuery::AlbumQuery(QObject* parent): QueryList(parent) {
     connectSyncFinished(this);
     this->tdata()->set_store(this->tdata(), App::instance()->store()->songs);
 }
-auto AlbumQuery::itemId() const -> model::ItemId { return m_item_id; }
-void AlbumQuery::setItemId(model::ItemId in) {
-    if (ycore::cmp_set(m_item_id, in)) {
+auto AlbumQuery::albumId() const -> msg::id::AlbumId { return m_album_id; }
+void AlbumQuery::setAlbumId(msg::id::AlbumId in) {
+    if (ycore::cmp_set(m_album_id, in)) {
         invalidateRequests();
-        itemIdChanged();
+        albumIdChanged();
     }
 }
 
 void AlbumQuery::reload() {
+    if (! identity::valid(m_album_id)) {
+        setError(tr("Invalid album ID"));
+        setStatus(Status::Error);
+        return;
+    }
     setStatus(Status::Querying);
     auto backend = App::instance()->backend();
     auto req     = msg::GetAlbumReq {};
-    req.setId_proto(m_item_id.id());
+    req.setId_proto(m_album_id);
     auto       self     = QWatcher { this };
     const auto revision = beginRequest();
     spawn([self, backend, req, revision] mutable -> task<void> {
@@ -116,7 +121,7 @@ void AlbumQuery::reload() {
             t->setAlbumId(el.id_proto());
 
             i64 disc = 1;
-            for (auto id : el.songIds()) {
+            for (auto id : el.songIds().values()) {
                 if (auto song = store->songs.store_query(id))
                     disc = std::max<i64>(song->discNumber(), disc);
             }

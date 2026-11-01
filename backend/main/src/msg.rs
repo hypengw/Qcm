@@ -1,3 +1,6 @@
+pub mod id {
+    include!(concat!(env!("OUT_DIR"), "/qcm.msg.id.rs"));
+}
 pub mod model {
     include!(concat!(env!("OUT_DIR"), "/qcm.msg.model.rs"));
 }

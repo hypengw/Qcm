@@ -213,15 +213,13 @@ MD.Page {
             radius: root.radius
             inherit: root.MD.MProp.page
         }
-        function route(itemId) {
+        function route(itemId, props) {
             if (visible) {
                 currentItemId = itemId;
                 let url = itemId.pageUrl;
-                switchTo(url, {
-                    "itemId": itemId
-                }, false);
+                switchTo(url, QA.App.itemRouteProperties(itemId, props), false);
             } else {
-                QA.Action.routeItem(itemId);
+                QA.Action.routeItem(itemId, props);
             }
         }
         initialItem: Item {}
@@ -266,7 +264,7 @@ MD.Page {
         property list<MD.Action> headerActions
         property var sortModel
         signal selectDisplayMode(int mode)
-        onActivated: itemId => m_content.route(itemId)
+        onActivated: (itemId, properties) => m_content.route(itemId, properties)
     }
 
     component HeaderToolBar: MD.Control {

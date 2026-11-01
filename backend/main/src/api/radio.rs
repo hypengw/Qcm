@@ -1,3 +1,4 @@
+use crate::identity::{IdField, IdList};
 use crate::{
     error::ProcessError,
     event::ServiceContext,
@@ -33,7 +34,7 @@ pub async fn open(
     ctx: &Arc<ServiceContext>,
     req: &msg::OpenQueueReq,
 ) -> Result<msg::OpenQueueRsp, ProcessError> {
-    let target = target(ctx, req.queue_id).await?;
+    let target = target(ctx, req.queue_id.required("radio_queue_id")?).await?;
     let input = if req.input_id != 0 {
         let item = sqlm::item::Entity::find_by_id(req.input_id)
             .one(&ctx.provider_context.db)
@@ -82,7 +83,7 @@ pub async fn open(
     }
     let (song_ids, session) = response?;
     Ok(msg::OpenQueueRsp {
-        song_ids,
+        song_ids: Some(song_ids.into()),
         session: Some(session),
     })
 }
@@ -91,7 +92,8 @@ pub async fn next(
     ctx: &Arc<ServiceContext>,
     req: &msg::GetQueueNextReq,
 ) -> Result<msg::GetQueueNextRsp, ProcessError> {
-    let target = target(ctx, req.queue_id)
+    let current_ids = req.current_song_ids.checked("current_song_ids")?;
+    let target = target(ctx, req.queue_id.required("radio_queue_id")?)
         .await
         .or_else(|error| match error {
             ProcessError::NotFound | ProcessError::NoSuchProvider(_)
@@ -102,14 +104,13 @@ pub async fn next(
             error => Err(error),
         })?;
     let items = sqlm::item::Entity::find()
-        .filter(sqlm::item::Column::Id.is_in(req.current_song_ids.clone()))
+        .filter(sqlm::item::Column::Id.is_in(current_ids.iter().copied()))
         .filter(sqlm::item::Column::ProviderId.eq(target.provider.id()))
         .filter(sqlm::item::Column::Type.eq(ItemType::Song))
         .all(&ctx.provider_context.db)
         .await?;
     let items: HashMap<_, _> = items.into_iter().map(|i| (i.id, i.native_id)).collect();
-    let current = req
-        .current_song_ids
+    let current = current_ids
         .iter()
         .filter_map(|id| items.get(id).cloned())
         .collect::<Vec<_>>();
@@ -126,7 +127,7 @@ pub async fn next(
             .await?;
         let song_ids = ordered_songs(ctx, songs, provider_id).await?;
         return Ok(msg::GetQueueNextRsp {
-            song_ids,
+            song_ids: Some(song_ids.into()),
             session: None,
         });
     }
@@ -143,7 +144,7 @@ pub async fn next(
         .await?;
     let (song_ids, session) = response(ctx, page, provider_id).await?;
     Ok(msg::GetQueueNextRsp {
-        song_ids,
+        song_ids: Some(song_ids.into()),
         session: Some(session),
     })
 }

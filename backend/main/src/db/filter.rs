@@ -260,9 +260,7 @@ pub fn mix_filter_to_expr(f: &msg::filter::MixFilter) -> Option<SimpleExpr> {
     use msg::filter::mix_filter::Payload;
     match &f.payload {
         Some(Payload::NameFilter(name)) => name.get_expr_from_col(sqlm::mix::Column::Name),
-        Some(Payload::TrackFilter(track)) => {
-            track.get_expr_from_col(sqlm::mix::Column::TrackCount)
-        }
+        Some(Payload::TrackFilter(track)) => track.get_expr_from_col(sqlm::mix::Column::TrackCount),
         Some(Payload::TypeFilter(tf)) => tf.get_expr_from_col(sqlm::mix::Column::MixType),
         Some(_) => None::<SimpleExpr>,
         None => None,
@@ -273,9 +271,7 @@ pub fn remote_mix_filter_to_expr(f: &msg::filter::RemoteMixFilter) -> Option<Sim
     use msg::filter::remote_mix_filter::Payload;
     use sea_orm::sea_query::{Expr, Query, SelectStatement};
     match &f.payload {
-        Some(Payload::NameFilter(name)) => {
-            name.get_expr_from_col(sqlm::remote_mix::Column::Name)
-        }
+        Some(Payload::NameFilter(name)) => name.get_expr_from_col(sqlm::remote_mix::Column::Name),
         Some(Payload::TypeFilter(mix_type)) => mix_type.get_expr(Expr::col((
             sqlm::remote_mix::Entity,
             sqlm::remote_mix::Column::MixType,
@@ -478,7 +474,7 @@ trait TypeStringFilterTrait {
 }
 
 trait IdFilterTrait {
-    fn get_value(&self) -> i64;
+    fn get_value(&self) -> Option<i64>;
 
     fn get_expr_from_col<C>(&self, col: C) -> Option<SimpleExpr>
     where
@@ -487,7 +483,10 @@ trait IdFilterTrait {
         self.get_expr(Expr::col(col))
     }
     fn get_expr(&self, col: Expr) -> Option<SimpleExpr> {
-        Some(col.eq(self.get_value()))
+        Some(
+            self.get_value()
+                .map_or_else(|| Expr::val(false).into(), |id| col.eq(id)),
+        )
     }
 }
 
@@ -569,8 +568,8 @@ macro_rules! impl_type_string_filter {
 macro_rules! impl_id_filter {
     ($ty:ty) => {
         impl IdFilterTrait for $ty {
-            fn get_value(&self) -> i64 {
-                self.value
+            fn get_value(&self) -> Option<i64> {
+                crate::identity::IdField::required(&self.value, "filter_id").ok()
             }
         }
     };
