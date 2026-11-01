@@ -115,6 +115,7 @@ Item {
     Component {
         id: gridComponent
         MD.LazyGrid {
+            asynchronous: true
             source: itemSource
             delegate: cardDelegate
             minimumCellExtent: 140
