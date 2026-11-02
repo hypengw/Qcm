@@ -4,7 +4,7 @@ Quick cloud music player.
 ### Backend
 
 - **Jellyfin**
-- **Subsonic(WIP)**
+- **Subsonic**
 - **Netease Cloud Music**
 
 ### Screenshots
@@ -44,33 +44,31 @@ sudo pacman -S qcm
 #### Separated Libraries
 The following libraries were extracted and modularized during Qcm's development.  
 - [QmlMaterial](https://github.com/hypengw/QmlMaterial.git)
-- [kstore](https://github.com/hypengw/kstore.git)
 - [ncrequest](https://github.com/hypengw/ncrequest.git)
-- [rstd](https://github.com/hypengw/rstd.git)
+- [rstd](https://github.com/litocpp/rstd.git)
 
 #### Third Libraries
 - [Qt](https://www.qt.io/) 6.10
 - [ffmpeg](https://www.ffmpeg.org/)
 - [curl](https://curl.se/)
 - [openssl](https://www.openssl.org/)
-- [cubeb](https://github.com/mozilla/cubeb)
-- [PEGTL](https://github.com/taocpp/PEGTL)
-- [ctre](https://github.com/hanickadot/compile-time-regular-expressions)
 - [qr_code](https://github.com/nayuki/QR-Code-generator/tree/master/cpp)
 
 ## Build
+
+Install Lito, Rust/Cargo, CMake, Ninja, pkg-config, Protocol Buffers tools, and the
+development packages for the libraries listed above. Qt must include its private
+headers, Qt Protobuf, ShaderTools, WebSockets, and QML development tools.
+
 ```shell
 git clone --recursive https://github.com/hypengw/Qcm.git
+cd Qcm
 
-cmake -S Qcm -B build -GNinja -DCMAKE_BUILD_TYPE=Release
-cmake --build build
+# build the application and backend
+lito install --prefix ./install
 
-# run without install
-export QML_IMPORT_PATH=$PWD/build/qml_modules
-./build/app/Qcm --backend <backend executable>
-
-# install
-cmake --install build
+# run the installed application
+./install/bin/Qcm
 ```
 
 ## FAQ
@@ -95,8 +93,3 @@ cmake --install build
   [📦 io.github.hypengw.Qcm ~]$ gdb Qcm core.save
   ...
   ```
-
-### Todo:
-- [ ] mac
-- [ ] android
-- [ ] offline mode
