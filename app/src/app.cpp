@@ -218,10 +218,7 @@ void App::init() {
         if (! qextra::image::set_local_file_source(
                 engine, backend->resource_base_url(), backend->cache_directory()))
             LOG_ERROR("invalid image file source configuration");
-        QList<QUrl> origins;
-        if (!backend->resource_base_url().isEmpty())
-            origins.append(backend->resource_base_url());
-        if (!qextra::image::set_network_cache(engine, origins, 300))
+        if (! qextra::image::set_network_cache(engine, {}, 300, true))
             LOG_ERROR("invalid image network cache configuration");
     };
     connect(this->backend(), &Backend::resourceStateChanged, engine, update_image_sources);

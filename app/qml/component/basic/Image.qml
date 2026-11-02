@@ -22,6 +22,7 @@ Item {
     property alias progress: image.progress
     property alias errorString: image.errorString
     property alias cache: image.cache
+    property alias frameDataRequired: image.frameDataRequired
     property alias mipmap: image.mipmap
     property alias fillMode: image.fillMode
     property alias retainWhileLoading: image.retainWhileLoading
@@ -47,6 +48,7 @@ Item {
         anchors.fill: parent
         fillMode: QE.Image.PreserveAspectCrop
         retainWhileLoading: true
+        frameDataRequired: false
         sourceSize: {
             if (root.displaySize.width <= 0 || root.displaySize.height <= 0)
                 return Qt.size(-1, -1);
