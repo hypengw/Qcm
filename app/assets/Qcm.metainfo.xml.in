@@ -20,11 +20,11 @@
   <screenshots>
       <screenshot type="default">
         <caption>main window</caption>
-        <image type="source">https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main.png?raw=true</image>
+        <image type="source">https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main.jpg?raw=true</image>
       </screenshot>
       <screenshot type="default">
         <caption>dark</caption>
-        <image type="source">https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main_dark.png?raw=true</image>
+        <image type="source">https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main_dark.jpg?raw=true</image>
       </screenshot>
   </screenshots>
   <categories>

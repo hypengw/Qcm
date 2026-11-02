@@ -11,12 +11,10 @@ Quick cloud music player.
 
 <table>
   <tr>
-  <td><img src="https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main.png?raw=true"></td>
-  <td><img src="https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main_compact.png?raw=true"></td>
+  <td><img src="https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main.jpg?raw=true"></td>
   </tr>
   <tr>
-  <td><img src="https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main_dark.png?raw=true"></td>
-  <td><img src="https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main_compact_dark.png?raw=true"></td>
+  <td><img src="https://github.com/hypengw/Qcm/blob/master/app/assets/screenshots/main_dark.jpg?raw=true"></td>
   </tr>
 </table>
 
