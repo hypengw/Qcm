@@ -185,7 +185,7 @@ MD.Page {
                         return 0;
                     }
                     source: MD.ListSnapshotSource {
-                        items: root.meta.authTypes.map(el => models[el])
+                        items: root.meta.authTypes.map(el => m_auth_type_view.models[el])
                     }
                     delegate: MD.InputChip {
                         required property MD.LazyRow row
@@ -211,7 +211,7 @@ MD.Page {
                     id: m_auth_loader
                     enabled: m_settings_query.status === QA.Enum.Finished && !m_update_query.querying
                     Layout.fillWidth: true
-                    sourceComponent: m_auth_type_view.source.items[m_auth_type_view.currentIndex].comp
+                    sourceComponent: m_auth_type_view.source?.items[m_auth_type_view.currentIndex]?.comp ?? null
                 }
             }
 

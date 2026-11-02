@@ -4,8 +4,6 @@ import Qcm.Material as MD
 
 MD.ListItem {
     id: root
-    index: -1
-    model: null
     Layout.fillWidth: true
     font.capitalization: Font.Capitalize
     corners: {

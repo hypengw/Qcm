@@ -106,9 +106,9 @@ MD.Page {
                         comp: m_comp_qr
                     }
                 ]
-                currentIndex: 0
+                currentIndex: count > 0 ? 0 : -1
                 source: MD.ListSnapshotSource {
-                    items: root.meta.authTypes.map(el => models[el])
+                    items: root.meta.authTypes.map(el => m_auth_type_view.models[el])
                 }
                 delegate: MD.InputChip {
                     required property MD.LazyRow row
@@ -132,7 +132,7 @@ MD.Page {
             Loader {
                 id: m_auth_loader
                 Layout.fillWidth: true
-                sourceComponent: m_auth_type_view.source.items[m_auth_type_view.currentIndex].comp
+                sourceComponent: m_auth_type_view.source?.items[m_auth_type_view.currentIndex]?.comp ?? null
             }
 
             MD.Label {
