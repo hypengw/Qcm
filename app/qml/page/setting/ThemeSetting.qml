@@ -22,7 +22,7 @@ QA.SettingBasePage {
             below: MD.HorizontalLazyList {
                 id: m_theme_mode_view
                 spacing: 8
-                implicitHeight: 40
+                implicitHeight: 32
                 source: QA.ItemModelSource {
                     model: ListModel {
                         ListElement {
@@ -70,7 +70,7 @@ QA.SettingBasePage {
                 id: backgroundStyleView
                 objectName: "playbarBackgroundStyle"
                 spacing: 8
-                implicitHeight: 40
+                implicitHeight: 32
                 source: QA.ItemModelSource {
                     model: ListModel {
                         ListElement {
@@ -99,7 +99,7 @@ QA.SettingBasePage {
             below: MD.HorizontalLazyList {
                 id: m_accent_color_view
                 spacing: 8
-                implicitHeight: 40
+                implicitHeight: 32
                 source: QA.ItemModelSource {
                     model: ListModel {
                         ListElement {
@@ -145,7 +145,7 @@ QA.SettingBasePage {
             below: MD.HorizontalLazyList {
                 id: m_palette_view
                 spacing: 8
-                implicitHeight: 40
+                implicitHeight: 32
                 source: QA.ItemModelSource {
                     model: MD.PaletteModel {}
                 }

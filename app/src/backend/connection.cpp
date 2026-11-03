@@ -65,6 +65,12 @@ auto describe(const ncrequest::WebSocketError& error) -> QString {
     return result;
 }
 
+auto describe(const ncrequest::WebSocketStatus& status) -> QString {
+    auto result = describe<ncrequest::WebSocketStatus>(status);
+    if (status.diagnostic.is_some()) result += QStringLiteral(": ") + describe(*status.diagnostic);
+    return result;
+}
+
 auto describe(const ncrequest::WebSocketConnectFailure& error) -> QString {
     if (error.transport.is_some()) return describe(*error.transport);
     if (error.admission.is_some()) return describe(*error.admission);
@@ -223,8 +229,8 @@ auto run_connection(std::shared_ptr<ConnectionState> state, rstd::async::Runtime
             }
             inbox->drain(state, generation);
         };
-        callbacks.error = [state, generation](ncrequest::WebSocketError error) {
-            state->fail(generation, describe(error));
+        callbacks.error = [state, generation](ncrequest::WebSocketStatus status) {
+            state->fail(generation, describe(status));
         };
         callbacks.disconnected = [state, generation] {
             if (! state->current(generation)) return;
