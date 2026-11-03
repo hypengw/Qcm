@@ -1,4 +1,18 @@
 <releases>
+  <release version="1.3.9" date="2026-11-03">
+    <description>
+      <ul>
+        <li>add a floating playback bar with a wavy progress slider</li>
+        <li>add translucent album art backgrounds and smooth playback bar animations</li>
+        <li>fix lyric scrolling and highlighting after seeking</li>
+        <li>improve library scrolling, large shuffle queues, and cached cover loading</li>
+        <li>add grid spacing and image decode and gpu cache settings</li>
+        <li>add provider share links and comment browsing with replies and likes</li>
+        <li>fix album playback order and search submission</li>
+        <li>fix connection errors, provider authentication, and theme controls</li>
+      </ul>
+    </description>
+  </release>
   <release version="1.3.8" date="2026-10-21">
     <description>
       <ul>
