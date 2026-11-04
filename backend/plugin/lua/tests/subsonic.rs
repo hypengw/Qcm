@@ -4,7 +4,7 @@ use qcm_core::{
     model as m,
     provider::{AuthInfo, AuthMethod, AuthResult, Context, Provider, ProviderCommon},
 };
-use qcm_plugin_lua::{plugin::Capabilities, provider::LuaProvider};
+use qcm_plugin_lua::{plugin::PluginManifest, provider::LuaProvider};
 use sea_orm::*;
 use std::{path::PathBuf, sync::Arc};
 
@@ -14,15 +14,14 @@ fn root() -> PathBuf {
         .unwrap_or_else(|| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("subsonic"))
 }
 fn provider() -> LuaProvider {
-    let caps: Capabilities =
-        serde_json::from_slice(&std::fs::read(root().join("plugin.json")).unwrap()).unwrap();
-    LuaProvider::with_capabilities(
+    let config = PluginManifest::read(&root().join("plugin.json")).unwrap().config();
+    LuaProvider::with_config(
         Some(1),
         "Subsonic test",
         "qcm-sdk-migration-test",
         "subsonic",
         &root().join("src/provider.lua"),
-        caps,
+        config,
     )
     .unwrap()
 }

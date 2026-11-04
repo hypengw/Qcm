@@ -7,47 +7,38 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-pub const CAPABILITIES: &[&str] = &[
-    "http.request.v1",
-    "http.response.v1",
-    "http.batch.response.v1",
-    "json.strict.v1",
-    "db.sync_batch.v1",
-    "db.explicit_sync.v1",
-    "subtitle.structured.v1",
-    "provider.metadata.v1",
-    "playback.lifecycle.v1",
-    "provider.session.v1",
-    "radio.configuration.v1",
-    "radio.lifecycle.v1",
-    "home.for_you.v1",
-    "provider.auth_method.v1",
-    "random.hex.v1",
-    "resource.response_validation.v1",
-    "resource.cache_identity.v1",
-    "db.explicit_sync.radio.v1",
-];
-#[derive(Clone, Default, Deserialize, Serialize)]
-pub struct Capabilities {
-    #[serde(default)]
-    pub requires: Vec<String>,
+pub const API_VERSION: u32 = 1;
+
+#[derive(Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct PluginConfig {
+    pub api_version: u32,
     #[serde(default)]
     pub sync_mode: Option<String>,
     #[serde(default)]
     pub sync_types: Vec<qcm_core::model::type_enum::ItemType>,
 }
-impl Capabilities {
+impl Default for PluginConfig {
+    fn default() -> Self {
+        Self {
+            api_version: API_VERSION,
+            sync_mode: None,
+            sync_types: Vec::new(),
+        }
+    }
+}
+
+impl PluginConfig {
     pub fn explicit(&self) -> bool {
         self.sync_mode.as_deref() == Some("explicit")
     }
     pub fn validate(&self) -> Result<()> {
-        for required in &self.requires {
-            if !CAPABILITIES.contains(&required.as_str()) {
-                return Err(qcm_core::anyhow!(
-                    "unsupported Lua capability: {}",
-                    required
-                ));
-            }
+        if self.api_version != API_VERSION {
+            return Err(qcm_core::anyhow!(
+                "unsupported Lua plugin api_version: {}; expected {}",
+                self.api_version,
+                API_VERSION
+            ));
         }
         if self
             .sync_mode
@@ -64,14 +55,35 @@ impl Capabilities {
 }
 
 #[derive(Deserialize, Serialize)]
-struct PluginJson {
+#[serde(deny_unknown_fields)]
+pub struct PluginManifest {
     name: String,
     script_path: PathBuf,
     svg_path: PathBuf,
     has_server_url: Option<bool>,
     auth_types: Vec<i32>,
-    #[serde(flatten)]
-    capabilities: Capabilities,
+    api_version: u32,
+    #[serde(default)]
+    sync_mode: Option<String>,
+    #[serde(default)]
+    sync_types: Vec<qcm_core::model::type_enum::ItemType>,
+}
+
+impl PluginManifest {
+    pub fn read(path: &Path) -> Result<Self> {
+        let mut manifest: Self = serde_json::from_str(&fs::read_to_string(path)?)?;
+        manifest.config().validate()?;
+        manifest.name.make_ascii_lowercase();
+        Ok(manifest)
+    }
+
+    pub fn config(&self) -> PluginConfig {
+        PluginConfig {
+            api_version: self.api_version,
+            sync_mode: self.sync_mode.clone(),
+            sync_types: self.sync_types.clone(),
+        }
+    }
 }
 
 pub struct LuaPlugin {
@@ -96,15 +108,13 @@ impl LuaPlugin {
         }
     }
 
-    fn load_plugin_json(&self, path: &Path) -> Option<(PluginJson, String)> {
+    fn load_plugin_json(&self, path: &Path) -> Option<(PluginManifest, String)> {
         let manifest = path.join("plugin.json");
         if !manifest.is_file() {
             return None;
         }
-        let load = || -> Result<(PluginJson, String)> {
-            let mut json: PluginJson = serde_json::from_str(&fs::read_to_string(&manifest)?)?;
-            json.name = json.name.to_ascii_lowercase();
-            json.capabilities.validate()?;
+        let load = || -> Result<(PluginManifest, String)> {
+            let json = PluginManifest::read(&manifest)?;
             let svg = fs::read_to_string(path.join(&json.svg_path))?;
             Ok((json, svg))
         };
@@ -120,20 +130,22 @@ impl LuaPlugin {
     fn provider_creator(
         &self,
         path: &Path,
-        plugin_json: PluginJson,
+        plugin_json: PluginManifest,
         svg_content: String,
     ) -> ProviderMeta {
-        let script_path = path.join(plugin_json.script_path);
+        let config = plugin_json.config();
+        let script_path = path.join(&plugin_json.script_path);
         let type_name = plugin_json.name.clone();
         let creator: Arc<Creator> =
             Arc::new(move |id, name, device_id| -> Result<Arc<dyn Provider>> {
-                LuaProvider::with_capabilities(
+                LuaProvider::with_context(
                     id,
                     name,
                     device_id,
                     &type_name,
                     &script_path,
-                    plugin_json.capabilities.clone(),
+                    config.clone(),
+                    qcm_core::global::plugin_context(&type_name)?,
                 )
                 .map(|p| {
                     let p: Arc<dyn Provider> = Arc::new(p);

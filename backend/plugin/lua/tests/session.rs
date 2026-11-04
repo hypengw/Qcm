@@ -1,8 +1,11 @@
 use qcm_core::{
     db::sync_run::SyncCoordinator,
-    provider::{Context, Provider, ProviderCommon, ProviderSession},
+    provider::{Context, Provider, ProviderSession},
 };
-use qcm_plugin_lua::{plugin::Capabilities, provider::LuaProvider};
+use qcm_plugin_lua::{
+    plugin::PluginConfig,
+    provider::LuaProvider,
+};
 use sea_orm::*;
 use std::sync::Arc;
 
@@ -35,9 +38,8 @@ return p
         ),
     )
     .unwrap();
-    let caps: Capabilities =
-        serde_json::from_str(r#"{"requires":["provider.session.v1"]}"#).unwrap();
-    let p = LuaProvider::with_capabilities(Some(1), "test", "test-device", "test", &path, caps)
+    let config = PluginConfig::default();
+    let p = LuaProvider::with_config(Some(1), "test", "test-device", "test", &path, config)
         .unwrap();
     (p, path)
 }
@@ -56,6 +58,7 @@ async fn session_save_stages_then_persists_and_rejects_replacement() {
     let (p,path)=provider("value='latest'; local result=qcm.inner:save_session(); assert(result=='staged' or result=='saved')");
     let ctx = context(db.clone());
     p.check(&ctx).await.unwrap();
+    p.persist_session().await.unwrap();
     assert_eq!(p.save(), "latest");
     let key = p.session_key().unwrap();
     db.execute(Statement::from_sql_and_values(
@@ -66,7 +69,7 @@ async fn session_save_stages_then_persists_and_rejects_replacement() {
     .await
     .unwrap();
     p.bind_session(db.clone(), key);
-    p.check(&ctx).await.unwrap();
+    p.persist_session().await.unwrap();
     let row = db
         .query_one(Statement::from_string(
             DbBackend::Sqlite,
@@ -84,6 +87,7 @@ async fn session_save_stages_then_persists_and_rejects_replacement() {
     db.execute_unprepared("UPDATE provider SET custom='replacement', session_key='replacement'")
         .await
         .unwrap();
+    assert!(p.persist_session().await.is_err());
     assert!(p.check(&ctx).await.is_err());
     let row = db
         .query_one(Statement::from_string(
@@ -113,7 +117,7 @@ async fn session_cookie_only_update_survives_reconstruction() {
     .await
     .unwrap();
     p.bind_session(db.clone(), key);
-    p.load_cookie(r#"[{"raw_cookie":"MUSIC_U=synthetic; Path=/","path":["/",true],"domain":{"Suffix":"music.163.com"},"expires":{"AtUtc":"2099-01-01T00:00:00Z"}}]"#);
+    p.load_cookie(r#"[{"raw_cookie":"login_token=synthetic; Path=/","path":["/",true],"domain":{"Suffix":"example.invalid"},"expires":{"AtUtc":"2099-01-01T00:00:00Z"}}]"#);
     p.check(&context(db.clone())).await.unwrap();
     let row = db
         .query_one(Statement::from_string(
@@ -141,6 +145,7 @@ async fn session_storage_failure_is_observable() {
     let (p, path) = provider("qcm.inner:save_session()");
     p.bind_session(db.clone(), p.session_key().unwrap());
     db.execute_unprepared("DROP TABLE provider").await.unwrap();
+    assert!(p.persist_session().await.is_err());
     assert!(p.check(&context(db)).await.is_err());
     std::fs::remove_file(path).unwrap();
 }
@@ -200,92 +205,6 @@ assert(result=='done')
 }
 
 #[tokio::test]
-#[ignore = "requires the NCM_PLUGIN_ROOT checkout"]
-async fn ncm_session_roundtrip_uses_the_real_plugin_and_host() {
-    use qcm_core::provider::{AuthInfo, AuthMethod, AuthResult};
-    let root =
-        std::path::PathBuf::from(std::env::var_os("NCM_PLUGIN_ROOT").expect("NCM_PLUGIN_ROOT"));
-    let path = std::env::temp_dir().join(format!("qcm-ncm-session-{}.lua", uuid::Uuid::new_v4()));
-    let script = format!(
-        r#"
-package.path={root:?} .. '/src/?.lua'
-local responses={{{{code=200,unikey='synthetic-key'}},{{code=803}},{{code=200,profile={{userId=7,nickname='test',avatarUrl=''}}}},{{code=200}},{{code=200}}}}
-local tokens={{'', 'synthetic-refresh', 'synthetic-rotated', 'synthetic-refreshed', ''}}
-qcm.time.now=function() return 100000000 end
-qcm.get_http_client=function()
-    local function builder(url)
-        local b={{}}
-        for _,method in ipairs{{'headers','query','timeout','form'}} do b[method]=function(self) return self end end
-        function b:send()
-            local body=assert(table.remove(responses,1),'unexpected request')
-            local token=table.remove(tokens,1)
-            return {{close=function() end,url=function() return url end,header_values=function() return {{token}} end,json=function() return body end}}
-        end
-        return b
-    end
-    return {{post=function(_,url) return builder(url) end}}
-end
-return dofile({root:?} .. '/src/provider.lua')
-"#,
-        root = root.to_string_lossy()
-    );
-    std::fs::write(&path, &script).unwrap();
-    let caps: Capabilities =
-        serde_json::from_slice(&std::fs::read(root.join("plugin.json")).unwrap()).unwrap();
-    let p = LuaProvider::with_capabilities(None, "ncm", "device", "netease", &path, caps.clone())
-        .unwrap();
-    let db = database().await;
-    let ctx = context(db.clone());
-    assert_eq!(p.qr(&ctx).await.unwrap().key, "synthetic-key");
-    let auth = AuthInfo {
-        server_url: String::new(),
-        method: Some(AuthMethod::Qr {
-            key: "synthetic-key".into(),
-        }),
-    };
-    assert!(matches!(p.auth(&ctx, &auth).await.unwrap(), AuthResult::Ok));
-    let state: serde_json::Value = serde_json::from_str(&p.save()).unwrap();
-    assert_eq!(state["session"]["refresh_token"], "synthetic-rotated");
-    let scope = p.resource_scope().unwrap();
-    p.check(&ctx).await.unwrap();
-    let refreshed: serde_json::Value = serde_json::from_str(&p.save()).unwrap();
-    assert_eq!(refreshed["session"]["refresh_token"], "synthetic-refreshed");
-    assert_eq!(refreshed["session"]["refresh_time"], 100000000);
-    assert_eq!(p.resource_scope().unwrap(), scope);
-    p.set_id(Some(1));
-    let key = p.session_key().unwrap();
-    db.execute(Statement::from_sql_and_values(
-        DbBackend::Sqlite,
-        "INSERT INTO provider VALUES(1,?,?,?)",
-        ["{}".into(), "[]".into(), key.clone().into()],
-    ))
-    .await
-    .unwrap();
-    p.bind_session(db.clone(), key);
-    p.persist_session().await.unwrap();
-    let row = db
-        .query_one(Statement::from_string(
-            DbBackend::Sqlite,
-            "SELECT custom,cookie FROM provider",
-        ))
-        .await
-        .unwrap()
-        .unwrap();
-    let restored =
-        LuaProvider::with_capabilities(Some(1), "ncm", "device", "netease", &path, caps).unwrap();
-    restored.load_cookie(&row.try_get::<String>("", "cookie").unwrap());
-    restored.load(&row.try_get::<String>("", "custom").unwrap());
-    assert_eq!(restored.resource_scope().unwrap(), scope);
-    assert_eq!(
-        serde_json::from_str::<serde_json::Value>(&restored.save()).unwrap(),
-        serde_json::from_str::<serde_json::Value>(&p.save()).unwrap()
-    );
-    restored.load("{invalid");
-    assert_eq!(restored.save(), "{invalid");
-    std::fs::remove_file(path).unwrap();
-}
-
-#[tokio::test]
 async fn session_concurrent_snapshots_do_not_roll_back() {
     let db = database().await;
     let (p, path) = provider("value=tostring((tonumber(value) or 0)+1); qcm.inner:save_session()");
@@ -319,98 +238,14 @@ async fn session_concurrent_snapshots_do_not_roll_back() {
 async fn authentication_challenge_keeps_structured_details() {
     use qcm_core::error::ProviderError;
     let db = database().await;
-    let (p,path)=provider("qcm.error{code='not_auth',message='verification needed',jump_url='https://music.163.com/verify'}");
+    let (p,path)=provider("qcm.error{code='not_auth',message='verification needed',jump_url='https://example.invalid/verify'}");
     let error = p.check(&context(db)).await.unwrap_err();
     let mut cause = &error;
     while let ProviderError::WithContext { err, .. } = cause {
         cause = err;
     }
     assert!(
-        matches!(cause,ProviderError::AuthRequired{message,jump_url} if message=="verification needed" && jump_url.as_deref()==Some("https://music.163.com/verify"))
+        matches!(cause,ProviderError::AuthRequired{message,jump_url} if message=="verification needed" && jump_url.as_deref()==Some("https://example.invalid/verify"))
     );
-    std::fs::remove_file(path).unwrap();
-}
-
-#[tokio::test]
-#[ignore = "requires the NCM_PLUGIN_ROOT checkout"]
-async fn ncm_coroutines_share_refresh_and_recovery_results() {
-    let root =
-        std::path::PathBuf::from(std::env::var_os("NCM_PLUGIN_ROOT").expect("NCM_PLUGIN_ROOT"));
-    let (p, path) = provider(&format!(
-        r#"
-package.path={root:?} .. '/src/?.lua;' .. package.path
-local state=package.loaded.ncm_session_test
-if not state then
-    state={{session=require('session').new(),refreshes=0,recoveries=0}}
-    state.session:load({{refresh_token='synthetic'}},true)
-    package.loaded.ncm_session_test=state
-end
-local client={{_send=function(_,api)
-    qcm.time.sleep(30)
-    if api:path()=='/login/token/refresh' then state.refreshes=state.refreshes+1;return {{code=200}} end
-    state.recoveries=state.recoveries+1
-    return {{code=200,data={{action=1}}}}
-end}}
-state.session:ensure(client)
-state.session:recover(client,'/test')
-assert(state.refreshes==1 and state.recoveries==1)
-value='shared'
-"#,
-        root = root.to_string_lossy()
-    ));
-    let ctx = context(database().await);
-    let (a, b) = tokio::join!(p.check(&ctx), p.check(&ctx));
-    a.unwrap();
-    b.unwrap();
-    assert_eq!(p.save(), "shared");
-    std::fs::remove_file(path).unwrap();
-}
-
-#[tokio::test]
-#[ignore = "requires the NCM_PLUGIN_ROOT checkout"]
-async fn ncm_email_login_uses_public_auth_fields_and_hex_digest() {
-    use qcm_core::provider::{AuthInfo, AuthMethod, AuthResult};
-    let root =
-        std::path::PathBuf::from(std::env::var_os("NCM_PLUGIN_ROOT").expect("NCM_PLUGIN_ROOT"));
-    let path = std::env::temp_dir().join(format!("qcm-ncm-email-{}.lua", uuid::Uuid::new_v4()));
-    std::fs::write(&path, format!(r#"
-package.path={root:?} .. '/src/?.lua'
-local Login=require('api.login')
-local new=Login.new
-Login.new=function(email,password)
-    assert(email=='test@example.invalid')
-    assert(password=='5f4dcc3b5aa765d61d8327deb882cf99')
-    return new(email,password)
-end
-local responses={{{{code=200}},{{code=200,profile={{userId=7,nickname='test',avatarUrl=''}}}}}}
-qcm.get_http_client=function()
-    return {{post=function(_,url)
-        local b={{}}
-        for _,method in ipairs{{'headers','query','timeout','form'}} do b[method]=function(self) return self end end
-        function b:send()
-            local body=assert(table.remove(responses,1))
-            return {{close=function() end,url=function() return url end,header_values=function() return {{'synthetic-email-refresh'}} end,json=function() return body end}}
-        end
-        return b
-    end}}
-end
-return dofile({root:?} .. '/src/provider.lua')
-"#,root=root.to_string_lossy())).unwrap();
-    let caps: Capabilities =
-        serde_json::from_slice(&std::fs::read(root.join("plugin.json")).unwrap()).unwrap();
-    let p = LuaProvider::with_capabilities(None, "ncm", "device", "netease", &path, caps).unwrap();
-    let info = AuthInfo {
-        server_url: String::new(),
-        method: Some(AuthMethod::Email {
-            email: "test@example.invalid".into(),
-            pw: "password".into(),
-        }),
-    };
-    assert!(matches!(
-        p.auth(&context(database().await), &info).await.unwrap(),
-        AuthResult::Ok
-    ));
-    let state: serde_json::Value = serde_json::from_str(&p.save()).unwrap();
-    assert_eq!(state["session"]["refresh_token"], "synthetic-email-refresh");
     std::fs::remove_file(path).unwrap();
 }

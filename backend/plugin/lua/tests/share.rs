@@ -40,7 +40,7 @@ fn share_url_is_optional_and_preserves_native_ids_and_types() {
 function p.share_url(id, kind)
     if kind ~= 101 then return nil end
     assert(id == '9007199254740993')
-    return 'https://music.163.com/song?id=' .. id
+    return 'https://example.invalid/song?id=' .. id
 end
 "#,
     );
@@ -50,7 +50,7 @@ end
             .unwrap()
             .unwrap()
             .as_str(),
-        "https://music.163.com/song?id=9007199254740993"
+        "https://example.invalid/song?id=9007199254740993"
     );
     assert!(plugin.share_url("1", ItemType::Album).unwrap().is_none());
     std::fs::remove_file(path).unwrap();

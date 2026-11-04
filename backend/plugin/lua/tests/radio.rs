@@ -2,7 +2,7 @@ use qcm_core::{
     db::sync_run::SyncCoordinator,
     provider::{Context, Provider},
 };
-use qcm_plugin_lua::{plugin::Capabilities, provider::LuaProvider};
+use qcm_plugin_lua::{plugin::PluginConfig, provider::LuaProvider};
 use sea_orm::Database;
 use std::{collections::HashMap, sync::Arc};
 
@@ -18,11 +18,11 @@ async fn context() -> Context {
 }
 
 fn provider(functions: &str) -> (LuaProvider, std::path::PathBuf) {
-    provider_with_capabilities(functions, Capabilities::default()).unwrap()
+    provider_with_config(functions, PluginConfig::default()).unwrap()
 }
-fn provider_with_capabilities(
+fn provider_with_config(
     functions: &str,
-    capabilities: Capabilities,
+    config: PluginConfig,
 ) -> qcm_core::Result<(LuaProvider, std::path::PathBuf)> {
     let path = std::env::temp_dir().join(format!("qcm-radio-{}.lua", uuid::Uuid::new_v4()));
     std::fs::write(
@@ -46,13 +46,13 @@ return p
         ),
     )
     .unwrap();
-    let provider = LuaProvider::with_capabilities(
+    let provider = LuaProvider::with_config(
         Some(1),
         "radio",
         "test-device",
         "radio",
         &path,
-        capabilities,
+        config,
     );
     match provider {
         Ok(provider) => Ok((provider, path)),
@@ -191,11 +191,8 @@ end
 #[tokio::test]
 async fn lifecycle_round_trips_private_state_and_presentation() {
     use qcm_core::provider::{QueueInput, QueueNextRequest, QueueOpenReason, QueueOpenRequest};
-    let caps = Capabilities {
-        requires: vec!["radio.lifecycle.v1".into()],
-        ..Default::default()
-    };
-    let (provider, path) = provider_with_capabilities(r#"
+    let config = PluginConfig::default();
+    let (provider, path) = provider_with_config(r#"
 function p.queue_definition(ctx, id)
     return {configuration = {}, can_restart = true, restart_label = 'Again'}
 end
@@ -212,7 +209,7 @@ function p.next_queue(ctx, id, request)
     return {songs = {}, state = 'finished', configuration = {style = 'calm'}, exhausted = true}
 end
 function p.close_queue(ctx, id, state) assert(state == 'finished') end
-"#, caps).unwrap();
+"#, config).unwrap();
     let ctx = context().await;
     let definition = provider.queue_definition(&ctx, "test").await.unwrap();
     assert!(definition.can_restart);
@@ -309,35 +306,69 @@ end
 }
 
 #[test]
-fn lifecycle_hooks_and_capability_are_required_together() {
-    let caps = || Capabilities {
-        requires: vec!["radio.lifecycle.v1".into()],
-        ..Default::default()
-    };
-    assert!(provider_with_capabilities("function p.open_queue() end", caps()).is_err());
-    assert!(provider_with_capabilities("", caps()).is_err());
-    assert!(
-        provider_with_capabilities("function p.close_queue() end", Default::default()).is_err()
-    );
-    assert!(provider_with_capabilities(
-        r#"
+fn lifecycle_callbacks_are_optional_as_a_complete_group() {
+    let complete = r#"
 function p.queue_definition() end
 function p.open_queue() end
 function p.next_queue() end
-"#,
-        Default::default()
-    )
-    .is_err());
+"#;
+    for functions in [
+        "".to_owned(),
+        complete.to_owned(),
+        format!("{complete}\nfunction p.close_queue() end"),
+    ] {
+        let (_, path) = provider_with_config(&functions, Default::default()).unwrap();
+        std::fs::remove_file(path).unwrap();
+    }
+    for functions in [
+        "function p.open_queue() end".to_owned(),
+        "function p.close_queue() end".to_owned(),
+        "function p.queue_definition() end\nfunction p.open_queue() end".to_owned(),
+        format!("{complete}\np.queue_definition = true"),
+        format!("{complete}\np.open_queue = 'invalid'"),
+        format!("{complete}\np.next_queue = {{}}"),
+        format!("{complete}\np.close_queue = false"),
+    ] {
+        assert!(
+            provider_with_config(&functions, Default::default()).is_err(),
+            "{functions}"
+        );
+    }
+}
+
+#[test]
+fn playback_callbacks_are_optional_as_a_complete_group() {
+    let complete = r#"
+function p.open_playback() end
+function p.prepare_playback_resource() end
+function p.keep_playback() end
+function p.close_playback() end
+"#;
+    for functions in ["", complete] {
+        let (_, path) = provider_with_config(functions, Default::default()).unwrap();
+        std::fs::remove_file(path).unwrap();
+    }
+    for functions in [
+        "function p.open_playback() end".to_owned(),
+        "function p.close_playback() end".to_owned(),
+        format!("{complete}\np.keep_playback = nil"),
+        format!("{complete}\np.open_playback = true"),
+        format!("{complete}\np.prepare_playback_resource = {{}}"),
+        format!("{complete}\np.keep_playback = 'invalid'"),
+        format!("{complete}\np.close_playback = false"),
+    ] {
+        assert!(
+            provider_with_config(&functions, Default::default()).is_err(),
+            "{functions}"
+        );
+    }
 }
 
 #[tokio::test]
 async fn lifecycle_optional_input_and_cleanup_remain_optional() {
     use qcm_core::provider::QueueOpenRequest;
-    let caps = Capabilities {
-        requires: vec!["radio.lifecycle.v1".into()],
-        ..Default::default()
-    };
-    let (provider, path) = provider_with_capabilities(
+    let config = PluginConfig::default();
+    let (provider, path) = provider_with_config(
         r#"
 function p.queue_definition() return {} end
 function p.open_queue(ctx, id, request)
@@ -347,7 +378,7 @@ function p.open_queue(ctx, id, request)
 end
 function p.next_queue() return {songs = {}} end
 "#,
-        caps,
+        config,
     )
     .unwrap();
     let ctx = context().await;

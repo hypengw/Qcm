@@ -6,5 +6,6 @@ pub mod plugin;
 pub mod provider;
 mod resource;
 mod session;
+pub mod installation;
 
 mod db;

@@ -82,7 +82,7 @@ async fn share_links_resolve_typed_items_and_remote_mix_ids() {
 function p.share_url(id, kind)
     if id == 'recommend/daily' then return nil end
     local paths = {[101]='song',[51]='album',[53]='artist',[54]='playlist'}
-    return 'https://music.163.com/' .. assert(paths[kind]) .. '?id=' .. id
+    return 'https://example.invalid/' .. assert(paths[kind]) .. '?id=' .. id
 end
 "#,
     );
@@ -100,7 +100,7 @@ end
     ] {
         assert_eq!(
             request(&ctx, id, kind).await.unwrap(),
-            Some(format!("https://music.163.com/{suffix}"))
+            Some(format!("https://example.invalid/{suffix}"))
         );
     }
     assert!(request(&ctx, 92, ItemType::Mix).await.unwrap().is_none());

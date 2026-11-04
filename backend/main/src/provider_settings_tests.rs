@@ -3,21 +3,20 @@ use qcm_core::{
     db::provider_settings as store,
     provider::{Context, ProviderCommon},
 };
-use qcm_plugin_lua::{plugin::Capabilities, provider::LuaProvider};
+use qcm_plugin_lua::{plugin::PluginManifest, provider::LuaProvider};
 use sea_orm::{ConnectionTrait, Database, DatabaseConnection, EntityTrait, Schema};
 
 fn provider() -> Arc<dyn Provider> {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../plugin/lua/jellyfin");
-    let caps: Capabilities =
-        serde_json::from_slice(&std::fs::read(root.join("plugin.json")).unwrap()).unwrap();
+    let config = PluginManifest::read(&root.join("plugin.json")).unwrap().config();
     Arc::new(
-        LuaProvider::with_capabilities(
+        LuaProvider::with_config(
             None,
             "Original",
             "settings-test",
             "jellyfin",
             &root.join("src/provider.lua"),
-            caps,
+            config,
         )
         .unwrap(),
     )

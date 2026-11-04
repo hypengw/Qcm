@@ -4,7 +4,7 @@ use migration::{Migrator, MigratorTrait};
 async fn provider_session_migration_preserves_legacy_authentication() {
     let db = Database::connect("sqlite::memory:").await.unwrap();
     Migrator::up(&db, Some(1)).await.unwrap();
-    db.execute_unprepared("INSERT INTO provider(name,type,base_url,cookie,custom) VALUES('test','netease','','synthetic-cookie','synthetic-state')").await.unwrap();
+    db.execute_unprepared("INSERT INTO provider(name,type,base_url,cookie,custom) VALUES('test','synthetic','','synthetic-cookie','synthetic-state')").await.unwrap();
     migration::MigrationTrait::up(
         &migration::m20261017_000001_provider_session::Migration,
         &migration::SchemaManager::new(&db),

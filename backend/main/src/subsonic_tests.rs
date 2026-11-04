@@ -15,7 +15,7 @@ use qcm_core::{
     provider::{AuthInfo, AuthMethod, Provider, ProviderCommon, QueueOpenRequest},
     resource::Resource,
 };
-use qcm_plugin_lua::{plugin::Capabilities, provider::LuaProvider};
+use qcm_plugin_lua::{plugin::PluginManifest, provider::LuaProvider};
 use sea_orm::*;
 use std::{path::PathBuf, sync::Arc};
 
@@ -24,16 +24,15 @@ use std::{path::PathBuf, sync::Arc};
 async fn live_subsonic_home_radio_and_resource_cache() {
     const ID: i64 = 872149;
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../plugin/lua/subsonic");
-    let caps: Capabilities =
-        serde_json::from_slice(&std::fs::read(root.join("plugin.json")).unwrap()).unwrap();
+    let config = PluginManifest::read(&root.join("plugin.json")).unwrap().config();
     let p = Arc::new(
-        LuaProvider::with_capabilities(
+        LuaProvider::with_config(
             Some(ID),
             "Subsonic",
             "subsonic-live",
             "subsonic",
             &root.join("src/provider.lua"),
-            caps,
+            config,
         )
         .unwrap(),
     );

@@ -258,7 +258,7 @@ mod tests {
             context: "synthetic traceback".into(),
             err: std::sync::Arc::new(qcm_core::error::ProviderError::AuthRequired {
                 message: "verification required".into(),
-                jump_url: Some("https://music.163.com/verify".into()),
+                jump_url: Some("https://example.invalid/verify".into()),
             }),
         };
         let result: crate::msg::Rsp = ProcessError::from(source).qcm_into();
@@ -267,7 +267,7 @@ mod tests {
         assert_eq!(details.message, "verification required");
         assert_eq!(
             details.jump_url.as_deref(),
-            Some("https://music.163.com/verify")
+            Some("https://example.invalid/verify")
         );
     }
 }

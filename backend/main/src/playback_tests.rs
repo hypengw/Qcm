@@ -5,7 +5,7 @@ use qcm_core::{
     global,
     provider::{AuthInfo, AuthMethod, AuthResult, Context},
 };
-use qcm_plugin_lua::{plugin::Capabilities, provider::LuaProvider};
+use qcm_plugin_lua::{plugin::PluginManifest, provider::LuaProvider};
 use sea_orm::{ConnectOptions, ConnectionTrait, Database};
 use std::path::PathBuf;
 
@@ -14,16 +14,15 @@ use std::path::PathBuf;
 async fn jellyfin_hls_session_cache_and_native_player() {
     const ID: i64 = 879371;
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../plugin/lua/jellyfin");
-    let caps: Capabilities =
-        serde_json::from_slice(&std::fs::read(root.join("plugin.json")).unwrap()).unwrap();
+    let config = PluginManifest::read(&root.join("plugin.json")).unwrap().config();
     let p = Arc::new(
-        LuaProvider::with_capabilities(
+        LuaProvider::with_config(
             Some(ID),
             "HLS test",
             &format!("qcm-hls-{}", uuid::Uuid::new_v4()),
             "jellyfin",
             &root.join("src/provider.lua"),
-            caps,
+            config,
         )
         .unwrap(),
     );

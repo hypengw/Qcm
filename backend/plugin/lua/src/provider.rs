@@ -48,8 +48,12 @@ impl LuaProviderInner {
             (id > 0).then_some(id)
         })
     }
-    fn http_client(&self) -> Result<mlua_extra::http::LuaHttpClient> {
-        self.network.write().unwrap().lua_client(self.network_scope())
+    fn http_client(&self, generation: u64) -> Result<mlua_extra::http::LuaHttpClient> {
+        let mut network = self.network.write().unwrap();
+        if self.generation.load(Ordering::Acquire) != generation {
+            return Err(ProviderError::NotAuth.into());
+        }
+        network.lua_client(self.network_scope())
     }
     fn stream_client(&self) -> Result<HttpClient> {
         Ok(self.network.write().unwrap().clients(self.network_scope())?.1)
@@ -187,7 +191,7 @@ pub struct LuaProvider {
     funcs: LuaImpl,
     lua: Lua,
     generation: Arc<AtomicU64>,
-    capabilities: crate::plugin::Capabilities,
+    config: crate::plugin::PluginConfig,
     saved: std::sync::Mutex<String>,
 }
 
@@ -215,7 +219,7 @@ impl LuaProvider {
         meta_type: &str,
         script_path: &Path,
     ) -> Result<Self> {
-        Self::with_capabilities(
+        Self::with_config(
             id,
             name,
             device_id,
@@ -224,15 +228,42 @@ impl LuaProvider {
             Default::default(),
         )
     }
-    pub fn with_capabilities(
+    pub fn with_config(
         id: Option<i64>,
         name: &str,
         device_id: &str,
         meta_type: &str,
         script_path: &Path,
-        capabilities: crate::plugin::Capabilities,
+        config: crate::plugin::PluginConfig,
     ) -> Result<Self> {
-        capabilities.validate()?;
+        Self::create(id, name, device_id, meta_type, script_path, config, None)
+    }
+    pub fn with_context(
+        id: Option<i64>,
+        name: &str,
+        device_id: &str,
+        meta_type: &str,
+        script_path: &Path,
+        config: crate::plugin::PluginConfig,
+        installation: qcm_core::plugin::PluginContext,
+    ) -> Result<Self> {
+        Self::create(
+            id, name, device_id, meta_type, script_path, config, Some(installation),
+        )
+    }
+    fn create(
+        id: Option<i64>,
+        name: &str,
+        device_id: &str,
+        meta_type: &str,
+        script_path: &Path,
+        config: crate::plugin::PluginConfig,
+        installation: Option<qcm_core::plugin::PluginContext>,
+    ) -> Result<Self> {
+        config.validate()?;
+        if installation.as_ref().is_some_and(|context| context.namespace() != meta_type) {
+            return Err(anyhow!("plugin installation context namespace does not match provider type"));
+        }
         let lua = Lua::new();
         let inner = Arc::new(LuaProviderInner {
             common: ProviderCommonData::new(id, name, device_id, meta_type),
@@ -256,6 +287,9 @@ impl LuaProvider {
             // qcm table
             let qcm_table = lua.create_table()?;
             qcm_table.set("inner", LuaInner(inner.clone()))?;
+            if let Some(installation) = installation {
+                qcm_table.set("installation", crate::installation::LuaInstallation(installation))?;
+            }
             let url_module = url::create_module(&lua)?;
             let crypto_module = create_crypto_module(&lua)?;
             crypto_module.set("url", url_module.clone())?;
@@ -278,8 +312,7 @@ impl LuaProvider {
                     let generation = inner.generation.load(Ordering::Acquire);
                     Ok(crate::http::ProviderHttpClient::new(move || {
                         inner.session.check()?;
-                        if inner.generation.load(Ordering::Acquire) != generation { return Err(ProviderError::NotAuth.into()); }
-                        inner.http_client()
+                        inner.http_client(generation)
                     }))
                 })?,
             )?;
@@ -304,37 +337,26 @@ impl LuaProvider {
 
         lua.set_named_registry_value("qcm.provider.resource_scope", provider_table.get::<Option<LuaFunction>>("resource_scope")?)?;
         lua.set_named_registry_value("qcm.provider.save", provider_table.get::<LuaFunction>("save")?)?;
-        let playback_hooks = ["open_playback", "prepare_playback_resource", "keep_playback", "close_playback"];
-        let playback_count = playback_hooks.iter().filter(|name| provider_table.get::<Option<LuaFunction>>(**name).ok().flatten().is_some()).count();
-        let playback_required = capabilities.requires.iter().any(|c| c == "playback.lifecycle.v1");
-        if (playback_count != 0 || playback_required) && (playback_count != playback_hooks.len() || !playback_required) {
-            return Err(anyhow!("playback.lifecycle.v1 requires all playback hooks"));
+        let open_playback = provider_table.get::<Option<LuaFunction>>("open_playback")?;
+        let prepare_playback_resource = provider_table.get::<Option<LuaFunction>>("prepare_playback_resource")?;
+        let keep_playback = provider_table.get::<Option<LuaFunction>>("keep_playback")?;
+        let close_playback = provider_table.get::<Option<LuaFunction>>("close_playback")?;
+        let playback_hooks = [&open_playback, &prepare_playback_resource, &keep_playback, &close_playback];
+        let playback_count = playback_hooks.iter().filter(|hook| hook.is_some()).count();
+        if playback_count != 0 && playback_count != playback_hooks.len() {
+            return Err(anyhow!("playback requires open_playback, prepare_playback_resource, keep_playback and close_playback together"));
         }
-        let hooks = ["queue_definition", "open_queue", "next_queue"];
-        let count = hooks
-            .iter()
-            .filter(|name| {
-                provider_table
-                    .get::<Option<LuaFunction>>(**name)
-                    .ok()
-                    .flatten()
-                    .is_some()
-            })
-            .count();
-        let lifecycle = capabilities
-            .requires
-            .iter()
-            .any(|c| c == "radio.lifecycle.v1");
-        if (count != 0 && count != hooks.len()) || (lifecycle && count != hooks.len()) {
-            return Err(anyhow!(
-                "radio.lifecycle.v1 requires queue_definition, open_queue and next_queue together"
-            ));
+        let queue_definition = provider_table.get::<Option<LuaFunction>>("queue_definition")?;
+        let open_queue = provider_table.get::<Option<LuaFunction>>("open_queue")?;
+        let next_queue = provider_table.get::<Option<LuaFunction>>("next_queue")?;
+        let close_queue = provider_table.get::<Option<LuaFunction>>("close_queue")?;
+        let queue_hooks = [&queue_definition, &open_queue, &next_queue];
+        let queue_count = queue_hooks.iter().filter(|hook| hook.is_some()).count();
+        if queue_count != 0 && queue_count != queue_hooks.len() {
+            return Err(anyhow!("radio requires queue_definition, open_queue and next_queue together"));
         }
-        if count != 0 && !lifecycle {
-            return Err(anyhow!("radio lifecycle hooks require radio.lifecycle.v1"));
-        }
-        if provider_table.contains_key("close_queue")? && count == 0 {
-            return Err(anyhow!("close_queue requires radio.lifecycle.v1"));
+        if close_queue.is_some() && queue_count == 0 {
+            return Err(anyhow!("close_queue requires queue_definition, open_queue and next_queue"));
         }
         let settings_fields = match provider_table.get::<Option<LuaFunction>>("settings_definition")? {
             Some(function) => lua.from_value(function.call::<LuaValue>(())?)?,
@@ -369,10 +391,10 @@ impl LuaProvider {
                     .map_err(|_| anyhow!("sync_item func not found"))?,
                 get_queue_next: provider_table.get("get_queue_next")?,
                 queue_configuration: provider_table.get("queue_configuration")?,
-                queue_definition: provider_table.get("queue_definition")?,
-                open_queue: provider_table.get("open_queue")?,
-                next_queue: provider_table.get("next_queue")?,
-                close_queue: provider_table.get("close_queue")?,
+                queue_definition,
+                open_queue,
+                next_queue,
+                close_queue,
                 favorite: provider_table
                     .get::<LuaFunction>("favorite")
                     .map_err(|_| anyhow!("favorite func not found"))?,
@@ -385,10 +407,10 @@ impl LuaProvider {
                     .map_err(|_| anyhow!("audio func not found"))?,
                 prepare_image: provider_table.get("prepare_image")?,
                 prepare_audio: provider_table.get("prepare_audio")?,
-                open_playback: provider_table.get("open_playback")?,
-                prepare_playback_resource: provider_table.get("prepare_playback_resource")?,
-                keep_playback: provider_table.get("keep_playback")?,
-                close_playback: provider_table.get("close_playback")?,
+                open_playback,
+                prepare_playback_resource,
+                keep_playback,
+                close_playback,
                 subtitle: provider_table
                     .get::<LuaFunction>("subtitle")
                     .map_err(|_| anyhow!("subtitle func not found"))?,
@@ -398,7 +420,7 @@ impl LuaProvider {
             },
             lua,
             generation: inner.generation.clone(),
-            capabilities,
+            config,
             saved: std::sync::Mutex::new(String::new()),
         };
         let values = provider.validate_settings(&Default::default())?;
@@ -413,9 +435,9 @@ impl LuaProvider {
     ) -> (LuaContext, CallGuard) {
         let (state, guard) = CallState::new(
             self.generation.clone(),
-            self.capabilities.explicit(),
+            self.config.explicit(),
             run,
-            self.capabilities.sync_types.clone(),
+            self.config.sync_types.clone(),
         );
         (LuaContext(ctx.clone(), self.id(), state), guard)
     }
@@ -469,16 +491,9 @@ impl Provider for LuaProvider {
         self.inner.network.read().unwrap().invalidate();
     }
     async fn persist_session(&self) -> Result<(), ProviderError> {
-        if self
-            .capabilities
-            .requires
-            .iter()
-            .any(|c| c == "provider.session.v1")
-        {
-            save_session(&self.inner, &self.lua)
-                .await
-                .map_err(ProviderError::from_err)?;
-        }
+        save_session(&self.inner, &self.lua)
+            .await
+            .map_err(ProviderError::from_err)?;
         Ok(())
     }
     fn session_key(&self) -> Option<String> {
@@ -579,7 +594,7 @@ impl Provider for LuaProvider {
 
     async fn sync(&self, ctx: &Context) -> Result<(), ProviderError> {
         let now = chrono::Utc::now();
-        let run = if self.capabilities.explicit() {
+        let run = if self.config.explicit() {
             Some(
                 ctx.sync_coordinator
                     .start(self.id().ok_or(ProviderError::NotAuth)?)
@@ -1560,3 +1575,7 @@ impl LuaUserData for LuaContext {
         });
     }
 }
+
+#[cfg(test)]
+#[path = "provider_generation_tests.rs"]
+mod generation_tests;

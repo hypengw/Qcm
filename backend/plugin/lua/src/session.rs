@@ -20,19 +20,18 @@ pub struct Network {
 }
 struct SessionCookies {
     jar: Arc<CookieStoreRwLock>,
-    active: AtomicBool,
+    active: RwLock<bool>,
 }
 impl CookieStoreTrait for SessionCookies {
     fn set_cookies(&self, headers: &mut dyn Iterator<Item = &HeaderValue>, url: &reqwest::Url) {
-        if self.active.load(Ordering::Acquire) {
+        let active = self.active.read().unwrap();
+        if *active {
             self.jar.set_cookies(headers, url);
         }
     }
     fn cookies(&self, url: &reqwest::Url) -> Option<HeaderValue> {
-        self.active
-            .load(Ordering::Acquire)
-            .then(|| self.jar.cookies(url))
-            .flatten()
+        let active = self.active.read().unwrap();
+        (*active).then(|| self.jar.cookies(url)).flatten()
     }
 }
 impl Network {
@@ -40,13 +39,12 @@ impl Network {
         let jar = Arc::new(CookieStoreRwLock::default());
         let guard = Arc::new(SessionCookies {
             jar: jar.clone(),
-            active: AtomicBool::new(true),
+            active: RwLock::new(true),
         });
         let policy = qcm_core::network::ClientPolicy::default();
-        let client = policy.builder()
-            .cookie_provider(guard.clone())
-            .build()?;
-        let stream = policy.builder()
+        let client = policy.builder().cookie_provider(guard.clone()).build()?;
+        let stream = policy
+            .builder()
             .cookie_provider(guard.clone())
             .no_gzip()
             .no_brotli()
@@ -62,25 +60,37 @@ impl Network {
         })
     }
     pub fn invalidate(&self) {
-        self.guard.active.store(false, Ordering::Release);
+        // Hold the generation lock until every in-flight jar access completes.
+        *self.guard.active.write().unwrap() = false;
     }
     pub fn clients(&mut self, scope: Option<i64>) -> qcm_core::Result<(HttpClient, HttpClient)> {
         let policy = qcm_core::network::policy(scope);
         if self.policy != policy {
-            let client = policy.builder().cookie_provider(self.guard.clone()).build()?;
-            let stream = policy.builder().cookie_provider(self.guard.clone())
-                .no_gzip().no_brotli().no_deflate().no_zstd().build()?;
+            let client = policy
+                .builder()
+                .cookie_provider(self.guard.clone())
+                .build()?;
+            let stream = policy
+                .builder()
+                .cookie_provider(self.guard.clone())
+                .no_gzip()
+                .no_brotli()
+                .no_deflate()
+                .no_zstd()
+                .build()?;
             self.client = client;
             self.stream = stream;
             self.policy = policy;
         }
         Ok((self.client.clone(), self.stream.clone()))
     }
-    pub fn lua_client(&mut self, scope: Option<i64>) -> qcm_core::Result<mlua_extra::http::LuaHttpClient> {
+    pub fn lua_client(
+        &mut self,
+        scope: Option<i64>,
+    ) -> qcm_core::Result<mlua_extra::http::LuaHttpClient> {
         let (client, stream) = self.clients(scope)?;
         Ok(crate::http::new_client(client, self.guard.clone()).with_stream_client(stream))
     }
-
 }
 
 pub struct Session {
@@ -207,6 +217,92 @@ impl Tasks {
 mod tests {
     use super::*;
     use mlua::Lua;
+
+    fn cookie_values(store: &dyn CookieStoreTrait, url: &str) -> Vec<String> {
+        let url = reqwest::Url::parse(url).unwrap();
+        let mut values = store
+            .cookies(&url)
+            .map(|header| {
+                header
+                    .to_str()
+                    .unwrap()
+                    .split(';')
+                    .map(|value| value.trim().to_owned())
+                    .collect::<Vec<_>>()
+            })
+            .unwrap_or_default();
+        values.sort();
+        values
+    }
+
+    #[test]
+    fn network_login_cookies_share_http_store_and_persist() {
+        let network = Network::new().unwrap();
+        let origin = reqwest::Url::parse("https://music.example.com/login").unwrap();
+        let headers = [
+            HeaderValue::from_static("login_token=synthetic; Domain=example.com; Path=/; Secure"),
+            HeaderValue::from_static("scoped=ready; Domain=example.com; Path=/api; Secure"),
+            HeaderValue::from_static("expired=value; Path=/; Max-Age=0"),
+            HeaderValue::from_static("foreign=value; Domain=example.net; Path=/"),
+        ];
+        network.guard.set_cookies(&mut headers.iter(), &origin);
+        let request_url = "https://music.example.com/api/item";
+        let expected = vec!["login_token=synthetic".to_owned(), "scoped=ready".to_owned()];
+        assert_eq!(cookie_values(network.guard.as_ref(), request_url), expected);
+        assert_eq!(cookie_values(network.jar.as_ref(), request_url), expected);
+        assert_eq!(
+            cookie_values(network.guard.as_ref(), "https://music.example.com/other"),
+            vec!["login_token=synthetic"]
+        );
+        assert!(cookie_values(network.guard.as_ref(), "https://example.net/api/item").is_empty());
+        assert!(cookie_values(network.guard.as_ref(), "http://music.example.com/api/item").is_empty());
+
+        let temporary = [HeaderValue::from_static(
+            "temporary=value; Domain=example.com; Path=/api",
+        )];
+        network.guard.set_cookies(&mut temporary.iter(), &origin);
+        assert!(cookie_values(network.guard.as_ref(), request_url)
+            .contains(&"temporary=value".to_owned()));
+        let expired = [HeaderValue::from_static(
+            "temporary=; Domain=example.com; Path=/api; Max-Age=0",
+        )];
+        network.guard.set_cookies(&mut expired.iter(), &origin);
+        network.guard.set_cookies(&mut expired.iter(), &origin);
+        assert_eq!(cookie_values(network.guard.as_ref(), request_url), expected);
+
+        let serialized = qcm_core::http::save_cookie_jar(network.jar.clone());
+        let restored = Network::new().unwrap();
+        qcm_core::http::load_cookie_jar(restored.jar.clone(), &serialized);
+        assert_eq!(cookie_values(restored.guard.as_ref(), request_url), expected);
+        let independent = Network::new().unwrap();
+        assert!(cookie_values(independent.guard.as_ref(), request_url).is_empty());
+        assert_eq!(cookie_values(network.guard.as_ref(), request_url), expected);
+    }
+
+    #[test]
+    fn network_login_cookies_ignore_inactive_generation() {
+        let old = Network::new().unwrap();
+        let url = reqwest::Url::parse("https://example.com/").unwrap();
+        let headers = [HeaderValue::from_static("session=old; Path=/; Secure")];
+        old.guard.set_cookies(&mut headers.iter(), &url);
+        let current = Network::new().unwrap();
+        let headers = [HeaderValue::from_static("session=current; Path=/; Secure")];
+        current.guard.set_cookies(&mut headers.iter(), &url);
+        old.invalidate();
+
+        assert!(old.guard.cookies(&url).is_none());
+        let headers = [HeaderValue::from_static("session=late; Path=/; Secure")];
+        old.guard.set_cookies(&mut headers.iter(), &url);
+        assert_eq!(
+            cookie_values(old.jar.as_ref(), url.as_str()),
+            vec!["session=old"]
+        );
+        assert_eq!(
+            cookie_values(current.guard.as_ref(), url.as_str()),
+            vec!["session=current"]
+        );
+    }
+
     #[tokio::test]
     async fn tasks_share_failures_and_owner_cancellation() {
         let lua = Lua::new();

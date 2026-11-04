@@ -4,7 +4,10 @@ use qcm_core::{
     model as m,
     provider::{AuthInfo, AuthMethod, AuthResult, Context, Provider, ProviderCommon},
 };
-use qcm_plugin_lua::{plugin::Capabilities, provider::LuaProvider};
+use qcm_plugin_lua::{
+    plugin::{PluginConfig, PluginManifest},
+    provider::LuaProvider,
+};
 use sea_orm::*;
 use std::{path::PathBuf, sync::Arc};
 
@@ -14,15 +17,14 @@ fn root() -> PathBuf {
         .unwrap_or_else(|| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("jellyfin"))
 }
 fn provider() -> LuaProvider {
-    let caps: Capabilities =
-        serde_json::from_slice(&std::fs::read(root().join("plugin.json")).unwrap()).unwrap();
-    LuaProvider::with_capabilities(
+    let config = PluginManifest::read(&root().join("plugin.json")).unwrap().config();
+    LuaProvider::with_config(
         Some(1),
         "Jellyfin test",
         "qcm-sdk-migration-test",
         "jellyfin",
         &root().join("src/provider.lua"),
-        caps,
+        config,
     )
     .unwrap()
 }
@@ -264,19 +266,20 @@ return provider
 "#,
     )
     .unwrap();
-    let caps: Capabilities =
-        serde_json::from_slice(&std::fs::read(root().join("plugin.json")).unwrap()).unwrap();
+    let config = PluginManifest::read(&root().join("plugin.json")).unwrap().config();
     let provider =
-        LuaProvider::with_capabilities(Some(1), "test", "test", "jellyfin", &path, caps).unwrap();
+        LuaProvider::with_config(Some(1), "test", "test", "jellyfin", &path, config).unwrap();
     provider.check(&context().await).await.unwrap();
     std::fs::remove_file(path).unwrap();
 }
 
 #[tokio::test]
-async fn capabilities_and_optional_queue() {
-    let mut caps = Capabilities::default();
-    caps.requires = vec!["unknown.v9".into()];
-    assert!(caps.validate().is_err());
+async fn api_version_and_optional_queue() {
+    let config = PluginConfig {
+        api_version: 99,
+        ..Default::default()
+    };
+    assert!(config.validate().is_err());
     let p = provider();
     let ctx = context().await;
     assert!(matches!(
@@ -437,94 +440,6 @@ async fn live_sync_restore_and_media() {
 }
 
 #[tokio::test]
-#[ignore = "requires NCM_PLUGIN_ROOT pointing to the NCM checkout"]
-async fn ncm_batch_and_legacy_context() {
-    use std::io::{Read, Write};
-    let root = PathBuf::from(std::env::var("NCM_PLUGIN_ROOT").unwrap());
-    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
-    let base = format!("http://{}", listener.local_addr().unwrap());
-    let server = std::thread::spawn(move || {
-        for sequence in 0..27 {
-            let (mut stream, _) = listener.accept().unwrap();
-            let mut request = [0; 8192];
-            let _ = stream.read(&mut request).unwrap();
-            let body = format!("{{\"code\":200,\"sequence\":{sequence}}}");
-            write!(stream,"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",body.len()).unwrap();
-        }
-    });
-    let script = std::env::temp_dir().join(format!("qcm-ncm-test-{}.lua", std::process::id()));
-    let prefix = format!(
-        "package.path={}..';'..package.path\nlocal base={}\n",
-        serde_json::to_string(&format!("{}/src/?.lua", root.display())).unwrap(),
-        serde_json::to_string(&base).unwrap()
-    );
-    std::fs::write(&script,prefix+r#"
-local provider=require('provider')
-local Client=require('client')
-local client=Client.new('test')
-function provider.check()
-    for _,count in ipairs{0,1,13,13} do
-        local accepted,parsed=0,0
-        local function next_api()
-            if accepted==count then return nil end
-            accepted=accepted+1
-            return {
-                base=function() return base end, operation=function() return 'GET' end,
-                path=function() return '/test' end, crypto=function() return '' end,
-                query=function() return {} end,
-                parse_response=function(_,response)
-                    parsed=parsed+1
-                    assert(response:status()==200)
-                    local body=response:json()
-                    body.parsed=true
-                    return body
-                end,
-            }
-        end
-        local results=client:perform_queue(next_api,5)
-        assert(#results==count and parsed==count)
-        for _,result in ipairs(results) do assert(result.parsed) end
-    end
-end
-function provider.sync_item(ctx)
-    local lib=ctx:sync_libraries{{library_id=-1,name='Legacy',provider_id=qcm.inner.id,native_id='legacy'}}[1]
-    local ids=ctx:allocate_items{{id=-1,native_id='legacy-song',provider_id=qcm.inner.id,library_id=lib,type='Song'}}
-    ctx:sync_songs{{id=ids[1],name='Legacy song',duration=42000,track_number=1,disc_number=1,can_play=true,popularity=0,tags={}}}
-    ctx:sync_dynamics{{id=ids[1],is_external=true,favorite_at=123}}
-end
-return provider
-"#).unwrap();
-    let p = LuaProvider::new(Some(1), "NCM test", "test", "netease", &script).unwrap();
-    let ctx = context().await;
-    p.load(r#"{"user_id":123,"nickname":"test","avatar_url":""}"#);
-    assert!(p.save().contains("123"));
-    p.check(&ctx).await.unwrap();
-    let dummy = m::item::Model {
-        id: 0,
-        native_id: String::new(),
-        provider_id: 1,
-        library_id: None,
-        r#type: m::type_enum::ItemType::Song,
-        create_at: Default::default(),
-        update_at: Default::default(),
-        last_sync_at: Default::default(),
-    };
-    p.sync_item(&ctx, dummy).await.unwrap();
-    let song = m::song::Entity::find().one(&ctx.db).await.unwrap().unwrap();
-    assert_eq!(song.duration, 42000);
-    assert!(
-        m::dynamic::Entity::find_by_id(song.id)
-            .one(&ctx.db)
-            .await
-            .unwrap()
-            .unwrap()
-            .is_external
-    );
-    server.join().unwrap();
-    std::fs::remove_file(script).unwrap();
-}
-
-#[tokio::test]
 async fn failed_explicit_sync_rejects_retained_context_and_preserves_commits() {
     let path = std::env::temp_dir().join(format!("qcm-context-test-{}.lua", std::process::id()));
     std::fs::write(&path,r#"
@@ -556,12 +471,12 @@ return {
  end,
 }
 "#).unwrap();
-    let caps = Capabilities {
-        requires: vec!["db.explicit_sync.v1".into()],
+    let config = PluginConfig {
         sync_mode: Some("explicit".into()),
         sync_types: vec![m::type_enum::ItemType::Song],
+        ..Default::default()
     };
-    let p = LuaProvider::with_capabilities(Some(1), "test", "test", "test", &path, caps).unwrap();
+    let p = LuaProvider::with_config(Some(1), "test", "test", "test", &path, config).unwrap();
     let ctx = context().await;
     assert!(p.sync(&ctx).await.is_err());
     let item = m::item::Entity::find().one(&ctx.db).await.unwrap().unwrap();

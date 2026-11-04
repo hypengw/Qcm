@@ -8,7 +8,7 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use uuid::Uuid;
 
-use crate::plugin::Plugin;
+use crate::plugin::{Plugin, PluginContext};
 use crate::provider::{AuthMethod, Provider, ProviderMeta};
 
 #[derive(Clone, Debug)]
@@ -57,6 +57,7 @@ pub struct Global {
     next_provider_stamp: u64,
     playing: BTreeMap<i64, PlayingInfo>,
     setting: Setting,
+    plugin_database: Option<DatabaseConnection>,
 }
 
 impl Global {
@@ -70,6 +71,7 @@ impl Global {
             next_provider_stamp: 0,
             playing: BTreeMap::new(),
             setting: Setting::new(),
+            plugin_database: None,
         }
     }
 }
@@ -152,6 +154,19 @@ pub async fn load_from_db(db: &DatabaseConnection) {
 
 pub fn device_id() -> String {
     return GLOBAL.lock().unwrap().setting.device_id.clone();
+}
+
+pub fn init_plugin_context(db: DatabaseConnection) {
+    GLOBAL.lock().unwrap().plugin_database = Some(db);
+}
+
+pub fn plugin_context(namespace: &str) -> crate::Result<PluginContext> {
+    let global = GLOBAL.lock().unwrap();
+    let db = global
+        .plugin_database
+        .clone()
+        .ok_or_else(|| crate::anyhow!("plugin installation context is unavailable"))?;
+    PluginContext::new(namespace, &global.setting.device_id, db)
 }
 
 pub fn add_plugin(p: Box<dyn Plugin>) {

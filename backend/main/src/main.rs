@@ -124,7 +124,6 @@ async fn main() -> Result<(), anyhow::Error> {
     }
 
     qcm_core::global::init(&args.data);
-    qcm_plugins::init();
 
     let (oper, taskmgr_handle) = {
         let (oper, mgr) = TaskManager::new();
@@ -134,6 +133,8 @@ async fn main() -> Result<(), anyhow::Error> {
     // database
     let db = prepare_db(&args.data).await?;
     let cache_db = prepare_cache_db(&args.data).await?;
+    qcm_core::global::init_plugin_context(db.clone());
+    qcm_plugins::init();
 
     // shutdown watcher
     let mut shutdown_rx = {
