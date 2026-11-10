@@ -1,0 +1,17 @@
+export module qcm.backend:provider;
+export import :provider.comment;
+export import :provider.context;
+export import :provider.dto;
+export import :provider.error;
+export import :provider.factory;
+export import :provider.generation;
+export import :provider.interface;
+export import :provider.item;
+export import :provider.lua;
+export import :provider.lua_plugin;
+export import :provider.playback;
+export import :provider.queue;
+export import :provider.registry;
+export import :provider.resource;
+export import :provider.runtime;
+export import :provider.settings;

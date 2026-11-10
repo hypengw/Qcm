@@ -2,15 +2,17 @@
 name = "qcm"
 members = [
   "app",
+  "backend",
+  "backend/macro",
   "app/src/message/generator",
-  "backend/plugin/lua/jellyfin",
-  "backend/plugin/lua/subsonic",
+  "backend/plugin/jellyfin",
+  "backend/plugin/subsonic",
   "core",
   "mpris",
   "player",
   "third_party/qr_code",
 ]
-default-members = ["app"]
+default-members = ["app", "backend"]
 
 [workspace.package]
 version = "1.3.9"
@@ -18,27 +20,43 @@ authors = ["hypengw"]
 
 [workspace.dependencies]
 qcm-core = { path = "core" }
+qcm-backend-cpp = { path = "backend" }
+qcm-backend-macro = { path = "backend/macro" }
 qcm-mpris = { path = "mpris" }
 qcm-player = { path = "player" }
 qcm-qr-code = { path = "third_party/qr_code" }
 qcm-message-build = { path = "app/src/message/generator" }
 rstd-cppstd = { version = "0.1.7" }
 rstd-std = { version = "0.1.7" }
+rstd-parse = { version = "0.1.12" }
 lito-qt = { version = "0.1.2" }
 ncrequest = { version = "0.2.1" }
 qextra = { git = "https://github.com/hypengw/QExtra.git" }
 wavsen = { git = "https://github.com/hypengw/wavsen.git" }
+liorm = { version = "0.1.0" }
+liorm-macro = { version = "0.1.0" }
+liorm-sqlito = { version = "0.1.0" }
+licrypto = { version = "0.2.1" }
+liuuid = { version = "0.1.0" }
+rstd-log = { version = "0.1.12" }
+rstd-macro = { version = "0.1.12" }
+rstd-serde = { version = "0.1.12" }
+rstd-serde-macro = { version = "0.1.12" }
+liproto = { version = "0.1.0" }
+liproto-codegen = { version = "0.1.0" }
+liserveto = { version = "0.1.0" }
+liwebsocketo = { version = "0.1.1" }
+lifetchto = { version = "0.1.1" }
+luato = { version = "0.1.1" }
+luato-extra = { version = "0.1.0" }
+rstd-json = { version = "0.1.9" }
+liunicode = { version = "0.1.0" }
+sqlito = { version = "0.1.0" }
+rstd-test = { version = "0.1.9" }
 
 [workspace.external-sources.qcm-proto]
-path = "backend/main/proto"
+path = "proto"
 
-[workspace.external-sources.qcm-rust]
-path = "."
-
-[workspace.external-dependencies.cargo.qcm-backend]
-source = "qcm-rust"
-package = "qcm-backend"
-manifest-path = "Cargo.toml"
 
 [workspace.external-sources.qml-material]
 git = "https://github.com/hypengw/QmlMaterial.git"
@@ -83,6 +101,7 @@ components = [
   "QuickControls2",
   "QuickPrivate",
   "ShaderTools",
+  "Svg",
   "WebSockets",
 ]
 host-tools = [

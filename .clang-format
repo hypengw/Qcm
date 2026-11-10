@@ -56,3 +56,5 @@ Standard: Cpp11
 TabWidth: 4
 UseTab: Never
 ColumnLimit: 100
+WhitespaceSensitiveMacros:
+  - RSTD_ENUM

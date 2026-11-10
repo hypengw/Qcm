@@ -9,13 +9,6 @@ lito.install({
       destination = "bin/Qcm",
     },
   },
-  external_assets = {
-    {
-      dependency = "qcm-backend",
-      set = "QcmBackend",
-      destination = "bin",
-    },
-  },
   files = {
     {
       source = "assets/Qcm.svg",

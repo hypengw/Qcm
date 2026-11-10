@@ -2,6 +2,8 @@ module;
 
 #include <QCommandLineParser>
 #include <QDir>
+#include <QFileInfo>
+#include <QStandardPaths>
 #include <QGuiApplication>
 #include <QLoggingCategory>
 #include <QQmlApplicationEngine>
@@ -92,7 +94,18 @@ int run(int argc, char** argv) {
         backend_exe = parser.value(backend_opt);
         auto path   = QDir(backend_exe);
         if (! path.isAbsolute()) {
-            backend_exe = QDir(QCoreApplication::applicationDirPath()).filePath(backend_exe);
+            auto app_dir   = QDir(QCoreApplication::applicationDirPath());
+            auto candidate = app_dir.filePath(backend_exe);
+            if (! QFileInfo::exists(candidate)) {
+                auto managed = app_dir.absoluteFilePath(QStringLiteral("../../../bin/") + backend_exe);
+                if (QFileInfo::exists(managed)) {
+                    candidate = managed;
+                } else {
+                    auto found = QStandardPaths::findExecutable(backend_exe);
+                    if (! found.isEmpty()) candidate = found;
+                }
+            }
+            backend_exe = candidate;
         }
         QLoggingCategory::setFilterRules(
             QLatin1String(std::format("qcm.debug={}", logger->level() == LogLevel::DEBUG)));

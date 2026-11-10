@@ -1,0 +1,42 @@
+[package]
+name = "qcm-backend-cpp"
+version = "0.1.0"
+standard = "c++23"
+
+[lib]
+name = "qcm-backend-cpp"
+module = "qcm.backend"
+archive = "qcm_backend_cpp"
+
+[dependencies]
+qcm-backend-macro = { workspace = true }
+liorm = { workspace = true, pub = true }
+liorm-macro = { workspace = true }
+liorm-sqlito = { workspace = true, pub = true }
+licrypto = { workspace = true, features = ["openssl"] }
+liuuid = { workspace = true, pub = true }
+rstd-log = { workspace = true }
+rstd-parse = { workspace = true }
+rstd-macro = { workspace = true }
+rstd-serde = { workspace = true, pub = true }
+rstd-serde-macro = { workspace = true }
+liproto = { workspace = true, pub = true }
+liproto-codegen = { workspace = true, usage = "tool" }
+liserveto = { workspace = true, pub = true, features = ["websocket"] }
+liwebsocketo = { workspace = true, pub = true }
+lifetchto = { workspace = true, pub = true, features = ["tls"] }
+luato = { workspace = true, pub = true }
+luato-extra = { workspace = true, pub = true }
+rstd-json = { workspace = true, pub = true }
+liunicode = { workspace = true, pub = true }
+sqlito = { workspace = true, pub = true }
+
+[external-sources.qcm-proto]
+workspace = true
+
+[build-tools.protoc]
+path = "protoc"
+
+[[bin]]
+name = "qcm-backend-cpp"
+sources = ["bin/main.cpp"]

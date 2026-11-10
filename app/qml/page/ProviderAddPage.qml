@@ -38,8 +38,12 @@ MD.Page {
             MD.VerticalLazyList {
                 id: m_view
                 Layout.fillHeight: true
-                source: QA.ItemModelSource {
-                    model: m_meta_query.data.metasData
+                source: MD.ListSnapshotSource {
+                    keyRole: "key"
+                    items: m_meta_query.data.metasData.map(meta => ({
+                        key: meta.typeName,
+                        meta: meta
+                    }))
                 }
                 expand: true
                 implicitWidth: Math.min(400, root.width)
@@ -49,17 +53,17 @@ MD.Page {
                 delegate: MD.ListItem {
                     required property MD.LazyRow row
                     itemRow: row
-
+                    readonly property var providerMeta: row.value.meta
 
                     corners: MD.Util.listCorners(index, count, 16)
                     leader: MD.IconSvg {
-                        sourceData: model.svg
+                        sourceData: providerMeta.svg
                         size: 24
                     }
-                    text: model.typeName
+                    text: providerMeta.typeName
                     onClicked: {
                         root.MD.MProp.page.pushItem("qrc:/Qcm/App/qml/page/ProviderMetaPage.qml", {
-                            meta: model
+                            meta: providerMeta
                         });
                     }
                     mdState.backgroundColor: mdState.ctx.color.surface_container

@@ -1,0 +1,10 @@
+export module qcm.backend:resource;
+export import :resource.error;
+export import :resource.model;
+export import :resource.object_fetch;
+export import :resource.prepared;
+export import :resource.response;
+export import :resource.service;
+import :resource.download;
+import :resource.object_service;
+import :resource.reader;

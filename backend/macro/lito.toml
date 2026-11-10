@@ -1,0 +1,9 @@
+[package]
+name = "qcm-backend-macro"
+version.workspace = true
+authors.workspace = true
+standard = "c++23"
+
+[pmacro]
+module = "qcm.backend.macro"
+sources = ["src/lib.cppm"]

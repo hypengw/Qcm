@@ -1,7 +1,0 @@
-[package]
-name = "qcm-plugin-local"
-authors = ["hypengw <hypengwip@gmail.com>"]
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]

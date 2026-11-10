@@ -213,6 +213,7 @@ targets = [
   { name = "Qt6::QuickControls2" },
   { name = "Qt6::QuickPrivate" },
   { name = "Qt6::ShaderTools" },
+  { name = "Qt6::Svg" },
   { name = "Qt6::WebSockets" },
 ]
 
@@ -228,13 +229,12 @@ targets = [
   { name = "kdsingleapplication" },
 ]
 
-[external-dependencies.cargo.qcm-backend]
-workspace = true
-usage = "runtime"
+[runtime-dependencies.qcm-backend-cpp]
+path = "../backend"
 condition = 'target.os != "android"'
 
 [runtime-dependencies.qcm-jellyfin-lua]
-path = "../backend/plugin/lua/jellyfin"
+path = "../backend/plugin/jellyfin"
 
 [runtime-dependencies.qcm-subsonic-lua]
-path = "../backend/plugin/lua/subsonic"
+path = "../backend/plugin/subsonic"

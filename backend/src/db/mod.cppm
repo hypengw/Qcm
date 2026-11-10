@@ -1,0 +1,16 @@
+export module qcm.backend:db;
+export import :db.codec;
+export import :db.error.process;
+export import :db.error.provider;
+export import :db.error.write;
+export import :db.database;
+export import :db.fts_setup;
+export import :db.size;
+export import :db.migrate;
+export import :db.sync.run;
+export import :db.sync.state;
+export import :db.sync.retention;
+export import :db.sync.coordination;
+export import :db.state.playlog;
+export import :db.sync_batch;
+export import :db.sync_batch.batch;

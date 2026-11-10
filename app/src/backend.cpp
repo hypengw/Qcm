@@ -356,6 +356,7 @@ private:
         if (m_handshake_timer) m_handshake_timer->stop();
     }
     void fail(const QString& message) {
+        LOG_ERROR("backend transport: {}", message.toStdString());
         reset_protocol();
         m_connected = false;
         fail_pending(message);
@@ -527,7 +528,8 @@ void Backend::send_immediate(msg::QcmMessage&& message) {
 auto Backend::send(msg::QcmMessage&& message) -> task<Result<msg::QcmMessage, msg::Error>> {
     const auto self       = QPointer<Backend>(this);
     const auto generation = m_generation.load();
-    auto       request_id = serial();
+    auto       request_id   = serial();
+    const auto request_type = message.type();
     message.setId_proto(request_id);
 
     auto completion_result = rstd::async::Completion<msg::QcmMessage, msg::Error>::make();
@@ -593,6 +595,15 @@ auto Backend::send(msg::QcmMessage&& message) -> task<Result<msg::QcmMessage, ms
                 msg::Error { .code = -1, .message = "backend generation changed during delivery" });
     } else if (! received.hasRsp() ||
                received.rsp().code() == msg::ErrorCodeGadget::ErrorCode::ERROR_CODE_OK) {
+        if (received.hasRsp()) {
+            LOG_ERROR("entity protocol v1: type={} id={} code={} message={}",
+                      request_type,
+                      request_id,
+                      static_cast<int>(received.rsp().code()),
+                      received.rsp().message().toStdString());
+        } else {
+            LOG_ERROR("entity protocol v1: type={} id={} no rsp", request_type, request_id);
+        }
         co_return Err(
             msg::Error { .code = -1, .message = "backend does not support entity protocol v1" });
     }

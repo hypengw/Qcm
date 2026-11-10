@@ -1,8 +1,2 @@
-/target
-/.vscode/launch.json
-/.vscode/settings.json
-/old
-/plugin/jellyfin
-/.cargo/config.toml
-*.md
-!README.md
+/.lito/
+/build/
