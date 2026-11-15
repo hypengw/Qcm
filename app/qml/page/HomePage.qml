@@ -226,8 +226,8 @@ MD.Page {
                 }
 
                 Connections {
-                    target: QA.Action
-                    function onPlayLog() {
+                    target: QA.App.backend
+                    function onPlaylogRecorded() {
                         m_last_played_timer.start();
                     }
                 }

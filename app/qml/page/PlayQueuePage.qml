@@ -62,7 +62,7 @@ MD.Page {
                     required property var modelData
                     width: Math.min(implicitWidth, parent.width - parent.leftPadding - parent.rightPadding)
                     enabled: !root.radioQueue?.configuring
-                    options: modelData.options
+                    options: modelData.optionsData
                     value: modelData.value
                     onValueChangeRequested: value => root.radioQueue.configure(modelData.key, value)
                 }

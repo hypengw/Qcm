@@ -8,6 +8,7 @@ export module qcm:model.id_queue;
 export import :model.item_id;
 export import :msg.backend;
 import qextra;
+using namespace qextra::prelude;
 
 namespace qcm::model
 {
@@ -31,6 +32,8 @@ public:
                           bool can_restart, const QString& restart_label);
     void applyState(const msg::PlayerQueueMsg&);
     void disconnectQueue();
+    void ensureStarted();
+    void invalidatePreview();
     auto queueId() const -> msg::id::RadioQueueId;
     auto currentId() const -> ItemId;
     auto name() const -> QString;
@@ -61,8 +64,11 @@ private:
     bool                                m_exhausted {};
     bool                                m_configuring {};
     bool                                m_can_restart {};
+    bool                                m_preview_ready {};
+    bool                                m_preview_loading {};
     quint64                             m_request_serial {};
     QString                             m_restart_label;
     QString                             m_description;
+    QAsyncScope                         m_preview_jobs;
 };
 } // namespace qcm::model

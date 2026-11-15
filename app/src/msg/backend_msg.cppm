@@ -297,6 +297,9 @@ QCM_MSG_TRAITS_RSP(GetSongIdsRsp, GetSongIdsReq, getSongIdsRsp)
 
 QCM_MSG_TRAITS_REQ(OpenQueueReq, OpenQueueRsp, OPEN_QUEUE_REQ, openQueueReq)
 QCM_MSG_TRAITS_RSP(OpenQueueRsp, OpenQueueReq, openQueueRsp)
+QCM_MSG_TRAITS_REQ(GetRadioPreviewReq, GetRadioPreviewRsp, GET_RADIO_PREVIEW_REQ,
+                   getRadioPreviewReq)
+QCM_MSG_TRAITS_RSP(GetRadioPreviewRsp, GetRadioPreviewReq, getRadioPreviewRsp)
 QCM_MSG_TRAITS_REQ(CloseQueueReq, Rsp, CLOSE_QUEUE_REQ, closeQueueReq)
 
 QCM_MSG_TRAITS_REQ(GetQueueNextReq, GetQueueNextRsp, GET_QUEUE_NEXT_REQ, getQueueNextReq)

@@ -61,6 +61,11 @@ void HomeRecommendationsQuery::reconcileProviders() {
     invalidate();
     for (auto it = m_snapshots.begin(); it != m_snapshots.end();) {
         if (! epochs.contains(it.key()) || m_epochs.value(it.key()) != epochs.value(it.key())) {
+            for (const auto& radio : it->radios())
+                if (auto queue = radioQueue(radio)) queue->invalidatePreview();
+            for (const auto& card : it->forYou())
+                if (card.hasRadio())
+                    if (auto queue = radioQueue(card.radio())) queue->invalidatePreview();
             it = m_snapshots.erase(it);
         } else
             ++it;
@@ -117,7 +122,8 @@ void HomeRecommendationsQuery::reload() {
                 prepare.insert(radio.id_proto().value(), radio);
         }
         self->apply();
-        for (const auto& radio : prepare) self->radioQueue(radio);
+        for (const auto& radio : prepare)
+            if (auto queue = self->radioQueue(radio)) queue->ensureStarted();
         self->setError(errors.join(u'\n'));
         self->setStatus(errors.isEmpty() ? Status::Finished : Status::Error);
         co_return;

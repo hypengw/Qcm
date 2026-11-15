@@ -19,6 +19,7 @@ void qcm::process_msg(msg::QcmMessage&& msg) {
         App::instance()->backend()->playerQueueChanged(msg.playerQueueMsg());
         break;
     case M::PLAYER_UI_MSG: App::instance()->backend()->playerUiRequested(msg.playerUiMsg()); break;
+    case M::PLAYLOG_MSG: App::instance()->backend()->playlogRecorded(); break;
     case M::PROVIDER_META_STATUS_MSG: {
         QMetaObject::invokeMethod(
             App::instance(),

@@ -39,13 +39,60 @@ void DynamicIdQueue::applyState(const msg::PlayerQueueMsg& value) {
     for (auto& field : m_configuration)
         if (m_values.contains(field.key())) field.setValue(m_values.value(field.key()));
     disconnectQueue();
+    m_preview_ready = true;
     sessionChanged();
     configurationChanged();
 }
 
 void DynamicIdQueue::disconnectQueue() {
     ++m_request_serial;
+    m_preview_loading = false;
+    m_preview_ready   = false;
     if (std::exchange(m_configuring, false)) configuringChanged();
+}
+
+void DynamicIdQueue::invalidatePreview() {
+    disconnectQueue();
+    m_has_values = false;
+    m_values.clear();
+    m_current_id = ItemId {};
+    m_description.clear();
+    sessionChanged();
+}
+
+void DynamicIdQueue::ensureStarted() {
+    if (m_preview_ready || m_preview_loading || m_configuring) return;
+    msg::GetRadioPreviewReq request;
+    request.setQueueId(m_queue_id);
+    request.setConfiguration(values());
+    m_preview_loading  = true;
+    const auto serial  = ++m_request_serial;
+    auto       self    = QPointer<DynamicIdQueue>(this);
+    auto       backend = App::instance()->backend();
+    m_preview_jobs.spawn(
+        [self, backend, serial, request = std::move(request)]() mutable -> task<void> {
+            auto result = co_await backend->send(std::move(request));
+            if (! co_await QAsyncResult::qexecutor()) co_return;
+            if (! self || self->m_request_serial != serial) co_return;
+            self->m_preview_loading = false;
+            if (! result) {
+                qWarning().noquote()
+                    << "radio preview:" << QString::fromStdString(result.unwrap_err().message);
+                co_return;
+            }
+            self->m_current_id    = result->hasSongId() ? ItemId(enums::ItemType::ItemSong,
+                                                                 qint64(result->songId().value()))
+                                                        : ItemId {};
+            self->m_values        = result->configuration();
+            self->m_has_values    = true;
+            self->m_description   = result->presentation().description();
+            self->m_preview_ready = true;
+            for (auto& field : self->m_configuration)
+                if (self->m_values.contains(field.key()))
+                    field.setValue(self->m_values.value(field.key()));
+            self->sessionChanged();
+            self->configurationChanged();
+        });
 }
 auto DynamicIdQueue::queueId() const -> msg::id::RadioQueueId { return m_queue_id; }
 auto DynamicIdQueue::currentId() const -> ItemId { return m_current_id; }
@@ -76,6 +123,7 @@ void DynamicIdQueue::request(msg::QueueOpenReasonGadget::QueueOpenReason reason,
     request.setConfiguration(configuration);
     request.setName(m_name);
     request.setPlay(true);
+    m_preview_loading = false;
     m_configuring     = true;
     const auto serial = ++m_request_serial;
     configuringChanged();

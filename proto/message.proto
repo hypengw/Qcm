@@ -80,6 +80,7 @@ enum MessageType {
   GET_STORAGE_INFO_REQ = 200;
   GET_STORAGE_INFO_RSP = 201;
   PLAYLOG_REQ = 202;
+  PLAYLOG_MSG = 203;
   PLAYER_CONTROL_REQ = 210;
   PLAYER_STATE_MSG = 211;
   PLAYER_QUEUE_REQ = 212;
@@ -98,6 +99,8 @@ enum MessageType {
   OPEN_QUEUE_REQ = 415;
   OPEN_QUEUE_RSP = 416;
   CLOSE_QUEUE_REQ = 417;
+  GET_RADIO_PREVIEW_REQ = 418;
+  GET_RADIO_PREVIEW_RSP = 419;
 
   GET_SHARE_LINK_REQ = 420;
   GET_SHARE_LINK_RSP = 421;
@@ -560,6 +563,19 @@ message OpenQueueRsp {
 
 message CloseQueueReq { string session_id = 1; }
 
+message GetRadioPreviewReq {
+  qcm.msg.id.RadioQueueId queue_id = 1;
+  map<string, string> configuration = 2;
+}
+
+message GetRadioPreviewRsp {
+  qcm.msg.id.SongId song_id = 1;
+  map<string, string> configuration = 2;
+  qcm.msg.model.QueuePresentation presentation = 3;
+}
+
+message PlaylogMsg { qcm.msg.id.SongId song_id = 1; }
+
 message GetRadioQueuesReq {
   reserved 1;
   qcm.msg.id.ProviderIds provider_ids = 1001;
@@ -845,6 +861,7 @@ message QcmMessage {
     GetStorageInfoReq get_storage_info_req = 300;
     GetStorageInfoRsp get_storage_info_rsp = 301;
     PlaylogReq playlog_req = 302;
+    PlaylogMsg playlog_msg = 303;
     PlayerControlReq player_control_req = 310;
     PlayerStateMsg player_state_msg = 311;
     PlayerQueueReq player_queue_req = 312;
@@ -863,6 +880,8 @@ message QcmMessage {
     OpenQueueReq open_queue_req = 415;
     OpenQueueRsp open_queue_rsp = 416;
     CloseQueueReq close_queue_req = 417;
+    GetRadioPreviewReq get_radio_preview_req = 418;
+    GetRadioPreviewRsp get_radio_preview_rsp = 419;
 
     GetShareLinkReq get_share_link_req = 420;
     GetShareLinkRsp get_share_link_rsp = 421;

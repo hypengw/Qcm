@@ -236,6 +236,9 @@ auto collect(const p_qcm::p_msg::M_QcmMessage& response, References& refs) -> vo
             refs.add(refs.songs, rsp->f_ids);
         }
         RSTD_CASE_PAYLOAD(get_songs_by_id_rsp, rsp) { refs.add(refs.songs, rsp->f_ids); }
+        RSTD_CASE_PAYLOAD(get_radio_preview_rsp, rsp) {
+            if (rsp->f_song_id.is_some()) refs.add(refs.songs, (*rsp->f_song_id)->f_value);
+        }
         RSTD_CASE_PAYLOAD(get_album_rsp, rsp) {
             if (rsp->f_id.is_some()) refs.add(refs.albums, (*rsp->f_id)->f_value);
             refs.add(refs.songs, rsp->f_song_ids);

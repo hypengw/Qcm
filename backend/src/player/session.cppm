@@ -158,6 +158,7 @@ class PlayerSession {
             rstd::async::spawn_local(record_logs(db_.clone(),
                                                  providers_.clone(),
                                                  coordinator_.clone(),
+                                                 events_.clone(),
                                                  rstd::move(rstd::get<1>(logs)))) });
     }
     auto ensure_process() -> coro<ProcessResult<empty>> {
@@ -484,8 +485,8 @@ class PlayerSession {
         co_return empty {};
     }
     static auto record_logs(sqlito::ExecutorHandle db, Rc<ProviderRuntime> providers,
-                            SyncCoordinator coordinator, Receiver<PlaylogEntry> input)
-        -> coro<empty> {
+                            SyncCoordinator coordinator, EventSink events,
+                            Receiver<PlaylogEntry> input) -> coro<empty> {
         while (auto entry = co_await input.recv()) {
             auto logged = co_await database_run(
                 db.clone(),
@@ -495,7 +496,17 @@ class PlayerSession {
                     return record_playlog(
                         connection, coordinator, *playing, entry.id, entry.timestamp, entry.action);
                 });
-            if (logged.is_err()) rstd::log::warn("cannot record playback: {}", logged.unwrap_err());
+            if (logged.is_err()) {
+                rstd::log::warn("cannot record playback: {}", logged.unwrap_err());
+            } else {
+                auto message       = Box<wire::M_PlaylogMsg>::make();
+                auto id            = Box<p_qcm::p_msg::p_id::M_SongId>::make();
+                id->f_value        = entry->id;
+                message->f_song_id = Some(rstd::move(id));
+                if ((co_await events.send_message(qcm_message(i32(), rstd::move(message))))
+                        .is_err())
+                    rstd::log::warn("cannot publish playback log");
+            }
         }
         co_return empty {};
     }
@@ -845,25 +856,22 @@ auto PlayerSession::queue(wire::M_PlayerQueueReq request) -> coro<ProcessResult<
         if ((*open.f_queue_id)->f_value == radio_id_)
             open.f_previous_session_id = radio_session_.clone();
         open.f_operation_id = rstd::format("{}:{}", current_millis(), new_instance_id());
-        auto  opened        = rstd_co_try(co_await open_queue_async(
-            *providers_.get(), *radios_, coordinator_, db_.clone(), i32(), open));
-        auto& page          = *opened.o_payload->as_open_queue_rsp();
-        if (page.f_session.is_none() || page.f_song_ids.is_none())
-            co_return Err(ProcessError::internal("radio returned an incomplete session"_str));
+        auto page           = rstd_co_try(co_await activate_radio_page_async(
+            *providers_.get(), *radios_, coordinator_, db_.clone(), open));
         if (ticket != intent_ || stopping_) {
             co_await radios_->close(
-                *providers_.get(), coordinator_, db_.clone(), (*page.f_session)->f_id.clone());
+                *providers_.get(), coordinator_, db_.clone(), page.session_id.clone());
             co_return Ok(empty {});
         }
         co_await close_radio();
         radio_id_ = (*open.f_queue_id)->f_value;
-        adopt_radio(**page.f_session);
+        adopt_radio(*queue_session_message(page));
         name_ = rstd::move(request.f_name);
         (void)rstd_co_try(queue_.set_shuffle(false), ProcessError::internal(rstd::move(_e)));
         (void)rstd_co_try(queue_.set_loop_mode(LoopMode::None),
                           ProcessError::internal(rstd::move(_e)));
-        auto index = (*page.f_song_ids)->f_values.is_empty() ? i32(-1) : i32();
-        change     = rstd_co_try(queue_.replace(rstd::move((*page.f_song_ids)->f_values), index),
+        auto index = page.song_ids.is_empty() ? i32(-1) : i32();
+        change     = rstd_co_try(queue_.replace(rstd::move(page.song_ids), index),
                                  ProcessError::internal(rstd::move(_e)));
         break;
     }

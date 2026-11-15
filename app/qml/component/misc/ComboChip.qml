@@ -23,11 +23,11 @@ MD.EmbedChip {
         anchorItem: root
         model: root.options
         contentDelegate: MD.MenuItem {
-            required property var model
-            text: model.name
-            selected: model.value === root.value
+            required property var modelData
+            text: modelData.name
+            selected: modelData.value === root.value
             onClicked: {
-                const value = model.value;
+                const value = modelData.value;
                 root.popup.close();
                 root.valueChangeRequested(value);
             }

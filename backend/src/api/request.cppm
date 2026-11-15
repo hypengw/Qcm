@@ -287,6 +287,17 @@ public:
                                                           owner)),
                     Some(input.clone()));
             }
+            RSTD_CASE_PAYLOAD(get_radio_preview_req, payload) {
+                co_return co_await service_->ensure_entities(
+                    rstd_co_try(co_await get_radio_preview_async(*service_->provider_runtime_.get(),
+                                                                 *service_->radio_sessions_,
+                                                                 service_->coordinator_,
+                                                                 service_->db_.clone(),
+                                                                 request.f_id,
+                                                                 *payload,
+                                                                 owner)),
+                    Some(input.clone()));
+            }
             RSTD_CASE_PAYLOAD(get_queue_next_req, payload) {
                 co_return co_await service_->ensure_entities(
                     rstd_co_try(co_await next_queue_async(*service_->provider_runtime_.get(),

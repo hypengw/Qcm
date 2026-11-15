@@ -115,6 +115,11 @@ struct RadioSession {
     radio_watch::Sender<bool>   released { false };
 };
 using RadioSessionHandle = Rc<RadioSession>;
+struct RadioPreparation {
+    AsyncMutex<empty>  gate { empty {} };
+    Option<RadioPage>  page;
+    QueueConfiguration requested;
+};
 class RadioSessions {
     enum class Cleanup
     {
@@ -126,6 +131,9 @@ class RadioSessions {
     Mutex<HashMap<String, Arc<RadioOperation>>> operations_ {
         HashMap<String, Arc<RadioOperation>>()
     };
+    Mutex<HashMap<i64, Rc<RadioPreparation>>> preparations_ {
+        HashMap<i64, Rc<RadioPreparation>>()
+    };
     bool        stopped_ {};
     static auto release(ProviderRuntime&, SyncCoordinator, sqlito::ExecutorHandle,
                         RadioSessionHandle) -> rstd::async::coro<empty>;
@@ -134,6 +142,20 @@ class RadioSessions {
 
 public:
     auto is_stopped() const -> bool { return stopped_; }
+    auto preparation(i64 queue_id) -> Result<Rc<RadioPreparation>, RadioError> {
+        if (stopped_) return Err(RadioError::Expired());
+        auto guard = preparations_.lock().unwrap();
+        guard->retain([this](i64, Rc<RadioPreparation>& value) {
+            return value.strong_count() > usize(1) ||
+                   (value->page.is_some() && snapshot(value->page->session_id.as_str()));
+        });
+        if (auto found = guard->get(queue_id)) return Ok((*found)->clone());
+        if (guard->len() >= usize(128))
+            return Err(RadioError::Invalid("too many radio previews"_Str));
+        auto value = make_rc<RadioPreparation>();
+        guard->insert(queue_id, value.clone());
+        return Ok(rstd::move(value));
+    }
     auto operation(ref<str> key, ref<str> fingerprint, ProviderHandle instance, u64 epoch)
         -> Result<Arc<RadioOperation>, RadioError> {
         if (stopped_) return Err(RadioError::Expired());
@@ -810,11 +832,11 @@ auto run_radio_operation(ProviderRuntime& runtime, RadioSessions& sessions, i64 
         co_return Err(RadioError::Expired());
     co_return Ok(page.clone());
 }
-auto open_queue_async(ProviderRuntime& runtime, RadioSessions& sessions,
-                      SyncCoordinator& coordinator, sqlito::ExecutorHandle db, i32 request_id,
-                      const p_qcm::p_msg::M_OpenQueueReq& entry,
-                      ProviderRequestOwnerHandle          owner = {})
-    -> rstd::async::coro<Result<p_qcm::p_msg::M_QcmMessage, ProcessError>> {
+auto open_queue_page_async(ProviderRuntime& runtime, RadioSessions& sessions,
+                           SyncCoordinator& coordinator, sqlito::ExecutorHandle db,
+                           const p_qcm::p_msg::M_OpenQueueReq& entry,
+                           ProviderRequestOwnerHandle          owner = {})
+    -> rstd::async::coro<ProcessResult<RadioPage>> {
     auto plan   = rstd_co_try(co_await prepare_radio_open(runtime, db.clone(), entry));
     auto status = radio_operation_id(entry.f_operation_id.as_str());
     if (status != RadioOperationIdStatus::Valid)
@@ -838,7 +860,94 @@ auto open_queue_async(ProviderRuntime& runtime, RadioSessions& sessions,
             return perform_open_queue_async(
                 runtime, sessions, coordinator, db.clone(), entry, rstd::move(plan), owner);
         }));
+    co_return Ok(rstd::move(page));
+}
+auto open_queue_async(ProviderRuntime& runtime, RadioSessions& sessions,
+                      SyncCoordinator& coordinator, sqlito::ExecutorHandle db, i32 request_id,
+                      const p_qcm::p_msg::M_OpenQueueReq& entry,
+                      ProviderRequestOwnerHandle          owner = {})
+    -> rstd::async::coro<ProcessResult<p_qcm::p_msg::M_QcmMessage>> {
+    auto page = rstd_co_try(
+        co_await open_queue_page_async(runtime, sessions, coordinator, db.clone(), entry, owner));
     co_return Ok(radio_page_response(request_id, page, true));
+}
+auto prepared_radio_page_async(ProviderRuntime& runtime, RadioSessions& sessions,
+                               SyncCoordinator& coordinator, sqlito::ExecutorHandle db,
+                               const p_qcm::p_msg::M_OpenQueueReq& entry, bool consume,
+                               ProviderRequestOwnerHandle owner = {})
+    -> rstd::async::coro<ProcessResult<RadioPage>> {
+    auto plan = rstd_co_try(co_await prepare_radio_open(runtime, db.clone(), entry));
+    if (owner) {
+        owner.get()->provider_id = plan.provider_id;
+        owner.get()->instance    = plan.instance.clone();
+    }
+    auto slot  = rstd_co_try(sessions.preparation((*entry.f_queue_id)->f_value));
+    auto guard = co_await slot->gate.lock();
+    auto call  = runtime.call_snapshot(plan.provider_id, plan.instance, Some(plan.epoch));
+    if (call.is_none()) co_return Err(ProcessError::radio(RadioError::Expired()));
+    if (slot->page.is_some()) {
+        auto previous = sessions.snapshot(slot->page->session_id.as_str());
+        if (previous && ProviderHandle::ptr_eq(previous->instance, plan.instance) &&
+            previous->epoch == plan.epoch &&
+            (slot->requested == entry.f_configuration ||
+             slot->page->configuration == entry.f_configuration)) {
+            if (consume) co_return Ok(rstd::move(slot.get()->page.take()).unwrap());
+            co_return Ok(slot->page->clone());
+        }
+        auto old = slot.get()->page.take().unwrap();
+        co_await sessions.close(runtime, coordinator, db.clone(), rstd::move(old.session_id));
+    }
+    if (! call->is_current()) co_return Err(ProcessError::radio(RadioError::Expired()));
+    auto opened = co_await rstd::async::timeout(
+        rstd::async::into_future(perform_open_queue_async(
+            runtime, sessions, coordinator, db.clone(), entry, rstd::move(plan), owner)),
+        Duration::from_secs(u64(180)));
+    if (opened.is_err())
+        co_return Err(ProcessError::radio(RadioError::Invalid("radio operation timed out"_Str)));
+    auto page = rstd_co_try(rstd::move(opened).unwrap());
+    if (! consume) {
+        slot.get()->requested = entry.f_configuration.clone();
+        slot.get()->page      = Some(page.clone());
+    }
+    co_return Ok(rstd::move(page));
+}
+auto get_radio_preview_async(ProviderRuntime& runtime, RadioSessions& sessions,
+                             SyncCoordinator& coordinator, sqlito::ExecutorHandle db,
+                             i32 request_id, const p_qcm::p_msg::M_GetRadioPreviewReq& entry,
+                             ProviderRequestOwnerHandle owner = {})
+    -> rstd::async::coro<ProcessResult<p_qcm::p_msg::M_QcmMessage>> {
+    p_qcm::p_msg::M_OpenQueueReq open;
+    if (entry.f_queue_id.is_some()) {
+        auto id         = Box<p_qcm::p_msg::p_id::M_RadioQueueId>::make();
+        id->f_value     = (*entry.f_queue_id)->f_value;
+        open.f_queue_id = Some(rstd::move(id));
+    }
+    open.f_configuration = entry.f_configuration.clone();
+    auto page            = rstd_co_try(co_await prepared_radio_page_async(
+        runtime, sessions, coordinator, db.clone(), open, false, owner));
+    auto response        = Box<p_qcm::p_msg::M_GetRadioPreviewRsp>::make();
+    if (! page.song_ids.is_empty()) {
+        auto id             = Box<p_qcm::p_msg::p_id::M_SongId>::make();
+        id->f_value         = page.song_ids[usize()];
+        response->f_song_id = Some(rstd::move(id));
+    }
+    response->f_configuration   = rstd::move(page.configuration);
+    auto presentation           = Box<p_qcm::p_msg::p_model::M_QueuePresentation>::make();
+    presentation->f_description = rstd::move(page.presentation.description);
+    if (page.presentation.source_item_id.is_some())
+        presentation->f_source_item_id = *page.presentation.source_item_id;
+    response->f_presentation = Some(rstd::move(presentation));
+    co_return Ok(qcm_message(request_id, rstd::move(response)));
+}
+auto activate_radio_page_async(ProviderRuntime& runtime, RadioSessions& sessions,
+                               SyncCoordinator& coordinator, sqlito::ExecutorHandle db,
+                               const p_qcm::p_msg::M_OpenQueueReq& entry)
+    -> rstd::async::coro<ProcessResult<RadioPage>> {
+    if (entry.f_reason == i32() && entry.f_input_id == i64() &&
+        entry.f_previous_session_id.is_empty())
+        co_return co_await prepared_radio_page_async(
+            runtime, sessions, coordinator, db.clone(), entry, true);
+    co_return co_await open_queue_page_async(runtime, sessions, coordinator, db.clone(), entry);
 }
 auto legacy_next_queue_async(ProviderRuntime& runtime, SyncCoordinator& coordinator,
                              sqlito::ExecutorHandle db, i32 request_id,

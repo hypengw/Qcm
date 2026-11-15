@@ -82,6 +82,7 @@ public:
     Q_SIGNAL void playerQueueChanged(qcm::msg::PlayerQueueMsg);
     Q_SIGNAL void playerUiRequested(qcm::msg::PlayerUiMsg);
     Q_SIGNAL void playerError(QString);
+    Q_SIGNAL void playlogRecorded();
 
     Q_SLOT void on_retry();
 
