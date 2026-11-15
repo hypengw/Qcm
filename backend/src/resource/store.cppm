@@ -9,6 +9,7 @@ import :resource.metadata;
 import :resource.segments;
 import :resource.materialize;
 import :resource.objects;
+import :resource.startup;
 import licrypto;
 import rstd.log;
 using namespace rstd::prelude;
@@ -128,12 +129,18 @@ auto open_files(PathBuf root) -> DbResult<Opened> {
 }
 auto storage_worker(PathBuf root, JobReceiver receiver, Arc<Control> control,
                     rstd::async::oneshot::Sender<DbResult<empty>> ready) -> empty {
-    ActorExit exit { control.clone() };
-    auto      result = [&]() -> DbResult<empty> {
-        auto files   = rstd_try(open_files(rstd::move(root)));
-        auto storage = rstd_try(
-            Storage::open(files.connection, rstd::move(files.root), rstd::move(files.owner)));
+    ActorExit    exit { control.clone() };
+    StartupTrace trace(STARTUP_LABELS);
+    auto         result = [&]() -> DbResult<empty> {
+        auto files   = rstd_try(trace.measure(StartupStage::Files, [&] {
+            return open_files(rstd::move(root));
+        }));
+        auto storage = rstd_try(trace.measure(StartupStage::Storage, [&] {
+            return Storage::open(
+                files.connection, rstd::move(files.root), rstd::move(files.owner), trace);
+        }));
         storage.db.attach(files.connection);
+        trace.finish("ready"_str);
         (void)ready.send(Ok(empty {}));
         for (;;) {
             auto job = receiver.recv();
@@ -144,7 +151,10 @@ auto storage_worker(PathBuf root, JobReceiver receiver, Arc<Control> control,
         }
         return Ok(empty {});
     }();
-    if (result.is_err()) (void)ready.send(Err(rstd::move(result).unwrap_err()));
+    if (result.is_err()) {
+        trace.finish("failed"_str);
+        (void)ready.send(Err(rstd::move(result).unwrap_err()));
+    }
     return empty {};
 }
 auto copy_blocks(const JobSender& sender, Ticket& ticket, const Arc<Control>& control)

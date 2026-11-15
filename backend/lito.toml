@@ -19,6 +19,7 @@ rstd-log = { workspace = true }
 rstd-parse = { workspace = true }
 rstd-argparse = { workspace = true, pub = true }
 rstd-dirs = { workspace = true }
+rstd-bench = { workspace = true }
 rstd-macro = { workspace = true }
 rstd-serde = { workspace = true, pub = true }
 rstd-serde-macro = { workspace = true }

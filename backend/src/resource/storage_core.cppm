@@ -6,6 +6,7 @@ module;
 #endif
 export module qcm.backend:resource.storage_core;
 import :resource.storage;
+import :resource.startup;
 import liuuid;
 import rstd.log;
 using namespace rstd::prelude;
@@ -213,32 +214,44 @@ auto open_owner(ref<Path> root) -> DbResult<File> {
     rstd_try(private_file(owner));
     return Ok(rstd::move(owner));
 }
-auto Storage::open(sqlito::Connection& connection, PathBuf root, File owner) -> DbResult<Storage> {
+auto Storage::open(sqlito::Connection& connection, PathBuf root, File owner, StartupTrace& trace)
+    -> DbResult<Storage> {
     Storage store(rstd::move(root), rstd::move(owner));
     store.db.attach(connection);
-    rstd_try(store.db.migrate());
+    rstd_try(trace.measure(StartupStage::Migrate, [&] {
+        return store.db.migrate();
+    }));
     if (auto capacity = rstd::env::var("QCM_RESOURCE_CACHE_BYTES"_str)) {
         auto parsed = rstd::from_str<u64>(capacity->as_str());
         if (parsed.is_ok()) store.capacity = *parsed;
     }
     store.clock = now();
-    rstd_try(store.restore_segment_clock());
-    rstd_try(store.restore_leases());
-    rstd_try(store.recover());
+    rstd_try(trace.measure(StartupStage::SegmentClock, [&] {
+        return store.restore_segment_clock();
+    }));
+    rstd_try(trace.measure(StartupStage::Leases, [&] {
+        return store.restore_leases();
+    }));
+    rstd_try(trace.measure(StartupStage::Recovery, [&] {
+        return store.recover(trace);
+    }));
     return Ok(rstd::move(store));
 }
 auto Storage::path(ref<str> generation) const -> PathBuf {
     return root.join(rstd::format("{}.data", generation).as_str());
 }
-auto Storage::recover() -> DbResult<empty> {
+auto Storage::recover(StartupTrace& trace) -> DbResult<empty> {
     HashMap<String, ResourceKind> retained;
     Vec<i64>                      invalid;
+    usize version_count {}, lease_count {}, directory_count {}, retained_files {}, orphan_files {};
     {
-        auto rows = rstd_try(db.query(core_queries::recovery));
+        auto scope = trace.span(StartupStage::Versions);
+        auto rows  = rstd_try(db.query(core_queries::recovery));
         while (rstd_try(next(rows))) {
             auto reader = rows.reader();
             auto row    = rstd_try(core_queries::recovery_projection.decode(reader));
-            auto meta   = rstd_try(decode_metadata(row.meta.as_str()));
+            ++version_count;
+            auto meta = rstd_try(decode_metadata(row.meta.as_str()));
             if (! valid_generation(meta.generation.as_str())) {
                 invalid.push(i64(row.id));
             } else if (meta.layout.segment_bytes().is_none()) {
@@ -248,42 +261,77 @@ auto Storage::recover() -> DbResult<empty> {
         }
     }
     {
-        auto rows = rstd_try(db.query(core_queries::leased_generations));
+        auto scope = trace.span(StartupStage::RetainedLeases);
+        auto rows  = rstd_try(db.query(core_queries::leased_generations));
         while (rstd_try(next(rows))) {
             auto reader = rows.reader();
             auto row    = rstd_try(core_queries::generation_projection.decode(reader));
+            ++lease_count;
             if (valid_generation(row.generation.as_str()))
                 retained.insert(rstd::format("{}.ok", row.generation),
                                 rstd_try(decode_kind(row.kind)));
         }
     }
-    for (auto id : invalid) {
-        rstd_try(db.execute(core_queries::invalidate_version, parameter("id"_str, id)));
-        if (auto cleanup = erase_version(id); cleanup.is_err())
-            rstd::log::warn("invalid cache cleanup deferred: {}", rstd::move(cleanup).unwrap_err());
-    }
-    rstd_try(retain_segments(retained));
-    rstd_try(retain_packs(retained));
-    auto directory = rstd_try(rstd::fs::read_dir(root.as_path()));
-    while (auto item = directory.next()) {
-        auto entry    = rstd_try(rstd::move(*item));
-        auto filename = entry.file_name();
-        auto name     = filename.as_os_str().to_str();
-        if (name.is_none()) continue;
-        auto kind = retained.get(String::make(*name));
-        if (kind.is_some())
-            sizes.insert(String::make(*name),
-                         { rstd_try(allocated(entry.path().as_path())), **kind });
-        else if (managed_file_name(*name) || managed_segment_name(*name) ||
-                 managed_pack_name(*name)) {
-            sizes.insert(String::make(*name),
-                         { rstd_try(allocated(entry.path().as_path())), ResourceKind::Image });
-            if (auto cleanup = remove_managed(*name); cleanup.is_err())
-                rstd::log::warn("cache cleanup deferred: {}", rstd::move(cleanup).unwrap_err());
+    {
+        auto scope = trace.span(StartupStage::InvalidVersions);
+        for (auto id : invalid) {
+            rstd_try(db.execute(core_queries::invalidate_version, parameter("id"_str, id)));
+            if (auto cleanup = erase_version(id); cleanup.is_err())
+                rstd::log::warn("invalid cache cleanup deferred: {}",
+                                rstd::move(cleanup).unwrap_err());
         }
     }
-    if (auto cleanup = evict(u64()); cleanup.is_err())
+    auto retained_before = retained.len();
+    rstd_try(trace.measure(StartupStage::Segments, [&] {
+        return retain_segments(retained);
+    }));
+    auto segment_files = retained.len() - retained_before;
+    retained_before    = retained.len();
+    rstd_try(trace.measure(StartupStage::Packs, [&] {
+        return retain_packs(retained);
+    }));
+    auto pack_files = retained.len() - retained_before;
+    {
+        auto scope     = trace.span(StartupStage::Directory);
+        auto directory = rstd_try(rstd::fs::read_dir(root.as_path()));
+        while (auto item = directory.next()) {
+            ++directory_count;
+            auto entry    = rstd_try(rstd::move(*item));
+            auto filename = entry.file_name();
+            auto name     = filename.as_os_str().to_str();
+            if (name.is_none()) continue;
+            auto kind = retained.get(String::make(*name));
+            if (kind.is_some()) {
+                ++retained_files;
+                sizes.insert(String::make(*name),
+                             { rstd_try(allocated(entry.path().as_path())), **kind });
+            } else if (managed_file_name(*name) || managed_segment_name(*name) ||
+                       managed_pack_name(*name)) {
+                ++orphan_files;
+                sizes.insert(String::make(*name),
+                             { rstd_try(allocated(entry.path().as_path())), ResourceKind::Image });
+                if (auto cleanup = remove_managed(*name); cleanup.is_err())
+                    rstd::log::warn("cache cleanup deferred: {}", rstd::move(cleanup).unwrap_err());
+            }
+        }
+    }
+    if (auto cleanup = trace.measure(StartupStage::Eviction,
+                                     [&] {
+                                         return evict(u64());
+                                     });
+        cleanup.is_err())
         rstd::log::warn("cache recovery over budget: {}", rstd::move(cleanup).unwrap_err());
+    rstd::log::debug(rstd::log::Target { "qcm.startup"_str },
+                     "resource recovery versions={} leased={} invalid={} segment_files={} "
+                     "pack_files={} entries={} retained_files={} orphan_files={}",
+                     version_count,
+                     lease_count,
+                     invalid.len(),
+                     segment_files,
+                     pack_files,
+                     directory_count,
+                     retained_files,
+                     orphan_files);
     return Ok(empty {});
 }
 auto Storage::load(i64 id) -> DbResult<Resident*> {

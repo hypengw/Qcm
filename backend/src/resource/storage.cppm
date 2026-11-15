@@ -6,6 +6,7 @@ export import :resource.sqlite;
 export import :resource.schema;
 export import :resource.segment_key;
 import :resource.pack;
+import :resource.startup;
 import rstd.log;
 using namespace rstd::prelude;
 using namespace rstd::literals;
@@ -86,9 +87,9 @@ struct Storage {
     File                                      owner;
     Storage(PathBuf path, File lock): root(rstd::move(path)), owner(rstd::move(lock)) {}
     Storage(Storage&&) = default;
-    static auto open(sqlito::Connection&, PathBuf, File) -> DbResult<Storage>;
+    static auto open(sqlito::Connection&, PathBuf, File, StartupTrace&) -> DbResult<Storage>;
     auto        path(ref<str>) const -> PathBuf;
-    auto        recover() -> DbResult<empty>;
+    auto        recover(StartupTrace&) -> DbResult<empty>;
     auto        load(i64) -> DbResult<Resident*>;
     auto        version(i64) -> DbResult<Version>;
     auto        lookup(ref<str>) -> DbResult<Option<Version>>;

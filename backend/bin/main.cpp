@@ -1,5 +1,6 @@
 #include <rstd/macro.hpp>
 import qcm.backend;
+import qcm.backend.startup_trace;
 import rstd.log;
 import rstd;
 import sqlito;
@@ -17,6 +18,57 @@ using namespace qcm::backend;
 
 namespace
 {
+enum class StartupStage
+{
+    Total,
+    Arguments,
+    Paths,
+    Instance,
+    Runtime,
+    Listener,
+    Settings,
+    Plugins,
+    Shutdown,
+    Signals,
+    MainDatabaseOpen,
+    MainDatabaseMigrate,
+    NetworkRestore,
+    CacheDatabaseOpen,
+    CacheDatabaseMigrate,
+    Service,
+    Resources,
+    Publish,
+    UiSpawn,
+    InstanceWait,
+    Count
+};
+
+constexpr ref<str> STARTUP_LABELS[] = {
+    "total"_str,
+    "arguments"_str,
+    "paths"_str,
+    "instance"_str,
+    "runtime"_str,
+    "listener"_str,
+    "settings"_str,
+    "plugins"_str,
+    "shutdown"_str,
+    "signals"_str,
+    "database.main.open"_str,
+    "database.main.migrate"_str,
+    "network.restore"_str,
+    "database.cache.open"_str,
+    "database.cache.migrate"_str,
+    "service.make"_str,
+    "resource_cache.open"_str,
+    "readiness.publish"_str,
+    "ui.spawn"_str,
+    "instance.wait"_str,
+};
+static_assert(sizeof(STARTUP_LABELS) / sizeof(STARTUP_LABELS[0]) ==
+              static_cast<rstd::size_t>(StartupStage::Count));
+using StartupTrace = startup::Trace<StartupStage>;
+
 auto display(const auto& report) -> int {
     if (report.target() == rstd::argparse::OutputTarget::Tag::Stdout) {
         auto output = rstd::io::stdout();
@@ -49,16 +101,24 @@ auto report_ui(rstd::async::Child child) -> coro<empty> {
 }
 
 auto activate_ui(const startup::Instance& instance, const PathBuf& program,
-                 const startup::Options& options) -> coro<rstd::io::Result<int>> {
-    auto ready = rstd_co_try(co_await startup::wait_ready(instance));
-    if (options.no_ui) co_return Ok(0);
+                 const startup::Options& options, StartupTrace& trace)
+    -> coro<rstd::io::Result<int>> {
+    auto ready = rstd_co_try(
+        co_await trace.measure_async(StartupStage::InstanceWait, startup::wait_ready(instance)));
+    if (options.no_ui) {
+        trace.finish("reused"_str);
+        co_return Ok(0);
+    }
     auto supervisor = rstd_co_try(rstd::async::ProcessSupervisor::make());
     auto command    = startup::ui_command(program.as_path(), ready, options.ui_args.as_slice());
-    auto child      = supervisor.handle().spawn(command);
+    auto child      = trace.measure(StartupStage::UiSpawn, [&] {
+        return supervisor.handle().spawn(command);
+    });
     if (child.is_err()) {
         (void)co_await supervisor.shutdown();
         co_return Err(rstd::move(child).unwrap_err());
     }
+    trace.finish("activated"_str);
     auto status = co_await child->wait();
     auto closed = co_await supervisor.shutdown();
     rstd_co_try(closed);
@@ -68,10 +128,12 @@ auto activate_ui(const startup::Instance& instance, const PathBuf& program,
 
 auto launch_and_serve(TcpListener listener, Arc<QcmService> service, liserveto::Shutdown shutdown,
                       startup::Instance& instance, const PathBuf& program,
-                      const startup::Options& options, const startup::Ready& ready)
-    -> coro<rstd::io::Result<empty>> {
+                      const startup::Options& options, const startup::Ready& ready,
+                      StartupTrace& trace) -> coro<rstd::io::Result<empty>> {
     auto supervisor = rstd_co_try(rstd::async::ProcessSupervisor::make());
-    auto published  = instance.publish(ready);
+    auto published  = trace.measure(StartupStage::Publish, [&] {
+        return instance.publish(ready);
+    });
     if (published.is_err()) {
         (void)co_await supervisor.shutdown();
         co_return Err(rstd::move(published).unwrap_err());
@@ -79,7 +141,9 @@ auto launch_and_serve(TcpListener listener, Arc<QcmService> service, liserveto::
     Option<rstd::async::AbortOnDropHandle<empty>> ui_task;
     if (! options.no_ui) {
         auto command = startup::ui_command(program.as_path(), ready, options.ui_args.as_slice());
-        auto child   = supervisor.handle().spawn(command);
+        auto child   = trace.measure(StartupStage::UiSpawn, [&] {
+            return supervisor.handle().spawn(command);
+        });
         if (child.is_err()) {
             (void)co_await supervisor.shutdown();
             co_return Err(rstd::move(child).unwrap_err());
@@ -87,6 +151,7 @@ auto launch_and_serve(TcpListener listener, Arc<QcmService> service, liserveto::
         ui_task = Some(rstd::async::AbortOnDropHandle<empty> {
             rstd::async::spawn_local(report_ui(rstd::move(*child))) });
     }
+    trace.finish("ready"_str);
     rstd::log::info("qcm listening on 127.0.0.1:{}", ready.port);
     auto served = co_await serve_qcm(rstd::move(listener), service.clone(), rstd::move(shutdown));
     if (ui_task.is_some()) {
@@ -121,57 +186,66 @@ auto run_backend(RuntimeHandle runtime, TcpListener listener, String main_path, 
                  ProviderRegistry registry, String cache_dir, String device_id,
                  liserveto::Shutdown shutdown, rstd::signal::Subscription signals,
                  startup::Instance& instance, const PathBuf& program,
-                 const startup::Options& options, const startup::Ready& ready)
+                 const startup::Options& options, const startup::Ready& ready, StartupTrace& trace)
     -> rstd::async::coro<Result<empty, ProcessError>> {
     auto signal_task = rstd::async::AbortOnDropHandle<empty> { rstd::async::spawn_local(
         watch_shutdown_signal(rstd::move(signals), shutdown.clone())) };
-    auto database    = rstd_co_try(co_await MainDatabase::open(main_path.clone()));
+    auto database    = rstd_co_try(co_await trace.measure_async(
+        StartupStage::MainDatabaseOpen, MainDatabase::open(main_path.clone())));
     auto db          = rstd_co_try(database.handle());
-    auto initialized = co_await database_run(db.clone(), [](sqlito::Connection& connection) {
-        return migrate(connection);
-    });
+    auto initialized =
+        co_await trace.measure_async(StartupStage::MainDatabaseMigrate,
+                                     database_run(db.clone(), [](sqlito::Connection& connection) {
+                                         return migrate(connection);
+                                     }));
     if (initialized.is_err()) {
         (void)co_await database.shutdown();
         co_return Err(ProcessError(rstd::move(initialized).unwrap_err()));
     }
-    auto restored = co_await restore_network_settings(db.clone());
+    auto restored = co_await trace.measure_async(StartupStage::NetworkRestore,
+                                                 restore_network_settings(db.clone()));
     if (restored.is_err()) {
         (void)co_await database.shutdown();
         co_return Err(rstd::move(restored).unwrap_err());
     }
-    auto cache = sqlito::Executor::open(cache_path.as_str());
+    auto cache = trace.measure(StartupStage::CacheDatabaseOpen, [&] {
+        return sqlito::Executor::open(cache_path.as_str());
+    });
     if (cache.is_err()) {
         (void)co_await database.shutdown();
         co_return Err(ProcessError(rstd::move(cache).unwrap_err()));
     }
-    auto cache_database = rstd::move(cache).unwrap();
-    auto cache_initialized =
-        co_await database_run(cache_database.handle(),
-                              [](sqlito::Connection& connection) -> Result<empty, sqlito::Error> {
-                                  rstd_try(connection.execute_batch(
-                                      "PRAGMA journal_mode=WAL;"
-                                      "PRAGMA synchronous=NORMAL;PRAGMA busy_timeout=5000;"_str));
-                                  rstd_try(migrate_cache(connection));
-                                  return Ok(empty {});
-                              });
+    auto cache_database    = rstd::move(cache).unwrap();
+    auto cache_initialized = co_await trace.measure_async(
+        StartupStage::CacheDatabaseMigrate,
+        database_run(cache_database.handle(),
+                     [](sqlito::Connection& connection) -> Result<empty, sqlito::Error> {
+                         rstd_try(connection.execute_batch(
+                             "PRAGMA journal_mode=WAL;"
+                             "PRAGMA synchronous=NORMAL;PRAGMA busy_timeout=5000;"_str));
+                         rstd_try(migrate_cache(connection));
+                         return Ok(empty {});
+                     }));
     if (cache_initialized.is_err()) {
         (void)co_await cache_database.shutdown();
         (void)co_await database.shutdown();
         co_return Err(ProcessError(rstd::move(cache_initialized).unwrap_err()));
     }
-    auto created =
-        co_await QcmService::make(db.clone(),
-                                  rstd::move(runtime),
-                                  rstd::move(registry),
-                                  Some(cache_database.handle()),
-                                  Some(rstd::move(cache_dir)),
-                                  device_id.is_empty() ? None() : Some(rstd::move(device_id)),
-                                  Some(rstd::move(main_path)));
+    auto created = co_await trace.measure_async(
+        StartupStage::Service,
+        QcmService::make(db.clone(),
+                         rstd::move(runtime),
+                         rstd::move(registry),
+                         Some(cache_database.handle()),
+                         Some(rstd::move(cache_dir)),
+                         device_id.is_empty() ? None() : Some(rstd::move(device_id)),
+                         Some(rstd::move(main_path))));
     Result<empty, ProcessError> result = Ok(empty {});
     if (created.is_err()) {
         result = Err(rstd::move(created).unwrap_err());
     } else {
-        auto started = co_await (*created)->start_resource_cache();
+        auto started = co_await trace.measure_async(StartupStage::Resources,
+                                                    (*created)->start_resource_cache());
         if (started.is_err()) {
             co_await (*created)->stop_providers();
             result = Err(rstd::move(started).unwrap_err());
@@ -182,7 +256,8 @@ auto run_backend(RuntimeHandle runtime, TcpListener listener, String main_path, 
                                                     instance,
                                                     program,
                                                     options,
-                                                    ready);
+                                                    ready,
+                                                    trace);
             if (served.is_err())
                 result = Err(ProcessError::internal(rstd::move(served).unwrap_err()));
             (void)co_await (*created)->stop_resource_cache();
@@ -204,15 +279,23 @@ auto main(int argc, char** argv) -> int {
     static auto logger = rstd::log::EnvLogger {};
     (void)rstd::log::set_logger(logger);
     rstd::log::set_max_level(logger.filter());
+    StartupTrace trace(STARTUP_LABELS);
+    auto         argument_span = trace.span(StartupStage::Arguments);
     rstd::env::args_init(argc, argv);
     auto arguments  = rstd::iter::from_iter<Vec<OsString>>(rstd::env::args_os());
     auto executable = arguments.is_empty() ? PathBuf::from("qcm"_str)
                                            : PathBuf::from(arguments[usize()].as_os_str());
     auto parsed     = startup::parse(rstd::move(arguments));
     if (parsed.is_err()) return display(parsed.as_ref().unwrap_err());
-    if (parsed->is_Display()) return display(parsed->as_Display().request);
+    if (parsed->is_Display()) {
+        (void)argument_span.finish();
+        trace.finish("display"_str);
+        return display(parsed->as_Display().request);
+    }
     auto options = rstd::move(*parsed).as_Parsed().value;
-    auto paths   = startup::storage_paths(options);
+    (void)argument_span.finish();
+    auto path_span = trace.span(StartupStage::Paths);
+    auto paths     = startup::storage_paths(options);
     if (paths.is_err()) return fail(rstd::format("{}\n", paths.as_ref().unwrap_err()).as_str());
     if (rstd::fs::create_dir_all(paths->data.as_path()).is_err())
         return fail("cannot create data directory\n"_str);
@@ -222,7 +305,10 @@ auto main(int argc, char** argv) -> int {
     auto cache_root = rstd::fs::canonicalize(paths->cache.as_path());
     if (data_dir.is_err() || cache_root.is_err())
         return fail("cannot resolve storage directories\n"_str);
-    auto instance = startup::Instance::open(data_dir->as_path());
+    (void)path_span.finish();
+    auto instance = trace.measure(StartupStage::Instance, [&] {
+        return startup::Instance::open(data_dir->as_path());
+    });
     if (instance.is_err())
         return fail(
             rstd::format("cannot lock backend: {}\n", instance.as_ref().unwrap_err()).as_str());
@@ -232,10 +318,12 @@ auto main(int argc, char** argv) -> int {
 #endif
     auto program = options.ui.is_some() ? PathBuf::from(options.ui->as_str())
                                         : startup::ui_program(executable.as_path());
-    auto runtime = RuntimeBuilder::current_thread().enable_all().build();
+    auto runtime = trace.measure(StartupStage::Runtime, [] {
+        return RuntimeBuilder::current_thread().enable_all().build();
+    });
     if (runtime.is_err()) return fail("cannot create runtime\n"_str);
     if (! instance->primary()) {
-        auto activated = runtime->block_on(activate_ui(*instance, program, options));
+        auto activated = runtime->block_on(activate_ui(*instance, program, options, trace));
         if (activated.is_err())
             return fail(
                 rstd::format("cannot activate qcm-ui: {}\n", activated.as_ref().unwrap_err())
@@ -247,23 +335,31 @@ auto main(int argc, char** argv) -> int {
         return fail("cannot create resource cache directory\n"_str);
     auto main_path  = data_dir->join("backend.2.db"_str);
     auto cache_path = data_dir->join("backend_cache.db"_str);
-    auto bind       = TcpListener::bind(SocketAddr::ipv4_loopback(options.port));
+    auto bind       = trace.measure(StartupStage::Listener, [&] {
+        return TcpListener::bind(SocketAddr::ipv4_loopback(options.port));
+    });
     if (bind.is_err()) return fail("cannot bind backend port\n"_str);
     auto listener = rstd::move(*bind);
     auto address  = listener.local_addr();
     if (address.is_err()) return fail("cannot read backend address\n"_str);
     startup::Ready ready { address->port(),
                            String::make(cache_root->as_path().to_string_lossy().as_str()) };
-    auto           setting = settings::Setting::load(data_dir->as_path());
+    auto           setting = trace.measure(StartupStage::Settings, [&] {
+        return settings::Setting::load(data_dir->as_path());
+    });
     if (setting.is_err()) return fail(rstd::format("{}\n", setting.as_ref().unwrap_err()).as_str());
     auto device_id = rstd::move(setting->device_id);
 
-    auto registry = LuaProviderPlugin::load_default();
+    auto registry = trace.measure(StartupStage::Plugins, [] {
+        return LuaProviderPlugin::load_default();
+    });
     if (registry.is_err()) {
         rstd::log::error("cannot load provider registry: {}", registry.as_ref().unwrap_err());
         return fail("cannot load provider registry\n"_str);
     }
-    auto shutdown = liserveto::Shutdown::make();
+    auto shutdown = trace.measure(StartupStage::Shutdown, [] {
+        return liserveto::Shutdown::make();
+    });
     if (shutdown.is_err()) return fail("cannot create shutdown handle\n"_str);
     Vec<rstd::signal::SignalKind> kinds;
     kinds.push(rstd::signal::SignalKind::interrupt());
@@ -272,7 +368,9 @@ auto main(int argc, char** argv) -> int {
     if (terminate.is_err()) return fail("cannot select shutdown signal\n"_str);
     kinds.push(rstd::move(*terminate));
 #endif
-    auto signals = rstd::signal::subscribe(kinds.as_slice());
+    auto signals = trace.measure(StartupStage::Signals, [&] {
+        return rstd::signal::subscribe(kinds.as_slice());
+    });
     if (signals.is_err()) return fail("cannot subscribe to shutdown signals\n"_str);
     auto result =
         runtime->block_on(run_backend(runtime->handle(),
@@ -287,7 +385,8 @@ auto main(int argc, char** argv) -> int {
                                       *instance,
                                       program,
                                       options,
-                                      ready));
+                                      ready,
+                                      trace));
     if (result.is_err()) {
         rstd::log::error("backend failed: {}", result.as_ref().unwrap_err());
         return fail("backend server failed\n"_str);
