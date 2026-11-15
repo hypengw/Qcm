@@ -405,12 +405,12 @@ void Player::tick() {
         const auto error = (*decoder)->error();
         if (error.kind != wa::MediaErrorKind::None) {
             rn::log::warn("audio media failed: kind={}, native_code={}",
-                          static_cast<int>(error.kind), error.native_code);
-            const auto message = error.kind == wa::MediaErrorKind::Read
-                                     ? "audio stream read failed"_str
-                                 : error.kind == wa::MediaErrorKind::Resample
-                                     ? "audio resampling failed"_str
-                                     : "audio decoding failed"_str;
+                          static_cast<int>(error.kind),
+                          error.native_code);
+            const auto message =
+                error.kind == wa::MediaErrorKind::Read       ? "audio stream read failed"_str
+                : error.kind == wa::MediaErrorKind::Resample ? "audio resampling failed"_str
+                                                             : "audio decoding failed"_str;
             fail(message, source_token);
             return;
         }

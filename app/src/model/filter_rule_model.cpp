@@ -98,8 +98,8 @@ int FilterRuleModel::countInGroup(int group) const {
 int FilterRuleModel::findInsertPosition(int group) const {
     const int role = roleForName_("group");
     if (role < 0) return rowCount();
-    const int n   = rowCount();
-    int       pos = 0;
+    const int n    = rowCount();
+    int       pos  = 0;
     bool      seen = false;
     for (int i = 0; i < n; ++i) {
         const int g = data(index(i, 0), role).toInt();
@@ -159,7 +159,7 @@ void FilterRuleModel::appendRuleInGroup(int group) {
     const int row  = findInsertPosition(group);
     if (! insertRows(row, 1)) return;
     if (role >= 0) {
-        QVariant v = item(row);
+        QVariant   v  = item(row);
         const auto mt = v.metaType();
         const auto mo = mt.metaObject();
         if (mo) {
@@ -173,7 +173,7 @@ void FilterRuleModel::appendRuleInGroup(int group) {
 }
 
 void FilterRuleModel::appendNewGroup() {
-    const int new_id = newGroupId();
+    const int new_id   = newGroupId();
     int       prev_max = -1;
     if (rowCount() > 0) {
         const int role = roleForName_("group");
@@ -282,7 +282,7 @@ void FilterRuleModel::fromJsonDocument(const QJsonDocument& doc) {
         if (role >= 0) {
             const int n = std::min<int>(groups.size(), rowCount());
             for (int i = 0; i < n; ++i) {
-                QVariant v = item(i);
+                QVariant   v  = item(i);
                 const auto mt = v.metaType();
                 const auto mo = mt.metaObject();
                 if (! mo) continue;
@@ -296,7 +296,7 @@ void FilterRuleModel::fromJsonDocument(const QJsonDocument& doc) {
 
     QList<msg::filter::FilterLogic> logics;
     for (const auto& v : obj.value("filter_logics").toArray()) {
-        const auto jo = v.toObject();
+        const auto               jo = v.toObject();
         msg::filter::FilterLogic e;
         e.setOp(static_cast<msg::filter::LogicOpGadget::LogicOp>(jo.value("op").toInt()));
         e.setGroupA(jo.value("group_a").toInt());

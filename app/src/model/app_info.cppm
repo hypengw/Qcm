@@ -2,7 +2,7 @@ module;
 #include "QExtra/macro_qt.hpp"
 
 #ifdef Q_MOC_RUN
-#include "Qcm/model/app_info.moc"
+#    include "Qcm/model/app_info.moc"
 #endif
 export module qcm:model.app_info;
 import qextra;
@@ -29,6 +29,5 @@ private:
     QString author;
     QString summary;
 };
-
 
 } // namespace qcm::model

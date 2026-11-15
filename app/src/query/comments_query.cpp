@@ -50,7 +50,7 @@ void CommentStore::clear() {
     ++m_generation;
     m_jobs.cancel();
     m_scope.clear();
-    m_item_id     = model::ItemId{};
+    m_item_id     = model::ItemId {};
     m_provider_id = {};
     m_can_like    = false;
     for (auto entry : std::as_const(m_entries)) entry->deleteLater();
@@ -165,7 +165,7 @@ void CommentsQuery::setStore(CommentStore* store) {
     if (store) {
         connect(store, &CommentStore::invalidated, this, [this] {
             reset();
-            if (!m_stopped && m_store && !m_store->closed()) {
+            if (! m_stopped && m_store && ! m_store->closed()) {
                 setError(tr("Comments context changed"));
                 setStatus(Status::Error);
             }

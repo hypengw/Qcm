@@ -24,7 +24,8 @@ ProviderStatusModel::ProviderStatusModel(QObject* parent)
             &LibraryStatus::activedChanged,
             this,
             &ProviderStatusModel::libraryStatusChanged);
-    connect(this, &ProviderStatusModel::activedChanged, this, &ProviderStatusModel::activedIdsChanged);
+    connect(
+        this, &ProviderStatusModel::activedChanged, this, &ProviderStatusModel::activedIdsChanged);
     connect(this, &QAbstractItemModel::rowsInserted, this, &ProviderStatusModel::activedIdsChanged);
     connect(this, &QAbstractItemModel::rowsRemoved, this, &ProviderStatusModel::activedIdsChanged);
     connect(this, &QAbstractItemModel::modelReset, this, &ProviderStatusModel::activedIdsChanged);
@@ -42,11 +43,12 @@ ProviderStatusModel::~ProviderStatusModel() {}
 void ProviderStatusModel::updateSyncStatus(const msg::model::ProviderSyncStatus& s) {
     static auto role = Qt::UserRole + 1 +
                        msg::model::ProviderStatus::staticMetaObject.indexOfProperty("syncStatus");
-    auto id = s.id_proto().value();
+    auto        id   = s.id_proto().value();
     if (auto v = this->query(id); v) {
-        auto& value = *v;
-        using State = msg::model::SyncStateGadget::SyncState;
-        const bool finished = value.syncStatus().state() == State::SYNC_STATE_SYNCING && s.state() != State::SYNC_STATE_SYNCING;
+        auto& value         = *v;
+        using State         = msg::model::SyncStateGadget::SyncState;
+        const bool finished = value.syncStatus().state() == State::SYNC_STATE_SYNCING &&
+                              s.state() != State::SYNC_STATE_SYNCING;
         value.setSyncStatus(s);
 
         if (s.state() == msg::model::SyncStateGadget::SyncState::SYNC_STATE_SYNCING) {
@@ -169,7 +171,7 @@ LibraryStatus::~LibraryStatus() {}
 
 auto LibraryStatus::activedIds() const -> msg::id::LibraryIds {
     QtProtobuf::int64List ids;
-    auto providers = App::instance()->provider_status();
+    auto                  providers = App::instance()->provider_status();
     for (auto i = 0; i < providers->rowCount(); ++i) {
         auto& provider = providers->at(i);
         if (! providers->actived(provider.id_proto())) continue;

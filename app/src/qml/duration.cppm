@@ -1,7 +1,7 @@
 module;
 #include "QExtra/macro_qt.hpp"
 #ifdef Q_MOC_RUN
-#include "Qcm/qml/duration.moc"
+#    include "Qcm/qml/duration.moc"
 #endif
 export module qcm:qml.duration;
 import qcm.core;

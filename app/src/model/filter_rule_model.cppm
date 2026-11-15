@@ -2,7 +2,7 @@ module;
 #include "QExtra/macro_qt.hpp"
 
 #ifdef Q_MOC_RUN
-#include "Qcm/model/filter_rule_model.moc"
+#    include "Qcm/model/filter_rule_model.moc"
 #endif
 
 export module qcm:model.filter_rule;
@@ -37,7 +37,7 @@ public:
     void          setDirty(bool v);
     Q_SIGNAL void dirtyChanged();
 
-    auto          filterLogics() const noexcept -> const QList<msg::filter::FilterLogic>& {
+    auto filterLogics() const noexcept -> const QList<msg::filter::FilterLogic>& {
         return m_filter_logics;
     }
     void          setFilterLogics(const QList<msg::filter::FilterLogic>&);
@@ -51,7 +51,7 @@ public:
     Q_INVOKABLE int  findInsertPosition(int group) const;
     Q_INVOKABLE int  sectionIndexForGroup(int group) const;
     Q_INVOKABLE int  findLogicAt(int section_index) const;
-    Q_INVOKABLE int  logicOpAt(int section_index) const;  // -1 if none
+    Q_INVOKABLE int  logicOpAt(int section_index) const; // -1 if none
     Q_INVOKABLE void setLogicOpAt(int section_index, int op);
     Q_INVOKABLE void appendRuleInGroup(int group);
     Q_INVOKABLE void appendNewGroup();

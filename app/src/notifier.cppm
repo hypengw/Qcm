@@ -1,7 +1,7 @@
 module;
 #include "QExtra/macro_qt.hpp"
 #ifdef Q_MOC_RUN
-#include "Qcm/notifier.moc"
+#    include "Qcm/notifier.moc"
 #endif
 export module qcm:notifier;
 export import :global;

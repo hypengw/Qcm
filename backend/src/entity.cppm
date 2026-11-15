@@ -153,13 +153,13 @@ auto removal(i64 id, p_qcm::p_msg::p_model::E_ItemType type, const ProjectionSna
 }
 auto song_update(Song song, const ProjectionSnapshot& snapshot, i64 owner, bool favorite,
                  slice<i64> artist_ids) -> Box<SongUpdate> {
-    auto update      = Box<SongUpdate>::make();
-    auto id          = Box<p_qcm::p_msg::p_id::M_SongId>::make();
-    id->f_value      = song.id;
-    update->f_id     = Some(rstd::move(id));
-    update->f_stamp  = Some(read_stamp(snapshot, owner));
-    auto relations   = Box<p_qcm::p_msg::p_entity::M_SongRelations>::make();
-    auto album       = Box<p_qcm::p_msg::p_entity::M_AlbumLink>::make();
+    auto update     = Box<SongUpdate>::make();
+    auto id         = Box<p_qcm::p_msg::p_id::M_SongId>::make();
+    id->f_value     = song.id;
+    update->f_id    = Some(rstd::move(id));
+    update->f_stamp = Some(read_stamp(snapshot, owner));
+    auto relations  = Box<p_qcm::p_msg::p_entity::M_SongRelations>::make();
+    auto album      = Box<p_qcm::p_msg::p_entity::M_AlbumLink>::make();
     if (song.album_id.is_some()) {
         auto album_id     = Box<p_qcm::p_msg::p_id::M_AlbumId>::make();
         album_id->f_value = *song.album_id;

@@ -40,7 +40,8 @@ void SetFavoriteQuery::reload() {
         if (! co_await QAsyncResult::qexecutor()) co_return;
         if (! self) co_return;
 
-        self->inspect_set(rsp, [](auto&) {});
+        self->inspect_set(rsp, [](auto&) {
+        });
         co_return;
     });
 }

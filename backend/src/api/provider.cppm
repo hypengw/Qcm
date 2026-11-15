@@ -211,8 +211,8 @@ auto create_tmp_provider(TmpProviderStore& store, const ProviderRegistry& regist
     options.type_name = meta->type_name.clone();
     options.name      = String::make(""_str);
     options.base_url  = String::make(""_str);
-    auto instance         = rstd_try(runtime.create(registry, rstd::move(options)));
-    auto key              = new_instance_id();
+    auto instance     = rstd_try(runtime.create(registry, rstd::move(options)));
+    auto key          = new_instance_id();
     store.push(TmpProviderEntry { key.clone(),
                                   meta->type_name.clone(),
                                   rstd::move(instance),
@@ -286,7 +286,7 @@ auto get_provider_settings(ProviderRuntime& runtime, i32 request_id,
         definitions.push(
             rstd_try(rstd::json::to_value(field), ProcessError::internal(rstd::move(_e))));
     auto definition = rstd::json::to_string(rstd::json::Value::Array(rstd::move(definitions)));
-    auto rsp               = Box<p_qcm::p_msg::M_GetProviderSettingsRsp>::make();
+    auto rsp        = Box<p_qcm::p_msg::M_GetProviderSettingsRsp>::make();
     rsp->f_definition_json = rstd::move(definition);
     rsp->f_values_json =
         rstd_try(rstd::json::encode(snapshot.values), ProcessError::internal(rstd::move(_e)));
@@ -439,15 +439,15 @@ auto update_provider_async(TmpProviderStore& store, ProviderRuntime& runtime,
     if (! entry.temporary.is_empty() && ! temporary)
         co_return Err(ProcessError::NoSuchProvider(entry.temporary.clone()));
     if (temporary && temporary->type_name != row.type_name) co_return Err(ProcessError::NotAuth());
-    ProviderHandle    fresh;
+    ProviderHandle fresh;
     if (entry.authentication.is_Authenticate()) {
-        const auto* meta  = registry.find(row.type_name.as_str());
+        const auto* meta = registry.find(row.type_name.as_str());
         if (meta == nullptr) co_return Err(ProcessError::NoSuchProviderType(row.type_name.clone()));
         ProviderOptions options;
-        options.type_name     = meta->type_name.clone();
-        options.name          = entry.name.clone();
-        options.id            = Some(provider_id);
-        fresh                 = rstd_co_try(runtime.create(registry, rstd::move(options)));
+        options.type_name = meta->type_name.clone();
+        options.name      = entry.name.clone();
+        options.id        = Some(provider_id);
+        fresh             = rstd_co_try(runtime.create(registry, rstd::move(options)));
     }
     auto* candidate = temporary ? temporary.get()->instance.get() : fresh ? fresh.get() : old.get();
     auto  settings  = normalize_provider_settings(*candidate, entry.settings_json.as_str());

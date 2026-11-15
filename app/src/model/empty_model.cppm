@@ -2,7 +2,7 @@ module;
 #include "QExtra/macro_qt.hpp"
 
 #ifdef Q_MOC_RUN
-#include "Qcm/model/empty_model.moc"
+#    include "Qcm/model/empty_model.moc"
 #endif
 
 export module qcm:model.empty_model;

@@ -1,7 +1,7 @@
 module;
 #include "QExtra/macro_qt.hpp"
 #ifdef Q_MOC_RUN
-#include "Qcm/model/list_models.moc"
+#    include "Qcm/model/list_models.moc"
 #endif
 
 export module qcm:model.list_models;
@@ -17,21 +17,19 @@ class AlbumListModel : public EntityList<model::Album> {
     Q_OBJECT
     QML_ANONYMOUS
 
-    using value_type  = model::Album;
+    using value_type = model::Album;
 
 public:
     AlbumListModel(QObject* parent = nullptr);
-
 };
 
 class SongListModel : public EntityList<model::Song> {
     Q_OBJECT
     QML_ANONYMOUS
-    using value_type  = model::Song;
+    using value_type = model::Song;
 
 public:
     SongListModel(QObject* parent = nullptr);
-
 };
 
 class AlbumSongListModel : public EntityList<model::Song> {
@@ -41,8 +39,8 @@ class AlbumSongListModel : public EntityList<model::Song> {
     Q_PROPERTY(qcm::model::Album album READ album NOTIFY albumChanged FINAL)
     Q_PROPERTY(qint32 discCount READ discCount NOTIFY discCountChanged FINAL)
 
-    using album_type  = model::Album;
-    using value_type  = model::Song;
+    using album_type = model::Album;
+    using value_type = model::Song;
 
 public:
     AlbumSongListModel(QObject* parent = nullptr);
@@ -66,7 +64,7 @@ class ArtistListModel : public EntityList<model::Artist> {
     Q_OBJECT
     QML_ANONYMOUS
 
-    using value_type  = model::Artist;
+    using value_type = model::Artist;
 
 public:
     ArtistListModel(QObject* parent = nullptr);
@@ -76,7 +74,7 @@ class MixListModel : public EntityList<model::Mix> {
     Q_OBJECT
     QML_ANONYMOUS
 
-    using value_type  = model::Mix;
+    using value_type = model::Mix;
 
 public:
     MixListModel(QObject* parent = nullptr);
@@ -85,7 +83,8 @@ public:
 QString card_detail(const ForYouCard&);
 
 class ForYouListModel : public kstore::QGadgetListModel,
-    public kstore::QMetaListModelCRTP<model::ForYouCard, ForYouListModel, kstore::ListStoreType::VectorWithMap> {
+                        public kstore::QMetaListModelCRTP<model::ForYouCard, ForYouListModel,
+                                                          kstore::ListStoreType::VectorWithMap> {
     Q_OBJECT
     QML_ANONYMOUS
 public:
@@ -94,12 +93,15 @@ public:
     auto roleNames() const -> QHash<int, QByteArray> override;
 };
 
-class RadioQueueListModel : public ItemIdListModel,
-                            public kstore::QMetaListModelCRTP<model::RadioQueue, RadioQueueListModel, kstore::ListStoreType::Vector> {
+class RadioQueueListModel
+    : public ItemIdListModel,
+      public kstore::QMetaListModelCRTP<model::RadioQueue, RadioQueueListModel,
+                                        kstore::ListStoreType::Vector> {
     Q_OBJECT
     QML_ANONYMOUS
 
-    using list_crtp_t = kstore::QMetaListModelCRTP<model::RadioQueue, RadioQueueListModel, kstore::ListStoreType::Vector>;
+    using list_crtp_t = kstore::QMetaListModelCRTP<model::RadioQueue, RadioQueueListModel,
+                                                   kstore::ListStoreType::Vector>;
     using value_type  = model::RadioQueue;
 
 public:
@@ -116,8 +118,8 @@ class MixSongListModel : public EntityList<model::Song> {
     Q_PROPERTY(qcm::model::Mix mix READ mix NOTIFY mixChanged FINAL)
     Q_PROPERTY(qint32 discCount READ discCount NOTIFY discCountChanged FINAL)
 
-    using mix_type    = model::Mix;
-    using value_type  = model::Song;
+    using mix_type   = model::Mix;
+    using value_type = model::Song;
 
 public:
     MixSongListModel(QObject* parent = nullptr);

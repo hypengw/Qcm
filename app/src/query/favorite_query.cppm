@@ -2,7 +2,7 @@ module;
 #include "QExtra/macro_qt.hpp"
 
 #ifdef Q_MOC_RUN
-#include "Qcm/query/favorite_query.moc"
+#    include "Qcm/query/favorite_query.moc"
 #endif
 
 export module qcm:query.favorite;
@@ -32,8 +32,7 @@ public:
 
 private:
     model::ItemId m_item_id;
-    bool m_favorite;
+    bool          m_favorite;
 };
 
-} 
-
+} // namespace qcm

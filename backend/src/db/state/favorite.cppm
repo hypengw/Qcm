@@ -15,18 +15,20 @@ namespace favorite_query = liorm::query;
 
 namespace qcm::backend
 {
-inline constexpr auto favorite_upsert = favorite_query::compile([](favorite_query::QueryBuilder& b) {
-    auto row = b.use(database_tables).table<Dynamic>();
-    return b.insert_into(row.source(), row.col<&Dynamic::id>(), row.col<&Dynamic::favorite_at>())
-        .values(b.param<i64>("id"_str),
-                b.param<favorite_query::Nullable<Timestamp>>("favorite_at"_str))
-        .on_conflict_do_update(
-            array<favorite_query::Expr, 1> { row.col<&Dynamic::id>() }.as_slice(),
-            array<favorite_query::Expr, 1> {
-                row.col<&Dynamic::favorite_at>().set(b.excluded(row.col<&Dynamic::favorite_at>())) }
-                .as_slice());
-});
-}
+inline constexpr auto favorite_upsert =
+    favorite_query::compile([](favorite_query::QueryBuilder& b) {
+        auto row = b.use(database_tables).table<Dynamic>();
+        return b
+            .insert_into(row.source(), row.col<&Dynamic::id>(), row.col<&Dynamic::favorite_at>())
+            .values(b.param<i64>("id"_str),
+                    b.param<favorite_query::Nullable<Timestamp>>("favorite_at"_str))
+            .on_conflict_do_update(
+                array<favorite_query::Expr, 1> { row.col<&Dynamic::id>() }.as_slice(),
+                array<favorite_query::Expr, 1> { row.col<&Dynamic::favorite_at>().set(
+                                                     b.excluded(row.col<&Dynamic::favorite_at>())) }
+                    .as_slice());
+    });
+} // namespace qcm::backend
 
 export namespace qcm::backend
 {

@@ -16,8 +16,7 @@ public:
 
     template<typename T>
     ItemIdListModel(T* oper, QObject* parent, enums::ItemType item_type)
-        : kstore::QGadgetListModel(oper, parent),
-          m_item_type(item_type) {}
+        : kstore::QGadgetListModel(oper, parent), m_item_type(item_type) {}
 
     auto data(const QModelIndex& index, int role = Qt::DisplayRole) const -> QVariant override {
         if (role == ItemIdRole) {

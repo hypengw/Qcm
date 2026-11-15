@@ -7,8 +7,6 @@ module qcm;
 import :util.path;
 import qcm.log;
 
-
-
 using path = std::filesystem::path;
 
 path qcm::config_path() {

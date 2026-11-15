@@ -8,12 +8,12 @@ import rstd.cppstd;
 
 namespace mtp = rstd::mtp;
 
-export using i8 = std::int8_t;
+export using i8  = std::int8_t;
 export using i16 = std::int16_t;
 export using i32 = std::int32_t;
 export using i64 = std::int64_t;
 
-export using u8 = std::uint8_t;
+export using u8  = std::uint8_t;
 export using u16 = std::uint16_t;
 export using u32 = std::uint32_t;
 export using u64 = std::uint64_t;
@@ -123,13 +123,13 @@ export template<typename T>
 }
 
 export template<typename T>
-using param_t = mtp::cond<mtp::triv_copy<T> && sizeof(T) <= 32, T, const T&>;
+using param_t = mtp::cond < mtp::triv_copy<T> && sizeof(T) <= 32,
+      T, const T& > ;
 
 export template<typename T>
 constexpr auto cmp_set(T&         lhs,
                        param_t<T> rhs) noexcept(std::is_nothrow_move_constructible<T>::value &&
-                                                std::is_nothrow_assignable<T&, T>::value)
-    -> bool {
+                                                std::is_nothrow_assignable<T&, T>::value) -> bool {
     if constexpr (mtp::is_float<T>) {
         if (! fuzzy_equal(lhs, rhs)) {
             lhs = rhs;

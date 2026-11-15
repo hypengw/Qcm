@@ -2,7 +2,7 @@ module;
 #include "QExtra/macro_qt.hpp"
 
 #ifdef Q_MOC_RUN
-#include "Qcm/query/storage_info.moc"
+#    include "Qcm/query/storage_info.moc"
 #endif
 
 export module qcm:query.storage_info;
@@ -55,4 +55,4 @@ public:
     void reload() override;
 };
 
-} 
+} // namespace qcm::qml

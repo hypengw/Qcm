@@ -27,14 +27,13 @@ AppInfo::~AppInfo() {}
 namespace qcm::model
 {
 AlbumListModel::AlbumListModel(QObject* parent)
-    : EntityList<model::Album>(parent,enums::ItemType::ItemAlbum,AppStore::instance()->albums) {}
+    : EntityList<model::Album>(parent, enums::ItemType::ItemAlbum, AppStore::instance()->albums) {}
 
 SongListModel::SongListModel(QObject* parent)
-    : EntityList<model::Song>(parent,enums::ItemType::ItemSong,AppStore::instance()->songs) {}
-
+    : EntityList<model::Song>(parent, enums::ItemType::ItemSong, AppStore::instance()->songs) {}
 
 AlbumSongListModel::AlbumSongListModel(QObject* parent)
-    : EntityList<model::Song>(parent,enums::ItemType::ItemSong,AppStore::instance()->songs),
+    : EntityList<model::Song>(parent, enums::ItemType::ItemSong, AppStore::instance()->songs),
       m_disc_count(1) {
     connect(&m_item, &EntityView::changed, this, &AlbumSongListModel::albumChanged);
 }
@@ -54,12 +53,14 @@ ArtistListModel::ArtistListModel(QObject* parent)
                                 AppStore::instance()->artists) {}
 
 MixListModel::MixListModel(QObject* parent)
-    : EntityList<model::Mix>(parent,enums::ItemType::ItemMix,AppStore::instance()->mixes) {}
+    : EntityList<model::Mix>(parent, enums::ItemType::ItemMix, AppStore::instance()->mixes) {}
 
 QString card_detail(const ForYouCard& card) {
     if (card.hasSubtitle()) return card.subtitle();
-    if (card.hasMix()) return ForYouListModel::tr("%1 songs").arg(static_cast<int>(card.mix().trackCount()));
-    if (card.hasAlbum()) return ForYouListModel::tr("%1 tracks").arg(static_cast<int>(card.album().trackCount()));
+    if (card.hasMix())
+        return ForYouListModel::tr("%1 songs").arg(static_cast<int>(card.mix().trackCount()));
+    if (card.hasAlbum())
+        return ForYouListModel::tr("%1 tracks").arg(static_cast<int>(card.album().trackCount()));
     if (card.hasRadio()) return card.radio().description();
     return {};
 }
@@ -98,7 +99,7 @@ auto RadioQueueListModel::roleNames() const -> QHash<int, QByteArray> {
 }
 
 MixSongListModel::MixSongListModel(QObject* parent)
-    : EntityList<model::Song>(parent,enums::ItemType::ItemSong,AppStore::instance()->songs),
+    : EntityList<model::Song>(parent, enums::ItemType::ItemSong, AppStore::instance()->songs),
       m_disc_count(1) {
     connect(&m_item, &EntityView::changed, this, &MixSongListModel::mixChanged);
 }
@@ -135,7 +136,6 @@ void PageModel::init_main_pages(PageModel* self) {
 PageModel::PageModel(QObject* parent): kstore::QGadgetListModel(this, parent) {}
 PageModel::~PageModel() {}
 } // namespace qcm
-
 
 #include "Qcm/model/app_info.moc.cpp"
 #include "Qcm/model/id_queue.moc.cpp"

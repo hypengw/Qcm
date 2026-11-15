@@ -240,16 +240,16 @@ auto radio_page(const RadioSession& session, Vec<i64> song_ids) -> RadioPage {
              session.presentation.clone(), session.exhausted };
 }
 auto queue_session_message(const RadioPage& page) -> Box<p_qcm::p_msg::p_model::M_QueueSession> {
-    auto message       = Box<p_qcm::p_msg::p_model::M_QueueSession>::make();
-    message->f_id      = page.session_id.clone();
-    message->f_version = page.version;
-    message->f_configuration       = page.configuration.clone();
-    auto presentation              = Box<p_qcm::p_msg::p_model::M_QueuePresentation>::make();
-    presentation->f_description    = page.presentation.description.clone();
+    auto message                = Box<p_qcm::p_msg::p_model::M_QueueSession>::make();
+    message->f_id               = page.session_id.clone();
+    message->f_version          = page.version;
+    message->f_configuration    = page.configuration.clone();
+    auto presentation           = Box<p_qcm::p_msg::p_model::M_QueuePresentation>::make();
+    presentation->f_description = page.presentation.description.clone();
     presentation->f_source_item_id =
         page.presentation.source_item_id.is_some() ? *page.presentation.source_item_id : i64();
-    message->f_presentation        = Some(rstd::move(presentation));
-    message->f_exhausted           = page.exhausted;
+    message->f_presentation = Some(rstd::move(presentation));
+    message->f_exhausted    = page.exhausted;
     return message;
 }
 auto song_ids_message(const Vec<i64>& result) -> Box<p_qcm::p_msg::p_id::M_SongIds> {
@@ -335,8 +335,8 @@ auto radio_current_songs(sqlito::Connection& db, i64 provider_id, slice<i64> cur
     return Ok(rstd::move(result));
 }
 struct RadioBatchItems {
-    ItemRetentionHandle             retention;
-    QueryResult<Vec<i64>>           songs;
+    ItemRetentionHandle   retention;
+    QueryResult<Vec<i64>> songs;
 };
 auto retain_radio_items(sqlito::Connection& db, SyncCoordinator& coordinator, i64 provider_id,
                         slice<i64> roots, slice<i64> requested)
@@ -525,7 +525,7 @@ auto finish_radio_open(ProviderRuntime& runtime, RadioSessions& sessions,
     session.get()->configuration = rstd::move(batch.configuration);
     session.get()->presentation  = rstd::move(batch.presentation);
     session.get()->exhausted     = batch.exhausted;
-    auto page = radio_page(*session, rstd::move(songs));
+    auto page                    = radio_page(*session, rstd::move(songs));
     if (! sessions.publish(session))
         co_return Err(RadioError::Invalid(String::make("too many radio sessions"_str)));
     co_return Ok(rstd::move(page));
@@ -562,7 +562,7 @@ auto perform_open_queue_async(ProviderRuntime& runtime, RadioSessions& sessions,
         previous_state = Some(previous->state.clone());
     }
     auto configuration = entry.f_configuration.clone();
-    auto context = call->context(db.clone(), coordinator.clone());
+    auto context       = call->context(db.clone(), coordinator.clone());
     auto definition =
         co_await instance.get()->queue_definition_async(context.clone(), row.native_id.clone());
     if (! valid() || sessions.is_stopped()) co_return Err(RadioError::Expired());
@@ -584,16 +584,16 @@ auto perform_open_queue_async(ProviderRuntime& runtime, RadioSessions& sessions,
     if (opened.is_err() && ! valid()) co_return Err(RadioError::Expired());
     auto         result = rstd_co_try(rstd::move(opened));
     RadioSession session;
-    session.id             = new_instance_id();
-    session.queue_id       = (*entry.f_queue_id)->f_value;
-    session.native_id      = row.native_id.clone();
-    session.provider_id    = provider_id;
-    session.state          = result.state.clone();
-    session.instance       = instance.clone();
-    session.epoch          = epoch;
-    session.sync           = rstd::move(sync);
-    session.touched        = radio_now();
-    session.version        = u64(1);
+    session.id                      = new_instance_id();
+    session.queue_id                = (*entry.f_queue_id)->f_value;
+    session.native_id               = row.native_id.clone();
+    session.provider_id             = provider_id;
+    session.state                   = result.state.clone();
+    session.instance                = instance.clone();
+    session.epoch                   = epoch;
+    session.sync                    = rstd::move(sync);
+    session.touched                 = radio_now();
+    session.version                 = u64(1);
     auto                  candidate = sessions.adopt(rstd::move(session));
     RadioOpeningCandidate pending(runtime, sessions, coordinator, db.clone(), candidate.clone());
     auto                  page = co_await finish_radio_open(
@@ -695,13 +695,13 @@ auto perform_next_queue_async(ProviderRuntime& runtime, RadioSessions& sessions,
                 connection, coordinator, provider_id, roots.as_slice(), requested.as_slice());
         });
     if (! valid()) co_return Err(RadioError::Expired());
-    auto batch_items         = rstd_co_try(rstd::move(retained), [](sqlito::Error error) {
+    auto batch_items             = rstd_co_try(rstd::move(retained), [](sqlito::Error error) {
         return RadioError(ProviderError(rstd::move(error)));
     });
     auto songs                   = rstd_co_try(rstd::move(batch_items.songs), [](QueryError error) {
         return RadioError(ProviderError::db(rstd::move(error)));
     });
-    session.get()->retention = Some(rstd::move(batch_items.retention));
+    session.get()->retention     = Some(rstd::move(batch_items.retention));
     session.get()->presentation  = rstd::move(result.presentation);
     session.get()->exhausted     = result.exhausted;
     session.get()->configuration = rstd::move(result.configuration);

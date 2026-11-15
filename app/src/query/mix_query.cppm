@@ -93,7 +93,7 @@ public:
     Q_SIGNAL void mixIdChanged();
 
 private:
-    void          load(bool force_refresh);
+    void           load(bool force_refresh);
     msg::id::MixId m_mix_id;
 };
 

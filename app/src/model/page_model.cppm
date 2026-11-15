@@ -2,9 +2,8 @@ module;
 #include "Qcm/macro.hpp"
 #include "QExtra/macro_qt.hpp"
 
-
 #ifdef Q_MOC_RUN
-#include "Qcm/model/page_model.moc"
+#    include "Qcm/model/page_model.moc"
 #endif
 
 export module qcm:model.page_model;

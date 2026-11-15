@@ -41,7 +41,7 @@ public:
     Q_SIGNAL void activedIdsChanged();
 
 private:
-    std::set<i64>         m_inactived;
+    std::set<i64> m_inactived;
 };
 
 export class ProviderStatusModel
@@ -82,9 +82,9 @@ private:
     void setSyncing(bool);
     void checkSyncing();
 
-    bool                  m_syncing;
-    LibraryStatus*        m_lib_status;
-    std::set<i64>      m_inactived;
+    bool           m_syncing;
+    LibraryStatus* m_lib_status;
+    std::set<i64>  m_inactived;
 };
 
 } // namespace qcm

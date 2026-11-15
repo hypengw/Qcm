@@ -261,8 +261,8 @@ auto query_get_albums(Database& db, i32 request_id, const p_qcm::p_msg::M_GetAlb
     auto input  = rstd_try(album_input(entry));
     auto page   = input.page;
     auto result = rstd_try(album_query_page(db, input), ProcessError::query(rstd::move(_e)));
-    auto rsp  = Box<p_qcm::p_msg::M_GetAlbumsRsp>::make();
-    auto list = Box<p_qcm::p_msg::p_id::M_AlbumIds>::make();
+    auto rsp    = Box<p_qcm::p_msg::M_GetAlbumsRsp>::make();
+    auto list   = Box<p_qcm::p_msg::p_id::M_AlbumIds>::make();
     for (const auto& id : result.ids.as_slice()) list->f_values.push(i64(id.to_primitive()));
     rsp->f_ids      = Some(rstd::move(list));
     rsp->f_total    = i32(static_cast<int>(result.total.to_primitive()));
@@ -278,8 +278,8 @@ auto query_get_artists(Database& db, i32 request_id, const p_qcm::p_msg::M_GetAr
     auto page  = input.page;
     auto result =
         rstd_try(artist_query_page(db, input, false), ProcessError::query(rstd::move(_e)));
-    auto rsp    = Box<p_qcm::p_msg::M_GetArtistsRsp>::make();
-    auto list   = Box<p_qcm::p_msg::p_id::M_ArtistIds>::make();
+    auto rsp  = Box<p_qcm::p_msg::M_GetArtistsRsp>::make();
+    auto list = Box<p_qcm::p_msg::p_id::M_ArtistIds>::make();
     for (const auto& id : result.ids.as_slice()) list->f_values.push(i64(id.to_primitive()));
     rsp->f_ids      = Some(rstd::move(list));
     rsp->f_total    = i32(static_cast<int>(result.total.to_primitive()));

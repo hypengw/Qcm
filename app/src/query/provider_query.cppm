@@ -1,10 +1,8 @@
 module;
 #include "QExtra/macro_qt.hpp"
 
-
-
 #ifdef Q_MOC_RUN
-#include "Qcm/query/provider_query.moc"
+#    include "Qcm/query/provider_query.moc"
 #endif
 
 export module qcm:query.provider;
@@ -15,7 +13,7 @@ namespace qcm
 {
 
 export class ProviderMetasQuery : public Query,
-                           public QueryExtra<msg::GetProviderMetasRsp, ProviderMetasQuery> {
+                                  public QueryExtra<msg::GetProviderMetasRsp, ProviderMetasQuery> {
     Q_OBJECT
     QML_ELEMENT
 public:
@@ -23,7 +21,8 @@ public:
     void reload() override;
 };
 
-export class AuthProviderQuery : public Query, public QueryExtra<msg::AuthProviderRsp, AuthProviderQuery> {
+export class AuthProviderQuery : public Query,
+                                 public QueryExtra<msg::AuthProviderRsp, AuthProviderQuery> {
     Q_OBJECT
     QML_ELEMENT
 
@@ -92,9 +91,9 @@ public:
 
 private:
     msg::id::ProviderId m_provider_id;
-    QVariantList  m_fields;
-    QVariantMap   m_values;
-    quint64       m_revision {};
+    QVariantList        m_fields;
+    QVariantMap         m_values;
+    quint64             m_revision {};
 };
 
 export class UpdateProviderQuery : public Query,
@@ -148,7 +147,8 @@ private:
     msg::DeleteProviderReq m_req;
 };
 
-export class ReplaceProviderQuery : public Query, public QueryExtra<msg::Rsp, ReplaceProviderQuery> {
+export class ReplaceProviderQuery : public Query,
+                                    public QueryExtra<msg::Rsp, ReplaceProviderQuery> {
     Q_OBJECT
     QML_ELEMENT
     Q_PROPERTY(qcm::msg::id::ProviderId providerId READ providerId WRITE setProviderId NOTIFY
@@ -168,7 +168,7 @@ public:
     Q_SIGNAL void providerIdChanged();
 
 private:
-    QString       m_tmp_provider;
+    QString             m_tmp_provider;
     msg::id::ProviderId m_provider_id;
 };
 
@@ -195,11 +195,12 @@ public:
     Q_SIGNAL void typeNameChanged();
 
 private:
-    QString m_type_name;
+    QString             m_type_name;
     msg::id::ProviderId m_network_provider_id;
 };
 
-export class DeleteTmpProviderQuery : public Query, public QueryExtra<msg::Rsp, DeleteTmpProviderQuery> {
+export class DeleteTmpProviderQuery : public Query,
+                                      public QueryExtra<msg::Rsp, DeleteTmpProviderQuery> {
     Q_OBJECT
     QML_ELEMENT
 
@@ -217,5 +218,4 @@ private:
     msg::DeleteTmpProviderReq m_req;
 };
 
-} 
-
+} // namespace qcm

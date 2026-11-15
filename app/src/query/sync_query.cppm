@@ -2,7 +2,7 @@ module;
 #include "QExtra/macro_qt.hpp"
 
 #ifdef Q_MOC_RUN
-#include "Qcm/query/sync_query.moc"
+#    include "Qcm/query/sync_query.moc"
 #endif
 
 export module qcm:query.sync;
@@ -47,5 +47,4 @@ private:
     model::ItemId m_item_id;
 };
 
-} 
-
+} // namespace qcm

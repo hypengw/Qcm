@@ -44,8 +44,7 @@ SearchModel::SearchModel(QObject* parent)
     : QObject(parent),
       m_album_model(new AlbumListModel(this)),
       m_song_model(new SongListModel(this)),
-      m_artist_model(new ArtistListModel(this)) {
-}
+      m_artist_model(new ArtistListModel(this)) {}
 
 auto SearchModel::songs() -> SongListModel* { return m_song_model; }
 auto SearchModel::albums() -> AlbumListModel* { return m_album_model; }

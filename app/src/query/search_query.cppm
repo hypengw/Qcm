@@ -2,9 +2,8 @@ module;
 #include "Qcm/macro.hpp"
 #include "QExtra/macro_qt.hpp"
 
-
 #ifdef Q_MOC_RUN
-#include "Qcm/query/search_query.moc"
+#    include "Qcm/query/search_query.moc"
 #endif
 
 export module qcm:query.search;
@@ -23,8 +22,8 @@ public:
 };
 
 export class SearchTypeModel : public kstore::QGadgetListModel,
-                             public kstore::QMetaListModelCRTP<SearchTypeItem, SearchTypeModel,
-                                                           kstore::ListStoreType::Vector> {
+                               public kstore::QMetaListModelCRTP<SearchTypeItem, SearchTypeModel,
+                                                                 kstore::ListStoreType::Vector> {
     Q_OBJECT
     QML_ELEMENT
 
@@ -89,7 +88,7 @@ private:
     model::ArtistListModel* m_artist_model;
 };
 
-} 
+} // namespace model
 
 export class SearchQuery : public QueryList, public QueryExtra<model::SearchModel, SearchQuery> {
     Q_OBJECT
@@ -131,5 +130,4 @@ private:
     QString        m_text;
 };
 
-} 
-
+} // namespace qcm

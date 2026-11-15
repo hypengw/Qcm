@@ -11,7 +11,8 @@ module;
              const std::source_location     loc = std::source_location::current()) { \
             if (! log_check(LogLevel::NAME)) return;                                 \
             auto msg = rstd::format(fmt, rstd::forward<T>(args)...);                 \
-            log_loc_raw(LogLevel::NAME, loc,                                        \
+            log_loc_raw(LogLevel::NAME,                                              \
+                        loc,                                                         \
                         { reinterpret_cast<const char*>(msg.as_str().data()),        \
                           msg.size().to_primitive() });                              \
         }                                                                            \
@@ -57,8 +58,7 @@ void log(LogLevel level, const std::source_location loc, rstd::fmt::format_strin
     auto msg = rstd::format(fmt, rstd::forward<T>(args)...);
     log_loc_raw(level,
                 loc,
-                { reinterpret_cast<const char*>(msg.as_str().data()),
-                  msg.size().to_primitive() });
+                { reinterpret_cast<const char*>(msg.as_str().data()), msg.size().to_primitive() });
 }
 
 LOG_FUNC(debug, DEBUG);

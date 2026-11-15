@@ -4,7 +4,6 @@ module;
 export module qcm:util.path;
 import qcm.core;
 
-
 export namespace qcm
 {
 auto config_path() -> std::filesystem::path;

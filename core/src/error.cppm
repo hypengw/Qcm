@@ -7,8 +7,6 @@ module;
 export module qcm.core:error;
 import :basic;
 
-
-
 export namespace error
 {
 
@@ -76,8 +74,7 @@ public:
         requires(! rstd::mtp::same_as<rstd::mtp::decay<Fmt>, Error>) &&
                 (rstd::fmt::formattable<std::decay_t<Fmt>, char> ||
                  rstd::mtp::same_as<std::decay_t<Fmt>, std::nullopt_t>)
-    static Error push(Fmt&&                         f,
-                      const std::source_location loc = std::source_location::current()) {
+    static Error push(Fmt&& f, const std::source_location loc = std::source_location::current()) {
         using T = rstd::mtp::decay<Fmt>;
         Error e;
         Msg   msg;
@@ -122,12 +119,12 @@ template<>
 struct rstd::Impl<rstd::fmt::Display, ::error::Msg> : rstd::ImplBase<::error::Msg> {
     auto fmt(rstd::fmt::Formatter& f) const -> bool {
         auto& msg = this->self();
-        auto out = rstd::format("{} at {} {}({}:{})",
-                                msg.what,
-                                msg.loc.function_name(),
-                                msg.loc.file_name(),
-                                msg.loc.line(),
-                                msg.loc.column());
+        auto  out = rstd::format("{} at {} {}({}:{})",
+                                 msg.what,
+                                 msg.loc.function_name(),
+                                 msg.loc.file_name(),
+                                 msg.loc.line(),
+                                 msg.loc.column());
         return f.write_raw(out.data(), out.size().to_primitive());
     }
 };
@@ -135,8 +132,8 @@ struct rstd::Impl<rstd::fmt::Display, ::error::Msg> : rstd::ImplBase<::error::Ms
 template<>
 struct rstd::Impl<rstd::fmt::Display, std::error_code> : rstd::ImplBase<std::error_code> {
     auto fmt(rstd::fmt::Formatter& f) const -> bool {
-        auto& e = this->self();
-        auto out = rstd::format("{}({}:{})", e.message(), e.value(), e.category().name());
+        auto& e   = this->self();
+        auto  out = rstd::format("{}({}:{})", e.message(), e.value(), e.category().name());
         return f.write_raw(out.data(), out.size().to_primitive());
     }
 };
@@ -144,7 +141,7 @@ struct rstd::Impl<rstd::fmt::Display, std::error_code> : rstd::ImplBase<std::err
 template<>
 struct rstd::Impl<rstd::fmt::Display, ::error::Error> : rstd::ImplBase<::error::Error> {
     auto fmt(rstd::fmt::Formatter& f) const -> bool {
-        auto& e = this->self();
+        auto&       e = this->self();
         std::string out { "err stack:\n" };
         if (e.m_msg_stack.empty()) {
             out.append("    error stack empty");

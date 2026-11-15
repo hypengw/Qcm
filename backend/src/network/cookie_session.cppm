@@ -19,8 +19,8 @@ public:
 };
 class CookieSession {
     struct Status {
-        bool                                             active { true };
-        Vec<Weak<SessionStreamCancellation>>             streams;
+        bool                                 active { true };
+        Vec<Weak<SessionStreamCancellation>> streams;
     };
     struct State {
         Mutex<Status>                    status { Status {} };

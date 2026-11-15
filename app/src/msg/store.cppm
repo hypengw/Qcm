@@ -127,7 +127,7 @@ public:
     QString                name() const;
     void                   setItemId(model::ItemId);
     QList<model::Artist>   artists() const;
-    model::ItemId         albumId() const;
+    model::ItemId          albumId() const;
     model::Album           album() const;
     msg::entity::ItemState state() const;
     bool                   loaded() const;

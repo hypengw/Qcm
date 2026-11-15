@@ -2,7 +2,7 @@ module;
 #include "QExtra/macro_qt.hpp"
 
 #ifdef Q_MOC_RUN
-#include "Qcm/query/album_query.moc"
+#    include "Qcm/query/album_query.moc"
 #endif
 
 export module qcm:query.album;
@@ -37,11 +37,12 @@ public:
     Q_SIGNAL void filterLogicsChanged();
 
 private:
-    QList<msg::filter::AlbumFilter>      m_filters;
-    QList<msg::filter::FilterLogic>      m_filter_logics;
+    QList<msg::filter::AlbumFilter> m_filters;
+    QList<msg::filter::FilterLogic> m_filter_logics;
 };
 
-export class AlbumQuery : public QueryList, public QueryExtra<model::AlbumSongListModel, AlbumQuery> {
+export class AlbumQuery : public QueryList,
+                          public QueryExtra<model::AlbumSongListModel, AlbumQuery> {
     Q_OBJECT
     QML_ELEMENT
 
@@ -59,5 +60,4 @@ private:
     msg::id::AlbumId m_album_id;
 };
 
-} 
-
+} // namespace qcm

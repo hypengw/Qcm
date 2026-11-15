@@ -116,7 +116,9 @@ void AddProviderQuery::reload() {
     });
 }
 
-ProviderSettingsQuery::ProviderSettingsQuery(QObject* parent): Query(parent) { setForwardError(true); }
+ProviderSettingsQuery::ProviderSettingsQuery(QObject* parent): Query(parent) {
+    setForwardError(true);
+}
 void ProviderSettingsQuery::setProviderId(const msg::id::ProviderId& value) {
     if (ycore::cmp_set(m_provider_id, value)) providerIdChanged();
 }

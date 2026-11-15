@@ -3,7 +3,7 @@ module;
 #include "core/helper.h"
 
 #ifdef Q_MOC_RUN
-#include "Qcm/status/app_state.moc"
+#    include "Qcm/status/app_state.moc"
 #endif
 
 export module qcm:status.app_state;

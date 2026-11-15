@@ -25,6 +25,4 @@ Action* Action::create(QQmlEngine*, QJSEngine*) {
 
 } // namespace qcm
 
-
 #include "Qcm/action.moc.cpp"
-
