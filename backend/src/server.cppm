@@ -116,7 +116,7 @@ auto qcm_websocket_message(liwebsocketo::Message message, Arc<QcmService> servic
         (void)stopped.request_stop();
         co_return empty {};
     }
-    rstd::log::info(
+    rstd::log::debug(
         "response type {} bytes {}", encoded->type, encoded->bytes.len().to_primitive());
     auto sent = co_await session_slot->push(Bytes::copy_from_slice(encoded->bytes.as_slice()));
     if (sent.is_err()) {

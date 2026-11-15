@@ -157,7 +157,7 @@ public:
             Q_EMIT m_backend->connected(m_port);
         };
         callbacks.error = [this](QString message) {
-            fail(message);
+            fail(message, LogLevel::INFO);
         };
         callbacks.disconnected = [this] {
             reset_protocol();
@@ -279,8 +279,8 @@ private:
         m_protocol.reset();
         if (m_handshake_timer) m_handshake_timer->stop();
     }
-    void fail(const QString& message) {
-        LOG_ERROR("backend transport: {}", message.toStdString());
+    void fail(const QString& message, LogLevel level = LogLevel::ERROR) {
+        GENERIC_LOG(level, "backend transport: {}", message.toStdString());
         reset_protocol();
         m_connected = false;
         fail_pending(message);

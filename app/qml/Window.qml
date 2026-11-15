@@ -82,7 +82,7 @@ MD.ApplicationWindow {
                 m_win_stack.replace_page(comp_main);
             }
             function onError(err) {
-                console.error(err);
+                console.info(err);
                 m_win_stack.pop_page(null);
                 m_win_stack.replace_page(comp_retry, {
                     text: err,
