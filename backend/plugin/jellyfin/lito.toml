@@ -1,4 +1,5 @@
 [package]
 name = "qcm-jellyfin-lua"
 version.workspace = true
+license.workspace = true
 authors.workspace = true

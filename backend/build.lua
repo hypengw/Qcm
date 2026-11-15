@@ -1,4 +1,4 @@
-local target = lito.target({ kind = "lib", name = "qcm-backend-cpp" })
+local target = lito.target({ kind = "lib", name = "qcm-backend" })
 local protoc = lito.tool("protoc")
 local generator = lito.host_tool(target, "liproto-codegen", "protoc-gen-liproto")
 local proto = lito.external_source(target, "qcm-proto")

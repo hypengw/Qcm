@@ -1,6 +1,8 @@
 [package]
 name = "qcm-qr-code"
 version.workspace = true
+license = "MIT"
+authors = ["Project Nayuki"]
 standard = "c++23"
 
 [lib]

@@ -1,6 +1,8 @@
 [package]
 name = "qcm-player"
 version.workspace = true
+license.workspace = true
+authors.workspace = true
 standard = "c++23"
 
 [lib]
@@ -17,28 +19,12 @@ module = "qcm.player.bin"
 path = "src/bin/main.cppm"
 source-root = "src/bin"
 
-[dependencies.rstd-std]
-workspace = true
-pub = true
-
-[dependencies.rstd-log]
-workspace = true
-
-[dependencies.wavsen]
-workspace = true
-pub = true
-
-[dependencies.lifetchto]
-workspace = true
-
-[dependencies.lihttpto]
-workspace = true
-
-[dependencies.rstd-json]
-workspace = true
-
-[dependencies.rstd-serde]
-workspace = true
-
-[dependencies.rstd-serde-macro]
-workspace = true
+[dependencies]
+rstd-std = { workspace = true, pub = true }
+rstd-log = { workspace = true }
+wavsen = { workspace = true, pub = true }
+lifetchto = { workspace = true }
+lihttpto = { workspace = true }
+rstd-json = { workspace = true }
+rstd-serde = { workspace = true }
+rstd-serde-macro = { workspace = true }

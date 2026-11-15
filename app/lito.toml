@@ -1,17 +1,21 @@
 [package]
 name = "qcm-app"
 version.workspace = true
+license.workspace = true
 authors.workspace = true
 standard = "c++23"
 
 [features.qml-debug]
 default = false
 
-[dependencies.lito-qt]
-workspace = true
-
-[dependencies.qcm-message-build]
-workspace = true
+[dependencies]
+lito-qt = { workspace = true }
+qcm-message-build = { workspace = true }
+qcm-qr-code = { workspace = true }
+ncrequest = { workspace = true, features = ["qt"] }
+qextra = { workspace = true }
+rstd-cppstd = { workspace = true }
+rstd-std = { workspace = true }
 
 [[bin]]
 name = "qcm-ui"
@@ -176,22 +180,6 @@ condition = 'target.os == "windows"'
 [when.usage]
 private-definitions = ["WIN32_LEAN_AND_MEAN", "NOMINMAX", "NOGDI", "_WIN32_WINNT=0x0A00"]
 
-[dependencies.qcm-qr-code]
-workspace = true
-
-[dependencies.ncrequest]
-workspace = true
-features = ["qt"]
-
-[dependencies.qextra]
-workspace = true
-
-[dependencies.rstd-cppstd]
-workspace = true
-
-[dependencies.rstd-std]
-workspace = true
-
 [external-sources.qcm-proto]
 workspace = true
 
@@ -229,8 +217,6 @@ targets = [
   { name = "Qt6::GuiPrivate" },
 ]
 
-[runtime-dependencies.qcm-jellyfin-lua]
-path = "../backend/plugin/jellyfin"
-
-[runtime-dependencies.qcm-subsonic-lua]
-path = "../backend/plugin/subsonic"
+[runtime-dependencies]
+qcm-jellyfin-lua = { path = "../backend/plugin/jellyfin" }
+qcm-subsonic-lua = { path = "../backend/plugin/subsonic" }

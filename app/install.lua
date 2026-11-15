@@ -1,5 +1,4 @@
 local lito = require("@lito")
-local suffix = lito.target:find("windows") and ".exe" or ""
 
 local releases = lito.read_file("assets/Qcm.releases.xml")
 
@@ -7,7 +6,7 @@ lito.install({
   artifacts = {
     {
       target = { kind = "bin", name = "qcm-ui" },
-      destination = "bin/qcm-ui" .. suffix,
+      directory = "bin",
     },
   },
   files = {

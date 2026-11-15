@@ -1,12 +1,14 @@
 [package]
-name = "qcm-backend-cpp"
-version = "0.1.0"
+name = "qcm-backend"
+version.workspace = true
+license.workspace = true
+authors.workspace = true
 standard = "c++23"
 
 [lib]
-name = "qcm-backend-cpp"
+name = "qcm-backend"
 module = "qcm.backend"
-archive = "qcm_backend_cpp"
+archive = "qcm_backend"
 
 [dependencies]
 qcm-player = { workspace = true, pub = true }
