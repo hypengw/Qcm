@@ -21,7 +21,6 @@ rstd-serde = { workspace = true, pub = true }
 rstd-serde-macro = { workspace = true }
 liorm = { workspace = true, pub = true }
 liorm-macro = { workspace = true }
-liorm-sqlito = { workspace = true, pub = true }
 licrypto = { workspace = true, features = ["openssl"] }
 liuuid = { workspace = true, pub = true }
 liproto = { workspace = true, pub = true }

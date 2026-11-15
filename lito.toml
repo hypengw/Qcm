@@ -35,7 +35,6 @@ qextra = { git = "https://github.com/hypengw/QExtra.git" }
 wavsen = { git = "https://github.com/hypengw/wavsen.git" }
 liorm = { version = "0.1.0" }
 liorm-macro = { version = "0.1.0" }
-liorm-sqlito = { version = "0.1.0" }
 licrypto = { version = "0.2.1" }
 liuuid = { version = "0.1.0" }
 rstd-log = { version = "0.1.12" }
