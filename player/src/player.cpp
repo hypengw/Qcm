@@ -3,6 +3,7 @@ import :player;
 import :pcm;
 
 import rstd;
+import rstd.log;
 import wavsen.audio;
 
 using namespace player;
@@ -401,8 +402,16 @@ void Player::tick() {
             rn::u32((*decoder)->next_pcm(block.samples.data(), rn::u32(1024)).to_primitive());
         block.seconds = (*decoder)->pcm_position_seconds();
         if (cancelled()) return;
-        if ((*decoder)->error().kind != wa::MediaErrorKind::None) {
-            fail("audio decoding failed"_str, source_token);
+        const auto error = (*decoder)->error();
+        if (error.kind != wa::MediaErrorKind::None) {
+            rn::log::warn("audio media failed: kind={}, native_code={}",
+                          static_cast<int>(error.kind), error.native_code);
+            const auto message = error.kind == wa::MediaErrorKind::Read
+                                     ? "audio stream read failed"_str
+                                 : error.kind == wa::MediaErrorKind::Resample
+                                     ? "audio resampling failed"_str
+                                     : "audio decoding failed"_str;
+            fail(message, source_token);
             return;
         }
         if (block.frames != rn::u32()) {
