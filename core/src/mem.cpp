@@ -67,13 +67,13 @@ MemoryStatAllocator::MemoryStatAllocator(rstd::ref<rstd::dyn<rstd::alloc::Alloca
 auto MemoryStatAllocator::allocate(rstd::alloc::Layout layout) const
     -> rstd::Result<rstd::alloc::Allocation, rstd::alloc::AllocError> {
     auto result = rstd::as<rstd::alloc::Allocator>(m_source).allocate(layout);
-    if (result.is_ok()) record_allocation(layout.size.to_primitive());
+    if (result.is_ok()) record_allocation(layout.size().to_primitive());
     return result;
 }
 
 void MemoryStatAllocator::deallocate(void* ptr, rstd::alloc::Layout layout) const noexcept {
     rstd::as<rstd::alloc::Allocator>(m_source).deallocate(ptr, layout);
-    record_deallocation(layout.size.to_primitive());
+    record_deallocation(layout.size().to_primitive());
 }
 
 } // namespace qcm

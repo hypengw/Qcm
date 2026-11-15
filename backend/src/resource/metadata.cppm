@@ -87,8 +87,8 @@ auto encode_metadata(const Metadata& meta) -> DbResult<String> {
     });
 }
 auto decode_metadata(ref<str> input) -> DbResult<Metadata> {
-    auto stored =
-        rstd_try(rstd::json::decode<metadata_detail::MetadataWire>(input).map_err([](auto error) {
+    auto stored = rstd_try(
+        rstd::json::decode_direct<metadata_detail::MetadataWire>(input).map_err([](auto error) {
             return Error::state("invalid resource metadata JSON"_str, rstd::move(error));
         }));
     return Ok(rstd::move(stored).into_metadata());
@@ -100,10 +100,11 @@ auto encode_object_metadata(const ObjectMetadata& meta) -> DbResult<String> {
         });
 }
 auto decode_object_metadata(ref<str> input) -> DbResult<ObjectMetadata> {
-    auto stored = rstd_try(
-        rstd::json::decode<metadata_detail::ObjectMetadataWire>(input).map_err([](auto error) {
-            return Error::state("invalid resource metadata JSON"_str, rstd::move(error));
-        }));
+    auto stored =
+        rstd_try(rstd::json::decode_direct<metadata_detail::ObjectMetadataWire>(input).map_err(
+            [](auto error) {
+                return Error::state("invalid resource metadata JSON"_str, rstd::move(error));
+            }));
     return Ok(rstd::move(stored).into_metadata());
 }
 } // namespace qcm::backend::resource_cache
