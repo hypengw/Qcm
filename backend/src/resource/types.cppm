@@ -80,15 +80,20 @@ struct ResourceHeadersDefinition {
     }
     template<class D>
     static auto deserialize(D& source) -> Result<ResourceHeaders, typename D::error_type> {
-        using HeaderPair  = rstd::tuple<String, String>;
-        using HeaderPairs = Vec<HeaderPair>;
-        auto    values    = rstd_try(rstd::serde::deserialize<HeaderPairs>(source));
+        using HeaderPair = rstd::tuple<String, String>;
+        auto    input    = rstd_try(source.begin_sequence());
         Headers headers;
-        for (const auto& pair : values) {
-            auto added = headers.add(rstd::get<0>(pair).as_str(), rstd::get<1>(pair).as_str());
-            if (added.is_err())
+        for (;;) {
+            auto next = rstd_try(input.template next<HeaderPair>());
+            if (next.is_none()) break;
+            auto pair   = rstd::move(next).unwrap_unchecked();
+            auto header = lihttpto::Header::make(rstd::move(rstd::get<0>(pair)),
+                                                 rstd::move(rstd::get<1>(pair)).into_bytes());
+            if (header.is_err())
                 return Err(source.invalid_value("invalid resource header value"_str));
+            headers.push(rstd::move(header).unwrap_unchecked());
         }
+        rstd_try(input.end());
         return Ok(ResourceHeaders { rstd::move(headers) });
     }
 };
