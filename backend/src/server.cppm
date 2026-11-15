@@ -256,7 +256,7 @@ auto qcm_websocket(liserveto::WebSocket& socket, Arc<QcmService> service,
         Arc<SessionSlot>       slot;
         Arc<WebSocketRequests> requests;
         liserveto::WebSocket&  socket;
-        liserveto::Shutdown    shutdown, stopped;
+        liserveto::Shutdown    stopped;
         u64                    id;
         ~Registered() {
             sessions->remove(id);
@@ -264,15 +264,9 @@ auto qcm_websocket(liserveto::WebSocket& socket, Arc<QcmService> service,
             requests->cancel();
             socket.cancel();
             (void)stopped.request_stop();
-            (void)shutdown.request_stop();
         }
-    } registered { sessions.clone(),
-                   session_slot.clone(),
-                   requests.clone(),
-                   socket,
-                   shutdown.clone(),
-                   stopped.clone(),
-                   *id };
+    } registered { sessions.clone(), session_slot.clone(), requests.clone(),
+                   socket,           stopped.clone(),      *id };
     auto messages = rstd_co_try(socket.messages(), liserveto::BodyError::Io);
     // Socket-borrowing futures stay scoped to the upgrade callback.
     auto reading = Some(rstd::async::into_future(qcm_websocket_reader(rstd::move(messages),
@@ -300,8 +294,6 @@ auto qcm_websocket(liserveto::WebSocket& socket, Arc<QcmService> service,
     }
     sessions->remove(*id);
     (void)stopped.request_stop();
-    (void)shutdown.request_stop();
-    service->begin_provider_shutdown();
     socket.cancel();
     reading = None();
     writing = None();

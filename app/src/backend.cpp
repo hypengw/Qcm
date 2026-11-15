@@ -1,5 +1,4 @@
 module;
-#include <cstdio>
 #include <exception>
 #include <future>
 #include <limits>
@@ -141,24 +140,6 @@ public:
             fail(QStringLiteral("Backend handshake timed out"));
         });
 
-        m_process = std::make_unique<QProcess>();
-        m_process->setWorkingDirectory(QCoreApplication::applicationDirPath());
-        m_process->setProcessChannelMode(QProcess::ProcessChannelMode::ForwardedErrorChannel);
-
-        connect(m_process.get(),
-                &QProcess::finished,
-                this,
-                [this](int exit_code, QProcess::ExitStatus) {
-                    auto message = QStringLiteral("Backend exited: %1").arg(exit_code);
-                    fail(message);
-                });
-        connect(
-            m_process.get(), &QProcess::errorOccurred, this, [this](QProcess::ProcessError error) {
-                auto key     = QMetaEnum::fromType<QProcess::ProcessError>().valueToKey(error);
-                auto message = QStringLiteral("Backend %1").arg(QString::fromLatin1(key));
-                fail(message);
-            });
-
         m_serializer = std::make_unique<QProtobufSerializer>();
         BackendConnectionCallbacks callbacks;
         callbacks.connected = [this] {
@@ -234,58 +215,14 @@ public:
                                                            std::move(callbacks));
     }
 
-    void start(QString exe, QString data_dir, QString cache_dir) {
-        if (! m_process || m_process->state() != QProcess::NotRunning) return;
+    void connect_to(rstd::string::String url, i32 port) {
         if (m_shutting_down) return;
         m_failed    = false;
         m_connected = false;
-        m_connection->disconnect();
-
-        if (m_stdout_connection) QObject::disconnect(m_stdout_connection);
-        m_stdout_connection =
-            connect(m_process.get(), &QProcess::readyReadStandardOutput, this, [this] {
-                m_process->setReadChannel(QProcess::StandardOutput);
-                if (! m_process->canReadLine()) return;
-
-                auto document = QJsonDocument::fromJson(m_process->readLine());
-                auto port     = document.object().value("port");
-                if (port.isUndefined()) {
-                    Q_EMIT m_backend->error(QStringLiteral("Read port from backend failed"));
-                    return;
-                }
-
-                auto value = port.toVariant().value<i32>();
-                LOG_INFO("backend port: {}", value);
-                Q_EMIT m_backend->started(value);
-
-                QObject::disconnect(m_stdout_connection);
-                m_stdout_connection =
-                    connect(m_process.get(), &QProcess::readyReadStandardOutput, this, [this] {
-                        auto output = m_process->readAllStandardOutput();
-                        if (! output.isEmpty()) {
-                            std::fwrite(output.constData(),
-                                        1,
-                                        static_cast<std::size_t>(output.size()),
-                                        stdout);
-                            std::fflush(stdout);
-                        }
-                    });
-            });
-
-        LOG_DEBUG("starting backend: {}", exe.toStdString());
-        m_process->start(exe, { u"--data"_s, data_dir, u"--cache"_s, cache_dir });
-    }
-
-    void kill() {
         reset_protocol();
-        m_connected = false;
-        if (m_connection) m_connection->disconnect();
-        if (m_process && m_process->state() != QProcess::NotRunning) m_process->kill();
-    }
-
-    void connect_to(rstd::string::String url, i32 port) {
+        m_connection->disconnect();
         m_port = port;
-        if (m_connection && ! m_shutting_down) m_connection->open(qextra::to_qstring(url));
+        m_connection->open(qextra::to_qstring(url));
     }
 
     void send(msg::QcmMessage message, ResponseHandle response) {
@@ -339,14 +276,6 @@ public:
 
     void finish_shutdown() {
         m_connection.reset();
-        if (m_process && m_process->state() != QProcess::NotRunning) {
-            m_process->terminate();
-            if (! m_process->waitForFinished(3000)) {
-                m_process->kill();
-                m_process->waitForFinished();
-            }
-        }
-        m_process.reset();
         m_serializer.reset();
     }
 
@@ -369,11 +298,9 @@ private:
     Backend*                                    m_backend;
     protocol::Session                           m_protocol;
     QTimer*                                     m_handshake_timer {};
-    std::unique_ptr<QProcess>                   m_process;
     std::unique_ptr<BackendConnection>          m_connection;
     std::unique_ptr<QProtobufSerializer>        m_serializer;
     BackendPending<msg::QcmMessage, msg::Error> m_pending;
-    QMetaObject::Connection                     m_stdout_connection;
     i32                                         m_port { 0 };
     bool                                        m_shutting_down { false };
     bool                                        m_connected { false };
@@ -423,7 +350,6 @@ Backend::Backend()
         },
         Qt::QueuedConnection);
 
-    connect(this, &Backend::started, this, &Backend::on_started);
     connect(this, &Backend::connected, this, &Backend::on_connected);
     connect(this, &Backend::error, this, &Backend::on_error);
     connect(this, &Backend::disconnected, this, [this] {
@@ -458,50 +384,29 @@ Backend::~Backend() {
     m_thread->wait();
 }
 
-auto Backend::start(QStringView exe, QStringView data_dir, QStringView cache_dir) -> bool {
-    m_exe       = exe.toString();
-    m_data_dir  = data_dir.toString();
-    m_cache_dir = cache_dir.toString();
-
-    std::error_code error_code;
-    auto            path = std::filesystem::path(m_exe.toStdString());
-    if (! std::filesystem::exists(path, error_code)) {
-        Q_EMIT error(QStringLiteral("Not found:\n %1").arg(m_exe));
+auto Backend::connect_to(i32 port, QStringView cache_dir) -> bool {
+    m_port           = port;
+    m_cache_dir      = cache_dir.toString();
+    m_resource_ready = false;
+    Q_EMIT resourceStateChanged();
+    if (port < 1 || port > 65535) {
+        Q_EMIT error(QStringLiteral("Invalid backend port"));
         return false;
     }
-
-    return QMetaObject::invokeMethod(
-        m_transport,
-        [transport = m_transport, exe = m_exe, data_dir = m_data_dir, cache_dir = m_cache_dir] {
-            transport->start(exe, data_dir, cache_dir);
-        },
-        Qt::QueuedConnection);
-}
-
-void Backend::on_retry() { (void)start(m_exe, m_data_dir, m_cache_dir); }
-
-void Backend::on_error(QString) {
-    m_resource_ready = false;
-    Q_EMIT resourceStateChanged();
-    (void)QMetaObject::invokeMethod(
-        m_transport,
-        [transport = m_transport] {
-            transport->kill();
-        },
-        Qt::QueuedConnection);
-}
-
-void Backend::on_started(i32 port) {
-    m_resource_ready = false;
-    Q_EMIT resourceStateChanged();
-    m_port   = port;
     auto url = rstd::format("http://127.0.0.1:{}", port);
-    (void)QMetaObject::invokeMethod(
+    return QMetaObject::invokeMethod(
         m_transport,
         [transport = m_transport, url = rstd::move(url), port]() mutable {
             transport->connect_to(rstd::move(url), port);
         },
         Qt::QueuedConnection);
+}
+
+void Backend::on_retry() { (void)connect_to(m_port, m_cache_dir); }
+
+void Backend::on_error(QString) {
+    m_resource_ready = false;
+    Q_EMIT resourceStateChanged();
 }
 
 void Backend::on_connected(i32) {
@@ -526,8 +431,8 @@ void Backend::send_immediate(msg::QcmMessage&& message) {
 }
 
 auto Backend::send(msg::QcmMessage&& message) -> task<Result<msg::QcmMessage, msg::Error>> {
-    const auto self       = QPointer<Backend>(this);
-    const auto generation = m_generation.load();
+    const auto self         = QPointer<Backend>(this);
+    const auto generation   = m_generation.load();
     auto       request_id   = serial();
     const auto request_type = message.type();
     message.setId_proto(request_id);

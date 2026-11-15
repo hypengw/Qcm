@@ -1,12 +1,13 @@
 local lito = require("@lito")
+local suffix = lito.target:find("windows") and ".exe" or ""
 
 local releases = lito.read_file("assets/Qcm.releases.xml")
 
 lito.install({
   artifacts = {
     {
-      target = { kind = "bin", name = "Qcm" },
-      destination = "bin/Qcm",
+      target = { kind = "bin", name = "qcm-ui" },
+      destination = "bin/qcm-ui" .. suffix,
     },
   },
   files = {
@@ -23,7 +24,7 @@ lito.install({
         APP_ID = "io.github.hypengw.Qcm",
         APP_NAME = "Qcm",
         APP_SUMMARY = "Quick cloud music player",
-        PROJECT_NAME = "Qcm",
+        PROJECT_NAME = "qcm",
       },
     },
     {

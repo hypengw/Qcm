@@ -1,8 +1,6 @@
 module;
 
 #include <QCommandLineParser>
-#include <QDir>
-#include <QFileInfo>
 #include <QStandardPaths>
 #include <QGuiApplication>
 #include <QLoggingCategory>
@@ -63,10 +61,12 @@ int run(int argc, char** argv) {
 
     QGuiApplication gui_app(argc, argv);
     model::registerIdConverters();
-    auto            main_qthread = gui_app.thread();
-    QString         backend_exe;
+    auto    main_qthread = gui_app.thread();
+    quint16 backend_port {};
+    QString cache_dir;
 
     QCoreApplication::setApplicationName(APP_NAME);
+    QCoreApplication::setOrganizationName(APP_NAME);
     QCoreApplication::setApplicationVersion(APP_VERSION);
 
     {
@@ -76,37 +76,27 @@ int run(int argc, char** argv) {
 
         QCommandLineOption log_level_opt(
             "log-level", "Log Level (debug, info, warn, error)", "level", "warn");
-        QCommandLineOption backend_opt({ "b", "backend" },
-                                       "backend executable path",
-                                       "path",
-#ifdef _WIN32
-                                       "QcmBackend.exe"
-#else
-                                       "QcmBackend"
-#endif
-        );
+        QCommandLineOption port_opt({ "p", "port" }, "Backend port supplied by qcm", "port");
+        QCommandLineOption cache_opt(
+            "cache",
+            "Backend cache directory",
+            "directory",
+            QStandardPaths::writableLocation(QStandardPaths::CacheLocation));
 
         parser.addOption(log_level_opt);
-        parser.addOption(backend_opt);
+        parser.addOption(port_opt);
+        parser.addOption(cache_opt);
         parser.process(gui_app);
         logger->set_level(log::level_from(parser.value(log_level_opt).toStdString()));
 
-        backend_exe = parser.value(backend_opt);
-        auto path   = QDir(backend_exe);
-        if (! path.isAbsolute()) {
-            auto app_dir   = QDir(QCoreApplication::applicationDirPath());
-            auto candidate = app_dir.filePath(backend_exe);
-            if (! QFileInfo::exists(candidate)) {
-                auto managed = app_dir.absoluteFilePath(QStringLiteral("../../../bin/") + backend_exe);
-                if (QFileInfo::exists(managed)) {
-                    candidate = managed;
-                } else {
-                    auto found = QStandardPaths::findExecutable(backend_exe);
-                    if (! found.isEmpty()) candidate = found;
-                }
-            }
-            backend_exe = candidate;
+        bool valid_port {};
+        auto value = parser.value(port_opt).toUInt(&valid_port);
+        if (! valid_port || value == 0 || value > 65535) {
+            qCritical("qcm-ui requires a valid --port; start qcm instead");
+            return 2;
         }
+        backend_port = static_cast<quint16>(value);
+        cache_dir    = parser.value(cache_opt);
         QLoggingCategory::setFilterRules(
             QLatin1String(std::format("qcm.debug={}", logger->level() == LogLevel::DEBUG)));
     }
@@ -120,7 +110,7 @@ int run(int argc, char** argv) {
 
     int result { 0 };
     {
-        App app { backend_exe, {} };
+        App app { backend_port, cache_dir };
         QObject::connect(&single, &KDSingleApplication::messageReceived, app.instance(), []() {
             emit App::instance() -> instanceStarted();
         });

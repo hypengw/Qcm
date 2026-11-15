@@ -53,57 +53,57 @@ public:
 };
 
 class SessionRegistry {
-    struct Event {
-        u64   session;
-        Bytes frame;
+    struct Active {
+        u64              id;
+        Arc<SessionSlot> slot;
+        Sender<Bytes>    events;
+        Receiver<Bytes>  incoming;
+        Active(u64 id, Arc<SessionSlot> slot, tuple<Sender<Bytes>, Receiver<Bytes>> channel)
+            : id(id),
+              slot(rstd::move(slot)),
+              events(rstd::move(channel.get<0>())),
+              incoming(rstd::move(channel.get<1>())) {}
     };
-    Sender<Event>                        events_;
-    Receiver<Event>                      incoming_;
-    Option<tuple<u64, Arc<SessionSlot>>> active_;
-    u64                                  next_id_ { 1 };
-    bool                                 used_ {};
+    Option<Arc<Active>> active_;
+    u64                 next_id_ { 1 };
 
-    explicit SessionRegistry(tuple<Sender<Event>, Receiver<Event>> channel)
-        : events_(rstd::move(channel.get<0>())), incoming_(rstd::move(channel.get<1>())) {}
-    static auto publish(Sender<Event> sender, Event event) -> coro<rstd::io::Result<empty>> {
+    static auto publish(Sender<Bytes> sender, Bytes frame) -> coro<rstd::io::Result<empty>> {
         rstd_co_try(
-            co_await sender.send(rstd::move(event)),
+            co_await sender.send(rstd::move(frame)),
             rstd::io::Error::from_kind(rstd::io::ErrorKind { rstd::io::ErrorKind::BrokenPipe }));
         co_return Ok(empty {});
     }
     static auto ignored() -> coro<rstd::io::Result<empty>> { co_return Ok(empty {}); }
 
 public:
-    SessionRegistry(): SessionRegistry(channel<Event>(usize(1024))) {}
-    auto can_connect() const -> bool { return ! used_; }
+    auto can_connect() const -> bool { return active_.is_none(); }
     auto active_session() const -> Option<Arc<SessionSlot>> {
         if (active_.is_none()) return None();
-        return Some(active_->get<1>().clone());
+        return Some((*active_)->slot.clone());
     }
     auto add(Arc<SessionSlot> slot) -> Option<u64> {
-        if (used_) return None();
-        used_   = true;
+        if (active_.is_some()) return None();
         auto id = next_id_++;
-        active_ = Some(tuple<u64, Arc<SessionSlot>> { id, rstd::move(slot) });
+        active_ = Some(Arc<Active>::make(id, rstd::move(slot), channel<Bytes>(usize(1024))));
         return Some(id);
     }
     void remove(u64 id) {
-        if (active_.is_none() || active_->get<0>() != id) return;
-        active_->get<1>()->close();
+        if (active_.is_none() || (*active_)->id != id) return;
+        (*active_)->slot->close();
+        (*active_)->incoming.close();
         active_ = None();
-        incoming_.close();
     }
     auto broadcast(Bytes frame) const -> coro<rstd::io::Result<empty>> {
-        if (active_.is_none() || ! active_->get<1>()->protocol()->ready()) return ignored();
-        return publish(events_.clone(), Event { active_->get<0>(), rstd::move(frame) });
+        if (active_.is_none() || ! (*active_)->slot->protocol()->ready()) return ignored();
+        return publish((*active_)->events.clone(), rstd::move(frame));
     }
     auto dispatch(u64 id) -> coro<rstd::io::Result<empty>> {
+        if (active_.is_none() || (*active_)->id != id) co_return Ok(empty {});
+        auto active = (*active_).clone();
         for (;;) {
-            auto event = co_await incoming_.recv();
+            auto event = co_await active->incoming.recv();
             if (event.is_none()) co_return Ok(empty {});
-            if (event->session != id || active_.is_none() || active_->get<0>() != id) continue;
-            auto slot = active_->get<1>().clone();
-            rstd_co_try(co_await slot->push(rstd::move(event->frame)));
+            rstd_co_try(co_await active->slot->push(rstd::move(*event)));
         }
     }
     auto len() const -> usize { return active_.is_some() ? usize(1) : usize(); }

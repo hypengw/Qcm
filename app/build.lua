@@ -1,7 +1,7 @@
 local lito = require("@lito")
 local qt = require("@lito.qt")
 
-local app = lito.target({ kind = "bin", name = "Qcm" })
+local app = lito.target({ kind = "bin", name = "qcm-ui" })
 local qt6 = lito.external_dependency(app, "qt6")
 local proto = lito.external_source(app, "qcm-proto")
 

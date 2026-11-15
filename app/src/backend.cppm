@@ -36,7 +36,7 @@ public:
     Backend();
     ~Backend();
 
-    auto start(QStringView exe, QStringView data_dir, QStringView cache_dir) -> bool;
+    auto connect_to(i32 port, QStringView cache_dir) -> bool;
 
     void send_immediate(msg::QcmMessage&& msg);
     using SongResult = Result<msg::GetSongsByIdRsp, msg::Error>;
@@ -68,7 +68,6 @@ public:
         });
     }
 
-    Q_SIGNAL void started(i32 port);
     Q_SIGNAL void connected(i32 port);
     Q_SIGNAL void error(QString);
     Q_SIGNAL void disconnected();
@@ -78,7 +77,6 @@ public:
 
 private:
     Q_SLOT void on_error(QString);
-    Q_SLOT void on_started(i32 port);
     Q_SLOT void on_connected(i32 port);
 
     auto base() const -> std::string;
@@ -92,8 +90,6 @@ private:
     Atomic<quint64>                       m_generation { 0 };
     i32                                   m_port;
     bool                                  m_resource_ready { false };
-    QString                               m_exe;
-    QString                               m_data_dir;
     QString                               m_cache_dir;
 };
 } // namespace qcm

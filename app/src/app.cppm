@@ -51,7 +51,7 @@ export class App : public QObject {
     friend class qml::Util;
 
 public:
-    App(QStringView backend_exe, std::monostate);
+    App(quint16 backend_port, QStringView cache_dir);
     virtual ~App();
     static App* create(QQmlEngine* qmlEngine, QJSEngine* jsEngine);
     static void register_converters();
@@ -83,7 +83,7 @@ public:
 
     bool debug() const;
 
-    Q_INVOKABLE qreal devicePixelRatio() const;
+    Q_INVOKABLE qreal       devicePixelRatio() const;
     Q_INVOKABLE QVariantMap itemRouteProperties(const model::ItemId&, const QVariantMap&) const;
     // Q_INVOKABLE QSizeF image_size(QSizeF display, int quality, QQuickItem* = nullptr) const;
     Q_INVOKABLE QSizeF bound_image_size(QSizeF displaySize) const;

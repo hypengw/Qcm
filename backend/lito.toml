@@ -17,6 +17,8 @@ licrypto = { workspace = true, features = ["openssl"] }
 liuuid = { workspace = true, pub = true }
 rstd-log = { workspace = true }
 rstd-parse = { workspace = true }
+rstd-argparse = { workspace = true, pub = true }
+rstd-dirs = { workspace = true }
 rstd-macro = { workspace = true }
 rstd-serde = { workspace = true, pub = true }
 rstd-serde-macro = { workspace = true }
@@ -38,5 +40,5 @@ workspace = true
 path = "protoc"
 
 [[bin]]
-name = "qcm-backend-cpp"
+name = "qcm"
 sources = ["bin/main.cpp"]

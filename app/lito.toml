@@ -14,7 +14,7 @@ workspace = true
 workspace = true
 
 [[bin]]
-name = "Qcm"
+name = "qcm-ui"
 module = "qcm.entry"
 sources = [
   "src/action.cpp",
@@ -228,10 +228,6 @@ workspace = true
 targets = [
   { name = "kdsingleapplication" },
 ]
-
-[runtime-dependencies.qcm-backend-cpp]
-path = "../backend"
-condition = 'target.os != "android"'
 
 [runtime-dependencies.qcm-jellyfin-lua]
 path = "../backend/plugin/jellyfin"

@@ -3,22 +3,31 @@ import qcm.backend;
 import rstd.log;
 import rstd;
 import sqlito;
+using rstd::async::coro;
 using rstd::async::RuntimeBuilder;
 using rstd::async::RuntimeHandle;
+using rstd::ffi::OsString;
 using rstd::net::SocketAddr;
 using rstd::net::TcpListener;
 using rstd::path::PathBuf;
+using rstd::sync::Arc;
 using namespace rstd::prelude;
 using namespace rstd::literals;
 using namespace qcm::backend;
 
 namespace
 {
-auto arg_str(char* value) -> ref<str> {
-    usize len {};
-    while (value[len.to_primitive()] != '\0') len = len + usize(1);
-    return rstd::str_::from_utf8_unchecked(
-        slice<u8>::from_raw_parts(reinterpret_cast<const rstd::byte*>(value), len));
+auto display(const auto& report) -> int {
+    if (report.target() == rstd::argparse::OutputTarget::Tag::Stdout) {
+        auto output = rstd::io::stdout();
+        (void)rstd::io::write_all(output, report.text().as_bytes());
+        (void)rstd::as<rstd::io::Write>(output).flush();
+    } else {
+        auto output = rstd::io::stderr();
+        (void)rstd::io::write_all(output, report.text().as_bytes());
+        (void)rstd::as<rstd::io::Write>(output).flush();
+    }
+    return report.exit_code().to_primitive();
 }
 auto fail(ref<str> message) -> int {
     auto error = rstd::io::stderr();
@@ -26,15 +35,68 @@ auto fail(ref<str> message) -> int {
     (void)rstd::as<rstd::io::Write>(error).flush();
     return 1;
 }
-auto parse_port(ref<str> value) -> Option<u16> {
-    if (value.is_empty()) return Option<u16>();
-    u32 port {};
-    for (auto c : value.as_bytes()) {
-        if (c < u8('0') || c > u8('9')) return Option<u16>();
-        port = port * u32(10) + u32(c.to_primitive() - '0');
-        if (port > u32(65535)) return Option<u16>();
+auto report_ui(rstd::async::Child child) -> coro<empty> {
+    auto status = co_await child.wait();
+    if (status.is_err())
+        rstd::log::error("qcm-ui wait failed: {}", status.as_ref().unwrap_err());
+    else if (! status->success()) {
+        if (auto code = status->code(); code.is_some())
+            rstd::log::warn("qcm-ui exited with code {}", *code);
+        else if (auto signal = status->signal(); signal.is_some())
+            rstd::log::warn("qcm-ui terminated by signal {}", *signal);
     }
-    return Some(u16(static_cast<unsigned short>(port.to_primitive())));
+    co_return empty {};
+}
+
+auto activate_ui(const startup::Instance& instance, const PathBuf& program,
+                 const startup::Options& options) -> coro<rstd::io::Result<int>> {
+    auto ready = rstd_co_try(co_await startup::wait_ready(instance));
+    if (options.no_ui) co_return Ok(0);
+    auto supervisor = rstd_co_try(rstd::async::ProcessSupervisor::make());
+    auto command    = startup::ui_command(program.as_path(), ready, options.ui_args.as_slice());
+    auto child      = supervisor.handle().spawn(command);
+    if (child.is_err()) {
+        (void)co_await supervisor.shutdown();
+        co_return Err(rstd::move(child).unwrap_err());
+    }
+    auto status = co_await child->wait();
+    auto closed = co_await supervisor.shutdown();
+    rstd_co_try(closed);
+    auto exited = rstd_co_try(rstd::move(status));
+    co_return Ok(exited.code().unwrap_or(i32(1)).to_primitive());
+}
+
+auto launch_and_serve(TcpListener listener, Arc<QcmService> service, liserveto::Shutdown shutdown,
+                      startup::Instance& instance, const PathBuf& program,
+                      const startup::Options& options, const startup::Ready& ready)
+    -> coro<rstd::io::Result<empty>> {
+    auto supervisor = rstd_co_try(rstd::async::ProcessSupervisor::make());
+    auto published  = instance.publish(ready);
+    if (published.is_err()) {
+        (void)co_await supervisor.shutdown();
+        co_return Err(rstd::move(published).unwrap_err());
+    }
+    Option<rstd::async::AbortOnDropHandle<empty>> ui_task;
+    if (! options.no_ui) {
+        auto command = startup::ui_command(program.as_path(), ready, options.ui_args.as_slice());
+        auto child   = supervisor.handle().spawn(command);
+        if (child.is_err()) {
+            (void)co_await supervisor.shutdown();
+            co_return Err(rstd::move(child).unwrap_err());
+        }
+        ui_task = Some(rstd::async::AbortOnDropHandle<empty> {
+            rstd::async::spawn_local(report_ui(rstd::move(*child))) });
+    }
+    rstd::log::info("qcm listening on 127.0.0.1:{}", ready.port);
+    auto served = co_await serve_qcm(rstd::move(listener), service.clone(), rstd::move(shutdown));
+    if (ui_task.is_some()) {
+        ui_task->abort();
+        (void)co_await rstd::move(*ui_task);
+    }
+    auto closed = co_await supervisor.shutdown();
+    if (served.is_err()) co_return Err(rstd::move(served).unwrap_err());
+    rstd_co_try(closed);
+    co_return Ok(empty {});
 }
 auto watch_shutdown_signal(rstd::signal::Subscription subscription, liserveto::Shutdown shutdown)
     -> rstd::async::coro<empty> {
@@ -45,13 +107,21 @@ auto watch_shutdown_signal(rstd::signal::Subscription subscription, liserveto::S
         auto event = co_await rstd::move(receive).unwrap();
         if (event.is_err())
             rstd::log::error("shutdown signal failed: {}", event.as_ref().unwrap_err());
+        else if (event->is_some())
+            rstd::log::info("qcm shutdown signal {}", (**event).as_raw());
+        else {
+            rstd::log::error("shutdown signal subscription closed");
+            co_return empty {};
+        }
     }
     shutdown.request_stop();
     co_return empty {};
 }
 auto run_backend(RuntimeHandle runtime, TcpListener listener, String main_path, String cache_path,
                  ProviderRegistry registry, String cache_dir, String device_id,
-                 liserveto::Shutdown shutdown, rstd::signal::Subscription signals)
+                 liserveto::Shutdown shutdown, rstd::signal::Subscription signals,
+                 startup::Instance& instance, const PathBuf& program,
+                 const startup::Options& options, const startup::Ready& ready)
     -> rstd::async::coro<Result<empty, ProcessError>> {
     auto signal_task = rstd::async::AbortOnDropHandle<empty> { rstd::async::spawn_local(
         watch_shutdown_signal(rstd::move(signals), shutdown.clone())) };
@@ -101,25 +171,22 @@ auto run_backend(RuntimeHandle runtime, TcpListener listener, String main_path, 
     if (created.is_err()) {
         result = Err(rstd::move(created).unwrap_err());
     } else {
-        auto address = listener.local_addr();
-        if (address.is_err()) {
+        auto started = co_await (*created)->start_resource_cache();
+        if (started.is_err()) {
             co_await (*created)->stop_providers();
-            result = Err(ProcessError::internal(rstd::move(address).unwrap_err()));
+            result = Err(rstd::move(started).unwrap_err());
         } else {
-            auto started = co_await (*created)->start_resource_cache();
-            if (started.is_err()) {
-                co_await (*created)->stop_providers();
-                result = Err(rstd::move(started).unwrap_err());
-            } else {
-                auto line = rstd::format("{{\"port\": {}}}\n", address->port().to_primitive());
-                auto out  = rstd::io::stdout();
-                (void)rstd::io::write_all(out, line.as_str().as_bytes());
-                (void)rstd::as<rstd::io::Write>(out).flush();
-                auto served = co_await serve_qcm(
-                    rstd::move(listener), rstd::move(created).unwrap(), rstd::move(shutdown));
-                if (served.is_err())
-                    result = Err(ProcessError::internal(rstd::move(served).unwrap_err()));
-            }
+            auto served = co_await launch_and_serve(rstd::move(listener),
+                                                    (*created).clone(),
+                                                    rstd::move(shutdown),
+                                                    instance,
+                                                    program,
+                                                    options,
+                                                    ready);
+            if (served.is_err())
+                result = Err(ProcessError::internal(rstd::move(served).unwrap_err()));
+            (void)co_await (*created)->stop_resource_cache();
+            co_await (*created)->stop_providers();
         }
     }
     auto cache_closed = co_await cache_database.shutdown();
@@ -134,58 +201,62 @@ auto run_backend(RuntimeHandle runtime, TcpListener listener, String main_path, 
 } // namespace
 
 auto main(int argc, char** argv) -> int {
-    Option<String> data;
-    Option<String> cache;
-    Option<u16>    port;
-    for (int i = 1; i < argc; ++i) {
-        auto arg  = arg_str(argv[i]);
-        auto take = [&]() -> Option<ref<str>> {
-            if (i + 1 >= argc) return Option<ref<str>>();
-            ++i;
-            return Some(arg_str(argv[i]));
-        };
-        if (arg == "--data"_str || arg == "-d"_str) {
-            auto value = take();
-            if (value.is_none()) return fail("missing --data value\n"_str);
-            data = Some(String::make(*value));
-        } else if (arg == "--cache"_str || arg == "-c"_str) {
-            auto value = take();
-            if (value.is_none()) return fail("missing --cache value\n"_str);
-            cache = Some(String::make(*value));
-        } else if (arg == "--port"_str || arg == "-p"_str) {
-            auto value = take();
-            if (value.is_none()) return fail("missing --port value\n"_str);
-            auto parsed = parse_port(*value);
-            if (parsed.is_none()) return fail("invalid --port value\n"_str);
-            port = Some(*parsed);
-        } else {
-            return fail("unknown argument\n"_str);
-        }
-    }
-    if (data.is_none() || cache.is_none()) return fail("--data and --cache are required\n"_str);
-    auto data_dir  = PathBuf::from(data->as_str());
-    auto cache_dir = PathBuf::from(cache->as_str()).join("QcmBackend"_str);
-    if (rstd::fs::create_dir_all(data_dir.as_path()).is_err())
-        return fail("cannot create data directory\n"_str);
-    if (rstd::fs::create_dir_all(cache_dir.as_path()).is_err())
-        return fail("cannot create cache directory\n"_str);
-
-    auto main_path = data->clone();
-    main_path.push_str("/backend.2.db"_str);
-    auto cache_path = data->clone();
-    cache_path.push_str("/backend_cache.db"_str);
-
-    auto bind = TcpListener::bind(SocketAddr::ipv4_loopback(port.is_some() ? *port : u16()));
-    if (bind.is_err()) return fail("cannot bind backend port\n"_str);
-    auto listener = rstd::move(bind).unwrap();
-
-    auto setting = settings::Setting::load(data_dir.as_path());
-    if (setting.is_err()) return fail(rstd::format("{}\n", setting.as_ref().unwrap_err()).as_str());
-    auto device_id = rstd::move(setting->device_id);
-
     static auto logger = rstd::log::EnvLogger {};
     (void)rstd::log::set_logger(logger);
     rstd::log::set_max_level(logger.filter());
+    rstd::env::args_init(argc, argv);
+    auto arguments  = rstd::iter::from_iter<Vec<OsString>>(rstd::env::args_os());
+    auto executable = arguments.is_empty() ? PathBuf::from("qcm"_str)
+                                           : PathBuf::from(arguments[usize()].as_os_str());
+    auto parsed     = startup::parse(rstd::move(arguments));
+    if (parsed.is_err()) return display(parsed.as_ref().unwrap_err());
+    if (parsed->is_Display()) return display(parsed->as_Display().request);
+    auto options = rstd::move(*parsed).as_Parsed().value;
+    auto paths   = startup::storage_paths(options);
+    if (paths.is_err()) return fail(rstd::format("{}\n", paths.as_ref().unwrap_err()).as_str());
+    if (rstd::fs::create_dir_all(paths->data.as_path()).is_err())
+        return fail("cannot create data directory\n"_str);
+    if (rstd::fs::create_dir_all(paths->cache.as_path()).is_err())
+        return fail("cannot create cache directory\n"_str);
+    auto data_dir   = rstd::fs::canonicalize(paths->data.as_path());
+    auto cache_root = rstd::fs::canonicalize(paths->cache.as_path());
+    if (data_dir.is_err() || cache_root.is_err())
+        return fail("cannot resolve storage directories\n"_str);
+    auto instance = startup::Instance::open(data_dir->as_path());
+    if (instance.is_err())
+        return fail(
+            rstd::format("cannot lock backend: {}\n", instance.as_ref().unwrap_err()).as_str());
+#ifdef __linux__
+    auto resolved = rstd::fs::read_link(PathBuf::from("/proc/self/exe"_str).as_path());
+    if (resolved.is_ok()) executable = rstd::move(*resolved);
+#endif
+    auto program = options.ui.is_some() ? PathBuf::from(options.ui->as_str())
+                                        : startup::ui_program(executable.as_path());
+    auto runtime = RuntimeBuilder::current_thread().enable_all().build();
+    if (runtime.is_err()) return fail("cannot create runtime\n"_str);
+    if (! instance->primary()) {
+        auto activated = runtime->block_on(activate_ui(*instance, program, options));
+        if (activated.is_err())
+            return fail(
+                rstd::format("cannot activate qcm-ui: {}\n", activated.as_ref().unwrap_err())
+                    .as_str());
+        return *activated;
+    }
+    auto cache_dir = cache_root->join("QcmBackend"_str);
+    if (rstd::fs::create_dir_all(cache_dir.as_path()).is_err())
+        return fail("cannot create resource cache directory\n"_str);
+    auto main_path  = data_dir->join("backend.2.db"_str);
+    auto cache_path = data_dir->join("backend_cache.db"_str);
+    auto bind       = TcpListener::bind(SocketAddr::ipv4_loopback(options.port));
+    if (bind.is_err()) return fail("cannot bind backend port\n"_str);
+    auto listener = rstd::move(*bind);
+    auto address  = listener.local_addr();
+    if (address.is_err()) return fail("cannot read backend address\n"_str);
+    startup::Ready ready { address->port(),
+                           String::make(cache_root->as_path().to_string_lossy().as_str()) };
+    auto           setting = settings::Setting::load(data_dir->as_path());
+    if (setting.is_err()) return fail(rstd::format("{}\n", setting.as_ref().unwrap_err()).as_str());
+    auto device_id = rstd::move(setting->device_id);
 
     auto registry = LuaProviderPlugin::load_default();
     if (registry.is_err()) {
@@ -203,18 +274,20 @@ auto main(int argc, char** argv) -> int {
 #endif
     auto signals = rstd::signal::subscribe(kinds.as_slice());
     if (signals.is_err()) return fail("cannot subscribe to shutdown signals\n"_str);
-    auto runtime = RuntimeBuilder::current_thread().enable_all().build();
-    if (runtime.is_err()) return fail("cannot create runtime\n"_str);
     auto result =
         runtime->block_on(run_backend(runtime->handle(),
                                       rstd::move(listener),
-                                      rstd::move(main_path),
-                                      rstd::move(cache_path),
+                                      String::make(main_path.as_path().to_string_lossy().as_str()),
+                                      String::make(cache_path.as_path().to_string_lossy().as_str()),
                                       rstd::move(*registry),
                                       String::make(cache_dir.as_path().to_string_lossy().as_str()),
                                       rstd::move(device_id),
                                       rstd::move(shutdown).unwrap(),
-                                      rstd::move(signals).unwrap()));
+                                      rstd::move(signals).unwrap(),
+                                      *instance,
+                                      program,
+                                      options,
+                                      ready));
     if (result.is_err()) {
         rstd::log::error("backend failed: {}", result.as_ref().unwrap_err());
         return fail("backend server failed\n"_str);

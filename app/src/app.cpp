@@ -106,7 +106,7 @@ App* App::create(QQmlEngine*, QJSEngine*) {
 
 App* App::instance() { return app_instance(); }
 
-App::App(QStringView backend_exe, std::monostate)
+App::App(quint16 backend_port, QStringView cache_dir)
     : QObject(nullptr), d_ptr(make_box<Private>(this)) {
     C_D(App);
     app_instance(this);
@@ -139,9 +139,7 @@ App::App(QStringView backend_exe, std::monostate)
                 Qt::QueuedConnection);
         }
 
-        QString data_dir  = QString::fromStdString(data_path().string());
-        QString cache_dir = QString::fromStdString(cache_path().string());
-        this->backend()->start(backend_exe, data_dir, cache_dir);
+        this->backend()->connect_to(backend_port, cache_dir);
     }
 
     d->m_qml_engine->addImportPath(u"qrc:/"_s);
