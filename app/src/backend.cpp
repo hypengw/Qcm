@@ -200,6 +200,7 @@ public:
                                 if (message.hasTestRsp()) {
                                     backend->m_resource_ready = true;
                                     Q_EMIT backend->resourceStateChanged();
+                                    backend->requestPlayerSnapshot();
                                 }
                                 qcm::process_msg(std::move(message));
                             });
@@ -361,6 +362,7 @@ Backend::Backend()
 }
 
 Backend::~Backend() {
+    m_player_commands.cancel();
     m_loader->reset();
     std::shared_future<void> closed;
     (void)QMetaObject::invokeMethod(
@@ -428,6 +430,57 @@ void Backend::send_immediate(msg::QcmMessage&& message) {
             transport->send_untracked(rstd::move(message));
         },
         Qt::QueuedConnection);
+}
+
+void Backend::controlPlayer(msg::PlayerControlReq request) {
+    msg::QcmMessage message;
+    msg::MsgTraits<msg::PlayerControlReq>::set(message, std::move(request));
+    submitPlayerRequest(std::move(message));
+}
+
+void Backend::updatePlayerQueue(msg::PlayerQueueReq request, std::function<void(bool)> completed) {
+    msg::QcmMessage message;
+    msg::MsgTraits<msg::PlayerQueueReq>::set(message, std::move(request));
+    submitPlayerRequest(std::move(message), std::move(completed));
+}
+
+void Backend::requestPlayerSnapshot() {
+    msg::PlayerControlReq request;
+    request.setAction(msg::PlayerActionGadget::PlayerAction::PLAYER_ACTION_SNAPSHOT);
+    controlPlayer(std::move(request));
+}
+
+void Backend::submitPlayerRequest(msg::QcmMessage message, std::function<void(bool)> completed) {
+    if (! m_resource_ready) {
+        if (completed) completed(false);
+        return;
+    }
+    auto       self       = QPointer<Backend>(this);
+    const auto generation = m_generation.load();
+    m_player_commands.spawn([self,
+                             generation,
+                             message   = std::move(message),
+                             completed = std::move(completed)]() mutable -> task<void> {
+        if (! self) co_return;
+        auto result = co_await self->send(std::move(message));
+        if (! co_await QAsyncResult::qexecutor()) co_return;
+        if (! self) co_return;
+        if (generation != self->m_generation.load()) {
+            if (completed) completed(false);
+            co_return;
+        }
+        QString error;
+        if (! result) {
+            error = QString::fromStdString(result.unwrap_err().message);
+        } else if (! result->hasRsp()) {
+            error = QStringLiteral("Missing player command response");
+        } else if (result->rsp().code() != msg::ErrorCodeGadget::ErrorCode::ERROR_CODE_OK) {
+            error = result->rsp().message();
+            if (error.isEmpty()) error = QStringLiteral("Player command failed");
+        }
+        if (completed) completed(error.isEmpty());
+        if (! error.isEmpty()) Q_EMIT self->playerError(error);
+    });
 }
 
 auto Backend::send(msg::QcmMessage&& message) -> task<Result<msg::QcmMessage, msg::Error>> {
@@ -498,8 +551,10 @@ auto Backend::send(msg::QcmMessage&& message) -> task<Result<msg::QcmMessage, ms
             (! self || generation != self->m_generation.load()))
             co_return Err(
                 msg::Error { .code = -1, .message = "backend generation changed during delivery" });
-    } else if (! received.hasRsp() ||
-               received.rsp().code() == msg::ErrorCodeGadget::ErrorCode::ERROR_CODE_OK) {
+    } else if (request_type != msg::MessageTypeGadget::MessageType::PLAYER_CONTROL_REQ &&
+               request_type != msg::MessageTypeGadget::MessageType::PLAYER_QUEUE_REQ &&
+               (! received.hasRsp() ||
+                received.rsp().code() == msg::ErrorCodeGadget::ErrorCode::ERROR_CODE_OK)) {
         if (received.hasRsp()) {
             LOG_ERROR("entity protocol v1: type={} id={} code={} message={}",
                       request_type,

@@ -13,8 +13,6 @@ QA.GlobalWrapper {
     property Window main_win: null
     property alias category: m_category
 
-    property string song_cover: ''
-
     property int color_scheme: MD.Enum.Light
     property bool use_system_color_scheme: true
     property bool use_system_accent_color: true
@@ -99,9 +97,4 @@ QA.GlobalWrapper {
         }
     }
 
-    QA.Mpris {
-        id: m_mpris
-        player: root.player
-        playlist: QA.App.playqueue
-    }
 }

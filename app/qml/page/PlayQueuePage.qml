@@ -41,7 +41,9 @@ MD.Page {
         currentIndex: source.model.currentIndex
         source: QA.ItemModelSource {
             model: QA.App.playqueue
-            roles: ["itemId", "name"]
+            keyMode: MD.ItemModelSource.RoleKey
+            keyRole: "entryId"
+            roles: ["itemId", "entryId", "name"]
         }
         extraTopMargin: 8
         extraBottomMargin: 8
@@ -102,7 +104,7 @@ MD.Page {
                 onClicked: {
                     const m = m_view.source.model;
                     if (m.canJump) {
-                        QA.Action.play(model.itemId);
+                        m.select(m_delegate.row.index);
                     } else {
                         QA.Action.toast(qsTr(`Not support for ${m.name}`));
                     }

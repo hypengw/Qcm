@@ -7,41 +7,38 @@ standard = "c++23"
 name = "qcm-player"
 module = "qcm.player"
 archive = "qcm_player"
-sources = [
-  "metadata.cpp",
-  "metadata.cppm",
-  "mod.cppm",
-  "notify.cppm",
-  "pcm.cppm",
-  "player.cpp",
-  "player.cppm",
-]
 
 [usage]
 threads = true
 
+[[bin]]
+name = "qcm-player"
+module = "qcm.player.bin"
+path = "src/bin/main.cppm"
+source-root = "src/bin"
 
-[dependencies.qcm-core]
+[dependencies.rstd-std]
 workspace = true
 pub = true
 
-[dependencies.rstd-std]
+[dependencies.rstd-log]
 workspace = true
 
 [dependencies.wavsen]
 workspace = true
+pub = true
 
-[dependencies.rstd-cppstd]
+[dependencies.lifetchto]
 workspace = true
 
-[[test]]
-name = "playback"
-sources = ["tests/playback.cpp"]
+[dependencies.lihttpto]
+workspace = true
 
-[[test]]
-name = "resource-seek"
-sources = ["tests/resource_seek.cpp"]
+[dependencies.rstd-json]
+workspace = true
 
-[[test]]
-name = "hls-io"
-sources = ["tests/hls_io.cpp"]
+[dependencies.rstd-serde]
+workspace = true
+
+[dependencies.rstd-serde-macro]
+workspace = true

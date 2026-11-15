@@ -27,6 +27,7 @@ public:
 
 private:
     model::ItemId m_item_id;
+    quint64       m_revision {};
 };
 
 export class PlayAllQuery : public Query {
@@ -70,11 +71,11 @@ private:
     bool   m_album_asc;
 
     QList<msg::filter::AlbumFilter> m_filters;
+    quint64                         m_revision {};
 };
 
-export class RadioQueuesQuery
-    : public QueryList,
-      public QueryExtra<model::RadioQueueListModel, RadioQueuesQuery> {
+export class RadioQueuesQuery : public QueryList,
+                                public QueryExtra<model::RadioQueueListModel, RadioQueuesQuery> {
     Q_OBJECT
     QML_ELEMENT
 
@@ -85,26 +86,6 @@ public:
 private:
     msg::id::ProviderIds m_provider_ids;
     quint64              m_revision { 0 };
-};
-
-export class QueueNextQuery : public Query,
-                              public QueryExtra<msg::GetQueueNextRsp, QueueNextQuery> {
-    Q_OBJECT
-public:
-    QueueNextQuery(QObject* parent = nullptr);
-    void reload() override;
-    void reset();
-    void setRequest(const msg::OpenQueueReq&);
-    void setRequest(const msg::GetQueueNextReq&);
-    auto sessionExpired() const -> bool;
-    auto transportFailure() const -> bool;
-
-private:
-    QObject*                                              m_timeout;
-    quint64                                               m_revision { 0 };
-    bool                                                  m_session_expired { false };
-    bool                                                  m_transport_failure { false };
-    std::variant<msg::OpenQueueReq, msg::GetQueueNextReq> m_request;
 };
 
 } // namespace qcm

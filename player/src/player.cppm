@@ -1,13 +1,14 @@
 export module qcm.player:player;
-import qcm.core;
 import rstd;
-import rstd.cppstd;
 import wavsen.audio;
 import :pcm;
 import :notify;
 
 using namespace rstd::prelude;
+using rstd::int64_t;
 using rstd::tuple;
+using rstd::uint32_t;
+using rstd::uint64_t;
 using rstd::alloc::Allocator;
 using rstd::async::CompletionQueue;
 using rstd::async::CompletionQueueHandle;
@@ -27,25 +28,28 @@ public:
     auto operator=(const Player&) -> Player& = delete;
     Player(Player&&)                         = delete;
     auto operator=(Player&&) -> Player&      = delete;
-    Player(std::string_view    name, Notifier,
+    Player(ref<str>            name, Notifier,
            ref<dyn<Allocator>> allocator = ::alloc::allocator_ref(::alloc::GLOBAL));
     ~Player();
 
     auto process_actions() -> coro<void>;
     void close();
 
-    void play();
-    void pause();
-    void stop();
-    void seek(int32_t);
+    void play(uint64_t token = 0);
+    void pause(uint64_t token = 0);
+    void stop(uint64_t token = 0);
+    void seek(int64_t, uint64_t token = 0);
 
-    void set_source(std::string_view, rc<wa::MediaIo> = {});
+    void set_source(ref<str>, Option<Box<dyn<wa::MediaIo>>> io = {}, uint64_t token = 0,
+                    bool autoplay = true);
 
     auto volume() const -> float;
-    void set_volume(float);
+    void set_volume(float, uint64_t token = 0);
 
     auto fade_time() const -> uint32_t;
     void set_fade_time(uint32_t);
+    void set_fade_time_ms(uint32_t);
+    auto pending_actions() const -> uint64_t { return queued_actions.load(); }
 
 private:
     using QueueAllocator = ref<dyn<Allocator>>;
@@ -63,15 +67,16 @@ private:
         Volume
     };
     struct Command {
-        CommandKind     kind;
-        std::string     source;
-        rc<wa::MediaIo> media_io;
-        double          value {};
-        uint64_t        revision {}, source_revision {}, id {};
+        CommandKind                   kind;
+        String                        source;
+        Option<Box<dyn<wa::MediaIo>>> media_io;
+        double                        value {};
+        uint64_t                      revision {}, source_revision {}, id {}, token {};
     };
     using Receiver = CompletionQueue<Command>;
     using Done     = CompletionQueue<bool>;
-    void submit(CommandKind kind, std::string source = {}, double value = 0, rc<wa::MediaIo> = {});
+    void submit(CommandKind kind, String source = {}, double value = 0,
+                Option<Box<dyn<wa::MediaIo>>> io = {}, uint64_t token = 0, bool autoplay = true);
     bool cancelled() const;
     static bool                                     interrupt(void* self) noexcept;
     void                                            send(notify::info info);
@@ -81,8 +86,9 @@ private:
     void                                            stop_device();
     void                                            stop_media();
     bool                                            open_device();
-    void                                            fail();
-    void                                            open_source(const std::string& source);
+    void                                            fail(ref<str> message, uint64_t token = 0);
+    void                                            report_seeked(int64_t position);
+    void                                            open_source(ref<str> source);
     void                                            set_playing(bool value);
     void                                            seek_media(double milliseconds);
     void                                            command(Command command);
@@ -98,15 +104,17 @@ private:
     Atomic<bool>                                    closed {};
     Atomic<bool>                                    requested_playing {};
     Atomic<uint64_t>    requested_revision {}, requested_source {}, latest_id {};
+    Atomic<uint64_t>    queued_actions {};
     uint64_t            active_revision {}, active_source {}, current_id {}, device_generation {};
+    uint64_t            current_token {}, source_token {}, seek_token {};
     Atomic<rstd::f32>   m_volume { rstd::f32(1) };
-    Atomic<uint32_t>    m_fade_time { 500000 };
+    Atomic<uint64_t>    m_fade_time { 500000 };
     QueueAllocator      queue_allocator;
     Producer<PcmBlock>  pcm;
     Consumer<ClockSpan> clock;
     String              app_name;
-    std::string         current_source;
-    rc<wa::MediaIo>     media_io;
+    String              current_source;
+    Option<Box<dyn<wa::MediaIo>>>  media_io;
     Option<Box<wa::StreamDecoder>> decoder;
     Option<Box<wa::AudioDevice>>   device;
     wa::AudioDeviceDesiredState    desired;

@@ -13,6 +13,7 @@ export import :identity;
 export import :model;
 export import :network;
 export import :playback;
+export import :player;
 export import :playing;
 export import :plugin;
 export import :protocol;

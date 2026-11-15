@@ -12,42 +12,58 @@ import qcm.log;
 void qcm::process_msg(msg::QcmMessage&& msg) {
     using M = msg::MessageTypeGadget::MessageType;
     switch (msg.type()) {
+    case M::PLAYER_STATE_MSG:
+        App::instance()->backend()->playerStateChanged(msg.playerStateMsg());
+        break;
+    case M::PLAYER_QUEUE_MSG:
+        App::instance()->backend()->playerQueueChanged(msg.playerQueueMsg());
+        break;
+    case M::PLAYER_UI_MSG: App::instance()->backend()->playerUiRequested(msg.playerUiMsg()); break;
     case M::PROVIDER_META_STATUS_MSG: {
-        QMetaObject::invokeMethod(App::instance(), [msg = rstd::move(msg)] {
-            auto p = App::instance()->provider_meta_status();
-            p->sync(msg.providerMetaStatusMsg().metas());
-        }, Qt::QueuedConnection);
+        QMetaObject::invokeMethod(
+            App::instance(),
+            [msg = rstd::move(msg)] {
+                auto p = App::instance()->provider_meta_status();
+                p->sync(msg.providerMetaStatusMsg().metas());
+            },
+            Qt::QueuedConnection);
         break;
     }
     case M::PROVIDER_STATUS_MSG: {
-        QMetaObject::invokeMethod(App::instance(), [msg = rstd::move(msg)] {
-            auto p = App::instance()->provider_status();
-            for (auto& s : msg.providerStatusMsg().statuses()) {
-                LOG_INFO("{}", s.name());
-            }
-            auto view =
-                std::ranges::views::transform(msg.providerStatusMsg().statuses(), [](auto&& el) {
-                    return qcm::model::ProviderStatus { el };
-                });
-            auto size = view.size();
-            p->sync(view);
-
-            auto state = App::instance()->app_state();
-            if (! state->is_state<AppState::Error>()) {
-                if (size == 0) {
-                    state->set_state(AppState::Welcome {});
-                } else {
-                    state->set_state(AppState::Main {});
+        QMetaObject::invokeMethod(
+            App::instance(),
+            [msg = rstd::move(msg)] {
+                auto p = App::instance()->provider_status();
+                for (auto& s : msg.providerStatusMsg().statuses()) {
+                    LOG_INFO("{}", s.name());
                 }
-            }
-        }, Qt::QueuedConnection);
+                auto view = std::ranges::views::transform(
+                    msg.providerStatusMsg().statuses(), [](auto&& el) {
+                        return qcm::model::ProviderStatus { el };
+                    });
+                auto size = view.size();
+                p->sync(view);
+
+                auto state = App::instance()->app_state();
+                if (! state->is_state<AppState::Error>()) {
+                    if (size == 0) {
+                        state->set_state(AppState::Welcome {});
+                    } else {
+                        state->set_state(AppState::Main {});
+                    }
+                }
+            },
+            Qt::QueuedConnection);
         break;
     }
     case M::PROVIDER_SYNC_STATUS_MSG: {
-        QMetaObject::invokeMethod(App::instance(), [msg = rstd::move(msg)] {
-            auto p = App::instance()->provider_status();
-            p->updateSyncStatus(msg.providerSyncStatusMsg().status());
-        }, Qt::QueuedConnection);
+        QMetaObject::invokeMethod(
+            App::instance(),
+            [msg = rstd::move(msg)] {
+                auto p = App::instance()->provider_status();
+                p->updateSyncStatus(msg.providerSyncStatusMsg().status());
+            },
+            Qt::QueuedConnection);
         break;
     }
     default: {

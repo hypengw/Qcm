@@ -1,7 +1,7 @@
 module;
 #include "QExtra/macro_qt.hpp"
 #ifdef Q_MOC_RUN
-#include "Qcm/action.moc"
+#    include "Qcm/action.moc"
 #endif
 Q_MOC_INCLUDE("src/model/id_queue.cppm")
 
@@ -10,8 +10,6 @@ export import :qml.enums;
 export import :model.id_queue;
 export import :model.router_msg;
 import qextra;
-
-
 
 namespace qcm
 {
@@ -46,7 +44,7 @@ Q_SIGNALS:
     void next();
     void prev();
 
-    void switch_queue(model::IdQueue*);
+    void switch_queue(model::DynamicIdQueue*);
 
     void play(model::ItemId songId, model::ItemId sourceId = {});
     void queue_next(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
@@ -54,9 +52,6 @@ Q_SIGNALS:
     void switch_songs(const std::vector<model::ItemId>& songIds, model::ItemId sourceId = {});
 
     void playUrl(const QUrl& url, bool refresh = false);
-
-    void record(enums::RecordAction);
-    void playLog(qint32 action, model::ItemId songId, model::ItemId sourceId = {});
 
     void scheduleRenderJob(QRunnable* job, qint32 stage);
 };

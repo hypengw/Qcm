@@ -96,7 +96,6 @@ qt.qml_module({
     "qml/component/page/PageStack.qml",
     "qml/component/page/SettingBasePage.qml",
     "qml/component/player/LyricView.qml",
-    "qml/component/player/Mpris.qml",
     "qml/component/player/PlaySlider.qml",
     "qml/component/player/PlayBarBackground.qml",
     "qml/component/player/PlayingBackground.qml",

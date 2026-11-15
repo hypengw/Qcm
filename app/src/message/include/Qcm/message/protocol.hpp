@@ -4,7 +4,8 @@
 
 namespace qcm::protocol
 {
-inline constexpr quint32 Version = 2;
+inline constexpr quint32 Version       = 3;
+inline constexpr quint32 EntityVersion = 2;
 
 class Session {
 public:
@@ -26,7 +27,7 @@ public:
         if (! m_serial || message.id_proto() != m_serial || ! message.hasTestRsp() ||
             message.type() != msg::MessageTypeGadget::MessageType::TEST_RSP)
             return QStringLiteral("Backend message received before handshake");
-        if (! message.hasEntities() || message.entities().protocol() != Version ||
+        if (! message.hasEntities() || message.entities().protocol() != EntityVersion ||
             message.entities().instance().isEmpty())
             return QStringLiteral("Backend entity protocol mismatch");
         m_ready = true;

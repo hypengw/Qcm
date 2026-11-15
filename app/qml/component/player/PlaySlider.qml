@@ -13,7 +13,7 @@ MD.SliderBase {
     property MD.StateSliderM2 mdState: MD.StateSliderM2 {
         item: root
     }
-    readonly property url songIdentity: queue?.currentSongId?.url ?? ""
+    readonly property string songIdentity: queue?.currentEntryId ?? ""
     readonly property double playing_pos: Number.isFinite(player.duration) && player.duration > 0 && Number.isFinite(player.position) ? Math.max(0, Math.min(1, player.position / player.duration)) : 0
     readonly property bool seekVisible: visible && (Window.window?.visible ?? false) && Window.window.visibility !== Window.Minimized
     readonly property bool interacting: interaction.pressed || interaction.dragged

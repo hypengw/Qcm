@@ -39,6 +39,9 @@ public:
     auto connect_to(i32 port, QStringView cache_dir) -> bool;
 
     void send_immediate(msg::QcmMessage&& msg);
+    void controlPlayer(msg::PlayerControlReq);
+    void updatePlayerQueue(msg::PlayerQueueReq, std::function<void(bool)> completed = {});
+    void requestPlayerSnapshot();
     using SongResult = Result<msg::GetSongsByIdRsp, msg::Error>;
     StoreSubscription loadSongs(const msg::id::SongIds&, QObject* consumer,
                                 std::function<void(const SongResult&)>);
@@ -72,6 +75,10 @@ public:
     Q_SIGNAL void error(QString);
     Q_SIGNAL void disconnected();
     Q_SIGNAL void resourceStateChanged();
+    Q_SIGNAL void playerStateChanged(qcm::msg::PlayerStateMsg);
+    Q_SIGNAL void playerQueueChanged(qcm::msg::PlayerQueueMsg);
+    Q_SIGNAL void playerUiRequested(qcm::msg::PlayerUiMsg);
+    Q_SIGNAL void playerError(QString);
 
     Q_SLOT void on_retry();
 
@@ -81,6 +88,7 @@ private:
 
     auto base() const -> std::string;
     auto serial() -> i32;
+    void submitPlayerRequest(msg::QcmMessage, std::function<void(bool)> completed = {});
 
     Box<QThread>              m_thread;
     detail::BackendTransport* m_transport;
@@ -91,5 +99,6 @@ private:
     i32                                   m_port;
     bool                                  m_resource_ready { false };
     QString                               m_cache_dir;
+    QAsyncScope                           m_player_commands;
 };
 } // namespace qcm

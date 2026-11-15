@@ -18,7 +18,7 @@ QA.SettingBasePage {
             supportText: qsTr('Truly random playback instead of shuffle')
             trailing: MD.Switch {
                 checked: QA.App.playqueue.randomMode
-                onCheckedChanged: {
+                onCheckedChangeRequested: checked => {
                     QA.App.playqueue.randomMode = checked;
                 }
             }

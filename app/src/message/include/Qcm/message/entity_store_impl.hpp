@@ -1,5 +1,6 @@
 #pragma once
 #include "entity_store.hpp"
+#include "protocol.hpp"
 
 namespace qcm::store
 {
@@ -82,7 +83,7 @@ qsizetype EntityStore::bytes() const {
 
 ApplyResult EntityStore::apply(const wire::EntityBatch& batch) {
     ApplyResult result;
-    if (batch.protocol() != 2 || batch.instance().isEmpty()) {
+    if (batch.protocol() != protocol::EntityVersion || batch.instance().isEmpty()) {
         result.error = QStringLiteral("Unsupported entity protocol");
         return result;
     }
@@ -353,7 +354,7 @@ ApplyResult EntityStore::apply(const wire::EntityBatch& batch) {
                     entry->album = link.hasId_proto()
                                        ? std::optional<qint64>(link.id_proto().value())
                                        : std::nullopt;
-                    auto song = entry->data.value<model::Song>();
+                    auto song    = entry->data.value<model::Song>();
                     if (link.hasId_proto())
                         song.setAlbumId(link.id_proto());
                     else

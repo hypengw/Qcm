@@ -31,15 +31,6 @@ auto Util::typeStringFilter() noexcept -> msg::filter::TypeStringFilter { return
 auto Util::typeFilter() noexcept -> msg::filter::TypeFilter { return {}; }
 auto Util::createItemid() -> model::ItemId { return {}; }
 
-auto Util::mprisTrackid(model::ItemId id) -> QString {
-    static const auto dbus_path = QStringLiteral(APP_ID).replace('.', '/');
-    std::string       track_id  = "none";
-    if (id.id() >= 0) {
-        track_id = std::to_string(id.id());
-    }
-    return qextra::to_qstring(rstd::format("/{}/TrackId/{}", dbus_path, track_id));
-}
-
 auto Util::create_route_msg(QVariantMap props) -> model::RouteMsg {
     model::RouteMsg msg;
     msg.dst   = (props.value("url").toUrl()).toString();

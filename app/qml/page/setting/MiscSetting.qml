@@ -34,7 +34,7 @@ MD.Page {
 
                     actionItem: MD.Switch {
                         checked: QA.App.playqueue.randomMode
-                        onCheckedChanged: {
+                        onCheckedChangeRequested: checked => {
                             QA.App.playqueue.randomMode = checked;
                         }
                     }

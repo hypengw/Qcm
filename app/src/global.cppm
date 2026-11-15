@@ -8,7 +8,6 @@ module;
 #include "core/log.h"
 
 export module qcm:global;
-import qcm.player;
 export import :action;
 export import :qml.enums;
 export import :util.mem;
@@ -38,8 +37,6 @@ export class Global : public QObject {
     friend class PluginModel;
 
 public:
-    using Metadata = player::Metadata;
-
     static auto instance() -> Global*;
 
     Global();
@@ -48,17 +45,13 @@ public:
     auto uuid() const -> const QUuid&;
     auto player() const -> Player*;
 
-    auto get_metadata(const std::filesystem::path&) const -> Metadata;
-
     void join();
 
     Q_SIGNAL void errorOccurred(QString error, StopSignal stop = {});
     Q_SIGNAL void copyActionCompChanged(StopSignal stop = {});
     Q_SIGNAL void uuidChanged(StopSignal stop = {});
 
-    using MetadataImpl = std::function<Metadata(const std::filesystem::path&)>;
     void        set_uuid(const QUuid&);
-    void        set_metadata_impl(const MetadataImpl&);
     static void setInstance(Global*);
 
 private:
@@ -123,8 +116,6 @@ public:
     ~Private();
 
     QUuid uuid;
-
-    MetadataImpl metadata_impl;
 
     Player* player;
 };

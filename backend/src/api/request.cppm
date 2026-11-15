@@ -464,6 +464,40 @@ public:
             co_return co_await with_entities(request.f_id, rstd::move(response));
         }
         RSTD_MATCH(*request.o_payload) {
+            RSTD_CASE_PAYLOAD(player_control_req, entry) {
+                p_qcm::p_msg::M_PlayerControlReq command;
+                command.f_action                = entry->f_action;
+                command.f_position_ms           = entry->f_position_ms;
+                command.f_volume                = entry->f_volume;
+                command.f_fade_ms               = entry->f_fade_ms;
+                command.f_source                = entry->f_source.clone();
+                command.f_expected_source_epoch = entry->f_expected_source_epoch;
+                rstd_co_try(co_await service_->control_player(rstd::move(command)));
+                co_return Ok(Some(ok_response(request.f_id)));
+            }
+            RSTD_CASE_PAYLOAD(player_queue_req, entry) {
+                p_qcm::p_msg::M_PlayerQueueReq command;
+                command.f_action      = entry->f_action;
+                command.f_song_ids    = entry->f_song_ids.clone();
+                command.f_index       = entry->f_index;
+                command.f_count       = entry->f_count;
+                command.f_destination = entry->f_destination;
+                command.f_loop_mode   = entry->f_loop_mode;
+                command.f_shuffle     = entry->f_shuffle;
+                command.f_play        = entry->f_play;
+                command.f_name        = entry->f_name.clone();
+                if (entry->f_radio_queue_id.is_some()) {
+                    auto id                  = Box<p_qcm::p_msg::p_id::M_RadioQueueId>::make();
+                    id->f_value              = (*entry->f_radio_queue_id)->f_value;
+                    command.f_radio_queue_id = Some(rstd::move(id));
+                }
+                command.f_configuration     = entry->f_configuration.clone();
+                command.f_expected_revision = entry->f_expected_revision;
+                command.f_random_mode       = entry->f_random_mode;
+                command.f_radio_reason      = entry->f_radio_reason;
+                rstd_co_try(co_await service_->edit_player_queue(rstd::move(command)));
+                co_return Ok(Some(ok_response(request.f_id)));
+            }
             RSTD_CASE(playlog_req) {
                 co_return optional_response(co_await database_run(
                     service_->db_.clone(),

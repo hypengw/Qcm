@@ -80,6 +80,11 @@ enum MessageType {
   GET_STORAGE_INFO_REQ = 200;
   GET_STORAGE_INFO_RSP = 201;
   PLAYLOG_REQ = 202;
+  PLAYER_CONTROL_REQ = 210;
+  PLAYER_STATE_MSG = 211;
+  PLAYER_QUEUE_REQ = 212;
+  PLAYER_QUEUE_MSG = 213;
+  PLAYER_UI_MSG = 214;
 
   GET_SONGS_BY_ID_REQ = 400;
   GET_SONGS_BY_ID_RSP = 401;
@@ -643,6 +648,117 @@ message GetHomeBlockItemsRsp {
   }
 }
 
+enum PlayerAction {
+  PLAYER_ACTION_UNSPECIFIED = 0;
+  PLAYER_ACTION_PLAY = 1;
+  PLAYER_ACTION_PAUSE = 2;
+  PLAYER_ACTION_STOP = 3;
+  PLAYER_ACTION_TOGGLE = 4;
+  PLAYER_ACTION_SEEK = 5;
+  PLAYER_ACTION_VOLUME = 6;
+  PLAYER_ACTION_FADE = 7;
+  PLAYER_ACTION_NEXT = 8;
+  PLAYER_ACTION_PREVIOUS = 9;
+  PLAYER_ACTION_SOURCE = 10;
+  PLAYER_ACTION_SNAPSHOT = 11;
+}
+
+enum PlayerLoopMode {
+  PLAYER_LOOP_MODE_NONE = 0;
+  PLAYER_LOOP_MODE_TRACK = 1;
+  PLAYER_LOOP_MODE_PLAYLIST = 2;
+}
+
+enum PlayerQueueAction {
+  PLAYER_QUEUE_ACTION_UNSPECIFIED = 0;
+  PLAYER_QUEUE_ACTION_REPLACE = 1;
+  PLAYER_QUEUE_ACTION_APPEND = 2;
+  PLAYER_QUEUE_ACTION_SELECT = 3;
+  PLAYER_QUEUE_ACTION_REMOVE = 4;
+  PLAYER_QUEUE_ACTION_MOVE = 5;
+  PLAYER_QUEUE_ACTION_CLEAR = 6;
+  PLAYER_QUEUE_ACTION_LOOP = 7;
+  PLAYER_QUEUE_ACTION_SHUFFLE = 8;
+  PLAYER_QUEUE_ACTION_RADIO = 9;
+  PLAYER_QUEUE_ACTION_INSERT_NEXT = 10;
+  PLAYER_QUEUE_ACTION_RANDOM = 11;
+}
+
+message PlayerControlReq {
+  PlayerAction action = 1;
+  int64 position_ms = 2;
+  double volume = 3;
+  uint32 fade_ms = 4;
+  string source = 5;
+  uint64 expected_source_epoch = 6;
+}
+
+message PlayerQueueReq {
+  PlayerQueueAction action = 1;
+  repeated int64 song_ids = 2;
+  int32 index = 3;
+  int32 count = 4;
+  int32 destination = 5;
+  PlayerLoopMode loop_mode = 6;
+  optional bool shuffle = 7;
+  bool play = 8;
+  string name = 9;
+  qcm.msg.id.RadioQueueId radio_queue_id = 10;
+  map<string, string> configuration = 11;
+  uint64 expected_revision = 12;
+  bool random_mode = 13;
+  QueueOpenReason radio_reason = 14;
+}
+
+message PlayerStateMsg {
+  uint64 revision = 1;
+  uint64 source_epoch = 2;
+  bool connected = 3;
+  string source = 4;
+  int32 playback_state = 5;
+  int64 position_ms = 6;
+  int64 duration_ms = 7;
+  double volume = 8;
+  uint32 fade_ms = 9;
+  bool busy = 10;
+  bool seekable = 11;
+  double cache_begin = 12;
+  double cache_end = 13;
+  uint64 ended_serial = 14;
+  uint64 seek_serial = 15;
+  string error = 16;
+  qcm.msg.id.SongId song_id = 17;
+  string title = 18;
+  string album = 19;
+  repeated string artists = 20;
+  repeated string album_artists = 21;
+  string art_url = 22;
+}
+
+message PlayerQueueMsg {
+  uint64 revision = 1;
+  repeated int64 song_ids = 2;
+  int32 current_index = 3;
+  PlayerLoopMode loop_mode = 4;
+  bool shuffle = 5;
+  bool can_next = 6;
+  bool can_previous = 7;
+  string name = 8;
+  qcm.msg.id.RadioQueueId radio_queue_id = 9;
+  bool exhausted = 10;
+  qcm.msg.model.QueuePresentation presentation = 11;
+  map<string, string> configuration = 12;
+  repeated uint64 entry_ids = 13;
+  uint64 current_entry_id = 14;
+  bool can_jump = 15;
+  bool can_remove = 16;
+  bool random_mode = 17;
+}
+
+message PlayerUiMsg {
+  bool raise = 1;
+}
+
 message QcmMessage {
   MessageType type = 1;
   int32 id = 2;
@@ -721,6 +837,11 @@ message QcmMessage {
     GetStorageInfoReq get_storage_info_req = 300;
     GetStorageInfoRsp get_storage_info_rsp = 301;
     PlaylogReq playlog_req = 302;
+    PlayerControlReq player_control_req = 310;
+    PlayerStateMsg player_state_msg = 311;
+    PlayerQueueReq player_queue_req = 312;
+    PlayerQueueMsg player_queue_msg = 313;
+    PlayerUiMsg player_ui_msg = 314;
 
     GetSongsByIdReq get_songs_by_id_req = 400;
     GetSongsByIdRsp get_songs_by_id_rsp = 401;

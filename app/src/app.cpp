@@ -1,15 +1,12 @@
 module;
 #include "Qcm/macro.hpp"
 #include "core/log.h"
-#include "mpris/mpris.h"
-#include "mpris/mediaplayer2.h"
 
 #include "Qcm/app.moc.h"
 #undef assert
 #include <rstd/macro.hpp>
 
 module qcm;
-import qcm.player;
 import :app;
 import qcm.log;
 
@@ -41,33 +38,21 @@ public:
         : m_p(self),
           m_global(make_rc<Global>()),
           m_util(make_rc<qml::Util>()),
-          m_play_id_queue(new PlayIdQueue(self)),
           m_playqueu(new qcm::PlayQueue(self)),
           m_empty(new qcm::model::EmptyModel(self)),
           provider_meta_status(new ProviderMetaStatusModel(self)),
           provider_status(new ProviderStatusModel(self)),
           page_model(new PageModel(self)),
           app_state(new AppState(self)),
-#ifndef NODEBUS
-          m_mpris(Box<mpris::Mpris>::make()),
-#endif
           m_main_win(nullptr),
-          m_qml_engine(make_up<QQmlApplicationEngine>()) {
-    }
+          m_qml_engine(make_up<QQmlApplicationEngine>()) {}
     ~Private() {
-        m_background_tasks.cancel();
         m_qml_engine.reset();
 
-        save_settings();
         m_playqueu->drop_global();
         m_global->join();
         // clean query
         qDeleteAll(m_playqueu->children());
-    }
-
-    void save_settings() {
-        QSettings s;
-        s.setValue("play/loop", (int)m_playqueu->loopMode());
     }
 
     App* m_p;
@@ -75,7 +60,6 @@ public:
     rc<Global>    m_global;
     rc<qml::Util> m_util;
 
-    PlayIdQueue*             m_play_id_queue;
     PlayQueue*               m_playqueu;
     model::EmptyModel*       m_empty;
     ProviderMetaStatusModel* provider_meta_status;
@@ -84,17 +68,11 @@ public:
     model::AppInfo           info;
     AppState*                app_state;
 
-#ifndef NODEBUS
-    Box<mpris::Mpris> m_mpris;
-#endif
-
     Option<Box<Backend>> m_backend;
-    QAsyncScope          m_background_tasks;
 
-    std::optional<player::Notifier> m_player_sender;
-    QPointer<QQuickWindow>          m_main_win;
+    QPointer<QQuickWindow>           m_main_win;
     Option<Box<QmlNetworkDiskCache>> m_image_cache;
-    up<QQmlApplicationEngine>       m_qml_engine;
+    up<QQmlApplicationEngine>        m_qml_engine;
 };
 
 App* App::create(QQmlEngine*, QJSEngine*) {
@@ -117,14 +95,23 @@ App::App(quint16 backend_port, QStringView cache_dir)
     {
         QGuiApplication::setDesktopFileName(APP_ID);
         PageModel::init_main_pages(d->page_model);
-        d->m_playqueu->setSourceModel(d->m_play_id_queue);
-        d->m_global->set_metadata_impl(player::get_metadata);
-        set_player_sender(d->m_global->player()->sender());
     }
 
     LOG_DEBUG("thread pool size: {}", get_pool_size());
     {
         d->m_backend = Some(Box<Backend>::make());
+        global()->player()->bindBackend(backend());
+        playqueue()->bindBackend(backend());
+        connect(backend(), &Backend::playerError, global(), [this](const QString& error) {
+            global()->errorOccurred(error);
+        });
+        connect(global()->player(), &Player::errorOccurred, global(), [this](const QString& error) {
+            global()->errorOccurred(error);
+        });
+        connect(
+            backend(), &Backend::playerUiRequested, this, [this](const msg::PlayerUiMsg& request) {
+                if (request.raise()) instanceStarted();
+            });
         {
             auto p = this->backend();
             connect(
@@ -156,9 +143,14 @@ App::~App() {}
 
 void App::init() {
     C_D(App);
-    connect(backend(),&Backend::connected,d->m_playqueu,&PlayQueue::reloadEntities);
-    connect(AppStore::instance(),&AppStore::scopeChanged,d->m_playqueu,&PlayQueue::reloadEntities);
-    connect(d->provider_status,&ProviderStatusModel::syncingChanged,d->m_playqueu,[queue=d->m_playqueu](bool syncing){if(!syncing) queue->reloadEntities();});
+    connect(
+        AppStore::instance(), &AppStore::scopeChanged, d->m_playqueu, &PlayQueue::reloadEntities);
+    connect(d->provider_status,
+            &ProviderStatusModel::syncingChanged,
+            d->m_playqueu,
+            [queue = d->m_playqueu](bool syncing) {
+                if (! syncing) queue->reloadEntities();
+            });
     auto engine = this->engine();
 
     d->m_image_cache = Some(Box<QmlNetworkDiskCache>::make(
@@ -182,19 +174,6 @@ void App::init() {
         }
         Global::instance()->set_uuid(uuid);
     }
-
-    // mpris
-#ifndef NODEBUS
-    {
-        d->m_mpris->registerService("Qcm");
-        auto m = d->m_mpris->mediaplayer2();
-        m->setIdentity("Qcm");
-        m->setDesktopEntry(APP_ID); // no ".desktop"
-        m->setCanQuit(true);
-    }
-#endif
-
-    load_settings();
 
     auto gui_app = QGuiApplication::instance();
 
@@ -220,8 +199,9 @@ void App::init() {
             LOG_ERROR("invalid image network cache configuration");
     };
     connect(this->backend(), &Backend::resourceStateChanged, engine, update_image_sources);
-    connect(AppStore::instance(), &AppStore::scopeChanged, engine,
-            [engine] { qextra::image::clear_network_cache(engine); });
+    connect(AppStore::instance(), &AppStore::scopeChanged, engine, [engine] {
+        qextra::image::clear_network_cache(engine);
+    });
     update_image_sources();
     engine->loadFromModule("Qcm.App", "Window");
 
@@ -232,7 +212,6 @@ void App::init() {
     }
 
     rstd_assert(! d->m_main_win.isNull(), "main window must exist");
-    rstd_assert(d->m_player_sender.has_value(), "player must init");
 }
 
 void App::triggerCacheLimit() {
@@ -263,15 +242,6 @@ QVariant App::import_path_list() {
 
 void App::test() {}
 
-auto App::mpris() const -> QObject* {
-    C_D(const App);
-#ifndef NODEBUS
-    return d->m_mpris->mediaplayer2();
-#else
-    return nullptr;
-#endif
-}
-
 bool App::debug() const {
 #ifndef NDEBUG
     return 1;
@@ -300,11 +270,6 @@ auto App::playqueue() const -> PlayQueue* {
     C_D(const App);
     return d->m_playqueu;
 }
-auto App::play_id_queue() const -> PlayIdQueue* {
-    C_D(const App);
-    return d->m_play_id_queue;
-}
-
 // #include <private/qquickpixmapcache_p.h>
 void App::releaseResources(QQuickWindow*, const QJSValue& extra) {
     C_D(App);
@@ -327,7 +292,7 @@ void App::releaseResources(QQuickWindow*, const QJSValue& extra) {
 
     auto store = AppStore::instance();
 
-    LOG_DEBUG("entity store: {} entries, {} bytes",store->size(),store->bytes());
+    LOG_DEBUG("entity store: {} entries, {} bytes", store->size(), store->bytes());
 
     auto info = plt::mem_info();
     LOG_DEBUG(R"(
@@ -344,8 +309,6 @@ session:
   {}
 backend:
   {}
-player:
-  {}
 store:
   {}
 )",
@@ -358,7 +321,6 @@ store:
               print_mem_stat(mem_mgr().pool_stat),
               print_mem_stat(mem_mgr().session_mem),
               print_mem_stat(mem_mgr().backend_mem),
-              print_mem_stat(mem_mgr().player_mem),
               print_mem_stat(mem_mgr().store_mem));
 }
 
@@ -372,21 +334,6 @@ auto App::bound_image_size(QSizeF displaySize) const -> QSizeF {
     if (size == 0) return { 0.0f, 0.0f };
     size = 30 * (1 << (usize)std::ceil(std::log2(size / 30)));
     return displaySize.scaled(QSizeF(size, size), Qt::AspectRatioMode::KeepAspectRatioByExpanding);
-}
-
-void App::set_player_sender(player::Notifier sender) {
-    C_D(App);
-    d->m_player_sender = sender;
-    /*
-    d->m_media_cache->fallbacks()->fragment =
-        [sender](usize begin, usize end, usize totle) mutable {
-            if (totle >= end && totle >= begin) {
-                float db = begin / (double)totle;
-                float de = end / (double)totle;
-                sender.try_send(player::notify::info::cache( db, de ));
-            }
-        };
-        */
 }
 
 auto App::empty() const -> model::EmptyModel* {
@@ -415,44 +362,6 @@ auto App::store() const -> AppStore* {
     C_D(const App);
     return AppStore::instance();
 }
-void App::switchPlayIdQueue() {
-    C_D(App);
-    d->m_playqueu->setSourceModel(d->m_play_id_queue);
-}
-
-void App::load_settings() {
-    C_D(App);
-    QSettings s;
-    playqueue()->setLoopMode(s.value("play/loop").value<enums::LoopMode>());
-    connect(playqueue(), &PlayQueue::loopModeChanged, this, [](enums::LoopMode v) {
-        QSettings s;
-        s.setValue("play/loop", (int)v);
-    });
-    playqueue()->setRandomMode(s.value("play/random").value<bool>());
-    connect(playqueue(), &PlayQueue::randomModeChanged, this, [](bool v) {
-        QSettings s;
-        s.setValue("play/random", v);
-    });
-    {
-        const auto player = d->m_global->player();
-        player->set_fadeTime(s.value("play/fade_time", player->fadeTime()).value<u32>());
-        connect(player, &Player::fadeTimeChanged, this, [](u32 v) {
-            QSettings s;
-            s.setValue("play/fade_time", v);
-        });
-
-        player->set_volume(s.value("play/volume", player->volume()).value<float>());
-        connect(player, &Player::volumeChanged, this, [](float v) {
-            QSettings s;
-            s.setValue("play/volume", v);
-        });
-    }
-}
-void App::save_settings() {
-    C_D(App);
-    return d->save_settings();
-}
-
 auto App::info() const -> const model::AppInfo& {
     C_D(const App);
     return d->info;
@@ -481,134 +390,16 @@ void App::connect_actions() {
     connect(Action::instance(), &Action::switch_songs, this, &App::onSwitch);
     connect(Action::instance(), &Action::play, this, &App::onPlay);
     connect(Action::instance(), &Action::switch_queue, this, &App::onSwitchQueue);
-    connect(Action::instance(), &Action::record, this, &App::onRecord);
     connect(Action::instance(), &Action::routeItem, this, &App::onRouteItem);
-
-    connect(
-        Action::instance(), &Action::next, this->playqueue(), QOverload<>::of(&PlayQueue::next));
-    connect(
-        Action::instance(), &Action::prev, this->playqueue(), QOverload<>::of(&PlayQueue::prev));
-
-    // player
-    {
-        const auto player = global()->player();
-        connect(Action::instance(),
-                &Action::playUrl,
-                player,
-                [p = player](const QUrl& url, bool reload) {
-                    if (reload && p->source() == url) {
-                        p->reset_source();
-                    }
-                    p->set_source(url);
-
-                    if (url.isValid()) p->play();
-                });
-
-        connect(Action::instance(), &Action::toggle, player, &Player::toggle);
-        connect(player, &Player::ended, player, [] {
-            auto queue = App::instance()->playqueue();
-            queue->next(queue->loopMode());
-        });
-
-        connect(
-            player,
-            &Player::playbackStateChanged,
-            player,
-            [](Player::PlaybackState, Player::PlaybackState new_) {
-                auto queue = App::instance()->playqueue();
-                if (new_ == Player::PlaybackState::PlayingState) {
-                    auto cur = queue->currentId().unwrap_or(model::ItemId {});
-                    Action::instance()->playLog(
-                        (qint32)msg::model::PlaylogActionGadget::PlaylogAction::PLAYLOG_ACTION_PLAY,
-                        cur,
-                        {});
-                }
+    connect(Action::instance(), &Action::next, playqueue(), &PlayQueue::next);
+    connect(Action::instance(), &Action::prev, playqueue(), &PlayQueue::prev);
+    connect(Action::instance(), &Action::toggle, global()->player(), &Player::toggle);
+    connect(Action::instance(),
+            &Action::playUrl,
+            global()->player(),
+            [player = global()->player()](const QUrl& url, bool) {
+                player->set_source(url);
             });
-    }
-
-    // stop logger
-    connect(
-        Action::instance(),
-        &Action::record,
-        this,
-        [this,
-         old_id        = rstd::Option<model::ItemId> {},
-         old_source_id = rstd::Option<model::ItemId>()](enums::RecordAction act) mutable {
-            switch (act) {
-            case enums::RecordAction::RecordSwitch:
-            case enums::RecordAction::RecordNext:
-            case enums::RecordAction::RecordPrev: {
-                if (old_id) {
-                    Action::instance()->playLog(
-                        (qint32)msg::model::PlaylogActionGadget::PlaylogAction::PLAYLOG_ACTION_STOP,
-                        *old_id,
-                        old_source_id.unwrap_or(model::ItemId {}));
-                }
-                old_id = this->playqueue()->currentId();
-                auto source_id_var =
-                    this->playqueue()->currentData(this->playqueue()->roleOf("sourceId"));
-                if (auto source_id_p = get_if<model::ItemId>(&source_id_var)) {
-                    old_source_id = rstd::Some(*source_id_p);
-                } else {
-                    old_source_id = rstd::None();
-                }
-                break;
-            }
-            default: {
-            }
-            }
-        });
-
-    {
-        using namespace std::chrono;
-        struct Timer {
-            time_point<system_clock> point;
-            milliseconds             passed;
-        };
-
-        connect(Action::instance(),
-                &Action::playLog,
-                this,
-                [this, t = make_rc<Timer>()](
-                    qint32 act_int, model::ItemId song_id, model::ItemId source) {
-                    using PlaylogAction = msg::model::PlaylogActionGadget::PlaylogAction;
-                    const auto act      = (PlaylogAction)act_int;
-                    auto       backend  = this->backend();
-                    auto       req      = msg::PlaylogReq {};
-                    const auto now      = system_clock::now();
-                    auto       song     = song_id.toSongId();
-                    if (! song) return;
-                    req.setSongId(*song);
-                    req.setAction(act);
-                    req.setTimestamp(duration_cast<milliseconds>(now.time_since_epoch()).count());
-                    req.setSourceId(source.id());
-                    req.setSourceType(rstd::into(source.type()));
-
-                    d_func()->m_background_tasks.spawn([backend, req] mutable -> task<void> {
-                        (void)co_await backend->send(std::move(req));
-                    });
-                });
-    }
-
-    connect(Action::instance(), &Action::record, this, [this](enums::RecordAction act) {
-        switch (act) {
-        case enums::RecordAction::RecordSwitchQueue:
-        case enums::RecordAction::RecordSwitch:
-        case enums::RecordAction::RecordNext:
-        case enums::RecordAction::RecordPrev: {
-            break;
-        }
-        default: {
-            return;
-        }
-        }
-
-        auto curId = playqueue()->currentId();
-        if (! curId || ! curId->valid()) return;
-        auto b = this->backend();
-        Action::instance()->playUrl(b->playback_url(*curId), true);
-    });
-
     connect(Action::instance(), &Action::scheduleRenderJob, qApp, [](QRunnable* job, qint32 stage) {
         if (QWindowList wins = qApp->allWindows(); ! wins.isEmpty()) {
             if (auto win = qobject_cast<QQuickWindow*>(wins.front())) {
@@ -618,87 +409,18 @@ void App::connect_actions() {
     });
 }
 
-void App::onPlay(model::ItemId songId, model::ItemId sourceId) {
-    playqueue()->beginCurrentUpdate();
-    switchPlayIdQueue();
-
-    auto q   = App::instance()->play_id_queue();
-    auto row = q->rowCount();
-    q->insert(row, std::array { songId });
-    if (sourceId.valid())
-        App::instance()->playqueue()->updateSourceId(std::array { songId }, sourceId);
-    q->setCurrentIndex(songId);
-    playqueue()->endCurrentUpdate();
-    Action::instance()->record(enums::RecordAction::RecordSwitch);
+void App::onPlay(model::ItemId song, model::ItemId) { playqueue()->playSong(song); }
+void App::onQueueNext(const std::vector<model::ItemId>& songs, model::ItemId) {
+    playqueue()->insertNext(songs);
 }
-
-void App::onQueueNext(const std::vector<model::ItemId>& songIds, model::ItemId sourceId) {
-    playqueue()->beginCurrentUpdate();
-    switchPlayIdQueue();
-
-    auto q        = App::instance()->play_id_queue();
-    auto idx      = std::min(q->currentIndex() + 1, q->rowCount());
-    auto inserted = q->insert(idx, songIds);
-    {
-        auto q = App::instance()->playqueue();
-        if (sourceId.valid()) q->updateSourceId(songIds, sourceId);
-        q->startIfNoCurrent();
-    }
-    playqueue()->endCurrentUpdate();
-    Action::instance()->toast(QString::fromStdString(
-        inserted > 0 ? std::format("Add {} songs to queue", inserted) : "Already added"s));
+void App::onQueue(const std::vector<model::ItemId>& songs, model::ItemId) {
+    playqueue()->appendSongs(songs);
 }
-void App::onQueue(const std::vector<model::ItemId>& songIds, model::ItemId sourceId) {
-    playqueue()->beginCurrentUpdate();
-    switchPlayIdQueue();
-
-    auto q        = App::instance()->play_id_queue();
-    auto inserted = q->insert(q->rowCount(), songIds);
-    {
-        auto q = App::instance()->playqueue();
-        if (sourceId.valid()) q->updateSourceId(songIds, sourceId);
-        q->startIfNoCurrent();
-    }
-    playqueue()->endCurrentUpdate();
-    Action::instance()->toast(QString::fromStdString(
-        inserted > 0 ? std::format("Add {} songs to queue", inserted) : "Already added"s));
+void App::onSwitch(const std::vector<model::ItemId>& songs, model::ItemId) {
+    playqueue()->replaceSongs(songs);
 }
-void App::onSwitch(const std::vector<model::ItemId>& songIds, model::ItemId sourceId) {
-    playqueue()->beginCurrentUpdate();
-    switchPlayIdQueue();
-
-    auto q = App::instance()->play_id_queue();
-    q->removeRows(0, q->rowCount());
-    q->insert(q->rowCount(), songIds);
-    {
-        auto q = App::instance()->playqueue();
-        if (sourceId.valid()) q->updateSourceId(songIds, sourceId);
-        q->startIfNoCurrent();
-    }
-    playqueue()->endCurrentUpdate();
-}
-
-void App::onRecord(enums::RecordAction) {}
-
-void App::onSwitchQueue(model::IdQueue* queue) {
-    if (queue == nullptr) {
-        LOG_INFO("queue is null");
-    } else {
-        playqueue()->beginCurrentUpdate();
-        this->playqueue()->setSourceModel(queue);
-        // preserve queue's existing position (e.g. resumed dynamic queue);
-        // only jump to the first row when the queue has no current item
-        if (queue->rowCount() && queue->currentIndex() < 0) {
-            queue->setCurrentIndex(0);
-        }
-        if (auto radio = qobject_cast<model::DynamicIdQueue*>(queue)) {
-            radio->ensureStarted();
-        } else if (queue->rowCount() <= 1) {
-            queue->requestNext();
-        }
-        playqueue()->endCurrentUpdate();
-        Action::instance()->record(enums::RecordAction::RecordSwitchQueue);
-    }
+void App::onSwitchQueue(model::DynamicIdQueue* queue) {
+    if (queue) queue->activate();
 }
 
 auto App::itemRouteProperties(const model::ItemId& id, const QVariantMap& in_props) const
@@ -730,8 +452,8 @@ void App::onRouteItem(const model::ItemId& id, const QVariantMap& in_props) {
 
     model::RouteMsg msg;
 
-    msg.dst         = url.toString();
-    msg.props       = itemRouteProperties(id, in_props);
+    msg.dst   = url.toString();
+    msg.props = itemRouteProperties(id, in_props);
 
     Action::instance()->route(QVariant::fromValue(msg));
 }

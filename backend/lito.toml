@@ -9,30 +9,32 @@ module = "qcm.backend"
 archive = "qcm_backend_cpp"
 
 [dependencies]
+qcm-player = { workspace = true, pub = true }
 qcm-backend-macro = { workspace = true }
+rstd-log = { workspace = true }
+rstd-parse = { workspace = true }
+rstd-argparse = { workspace = true, pub = true }
+rstd-bench = { workspace = true }
+rstd-macro = { workspace = true }
+rstd-json = { workspace = true, pub = true }
+rstd-serde = { workspace = true, pub = true }
+rstd-serde-macro = { workspace = true }
 liorm = { workspace = true, pub = true }
 liorm-macro = { workspace = true }
 liorm-sqlito = { workspace = true, pub = true }
 licrypto = { workspace = true, features = ["openssl"] }
 liuuid = { workspace = true, pub = true }
-rstd-log = { workspace = true }
-rstd-parse = { workspace = true }
-rstd-argparse = { workspace = true, pub = true }
-rstd-dirs = { workspace = true }
-rstd-bench = { workspace = true }
-rstd-macro = { workspace = true }
-rstd-serde = { workspace = true, pub = true }
-rstd-serde-macro = { workspace = true }
 liproto = { workspace = true, pub = true }
 liproto-codegen = { workspace = true, usage = "tool" }
 liserveto = { workspace = true, pub = true, features = ["websocket"] }
 liwebsocketo = { workspace = true, pub = true }
 lifetchto = { workspace = true, pub = true, features = ["tls"] }
+liunicode = { workspace = true, pub = true }
 luato = { workspace = true, pub = true }
 luato-extra = { workspace = true, pub = true }
-rstd-json = { workspace = true, pub = true }
-liunicode = { workspace = true, pub = true }
 sqlito = { workspace = true, pub = true }
+dbusto = { workspace = true, condition = 'target.os == "linux"' }
+dbusto-macros = { workspace = true, condition = 'target.os == "linux"' }
 
 [external-sources.qcm-proto]
 workspace = true

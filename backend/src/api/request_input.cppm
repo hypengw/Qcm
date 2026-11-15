@@ -25,6 +25,8 @@ struct RequestRoute {
 using MessageType                              = p_qcm::p_msg::E_MessageType;
 inline constexpr RequestRoute request_routes[] = {
     { QcmPayload::Tag::test_req, MessageType::v_TEST_REQ, RequestKind::Direct },
+    { QcmPayload::Tag::player_control_req, MessageType::v_PLAYER_CONTROL_REQ, RequestKind::Direct },
+    { QcmPayload::Tag::player_queue_req, MessageType::v_PLAYER_QUEUE_REQ, RequestKind::Direct },
     { QcmPayload::Tag::get_provider_metas_req,
       MessageType::v_GET_PROVIDER_METAS_REQ,
       RequestKind::Direct },

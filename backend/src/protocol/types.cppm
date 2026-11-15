@@ -5,5 +5,5 @@ using namespace rstd::prelude;
 
 export namespace qcm::backend
 {
-inline constexpr u32 qcm_protocol_version = u32(2);
+inline constexpr u32 qcm_protocol_version = u32(3);
 }

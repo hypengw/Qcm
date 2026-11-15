@@ -75,8 +75,6 @@ sources = [
   "src/notifier.cppm",
   "src/player.cpp",
   "src/player.cppm",
-  "src/playback/io.cpp",
-  "src/playback/io.cppm",
   "src/platform/linux.cpp",
   "src/platform/platform.cpp",
   "src/platform/platform.cppm",
@@ -156,12 +154,6 @@ private-definitions = [
 threads = true
 
 [[when]]
-condition = 'target.os != "linux"'
-
-[when.usage]
-private-definitions = ["NODEBUS"]
-
-[[when]]
 condition = "feature.qml-debug"
 
 [when.usage]
@@ -170,21 +162,12 @@ private-definitions = ["QT_QML_DEBUG"]
 [dependencies.qcm-core]
 workspace = true
 
-[dependencies.qcm-mpris]
-workspace = true
-
-[dependencies.qcm-player]
-workspace = true
-
 [dependencies.qcm-qr-code]
 workspace = true
 
 [dependencies.ncrequest]
 workspace = true
 features = ["qt"]
-
-[dependencies.wavsen]
-workspace = true
 
 [dependencies.qextra]
 workspace = true

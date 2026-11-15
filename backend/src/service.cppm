@@ -7,6 +7,7 @@ export import sqlito;
 export import :entity;
 export import :event;
 export import :playback;
+export import :player;
 export import :protocol;
 export import :sync_events;
 export import :task;
@@ -56,6 +57,8 @@ class QcmService {
     Rc<ProviderRuntime>                        provider_runtime_;
     Weak<QcmService>                           self_ { Weak<QcmService>::make() };
     PlaybackSessions                           playback_;
+    Option<Arc<PlayerSession>>                 player_;
+    Option<PathBuf>                            player_preferences_;
     Box<MixRefresh>                            mix_refresh_ { Box<MixRefresh>::make() };
     Option<EventSink>                          event_sink_;
     SyncEvents                                 sync_events_;
@@ -82,7 +85,11 @@ public:
         // Cancellation drops this owner, stopping and joining its database worker.
         Option<StateDatabase>          state_db;
         Option<sqlito::ExecutorHandle> state_handle;
+        Option<PathBuf>                player_preferences;
         if (state_db_path.is_some()) {
+            auto path = PathBuf::from(state_db_path->as_str());
+            if (auto parent = path.as_path().parent())
+                player_preferences = Some(PathBuf::from(*parent).join("playback.json"_str));
             state_db    = Some(rstd_co_try(co_await StateDatabase::open(rstd::move(*state_db_path)),
                                            ProcessError::internal(rstd::move(_e))));
             auto handle = state_db->handle();
@@ -104,13 +111,14 @@ public:
             if (state_db.is_some()) (void)co_await state_db->shutdown();
             co_return Err(rstd::move(error));
         }
-        auto service   = Arc<QcmService>::make(rstd::move(db),
-                                               rstd::move(providers),
-                                               rstd::move(*runtime),
-                                               rstd::move(cache_db),
-                                               rstd::move(cache_dir),
-                                               rstd::move(state_db));
-        service->self_ = service.downgrade();
+        auto service                 = Arc<QcmService>::make(rstd::move(db),
+                                                             rstd::move(providers),
+                                                             rstd::move(*runtime),
+                                                             rstd::move(cache_db),
+                                                             rstd::move(cache_dir),
+                                                             rstd::move(state_db));
+        service->self_               = service.downgrade();
+        service->player_preferences_ = rstd::move(player_preferences);
         service->start_sync_events();
         co_return Ok(rstd::move(service));
     }
@@ -118,6 +126,48 @@ public:
     auto set_event_sink(Option<EventSink> sink) -> void {
         sync_events_.set_event_sink(sink.is_some() ? Some(sink->clone()) : None());
         event_sink_ = rstd::move(sink);
+    }
+    auto start_player(PathBuf program, String base) -> coro<empty> {
+        auto weak   = self_.clone();
+        auto events = EventSink::make(
+            [weak = rstd::move(weak)](QcmMessage message) -> coro<ProcessResult<empty>> {
+                if (auto service = weak.upgrade())
+                    co_return co_await service->broadcast(rstd::move(message));
+                co_return Ok(empty {});
+            });
+        player_ = Some(PlayerSession::make(db_.clone(),
+                                           provider_runtime_.clone(),
+                                           radio_sessions_.clone(),
+                                           coordinator_.clone(),
+                                           rstd::move(program),
+                                           rstd::move(base),
+                                           rstd::move(events),
+                                           player_preferences_.clone()));
+        co_await (*player_)->start();
+        co_return empty {};
+    }
+    auto attach_player_integration(Box<dyn<PlayerIntegration>> integration)
+        -> coro<PlayerIntegrationResult> {
+        if (player_.is_none()) {
+            co_await integration->shutdown();
+            co_return Err("player is unavailable"_Str);
+        }
+        auto player = (*player_).clone();
+        co_return co_await player->attach_integration(rstd::move(integration));
+    }
+    auto stop_player() -> coro<empty> {
+        if (auto player = player_.take()) co_await (*player)->shutdown();
+        co_return empty {};
+    }
+    auto control_player(p_qcm::p_msg::M_PlayerControlReq request) -> coro<ProcessResult<empty>> {
+        if (player_.is_none()) co_return Err(ProcessError::internal("player is unavailable"_str));
+        auto player = (*player_).clone();
+        co_return co_await player->control(rstd::move(request));
+    }
+    auto edit_player_queue(p_qcm::p_msg::M_PlayerQueueReq request) -> coro<ProcessResult<empty>> {
+        if (player_.is_none()) co_return Err(ProcessError::internal("player is unavailable"_str));
+        auto player = (*player_).clone();
+        co_return co_await player->queue(rstd::move(request));
     }
     static auto populate_sync_event(Weak<QcmService> weak, QcmMessage message)
         -> coro<ProcessResult<QcmMessage>> {
@@ -470,6 +520,12 @@ public:
         Vec<QcmMessage> messages;
         if (auto meta = provider_meta_status(); meta.is_some()) messages.push(rstd::move(*meta));
         messages.push(rstd_co_try(co_await provider_status()));
+        if (player_.is_some()) {
+            messages.push(qcm_message(
+                i32(), Box<p_qcm::p_msg::M_PlayerQueueMsg>::make((*player_)->queue_state())));
+            messages.push(
+                qcm_message(i32(), Box<p_qcm::p_msg::M_PlayerStateMsg>::make((*player_)->state())));
+        }
         co_return Ok(rstd::move(messages));
     }
     auto broadcast_status() -> coro<empty> {

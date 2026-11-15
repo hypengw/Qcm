@@ -1,21 +1,22 @@
 module qcm.player;
 import :player;
 import :pcm;
-import qcm.core;
 
 import rstd;
-import rstd.cppstd;
 import wavsen.audio;
 
 using namespace player;
 using namespace rstd::prelude;
+using namespace rstd::literals;
+using rstd::int64_t;
+using rstd::uint32_t;
+using rstd::uint64_t;
 using rstd::alloc::Allocator;
 using rstd::async::coro;
 using rstd::time::Duration;
 using rstd::time::Instant;
-namespace wa = wavsen::audio;
-namespace rn = rstd;
-using namespace rstd::literals;
+namespace wa         = wavsen::audio;
+namespace rn         = rstd;
 namespace spsc       = rn::sync::spsc;
 using QueueAllocator = ref<dyn<Allocator>>;
 template<class T>
@@ -72,37 +73,41 @@ private:
 };
 } // namespace
 
-Player::Player(std::string_view name, Notifier notifier, QueueAllocator allocator)
+Player::Player(ref<str> name, Notifier notifier, QueueAllocator allocator)
     : notify(rn::move(notifier)),
       actions(rn::move(Receiver::make()).unwrap_unchecked()),
       done(rn::move(Done::make()).unwrap_unchecked()),
       queue_allocator(allocator),
-      app_name(String::make(rn::cppstd::as_str(name).unwrap_or("Qcm"_str))) {}
+      app_name(String::make(name)) {}
 
 Player::~Player() {
     close();
     if (worker.is_some()) (void)rn::move(worker.take()).unwrap().join();
 }
 
-void Player::submit(CommandKind kind, std::string source, double value, rc<wa::MediaIo> io) {
+void Player::submit(CommandKind kind, String source, double value, Option<Box<dyn<wa::MediaIo>>> io,
+                    uint64_t token, bool autoplay) {
     auto lock = ingress.lock().unwrap();
     if (closed.load()) return;
     if (kind == CommandKind::Source || kind == CommandKind::Stop)
         (void)requested_source.fetch_add(1);
-    if (kind == CommandKind::Source) requested_playing.store(! source.empty());
+    if (kind == CommandKind::Source) requested_playing.store(! source.is_empty() && autoplay);
     if (kind == CommandKind::Play) requested_playing.store(true);
     if (kind == CommandKind::Pause || kind == CommandKind::Stop) requested_playing.store(false);
     if (kind == CommandKind::Source || kind == CommandKind::Stop || kind == CommandKind::Seek) {
         (void)requested_revision.fetch_add(1);
         notify.advance_epoch();
     }
-    (void)actions.get<1>().push(Command { kind,
-                                          rn::move(source),
-                                          rn::move(io),
-                                          value,
-                                          requested_revision.load(),
-                                          requested_source.load(),
-                                          (latest_id.fetch_add(1) + 1) });
+    (void)queued_actions.fetch_add(1);
+    auto accepted = actions.get<1>().push(Command { kind,
+                                                    rn::move(source),
+                                                    rn::move(io),
+                                                    value,
+                                                    requested_revision.load(),
+                                                    requested_source.load(),
+                                                    (latest_id.fetch_add(1) + 1),
+                                                    token });
+    if (accepted.is_err()) (void)queued_actions.fetch_sub(1);
 }
 
 void Player::close() {
@@ -163,7 +168,7 @@ void Player::stop_device() {
 void Player::stop_media() {
     stop_device();
     decoder = None();
-    if (media_io) media_io->close();
+    if (media_io.is_some()) (*media_io)->close();
     send(notify::info::seekable(false));
     desired       = {};
     playing       = false;
@@ -206,32 +211,36 @@ bool Player::open_device() {
     return true;
 }
 
-void Player::fail() {
+void Player::fail(ref<str> message, uint64_t token) {
     stop_media();
     busy(false);
+    auto lock = ingress.lock().unwrap();
+    if (! cancelled()) notify.error(token ? token : current_token, message);
 }
 
-void Player::open_source(const std::string& source) {
-    stop_media();
+void Player::report_seeked(int64_t value) {
+    auto lock = ingress.lock().unwrap();
+    if (! cancelled()) notify.seeked(seek_token, value);
+}
+
+void Player::open_source(ref<str> source) {
     send(notify::info::duration(0));
-    if (source.empty() || cancelled()) {
+    if (source.is_empty() || cancelled()) {
         busy(false);
         return;
     }
-    auto url = rn::cppstd::as_str(source);
-    if (url.is_err()) {
-        fail();
-        return;
-    }
-    auto media = wa::OpenedMedia::open(
-        url.unwrap(), { .context = this, .cancelled = &interrupt, .timeout_ms = rn::u32(media_io ? 30000 : 5000), .media_io = media_io.get() });
+    wa::MediaOpenOptions options { .context    = this,
+                                   .cancelled  = &interrupt,
+                                   .timeout_ms = rn::u32(media_io.is_some() ? 30000 : 5000) };
+    if (media_io.is_some()) options.media_io = Some(media_io->deref_mut());
+    auto media = wa::OpenedMedia::open(source, options);
     if (media.is_err()) {
-        fail();
+        fail("failed to open media source"_str);
         return;
     }
     decoder = Some(Box<wa::StreamDecoder>::make());
     if (! (*decoder)->open(rn::move(media).unwrap(), { rn::u32(2), rn::u32(48000) })) {
-        fail();
+        fail("failed to open audio decoder"_str);
         return;
     }
     const auto& info = (*decoder)->info();
@@ -241,7 +250,7 @@ void Player::open_source(const std::string& source) {
             ? static_cast<int64_t>((*info.duration_seconds).to_primitive() * 1000)
             : 0));
     if (! open_device()) {
-        fail();
+        fail("failed to open audio device"_str);
         return;
     }
     playing       = requested_playing.load();
@@ -273,27 +282,34 @@ void Player::set_playing(bool value) {
 }
 
 void Player::seek_media(double milliseconds) {
-    if (! decoder && ! current_source.empty()) open_source(current_source);
+    if (! decoder && ! current_source.is_empty()) {
+        stop_media();
+        open_source(current_source);
+        if (! decoder) return;
+    }
     if (! decoder || cancelled() || ! (*decoder)->info().seekable) {
         busy(false);
+        auto lock = ingress.lock().unwrap();
+        if (! cancelled()) notify.error(current_token, "media source is not seekable"_str);
         return;
     }
     const bool resume = requested_playing.load();
     stop_device();
     if (! (*decoder)->seek_to(rn::f64(milliseconds / 1000).max(rn::f64()))) {
-        if (! cancelled()) fail();
+        if (! cancelled()) fail("failed to seek media source"_str);
         return;
     }
     if (! open_device()) {
         if (cancelled())
             stop_device();
         else
-            fail();
+            fail("failed to reopen audio device after seek"_str);
         return;
     }
     playing       = resume;
     start_pending = true;
     seek_pending  = true;
+    seek_token    = current_token;
 }
 
 void Player::command(Command command) {
@@ -310,9 +326,11 @@ void Player::command(Command command) {
     }
     active_revision = revision;
     current_id      = command.id;
-    busy(true);
+    current_token   = command.token;
+    if (command.kind != CommandKind::Volume) busy(true);
     switch (command.kind) {
     case CommandKind::Source:
+        source_token = current_token;
         stop_media();
         media_io       = rn::move(command.media_io);
         current_source = rn::move(command.source);
@@ -331,7 +349,7 @@ void Player::command(Command command) {
             desired.volume = m_volume.load().powf(rn::f32(3));
             (*device)->apply(desired.clone());
         }
-        busy(false);
+        if (! decoder || ! device) busy(false);
         break;
     }
 }
@@ -339,10 +357,10 @@ void Player::command(Command command) {
 void Player::tick() {
     if (cancelled() || ! decoder || ! device) return;
     if ((*device)->state() == wa::AudioDeviceState::Failed) {
-        fail();
+        fail("audio device failed"_str, source_token);
         return;
     }
-    if (media_io) media_io->keep_alive();
+    if (media_io.is_some()) (*media_io)->keep_alive();
     if (cancelled()) return;
     // Drain clock reports before decoding, including while paused.
     const auto played = (*device)->stream_position_frames().to_primitive();
@@ -384,22 +402,30 @@ void Player::tick() {
         block.seconds = (*decoder)->pcm_position_seconds();
         if (cancelled()) return;
         if ((*decoder)->error().kind != wa::MediaErrorKind::None) {
-            fail();
+            fail("audio decoding failed"_str, source_token);
             return;
         }
         if (block.frames != rn::u32()) {
             const auto seconds = block.seconds.to_primitive();
             if (pcm.try_push(rn::move(block)).is_err()) {
-                fail();
+                fail("audio queue closed unexpectedly"_str, source_token);
                 return;
             }
             if (seek_pending) {
                 position(static_cast<int64_t>(seconds * 1000));
+                report_seeked(static_cast<int64_t>(seconds * 1000));
                 seek_pending = false;
             }
         }
     }
     if (start_pending && (! pcm.is_empty() || (*decoder)->is_eof())) {
+        if (seek_pending && (*decoder)->is_eof()) {
+            const auto milliseconds =
+                static_cast<int64_t>((*decoder)->pcm_position_seconds().to_primitive() * 1000);
+            position(milliseconds);
+            report_seeked(milliseconds);
+            seek_pending = false;
+        }
         start_pending                = false;
         desired.volume_scale         = rn::f32();
         desired.volume_scale_fade_ms = rn::u32();
@@ -418,7 +444,7 @@ void Player::tick() {
         send(notify::info::ended());
         stop_device();
         decoder = None();
-        if (media_io) media_io->close();
+        if (media_io.is_some()) (*media_io)->close();
         send(notify::info::seekable(false));
     }
 }
@@ -441,6 +467,8 @@ void Player::run() {
         for (auto& item : batch) {
             if (closed.load()) break;
             command(rn::move(item));
+            (void)queued_actions.fetch_sub(1);
+            notify.command_consumed();
         }
         tick();
     }
@@ -467,18 +495,24 @@ auto Player::process_actions() -> coro<void> {
     (void)co_await done.get<0>().next();
     if (worker.is_some()) (void)rn::move(worker.take()).unwrap().join();
 }
-void Player::set_source(std::string_view value, rc<wa::MediaIo> io) {
-    submit(CommandKind::Source, std::string(value), 0, rn::move(io));
+void Player::set_source(ref<str> value, Option<Box<dyn<wa::MediaIo>>> io, uint64_t token,
+                        bool autoplay) {
+    submit(CommandKind::Source, String::make(value), 0, rn::move(io), token, autoplay);
 }
-void Player::play() { submit(CommandKind::Play); }
-void Player::pause() { submit(CommandKind::Pause); }
-void Player::stop() { submit(CommandKind::Stop); }
-void Player::seek(int32_t value) { submit(CommandKind::Seek, {}, value); }
+void Player::play(uint64_t token) { submit(CommandKind::Play, {}, 0, {}, token); }
+void Player::pause(uint64_t token) { submit(CommandKind::Pause, {}, 0, {}, token); }
+void Player::stop(uint64_t token) { submit(CommandKind::Stop, {}, 0, {}, token); }
+void Player::seek(int64_t value, uint64_t token) {
+    submit(CommandKind::Seek, {}, double(value), {}, token);
+}
 auto Player::volume() const -> float { return m_volume.load().to_primitive(); }
-void Player::set_volume(float value) {
+void Player::set_volume(float value, uint64_t token) {
     if (! rn::f32(value).is_finite()) return;
     m_volume.store(rn::f32(value).clamp(rn::f32(), rn::f32(1)));
-    submit(CommandKind::Volume);
+    submit(CommandKind::Volume, {}, 0, {}, token);
 }
-auto Player::fade_time() const -> uint32_t { return m_fade_time.load(); }
+auto Player::fade_time() const -> uint32_t {
+    return static_cast<uint32_t>(rn::cmp::min(m_fade_time.load(), uint64_t(0xffffffff)));
+}
 void Player::set_fade_time(uint32_t value) { m_fade_time.store(value); }
+void Player::set_fade_time_ms(uint32_t value) { m_fade_time.store(uint64_t(value) * 1000); }

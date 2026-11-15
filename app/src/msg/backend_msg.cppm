@@ -19,28 +19,40 @@ export namespace qcm::msg::model
 {
 using m::Comment;
 using m::CommentAuthor;
-using m::CommentQuote;
-using m::CommentPage;
-using m::CommentsResult;
 using m::CommentLikeResult;
-namespace CommentOrderGadget { using m::CommentOrderGadget::CommentOrder; }
+using m::CommentPage;
+using m::CommentQuote;
+using m::CommentsResult;
+namespace CommentOrderGadget
+{
+using m::CommentOrderGadget::CommentOrder;
+}
 using m::Album;
 using m::Artist;
+using m::ForYouCard;
+using m::HomeRecommendation;
 using m::Mix;
 using m::ProviderMeta;
 using m::ProviderStatus;
 using m::ProviderSyncStatus;
 using m::QueueConfigField;
 using m::QueueConfigOption;
-using m::QueueSession;
 using m::QueuePresentation;
+using m::QueueSession;
 using m::RadioQueue;
-using m::ForYouCard;
-using m::HomeRecommendation;
 using m::Song;
-namespace CardActionGadget { using m::CardActionGadget::CardAction; }
-namespace CardStyleGadget { using m::CardStyleGadget::CardStyle; }
-namespace CardCoverKindGadget { using m::CardCoverKindGadget::CardCoverKind; }
+namespace CardActionGadget
+{
+using m::CardActionGadget::CardAction;
+}
+namespace CardStyleGadget
+{
+using m::CardStyleGadget::CardStyle;
+}
+namespace CardCoverKindGadget
+{
+using m::CardCoverKindGadget::CardCoverKind;
+}
 namespace MixManipulateOperGadget
 {
 using m::MixManipulateOperGadget::MixManipulateOper;
@@ -117,14 +129,29 @@ namespace ErrorCodeGadget
 {
 using qcm::msg::ErrorCodeGadget::ErrorCode;
 }
-namespace QueueOpenReasonGadget {
+namespace QueueOpenReasonGadget
+{
 using qcm::msg::QueueOpenReasonGadget::QueueOpenReason;
 }
+namespace PlayerActionGadget
+{
+using qcm::msg::PlayerActionGadget::PlayerAction;
+}
+namespace PlayerQueueActionGadget
+{
+using qcm::msg::PlayerQueueActionGadget::PlayerQueueAction;
+}
+namespace PlayerLoopModeGadget
+{
+using qcm::msg::PlayerLoopModeGadget::PlayerLoopMode;
+}
+using qcm::msg::PlayerQueueMsg;
+using qcm::msg::PlayerStateMsg;
+using qcm::msg::PlayerUiMsg;
 namespace MessageTypeGadget
 {
 using qcm::msg::MessageTypeGadget::MessageType;
 }
-
 
 struct Error {
     int         code { 0 };
@@ -261,6 +288,8 @@ QCM_MSG_TRAITS_REQ(GetStorageInfoReq, GetStorageInfoRsp, GET_STORAGE_INFO_REQ, g
 QCM_MSG_TRAITS_RSP(GetStorageInfoRsp, GetStorageInfoReq, getStorageInfoRsp)
 
 QCM_MSG_TRAITS_REQ(PlaylogReq, Rsp, PLAYLOG_REQ, playlogReq)
+QCM_MSG_TRAITS_REQ(PlayerControlReq, Rsp, PLAYER_CONTROL_REQ, playerControlReq)
+QCM_MSG_TRAITS_REQ(PlayerQueueReq, Rsp, PLAYER_QUEUE_REQ, playerQueueReq)
 QCM_MSG_TRAITS_REQ(GetSongsByIdReq, GetSongsByIdRsp, GET_SONGS_BY_ID_REQ, getSongsByIdReq)
 QCM_MSG_TRAITS_RSP(GetSongsByIdRsp, GetSongsByIdReq, getSongsByIdRsp)
 QCM_MSG_TRAITS_REQ(GetSongIdsReq, GetSongIdsRsp, GET_SONG_IDS_REQ, getSongIdsReq)
@@ -275,14 +304,18 @@ QCM_MSG_TRAITS_RSP(GetQueueNextRsp, GetQueueNextReq, getQueueNextRsp)
 QCM_MSG_TRAITS_REQ(GetRadioQueuesReq, GetRadioQueuesRsp, GET_RADIO_QUEUES_REQ, getRadioQueuesReq)
 QCM_MSG_TRAITS_RSP(GetRadioQueuesRsp, GetRadioQueuesReq, getRadioQueuesRsp)
 
-QCM_MSG_TRAITS_REQ(GetNetworkSettingsReq, GetNetworkSettingsRsp, GET_NETWORK_SETTINGS_REQ, getNetworkSettingsReq)
+QCM_MSG_TRAITS_REQ(GetNetworkSettingsReq, GetNetworkSettingsRsp, GET_NETWORK_SETTINGS_REQ,
+                   getNetworkSettingsReq)
 QCM_MSG_TRAITS_RSP(GetNetworkSettingsRsp, GetNetworkSettingsReq, getNetworkSettingsRsp)
-QCM_MSG_TRAITS_REQ(UpdateNetworkSettingsReq, Rsp, UPDATE_NETWORK_SETTINGS_REQ, updateNetworkSettingsReq)
+QCM_MSG_TRAITS_REQ(UpdateNetworkSettingsReq, Rsp, UPDATE_NETWORK_SETTINGS_REQ,
+                   updateNetworkSettingsReq)
 
-QCM_MSG_TRAITS_REQ(GetProviderSettingsReq, GetProviderSettingsRsp, GET_PROVIDER_SETTINGS_REQ, getProviderSettingsReq)
+QCM_MSG_TRAITS_REQ(GetProviderSettingsReq, GetProviderSettingsRsp, GET_PROVIDER_SETTINGS_REQ,
+                   getProviderSettingsReq)
 QCM_MSG_TRAITS_RSP(GetProviderSettingsRsp, GetProviderSettingsReq, getProviderSettingsRsp)
 
-QCM_MSG_TRAITS_REQ(GetHomeRecommendationsReq, GetHomeRecommendationsRsp, GET_HOME_RECOMMENDATIONS_REQ, getHomeRecommendationsReq)
+QCM_MSG_TRAITS_REQ(GetHomeRecommendationsReq, GetHomeRecommendationsRsp,
+                   GET_HOME_RECOMMENDATIONS_REQ, getHomeRecommendationsReq)
 QCM_MSG_TRAITS_RSP(GetHomeRecommendationsRsp, GetHomeRecommendationsReq, getHomeRecommendationsRsp)
 
 QCM_MSG_TRAITS_REQ(SyncItemReq, Rsp, SYNC_ITEM_REQ, syncItemReq)
@@ -290,7 +323,8 @@ QCM_MSG_TRAITS_REQ(GetShareLinkReq, GetShareLinkRsp, GET_SHARE_LINK_REQ, getShar
 QCM_MSG_TRAITS_RSP(GetShareLinkRsp, GetShareLinkReq, getShareLinkRsp)
 QCM_MSG_TRAITS_REQ(GetCommentsReq, GetCommentsRsp, GET_COMMENTS_REQ, getCommentsReq)
 QCM_MSG_TRAITS_RSP(GetCommentsRsp, GetCommentsReq, getCommentsRsp)
-QCM_MSG_TRAITS_REQ(GetCommentRepliesReq, GetCommentRepliesRsp, GET_COMMENT_REPLIES_REQ, getCommentRepliesReq)
+QCM_MSG_TRAITS_REQ(GetCommentRepliesReq, GetCommentRepliesRsp, GET_COMMENT_REPLIES_REQ,
+                   getCommentRepliesReq)
 QCM_MSG_TRAITS_RSP(GetCommentRepliesRsp, GetCommentRepliesReq, getCommentRepliesRsp)
 QCM_MSG_TRAITS_REQ(SetCommentLikeReq, SetCommentLikeRsp, SET_COMMENT_LIKE_REQ, setCommentLikeReq)
 QCM_MSG_TRAITS_RSP(SetCommentLikeRsp, SetCommentLikeReq, setCommentLikeRsp)
@@ -350,10 +384,10 @@ namespace qcm::model
 export {
     using msg::model::Album;
     using msg::model::Artist;
+    using msg::model::ForYouCard;
     using msg::model::Mix;
     using msg::model::ProviderStatus;
     using msg::model::RadioQueue;
-    using msg::model::ForYouCard;
     using msg::model::Song;
 
     inline auto item_id(const Album& value) -> ItemId { return ItemId(value.id_proto()); }
@@ -428,7 +462,7 @@ struct kstore::ItemTrait<qcm::model::Mix> {
 
 template<>
 struct kstore::ItemTrait<qcm::model::ForYouCard> {
-    using Self = qcm::model::ForYouCard;
+    using Self     = qcm::model::ForYouCard;
     using key_type = QString;
     static auto key(const Self& el) noexcept -> QString {
         return QString::number(static_cast<qint64>(el.providerId().value())) + u':' + el.entryKey();

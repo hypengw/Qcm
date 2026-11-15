@@ -373,6 +373,7 @@ auto serve_qcm(TcpListener listener, Arc<QcmService> service, liserveto::Shutdow
     } cancel_on_drop { *service };
     auto resources = co_await service->start_resource_cache();
     if (resources.is_err()) {
+        co_await service->stop_player();
         co_await service->stop_providers();
         co_return Err(rstd::io::Error::with_source(
             rstd::io::ErrorKind { rstd::io::ErrorKind::Other },
@@ -392,6 +393,7 @@ auto serve_qcm(TcpListener listener, Arc<QcmService> service, liserveto::Shutdow
     (void)co_await rstd::move(watcher);
     playback_collector.abort();
     (void)co_await rstd::move(playback_collector);
+    co_await service->stop_player();
     (void)co_await service->stop_provider_changes();
     (void)co_await service->stop_sync_tasks();
     (void)co_await service->playback().stop();

@@ -3,7 +3,6 @@ module;
 export module qcm.backend:startup;
 export import rstd;
 export import rstd.argparse;
-import rstd.dirs;
 import rstd.json;
 using rstd::argparse::Arg;
 using rstd::argparse::Command;
@@ -22,7 +21,7 @@ using namespace rstd::literals;
 export namespace qcm::backend::startup
 {
 struct Options {
-    Option<String> data, cache, ui;
+    Option<String> data, cache, ui, player;
     u16            port {};
     bool           no_ui {};
     Vec<String>    ui_args;
@@ -58,9 +57,13 @@ auto parse(Vec<OsString> arguments) -> Result<ParseOutcome<Options>, ErrorReport
                                      .long_name("ui"_str)
                                      .value_name("PATH"_str)
                                      .help("UI executable"_str));
-    auto no_ui = command.add_arg(Arg<bool>::flag("no-ui"_str)
-                                     .long_name("no-ui"_str)
-                                     .help("Run the backend without opening the UI"_str));
+    auto player = command.add_arg(Arg<String>::value("player"_str, path_parser)
+                                      .long_name("player"_str)
+                                      .value_name("PATH"_str)
+                                      .help("Audio player executable"_str));
+    auto no_ui  = command.add_arg(Arg<bool>::flag("no-ui"_str)
+                                      .long_name("no-ui"_str)
+                                      .help("Run the backend without opening the UI"_str));
     auto ui_args =
         command.add_arg(Arg<String>::value("ui-args"_str, rstd::argparse::string_parser())
                             .num_args(NumArgs::any())
@@ -73,13 +76,16 @@ auto parse(Vec<OsString> arguments) -> Result<ParseOutcome<Options>, ErrorReport
         return Ok(ParseOutcome<Options>::Display(rstd::move(*parsed).as_Display().request));
     auto    matches = rstd::move(*parsed).as_Parsed().value;
     Options options;
-    options.data  = matches.get_one(data).unwrap().map([](ref<String> value) {
+    options.data   = matches.get_one(data).unwrap().map([](ref<String> value) {
         return value->clone();
     });
-    options.cache = matches.get_one(cache).unwrap().map([](ref<String> value) {
+    options.cache  = matches.get_one(cache).unwrap().map([](ref<String> value) {
         return value->clone();
     });
-    options.ui    = matches.get_one(ui).unwrap().map([](ref<String> value) {
+    options.ui     = matches.get_one(ui).unwrap().map([](ref<String> value) {
+        return value->clone();
+    });
+    options.player = matches.get_one(player).unwrap().map([](ref<String> value) {
         return value->clone();
     });
     if (auto value = matches.get_one(port).unwrap(); value.is_some()) options.port = **value;
@@ -219,12 +225,7 @@ auto wait_ready(const Instance& instance) -> rstd::async::coro<rstd::io::Result<
         rstd::io::Error::from_kind(rstd::io::ErrorKind { rstd::io::ErrorKind::TimedOut }));
 }
 
-auto ui_program(ref<Path> executable) -> PathBuf {
-#ifdef _WIN32
-    auto name = "qcm-ui.exe"_str;
-#else
-    auto name = "qcm-ui"_str;
-#endif
+auto companion_program(ref<Path> executable, ref<str> name) -> PathBuf {
     auto parent = executable.parent();
     if (parent.is_some()) {
         auto managed = rstd::format("../../../bin/{}", name);
@@ -235,6 +236,22 @@ auto ui_program(ref<Path> executable) -> PathBuf {
         }
     }
     return PathBuf::from(name);
+}
+
+auto ui_program(ref<Path> executable) -> PathBuf {
+#ifdef _WIN32
+    return companion_program(executable, "qcm-ui.exe"_str);
+#else
+    return companion_program(executable, "qcm-ui"_str);
+#endif
+}
+
+auto player_program(ref<Path> executable) -> PathBuf {
+#ifdef _WIN32
+    return companion_program(executable, "qcm-player.exe"_str);
+#else
+    return companion_program(executable, "qcm-player"_str);
+#endif
 }
 
 auto ui_command(ref<Path> program, const Ready& ready, slice<String> arguments)

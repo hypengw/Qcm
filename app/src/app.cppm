@@ -1,4 +1,5 @@
 module;
+#include <QtCore/QSizeF>
 #ifdef Q_MOC_RUN
 #    include "Qcm/app.moc"
 #endif
@@ -6,13 +7,7 @@ module;
 #include "QExtra/macro_qt.hpp"
 #include "core/log.h"
 
-#ifndef NODEBUS
-#    include "mpris/mpris.h"
-#    include "mpris/mediaplayer2.h"
-#endif
-
 export module qcm:app;
-import qcm.player;
 export import :backend;
 export import :status.provider;
 export import :queue;
@@ -34,7 +29,6 @@ export class App : public QObject {
     QML_SINGLETON
 
     Q_PROPERTY(qcm::Backend* backend READ backend CONSTANT FINAL)
-    Q_PROPERTY(QObject* mpris READ mpris CONSTANT FINAL)
     Q_PROPERTY(bool debug READ debug CONSTANT FINAL)
     Q_PROPERTY(qcm::Global* global READ global CONSTANT FINAL)
     Q_PROPERTY(qcm::PlayQueue* playqueue READ playqueue CONSTANT FINAL)
@@ -67,8 +61,6 @@ public:
     auto        backend() const -> Backend*;
     auto        util() const -> qml::Util*;
     auto        playqueue() const -> PlayQueue*;
-    auto        play_id_queue() const -> PlayIdQueue*;
-    void        set_player_sender(player::Notifier);
     auto        empty() const -> model::EmptyModel*;
     auto        provider_meta_status() const -> ProviderMetaStatusModel*;
     auto        provider_status() const -> ProviderStatusModel*;
@@ -77,9 +69,6 @@ public:
     auto        store() const -> AppStore*;
     auto        info() const -> const model::AppInfo&;
     auto        app_state() const -> AppState*;
-    void        switchPlayIdQueue();
-
-    QObject* mpris() const;
 
     bool debug() const;
 
@@ -96,8 +85,6 @@ public:
 
     Q_SLOT void releaseResources(QQuickWindow*, const QJSValue&);
     Q_SLOT void triggerCacheLimit();
-    Q_SLOT void load_settings();
-    Q_SLOT void save_settings();
 
 private:
     // process action
@@ -105,8 +92,7 @@ private:
     Q_SLOT void onQueueNext(const std::vector<model::ItemId>& songIds, model::ItemId sourceId);
     Q_SLOT void onQueue(const std::vector<model::ItemId>& songIds, model::ItemId sourceId);
     Q_SLOT void onSwitch(const std::vector<model::ItemId>& songIds, model::ItemId sourceId);
-    Q_SLOT void onSwitchQueue(model::IdQueue*);
-    Q_SLOT void onRecord(enums::RecordAction);
+    Q_SLOT void onSwitchQueue(model::DynamicIdQueue*);
     Q_SLOT void onRouteItem(const model::ItemId&, const QVariantMap&);
 
     void load_plugins();

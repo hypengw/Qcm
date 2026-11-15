@@ -90,7 +90,7 @@ Global::Global(): d_ptr(make_up<Private>(this)) {
     QAsyncResult::initEx(this, rstd::usize(get_pool_size()), [](QStringView error) {
         Global::instance()->errorOccurred(error.toString());
     });
-    d->player = new Player(&mem_mgr(), this);
+    d->player = new Player(this);
 }
 Global::~Global() {
     // delete child before private pointer
@@ -108,29 +108,14 @@ auto Global::player() const -> Player* {
     return d->player;
 }
 
-auto Global::get_metadata(const std::filesystem::path& path) const -> Metadata {
-    C_D(const Global);
-    if (d->metadata_impl) {
-        return d->metadata_impl(path);
-    }
-    return {};
-}
-
 void Global::set_uuid(const QUuid& val) {
     C_D(Global);
     if (ycore::cmp_set(d->uuid, val)) {
         uuidChanged();
     }
 }
-void Global::set_metadata_impl(const MetadataImpl& impl) {
-    C_D(Global);
-    d->metadata_impl = impl;
-}
-
 void Global::join() {
     C_D(Global);
-    player()->close();
-
     delete d->player;
     d->player = nullptr;
 }
