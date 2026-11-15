@@ -4,6 +4,7 @@ module;
 #include <QtCore/QJsonArray>
 #include <QtCore/QJsonObject>
 module qcm;
+import rstd;
 import :query.provider;
 
 namespace qcm

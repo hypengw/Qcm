@@ -5,7 +5,7 @@ module;
 #    include "Qcm/global.moc"
 #endif
 
-#include "core/log.h"
+#include "Qcm/core/macro.h"
 
 export module qcm:global;
 export import :action;

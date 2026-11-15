@@ -10,6 +10,7 @@ module;
 #include <QtProtobuf/qtprotobuftypes.h>
 #include "Qcm/model/play_queue.moc.h"
 module qcm;
+import rstd;
 import :queue;
 import :backend;
 

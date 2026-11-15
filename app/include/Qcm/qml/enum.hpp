@@ -161,8 +161,6 @@ enum class ProxyType
 };
 Q_ENUM_NS(ProxyType)
 
-
-
 enum class ItemTypeQml
 {
     ItemInvalid = 0,
@@ -182,9 +180,6 @@ enum class ItemTypeQml
 };
 Q_ENUM_NS(ItemTypeQml)
 
-
 } // namespace enums
 
 } // namespace qcm
-
-// DECLARE_CONVERT(std::string_view, qcm::enums::CollectionType, QCM_INTERFACE_API);

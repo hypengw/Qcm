@@ -2,7 +2,6 @@ module;
 #include <chrono>
 #include <format>
 #include <iterator>
-#include <cassert>
 #include <cstdio>
 #include <cstdlib>
 #include <source_location>
@@ -13,19 +12,10 @@ module;
 #endif
 
 module qcm.log;
-import qcm.helper;
+using namespace std::literals::string_view_literals;
 
 namespace
 {
-
-constexpr const char* past_last_slash(const char* const path, const int pos = 0,
-                                      const int last_slash = 0) {
-    if (path[pos] == '\0') return path + last_slash;
-    if (path[pos] == '/' || path[pos] == '\\')
-        return past_last_slash(path, pos + 1, pos + 1);
-    else
-        return past_last_slash(path, pos + 1, last_slash);
-}
 
 constexpr auto extract_last(std::string_view path, std::size_t count) -> std::string_view {
     auto size = path.size();
@@ -42,20 +32,13 @@ constexpr auto extract_last(std::string_view path, std::size_t count) -> std::st
     return std::string_view { path.begin() + size, path.end() };
 }
 
-constexpr auto extract_basename(std::string_view path) -> std::string_view {
-    return extract_last(path, 1);
-}
-
 using LogLevel = qcm::LogLevel;
 
-constexpr auto COLOR_RESET   = "\033[0m"sv;
-constexpr auto COLOR_RED     = "\033[31m"sv;
-constexpr auto COLOR_GREEN   = "\033[32m"sv;
-constexpr auto COLOR_YELLOW  = "\033[33m"sv;
-constexpr auto COLOR_BLUE    = "\033[34m"sv;
-constexpr auto COLOR_MAGENTA = "\033[35m"sv;
-constexpr auto COLOR_CYAN    = "\033[36m"sv;
-constexpr auto COLOR_WHITE   = "\033[37m"sv;
+constexpr auto COLOR_RESET  = "\033[0m"sv;
+constexpr auto COLOR_RED    = "\033[31m"sv;
+constexpr auto COLOR_GREEN  = "\033[32m"sv;
+constexpr auto COLOR_YELLOW = "\033[33m"sv;
+constexpr auto COLOR_BLUE   = "\033[34m"sv;
 
 auto get_log_color(LogLevel level) -> std::string_view {
     switch (level) {
@@ -80,15 +63,6 @@ std::string_view to_sv(qcm::LogLevel lv) {
     default: return "UNKNOWN";
     }
 #undef X
-}
-
-bool check_stderr(qcm::LogLevel lv) {
-    switch (lv) {
-        using enum qcm::LogLevel;
-    case ERROR:
-    case WARN: return true;
-    default: return false;
-    }
 }
 
 auto support_color() -> bool {
@@ -148,8 +122,6 @@ auto the_log_manager() -> qcm::LogManager* {
 namespace qcm
 {
 
-LogManager* LogManager::init() { return the_log_manager(); }
-
 LogManager* LogManager::instance() { return the_log_manager(); }
 
 bool log::log_check(LogLevel level) noexcept { return level >= LogManager::instance()->level(); }
@@ -194,17 +166,6 @@ auto log::log_format(LogLevel level, std::string_view content, std::string_view 
 void log::log_loc_raw(LogLevel level, const std::source_location loc, std::string_view content) {
     log_raw(level,
             log_format(level, content, extract_last(loc.file_name(), 2), loc.line(), loc.column()));
-}
-
-auto log::format_assert(std::string_view expr_str, const std::source_location& loc,
-                        std::string_view msg) -> std::string {
-    return std::format("{}:{}: {}: Assertion `{}` failed.{}{}\n",
-                       extract_last(loc.file_name(), 2),
-                       loc.line(),
-                       loc.function_name(),
-                       expr_str,
-                       msg.empty() ? "" : "\n",
-                       msg);
 }
 
 auto log::level_from(std::string_view in) -> LogLevel {

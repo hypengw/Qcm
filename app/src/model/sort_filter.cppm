@@ -5,7 +5,7 @@ module;
 #    include "Qcm/model/sort_filter.moc"
 #endif
 
-#include "core/log.h"
+#include "Qcm/core/log.h"
 
 export module qcm:model.sort_filter;
 export import :msg;

@@ -1,7 +1,7 @@
 module;
 #include "Qcm/model/lyric.moc.h"
 #include <algorithm>
-#include "core/log.h"
+#include "Qcm/core/log.h"
 
 module qcm;
 import :model.lyric;

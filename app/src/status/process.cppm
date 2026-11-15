@@ -1,5 +1,5 @@
 module;
-#include "core/log.h"
+#include "Qcm/core/log.h"
 
 export module qcm:status.process;
 export import :status.app_state;

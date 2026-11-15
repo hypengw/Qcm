@@ -1,6 +1,7 @@
 module;
 #include "qr_code/qrcodegen.hpp"
 module qcm;
+import rstd;
 import :image_provider.qr;
 import :app;
 import :global;

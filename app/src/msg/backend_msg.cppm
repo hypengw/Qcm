@@ -1,9 +1,10 @@
 module;
 #include "message.qpb.h"
 
-#include "core/log.h"
+#include "Qcm/core/log.h"
 
 export module qcm:msg.backend;
+import rstd;
 export import :model.item_id;
 export import :model.share_store;
 export import :qml.enums;

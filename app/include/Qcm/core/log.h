@@ -2,8 +2,6 @@
 
 #include <source_location>
 
-#include "core/macro.h"
-
 // clang-format off
 #define GENERIC_LOG(lv, ...) if(qcm::log::log_check(lv)) qcm::log::log(lv, std::source_location::current(), __VA_ARGS__);
 

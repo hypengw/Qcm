@@ -1,6 +1,6 @@
 module;
 #include "Qcm/model/sort_filter.moc.h"
-#include "core/log.h"
+#include "Qcm/core/log.h"
 module qcm;
 import qcm.log;
 import :model.sort_filter;

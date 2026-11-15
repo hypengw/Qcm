@@ -5,6 +5,7 @@ module;
 #endif
 
 export module qcm:queue;
+import rstd;
 export import :model.id_queue;
 import :model.item_id_list;
 export import :msg;

@@ -8,7 +8,7 @@ module;
 #include "Qcm/backend.moc.h"
 #include "Qcm/message/load_pool.hpp"
 #include "Qcm/message/protocol.hpp"
-#include "core/log.h"
+#include "Qcm/core/log.h"
 
 module qcm;
 import :backend;

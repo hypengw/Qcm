@@ -1,10 +1,11 @@
 module;
-#include "core/log.h"
+#include "Qcm/core/log.h"
 #include "Qcm/global.moc.h"
 #include "Qcm/macro.hpp"
 #undef assert
 #include <rstd/macro.hpp>
 module qcm;
+import rstd;
 import :global;
 import qcm.log;
 

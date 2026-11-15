@@ -3,6 +3,7 @@ module;
 #include <optional>
 
 export module qcm:image_provider.response;
+import rstd;
 import qcm.core;
 import qextra.qt;
 

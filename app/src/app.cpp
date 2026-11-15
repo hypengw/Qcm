@@ -1,12 +1,13 @@
 module;
 #include "Qcm/macro.hpp"
-#include "core/log.h"
+#include "Qcm/core/log.h"
 
 #include "Qcm/app.moc.h"
 #undef assert
 #include <rstd/macro.hpp>
 
 module qcm;
+import rstd;
 import :app;
 import qcm.activation;
 import qcm.log;

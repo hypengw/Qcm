@@ -1,7 +1,8 @@
 module;
-#include "core/log.h"
+#include "Qcm/core/log.h"
 
 module qcm;
+import rstd;
 import :status.process;
 import :status.app_state;
 import :app;

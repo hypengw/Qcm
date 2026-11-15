@@ -1,6 +1,7 @@
 module;
 #include "Qcm/query/favorite_query.moc.h"
 module qcm;
+import rstd;
 import :query.favorite;
 
 namespace qcm

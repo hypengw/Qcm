@@ -1,10 +1,10 @@
 module;
 #include "Qcm/qml/enum.hpp"
-#include "core/log.h"
+#include "Qcm/core/log.h"
 
 export module qcm:qml.enums;
 import qcm.core;
-import qcm.helper;
+import rstd;
 
 export namespace qcm::enums
 {
@@ -83,27 +83,3 @@ struct rstd::Impl<rstd::fmt::Display, qcm::enums::ImageType>
         return f.write_raw(name.data(), rstd::size_t(name.size()));
     }
 };
-
-// IMPL_CONVERT(std::string_view, qcm::enums::CollectionType) {
-//     switch (in) {
-//     case in_type::CTAlbum: {
-//         out = "album"sv;
-//         break;
-//     }
-//     case in_type::CTArtist: {
-//         out = "artist"sv;
-//         break;
-//     }
-//     case in_type::CTPlaylist: {
-//         out = "playlist"sv;
-//         break;
-//     }
-//     case in_type::CTRadio: {
-//         out = "djradio"sv;
-//         break;
-//     }
-//     default: {
-//         _assert_rel_(false);
-//     }
-//     }
-// }

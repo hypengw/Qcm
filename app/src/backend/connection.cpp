@@ -12,6 +12,7 @@ module;
 #include <vector>
 
 module qcm.backend.connection;
+import rstd;
 import ncrequest;
 import rstd.cppstd;
 

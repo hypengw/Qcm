@@ -2,8 +2,9 @@ module;
 #include "Qcm/msg/store.moc.h"
 #include "Qcm/message/entity_store.hpp"
 #include "Qcm/message/wire_type.hpp"
-#include "core/log.h"
+#include "Qcm/core/log.h"
 module qcm;
+import rstd;
 import :msg;
 import :global;
 import qcm.log;

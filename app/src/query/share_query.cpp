@@ -1,6 +1,7 @@
 module;
 #include "Qcm/query/share_query.moc.h"
 module qcm;
+import rstd;
 import :query.share;
 
 namespace qcm

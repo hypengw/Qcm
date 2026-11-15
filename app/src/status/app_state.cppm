@@ -1,6 +1,5 @@
 module;
 #include "QExtra/macro_qt.hpp"
-#include "core/helper.h"
 
 #ifdef Q_MOC_RUN
 #    include "Qcm/status/app_state.moc"
@@ -9,6 +8,7 @@ module;
 export module qcm:status.app_state;
 import qextra;
 import qcm.core;
+import qcm.helper;
 
 namespace qcm
 {

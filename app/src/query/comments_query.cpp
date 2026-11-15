@@ -1,6 +1,7 @@
 module;
 #include "Qcm/query/comments_query.moc.h"
 module qcm;
+import rstd;
 import :query.comments;
 import :app;
 

@@ -1,5 +1,5 @@
 module;
-#include "core/log.h"
+#include "Qcm/core/log.h"
 
 #include "Qcm/qml/util.moc.h"
 #include "Qcm/macro.hpp"
@@ -13,6 +13,7 @@ import :qml.util;
 import :global;
 import :app;
 import qcm.log;
+import qcm.helper;
 
 using namespace Qt::Literals::StringLiterals;
 

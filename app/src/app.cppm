@@ -5,9 +5,10 @@ module;
 #endif
 
 #include "QExtra/macro_qt.hpp"
-#include "core/log.h"
+#include "Qcm/core/macro.h"
 
 export module qcm:app;
+import rstd;
 export import :backend;
 export import :status.provider;
 export import :queue;

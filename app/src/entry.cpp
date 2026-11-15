@@ -23,10 +23,11 @@ Q_IMPORT_QML_PLUGIN(Qcm_AppPlugin)
 Q_IMPORT_QML_PLUGIN(Qcm_MsgPlugin)
 Q_IMPORT_QML_PLUGIN(QExtraPlugin)
 
-#include "core/log.h"
+#include "Qcm/core/log.h"
 #include "Qcm/message/item_id.hpp"
 
 module qcm.entry;
+import rstd;
 
 import platform;
 import qcm;

@@ -28,6 +28,16 @@ sources = [
   "src/backend/connection.cppm",
   "src/backend/pending.cppm",
   "src/convert.cpp",
+  "src/core/core.cppm",
+  "src/core/helper/container.cppm",
+  "src/core/helper/mod.cppm",
+  "src/core/helper/str.cppm",
+  "src/core/log.cpp",
+  "src/core/log.cppm",
+  "src/core/mem.cpp",
+  "src/core/mem.cppm",
+  "src/core/mod.cppm",
+  "src/core/type_list.cppm",
   "src/entry.cpp",
   "src/entry.cppm",
   "src/global.cpp",
@@ -160,8 +170,11 @@ condition = "feature.qml-debug"
 [when.usage]
 private-definitions = ["QT_QML_DEBUG"]
 
-[dependencies.qcm-core]
-workspace = true
+[[when]]
+condition = 'target.os == "windows"'
+
+[when.usage]
+private-definitions = ["WIN32_LEAN_AND_MEAN", "NOMINMAX", "NOGDI", "_WIN32_WINNT=0x0A00"]
 
 [dependencies.qcm-qr-code]
 workspace = true
