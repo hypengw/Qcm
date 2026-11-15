@@ -1,20 +1,27 @@
 module;
 
 #include <QCommandLineParser>
+#include <QDeadlineTimer>
 #include <QStandardPaths>
 #include <QGuiApplication>
 #include <QLoggingCategory>
 #include <QQmlApplicationEngine>
 #include <QSurfaceFormat>
 #include <QThread>
+#include <QTimer>
+#include <memory>
+
+#ifdef Q_OS_LINUX
+#    include <QDBusConnection>
+#    include <QDBusMessage>
+#    include <QDBusReply>
+#endif
 
 #include <QtQml/QQmlExtensionPlugin>
 
 Q_IMPORT_QML_PLUGIN(Qcm_AppPlugin)
 Q_IMPORT_QML_PLUGIN(Qcm_MsgPlugin)
 Q_IMPORT_QML_PLUGIN(QExtraPlugin)
-
-#include <kdsingleapplication.h>
 
 #include "core/log.h"
 #include "Qcm/message/item_id.hpp"
@@ -24,6 +31,40 @@ module qcm.entry;
 import platform;
 import qcm;
 import qcm.log;
+import qcm.activation;
+
+using rstd::boxed::Box;
+using namespace Qt::Literals::StringLiterals;
+
+namespace
+{
+auto discover_backend_port() -> quint16 {
+#ifdef Q_OS_LINUX
+    auto request = QDBusMessage::createMethodCall(u"io.github.hypengw.Qcm.Daemon"_s,
+                                                  u"/io/github/hypengw/Qcm/Daemon"_s,
+                                                  u"io.github.hypengw.Qcm.Daemon"_s,
+                                                  u"GetPort"_s);
+    request.setAutoStartService(false);
+    const auto     bus = QDBusConnection::sessionBus();
+    QDeadlineTimer deadline(5000);
+    while (! deadline.hasExpired()) {
+        QDBusReply<quint16> response =
+            bus.call(request, QDBus::Block, static_cast<int>(deadline.remainingTime()));
+        if (! response.isValid()) {
+            qCritical("Cannot discover running backend: %s",
+                      qPrintable(response.error().message()));
+            return 0;
+        }
+        if (response.value() != 0) return response.value();
+        QThread::msleep(100);
+    }
+    qCritical("Running backend did not become ready before discovery timed out");
+#else
+    qCritical("qcm-ui requires --port on this platform; start qcm instead");
+#endif
+    return 0;
+}
+} // namespace
 
 namespace qcm
 {
@@ -59,6 +100,7 @@ int run(int argc, char** argv) {
 
     qInstallMessageHandler(qt_log);
 
+    const auto      activation_token = activation::take_token();
     QGuiApplication gui_app(argc, argv);
     model::registerIdConverters();
     auto    main_qthread = gui_app.thread();
@@ -89,32 +131,65 @@ int run(int argc, char** argv) {
         parser.process(gui_app);
         logger->set_level(log::level_from(parser.value(log_level_opt).toStdString()));
 
-        bool valid_port {};
-        auto value = parser.value(port_opt).toUInt(&valid_port);
-        if (! valid_port || value == 0 || value > 65535) {
-            qCritical("qcm-ui requires a valid --port; start qcm instead");
-            return 2;
+        if (parser.isSet(port_opt)) {
+            bool valid_port {};
+            auto value = parser.value(port_opt).toUInt(&valid_port);
+            if (! valid_port || value == 0 || value > 65535) {
+                qCritical("qcm-ui requires a valid --port; start qcm instead");
+                return 2;
+            }
+            backend_port = static_cast<quint16>(value);
+        } else {
+            backend_port = discover_backend_port();
+            if (! backend_port) return 2;
         }
-        backend_port = static_cast<quint16>(value);
-        cache_dir    = parser.value(cache_opt);
+        cache_dir = parser.value(cache_opt);
         QLoggingCategory::setFilterRules(
             QLatin1String(std::format("qcm.debug={}", logger->level() == LogLevel::DEBUG)));
     }
 
-    KDSingleApplication single;
-    if (! single.isPrimaryInstance()) {
-        LOG_WARN("another qcm running, triggering");
-        single.sendMessageWithTimeout("hello", 5);
-        return 0;
-    }
-
     int result { 0 };
     {
-        App app { backend_port, cache_dir };
-        QObject::connect(&single, &KDSingleApplication::messageReceived, app.instance(), []() {
-            emit App::instance() -> instanceStarted();
+        auto                 backend   = Box<Backend>::make(activation_token);
+        auto                 candidate = backend.as_mut_ptr();
+        std::unique_ptr<App> app;
+        bool                 admission_decided {};
+        QTimer               startup_timer;
+        startup_timer.setSingleShot(true);
+        QObject::connect(&startup_timer, &QTimer::timeout, &gui_app, [&] {
+            qCritical("Backend UI admission timed out");
+            gui_app.exit(1);
         });
-        app.init();
+        QObject::connect(candidate, &Backend::error, &gui_app, [&](const QString& error) {
+            if (app || admission_decided) return;
+            startup_timer.stop();
+            qCritical("Backend UI admission failed: %s", qPrintable(error));
+            gui_app.exit(1);
+        });
+        QObject::connect(candidate, &Backend::disconnected, &gui_app, [&] {
+            if (app || admission_decided) return;
+            startup_timer.stop();
+            qCritical("Backend disconnected before UI admission");
+            gui_app.exit(1);
+        });
+        QObject::connect(
+            candidate,
+            &Backend::uiAdmission,
+            &gui_app,
+            [&](bool accepted) {
+                startup_timer.stop();
+                admission_decided = true;
+                if (! accepted) {
+                    gui_app.exit(0);
+                    return;
+                }
+                if (app) return;
+                app = std::make_unique<App>(std::move(backend), activation_token);
+                app->init();
+            },
+            Qt::DirectConnection);
+        startup_timer.start(10000);
+        if (! candidate->connect_to(backend_port, cache_dir)) return 1;
 
         result = gui_app.exec();
         main_qthread->setProperty("exec", false);

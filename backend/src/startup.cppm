@@ -27,6 +27,14 @@ struct Options {
     Vec<String>    ui_args;
 };
 
+auto take_activation_token() -> String {
+    auto token = rstd::env::var("XDG_ACTIVATION_TOKEN"_str);
+    if (token.is_err() || token->is_empty()) token = rstd::env::var("DESKTOP_STARTUP_ID"_str);
+    rstd::env::remove_var("XDG_ACTIVATION_TOKEN"_str);
+    rstd::env::remove_var("DESKTOP_STARTUP_ID"_str);
+    return token.is_ok() ? rstd::move(*token) : String {};
+}
+
 auto parse(Vec<OsString> arguments) -> Result<ParseOutcome<Options>, ErrorReport> {
     auto command = Command::make("qcm"_str);
     command.about("Start the persistent backend and open qcm-ui after the socket is ready."_str);

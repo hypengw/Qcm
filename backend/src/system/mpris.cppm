@@ -1,6 +1,6 @@
 module;
 #include <rstd/macro.hpp>
-export module qcm.backend.mpris;
+export module qcm.backend.system.mpris;
 import qcm.backend;
 import rstd;
 import dbusto;

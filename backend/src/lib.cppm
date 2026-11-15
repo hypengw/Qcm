@@ -26,6 +26,7 @@ export import :service;
 export import :session;
 export import :settings;
 export import :startup;
+export import :system;
 export import :sync_events;
 export import :sync_state;
 export import :task;

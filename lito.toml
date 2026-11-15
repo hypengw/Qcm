@@ -79,15 +79,6 @@ source = "random"
 adapter = "adapters/Random.cmake"
 cache = { Random_BuildTests = false }
 
-[workspace.external-sources.kd-single-application]
-git = "https://github.com/KDAB/KDSingleApplication.git"
-
-[workspace.external-dependencies.cmake.kd-single-application]
-package = "KDSingleApplication"
-source = "kd-single-application"
-adapter = "adapters/KDSingleApplication.cmake"
-cache = { KDSingleApplication_QT6 = true, KDSingleApplication_STATIC = true, KDSingleApplication_TESTS = false, KDSingleApplication_EXAMPLES = false, KDSingleApplication_DOCS = false }
-
 [workspace.external-dependencies.cmake.qt6]
 package = "Qt6"
 components = [

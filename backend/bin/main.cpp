@@ -2,7 +2,8 @@
 import qcm.backend;
 import qcm.backend.startup_trace;
 #if defined(__linux__)
-import qcm.backend.mpris;
+import qcm.backend.system.mpris;
+import qcm.backend.system.dbus;
 #endif
 import rstd.log;
 import rstd;
@@ -94,52 +95,6 @@ auto fail(ref<str> message) -> int {
     (void)rstd::as<rstd::io::Write>(error).flush();
     return 1;
 }
-auto report_ui(rstd::async::Child child) -> coro<empty> {
-    auto status = co_await child.wait();
-    if (status.is_err())
-        rstd::log::error("qcm-ui wait failed: {}", status.as_ref().unwrap_err());
-    else if (! status->success()) {
-        if (auto code = status->code(); code.is_some())
-            rstd::log::warn("qcm-ui exited with code {}", *code);
-        else if (auto signal = status->signal(); signal.is_some())
-            rstd::log::warn("qcm-ui terminated by signal {}", *signal);
-    }
-    co_return empty {};
-}
-
-class UiLauncher {
-    rstd::async::ProcessHandle                 processes_;
-    PathBuf                                    program_;
-    startup::Ready                             ready_;
-    Vec<String>                                arguments_;
-    Vec<rstd::async::AbortOnDropHandle<empty>> jobs_;
-
-public:
-    UiLauncher(rstd::async::ProcessHandle processes, PathBuf program, startup::Ready ready,
-               Vec<String> arguments)
-        : processes_(rstd::move(processes)),
-          program_(rstd::move(program)),
-          ready_(rstd::move(ready)),
-          arguments_(rstd::move(arguments)) {}
-    auto launch() -> Result<empty, String> {
-        jobs_.retain([](const auto& job) {
-            return ! job.is_finished();
-        });
-        auto command = startup::ui_command(program_.as_path(), ready_, arguments_.as_slice());
-        auto child   = processes_.spawn(command);
-        if (child.is_err()) return Err(rstd::format("cannot start qcm-ui: {}", child.unwrap_err()));
-        jobs_.push(rstd::async::AbortOnDropHandle<empty> {
-            rstd::async::spawn_local(report_ui(rstd::move(*child))) });
-        return Ok(empty {});
-    }
-    auto finish() -> coro<empty> {
-        for (auto& job : jobs_) job.abort();
-        for (auto& job : jobs_) (void)co_await rstd::move(job);
-        jobs_.clear();
-        co_return empty {};
-    }
-};
-
 struct BackendPlayerHost {
     Weak<QcmService>    service;
     Arc<UiLauncher>     launcher;
@@ -159,7 +114,10 @@ struct BackendPlayerHost {
         if (result.is_err()) co_return Err(rstd::format("{}", result.unwrap_err()));
         co_return Ok(empty {});
     }
-    auto raise() const -> coro<PlayerIntegrationResult> { co_return launcher->launch(); }
+    auto open_ui(String token) const -> coro<PlayerIntegrationResult> {
+        co_return co_await launcher->open(rstd::move(token));
+    }
+    auto raise() const -> coro<PlayerIntegrationResult> { return open_ui({}); }
     auto quit() const -> coro<PlayerIntegrationResult> {
         (void)shutdown.request_stop();
         co_return Ok(empty {});
@@ -180,16 +138,82 @@ struct Impl<PlayerHost, BackendPlayerHost> : ImplBase<BackendPlayerHost> {
     auto raise() const -> coro<PlayerIntegrationResult> { return this->self().raise(); }
     auto quit() const -> coro<PlayerIntegrationResult> { return this->self().quit(); }
 };
+#if defined(__linux__)
+template<>
+struct Impl<DaemonHost, BackendPlayerHost> : ImplBase<BackendPlayerHost> {
+    auto open_ui(String token) const -> coro<PlayerIntegrationResult> {
+        return this->self().open_ui(rstd::move(token));
+    }
+    auto control(p_qcm::p_msg::M_PlayerControlReq request) const -> coro<PlayerIntegrationResult> {
+        return this->self().control(rstd::move(request));
+    }
+};
+#endif
 } // namespace rstd
 
 namespace
 {
 
+struct DesktopSystem {
+#if defined(__linux__)
+    alloc::rc::Rc<DaemonBus> daemon;
+    auto publish(Arc<QcmService> service, Arc<UiLauncher> launcher, liserveto::Shutdown shutdown,
+                 const startup::Ready& ready) -> coro<rstd::io::Result<empty>> {
+        auto desktop = co_await DesktopMpris::start(make_rc<dyn<PlayerHost>>(
+            BackendPlayerHost { service.downgrade(), launcher.clone(), shutdown.clone() }));
+        if (desktop.is_ok()) {
+            auto attached = co_await service->attach_player_integration(
+                Box<dyn<PlayerIntegration>>::make(rstd::move(*desktop)));
+            if (attached.is_err()) rstd::log::warn("MPRIS unavailable: {}", attached.unwrap_err());
+        } else {
+            rstd::log::warn("MPRIS unavailable: {}", desktop.unwrap_err());
+        }
+        auto published = co_await daemon.get()->publish(
+            ready.port,
+            make_rc<dyn<DaemonHost>>(
+                BackendPlayerHost { service.downgrade(), launcher.clone(), shutdown.clone() }));
+        if (published.is_err()) {
+            rstd::log::error("{}", published.unwrap_err());
+            co_return Err(
+                rstd::io::Error::from_kind(rstd::io::ErrorKind { rstd::io::ErrorKind::Other }));
+        }
+        co_return Ok(empty {});
+    }
+    auto shutdown() -> coro<empty> { return daemon.get()->shutdown(); }
+    auto notified() -> coro<empty> {
+        co_await daemon->notified();
+        co_return empty {};
+    }
+#else
+    startup::Instance& instance;
+    auto publish(Arc<QcmService>, Arc<UiLauncher>, liserveto::Shutdown, const startup::Ready& ready)
+        -> coro<rstd::io::Result<empty>> {
+        co_return instance.publish(ready);
+    }
+    auto shutdown() -> coro<empty> { co_return empty {}; }
+    auto notified() -> coro<empty> {
+        rstd::async::watch::Sender<bool> never { false };
+        auto                             receiver = never.subscribe();
+        (void)co_await receiver.changed();
+        co_return empty {};
+    }
+#endif
+};
+
+struct DesktopShutdown {
+    rstd::async::Runtime& runtime;
+    DesktopSystem&        desktop;
+    ~DesktopShutdown() { runtime.block_on(desktop.shutdown()); }
+};
+
 auto serve_player_backend(TcpListener listener, Arc<QcmService> service,
-                          liserveto::Shutdown stopped, rstd::async::watch::Sender<bool> finished)
-    -> coro<rstd::io::Result<empty>> {
-    auto result =
-        co_await serve_qcm(rstd::move(listener), rstd::move(service), rstd::move(stopped));
+                          liserveto::Shutdown stopped, rstd::async::watch::Sender<bool> finished,
+                          Arc<SessionRegistry> sessions) -> coro<rstd::io::Result<empty>> {
+    auto result = co_await serve_qcm(rstd::move(listener),
+                                     rstd::move(service),
+                                     rstd::move(stopped),
+                                     {},
+                                     Some(rstd::move(sessions)));
     (void)finished.send_replace(true);
     (void)rstd_co_try(rstd::move(result));
     co_return Ok(empty {});
@@ -222,43 +246,50 @@ auto activate_ui(const startup::Instance& instance, const PathBuf& program,
 }
 
 auto launch_and_serve(TcpListener listener, Arc<QcmService> service, liserveto::Shutdown shutdown,
-                      startup::Instance& instance, const PathBuf& program,
-                      const PathBuf& player_program, const startup::Options& options,
-                      const startup::Ready& ready, StartupTrace& trace)
-    -> coro<rstd::io::Result<empty>> {
+                      DesktopSystem& desktop, const PathBuf& program, const PathBuf& player_program,
+                      const startup::Options& options, const startup::Ready& ready,
+                      String activation, StartupTrace& trace) -> coro<rstd::io::Result<empty>> {
     auto supervisor = rstd_co_try(rstd::async::ProcessSupervisor::make());
+    auto sessions   = Arc<SessionRegistry>::make();
     auto launcher   = Arc<UiLauncher>::make(supervisor.handle(),
                                             program.clone(),
                                             startup::Ready { ready.port, ready.cache.clone() },
-                                            options.ui_args.clone());
+                                            options.ui_args.clone(),
+                                            sessions.clone());
     co_await trace.measure_async(
         StartupStage::Player,
         service->start_player(player_program.clone(),
                               rstd::format("http://127.0.0.1:{}", ready.port)));
-#if defined(__linux__)
-    auto desktop = co_await DesktopMpris::start(make_rc<dyn<PlayerHost>>(
-        BackendPlayerHost { service.downgrade(), launcher.clone(), shutdown.clone() }));
-    if (desktop.is_ok()) {
-        auto attached = co_await service->attach_player_integration(
-            Box<dyn<PlayerIntegration>>::make(rstd::move(*desktop)));
-        if (attached.is_err()) rstd::log::warn("MPRIS unavailable: {}", attached.unwrap_err());
-    } else {
-        rstd::log::warn("MPRIS unavailable: {}", desktop.unwrap_err());
-    }
-#endif
-    auto published = trace.measure(StartupStage::Publish, [&] {
-        return instance.publish(ready);
-    });
+    auto                             server_stop = rstd_co_try(liserveto::Shutdown::make());
+    rstd::async::watch::Sender<bool> finished { false };
+    auto                             complete = finished.subscribe();
+    auto server = rstd::async::AbortOnDropHandle<rstd::io::Result<empty>> {
+        rstd::async::spawn_local(serve_player_backend(rstd::move(listener),
+                                                      service.clone(),
+                                                      server_stop.clone(),
+                                                      finished.clone(),
+                                                      sessions.clone()))
+    };
+    auto published = co_await trace.measure_async(
+        StartupStage::Publish,
+        desktop.publish(service.clone(), launcher.clone(), shutdown.clone(), ready));
     if (published.is_err()) {
+        co_await desktop.shutdown();
+        (void)server_stop.request_stop();
+        (void)co_await rstd::move(server);
+        co_await launcher->finish();
         co_await service->stop_player();
         (void)co_await supervisor.shutdown();
         co_return Err(rstd::move(published).unwrap_err());
     }
     if (! options.no_ui) {
-        auto child = trace.measure(StartupStage::UiSpawn, [&] {
-            return launcher->launch();
-        });
+        auto child = co_await trace.measure_async(StartupStage::UiSpawn,
+                                                  launcher->open(rstd::move(activation)));
         if (child.is_err()) {
+            co_await desktop.shutdown();
+            (void)server_stop.request_stop();
+            (void)co_await rstd::move(server);
+            co_await launcher->finish();
             co_await service->stop_player();
             (void)co_await supervisor.shutdown();
             rstd::log::error("{}", child.unwrap_err());
@@ -268,14 +299,10 @@ auto launch_and_serve(TcpListener listener, Arc<QcmService> service, liserveto::
     }
     trace.finish("ready"_str);
     rstd::log::info("qcm listening on 127.0.0.1:{}", ready.port);
-    auto                             server_stop = rstd_co_try(liserveto::Shutdown::make());
-    rstd::async::watch::Sender<bool> finished { false };
-    auto                             complete = finished.subscribe();
-    auto server = rstd::async::AbortOnDropHandle<rstd::io::Result<empty>> {
-        rstd::async::spawn_local(serve_player_backend(
-            rstd::move(listener), service.clone(), server_stop.clone(), finished.clone()))
-    };
-    (void)co_await rstd::async::select(shutdown.notified(), complete.changed());
+    (void)co_await rstd::async::select(
+        shutdown.notified(),
+        rstd::async::select(complete.changed(), desktop.notified().into_future()));
+    co_await desktop.shutdown();
     co_await service->stop_player();
     (void)server_stop.request_stop();
     auto joined = co_await rstd::move(server);
@@ -307,17 +334,25 @@ auto watch_shutdown_signal(rstd::signal::Subscription subscription, liserveto::S
     shutdown.request_stop();
     co_return empty {};
 }
+auto watch_desktop_shutdown(DesktopSystem& desktop, liserveto::Shutdown shutdown) -> coro<empty> {
+    co_await desktop.notified();
+    if (! shutdown.requested()) rstd::log::error("daemon D-Bus ownership was lost");
+    (void)shutdown.request_stop();
+    co_return empty {};
+}
 auto run_backend(RuntimeHandle runtime, TcpListener listener, String main_path, String cache_path,
                  ProviderRegistry registry, String cache_dir, String device_id,
                  liserveto::Shutdown shutdown, rstd::signal::Subscription signals,
-                 startup::Instance& instance, const PathBuf& program, const PathBuf& player_program,
-                 const startup::Options& options, const startup::Ready& ready, StartupTrace& trace)
-    -> rstd::async::coro<Result<empty, ProcessError>> {
-    auto signal_task = rstd::async::AbortOnDropHandle<empty> { rstd::async::spawn_local(
+                 DesktopSystem& desktop, const PathBuf& program, const PathBuf& player_program,
+                 const startup::Options& options, const startup::Ready& ready, String activation,
+                 StartupTrace& trace) -> rstd::async::coro<Result<empty, ProcessError>> {
+    auto signal_task  = rstd::async::AbortOnDropHandle<empty> { rstd::async::spawn_local(
         watch_shutdown_signal(rstd::move(signals), shutdown.clone())) };
-    auto database    = rstd_co_try(co_await trace.measure_async(
+    auto desktop_task = rstd::async::AbortOnDropHandle<empty> { rstd::async::spawn_local(
+        watch_desktop_shutdown(desktop, shutdown.clone())) };
+    auto database     = rstd_co_try(co_await trace.measure_async(
         StartupStage::MainDatabaseOpen, MainDatabase::open(main_path.clone())));
-    auto db          = rstd_co_try(database.handle());
+    auto db           = rstd_co_try(database.handle());
     auto initialized =
         co_await trace.measure_async(StartupStage::MainDatabaseMigrate,
                                      database_run(db.clone(), [](sqlito::Connection& connection) {
@@ -378,11 +413,12 @@ auto run_backend(RuntimeHandle runtime, TcpListener listener, String main_path, 
             auto served = co_await launch_and_serve(rstd::move(listener),
                                                     (*created).clone(),
                                                     rstd::move(shutdown),
-                                                    instance,
+                                                    desktop,
                                                     program,
                                                     player_program,
                                                     options,
                                                     ready,
+                                                    rstd::move(activation),
                                                     trace);
             if (served.is_err())
                 result = Err(ProcessError::internal(rstd::move(served).unwrap_err()));
@@ -394,6 +430,8 @@ auto run_backend(RuntimeHandle runtime, TcpListener listener, String main_path, 
     auto main_closed  = co_await database.shutdown();
     signal_task.abort();
     (void)co_await rstd::move(signal_task);
+    desktop_task.abort();
+    (void)co_await rstd::move(desktop_task);
     rstd_co_try(result);
     rstd_co_try(cache_closed);
     rstd_co_try(main_closed);
@@ -420,6 +458,30 @@ auto main(int argc, char** argv) -> int {
     }
     auto options = rstd::move(*parsed).as_Parsed().value;
     (void)argument_span.finish();
+    auto activation = startup::take_activation_token();
+    auto runtime    = trace.measure(StartupStage::Runtime, [] {
+        return RuntimeBuilder::current_thread().enable_all().build();
+    });
+    if (runtime.is_err()) return fail("cannot create runtime\n"_str);
+#if defined(__linux__)
+    auto daemon = runtime->block_on(
+        trace.measure_async(StartupStage::Instance,
+                            DaemonBus::claim(String::make(
+                                rstd::ffi::CStr::from_ptr(LITO_PKG_VERSION).to_str().unwrap()))));
+    if (daemon.is_err()) return fail(rstd::format("{}\n", daemon.unwrap_err()).as_str());
+    if (! (*daemon)->primary()) {
+        auto notified =
+            options.no_ui
+                ? Result<empty, String>(Ok(empty {}))
+                : runtime->block_on((*daemon).get()->forward_open_ui(rstd::move(activation)));
+        runtime->block_on((*daemon).get()->shutdown());
+        if (notified.is_err()) return fail(rstd::format("{}\n", notified.unwrap_err()).as_str());
+        trace.finish("reused"_str);
+        return 0;
+    }
+    DesktopSystem   desktop { rstd::move(*daemon) };
+    DesktopShutdown desktop_shutdown { *runtime, desktop };
+#endif
     auto path_span = trace.span(StartupStage::Paths);
     auto paths     = startup::storage_paths(options);
     if (paths.is_err()) return fail(rstd::format("{}\n", paths.as_ref().unwrap_err()).as_str());
@@ -446,18 +508,22 @@ auto main(int argc, char** argv) -> int {
                                                : startup::ui_program(executable.as_path());
     auto player_program = options.player.is_some() ? PathBuf::from(options.player->as_str())
                                                    : startup::player_program(executable.as_path());
-    auto runtime        = trace.measure(StartupStage::Runtime, [] {
-        return RuntimeBuilder::current_thread().enable_all().build();
-    });
-    if (runtime.is_err()) return fail("cannot create runtime\n"_str);
     if (! instance->primary()) {
+#if defined(__linux__)
+        return fail("backend data directory is in use by another session\n"_str);
+#else
         auto activated = runtime->block_on(activate_ui(*instance, program, options, trace));
         if (activated.is_err())
             return fail(
                 rstd::format("cannot activate qcm-ui: {}\n", activated.as_ref().unwrap_err())
                     .as_str());
         return *activated;
+#endif
     }
+#if ! defined(__linux__)
+    DesktopSystem   desktop { *instance };
+    DesktopShutdown desktop_shutdown { *runtime, desktop };
+#endif
     auto cache_dir = cache_root->join("QcmBackend"_str);
     if (rstd::fs::create_dir_all(cache_dir.as_path()).is_err())
         return fail("cannot create resource cache directory\n"_str);
@@ -510,11 +576,12 @@ auto main(int argc, char** argv) -> int {
                                       rstd::move(device_id),
                                       rstd::move(shutdown).unwrap(),
                                       rstd::move(signals).unwrap(),
-                                      *instance,
+                                      desktop,
                                       program,
                                       player_program,
                                       options,
                                       ready,
+                                      rstd::move(activation),
                                       trace));
     if (result.is_err()) {
         rstd::log::error("backend failed: {}", result.as_ref().unwrap_err());

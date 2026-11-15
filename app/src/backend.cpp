@@ -22,6 +22,8 @@ import rstd;
 using namespace qcm;
 using namespace Qt::Literals::StringLiterals;
 using namespace qextra::prelude;
+using rstd::async::Runtime;
+using rstd::async::RuntimeBuilder;
 
 namespace qcm
 {
@@ -130,14 +132,20 @@ private:
 
 class BackendTransport : public QObject {
 public:
-    explicit BackendTransport(Backend* backend): m_backend(backend) {}
+    explicit BackendTransport(Backend* backend)
+        : m_backend(backend),
+          m_runtime(RuntimeBuilder::multi_thread()
+                        .worker_threads(rstd::usize(1))
+                        .enable_all()
+                        .build()
+                        .unwrap()) {}
 
     void initialize() {
         plt::set_thread_name("backend");
         m_handshake_timer = new QTimer(this);
         m_handshake_timer->setSingleShot(true);
         connect(m_handshake_timer, &QTimer::timeout, this, [this] {
-            fail(QStringLiteral("Backend handshake timed out"));
+            fail(QStringLiteral("Backend connection or handshake timed out"));
         });
 
         m_serializer = std::make_unique<QProtobufSerializer>();
@@ -153,10 +161,17 @@ public:
         };
         callbacks.disconnected = [this] {
             reset_protocol();
-            (void)m_backend->m_generation.fetch_add(1);
             m_connected = false;
             fail_pending(QStringLiteral("backend disconnected"));
-            Q_EMIT m_backend->disconnected();
+            // Keep a final admission response ahead of the disconnect notification.
+            (void)QMetaObject::invokeMethod(
+                m_backend,
+                [backend = m_backend, generation = m_backend->m_generation.load()] {
+                    if (generation != backend->m_generation.load()) return;
+                    (void)backend->m_generation.fetch_add(1);
+                    Q_EMIT backend->disconnected();
+                },
+                Qt::QueuedConnection);
         };
         callbacks.message = [this](QByteArray bytes) {
             msg::QcmMessage message;
@@ -168,7 +183,7 @@ public:
                 fail(error);
                 return;
             }
-            if (m_protocol.ready()) m_handshake_timer->stop();
+            if (m_protocol.ready() || m_protocol.rejected()) m_handshake_timer->stop();
 
             if (message.type() != msg::MessageTypeGadget::MessageType::PROVIDER_SYNC_STATUS_MSG) {
                 LOG_INFO("ws recv: {}", message.type());
@@ -186,34 +201,12 @@ public:
                  generation = m_backend->m_generation.load(),
                  message    = rstd::move(message)]() mutable {
                     if (generation != backend->m_generation.load()) return;
-                    if (message.hasEntities()) {
-                        auto batch = message.entities();
-                        AppStore::instance()->deliver(
-                            std::move(batch),
-                            [backend = QPointer<Backend>(backend),
-                             message = std::move(message)](QString error) mutable {
-                                if (! backend) return;
-                                if (! error.isEmpty()) {
-                                    Q_EMIT backend->error(error);
-                                    return;
-                                }
-                                if (message.hasTestRsp()) {
-                                    backend->m_resource_ready = true;
-                                    Q_EMIT backend->resourceStateChanged();
-                                    backend->requestPlayerSnapshot();
-                                }
-                                qcm::process_msg(std::move(message));
-                            });
-                    } else if (message.hasTestRsp()) {
-                        Q_EMIT backend->error(
-                            QStringLiteral("Backend does not support entity protocol v2"));
-                    } else
-                        qcm::process_msg(std::move(message));
+                    backend->receive_message(std::move(message));
                 },
                 Qt::QueuedConnection);
         };
-        m_connection = std::make_unique<BackendConnection>(QAsyncResult::runtime_handle(),
-                                                           std::move(callbacks));
+        m_connection =
+            std::make_unique<BackendConnection>(m_runtime.handle(), std::move(callbacks));
     }
 
     void connect_to(rstd::string::String url, i32 port) {
@@ -224,6 +217,7 @@ public:
         m_connection->disconnect();
         m_port = port;
         m_connection->open(qextra::to_qstring(url));
+        m_handshake_timer->start(5000);
     }
 
     void send(msg::QcmMessage message, ResponseHandle response) {
@@ -257,12 +251,12 @@ public:
                 fail(QStringLiteral("backend handshake not complete"));
                 return;
             }
-            m_protocol.begin(message.id_proto());
+            m_protocol.begin(message.id_proto(), message.testReq().uiClient());
             m_handshake_timer->start(5000);
         }
         message.setProtocolVersion(protocol::Version);
         auto sent = m_connection->send(message.serialize(m_serializer.get()));
-        if (sent.is_err()) LOG_ERROR("backend send: {}", sent.unwrap_err().toStdString());
+        if (sent.is_err()) fail(sent.unwrap_err());
     }
 
     void cancel(i32 request_id) { m_pending.cancel(request_id); }
@@ -297,6 +291,7 @@ private:
     void fail_pending(const QString& message) { m_pending.fail_all(transport_error(message)); }
 
     Backend*                                    m_backend;
+    Runtime                                     m_runtime;
     protocol::Session                           m_protocol;
     QTimer*                                     m_handshake_timer {};
     std::unique_ptr<BackendConnection>          m_connection;
@@ -335,12 +330,13 @@ private:
 
 } // namespace detail
 
-Backend::Backend()
+Backend::Backend(QString activation_token)
     : m_thread(Box<QThread>::make()),
       m_transport(new detail::BackendTransport(this)),
       m_loader(std::make_unique<detail::EntityLoader>(this)),
       m_serial(1),
-      m_port(0) {
+      m_port(0),
+      m_activation_token(std::move(activation_token)) {
     m_transport->moveToThread(m_thread.get());
     connect(m_thread.get(), &QThread::finished, m_transport, &QObject::deleteLater);
     m_thread->start();
@@ -355,7 +351,9 @@ Backend::Backend()
     connect(this, &Backend::error, this, &Backend::on_error);
     connect(this, &Backend::disconnected, this, [this] {
         m_loader->reset();
-        AppStore::instance()->markStale();
+        m_initial_messages.clear();
+        m_ui_accepted = false;
+        if (m_delivery_enabled) AppStore::instance()->markStale();
         m_resource_ready = false;
         Q_EMIT resourceStateChanged();
     });
@@ -390,6 +388,8 @@ auto Backend::connect_to(i32 port, QStringView cache_dir) -> bool {
     m_port           = port;
     m_cache_dir      = cache_dir.toString();
     m_resource_ready = false;
+    m_ui_accepted    = false;
+    m_initial_messages.clear();
     Q_EMIT resourceStateChanged();
     if (port < 1 || port > 65535) {
         Q_EMIT error(QStringLiteral("Invalid backend port"));
@@ -408,18 +408,80 @@ void Backend::on_retry() { (void)connect_to(m_port, m_cache_dir); }
 
 void Backend::on_error(QString) {
     m_resource_ready = false;
+    m_ui_accepted    = false;
+    m_initial_messages.clear();
     Q_EMIT resourceStateChanged();
 }
 
 void Backend::on_connected(i32) {
     m_loader->reset();
-    AppStore::instance()->reset();
+    if (m_delivery_enabled) AppStore::instance()->reset();
     m_resource_ready = false;
     Q_EMIT resourceStateChanged();
     auto message = msg::QcmMessage();
     message.setType(msg::MessageTypeGadget::MessageType::TEST_REQ);
-    message.setTestReq({});
+    msg::TestReq request;
+    request.setUiClient(true);
+    request.setActivationToken(std::exchange(m_activation_token, {}));
+    message.setTestReq(std::move(request));
     send_immediate(rstd::move(message));
+}
+
+void Backend::receive_message(msg::QcmMessage message) {
+    if (message.hasTestRsp()) {
+        const auto response = message.testRsp();
+        m_ui_accepted       = response.uiAccepted();
+        if (! m_ui_accepted) {
+            Q_EMIT uiAdmission(false);
+            return;
+        }
+        m_initial_messages.push_back(std::move(message));
+        Q_EMIT uiAdmission(true);
+        if (m_delivery_enabled) start_delivery();
+        return;
+    }
+    if (! m_ui_accepted) return;
+    if (! m_delivery_enabled) {
+        m_initial_messages.push_back(std::move(message));
+        return;
+    }
+    deliver_message(std::move(message));
+}
+
+void Backend::start_delivery() {
+    if (! m_ui_accepted) return;
+    if (! std::exchange(m_delivery_enabled, true)) AppStore::instance()->reset();
+    while (! m_initial_messages.empty()) {
+        auto message = std::move(m_initial_messages.front());
+        m_initial_messages.pop_front();
+        deliver_message(std::move(message));
+    }
+}
+
+void Backend::deliver_message(msg::QcmMessage message) {
+    if (! message.hasEntities()) {
+        qcm::process_msg(std::move(message));
+        return;
+    }
+    auto       batch      = message.entities();
+    const auto generation = m_generation.load();
+    AppStore::instance()->deliver(std::move(batch),
+                                  [backend = QPointer<Backend>(this),
+                                   generation,
+                                   message = std::move(message)](QString error) mutable {
+                                      if (! backend || generation != backend->m_generation.load())
+                                          return;
+                                      if (! error.isEmpty()) {
+                                          Q_EMIT backend->error(error);
+                                          return;
+                                      }
+                                      if (message.hasTestRsp()) {
+                                          backend->m_resource_ready = true;
+                                          Q_EMIT backend->resourceStateChanged();
+                                          backend->requestPlayerSnapshot();
+                                      }
+                                      qcm::process_msg(std::move(message));
+                                  });
 }
 
 void Backend::send_immediate(msg::QcmMessage&& message) {

@@ -73,8 +73,8 @@ auto websocket_event_sink(Arc<SessionRegistry> sessions) -> EventSink {
         });
 }
 auto qcm_websocket_message(liwebsocketo::Message message, Arc<QcmService> service,
-                           Arc<SessionSlot> session_slot, liserveto::Shutdown stopped)
-    -> coro<empty> {
+                           Arc<SessionSlot> session_slot, Arc<SessionRegistry> sessions,
+                           liserveto::Shutdown stopped) -> coro<empty> {
     if (message.kind == liwebsocketo::Kind::Text) {
         auto text = rstd::str_::from_utf8(message.data.as_slice());
         if (text.is_err()) {
@@ -154,6 +154,7 @@ auto qcm_websocket_message(liwebsocketo::Message message, Arc<QcmService> servic
                 co_return empty {};
             }
         }
+        if ((co_await sessions->flush_ui_activation()).is_err()) (void)stopped.request_stop();
     }
 
     co_return empty {};
@@ -220,9 +221,17 @@ auto qcm_websocket_writer(liserveto::WebSocket& socket, Arc<SessionSlot> slot,
     }
 }
 auto qcm_websocket_reader(liserveto::WebSocket::MessageStream messages, Arc<QcmService> service,
-                          Arc<SessionSlot> slot, Arc<WebSocketRequests> requests,
-                          liserveto::Shutdown stopped)
+                          Arc<SessionSlot> slot, Arc<SessionRegistry> sessions,
+                          Arc<WebSocketRequests> requests, liserveto::Shutdown stopped,
+                          liwebsocketo::Message first)
     -> coro<Result<empty, liserveto::BodyError>> {
+    if (! co_await requests->start(qcm_websocket_message(rstd::move(first),
+                                                         service.clone(),
+                                                         slot.clone(),
+                                                         sessions.clone(),
+                                                         stopped.clone()),
+                                   stopped))
+        co_return Ok(empty {});
     for (;;) {
         auto next = co_await rstd::async::select(
             rstd::async::into_future(rstd::stream::next(messages)), stopped.notified());
@@ -231,12 +240,36 @@ auto qcm_websocket_reader(liserveto::WebSocket::MessageStream messages, Arc<QcmS
         if (message.is_none()) co_return Ok(empty {});
         auto frame = rstd_co_try(rstd::move(*message), liserveto::BodyError::Protocol);
         if (frame.kind == liwebsocketo::Kind::Close) co_return Ok(empty {});
-        if (! co_await requests->start(
-                qcm_websocket_message(
-                    rstd::move(frame), service.clone(), slot.clone(), stopped.clone()),
-                stopped))
+        if (! co_await requests->start(qcm_websocket_message(rstd::move(frame),
+                                                             service.clone(),
+                                                             slot.clone(),
+                                                             sessions.clone(),
+                                                             stopped.clone()),
+                                       stopped))
             co_return Ok(empty {});
     }
+}
+
+auto reject_duplicate_ui(liserveto::WebSocket& socket, Arc<SessionRegistry> sessions,
+                         liwebsocketo::Message frame) -> coro<Result<empty, liserveto::BodyError>> {
+    if (frame.kind != liwebsocketo::Kind::Binary) co_return Ok(empty {});
+    auto decoded = liproto::decode<QcmMessage>(frame.data.as_slice());
+    if (decoded.is_err() || decoded->f_protocol_version != qcm_protocol_version ||
+        ! ProtocolSession::is_handshake(*decoded) ||
+        ! decoded->o_payload->as_test_req()->f_ui_client)
+        co_return Ok(empty {});
+    auto activated = co_await sessions->activate_ui(
+        decoded->o_payload->as_test_req()->f_activation_token.clone());
+    if (activated.is_err()) co_return Err(liserveto::BodyError::Io);
+    auto response           = Box<p_qcm::p_msg::M_TestRsp>::make();
+    response->f_ui_accepted = Some(false);
+    auto encoded = rstd_co_try(qcm_encode(qcm_message(decoded->f_id, rstd::move(response))),
+                               liserveto::BodyError::Protocol);
+    auto sent    = co_await socket.send(
+        { liwebsocketo::Kind::Binary, Bytes::copy_from_slice(encoded.as_slice()) });
+    if (sent.is_err() || sent->is_err()) co_return Err(liserveto::BodyError::Io);
+    (void)co_await socket.close();
+    co_return Ok(empty {});
 }
 
 auto qcm_websocket(liserveto::WebSocket& socket, Arc<QcmService> service,
@@ -244,39 +277,44 @@ auto qcm_websocket(liserveto::WebSocket& socket, Arc<QcmService> service,
                    liserveto::RequestLifetime lifetime)
     -> coro<Result<empty, liserveto::BodyError>> {
     auto session_slot = rstd_co_try(SessionSlot::make(), liserveto::BodyError::Io);
-    auto id           = sessions->add(session_slot.clone());
-    if (id.is_none()) {
-        (void)co_await socket.close();
-        co_return Ok(empty {});
-    }
-    auto stopped  = liserveto::Shutdown::make().unwrap();
-    auto requests = Arc<WebSocketRequests>::make();
+    auto stopped      = liserveto::Shutdown::make().unwrap();
+    auto requests     = Arc<WebSocketRequests>::make();
     struct Registered {
         Arc<SessionRegistry>   sessions;
         Arc<SessionSlot>       slot;
         Arc<WebSocketRequests> requests;
         liserveto::WebSocket&  socket;
         liserveto::Shutdown    stopped;
-        u64                    id;
+        Option<u64>            id;
         ~Registered() {
-            sessions->remove(id);
+            if (id.is_some()) sessions->remove(*id);
             slot->close();
             requests->cancel();
             socket.cancel();
             (void)stopped.request_stop();
         }
     } registered { sessions.clone(), session_slot.clone(), requests.clone(),
-                   socket,           stopped.clone(),      *id };
+                   socket,           stopped.clone(),      sessions->add(session_slot.clone()) };
     auto messages = rstd_co_try(socket.messages(), liserveto::BodyError::Io);
+    auto received = co_await rstd::async::timeout(
+        rstd::async::into_future(rstd::stream::next(messages)), Duration::from_secs(u64(5)));
+    if (received.is_err() || received->is_none()) co_return Ok(empty {});
+    auto first = rstd_co_try(rstd::move(**received), liserveto::BodyError::Protocol);
+    if (first.kind == liwebsocketo::Kind::Close) co_return Ok(empty {});
+    if (registered.id.is_none()) registered.id = sessions->add(session_slot.clone());
+    if (registered.id.is_none())
+        co_return co_await reject_duplicate_ui(socket, sessions.clone(), rstd::move(first));
     // Socket-borrowing futures stay scoped to the upgrade callback.
     auto reading = Some(rstd::async::into_future(qcm_websocket_reader(rstd::move(messages),
                                                                       service.clone(),
                                                                       session_slot.clone(),
+                                                                      sessions.clone(),
                                                                       requests.clone(),
-                                                                      stopped.clone())));
+                                                                      stopped.clone(),
+                                                                      rstd::move(first))));
     auto writing = Some(rstd::async::into_future(
         qcm_websocket_writer(socket, session_slot.clone(), stopped.clone())));
-    auto events  = Some(rstd::async::into_future(sessions->dispatch(*id)));
+    auto events  = Some(rstd::async::into_future(sessions->dispatch(*registered.id)));
     auto result  = co_await rstd::async::select(
         rstd::async::select(rstd::future::by_ref(*reading), rstd::future::by_ref(*writing)),
         rstd::async::select(
@@ -292,7 +330,7 @@ auto qcm_websocket(liserveto::WebSocket& socket, Arc<QcmService> service,
         if (other.is_left() && rstd::move(other).unwrap_left().is_err())
             outcome = Err(liserveto::BodyError::Io);
     }
-    sessions->remove(*id);
+    sessions->remove(*registered.id);
     (void)stopped.request_stop();
     socket.cancel();
     reading = None();
@@ -307,11 +345,6 @@ auto websocket_endpoint(Arc<QcmService> service, Arc<SessionRegistry> sessions)
     return liserveto::Endpoint::make([service  = rstd::move(service),
                                       sessions = rstd::move(sessions)](liserveto::Request request)
                                          -> coro<liserveto::ResponseResult> {
-        if (! sessions->can_connect()) {
-            liserveto::Response response;
-            response.head.status = lihttpto::StatusCode::make(u16(409)).unwrap();
-            co_return Ok(rstd::move(response));
-        }
         auto upgrade = liserveto::WebSocketUpgrade::from_request(request);
         if (upgrade.is_err())
             co_return rstd::Err(liserveto::Error { liserveto::ErrorKind::InvalidRequest, None() });
@@ -360,7 +393,7 @@ auto collect_playback_sessions(Arc<QcmService> service) -> coro<empty> {
     }
 }
 auto serve_qcm(TcpListener listener, Arc<QcmService> service, liserveto::Shutdown shutdown,
-               liserveto::ServerLimits limits = {})
+               liserveto::ServerLimits limits = {}, Option<Arc<SessionRegistry>> registry = {})
     -> coro<Result<liserveto::ServerReport, rstd::io::error::Error>> {
     struct CancelOnDrop {
         QcmService& service;
@@ -384,7 +417,7 @@ auto serve_qcm(TcpListener listener, Arc<QcmService> service, liserveto::Shutdow
         watch_sync_shutdown(service.clone(), shutdown.clone())) };
     auto playback_collector =
         AbortOnDropHandle { rstd::async::spawn_local(collect_playback_sessions(service.clone())) };
-    auto sessions = Arc<SessionRegistry>::make();
+    auto sessions = registry.is_some() ? rstd::move(*registry) : Arc<SessionRegistry>::make();
     service->set_event_sink(Some(websocket_event_sink(sessions.clone())));
     auto endpoint = Arc<liserveto::Endpoint>::make(qcm_endpoint(service.clone(), sessions.clone()));
     auto result   = co_await liserveto::serve(

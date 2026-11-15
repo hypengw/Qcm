@@ -165,9 +165,16 @@ message Rsp {
   optional AuthRequired auth_required = 3;
 }
 
-message TestReq { string test_data = 1; }
+message TestReq {
+  string test_data = 1;
+  bool ui_client = 2;
+  string activation_token = 3;
+}
 
-message TestRsp { string test_data = 2; }
+message TestRsp {
+  string test_data = 2;
+  optional bool ui_accepted = 3;
+}
 
 message GetProviderMetasReq {}
 message GetProviderMetasRsp { repeated qcm.msg.model.ProviderMeta metas = 1; }
@@ -757,6 +764,7 @@ message PlayerQueueMsg {
 
 message PlayerUiMsg {
   bool raise = 1;
+  string activation_token = 3;
 }
 
 message QcmMessage {

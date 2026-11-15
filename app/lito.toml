@@ -19,6 +19,7 @@ module = "qcm.entry"
 sources = [
   "src/action.cpp",
   "src/action.cppm",
+  "src/activation.cppm",
   "src/app.cpp",
   "src/app.cppm",
   "src/backend.cpp",
@@ -206,10 +207,13 @@ targets = [
   { name = "qml_material::qcm" },
 ]
 
-[external-dependencies.cmake.kd-single-application]
-workspace = true
+[external-dependencies.cmake.qt6-linux]
+package = "Qt6"
+condition = 'target.os == "linux"'
+components = ["DBus", "GuiPrivate"]
 targets = [
-  { name = "kdsingleapplication" },
+  { name = "Qt6::DBus" },
+  { name = "Qt6::GuiPrivate" },
 ]
 
 [runtime-dependencies.qcm-jellyfin-lua]

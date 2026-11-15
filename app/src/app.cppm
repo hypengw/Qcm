@@ -21,6 +21,8 @@ export import :global;
 import qextra;
 import platform;
 
+using rstd::boxed::Box;
+
 namespace qcm
 {
 export class App : public QObject {
@@ -45,7 +47,7 @@ export class App : public QObject {
     friend class qml::Util;
 
 public:
-    App(quint16 backend_port, QStringView cache_dir);
+    App(Box<Backend> backend, QString activation_token);
     virtual ~App();
     static App* create(QQmlEngine* qmlEngine, QJSEngine* jsEngine);
     static void register_converters();
@@ -80,7 +82,6 @@ public:
     Q_INVOKABLE QVariant import_path_list();
     Q_INVOKABLE void     test();
 
-    Q_SIGNAL void instanceStarted();
     Q_SIGNAL void libraryStatusChanged();
 
     Q_SLOT void releaseResources(QQuickWindow*, const QJSValue&);

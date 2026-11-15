@@ -8,10 +8,12 @@ module;
 
 module qcm;
 import :app;
+import qcm.activation;
 import qcm.log;
 
 using namespace qcm;
 using namespace Qt::Literals::StringLiterals;
+using rstd::boxed::Box;
 
 namespace
 {
@@ -34,7 +36,7 @@ namespace qcm
 
 class App::Private {
 public:
-    Private(App* self)
+    Private(App* self, Box<Backend> backend, QString activation_token)
         : m_p(self),
           m_global(make_rc<Global>()),
           m_util(make_rc<qml::Util>()),
@@ -44,6 +46,8 @@ public:
           provider_status(new ProviderStatusModel(self)),
           page_model(new PageModel(self)),
           app_state(new AppState(self)),
+          m_backend(std::move(backend)),
+          m_activation_token(std::move(activation_token)),
           m_main_win(nullptr),
           m_qml_engine(make_up<QQmlApplicationEngine>()) {}
     ~Private() {
@@ -68,7 +72,8 @@ public:
     model::AppInfo           info;
     AppState*                app_state;
 
-    Option<Box<Backend>> m_backend;
+    Box<Backend> m_backend;
+    QString      m_activation_token;
 
     QPointer<QQuickWindow>           m_main_win;
     Option<Box<QmlNetworkDiskCache>> m_image_cache;
@@ -84,8 +89,9 @@ App* App::create(QQmlEngine*, QJSEngine*) {
 
 App* App::instance() { return app_instance(); }
 
-App::App(quint16 backend_port, QStringView cache_dir)
-    : QObject(nullptr), d_ptr(make_box<Private>(this)) {
+App::App(Box<Backend> connection, QString activation_token)
+    : QObject(nullptr),
+      d_ptr(make_box<Private>(this, std::move(connection), std::move(activation_token))) {
     C_D(App);
     app_instance(this);
     register_meta_type();
@@ -99,7 +105,6 @@ App::App(quint16 backend_port, QStringView cache_dir)
 
     LOG_DEBUG("thread pool size: {}", get_pool_size());
     {
-        d->m_backend = Some(Box<Backend>::make());
         global()->player()->bindBackend(backend());
         playqueue()->bindBackend(backend());
         connect(backend(), &Backend::playerError, global(), [this](const QString& error) {
@@ -110,7 +115,11 @@ App::App(quint16 backend_port, QStringView cache_dir)
         });
         connect(
             backend(), &Backend::playerUiRequested, this, [this](const msg::PlayerUiMsg& request) {
-                if (request.raise()) instanceStarted();
+                C_D(App);
+                if (request.raise()) {
+                    activation::WindowActivation activation(request.activationToken());
+                    activation.activate(d->m_main_win);
+                }
             });
         {
             auto p = this->backend();
@@ -125,8 +134,6 @@ App::App(quint16 backend_port, QStringView cache_dir)
                 },
                 Qt::QueuedConnection);
         }
-
-        this->backend()->connect_to(backend_port, cache_dir);
     }
 
     d->m_qml_engine->addImportPath(u"qrc:/"_s);
@@ -203,6 +210,7 @@ void App::init() {
         qextra::image::clear_network_cache(engine);
     });
     update_image_sources();
+    activation::WindowActivation activation(std::exchange(d->m_activation_token, {}));
     engine->loadFromModule("Qcm.App", "Window");
 
     for (auto el : engine->rootObjects()) {
@@ -212,6 +220,8 @@ void App::init() {
     }
 
     rstd_assert(! d->m_main_win.isNull(), "main window must exist");
+    activation.activate(d->m_main_win);
+    backend()->start_delivery();
 }
 
 void App::triggerCacheLimit() {
@@ -260,7 +270,7 @@ auto App::global() const -> Global* {
 }
 auto App::backend() const -> Backend* {
     C_D(const App);
-    return (*(d->m_backend)).as_mut_ptr();
+    return d->m_backend.as_mut_ptr();
 }
 auto App::util() const -> qml::Util* {
     C_D(const App);

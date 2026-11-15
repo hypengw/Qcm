@@ -213,15 +213,6 @@ MD.ApplicationWindow {
             win.snake.show(text, duration, flags, action);
         }
     }
-    Connections {
-        function onInstanceStarted() {
-            win.raise();
-            win.requestActivate();
-        }
-
-        target: QA.App
-    }
-
     Component.onCompleted: {
         QA.Global.main_win = win;
     }

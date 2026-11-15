@@ -2,6 +2,7 @@ module;
 #include "core/log.h"
 #include <memory>
 #include <functional>
+#include <deque>
 #include "QExtra/macro_qt.hpp"
 
 #ifdef Q_MOC_RUN
@@ -33,10 +34,11 @@ class Backend : public QObject {
     friend class detail::BackendTransport;
 
 public:
-    Backend();
+    explicit Backend(QString activation_token = {});
     ~Backend();
 
     auto connect_to(i32 port, QStringView cache_dir) -> bool;
+    void start_delivery();
 
     void send_immediate(msg::QcmMessage&& msg);
     void controlPlayer(msg::PlayerControlReq);
@@ -72,6 +74,7 @@ public:
     }
 
     Q_SIGNAL void connected(i32 port);
+    Q_SIGNAL void uiAdmission(bool accepted);
     Q_SIGNAL void error(QString);
     Q_SIGNAL void disconnected();
     Q_SIGNAL void resourceStateChanged();
@@ -88,6 +91,8 @@ private:
 
     auto base() const -> std::string;
     auto serial() -> i32;
+    void receive_message(msg::QcmMessage);
+    void deliver_message(msg::QcmMessage);
     void submitPlayerRequest(msg::QcmMessage, std::function<void(bool)> completed = {});
 
     Box<QThread>              m_thread;
@@ -98,7 +103,11 @@ private:
     Atomic<quint64>                       m_generation { 0 };
     i32                                   m_port;
     bool                                  m_resource_ready { false };
+    bool                                  m_delivery_enabled { false };
+    bool                                  m_ui_accepted { false };
     QString                               m_cache_dir;
+    QString                               m_activation_token;
+    std::deque<msg::QcmMessage>           m_initial_messages;
     QAsyncScope                           m_player_commands;
 };
 } // namespace qcm

@@ -460,6 +460,7 @@ public:
             auto rsp         = Box<p_qcm::p_msg::M_TestRsp>::make();
             rsp->f_test_data = String::make("Echo: "_str);
             rsp->f_test_data.push_str(request.o_payload->as_test_req()->f_test_data.as_str());
+            if (request.o_payload->as_test_req()->f_ui_client) rsp->f_ui_accepted = Some(true);
             auto response = qcm_message(request.f_id, rstd::move(rsp));
             co_return co_await with_entities(request.f_id, rstd::move(response));
         }
