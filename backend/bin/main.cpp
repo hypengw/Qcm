@@ -4,6 +4,7 @@ import qcm.backend.startup_trace;
 #if defined(__linux__)
 import qcm.backend.system.mpris;
 import qcm.backend.system.dbus;
+import qcm.backend.system.tray;
 #endif
 import rstd.log;
 import rstd;
@@ -117,7 +118,9 @@ struct BackendPlayerHost {
     auto open_ui(String token) const -> coro<PlayerIntegrationResult> {
         co_return co_await launcher->open(rstd::move(token));
     }
-    auto raise() const -> coro<PlayerIntegrationResult> { return open_ui({}); }
+    auto raise(String token) const -> coro<PlayerIntegrationResult> {
+        return open_ui(rstd::move(token));
+    }
     auto quit() const -> coro<PlayerIntegrationResult> {
         (void)shutdown.request_stop();
         co_return Ok(empty {});
@@ -135,7 +138,9 @@ struct Impl<PlayerHost, BackendPlayerHost> : ImplBase<BackendPlayerHost> {
     auto queue(p_qcm::p_msg::M_PlayerQueueReq request) const -> coro<PlayerIntegrationResult> {
         return this->self().queue(rstd::move(request));
     }
-    auto raise() const -> coro<PlayerIntegrationResult> { return this->self().raise(); }
+    auto raise(String token) const -> coro<PlayerIntegrationResult> {
+        return this->self().raise(rstd::move(token));
+    }
     auto quit() const -> coro<PlayerIntegrationResult> { return this->self().quit(); }
 };
 #if defined(__linux__)
@@ -157,16 +162,30 @@ namespace
 struct DesktopSystem {
 #if defined(__linux__)
     alloc::rc::Rc<DaemonBus> daemon;
+    String                   icon_theme_path {};
     auto publish(Arc<QcmService> service, Arc<UiLauncher> launcher, liserveto::Shutdown shutdown,
                  const startup::Ready& ready) -> coro<rstd::io::Result<empty>> {
-        auto desktop = co_await DesktopMpris::start(make_rc<dyn<PlayerHost>>(
+        PlayerIntegrations integrations;
+        auto               desktop = co_await DesktopMpris::start(make_rc<dyn<PlayerHost>>(
             BackendPlayerHost { service.downgrade(), launcher.clone(), shutdown.clone() }));
         if (desktop.is_ok()) {
-            auto attached = co_await service->attach_player_integration(
-                Box<dyn<PlayerIntegration>>::make(rstd::move(*desktop)));
-            if (attached.is_err()) rstd::log::warn("MPRIS unavailable: {}", attached.unwrap_err());
+            integrations.add(Box<dyn<PlayerIntegration>>::make(rstd::move(*desktop)));
         } else {
             rstd::log::warn("MPRIS unavailable: {}", desktop.unwrap_err());
+        }
+        auto tray = co_await DesktopTray::start(
+            make_rc<dyn<PlayerHost>>(
+                BackendPlayerHost { service.downgrade(), launcher.clone(), shutdown.clone() }),
+            icon_theme_path.clone());
+        if (tray.is_ok())
+            integrations.add(Box<dyn<PlayerIntegration>>::make(rstd::move(*tray)));
+        else
+            rstd::log::warn("tray unavailable: {}", tray.unwrap_err());
+        if (! integrations.is_empty()) {
+            auto attached = co_await service->attach_player_integration(
+                Box<dyn<PlayerIntegration>>::make(rstd::move(integrations)));
+            if (attached.is_err())
+                rstd::log::warn("desktop integration unavailable: {}", attached.unwrap_err());
         }
         auto published = co_await daemon.get()->publish(
             ready.port,
@@ -503,6 +522,7 @@ auto main(int argc, char** argv) -> int {
 #ifdef __linux__
     auto resolved = rstd::fs::read_link(PathBuf::from("/proc/self/exe"_str).as_path());
     if (resolved.is_ok()) executable = rstd::move(*resolved);
+    desktop.icon_theme_path = tray_icon_theme_path(executable.as_path());
 #endif
     auto program        = options.ui.is_some() ? PathBuf::from(options.ui->as_str())
                                                : startup::ui_program(executable.as_path());

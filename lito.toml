@@ -70,15 +70,6 @@ source = "qml-material"
 adapter = "adapters/QmlMaterial.cmake"
 cache = { QML_MATERIAL_BUILD_TYPE = "STATIC", QM_BUILD_EXAMPLE = false, QM_BUILD_TESTS = false, QM_ICON_FONT_URL = "" }
 
-[workspace.external-sources.random]
-git = "https://github.com/ilqvya/random.git"
-
-[workspace.external-dependencies.cmake.random]
-package = "random"
-source = "random"
-adapter = "adapters/Random.cmake"
-cache = { Random_BuildTests = false }
-
 [workspace.external-dependencies.cmake.qt6]
 package = "Qt6"
 components = [

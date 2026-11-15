@@ -97,10 +97,6 @@ dependencies = [
   "rstd-std",
 ]
 
-[[packages.externals]]
-name = "random"
-source = "git+https://github.com/ilqvya/random.git#ebe18a4b14452d5c471fb3791ee1756bcf3d5c17"
-
 [[packages]]
 name = "qcm-jellyfin-lua"
 version = "1.3.9"

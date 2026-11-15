@@ -120,7 +120,8 @@ class PlayerSession {
             if (queue_revision != owner.queue_revision_) {
                 queue_revision = owner.queue_revision_;
                 if (owner.integration_.is_some())
-                    (void)co_await (*owner.integration_)->update_queue(owner.queue_state());
+                    (void)co_await (*owner.integration_)
+                        ->update_queue(PlayerQueueSnapshot::make(owner.queue_state()));
                 auto message =
                     qcm_message(i32(), Box<wire::M_PlayerQueueMsg>::make(owner.queue_state()));
                 if ((co_await owner.events_.send_message(rstd::move(message))).is_err())
@@ -129,7 +130,8 @@ class PlayerSession {
             if (state_revision != owner.state_revision_) {
                 state_revision = owner.state_revision_;
                 if (owner.integration_.is_some())
-                    (void)co_await (*owner.integration_)->update_state(owner.state());
+                    (void)co_await (*owner.integration_)
+                        ->update_state(PlayerStateSnapshot::make(owner.state()));
                 auto message = qcm_message(i32(), Box<wire::M_PlayerStateMsg>::make(owner.state()));
                 if ((co_await owner.events_.send_message(rstd::move(message))).is_err())
                     rstd::log::warn("cannot publish player state");

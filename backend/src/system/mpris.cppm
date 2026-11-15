@@ -27,15 +27,15 @@ struct MprisChanges {
 };
 
 class MprisModel {
-    p_qcm::p_msg::M_PlayerStateMsg state_;
-    u64                            queue_revision_ {};
-    i32                            loop_mode_ {};
-    bool                           shuffle_ {};
-    bool                           can_next_ {};
-    bool                           can_previous_ {};
-    bool                           queued_tracks_ {};
-    bool                           received_state_ {};
-    bool                           received_queue_ {};
+    PlayerStateSnapshot state_ = PlayerStateSnapshot::make();
+    u64                 queue_revision_ {};
+    i32                 loop_mode_ {};
+    bool                shuffle_ {};
+    bool                can_next_ {};
+    bool                can_previous_ {};
+    bool                queued_tracks_ {};
+    bool                received_state_ {};
+    bool                received_queue_ {};
 
     static auto microseconds(i64 milliseconds) -> i64 {
         return milliseconds.max(i64()).saturating_mul(i64(1000));
@@ -53,30 +53,30 @@ class MprisModel {
 
 public:
     auto has_track() const -> bool {
-        return ! state_.f_source.is_empty() || state_.f_song_id.is_some();
+        return ! state_->f_source.is_empty() || state_->f_song_id.is_some();
     }
-    auto connected() const -> bool { return state_.f_connected; }
-    auto source_epoch() const -> u64 { return state_.f_source_epoch; }
+    auto connected() const -> bool { return state_->f_connected; }
+    auto source_epoch() const -> u64 { return state_->f_source_epoch; }
     auto can_play() const -> bool { return connected() && (has_track() || queued_tracks_); }
     auto can_pause() const -> bool { return can_play(); }
-    auto can_seek() const -> bool { return connected() && has_track() && state_.f_seekable; }
+    auto can_seek() const -> bool { return connected() && has_track() && state_->f_seekable; }
     auto can_next() const -> bool { return connected() && can_next_; }
     auto can_previous() const -> bool { return connected() && can_previous_; }
     auto shuffle() const -> bool { return shuffle_; }
-    auto volume() const -> double { return state_.f_volume.to_primitive(); }
-    auto duration() const -> i64 { return microseconds(state_.f_duration_ms); }
+    auto volume() const -> double { return state_->f_volume.to_primitive(); }
+    auto duration() const -> i64 { return microseconds(state_->f_duration_ms); }
     auto position() const -> i64 {
-        auto value = microseconds(state_.f_position_ms);
-        return state_.f_duration_ms > i64() ? value.min(duration()) : value;
+        auto value = microseconds(state_->f_position_ms);
+        return state_->f_duration_ms > i64() ? value.min(duration()) : value;
     }
     auto track_id() const -> String {
         if (! has_track()) return String::make(mpris_no_track);
-        return rstd::format("/io/github/hypengw/Qcm/track/e{}", state_.f_source_epoch);
+        return rstd::format("/io/github/hypengw/Qcm/track/e{}", state_->f_source_epoch);
     }
     auto playback_status() const -> ref<str> {
         if (! connected() || ! has_track()) return "Stopped"_str;
-        if (state_.f_playback_state == i32()) return "Playing"_str;
-        if (state_.f_playback_state == i32(1)) return "Paused"_str;
+        if (state_->f_playback_state == i32()) return "Playing"_str;
+        if (state_->f_playback_state == i32(1)) return "Paused"_str;
         return "Stopped"_str;
     }
     auto loop_status() const -> ref<str> {
@@ -88,32 +88,33 @@ public:
         auto result = dbusto::PropertyMap::make();
         result.insert(String::make("mpris:trackid"_str), dbusto::Value::Path(track_id()));
         if (! has_track()) return result;
-        if (state_.f_duration_ms > i64())
+        if (state_->f_duration_ms > i64())
             result.insert(String::make("mpris:length"_str), dbusto::Value::Int64(duration()));
-        if (! state_.f_title.is_empty())
+        if (! state_->f_title.is_empty())
             result.insert(String::make("xesam:title"_str),
-                          dbusto::Value::Text(state_.f_title.clone()));
-        if (! state_.f_album.is_empty())
+                          dbusto::Value::Text(state_->f_title.clone()));
+        if (! state_->f_album.is_empty())
             result.insert(String::make("xesam:album"_str),
-                          dbusto::Value::Text(state_.f_album.clone()));
-        if (! state_.f_artists.is_empty())
+                          dbusto::Value::Text(state_->f_album.clone()));
+        if (! state_->f_artists.is_empty())
             result.insert(String::make("xesam:artist"_str),
-                          dbusto::Codec<Vec<String>>::encode(state_.f_artists.clone()));
-        if (! state_.f_album_artists.is_empty())
+                          dbusto::Codec<Vec<String>>::encode(state_->f_artists.clone()));
+        if (! state_->f_album_artists.is_empty())
             result.insert(String::make("xesam:albumArtist"_str),
-                          dbusto::Codec<Vec<String>>::encode(state_.f_album_artists.clone()));
-        if (! state_.f_art_url.is_empty())
+                          dbusto::Codec<Vec<String>>::encode(state_->f_album_artists.clone()));
+        if (! state_->f_art_url.is_empty())
             result.insert(String::make("mpris:artUrl"_str),
-                          dbusto::Value::Text(state_.f_art_url.clone()));
-        if (! state_.f_source.is_empty())
+                          dbusto::Value::Text(state_->f_art_url.clone()));
+        if (! state_->f_source.is_empty())
             result.insert(String::make("xesam:url"_str),
-                          dbusto::Value::Text(state_.f_source.clone()));
+                          dbusto::Value::Text(state_->f_source.clone()));
         return result;
     }
-    auto update_state(p_qcm::p_msg::M_PlayerStateMsg state) -> MprisChanges {
+    auto update_state(PlayerStateSnapshot snapshot) -> MprisChanges {
+        const auto&  state = *snapshot;
         MprisChanges changes;
-        if (received_state_ &&
-            (state.f_revision < state_.f_revision || state.f_source_epoch < state_.f_source_epoch))
+        if (received_state_ && (state.f_revision < state_->f_revision ||
+                                state.f_source_epoch < state_->f_source_epoch))
             return changes;
         const auto status           = playback_status();
         const auto play             = can_play();
@@ -122,10 +123,10 @@ public:
         const auto next             = can_next();
         const auto previous         = can_previous();
         const auto old_volume       = volume();
-        const auto changed_metadata = metadata_changed(state_, state);
-        const auto sought = received_state_ && state.f_source_epoch == state_.f_source_epoch &&
-                            state.f_seek_serial > state_.f_seek_serial;
-        state_            = rstd::move(state);
+        const auto changed_metadata = metadata_changed(*state_, state);
+        const auto sought = received_state_ && state.f_source_epoch == state_->f_source_epoch &&
+                            state.f_seek_serial > state_->f_seek_serial;
+        state_            = rstd::move(snapshot);
         received_state_   = true;
         if (sought) changes.seeked = Some(position());
         if (status != playback_status())
@@ -153,6 +154,9 @@ public:
             changes.properties.insert(String::make("Metadata"_str),
                                       dbusto::Codec<dbusto::PropertyMap>::encode(metadata()));
         return changes;
+    }
+    auto update_state(p_qcm::p_msg::M_PlayerStateMsg state) -> MprisChanges {
+        return update_state(PlayerStateSnapshot::make(rstd::move(state)));
     }
     auto update_queue(const p_qcm::p_msg::M_PlayerQueueMsg& queue) -> MprisChanges {
         MprisChanges changes;
@@ -591,20 +595,20 @@ public:
             dispatch(rstd::move(endpoint), owner->connection_.clone(), owner->object_.clone())) });
         co_return Ok(rstd::move(owner));
     }
-    auto update_state(p_qcm::p_msg::M_PlayerStateMsg state) -> coro<MprisResult> {
+    auto update_state(PlayerStateSnapshot state) -> coro<MprisResult> {
         auto guard = co_await updates_.lock();
         if (endpoint_->stopped) co_return Err(String::make("MPRIS is stopping"_str));
         co_return co_await publish(endpoint_.get()->model.update_state(rstd::move(state)));
     }
-    auto update_queue(p_qcm::p_msg::M_PlayerQueueMsg queue) -> coro<MprisResult> {
+    auto update_queue(PlayerQueueSnapshot queue) -> coro<MprisResult> {
         auto guard = co_await updates_.lock();
         if (endpoint_->stopped) co_return Err(String::make("MPRIS is stopping"_str));
-        co_return co_await publish(endpoint_.get()->model.update_queue(queue));
+        co_return co_await publish(endpoint_.get()->model.update_queue(*queue));
     }
     auto update(p_qcm::p_msg::M_PlayerStateMsg state, p_qcm::p_msg::M_PlayerQueueMsg queue)
         -> coro<MprisResult> {
-        rstd_co_try(co_await update_state(rstd::move(state)));
-        co_return co_await update_queue(rstd::move(queue));
+        rstd_co_try(co_await update_state(PlayerStateSnapshot::make(rstd::move(state))));
+        co_return co_await update_queue(PlayerQueueSnapshot::make(rstd::move(queue)));
     }
     auto shutdown() -> coro<empty> {
         auto guard               = co_await closing_.lock();
@@ -630,11 +634,11 @@ export namespace rstd
 template<>
 struct Impl<qcm::backend::PlayerIntegration, Rc<qcm::backend::DesktopMpris>>
     : ImplBase<Rc<qcm::backend::DesktopMpris>> {
-    auto update_state(p_qcm::p_msg::M_PlayerStateMsg state)
+    auto update_state(qcm::backend::PlayerStateSnapshot state)
         -> coro<qcm::backend::PlayerIntegrationResult> {
         return this->self().get()->update_state(rstd::move(state));
     }
-    auto update_queue(p_qcm::p_msg::M_PlayerQueueMsg queue)
+    auto update_queue(qcm::backend::PlayerQueueSnapshot queue)
         -> coro<qcm::backend::PlayerIntegrationResult> {
         return this->self().get()->update_queue(rstd::move(queue));
     }
