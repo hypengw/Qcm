@@ -9,6 +9,7 @@ using rstd::sync::Arc;
 
 export namespace qcm::backend
 {
+class CookieStamp;
 class SessionStreamCancellation {
     lifetchto::http::BodyControl control_;
 
@@ -42,6 +43,9 @@ public:
         return Ok(CookieSession(Arc<State>::make(rstd::move(jar).unwrap())));
     }
     auto clone() const -> CookieSession { return CookieSession(state_.clone()); }
+    auto same_session(const CookieSession& other) const -> bool {
+        return Arc<State>::ptr_eq(state_, other.state_);
+    }
     auto active() const -> bool {
         auto status = state_->status.lock().unwrap();
         return status->active;
@@ -115,6 +119,18 @@ public:
         if (! status->active) return Err(lifetchto::Error::Closed());
         return state_->jar.snapshot_all();
     }
+    auto revision() const -> lifetchto::Result<Option<u64>> {
+        auto status = state_->status.lock().unwrap();
+        if (! status->active) return Err(lifetchto::Error::Closed());
+        return state_->jar.revision();
+    }
+    auto with_snapshot(mut_ref<dyn<lifetchto::http::CookieSnapshotVisitor>> visitor) const
+        -> lifetchto::Result<empty> {
+        auto status = state_->status.lock().unwrap();
+        if (! status->active) return Err(lifetchto::Error::Closed());
+        return state_->jar.with_snapshot(visitor);
+    }
+    auto stamp() const -> lifetchto::Result<CookieStamp>;
     auto replace_snapshot(Vec<lihttpto::StoredCookie> cookies) const -> lifetchto::Result<empty> {
         auto status = state_->status.lock().unwrap();
         if (! status->active) return Err(lifetchto::Error::Closed());
@@ -124,6 +140,26 @@ public:
     void request_close() const { state_->jar.request_close(); }
     auto close() const -> coro<lifetchto::Result<empty>> { return state_->jar.close(); }
 };
+
+class CookieStamp {
+    CookieSession session_;
+    Option<u64>   revision_;
+
+public:
+    CookieStamp(CookieSession session, Option<u64> revision)
+        : session_(rstd::move(session)), revision_(revision) {}
+    auto clone() const -> CookieStamp { return CookieStamp(session_.clone(), revision_); }
+    auto matches(const CookieStamp& other) const -> bool {
+        return revision_.is_some() && other.revision_.is_some() && revision_ == other.revision_ &&
+               session_.same_session(other.session_);
+    }
+};
+
+inline auto CookieSession::stamp() const -> lifetchto::Result<CookieStamp> {
+    auto value = revision();
+    if (value.is_err()) return Err(rstd::move(value).unwrap_err());
+    return Ok(CookieStamp(clone(), *value));
+}
 } // namespace qcm::backend
 
 export namespace rstd

@@ -501,12 +501,8 @@ public:
         return snapshot.is_ok() && jar.replace_snapshot(rstd::move(*snapshot)).is_ok();
     }
     auto save_cookies() -> Result<String, lifetchto::Error> {
-        auto jar      = cookie_session();
-        auto snapshot = rstd_try(jar.snapshot_all());
-        auto encoded  = encode_cookie_snapshot(snapshot);
-        if (encoded.is_none())
-            return Err(lifetchto::Error::InvalidOptions("invalid cookie expiry"_Str));
-        return Ok(rstd::move(*encoded));
+        auto encoded = rstd_try(encode_cookie_snapshot(cookie_session()));
+        return Ok(rstd::move(encoded.text));
     }
     auto close() -> coro<empty> {
         Option<tuple<lifetchto::http::Client, lifetchto::http::Client>> clients;

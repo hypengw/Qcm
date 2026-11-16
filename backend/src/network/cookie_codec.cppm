@@ -1,7 +1,9 @@
 module;
 #include <rstd/enum.hpp>
+#include <rstd/macro.hpp>
 export module qcm.backend:network.cookie_codec;
 export import lifetchto;
+export import :network.cookie_session;
 import rstd.serde;
 import rstd.json;
 import :datetime;
@@ -54,6 +56,79 @@ constexpr auto rstd_serde_definition(Cookie*) {
                             Member<&Cookie::path, "path">,
                             Member<&Cookie::raw_cookie, "raw_cookie">> {};
 }
+
+struct DomainView {
+    const lihttpto::StoredCookie& cookie;
+};
+struct DomainViewDefinition {
+    static constexpr bool serializable   = true;
+    static constexpr bool deserializable = false;
+    template<class S>
+    static auto serialize(S& sink, const DomainView& value) -> typename S::result_type {
+        return sink.serialize_newtype_variant(
+            value.cookie.host_only ? "HostOnly"_str : "Suffix"_str, value.cookie.domain.as_str());
+    }
+};
+constexpr auto rstd_serde_definition(DomainView*) { return DomainViewDefinition {}; }
+
+struct ExpirationView {
+    const lihttpto::StoredCookie& cookie;
+};
+struct ExpirationViewDefinition {
+    static constexpr bool serializable   = true;
+    static constexpr bool deserializable = false;
+    template<class S>
+    static auto serialize(S& sink, const ExpirationView& value) -> typename S::result_type {
+        const auto& cookie = value.cookie;
+        if (cookie.expires.is_none()) return sink.serialize_unit_variant("SessionEnd"_str);
+        auto text = format_utc_datetime(UtcDateTime { *cookie.expires, cookie.expiry_nanoseconds });
+        if (text.is_none()) return Err(sink.invalid_value("invalid cookie expiry"_str));
+        return sink.serialize_newtype_variant("AtUtc"_str, text->as_str());
+    }
+};
+constexpr auto rstd_serde_definition(ExpirationView*) { return ExpirationViewDefinition {}; }
+
+struct CookieView {
+    const lihttpto::StoredCookie& cookie;
+};
+struct CookieViewDefinition {
+    static constexpr bool serializable   = true;
+    static constexpr bool deserializable = false;
+    template<class S>
+    static auto serialize(S& sink, const CookieView& value) -> typename S::result_type {
+        const auto& cookie = value.cookie;
+        auto        output = rstd_try(sink.begin_map(usize(4)));
+        rstd_try(rstd::serde::field(output, "domain"_str, DomainView { cookie }));
+        rstd_try(rstd::serde::field(output, "expires"_str, ExpirationView { cookie }));
+        rstd_try(rstd::serde::field(
+            output, "path"_str, rstd::tuple { cookie.path.as_str(), cookie.path_explicit }));
+        if (cookie.raw_cookie.is_empty()) {
+            auto raw = cookie.cookie.encode();
+            if (cookie.secure) raw.push_str("; Secure"_str);
+            if (cookie.http_only) raw.push_str("; HttpOnly"_str);
+            rstd_try(rstd::serde::field(output, "raw_cookie"_str, raw.as_str()));
+        } else {
+            rstd_try(rstd::serde::field(output, "raw_cookie"_str, cookie.raw_cookie.as_str()));
+        }
+        return output.end();
+    }
+};
+constexpr auto rstd_serde_definition(CookieView*) { return CookieViewDefinition {}; }
+
+struct SnapshotView {
+    slice<lihttpto::StoredCookie> cookies;
+};
+struct SnapshotViewDefinition {
+    static constexpr bool serializable   = true;
+    static constexpr bool deserializable = false;
+    template<class S>
+    static auto serialize(S& sink, const SnapshotView& value) -> typename S::result_type {
+        auto output = rstd_try(sink.begin_sequence(value.cookies.len()));
+        for (const auto& cookie : value.cookies) rstd_try(output.element(CookieView { cookie }));
+        return output.end();
+    }
+};
+constexpr auto rstd_serde_definition(SnapshotView*) { return SnapshotViewDefinition {}; }
 } // namespace qcm::backend::cookie_wire
 
 export namespace qcm::backend
@@ -89,31 +164,29 @@ auto decode_cookie_snapshot(ref<str> text) -> Option<Vec<lihttpto::StoredCookie>
     }
     return Some(rstd::move(result));
 }
-auto encode_cookie_snapshot(const Vec<lihttpto::StoredCookie>& cookies) -> Option<String> {
-    Vec<cookie_wire::Cookie> items;
-    for (const auto& cookie : cookies.as_slice()) {
-        auto raw = cookie.raw_cookie.clone();
-        if (raw.is_empty()) {
-            raw = cookie.cookie.encode();
-            if (cookie.secure) raw.push_str("; Secure"_str);
-            if (cookie.http_only) raw.push_str("; HttpOnly"_str);
-        }
-        auto domain = cookie.host_only ? cookie_wire::Domain::HostOnly(cookie.domain.clone())
-                                       : cookie_wire::Domain::Suffix(cookie.domain.clone());
-        auto expiry = cookie_wire::Expiration::SessionEnd();
-        if (cookie.expires.is_some()) {
-            auto text =
-                format_utc_datetime(UtcDateTime { *cookie.expires, cookie.expiry_nanoseconds });
-            if (text.is_none()) return None();
-            expiry = cookie_wire::Expiration::AtUtc(rstd::move(*text));
-        }
-        items.push({ rstd::move(raw),
-                     rstd::move(domain),
-                     rstd::tuple { cookie.path.clone(), cookie.path_explicit },
-                     rstd::move(expiry) });
-    }
-    auto encoded = rstd::json::encode_direct(items);
+auto encode_cookie_snapshot(slice<lihttpto::StoredCookie> cookies) -> Option<String> {
+    auto encoded = rstd::json::encode_direct(cookie_wire::SnapshotView { cookies });
     if (encoded.is_err()) return None();
     return Some(rstd::move(*encoded));
+}
+auto encode_cookie_snapshot(const Vec<lihttpto::StoredCookie>& cookies) -> Option<String> {
+    return encode_cookie_snapshot(cookies.as_slice());
+}
+
+struct EncodedCookies {
+    String      text;
+    CookieStamp stamp;
+};
+auto encode_cookie_snapshot(const CookieSession& session) -> lifetchto::Result<EncodedCookies> {
+    Option<EncodedCookies> encoded;
+    auto visitor = [&](slice<lihttpto::StoredCookie> cookies, Option<u64> revision) {
+        if (auto text = encode_cookie_snapshot(cookies))
+            encoded =
+                Some(EncodedCookies { rstd::move(*text), CookieStamp(session.clone(), revision) });
+    };
+    rstd_try(session.with_snapshot(dyn<lifetchto::http::CookieSnapshotVisitor>::from_ref(visitor)));
+    if (encoded.is_none())
+        return Err(lifetchto::Error::InvalidOptions("invalid cookie expiry"_Str));
+    return Ok(rstd::move(*encoded));
 }
 } // namespace qcm::backend

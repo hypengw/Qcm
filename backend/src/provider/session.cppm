@@ -5,6 +5,8 @@ export import rstd;
 export import sqlito;
 export import luato;
 import :provider.lua_error;
+export import :provider.generation;
+export import :network.cookie_session;
 import :db.database;
 import :db.provider.store;
 using alloc::rc::make_rc;
@@ -94,21 +96,31 @@ public:
 };
 
 class ProviderSessionState {
+    struct Saved {
+        String                  custom;
+        Option<CookieStamp>     cookies;
+        ProviderGenerationCheck generation;
+    };
     Option<sqlito::ExecutorHandle> db_;
     i64                            provider_id_ {};
     String                         key_;
     bool                           active_ { true };
     SessionFlights                 flights_;
     rstd::async::Mutex<empty>      writes_ { empty {} };
+    Rc<empty>                      binding_ { make_rc<empty>() };
+    Option<Saved>                  saved_;
 
 public:
     auto bind(sqlito::ExecutorHandle db, i64 provider_id, String key) -> void {
         db_          = Some(rstd::move(db));
         provider_id_ = provider_id;
         key_         = rstd::move(key);
+        binding_     = make_rc<empty>();
+        saved_       = None();
     }
     auto invalidate() -> void {
         active_ = false;
+        saved_  = None();
         flights_.cancel();
     }
     auto active() const -> bool { return active_; }
@@ -118,20 +130,44 @@ public:
     }
     auto flights() -> SessionFlights& { return flights_; }
     auto lock_save() -> rstd::async::MutexLock<empty> { return writes_.lock(); }
-    auto save(String custom, String cookie)
+    auto reset_saved() -> void { saved_ = None(); }
+    auto is_saved(ref<str> custom, const Option<CookieStamp>& cookies,
+                  const ProviderGenerationCheck& generation) const -> bool {
+        if (! active_ || db_.is_none() || saved_.is_none() || ! generation.is_current() ||
+            ! saved_->generation.same_generation(generation) || saved_->custom.as_str() != custom ||
+            saved_->cookies.is_some() != cookies.is_some())
+            return false;
+        return cookies.is_none() || saved_->cookies->matches(*cookies);
+    }
+    auto save(String custom, String cookie, Option<CookieStamp> cookies,
+              ProviderGenerationCheck generation)
         -> rstd::async::coro<ProviderResult<SessionSaveResult>> {
-        if (! active_) co_return Ok(SessionSaveResult::Invalid);
+        if (! active_ || ! generation.is_current()) co_return Ok(SessionSaveResult::Invalid);
         if (db_.is_none()) co_return Ok(SessionSaveResult::Staged);
-        auto provider = provider_id_;
-        auto key      = key_.clone();
-        auto saved    = rstd_co_try(co_await database_run(
+        if (is_saved(custom.as_str(), cookies, generation)) co_return Ok(SessionSaveResult::Saved);
+        auto provider   = provider_id_;
+        auto key        = key_.clone();
+        auto binding    = binding_.clone();
+        auto checkpoint = Saved { custom.clone(), rstd::move(cookies), generation.clone() };
+        auto saved      = rstd_co_try(co_await database_run(
             db_->clone(),
-            [provider, key = key.clone(), custom = rstd::move(custom), cookie = rstd::move(cookie)](
-                sqlito::Connection& db) -> ProviderResult<SessionSaveResult> {
+            [provider,
+             key    = key.clone(),
+             custom = rstd::move(custom),
+             cookie = rstd::move(cookie),
+             generation =
+                 generation.clone()](sqlito::Connection& db) -> ProviderResult<SessionSaveResult> {
+                if (! generation.is_current()) return Ok(SessionSaveResult::Invalid);
                 auto saved = rstd_try(save_provider_session(db, provider, key, custom, cookie));
                 return Ok(saved ? SessionSaveResult::Saved : SessionSaveResult::Invalid);
             }));
-        if (! matches(provider, key.as_str())) co_return Ok(SessionSaveResult::Invalid);
+        if (! matches(provider, key.as_str()) || ! Rc<empty>::ptr_eq(binding_, binding) ||
+            ! generation.is_current())
+            co_return Ok(SessionSaveResult::Invalid);
+        if (saved == SessionSaveResult::Saved)
+            saved_ = Some(rstd::move(checkpoint));
+        else
+            saved_ = None();
         co_return Ok(saved);
     }
 };

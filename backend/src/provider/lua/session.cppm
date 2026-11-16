@@ -4,6 +4,7 @@ module;
 export module qcm.backend:provider.lua.session;
 export import :provider.lua.support;
 import :uuid;
+import :network.cookie_codec;
 using rstd::async::coro;
 using namespace rstd::prelude;
 using namespace rstd::literals;
@@ -26,6 +27,7 @@ inline auto session_save_run(BindingsContextArc context, u64 generation, luato::
     auto write = co_await context->session->lock_save();
     if (! context->session->active() || context->generation.current() != generation)
         co_return Err(invalid_session());
+    auto check  = context->generation.snapshot();
     auto result = rstd_co_try(save.call_values(luato::MultiValue::make()));
     auto values = rstd::move(result).into_values();
     if (values.len() != usize(1) || ! values[usize()].is_Bytes())
@@ -34,12 +36,22 @@ inline auto session_save_run(BindingsContextArc context, u64 generation, luato::
         rstd_co_try(values[usize()].as_utf8(), fail("provider save must return UTF-8"_str));
     if (! context->session->active() || context->generation.current() != generation)
         co_return Err(invalid_session());
-    auto cookies = String::make("[]"_str);
+    Option<CookieSession> cookie_session;
+    Option<CookieStamp>   cookie_stamp;
     if (context->http.is_some()) {
-        cookies = rstd_co_try((*context->http)->save_cookies(), http_error);
+        cookie_session = Some((*context->http)->cookie_session());
+        cookie_stamp   = Some(rstd_co_try(cookie_session->stamp(), http_error));
+    }
+    if (context->session->is_saved(custom, cookie_stamp, check)) co_return Ok("saved"_Str);
+    auto cookies = String::make("[]"_str);
+    if (cookie_session.is_some()) {
+        auto encoded = rstd_co_try(encode_cookie_snapshot(*cookie_session), http_error);
+        cookies      = rstd::move(encoded.text);
+        cookie_stamp = Some(rstd::move(encoded.stamp));
     }
     auto stored = rstd_co_try(
-        co_await context->session->save(String::make(custom), rstd::move(cookies)),
+        co_await context->session->save(
+            String::make(custom), rstd::move(cookies), rstd::move(cookie_stamp), rstd::move(check)),
         [](ProviderError error) {
             return provider_error_to_lua(rstd::move(error), "qcm.inner.save_session"_str);
         });
@@ -86,6 +98,7 @@ inline auto begin_session(BindingsContextArc context) -> luato::Result<empty> {
     }
     context->session->flights().cancel();
     if (! context->generation.advance()) return Err(fail("session generation exhausted"_str));
+    context->session->reset_saved();
     return Ok(empty {});
 }
 

@@ -700,6 +700,7 @@ public:
     auto login_async(AuthInput input) -> rstd::async::coro<Result<luato::LuaValue, luato::Error>> {
         if (! bindings_->generation.advance())
             co_return Err(bindings::fail("provider generation exhausted"_str));
+        bindings_->session->reset_saved();
         auto info = rstd_co_try(encode(input));
         co_return co_await funcs_.login.call_async_typed<luato::LuaValue>(single_result(),
                                                                           rstd::move(info));
@@ -716,6 +717,7 @@ public:
     auto load_session(ref<str> data) -> Result<empty, luato::Error> {
         if (! bindings_->generation.advance())
             return Err(bindings::fail("provider generation exhausted"_str));
+        bindings_->session->reset_saved();
         bindings_->session->flights().cancel();
         if (bindings_->http.is_some()) {
             auto cookies = rstd_try((*bindings_->http)->save_cookies(), bindings::http_error);
