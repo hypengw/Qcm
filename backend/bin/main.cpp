@@ -10,7 +10,11 @@ import rstd.log;
 import rstd;
 import sqlito;
 using alloc::rc::make_rc;
+using alloc::sync::SharedAllocator;
+using rstd::alloc::VirtualMemoryAllocator;
 using rstd::async::coro;
+using rstd::async::FrameAllocator;
+using rstd::async::FrameAllocatorOptions;
 using rstd::async::RuntimeBuilder;
 using rstd::async::RuntimeHandle;
 using rstd::ffi::OsString;
@@ -96,6 +100,76 @@ auto fail(ref<str> message) -> int {
     (void)rstd::as<rstd::io::Write>(error).flush();
     return 1;
 }
+struct FrameAllocatorSummary {
+    const FrameAllocator& allocator;
+
+    ~FrameAllocatorSummary() {
+        constexpr auto target = "qcm.frame_allocator"_str;
+        if (! rstd::log::log_enabled(rstd::log::Level::Debug, target)) return;
+        auto snapshot = allocator.snapshot();
+        rstd::log::debug(
+            rstd::log::Target { target },
+            "frame pool live_bytes={} live_block_bytes={} peak_live_bytes={} "
+            "reserved_bytes={} retained_bytes={} metadata_bytes={} slabs={} failures={}",
+            snapshot.pool.live_bytes,
+            snapshot.pool.live_block_bytes,
+            snapshot.pool.peak_live_bytes,
+            snapshot.pool.reserved_bytes,
+            snapshot.pool.retained_bytes,
+            snapshot.pool.metadata_bytes,
+            snapshot.pool.slabs,
+            snapshot.pool.failures);
+        rstd::log::debug(rstd::log::Target { target },
+                         "frame memory control_bytes={} upstream_mapped_bytes={} "
+                         "upstream_mapped_bytes_peak={} upstream_mappings={}",
+                         snapshot.control_bytes,
+                         snapshot.upstream.mapped_bytes,
+                         snapshot.upstream.mapped_bytes_peak,
+                         snapshot.upstream.mappings);
+        if (! snapshot.records.enabled) return;
+        rstd::log::debug(rstd::log::Target { target },
+                         "frame records allocations={} deallocations={} failures={} "
+                         "live_allocations={} peak_live_allocations={} requested_bytes={} "
+                         "live_bytes={} peak_live_bytes={} record_bytes={} remote_deallocations={}",
+                         snapshot.records.allocations,
+                         snapshot.records.deallocations,
+                         snapshot.records.failures,
+                         snapshot.records.live_allocations,
+                         snapshot.records.peak_live_allocations,
+                         snapshot.records.requested_bytes,
+                         snapshot.records.live_bytes,
+                         snapshot.records.peak_live_bytes,
+                         snapshot.records.record_bytes,
+                         snapshot.records.remote_deallocations);
+        for (usize index {}; index < snapshot.classes.len(); ++index) {
+            const auto& bucket = snapshot.classes[index];
+            if (bucket.allocations == usize()) continue;
+            rstd::log::debug(
+                rstd::log::Target { target },
+                "frame pool_input_class={} capacity={} allocations={} deallocations={} "
+                "live_allocations={} peak_live_allocations={} live_bytes={} peak_live_bytes={}",
+                index,
+                bucket.capacity,
+                bucket.allocations,
+                bucket.deallocations,
+                bucket.live_allocations,
+                bucket.peak_live_allocations,
+                bucket.live_bytes,
+                bucket.peak_live_bytes);
+        }
+        rstd::log::debug(rstd::log::Target { target },
+                         "frame lifetime_counts lt_1ms={} 1ms_to_10ms={} 10ms_to_100ms={} "
+                         "100ms_to_1s={} 1s_to_10s={} 10s_to_60s={} 60s_to_600s={} ge_600s={}",
+                         snapshot.records.lifetime_counts[usize(0)],
+                         snapshot.records.lifetime_counts[usize(1)],
+                         snapshot.records.lifetime_counts[usize(2)],
+                         snapshot.records.lifetime_counts[usize(3)],
+                         snapshot.records.lifetime_counts[usize(4)],
+                         snapshot.records.lifetime_counts[usize(5)],
+                         snapshot.records.lifetime_counts[usize(6)],
+                         snapshot.records.lifetime_counts[usize(7)]);
+    }
+};
 struct BackendPlayerHost {
     Weak<QcmService>    service;
     Arc<UiLauncher>     launcher;
@@ -222,7 +296,11 @@ struct DesktopSystem {
 struct DesktopShutdown {
     rstd::async::Runtime& runtime;
     DesktopSystem&        desktop;
-    ~DesktopShutdown() { runtime.block_on(desktop.shutdown()); }
+    ~DesktopShutdown() {
+        runtime.block_on_with([&] {
+            return desktop.shutdown();
+        });
+    }
 };
 
 auto serve_player_backend(TcpListener listener, Arc<QcmService> service,
@@ -477,23 +555,40 @@ auto main(int argc, char** argv) -> int {
     }
     auto options = rstd::move(*parsed).as_Parsed().value;
     (void)argument_span.finish();
-    auto activation = startup::take_activation_token();
-    auto runtime    = trace.measure(StartupStage::Runtime, [] {
-        return RuntimeBuilder::current_thread().enable_all().build();
+    auto                  activation = startup::take_activation_token();
+    FrameAllocatorOptions frame_options;
+    if (auto records = rstd::env::var("QCM_FRAME_ALLOCATIONS"_str))
+        frame_options.record_allocations = records->as_str() == "1"_str;
+    auto frame_allocator = FrameAllocator::try_make(frame_options);
+    if (frame_allocator.is_err()) return fail("cannot create frame allocator\n"_str);
+    // Report after the runtime and its erased allocator owner have been destroyed.
+    FrameAllocatorSummary frame_summary { *frame_allocator };
+    auto                  shared_frames =
+        SharedAllocator::try_make_in(VirtualMemoryAllocator {}, frame_allocator->clone());
+    if (shared_frames.is_err()) return fail("cannot create shared frame allocator\n"_str);
+    auto runtime = trace.measure(StartupStage::Runtime, [&] {
+        return RuntimeBuilder::current_thread()
+            .frame_allocator(shared_frames->clone())
+            .enable_all()
+            .build();
     });
     if (runtime.is_err()) return fail("cannot create runtime\n"_str);
 #if defined(__linux__)
-    auto daemon = runtime->block_on(
-        trace.measure_async(StartupStage::Instance,
-                            DaemonBus::claim(String::make(
-                                rstd::ffi::CStr::from_ptr(LITO_PKG_VERSION).to_str().unwrap()))));
+    auto daemon = runtime->block_on_with([&] {
+        return trace.measure_async(
+            StartupStage::Instance,
+            DaemonBus::claim(
+                String::make(rstd::ffi::CStr::from_ptr(LITO_PKG_VERSION).to_str().unwrap())));
+    });
     if (daemon.is_err()) return fail(rstd::format("{}\n", daemon.unwrap_err()).as_str());
     if (! (*daemon)->primary()) {
         auto notified =
-            options.no_ui
-                ? Result<empty, String>(Ok(empty {}))
-                : runtime->block_on((*daemon).get()->forward_open_ui(rstd::move(activation)));
-        runtime->block_on((*daemon).get()->shutdown());
+            options.no_ui ? Result<empty, String>(Ok(empty {})) : runtime->block_on_with([&] {
+                return (*daemon).get()->forward_open_ui(rstd::move(activation));
+            });
+        runtime->block_on_with([&] {
+            return (*daemon).get()->shutdown();
+        });
         if (notified.is_err()) return fail(rstd::format("{}\n", notified.unwrap_err()).as_str());
         trace.finish("reused"_str);
         return 0;
@@ -532,7 +627,9 @@ auto main(int argc, char** argv) -> int {
 #if defined(__linux__)
         return fail("backend data directory is in use by another session\n"_str);
 #else
-        auto activated = runtime->block_on(activate_ui(*instance, program, options, trace));
+        auto activated = runtime->block_on_with([&] {
+            return activate_ui(*instance, program, options, trace);
+        });
         if (activated.is_err())
             return fail(
                 rstd::format("cannot activate qcm-ui: {}\n", activated.as_ref().unwrap_err())
@@ -586,23 +683,24 @@ auto main(int argc, char** argv) -> int {
         return rstd::signal::subscribe(kinds.as_slice());
     });
     if (signals.is_err()) return fail("cannot subscribe to shutdown signals\n"_str);
-    auto result =
-        runtime->block_on(run_backend(runtime->handle(),
-                                      rstd::move(listener),
-                                      String::make(main_path.as_path().to_string_lossy().as_str()),
-                                      String::make(cache_path.as_path().to_string_lossy().as_str()),
-                                      rstd::move(*registry),
-                                      String::make(cache_dir.as_path().to_string_lossy().as_str()),
-                                      rstd::move(device_id),
-                                      rstd::move(shutdown).unwrap(),
-                                      rstd::move(signals).unwrap(),
-                                      desktop,
-                                      program,
-                                      player_program,
-                                      options,
-                                      ready,
-                                      rstd::move(activation),
-                                      trace));
+    auto result = runtime->block_on_with([&] {
+        return run_backend(runtime->handle(),
+                           rstd::move(listener),
+                           String::make(main_path.as_path().to_string_lossy().as_str()),
+                           String::make(cache_path.as_path().to_string_lossy().as_str()),
+                           rstd::move(*registry),
+                           String::make(cache_dir.as_path().to_string_lossy().as_str()),
+                           rstd::move(device_id),
+                           rstd::move(shutdown).unwrap(),
+                           rstd::move(signals).unwrap(),
+                           desktop,
+                           program,
+                           player_program,
+                           options,
+                           ready,
+                           rstd::move(activation),
+                           trace);
+    });
     if (result.is_err()) {
         rstd::log::error("backend failed: {}", result.as_ref().unwrap_err());
         return fail("backend server failed\n"_str);
