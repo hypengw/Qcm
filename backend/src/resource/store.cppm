@@ -8,6 +8,7 @@ import :resource.storage_core;
 import :resource.metadata;
 import :resource.segments;
 import :resource.materialize;
+import :resource.cleanup;
 import :resource.objects;
 import :resource.startup;
 import licrypto;
@@ -21,6 +22,7 @@ using rstd::sync::Condvar;
 using rstd::sync::Mutex;
 using rstd::sync::atomic::Atomic;
 using rstd::sync::atomic::Ordering;
+using rstd::sync::mpmc::RecvTimeoutError;
 using rstd::thread::JoinHandle;
 
 namespace qcm::backend::resource_cache::store_detail
@@ -143,8 +145,18 @@ auto storage_worker(PathBuf root, JobReceiver receiver, Arc<Control> control,
         trace.finish("ready"_str);
         (void)ready.send(Ok(empty {}));
         for (;;) {
-            auto job = receiver.recv();
-            if (job.is_err()) break;
+            storage.cleanup_garbage();
+            auto job = [&]() -> Result<Job, RecvTimeoutError> {
+                if (auto deadline = storage.cleanup_deadline())
+                    return receiver.recv_deadline(*deadline);
+                return receiver.recv().map_err([](auto) {
+                    return RecvTimeoutError::Disconnected;
+                });
+            }();
+            if (job.is_err()) {
+                if (job.unwrap_err() == RecvTimeoutError::Timeout) continue;
+                break;
+            }
             (void)control->space.notifier().notify();
             (*job)->operator()(storage);
             if (storage.stopped) break;
@@ -366,6 +378,7 @@ class Store {
         rstd_co_try(worker_result);
         if (! owner->control->closed.load(Ordering::Acquire)) {
             rstd_co_try(co_await call_owned(owner.clone(), [](Storage& storage) -> DbResult<empty> {
+                storage.cleanup_garbage(rstd::time::Instant::now(), true);
                 rstd_try(storage.db.checkpoint());
                 storage.stopped = true;
                 return Ok(empty {});

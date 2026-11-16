@@ -28,8 +28,7 @@ inline constexpr liorm::RecordProjection<PlainDescriptorRow, &PlainDescriptorRow
                                          &PlainDescriptorRow::format>
     plain_descriptor_projection;
 
-inline constexpr liorm::TupleProjection<i64>    version_id_projection;
-inline constexpr liorm::TupleProjection<String> generation_projection;
+inline constexpr liorm::TupleProjection<i64> version_id_projection;
 
 inline constexpr auto plain_descriptor_query  = q::compile([](q::QueryBuilder& b) {
     auto f = b.use(schema).table<CompleteFileRecord>();
@@ -102,15 +101,6 @@ inline constexpr auto defer_build_query       = q::compile([](q::QueryBuilder& b
             array<q::Expr, 1> { f.col<&CompleteFileRecord::retry_at>().set(
                                     b.excluded(f.col<&CompleteFileRecord::retry_at>())) }
                 .as_slice());
-});
-inline constexpr auto plain_generations_query = q::compile([](q::QueryBuilder& b) {
-    auto tables = b.use(schema);
-    auto v      = tables.table<VersionRecord>();
-    auto f      = tables.table<CompleteFileRecord>();
-    return generation_projection.select(b, v.col<&VersionRecord::generation>())
-        .from(v.source())
-        .join(f.source(), f.col<&CompleteFileRecord::version_id>() == v.col<&VersionRecord::id>())
-        .where(f.col<&CompleteFileRecord::ready>() == b.integer(1));
 });
 inline constexpr auto retire_corrupt_query    = q::compile([](q::QueryBuilder& b) {
     auto v = b.use(schema).table<VersionRecord>();
@@ -272,8 +262,6 @@ auto Storage::plain_length(i64 id) -> DbResult<Option<u64>> {
 auto Storage::next_build() -> DbResult<Option<Ticket>> {
     if (! files_enabled) return Ok(None());
     rstd_try(expire_leases());
-    cleanup_garbage();
-    rstd_try(cleanup_plain_data());
     if (auto maintenance = evict(u64()); maintenance.is_err())
         rstd::log::debug("cache maintenance waiting: {}", rstd::move(maintenance).unwrap_err());
     Vec<i64> ids;
@@ -383,8 +371,7 @@ auto Storage::publish_file(Version version, array<u8, 32> digest) -> DbResult<em
     (*resident)->file  = Some(rstd::move(file));
     (*resident)->plain = true;
     building           = None();
-    if (auto cleanup = cleanup_plain_data(); cleanup.is_err())
-        rstd::log::warn("published file cleanup deferred: {}", rstd::move(cleanup).unwrap_err());
+    defer_remove(rstd::format("{}.data", version.meta.generation.as_str()));
     return Ok(empty {});
 }
 auto Storage::defer_build(i64 id) -> DbResult<empty> {
@@ -408,49 +395,6 @@ auto Storage::finish_failed(i64 id) -> DbResult<empty> {
         }
     }
     return Ok(empty {});
-}
-auto Storage::cleanup_plain_data() -> DbResult<empty> {
-    Vec<String> names;
-    {
-        auto rows = rstd_try(db.query(materialize_detail::plain_generations_query));
-        auto values =
-            rstd_try(liorm::sqlito::all_rows(rows, materialize_detail::generation_projection));
-        for (const auto& value : values)
-            names.push(rstd::format("{}.data", rstd::get<0>(value).as_str()));
-    }
-    for (const auto& name : names)
-        if (sizes.contains_key(name)) rstd_try(remove_managed(name.as_str()));
-    return Ok(empty {});
-}
-auto Storage::remove_managed(ref<str> name) -> DbResult<empty> {
-    if (! managed_file_name(name) && ! managed_segment_name(name) && ! managed_pack_name(name))
-        return Err(Error::state("unmanaged cache path"_str));
-    auto result = [&]() -> DbResult<empty> {
-        auto removed = rstd::fs::remove_file(root.join(name).as_path());
-        if (removed.is_err()) {
-            auto cause = rstd::move(removed).unwrap_err();
-            if (cause.kind().code != rstd::io::ErrorKind::NotFound)
-                return Err(Error::io(rstd::move(cause)));
-        }
-        return sync_directory(root.as_path());
-    }();
-    if (result.is_err()) {
-        garbage.insert(String::make(name));
-        return result;
-    }
-    garbage.remove(name);
-    sizes.remove(name);
-    return Ok(empty {});
-}
-void Storage::cleanup_garbage() {
-    Vec<String> names;
-    for (auto name : garbage.iter()) {
-        if (names.len() == usize(64)) break;
-        names.push(name->clone());
-    }
-    for (const auto& name : names)
-        if (auto cleanup = remove_managed(name.as_str()); cleanup.is_err())
-            rstd::log::debug("cache cleanup still deferred: {}", rstd::move(cleanup).unwrap_err());
 }
 auto Storage::retire_corrupt(i64 id) -> DbResult<empty> {
     if (auto value = versions.get(id))

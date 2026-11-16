@@ -13,13 +13,13 @@ using namespace rstd::literals;
 using rstd::tuple;
 using rstd::bytes::Bytes;
 using rstd::collections::HashMap;
-using rstd::collections::HashSet;
 using rstd::fs::File;
 using rstd::path::Path;
 using rstd::path::PathBuf;
 using rstd::sync::Arc;
 using rstd::sync::Weak;
 using rstd::sync::atomic::Ordering;
+using rstd::time::Instant;
 
 export namespace qcm::backend::resource_cache
 {
@@ -35,6 +35,10 @@ struct Resident {
 struct Build {
     i64 id;
     u64 remaining;
+};
+struct PendingRemoval {
+    Instant after;
+    u64     retry_seconds {};
 };
 struct Ticket {
     Version version;
@@ -83,7 +87,8 @@ struct Storage {
     rstd::time::Instant                       started { rstd::time::Instant::now() };
     bool                                      files_enabled { true };
     Option<rstd::time::Instant>               restart_grace;
-    HashSet<String>                           garbage;
+    HashMap<String, PendingRemoval>           garbage;
+    Option<Instant>                           cleanup_at;
     File                                      owner;
     Storage(PathBuf path, File lock): root(rstd::move(path)), owner(rstd::move(lock)) {}
     Storage(Storage&&) = default;
@@ -140,9 +145,10 @@ struct Storage {
     auto publish_file(Version, array<u8, 32>) -> DbResult<empty>;
     auto defer_build(i64) -> DbResult<empty>;
     auto finish_failed(i64) -> DbResult<empty>;
-    auto cleanup_plain_data() -> DbResult<empty>;
-    auto remove_managed(ref<str>) -> DbResult<empty>;
-    void cleanup_garbage();
+    void defer_remove(String);
+    auto remove_managed(ref<str>, Instant now = Instant::now()) -> DbResult<empty>;
+    void cleanup_garbage(Instant now = Instant::now(), bool urgent = false);
+    auto cleanup_deadline() -> Option<Instant>;
     auto retire_corrupt(i64) -> DbResult<empty>;
     auto lease_now() const -> u64;
     auto restore_leases() -> DbResult<empty>;

@@ -690,10 +690,17 @@ auto Storage::usage() -> DbResult<Usage> {
 }
 auto Storage::evict(u64 required) -> DbResult<empty> {
     if (building.is_some()) required = required.saturating_add(building->remaining);
-    auto                           current = rstd_try(usage());
-    bool                           over    = current.image.saturating_add(current.audio)
-                                                 .saturating_add(current.metadata)
-                                                 .saturating_add(required) > capacity;
+    auto current = rstd_try(usage());
+    bool over    = current.image.saturating_add(current.audio)
+                       .saturating_add(current.metadata)
+                       .saturating_add(required) > capacity;
+    if (over && ! garbage.is_empty()) {
+        cleanup_garbage(rstd::time::Instant::now(), true);
+        current = rstd_try(usage());
+        over    = current.image.saturating_add(current.audio)
+                      .saturating_add(current.metadata)
+                      .saturating_add(required) > capacity;
+    }
     Vec<core_queries::EvictionRow> ids;
     {
         auto row =
