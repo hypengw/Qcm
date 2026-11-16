@@ -3,6 +3,7 @@ module;
 #include <rstd/enum.hpp>
 export module qcm.backend:provider.lua;
 import luato;
+import :lua_memory;
 import :provider.http_bridge;
 import :resource.prepared;
 import :provider.common;
@@ -67,6 +68,7 @@ struct LuaProviderOptions {
     Arc<PlayingState>     playing { Arc<PlayingState>::make() };
 };
 class LuaProviderHost {
+    LuaMemorySummary              memory_;
     luato::State                  state_;
     Arc<ProviderCommonData>       common_;
     Arc<BindingsContext>          bindings_;
@@ -77,7 +79,8 @@ class LuaProviderHost {
 
     LuaProviderHost(luato::State state, Arc<BindingsContext> bindings, LuaImpl funcs,
                     Option<luato::FunctionHandle> resource_scope, Vec<SettingField> settings)
-        : state_(rstd::move(state)),
+        : memory_(state, bindings->common->type_name(), bindings->common->id()),
+          state_(rstd::move(state)),
           common_(bindings->common.clone()),
           bindings_(rstd::move(bindings)),
           funcs_(rstd::move(funcs)),
@@ -92,7 +95,8 @@ public:
         if (options.installation.is_some() &&
             options.installation->namespace_name() != options.type_name.as_str())
             return Err(bindings::fail("plugin context namespace does not match provider type"_str));
-        auto state = rstd_try(luato::State::create(luato::StateOptions::build_script()));
+        auto state = rstd_try(luato::State::create(luato::StateOptions::build_script(),
+                                                   luato::MemoryOptions::pooled()));
         auto common =
             Arc<ProviderCommonData>::make(ProviderCommonData { rstd::move(options.type_name),
                                                                rstd::move(options.name),

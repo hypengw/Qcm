@@ -1,20 +1,25 @@
 module;
 #include <rstd/macro.hpp>
 export module qcm.backend:script;
+import :lua_memory;
 export import luato;
 export import rstd;
 using namespace rstd::prelude;
+using namespace rstd::literals;
 
 export namespace qcm::backend
 {
 // Owns one Lua state; provider scripts and configuration entries run here.
 class ScriptEngine {
-    luato::State state_;
-    explicit ScriptEngine(luato::State state): state_(rstd::move(state)) {}
+    LuaMemorySummary memory_;
+    luato::State     state_;
+    explicit ScriptEngine(luato::State state)
+        : memory_(state, "script"_str), state_(rstd::move(state)) {}
 
 public:
     static auto make() -> Result<ScriptEngine, luato::Error> {
-        auto created = luato::State::create(luato::StateOptions::base());
+        auto created =
+            luato::State::create(luato::StateOptions::base(), luato::MemoryOptions::pooled());
         if (created.is_err()) return Err(rstd::move(created).unwrap_err());
         return Ok(ScriptEngine { rstd::move(created).unwrap() });
     }
