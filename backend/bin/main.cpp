@@ -121,11 +121,14 @@ struct FrameAllocatorSummary {
             snapshot.pool.failures);
         rstd::log::debug(rstd::log::Target { target },
                          "frame memory control_bytes={} upstream_mapped_bytes={} "
-                         "upstream_mapped_bytes_peak={} upstream_mappings={}",
+                         "upstream_mapped_bytes_peak={} upstream_mappings={} "
+                         "upstream_allocation_calls={} upstream_deallocation_calls={}",
                          snapshot.control_bytes,
                          snapshot.upstream.mapped_bytes,
                          snapshot.upstream.mapped_bytes_peak,
-                         snapshot.upstream.mappings);
+                         snapshot.upstream.mappings,
+                         snapshot.upstream.allocation_calls,
+                         snapshot.upstream.deallocation_calls);
         if (! snapshot.records.enabled) return;
         rstd::log::debug(rstd::log::Target { target },
                          "frame records allocations={} deallocations={} failures={} "
