@@ -35,6 +35,7 @@ enum class StartupStage
     Arguments,
     Paths,
     Instance,
+    SqliteMemory,
     Runtime,
     Listener,
     Settings,
@@ -60,6 +61,7 @@ constexpr ref<str> STARTUP_LABELS[] = {
     "arguments"_str,
     "paths"_str,
     "instance"_str,
+    "sqlite.memory"_str,
     "runtime"_str,
     "listener"_str,
     "settings"_str,
@@ -100,6 +102,62 @@ auto fail(ref<str> message) -> int {
     (void)rstd::as<rstd::io::Write>(error).flush();
     return 1;
 }
+struct SqliteAllocatorSummary {
+    sqlito::MemoryRuntime& memory;
+
+    void report(ref<str> event) const {
+        constexpr auto target = "qcm.sqlite_allocator"_str;
+        if (! rstd::log::log_enabled(rstd::log::Level::Debug, target)) return;
+        auto snapshot = memory.snapshot();
+        rstd::log::debug(
+            rstd::log::Target { target },
+            "sqlite pool event={} live_bytes={} live_block_bytes={} peak_live_bytes={} "
+            "reserved_bytes={} retained_bytes={} metadata_bytes={} slabs={} allocations={} "
+            "reuses={} failures={} grows={} shrinks={} in_place_resizes={} copied_bytes={}",
+            event,
+            snapshot.pool.live_bytes,
+            snapshot.pool.live_block_bytes,
+            snapshot.pool.peak_live_bytes,
+            snapshot.pool.reserved_bytes,
+            snapshot.pool.retained_bytes,
+            snapshot.pool.metadata_bytes,
+            snapshot.pool.slabs,
+            snapshot.pool.allocations,
+            snapshot.pool.reuses,
+            snapshot.pool.failures,
+            snapshot.pool.grows,
+            snapshot.pool.shrinks,
+            snapshot.pool.in_place_resizes,
+            snapshot.pool.copied_bytes);
+        rstd::log::debug(rstd::log::Target { target },
+                         "sqlite memory event={} mapped_bytes={} mapped_bytes_peak={} "
+                         "mappings={} allocation_calls={} deallocation_calls={} released_bytes={} "
+                         "control_bytes={} owner_bytes={}",
+                         event,
+                         snapshot.upstream.mapped_bytes,
+                         snapshot.upstream.mapped_bytes_peak,
+                         snapshot.upstream.mappings,
+                         snapshot.upstream.allocation_calls,
+                         snapshot.upstream.deallocation_calls,
+                         snapshot.upstream.released_bytes,
+                         snapshot.control_bytes,
+                         snapshot.owner_bytes);
+        rstd::log::debug(rstd::log::Target { target },
+                         "sqlite adapter event={} moved_reallocations={} copied_bytes={}",
+                         event,
+                         snapshot.adapter.moved_reallocations,
+                         snapshot.adapter.copied_bytes);
+    }
+    ~SqliteAllocatorSummary() {
+        report("before_shutdown"_str);
+        auto closed = memory.shutdown();
+        if (closed.is_err())
+            rstd::log::error("cannot shut down SQLite allocator: {}", closed.unwrap_err());
+        report(closed.is_ok() ? "shutdown"_str : "busy"_str);
+        (void)memory.trim();
+        report("trimmed"_str);
+    }
+};
 struct FrameAllocatorSummary {
     const FrameAllocator& allocator;
 
@@ -558,6 +616,15 @@ auto main(int argc, char** argv) -> int {
     }
     auto options = rstd::move(*parsed).as_Parsed().value;
     (void)argument_span.finish();
+    auto sqlite_memory = trace.measure(StartupStage::SqliteMemory, [] {
+        return sqlito::MemoryRuntime::create();
+    });
+    if (sqlite_memory.is_err())
+        return fail(
+            rstd::format("cannot initialize SQLite allocator: {}\n", sqlite_memory.unwrap_err())
+                .as_str());
+    SqliteAllocatorSummary sqlite_summary { *sqlite_memory };
+    sqlite_summary.report("initialized"_str);
     auto                  activation = startup::take_activation_token();
     FrameAllocatorOptions frame_options;
     if (auto records = rstd::env::var("QCM_FRAME_ALLOCATIONS"_str))
