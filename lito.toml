@@ -3,6 +3,7 @@ name = "qcm"
 members = [
   "app",
   "backend",
+  "protocol",
   "backend/macro",
   "app/src/message/generator",
   "backend/plugin/jellyfin",
@@ -21,6 +22,7 @@ authors = ["hypengw <hypengwip@gmail.com>"]
 qcm-backend = { path = "backend" }
 qcm-backend-macro = { path = "backend/macro" }
 qcm-player = { path = "player" }
+qcm-protocol = { path = "protocol" }
 qcm-qr-code = { path = "third_party/qr_code" }
 qcm-message-build = { path = "app/src/message/generator" }
 rstd-cppstd = { version = "0.1.7" }
@@ -56,7 +58,7 @@ qextra = { git = "https://github.com/hypengw/QExtra.git" }
 wavsen = { git = "https://github.com/hypengw/wavsen.git" }
 
 [workspace.external-sources.qcm-proto]
-path = "proto"
+path = "protocol/proto"
 
 
 [workspace.external-sources.qml-material]

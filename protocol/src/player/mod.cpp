@@ -1,6 +1,7 @@
 module;
 #include <rstd/macro.hpp>
-module qcm.player.protocol;
+module qcm.protocol;
+import :player;
 import rstd.json;
 import rstd.serde;
 using namespace rstd::literals;

@@ -1,4 +1,4 @@
-export module qcm.player.protocol;
+export module qcm.protocol:player;
 export import rstd;
 
 using namespace rstd::prelude;

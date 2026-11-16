@@ -3,7 +3,7 @@ module;
 export module qcm.player.bin:process;
 import qcm.player;
 import qcm.player.io;
-import qcm.player.protocol;
+import qcm.protocol;
 import :transport;
 import rstd;
 

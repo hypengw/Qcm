@@ -11,7 +11,7 @@ module = "qcm.backend"
 archive = "qcm_backend"
 
 [dependencies]
-qcm-player = { workspace = true, pub = true }
+qcm-protocol = { workspace = true, pub = true }
 qcm-backend-macro = { workspace = true }
 rstd-log = { workspace = true }
 rstd-parse = { workspace = true }
@@ -46,3 +46,6 @@ path = "protoc"
 [[bin]]
 name = "qcm"
 sources = ["bin/main.cpp"]
+
+[runtime-dependencies]
+qcm-player = { workspace = true }

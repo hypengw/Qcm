@@ -2,7 +2,7 @@ module;
 #include <rstd/macro.hpp>
 export module qcm.backend:player.process;
 export import rstd;
-export import qcm.player.protocol;
+export import qcm.protocol;
 
 using alloc::rc::make_rc;
 using alloc::rc::Rc;

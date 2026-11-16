@@ -1,0 +1,17 @@
+[package]
+name = "qcm-protocol"
+version.workspace = true
+license.workspace = true
+authors.workspace = true
+standard = "c++23"
+
+[lib]
+name = "qcm-protocol"
+module = "qcm.protocol"
+archive = "qcm_protocol"
+
+[dependencies]
+rstd-std = { workspace = true, pub = true }
+rstd-json = { workspace = true }
+rstd-serde = { workspace = true }
+rstd-serde-macro = { workspace = true }

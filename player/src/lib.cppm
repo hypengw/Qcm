@@ -1,5 +1,5 @@
 export module qcm.player;
-export import qcm.player.protocol;
+export import qcm.protocol;
 
 export import :pcm;
 export import :notify;
