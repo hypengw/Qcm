@@ -44,7 +44,10 @@ void PlayQueue::bindBackend(Backend* backend) {
                              state.durationMs() != m_player_state.durationMs();
         m_player_state     = state;
         m_has_player_snapshot = true;
-        if (changed) currentSongChanged();
+        if (changed) {
+            if (const auto row = currentIndex(); row >= 0) dataChanged(index(row), index(row));
+            currentSongChanged();
+        }
     });
     connect(backend, &Backend::connected, this, [this] {
         disconnectQueue();
@@ -87,7 +90,6 @@ void PlayQueue::applyState(const msg::PlayerQueueMsg& state) {
     m_has_snapshot = true;
     m_available    = true;
     m_mutating     = false;
-    if (structure_changed) endResetModel();
 
     std::unordered_set<model::ItemId> retained;
     for (auto id : m_state.songIds()) retained.emplace(enums::ItemType::ItemSong, qint64(id));
@@ -105,6 +107,12 @@ void PlayQueue::applyState(const msg::PlayerQueueMsg& state) {
                      return load.second.contains(id);
                  }))
             m_pending_ids.insert(id);
+    }
+    if (structure_changed) {
+        endResetModel();
+    } else if (old_index != currentIndex()) {
+        if (old_index >= 0) dataChanged(index(old_index), index(old_index));
+        if (const auto row = currentIndex(); row >= 0) dataChanged(index(row), index(row));
     }
     if (identity::valid(state.radioQueueId())) {
         const qint64 id = qint64(state.radioQueueId().value());
