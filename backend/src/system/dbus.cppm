@@ -86,41 +86,40 @@ struct DaemonEndpoint {
     }
 };
 
-struct [[pmacro::attr("dbusto-macros::interface", "io.github.hypengw.Qcm.Daemon")]]
-DaemonInterface {
+struct [[pmacro::attr("dbusto-macro::interface", "io.github.hypengw.Qcm.Daemon")]] DaemonInterface {
     Rc<DaemonEndpoint> endpoint;
 
-    [[pmacro::helper("dbusto-macros::interface", "method", "GetVersion", "", "s")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "GetVersion", "", "s")]]
     auto get_version(const dbusto::Message&) -> coro<dbusto::Result<dbusto::Body>> {
         co_return Ok(dbusto::pack(endpoint->version.clone()));
     }
-    [[pmacro::helper("dbusto-macros::interface", "method", "GetPort", "", "q")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "GetPort", "", "q")]]
     auto get_port(const dbusto::Message&) -> coro<dbusto::Result<dbusto::Body>> {
         co_return Ok(dbusto::pack(endpoint->port));
     }
-    [[pmacro::helper("dbusto-macros::interface", "method", "OpenUi", "s", "")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "OpenUi", "s", "")]]
     auto open_ui(const dbusto::Message& call) -> coro<dbusto::Result<dbusto::Body>> {
         auto args = dbusto::unpack<String>(call.body);
         if (args.is_err()) co_return Err(rstd::move(args).unwrap_err());
         co_return co_await endpoint.get()->open_ui(rstd::move(args->template get<0>()));
     }
-    [[pmacro::helper("dbusto-macros::interface", "method", "Next", "", "")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "Next", "", "")]]
     auto next(const dbusto::Message&) -> coro<dbusto::Result<dbusto::Body>> {
         return endpoint.get()->action(p_qcm::p_msg::E_PlayerAction::v_PLAYER_ACTION_NEXT);
     }
-    [[pmacro::helper("dbusto-macros::interface", "method", "Prev", "", "")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "Prev", "", "")]]
     auto prev(const dbusto::Message&) -> coro<dbusto::Result<dbusto::Body>> {
         return endpoint.get()->action(p_qcm::p_msg::E_PlayerAction::v_PLAYER_ACTION_PREVIOUS);
     }
-    [[pmacro::helper("dbusto-macros::interface", "method", "Play", "", "")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "Play", "", "")]]
     auto play(const dbusto::Message&) -> coro<dbusto::Result<dbusto::Body>> {
         return endpoint.get()->action(p_qcm::p_msg::E_PlayerAction::v_PLAYER_ACTION_PLAY);
     }
-    [[pmacro::helper("dbusto-macros::interface", "method", "Pause", "", "")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "Pause", "", "")]]
     auto pause(const dbusto::Message&) -> coro<dbusto::Result<dbusto::Body>> {
         return endpoint.get()->action(p_qcm::p_msg::E_PlayerAction::v_PLAYER_ACTION_PAUSE);
     }
-    [[pmacro::helper("dbusto-macros::interface", "method", "PlayPause", "", "")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "PlayPause", "", "")]]
     auto play_pause(const dbusto::Message&) -> coro<dbusto::Result<dbusto::Body>> {
         return endpoint.get()->action(p_qcm::p_msg::E_PlayerAction::v_PLAYER_ACTION_TOGGLE);
     }

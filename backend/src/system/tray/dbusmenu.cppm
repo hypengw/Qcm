@@ -8,23 +8,22 @@ using namespace rstd::literals;
 
 export namespace qcm::backend::tray
 {
-struct [[pmacro::attr("dbusto-macros::interface", "com.canonical.dbusmenu")]] MenuInterface {
+struct [[pmacro::attr("dbusto-macro::interface", "com.canonical.dbusmenu")]] MenuInterface {
     Rc<TrayEndpoint> endpoint;
 
-    [[pmacro::helper("dbusto-macros::interface", "property", "Version", "u", "read", "const")]]
+    [[pmacro::helper("dbusto-macro::interface", "property", "Version", "u", "read", "const")]]
     auto version() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::UInt32(u32(3)));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "TextDirection", "s", "read",
-                     "const")]]
+    [[pmacro::helper("dbusto-macro::interface", "property", "TextDirection", "s", "read", "const")]]
     auto text_direction() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::Text("ltr"_Str));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "Status", "s", "read", "const")]]
+    [[pmacro::helper("dbusto-macro::interface", "property", "Status", "s", "read", "const")]]
     auto status() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::Text("normal"_Str));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "IconThemePath", "as", "read",
+    [[pmacro::helper("dbusto-macro::interface", "property", "IconThemePath", "as", "read",
                      "const")]]
     auto icon_theme_path() -> coro<dbusto::Result<dbusto::Value>> {
         Vec<String> paths;
@@ -32,7 +31,7 @@ struct [[pmacro::attr("dbusto-macros::interface", "com.canonical.dbusmenu")]] Me
         co_return Ok(dbusto::Codec<Vec<String>>::encode(rstd::move(paths)));
     }
 
-    [[pmacro::helper("dbusto-macros::interface", "method", "GetLayout", "iias", "u(ia{sv}av)")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "GetLayout", "iias", "u(ia{sv}av)")]]
     auto get_layout(const dbusto::Message& call) -> coro<dbusto::Result<dbusto::Body>> {
         auto args = dbusto::unpack<i32, i32, Vec<String>>(call.body);
         if (args.is_err()) co_return Err(rstd::move(args).unwrap_err());
@@ -41,7 +40,7 @@ struct [[pmacro::attr("dbusto-macros::interface", "com.canonical.dbusmenu")]] Me
         if (layout.is_err()) co_return Err(rstd::move(layout).unwrap_err());
         co_return Ok(dbusto::pack(endpoint->model.revision(), rstd::move(*layout)));
     }
-    [[pmacro::helper("dbusto-macros::interface", "method", "GetGroupProperties", "aias",
+    [[pmacro::helper("dbusto-macro::interface", "method", "GetGroupProperties", "aias",
                      "a(ia{sv})")]]
     auto get_group_properties(const dbusto::Message& call) -> coro<dbusto::Result<dbusto::Body>> {
         auto args = dbusto::unpack<Vec<i32>, Vec<String>>(call.body);
@@ -49,7 +48,7 @@ struct [[pmacro::attr("dbusto-macros::interface", "com.canonical.dbusmenu")]] Me
         co_return Ok(dbusto::pack(endpoint->model.group_properties(
             args->template get<0>().as_slice(), args->template get<1>().as_slice())));
     }
-    [[pmacro::helper("dbusto-macros::interface", "method", "GetProperty", "is", "v")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "GetProperty", "is", "v")]]
     auto get_property(const dbusto::Message& call) -> coro<dbusto::Result<dbusto::Body>> {
         auto args = dbusto::unpack<i32, String>(call.body);
         if (args.is_err()) co_return Err(rstd::move(args).unwrap_err());
@@ -61,7 +60,7 @@ struct [[pmacro::attr("dbusto-macros::interface", "com.canonical.dbusmenu")]] Me
                                                "unknown menu property"_str));
         co_return Ok(dbusto::pack((*value)->clone()));
     }
-    [[pmacro::helper("dbusto-macros::interface", "method", "Event", "isvu", "")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "Event", "isvu", "")]]
     auto event(const dbusto::Message& call) -> coro<dbusto::Result<dbusto::Body>> {
         auto args = dbusto::unpack<i32, String, dbusto::Value, u32>(call.body);
         if (args.is_err()) co_return Err(rstd::move(args).unwrap_err());
@@ -72,7 +71,7 @@ struct [[pmacro::attr("dbusto-macros::interface", "com.canonical.dbusmenu")]] Me
         }
         co_return Ok(dbusto::Body::make());
     }
-    [[pmacro::helper("dbusto-macros::interface", "method", "EventGroup", "a(isvu)", "ai")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "EventGroup", "a(isvu)", "ai")]]
     auto event_group(const dbusto::Message& call) -> coro<dbusto::Result<dbusto::Body>> {
         auto args = dbusto::unpack<Vec<MenuEvent>>(call.body);
         if (args.is_err()) co_return Err(rstd::move(args).unwrap_err());
@@ -90,14 +89,14 @@ struct [[pmacro::attr("dbusto-macros::interface", "com.canonical.dbusmenu")]] Me
         }
         co_return Ok(dbusto::pack(rstd::move(errors)));
     }
-    [[pmacro::helper("dbusto-macros::interface", "method", "AboutToShow", "i", "b")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "AboutToShow", "i", "b")]]
     auto about_to_show(const dbusto::Message& call) -> coro<dbusto::Result<dbusto::Body>> {
         auto args = dbusto::unpack<i32>(call.body);
         if (args.is_err()) co_return Err(rstd::move(args).unwrap_err());
         if (! TrayModel::contains(args->template get<0>())) co_return Err(invalid_item());
         co_return Ok(dbusto::pack(false));
     }
-    [[pmacro::helper("dbusto-macros::interface", "method", "AboutToShowGroup", "ai", "aiai")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "AboutToShowGroup", "ai", "aiai")]]
     auto about_to_show_group(const dbusto::Message& call) -> coro<dbusto::Result<dbusto::Body>> {
         auto args = dbusto::unpack<Vec<i32>>(call.body);
         if (args.is_err()) co_return Err(rstd::move(args).unwrap_err());
@@ -107,12 +106,12 @@ struct [[pmacro::attr("dbusto-macros::interface", "com.canonical.dbusmenu")]] Me
         co_return Ok(dbusto::pack(Vec<i32> {}, rstd::move(errors)));
     }
 
-    [[pmacro::helper("dbusto-macros::interface", "signal", "ItemsPropertiesUpdated",
+    [[pmacro::helper("dbusto-macro::interface", "signal", "ItemsPropertiesUpdated",
                      "a(ia{sv})a(ias)")]]
     static auto items_properties_updated() -> dbusto::SignalSpec;
-    [[pmacro::helper("dbusto-macros::interface", "signal", "LayoutUpdated", "ui")]]
+    [[pmacro::helper("dbusto-macro::interface", "signal", "LayoutUpdated", "ui")]]
     static auto layout_updated() -> dbusto::SignalSpec;
-    [[pmacro::helper("dbusto-macros::interface", "signal", "ItemActivationRequested", "iu")]]
+    [[pmacro::helper("dbusto-macro::interface", "signal", "ItemActivationRequested", "iu")]]
     static auto item_activation_requested() -> dbusto::SignalSpec;
 };
 } // namespace qcm::backend::tray

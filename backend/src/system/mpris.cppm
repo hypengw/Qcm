@@ -269,34 +269,34 @@ struct MprisEndpoint {
     }
 };
 
-struct [[pmacro::attr("dbusto-macros::interface", "org.mpris.MediaPlayer2")]] MprisRootInterface {
+struct [[pmacro::attr("dbusto-macro::interface", "org.mpris.MediaPlayer2")]] MprisRootInterface {
     Rc<MprisEndpoint> endpoint;
 
-    [[pmacro::helper("dbusto-macros::interface", "method", "Raise", "", "")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "Raise", "", "")]]
     auto raise(const dbusto::Message&) -> coro<dbusto::Result<dbusto::Body>> {
         return endpoint.get()->raise();
     }
-    [[pmacro::helper("dbusto-macros::interface", "method", "Quit", "", "")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "Quit", "", "")]]
     auto quit(const dbusto::Message&) -> coro<dbusto::Result<dbusto::Body>> {
         if (endpoint->stopped)
             co_return Err(MprisEndpoint::failed(String::make("MPRIS is stopping"_str)));
         endpoint.get()->quit_requested = true;
         co_return Ok(dbusto::Body::make());
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "CanQuit", "b", "read", "const")]]
+    [[pmacro::helper("dbusto-macro::interface", "property", "CanQuit", "b", "read", "const")]]
     auto can_quit() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::Boolean(true));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "CanRaise", "b", "read", "const")]]
+    [[pmacro::helper("dbusto-macro::interface", "property", "CanRaise", "b", "read", "const")]]
     auto can_raise() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::Boolean(true));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "HasTrackList", "b", "read", "const")]]
+    [[pmacro::helper("dbusto-macro::interface", "property", "HasTrackList", "b", "read", "const")]]
     auto has_track_list() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::Boolean(false));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "Fullscreen", "b", "readwrite",
-                     "false", "set_fullscreen")]]
+    [[pmacro::helper("dbusto-macro::interface", "property", "Fullscreen", "b", "readwrite", "false",
+                     "set_fullscreen")]]
     auto fullscreen() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::Boolean(false));
     }
@@ -304,20 +304,20 @@ struct [[pmacro::attr("dbusto-macros::interface", "org.mpris.MediaPlayer2")]] Mp
         co_return Err(dbusto::remote_error("org.freedesktop.DBus.Error.NotSupported"_str,
                                            "fullscreen is not supported"_str));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "CanSetFullscreen", "b", "read",
+    [[pmacro::helper("dbusto-macro::interface", "property", "CanSetFullscreen", "b", "read",
                      "const")]]
     auto can_set_fullscreen() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::Boolean(false));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "Identity", "s", "read", "const")]]
+    [[pmacro::helper("dbusto-macro::interface", "property", "Identity", "s", "read", "const")]]
     auto identity() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::Text(String::make("Qcm"_str)));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "DesktopEntry", "s", "read", "const")]]
+    [[pmacro::helper("dbusto-macro::interface", "property", "DesktopEntry", "s", "read", "const")]]
     auto desktop_entry() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::Text(String::make("io.github.hypengw.Qcm"_str)));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "SupportedUriSchemes", "as", "read",
+    [[pmacro::helper("dbusto-macro::interface", "property", "SupportedUriSchemes", "as", "read",
                      "const")]]
     auto supported_uri_schemes() -> coro<dbusto::Result<dbusto::Value>> {
         auto                     values = Vec<String>::make();
@@ -325,7 +325,7 @@ struct [[pmacro::attr("dbusto-macros::interface", "org.mpris.MediaPlayer2")]] Mp
         for (auto value : schemes) values.push(String::make(value));
         co_return Ok(dbusto::Codec<Vec<String>>::encode(rstd::move(values)));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "SupportedMimeTypes", "as", "read",
+    [[pmacro::helper("dbusto-macro::interface", "property", "SupportedMimeTypes", "as", "read",
                      "const")]]
     auto supported_mime_types() -> coro<dbusto::Result<dbusto::Value>> {
         auto                     values = Vec<String>::make();
@@ -337,29 +337,29 @@ struct [[pmacro::attr("dbusto-macros::interface", "org.mpris.MediaPlayer2")]] Mp
     }
 };
 
-struct [[pmacro::attr("dbusto-macros::interface", "org.mpris.MediaPlayer2.Player")]]
+struct [[pmacro::attr("dbusto-macro::interface", "org.mpris.MediaPlayer2.Player")]]
 MprisPlayerInterface {
     Rc<MprisEndpoint> endpoint;
 
-    [[pmacro::helper("dbusto-macros::interface", "method", "Next", "", "")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "Next", "", "")]]
     auto next(const dbusto::Message&) -> coro<dbusto::Result<dbusto::Body>> {
         if (! endpoint->model.can_next()) co_return Ok(dbusto::Body::make());
         co_return co_await endpoint.get()->action(
             p_qcm::p_msg::E_PlayerAction::v_PLAYER_ACTION_NEXT);
     }
-    [[pmacro::helper("dbusto-macros::interface", "method", "Previous", "", "")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "Previous", "", "")]]
     auto previous(const dbusto::Message&) -> coro<dbusto::Result<dbusto::Body>> {
         if (! endpoint->model.can_previous()) co_return Ok(dbusto::Body::make());
         co_return co_await endpoint.get()->action(
             p_qcm::p_msg::E_PlayerAction::v_PLAYER_ACTION_PREVIOUS);
     }
-    [[pmacro::helper("dbusto-macros::interface", "method", "Pause", "", "")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "Pause", "", "")]]
     auto pause(const dbusto::Message&) -> coro<dbusto::Result<dbusto::Body>> {
         if (! endpoint->model.can_pause()) co_return Ok(dbusto::Body::make());
         co_return co_await endpoint.get()->action(
             p_qcm::p_msg::E_PlayerAction::v_PLAYER_ACTION_PAUSE);
     }
-    [[pmacro::helper("dbusto-macros::interface", "method", "PlayPause", "", "")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "PlayPause", "", "")]]
     auto play_pause(const dbusto::Message&) -> coro<dbusto::Result<dbusto::Body>> {
         if (! endpoint->model.can_pause())
             co_return Err(dbusto::remote_error("org.freedesktop.DBus.Error.NotSupported"_str,
@@ -367,17 +367,17 @@ MprisPlayerInterface {
         co_return co_await endpoint.get()->action(
             p_qcm::p_msg::E_PlayerAction::v_PLAYER_ACTION_TOGGLE);
     }
-    [[pmacro::helper("dbusto-macros::interface", "method", "Stop", "", "")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "Stop", "", "")]]
     auto stop(const dbusto::Message&) -> coro<dbusto::Result<dbusto::Body>> {
         return endpoint.get()->action(p_qcm::p_msg::E_PlayerAction::v_PLAYER_ACTION_STOP);
     }
-    [[pmacro::helper("dbusto-macros::interface", "method", "Play", "", "")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "Play", "", "")]]
     auto play(const dbusto::Message&) -> coro<dbusto::Result<dbusto::Body>> {
         if (! endpoint->model.can_play()) co_return Ok(dbusto::Body::make());
         co_return co_await endpoint.get()->action(
             p_qcm::p_msg::E_PlayerAction::v_PLAYER_ACTION_PLAY);
     }
-    [[pmacro::helper("dbusto-macros::interface", "method", "Seek", "x", "")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "Seek", "x", "")]]
     auto seek(const dbusto::Message& call) -> coro<dbusto::Result<dbusto::Body>> {
         auto args = dbusto::unpack<i64>(call.body);
         if (args.is_err()) co_return Err(rstd::move(args).unwrap_err());
@@ -385,7 +385,7 @@ MprisPlayerInterface {
         if (command.is_none()) co_return Ok(dbusto::Body::make());
         co_return co_await endpoint.get()->control(rstd::move(*command));
     }
-    [[pmacro::helper("dbusto-macros::interface", "method", "SetPosition", "ox", "")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "SetPosition", "ox", "")]]
     auto set_position(const dbusto::Message& call) -> coro<dbusto::Result<dbusto::Body>> {
         auto args = dbusto::unpack<dbusto::ObjectPath, i64>(call.body);
         if (args.is_err()) co_return Err(rstd::move(args).unwrap_err());
@@ -394,7 +394,7 @@ MprisPlayerInterface {
         if (command.is_none()) co_return Ok(dbusto::Body::make());
         co_return co_await endpoint.get()->control(rstd::move(*command));
     }
-    [[pmacro::helper("dbusto-macros::interface", "method", "OpenUri", "s", "")]]
+    [[pmacro::helper("dbusto-macro::interface", "method", "OpenUri", "s", "")]]
     auto open_uri(const dbusto::Message& call) -> coro<dbusto::Result<dbusto::Body>> {
         auto args = dbusto::unpack<String>(call.body);
         if (args.is_err()) co_return Err(rstd::move(args).unwrap_err());
@@ -404,15 +404,14 @@ MprisPlayerInterface {
         command.f_source = rstd::move(args->template get<0>());
         co_return co_await endpoint.get()->control(rstd::move(command));
     }
-    [[pmacro::helper("dbusto-macros::interface", "signal", "Seeked", "x")]]
+    [[pmacro::helper("dbusto-macro::interface", "signal", "Seeked", "x")]]
     static auto seeked() -> dbusto::SignalSpec;
 
-    [[pmacro::helper("dbusto-macros::interface", "property", "PlaybackStatus", "s", "read",
-                     "true")]]
+    [[pmacro::helper("dbusto-macro::interface", "property", "PlaybackStatus", "s", "read", "true")]]
     auto playback_status() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::Text(String::make(endpoint->model.playback_status())));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "LoopStatus", "s", "readwrite", "true",
+    [[pmacro::helper("dbusto-macro::interface", "property", "LoopStatus", "s", "readwrite", "true",
                      "set_loop_status")]]
     auto loop_status() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::Text(String::make(endpoint->model.loop_status())));
@@ -433,7 +432,7 @@ MprisPlayerInterface {
             co_return Err(dbusto::type_error());
         co_return co_await endpoint.get()->queue(rstd::move(command));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "Rate", "d", "readwrite", "false",
+    [[pmacro::helper("dbusto-macro::interface", "property", "Rate", "d", "readwrite", "false",
                      "set_rate")]]
     auto rate() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::Floating(1.0));
@@ -447,7 +446,7 @@ MprisPlayerInterface {
                 endpoint.get()->action(p_qcm::p_msg::E_PlayerAction::v_PLAYER_ACTION_PAUSE));
         co_return Ok(empty {});
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "Shuffle", "b", "readwrite", "true",
+    [[pmacro::helper("dbusto-macro::interface", "property", "Shuffle", "b", "readwrite", "true",
                      "set_shuffle")]]
     auto shuffle() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::Boolean(endpoint->model.shuffle()));
@@ -461,11 +460,11 @@ MprisPlayerInterface {
         command.f_shuffle = Some<bool>(*decoded);
         co_return co_await endpoint.get()->queue(rstd::move(command));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "Metadata", "a{sv}", "read", "true")]]
+    [[pmacro::helper("dbusto-macro::interface", "property", "Metadata", "a{sv}", "read", "true")]]
     auto metadata() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Codec<dbusto::PropertyMap>::encode(endpoint->model.metadata()));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "Volume", "d", "readwrite", "true",
+    [[pmacro::helper("dbusto-macro::interface", "property", "Volume", "d", "readwrite", "true",
                      "set_volume")]]
     auto volume() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::Floating(endpoint->model.volume()));
@@ -480,39 +479,39 @@ MprisPlayerInterface {
         command.f_volume = f64(*decoded < 0.0 ? 0.0 : *decoded);
         co_return co_await MprisEndpoint::completed(endpoint.get()->control(rstd::move(command)));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "Position", "x", "read", "false")]]
+    [[pmacro::helper("dbusto-macro::interface", "property", "Position", "x", "read", "false")]]
     auto position() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::Int64(endpoint->model.position()));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "MinimumRate", "d", "read", "const")]]
+    [[pmacro::helper("dbusto-macro::interface", "property", "MinimumRate", "d", "read", "const")]]
     auto minimum_rate() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::Floating(1.0));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "MaximumRate", "d", "read", "const")]]
+    [[pmacro::helper("dbusto-macro::interface", "property", "MaximumRate", "d", "read", "const")]]
     auto maximum_rate() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::Floating(1.0));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "CanGoNext", "b", "read", "true")]]
+    [[pmacro::helper("dbusto-macro::interface", "property", "CanGoNext", "b", "read", "true")]]
     auto can_next() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::Boolean(endpoint->model.can_next()));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "CanGoPrevious", "b", "read", "true")]]
+    [[pmacro::helper("dbusto-macro::interface", "property", "CanGoPrevious", "b", "read", "true")]]
     auto can_previous() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::Boolean(endpoint->model.can_previous()));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "CanPlay", "b", "read", "true")]]
+    [[pmacro::helper("dbusto-macro::interface", "property", "CanPlay", "b", "read", "true")]]
     auto can_play() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::Boolean(endpoint->model.can_play()));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "CanPause", "b", "read", "true")]]
+    [[pmacro::helper("dbusto-macro::interface", "property", "CanPause", "b", "read", "true")]]
     auto can_pause() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::Boolean(endpoint->model.can_pause()));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "CanSeek", "b", "read", "true")]]
+    [[pmacro::helper("dbusto-macro::interface", "property", "CanSeek", "b", "read", "true")]]
     auto can_seek() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::Boolean(endpoint->model.can_seek()));
     }
-    [[pmacro::helper("dbusto-macros::interface", "property", "CanControl", "b", "read", "const")]]
+    [[pmacro::helper("dbusto-macro::interface", "property", "CanControl", "b", "read", "const")]]
     auto can_control() -> coro<dbusto::Result<dbusto::Value>> {
         co_return Ok(dbusto::Value::Boolean(true));
     }

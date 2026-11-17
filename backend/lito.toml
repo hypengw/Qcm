@@ -35,7 +35,7 @@ luato = { workspace = true, pub = true }
 luato-extra = { workspace = true, pub = true }
 sqlito = { workspace = true, pub = true }
 dbusto = { workspace = true, condition = 'target.os == "linux"' }
-dbusto-macros = { workspace = true, condition = 'target.os == "linux"' }
+dbusto-macro = { workspace = true, condition = 'target.os == "linux"' }
 
 [external-sources.qcm-proto]
 workspace = true
