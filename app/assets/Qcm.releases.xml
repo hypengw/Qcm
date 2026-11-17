@@ -1,4 +1,15 @@
 <releases>
+  <release version="1.4.0" date="2026-11-17">
+    <description>
+      <ul>
+        <li>migrate the backend from Rust to C++</li>
+        <li>move playback, queue management, and MPRIS out of the UI</li>
+        <li>add a persistent backend with a desktop tray and single-instance activation</li>
+        <li>reduce cache startup time and allocator memory overhead</li>
+        <li>fix queue song names, radio preloading, and home refresh</li>
+      </ul>
+    </description>
+  </release>
   <release version="1.3.9" date="2026-11-03">
     <description>
       <ul>

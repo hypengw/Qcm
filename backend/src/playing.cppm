@@ -21,6 +21,9 @@ class PlayingState {
     Mutex<HashMap<i64, PlayingInfo>> entries_;
 
 public:
+    // Clang 23 can crash emitting the implicit destructor through reduced BMIs.
+    ~PlayingState() = default;
+
     auto set(i64 provider, PlayingInfo info) const -> void {
         auto entries = entries_.lock().unwrap();
         entries->insert(provider, rstd::move(info));

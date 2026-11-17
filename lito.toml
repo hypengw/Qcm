@@ -14,7 +14,7 @@ members = [
 default-members = ["app", "backend", "player"]
 
 [workspace.package]
-version = "1.3.9"
+version = "1.4.0"
 license = "GPL-2.0-only"
 authors = ["hypengw <hypengwip@gmail.com>"]
 
@@ -47,15 +47,14 @@ liwebsocketo = { version = "0.1.1" }
 lifetchto = { version = "0.1.1" }
 lihttpto = { version = "0.1.2" }
 luato = { version = "0.1.1" }
-luato-extra = { version = "0.1.0" }
 rstd-json = { version = "0.1.9" }
 liunicode = { version = "0.1.0" }
 sqlito = { version = "0.1.0" }
 dbusto = { version = "0.1.0" }
 dbusto-macro = { version = "0.1.0" }
-rstd-test = { version = "0.1.9" }
 qextra = { git = "https://github.com/hypengw/QExtra.git" }
 wavsen = { git = "https://github.com/hypengw/wavsen.git" }
+luato-extra = { git = "https://github.com/hypengw/luato-extra.git" }
 
 [workspace.external-sources.qcm-proto]
 path = "protocol/proto"
