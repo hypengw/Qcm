@@ -3,6 +3,7 @@ module;
 #include <rstd/enum.hpp>
 module qcm.backend;
 import :resource.service;
+import :resource.service_state;
 import :resource.store;
 import :resource.download_key;
 import rstd.log;
@@ -70,7 +71,7 @@ auto ResourceCache::block(Version version, Arc<PreparedResource> prepared, Heade
     auto target   = rstd::move(initial).unwrap();
     auto progress = target->progress.subscribe();
     for (;;) {
-        if (*stop.borrow()) co_return Err(Error::invalidated());
+        if (*state_->stop.borrow()) co_return Err(Error::invalidated());
         auto state = progress.borrow_and_update()->clone();
         {
             auto data  = target->state.lock().unwrap();
@@ -100,7 +101,7 @@ auto ResourceCache::block(Version version, Arc<PreparedResource> prepared, Heade
 auto ResourceCache::download(Version version, Arc<PreparedResource> prepared, Headers base,
                              Range range, Option<Response> response, Arc<ReaderPosition> position)
     -> coro<ServiceResult<Arc<Download>>> {
-    auto                  active = co_await downloads.lock();
+    auto                  active = co_await state_->downloads.lock();
     Option<Arc<Download>> found;
     auto                  cursor = position->cursor.load(Ordering::Acquire);
     active->retain([](const DownloadKey&, auto& target) {
@@ -142,8 +143,8 @@ auto ResourceCache::download(Version version, Arc<PreparedResource> prepared, He
         auto released = rstd::move(active);
     }
     // Task registration and shutdown share this lock; shutdown cannot miss a newly spawned task.
-    auto pending = co_await tasks.lock();
-    if (*stop.borrow()) {
+    auto pending = co_await state_->tasks.lock();
+    if (*state_->stop.borrow()) {
         {
             auto released = rstd::move(pending);
         }
@@ -176,7 +177,7 @@ auto ResourceCache::run_download(Arc<ResourceCache> cache, Arc<Download> target,
                                                rstd::move(response));
     (void)target->progress.send_replace(
         result.is_ok() ? Progress::Complete() : Progress::Failed(rstd::move(result).unwrap_err()));
-    auto active = co_await cache->downloads.lock();
+    auto active = co_await cache->state_->downloads.lock();
     auto key    = DownloadKey { target->version, target->range.start, target->range.end };
     if (auto found = active->get(key)) {
         auto download = (*found)->upgrade();
@@ -207,7 +208,7 @@ auto ResourceCache::fetch_blocks(Arc<Download> target, Version version,
                                  Option<Response> response) -> coro<ServiceResult<empty>> {
     Option<Arc<Semaphore>> resource_limit;
     {
-        auto limits = co_await per_resource.lock();
+        auto limits = co_await state_->per_resource.lock();
         limits->retain([](i64, auto& limit) {
             return limit.strong_count() != usize();
         });
@@ -226,8 +227,8 @@ auto ResourceCache::fetch_blocks(Arc<Download> target, Version version,
         download_closed(owner(), prepared.clone(), target.clone()).into_future());
     if (resource_acquired.is_right()) co_return Err(Error::invalidated());
     auto resource_permit = rstd_co_try(rstd::move(resource_acquired).unwrap_left(), acquire_error);
-    auto buffer          = rstd_co_try(co_await buffers.clone().acquire_owned(), acquire_error);
-    auto transfer        = rstd_co_try(co_await requests.clone().acquire_owned(), acquire_error);
+    auto buffer   = rstd_co_try(co_await state_->buffers.clone().acquire_owned(), acquire_error);
+    auto transfer = rstd_co_try(co_await state_->requests.clone().acquire_owned(), acquire_error);
     if (*target->cancel.borrow()) co_return Err(Error::invalidated());
     if (response.is_none()) {
         if (version.meta.ranges && version.meta.policy.range_value().is_some()) {

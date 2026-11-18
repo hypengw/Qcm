@@ -3,6 +3,7 @@ module;
 #include <rstd/enum.hpp>
 module qcm.backend;
 import :resource.service;
+import :resource.service_state;
 import :resource.store;
 import :resource.response;
 import liuuid;
@@ -16,6 +17,7 @@ using rstd::async::OwnedSemaphorePermit;
 namespace watch = rstd::async::watch;
 using rstd::bytes::Bytes;
 using rstd::sync::Arc;
+namespace watch = rstd::async::watch;
 
 namespace qcm::backend::resource_cache
 {
@@ -33,7 +35,7 @@ struct ResourceCache::UpstreamBody {
                  ResourceBody body, OwnedSemaphorePermit reader,
                  Option<OwnedSemaphorePermit> buffer, Option<OwnedSemaphorePermit> transfer)
         : cache(rstd::move(cache)),
-          stopped(this->cache->stop.subscribe()),
+          stopped(this->cache->state_->stop.subscribe()),
           prepared(rstd::move(prepared)),
           body(Some(rstd::move(body))),
           reader(Some(rstd::move(reader))),
@@ -136,7 +138,7 @@ auto ResourceCache::passthrough(Response response, OwnedSemaphorePermit reader,
     return ResourceDelivery::Body(rstd::move(response));
 }
 auto ResourceCache::forward(Response response) -> coro<ServiceResult<ResourceDelivery>> {
-    auto reader      = rstd_co_try(co_await readers.clone().acquire_owned(), acquire_error);
+    auto reader      = rstd_co_try(co_await state_->readers.clone().acquire_owned(), acquire_error);
     response.headers = forwarded(response.headers);
     auto body        = Arc<UpstreamBody>::make(owner(),
                                                None<Arc<PreparedResource>>(),
@@ -194,7 +196,7 @@ struct ResourceCache::Reader {
         auto cursor = range.start;
         auto end    = range.end;
         if (permit.is_none()) co_return Ok(None());
-        if (*cache->stop.borrow() || ! prepared->is_valid() || ! version.is_valid()) {
+        if (*cache->state_->stop.borrow() || ! prepared->is_valid() || ! version.is_valid()) {
             co_return Err(Error::invalidated());
         }
         if (cursor == end) {
@@ -281,12 +283,12 @@ auto ResourceCache::resource_generation() -> ServiceResult<String> {
 }
 
 auto ResourceCache::respond(ResourceRequest request) -> coro<ServiceResult<ResourceDelivery>> {
-    if (*stop.borrow()) co_return Err(Error::invalidated());
-    auto permit   = rstd_co_try(co_await readers.clone().acquire_owned(), acquire_error);
+    if (*state_->stop.borrow()) co_return Err(Error::invalidated());
+    auto permit   = rstd_co_try(co_await state_->readers.clone().acquire_owned(), acquire_error);
     auto prepared = request.prepared.clone();
     if (! prepared->is_valid()) co_return Err(Error::invalidated());
     auto base = request_headers(prepared->headers(), request.headers);
-    if (store.is_none()) {
+    if (state_->store.is_none()) {
         if (only_cached(request.headers))
             co_return Ok(ResourceDelivery::Body(empty_response(i32(504))));
         auto response = rstd_co_try(
@@ -302,7 +304,7 @@ auto ResourceCache::respond(ResourceRequest request) -> coro<ServiceResult<Resou
     if (cached.is_some()) {
         bool downloading = false;
         {
-            auto active = co_await downloads.lock();
+            auto active = co_await state_->downloads.lock();
             for (auto [key, target] : active->iter())
                 if (key->version == cached->id && target->strong_count() != usize())
                     downloading = true;
@@ -470,7 +472,7 @@ auto ResourceCache::respond(ResourceRequest request) -> coro<ServiceResult<Resou
                                                          rstd::move(initial_response),
                                                          position.clone())));
     } else {
-        auto active = co_await downloads.lock();
+        auto active = co_await state_->downloads.lock();
         for (auto [key, weak] : active->iter()) {
             if (key->version != version.id || range.start < key->start || range.start >= key->end)
                 continue;

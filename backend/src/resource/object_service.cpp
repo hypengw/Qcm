@@ -2,6 +2,7 @@ module;
 #include <rstd/macro.hpp>
 module qcm.backend;
 import :resource.service;
+import :resource.service_state;
 import :resource.store;
 import licrypto;
 import rstd.log;
@@ -69,17 +70,18 @@ struct ResourceCache::ObjectBody {
 
 auto ResourceCache::respond_object(ResourceRequest request)
     -> coro<ServiceResult<ResourceDelivery>> {
-    if (*stop.borrow() || ! request.prepared->is_valid()) co_return Err(Error::invalidated());
-    auto           permit   = rstd_co_try(co_await readers.clone().acquire_owned(), acquire_error);
-    auto           buffer   = rstd_co_try(co_await buffers.clone().acquire_owned(), acquire_error);
-    auto           prepared = request.prepared.clone();
-    auto           base     = request_headers(prepared->headers(), request.headers);
-    auto           key      = rstd_co_try(request_identity(request, base));
-    auto           opening  = co_await open_lock(key.as_str());
-    auto           opened   = co_await opening->lock();
-    bool           bypass   = request_no_store(request.headers);
+    if (*state_->stop.borrow() || ! request.prepared->is_valid())
+        co_return Err(Error::invalidated());
+    auto permit   = rstd_co_try(co_await state_->readers.clone().acquire_owned(), acquire_error);
+    auto buffer   = rstd_co_try(co_await state_->buffers.clone().acquire_owned(), acquire_error);
+    auto prepared = request.prepared.clone();
+    auto base     = request_headers(prepared->headers(), request.headers);
+    auto key      = rstd_co_try(request_identity(request, base));
+    auto opening  = co_await open_lock(key.as_str());
+    auto opened   = co_await opening->lock();
+    bool bypass   = request_no_store(request.headers);
     Option<Object> cached;
-    if (! bypass && store.is_some()) {
+    if (! bypass && state_->store.is_some()) {
         auto found = co_await storage().object(key.clone());
         if (found.is_ok())
             cached = rstd::move(found).unwrap();
@@ -102,8 +104,9 @@ auto ResourceCache::respond_object(ResourceRequest request)
             for (const auto& field : conditions.as_slice())
                 (void)headers.set(field.name.as_str(), field.value.clone());
         }
-        auto sent      = now();
-        auto transfer  = rstd_co_try(co_await requests.clone().acquire_owned(), acquire_error);
+        auto sent = now();
+        auto transfer =
+            rstd_co_try(co_await state_->requests.clone().acquire_owned(), acquire_error);
         auto response  = rstd_co_try(co_await execute(prepared.clone(), rstd::move(headers)));
         auto effective = response.effective_url.is_some() ? response.effective_url->clone()
                                                           : String::make(prepared->url());
@@ -132,7 +135,7 @@ auto ResourceCache::respond_object(ResourceRequest request)
             auto merged      = merge_validation(old.meta.headers, response.headers);
             old.meta.policy  = Policy::from_response(merged, sent, now());
             old.meta.headers = saved(merged);
-            if (store.is_some()) {
+            if (state_->store.is_some()) {
                 if (old.meta.policy.store)
                     (void)co_await storage().update_object(old.meta.clone());
                 else
@@ -169,7 +172,8 @@ auto ResourceCache::respond_object(ResourceRequest request)
                                          Error::request(lifetchto::Error::Timeout()));
                 auto chunk = rstd_co_try(timed);
                 if (chunk.is_none()) break;
-                if (! prepared->is_valid() || *stop.borrow()) co_return Err(Error::invalidated());
+                if (! prepared->is_valid() || *state_->stop.borrow())
+                    co_return Err(Error::invalidated());
                 if (u64(data.len().to_primitive()) + u64(chunk->len().to_primitive()) >
                     MAX_OBJECT) {
                     if (request.headers.contains("range"_str)) {
@@ -199,7 +203,8 @@ auto ResourceCache::respond_object(ResourceRequest request)
             }
             if (expected.is_some() && *expected != u64(data.len().to_primitive()))
                 co_return Err(Error::state("incomplete object response"_str));
-            if (! prepared->is_valid() || *stop.borrow()) co_return Err(Error::invalidated());
+            if (! prepared->is_valid() || *state_->stop.borrow())
+                co_return Err(Error::invalidated());
             auto group = rstd_co_try(
                 licrypto::sha256_hex(request.scope.as_str().as_bytes()), [](auto error) {
                     return Error::state("resource group hashing failed"_str, rstd::move(error));
@@ -215,7 +220,7 @@ auto ResourceCache::respond_object(ResourceRequest request)
             meta.effective_url = rstd_co_try(prepared->cache_url(effective.as_str()));
             Object completed { rstd::move(meta), data.freeze() };
             if (! bypass && completed.meta.policy.store) {
-                if (store.is_some()) {
+                if (state_->store.is_some()) {
                     auto guard  = prepared->guard();
                     auto stored = co_await storage().put_object(completed.meta.clone(),
                                                                 completed.bytes.clone(),
@@ -227,7 +232,7 @@ auto ResourceCache::respond_object(ResourceRequest request)
                                         stored.as_ref().unwrap_err());
                     if (! prepared->is_valid()) (void)co_await storage().remove_object(key.clone());
                 }
-            } else if (store.is_some())
+            } else if (state_->store.is_some())
                 (void)co_await storage().remove_object(key.clone());
             object = Some(rstd::move(completed));
             (void)co_await response.close();
