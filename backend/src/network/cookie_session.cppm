@@ -1,8 +1,6 @@
 export module qcm.backend:network.cookie_session;
 export import lifetchto;
 export import rstd;
-using rstd::sync::Mutex;
-using rstd::sync::Weak;
 using namespace rstd::prelude;
 using rstd::async::coro;
 using rstd::sync::Arc;
@@ -14,131 +12,44 @@ class SessionStreamCancellation {
     lifetchto::http::BodyControl control_;
 
 public:
-    explicit SessionStreamCancellation(lifetchto::http::BodyControl control)
-        : control_(rstd::move(control)) {}
-    auto cancel() const -> void { control_.cancel(); }
+    explicit SessionStreamCancellation(lifetchto::http::BodyControl control);
+    auto cancel() const -> void;
 };
 class CookieSession {
-    struct Status {
-        bool                                 active { true };
-        Vec<Weak<SessionStreamCancellation>> streams;
-    };
-    struct State {
-        Mutex<Status>                    status { Status {} };
-        lifetchto::http::MemoryCookieJar jar;
-        explicit State(lifetchto::http::MemoryCookieJar value): jar(rstd::move(value)) {}
-    };
+    struct Status;
+    struct State;
     Arc<State> state_;
-    explicit CookieSession(Arc<State> state): state_(rstd::move(state)) {}
+    explicit CookieSession(Arc<State> state);
 
 public:
-    static auto make() -> lifetchto::Result<CookieSession> {
-        lihttpto::CookieOptions options;
-        options.allow_unverified_suffixes   = true;
-        options.allow_secure_from_insecure  = true;
-        options.retain_expired_replacements = true;
-        options.max_age_expiry              = Some(i64(253402300799LL));
-        auto jar = lifetchto::http::MemoryCookieJar::make(rstd::move(options));
-        if (jar.is_err()) return Err(rstd::move(jar).unwrap_err());
-        return Ok(CookieSession(Arc<State>::make(rstd::move(jar).unwrap())));
-    }
-    auto clone() const -> CookieSession { return CookieSession(state_.clone()); }
-    auto same_session(const CookieSession& other) const -> bool {
-        return Arc<State>::ptr_eq(state_, other.state_);
-    }
-    auto active() const -> bool {
-        auto status = state_->status.lock().unwrap();
-        return status->active;
-    }
-    auto invalidate() const -> void {
-        Vec<Arc<SessionStreamCancellation>> streams;
-        {
-            auto status    = state_->status.lock().unwrap();
-            status->active = false;
-            for (auto& weak : status->streams)
-                if (auto stream = weak.upgrade()) streams.push(rstd::move(stream));
-            status->streams.clear();
-        }
-        for (const auto& stream : streams) stream->cancel();
-    }
-    auto cancel_streams() const -> void {
-        Vec<Arc<SessionStreamCancellation>> streams;
-        {
-            auto status = state_->status.lock().unwrap();
-            for (auto& weak : status->streams)
-                if (auto stream = weak.upgrade()) streams.push(rstd::move(stream));
-            status->streams.clear();
-        }
-        for (const auto& stream : streams) stream->cancel();
-    }
-    auto watch(lifetchto::http::BodyControl control) const -> Arc<SessionStreamCancellation> {
-        auto stream = Arc<SessionStreamCancellation>::make(rstd::move(control));
-        bool active;
-        {
-            auto status = state_->status.lock().unwrap();
-            active      = status->active;
-            if (active) {
-                status->streams.retain([](const auto& weak) {
-                    return weak.strong_count() != usize();
-                });
-                status->streams.push(stream.downgrade());
-            }
-        }
-        if (! active) stream->cancel();
-        return stream;
-    }
-    auto select(const lihttpto::Url& url, i64 now) const
-        -> lifetchto::Result<lihttpto::CookieHeader> {
-        auto status = state_->status.lock().unwrap();
-        if (! status->active) return Ok(lihttpto::CookieHeader {});
-        return state_->jar.select(url, now);
-    }
+    CookieSession(const CookieSession&)                    = delete;
+    auto operator=(const CookieSession&) -> CookieSession& = delete;
+    CookieSession(CookieSession&&) noexcept;
+    auto operator=(CookieSession&&) noexcept -> CookieSession&;
+    ~CookieSession();
+    static auto make() -> lifetchto::Result<CookieSession>;
+    auto        clone() const -> CookieSession;
+    auto        same_session(const CookieSession& other) const -> bool;
+    auto        active() const -> bool;
+    auto        invalidate() const -> void;
+    auto        cancel_streams() const -> void;
+    auto        watch(lifetchto::http::BodyControl control) const -> Arc<SessionStreamCancellation>;
+    auto        select(const lihttpto::Url& url, i64 now) const
+        -> lifetchto::Result<lihttpto::CookieHeader>;
     auto store(const lihttpto::Url& url, const lihttpto::SetCookie& cookie, i64 now) const
-        -> lifetchto::Result<empty> {
-        auto status = state_->status.lock().unwrap();
-        if (! status->active) return Ok(empty {});
-        return state_->jar.store(url, cookie, now);
-    }
-    auto clear() const -> lifetchto::Result<empty> {
-        auto status = state_->status.lock().unwrap();
-        if (! status->active) return Err(lifetchto::Error::Closed());
-        return state_->jar.clear();
-    }
-    auto import_netscape(ref<str> input, i64 now) const -> lifetchto::Result<empty> {
-        auto status = state_->status.lock().unwrap();
-        if (! status->active) return Err(lifetchto::Error::Closed());
-        return state_->jar.import_netscape(input, now);
-    }
-    auto export_netscape(i64 now) const -> lifetchto::Result<String> {
-        auto status = state_->status.lock().unwrap();
-        if (! status->active) return Err(lifetchto::Error::Closed());
-        return state_->jar.export_netscape(now);
-    }
-    auto snapshot_all() const -> lifetchto::Result<Vec<lihttpto::StoredCookie>> {
-        auto status = state_->status.lock().unwrap();
-        if (! status->active) return Err(lifetchto::Error::Closed());
-        return state_->jar.snapshot_all();
-    }
-    auto revision() const -> lifetchto::Result<Option<u64>> {
-        auto status = state_->status.lock().unwrap();
-        if (! status->active) return Err(lifetchto::Error::Closed());
-        return state_->jar.revision();
-    }
+        -> lifetchto::Result<empty>;
+    auto clear() const -> lifetchto::Result<empty>;
+    auto import_netscape(ref<str> input, i64 now) const -> lifetchto::Result<empty>;
+    auto export_netscape(i64 now) const -> lifetchto::Result<String>;
+    auto snapshot_all() const -> lifetchto::Result<Vec<lihttpto::StoredCookie>>;
+    auto revision() const -> lifetchto::Result<Option<u64>>;
     auto with_snapshot(mut_ref<dyn<lifetchto::http::CookieSnapshotVisitor>> visitor) const
-        -> lifetchto::Result<empty> {
-        auto status = state_->status.lock().unwrap();
-        if (! status->active) return Err(lifetchto::Error::Closed());
-        return state_->jar.with_snapshot(visitor);
-    }
+        -> lifetchto::Result<empty>;
     auto stamp() const -> lifetchto::Result<CookieStamp>;
-    auto replace_snapshot(Vec<lihttpto::StoredCookie> cookies) const -> lifetchto::Result<empty> {
-        auto status = state_->status.lock().unwrap();
-        if (! status->active) return Err(lifetchto::Error::Closed());
-        return state_->jar.replace_snapshot(rstd::move(cookies));
-    }
+    auto replace_snapshot(Vec<lihttpto::StoredCookie> cookies) const -> lifetchto::Result<empty>;
     auto jar() const -> Arc<dyn<lifetchto::http::CookieJar>>;
-    void request_close() const { state_->jar.request_close(); }
-    auto close() const -> coro<lifetchto::Result<empty>> { return state_->jar.close(); }
+    void request_close() const;
+    auto close() const -> coro<lifetchto::Result<empty>>;
 };
 
 class CookieStamp {
@@ -146,20 +57,10 @@ class CookieStamp {
     Option<u64>   revision_;
 
 public:
-    CookieStamp(CookieSession session, Option<u64> revision)
-        : session_(rstd::move(session)), revision_(revision) {}
-    auto clone() const -> CookieStamp { return CookieStamp(session_.clone(), revision_); }
-    auto matches(const CookieStamp& other) const -> bool {
-        return revision_.is_some() && other.revision_.is_some() && revision_ == other.revision_ &&
-               session_.same_session(other.session_);
-    }
+    CookieStamp(CookieSession session, Option<u64> revision);
+    auto clone() const -> CookieStamp;
+    auto matches(const CookieStamp& other) const -> bool;
 };
-
-inline auto CookieSession::stamp() const -> lifetchto::Result<CookieStamp> {
-    auto value = revision();
-    if (value.is_err()) return Err(rstd::move(value).unwrap_err());
-    return Ok(CookieStamp(clone(), *value));
-}
 } // namespace qcm::backend
 
 export namespace rstd
@@ -175,10 +76,3 @@ struct Impl<lifetchto::http::CookieJar, qcm::backend::CookieSession>
     auto close() const { return this->self().close(); }
 };
 } // namespace rstd
-
-export namespace qcm::backend
-{
-inline auto CookieSession::jar() const -> Arc<dyn<lifetchto::http::CookieJar>> {
-    return Arc<dyn<lifetchto::http::CookieJar>>::make(clone());
-}
-} // namespace qcm::backend
