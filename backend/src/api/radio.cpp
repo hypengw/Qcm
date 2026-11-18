@@ -5,7 +5,7 @@ import :api.radio;
 import :provider.runtime;
 import :protocol.message;
 import :error;
-import :db.sync.retention;
+import :db.sync.run;
 import :db.query.radio;
 import :db.database;
 import :db.timestamp;

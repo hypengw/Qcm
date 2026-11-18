@@ -4,7 +4,7 @@ module qcm.backend;
 import :db.state.playlog;
 import :db.timestamp;
 import :db.sync_batch;
-import :db.sync.coordination;
+import :db.sync.run;
 import :db.error.process;
 import :db.schema;
 import liorm.sqlito;

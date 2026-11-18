@@ -2,7 +2,7 @@ module;
 #include <rstd/macro.hpp>
 export module qcm.backend:api.entity;
 import :db.database;
-import :db.sync.coordination;
+import :db.sync.run;
 import :entity;
 import :error;
 import :event;

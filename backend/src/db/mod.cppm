@@ -9,7 +9,5 @@ export import :db.size;
 export import :db.migrate;
 export import :db.sync.run;
 export import :db.sync.state;
-export import :db.sync.retention;
-export import :db.sync.coordination;
 export import :db.state.playlog;
 export import :db.sync_batch;

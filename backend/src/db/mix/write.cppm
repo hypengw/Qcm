@@ -3,7 +3,7 @@ module;
 #include <rstd/enum.hpp>
 export module qcm.backend:db.mix.write;
 export import :error;
-export import :db.sync.coordination;
+export import :db.sync.run;
 import :db.schema;
 import :db.timestamp;
 import :model.mix;

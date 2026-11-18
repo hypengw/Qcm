@@ -1,11 +1,9 @@
 module;
-#include <rstd/macro.hpp>
 #include <rstd/enum.hpp>
 export module qcm.backend:event;
 export import :protocol.types;
 export import :error;
 export import rstd;
-using alloc::rc::make_rc;
 using alloc::rc::Rc;
 using rstd::async::coro;
 using namespace rstd::prelude;
@@ -23,39 +21,31 @@ class BackendEvent {
 class EventSink {
     using Send = Box<dyn<Fn<coro<ProcessResult<empty>>(QcmMessage)>>>;
     Rc<Send> send_;
-    explicit EventSink(Send send): send_(make_rc<Send>(rstd::move(send))) {}
-    static auto send_owned(Rc<Send> send, QcmMessage message) -> coro<ProcessResult<empty>> {
-        co_return co_await (*send)->operator()(rstd::move(message));
-    }
+    explicit EventSink(Send send);
+    static auto send_owned(Rc<Send> send, QcmMessage message) -> coro<ProcessResult<empty>>;
 
 public:
     template<class F>
     static auto make(F send) -> EventSink {
         return EventSink(Send::make(rstd::move(send)));
     }
-    auto clone() const -> EventSink { return EventSink(*this); }
-    auto send_message(QcmMessage message) const -> coro<ProcessResult<empty>> {
-        return send_owned(send_.clone(), rstd::move(message));
-    }
+    auto clone() const -> EventSink;
+    auto send_message(QcmMessage message) const -> coro<ProcessResult<empty>>;
 };
 
 class ResponseSink {
     using Send = Box<dyn<Fn<coro<ProcessResult<empty>>(i32, ProcessResult<QcmMessage>)>>>;
     Rc<Send> send_;
-    explicit ResponseSink(Send send): send_(make_rc<Send>(rstd::move(send))) {}
+    explicit ResponseSink(Send send);
     static auto send_owned(Rc<Send> send, i32 id, ProcessResult<QcmMessage> response)
-        -> coro<ProcessResult<empty>> {
-        co_return co_await (*send)->operator()(id, rstd::move(response));
-    }
+        -> coro<ProcessResult<empty>>;
 
 public:
     template<class F>
     static auto make(F send) -> ResponseSink {
         return ResponseSink(Send::make(rstd::move(send)));
     }
-    auto clone() const -> ResponseSink { return ResponseSink(*this); }
-    auto respond(i32 id, ProcessResult<QcmMessage> response) const -> coro<ProcessResult<empty>> {
-        return send_owned(send_.clone(), id, rstd::move(response));
-    }
+    auto clone() const -> ResponseSink;
+    auto respond(i32 id, ProcessResult<QcmMessage> response) const -> coro<ProcessResult<empty>>;
 };
 } // namespace qcm::backend
