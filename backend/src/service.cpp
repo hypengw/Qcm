@@ -1,7 +1,7 @@
 module;
 #include <rstd/macro.hpp>
 #include <rstd/enum.hpp>
-export module qcm.backend:api.request;
+module qcm.backend;
 import rstd;
 import sqlito;
 import :entity;

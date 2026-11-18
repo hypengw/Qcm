@@ -1,5 +1,4 @@
 export module qcm.backend;
-import :api.request;
 export import :api;
 export import :datetime;
 export import :db;

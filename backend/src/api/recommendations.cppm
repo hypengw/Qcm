@@ -7,12 +7,14 @@ export import :error;
 export import :provider.runtime;
 import :provider.item;
 import :api.provider;
+import :model.album;
+import :model.artist;
 import :model.home;
+import :model.song;
 import :db.query.home;
 import :db.error.process;
 import :db.sync.run;
 import :db.database;
-import :entity;
 import :convert;
 export import rstd;
 using rstd::collections::HashMap;
@@ -104,19 +106,19 @@ using HomeTargets = HashMap<i64, Option<Box<HomeResolved>>>;
 auto read_home_target(sqlito::Transaction& tx, const Item& item, const Vec<Box<HomeRadio>>& radios)
     -> ProcessResult<Option<Box<HomeResolved>>> {
     if (item.type == ItemType::Song) {
-        auto model = entity_detail::read_model<Song>(tx, entity_detail::song_by_id, item.id);
+        auto model = home_song(tx, item.id);
         if (model.is_err()) return Err(ProcessError::db(rstd::move(model).unwrap_err()));
         if (model->is_none()) return Ok<Option<Box<HomeResolved>>>(None());
         return Ok(Some(Box<HomeResolved>::make(
             HomeResolved { item.id, item.type, HomeTarget::Song(rstd::move(**model)) })));
     } else if (item.type == ItemType::Album) {
-        auto model = entity_detail::read_model<Album>(tx, entity_detail::album_by_id, item.id);
+        auto model = home_album(tx, item.id);
         if (model.is_err()) return Err(ProcessError::db(rstd::move(model).unwrap_err()));
         if (model->is_none()) return Ok<Option<Box<HomeResolved>>>(None());
         return Ok(Some(Box<HomeResolved>::make(
             HomeResolved { item.id, item.type, HomeTarget::Album(rstd::move(**model)) })));
     } else if (item.type == ItemType::Artist) {
-        auto model = entity_detail::read_model<Artist>(tx, entity_detail::artist_by_id, item.id);
+        auto model = home_artist(tx, item.id);
         if (model.is_err()) return Err(ProcessError::db(rstd::move(model).unwrap_err()));
         if (model->is_none()) return Ok<Option<Box<HomeResolved>>>(None());
         return Ok(Some(Box<HomeResolved>::make(
