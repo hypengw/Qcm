@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Qcm/message/item_type.hpp"
-#include "Qcm/message/id.hpp"
+#include "Qcm/message/id_types.hpp"
 
 #include <QtCore/qstring.h>
 #include <QtCore/qurl.h>
@@ -12,6 +12,13 @@
 #include <functional>
 #include <optional>
 #include <string_view>
+
+namespace qcm::msg::id
+{
+#define QCM_FORWARD_ID(Name, Kind, QmlName) class Name##Id;
+QCM_ID_TYPES(QCM_FORWARD_ID)
+#undef QCM_FORWARD_ID
+} // namespace qcm::msg::id
 
 namespace qcm::model
 {

@@ -1,4 +1,5 @@
 #include "Qcm/message/item_id.hpp"
+#include "Qcm/message/id.hpp"
 #include <QString>
 #include <QHashFunctions>
 #include <mutex>
