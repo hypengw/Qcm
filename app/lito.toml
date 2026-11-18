@@ -23,6 +23,7 @@ module = "qcm.entry"
 sources = [
   "src/action.cpp",
   "src/action.cppm",
+  "src/activation.cpp",
   "src/activation.cppm",
   "src/app.cpp",
   "src/app.cppm",
@@ -58,7 +59,9 @@ sources = [
   "src/mod.cppm",
   "src/model/app_info.cppm",
   "src/model/empty_model.cppm",
+  "src/model/entity_list.cpp",
   "src/model/entity_list.cppm",
+  "src/model/item_source.cppm",
   "src/model/library_item_source.cppm",
   "src/model/library_item_source.cpp",
   "src/model/home_item_source.cppm",

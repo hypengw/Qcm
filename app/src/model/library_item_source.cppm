@@ -1,11 +1,15 @@
 module;
-#include "qml_material/model/item_source.hpp"
-#include "qml_material/model/item_demand.hpp"
 #ifdef Q_MOC_RUN
+#    include "qml_material/model/item_demand.hpp"
+#    include "qml_material/model/item_source.hpp"
 #    include "Qcm/model/library_item_source.moc"
+#else
+#    include "QExtra/macro_qt.hpp"
 #endif
 export module qcm:model.library_item_source;
-export import :model.list_models;
+import :model.item_source;
+import :msg.backend;
+import qextra.qt;
 
 export namespace qcm::model
 {

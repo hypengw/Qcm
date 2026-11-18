@@ -1,8 +1,3 @@
-module;
-
-#include <QtCore/QHash>
-#include <QtCore/QVariant>
-
 export module qcm:model.item_id_list;
 export import :model.item_id;
 import qextra;

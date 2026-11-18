@@ -1,9 +1,16 @@
 #pragma once
+#include "Qcm/message/entity.qpb.h"
 #include "entity_store.hpp"
 #include "protocol.hpp"
+#include <QtCore/QMetaProperty>
+#include <QtCore/QSet>
+#include <algorithm>
+#include <cctype>
 
 namespace qcm::store
 {
+
+namespace model = qcm::msg::model;
 
 static void trimAbsences(QHash<Key, Status>& absent, const QHash<Key, qsizetype>& pins,
                          qsizetype capacity) {

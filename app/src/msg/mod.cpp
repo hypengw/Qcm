@@ -19,6 +19,32 @@ namespace qcm
 static store::Key cacheKey(model::ItemId id) {
     return store::canonical({ int(id.type()), id.id() });
 }
+template<class T>
+ReadStore<T> AppStore::reader(int type) {
+    auto weak = QPointer<AppStore>(this);
+    return ReadStore<T>(
+        this,
+        [weak, type](i64 id) -> const T* {
+            if (! weak) return nullptr;
+            auto entry = weak->m_data.find({ type, id });
+            return entry ? static_cast<const T*>(entry->data.constData()) : nullptr;
+        },
+        [weak, type](auto callback) -> StoreSubscription {
+            if (! weak) return {};
+            return weak->subscribe(
+                [type, callback = std::move(callback)](model::ItemId id, quint64 fields) {
+                    auto actual = int(id.type());
+                    if (actual == 52) actual = 53;
+                    if (actual == type) callback(id.id(), fields);
+                });
+        },
+        [weak, type](i64 id) {
+            if (weak) weak->m_data.pin({ type, id });
+        },
+        [weak, type](i64 id) {
+            if (weak) weak->unpin(model::ItemId(static_cast<enums::ItemType>(type), id));
+        });
+}
 AppStore::AppStore(QObject* parent)
     : QObject(parent),
       albums(reader<model::Album>(store::Album)),

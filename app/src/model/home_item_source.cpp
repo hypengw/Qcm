@@ -3,6 +3,7 @@ module;
 #include "item_source_projection.hpp"
 module qcm;
 import :model.home_item_source;
+import :model.list_models;
 
 namespace qcm::model
 {

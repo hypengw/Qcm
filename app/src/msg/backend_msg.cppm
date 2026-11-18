@@ -1,8 +1,6 @@
 module;
 #include "message.qpb.h"
 
-#include "Qcm/core/log.h"
-
 export module qcm:msg.backend;
 import rstd;
 export import :model.item_id;
@@ -14,6 +12,12 @@ export namespace google::protobuf
 {
 using google::protobuf::Timestamp;
 } // namespace google::protobuf
+
+export namespace qcm::msg::entity
+{
+using qcm::msg::entity::EntityBatch;
+using qcm::msg::entity::ItemState;
+} // namespace qcm::msg::entity
 
 namespace m = qcm::msg::model;
 export namespace qcm::msg::model

@@ -4,6 +4,7 @@ module;
 #include "qml_material/model/item_demand.hpp"
 module qcm;
 import :model.library_item_source;
+import :model.list_models;
 
 namespace qcm::model
 {

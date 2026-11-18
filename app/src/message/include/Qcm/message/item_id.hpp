@@ -6,7 +6,7 @@
 #include <QtCore/qstring.h>
 #include <QtCore/qurl.h>
 #include <QtProtobuf/qtprotobuftypes.h>
-#include <QQmlEngine>
+#include <QtQmlIntegration/qqmlintegration.h>
 
 #include <compare>
 #include <functional>
@@ -73,6 +73,7 @@ public:
     Q_INVOKABLE ItemId clone() const noexcept;
 
     QString toString() const { return toUrl().toString(); }
+
 private:
     qcm::enums::ItemType m_type;
     qint64               m_id;

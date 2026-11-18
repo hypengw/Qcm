@@ -1,21 +1,19 @@
 #pragma once
 
-#include "Qcm/message/entity.qpb.h"
-#include "Qcm/message/model.qpb.h"
 #include <QtCore/QHash>
-#include <QtCore/QMetaProperty>
-#include <QtCore/QSet>
 #include <QtCore/QVariant>
-#include <algorithm>
 #include <array>
-#include <cctype>
 #include <optional>
+
+namespace qcm::msg::entity
+{
+class EntityBatch;
+}
 
 namespace qcm::store
 {
 
-namespace wire  = qcm::msg::entity;
-namespace model = qcm::msg::model;
+namespace wire = qcm::msg::entity;
 
 enum class Field : unsigned
 {
