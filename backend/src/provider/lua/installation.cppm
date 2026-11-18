@@ -3,6 +3,7 @@ module;
 #include <rstd/macro.hpp>
 export module qcm.backend:provider.lua.installation;
 export import :provider.lua.support;
+import :provider.lua_error;
 using rstd::async::coro;
 using namespace rstd::prelude;
 using namespace rstd::literals;

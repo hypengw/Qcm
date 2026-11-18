@@ -16,7 +16,6 @@ import :provider.lua_bindings;
 import :provider.lua.context;
 import :provider.lua.resource;
 import :provider.lua.support;
-import :provider.batch;
 import :model.home;
 import :model.radio;
 import licrypto;

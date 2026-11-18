@@ -3,6 +3,7 @@ module;
 #include <rstd/macro.hpp>
 export module qcm.backend:provider.lua.session;
 export import :provider.lua.support;
+import :provider.lua_error;
 import :uuid;
 import :network.cookie_codec;
 using rstd::async::coro;

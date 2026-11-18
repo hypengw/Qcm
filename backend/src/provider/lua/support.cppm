@@ -6,7 +6,6 @@ export import luato;
 export import luato.extra;
 export import rstd;
 export import :provider.http_adapter;
-export import :provider.run_codec;
 export import :provider.session;
 export import :provider.common;
 export import :resource.model;
