@@ -19,7 +19,6 @@ export import :protocol;
 export import :provider;
 export import :radio.error;
 export import :resource;
-export import :script;
 export import :server;
 export import :service;
 export import :session;

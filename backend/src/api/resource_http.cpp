@@ -3,6 +3,7 @@ module;
 module qcm.backend;
 import :api.resource_http;
 import :api.http;
+import :service;
 import :model.item;
 import :resource.policy;
 import rstd.log;

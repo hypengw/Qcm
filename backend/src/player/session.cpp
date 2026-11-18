@@ -5,7 +5,7 @@ import :player.session;
 import :player.process;
 import :player.queue;
 import :player.preferences;
-import :player.integration;
+import qcm.backend.player.integration;
 import :api.radio;
 import :db.database;
 import :db.query.player;

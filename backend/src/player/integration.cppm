@@ -1,6 +1,6 @@
-export module qcm.backend:player.integration;
-export import :protocol;
-export import rstd;
+export module qcm.backend.player.integration;
+import proto.p_message;
+import rstd;
 
 using rstd::async::coro;
 using rstd::sync::Arc;
@@ -68,30 +68,8 @@ class PlayerIntegrations {
 public:
     void add(Box<dyn<PlayerIntegration>> child) { children_.push(rstd::move(child)); }
     auto is_empty() const -> bool { return children_.is_empty(); }
-    auto update_state(PlayerStateSnapshot state) -> coro<PlayerIntegrationResult> {
-        Option<String> error;
-        for (auto& child : children_) {
-            auto result = co_await child->update_state(state.clone());
-            if (result.is_err() && error.is_none()) error = Some(rstd::move(result).unwrap_err());
-        }
-        if (error.is_some()) co_return Err(rstd::move(*error));
-        co_return Ok(empty {});
-    }
-    auto update_queue(PlayerQueueSnapshot queue) -> coro<PlayerIntegrationResult> {
-        Option<String> error;
-        for (auto& child : children_) {
-            auto result = co_await child->update_queue(queue.clone());
-            if (result.is_err() && error.is_none()) error = Some(rstd::move(result).unwrap_err());
-        }
-        if (error.is_some()) co_return Err(rstd::move(*error));
-        co_return Ok(empty {});
-    }
-    auto shutdown() -> coro<empty> {
-        while (! children_.is_empty()) {
-            auto child = children_.pop().unwrap();
-            co_await child->shutdown();
-        }
-        co_return empty {};
-    }
+    auto update_state(PlayerStateSnapshot state) -> coro<PlayerIntegrationResult>;
+    auto update_queue(PlayerQueueSnapshot queue) -> coro<PlayerIntegrationResult>;
+    auto shutdown() -> coro<empty>;
 };
 } // namespace qcm::backend

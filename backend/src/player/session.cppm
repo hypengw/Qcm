@@ -2,7 +2,7 @@ export module qcm.backend:player.session;
 import :player.process;
 import :player.queue;
 import :player.preferences;
-import :player.integration;
+import qcm.backend.player.integration;
 import :api.radio;
 import :db.query.player;
 import :db.sync.run;

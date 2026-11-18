@@ -1,5 +1,7 @@
 export module qcm.backend.system.tray:model;
-import qcm.backend;
+import qcm.backend.player.integration;
+import proto.p_message;
+import rstd;
 import dbusto;
 
 using alloc::rc::Rc;

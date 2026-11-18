@@ -1,5 +1,6 @@
 export module qcm.backend:api.resource_http;
 import :api.http;
+import liserveto;
 import :resource.file_delivery;
 using rstd::sync::Arc;
 
