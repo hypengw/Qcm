@@ -1,11 +1,8 @@
-module;
-#include <rstd/enum.hpp>
 export module qcm.backend:error;
 export import :provider.error;
 export import :radio.error;
 export import :resource.error;
 export import :db.error.query;
-import rstd.log;
 using rstd::sync::Arc;
 using namespace rstd::prelude;
 using namespace rstd::literals;
@@ -113,26 +110,6 @@ export namespace qcm::backend
         static auto radio(RadioError error) -> ProcessError;
     })]];
 // clang-format on
-inline ProcessError::ProcessError(ProviderError error)
-    : ProcessError(from_provider(rstd::move(error))) {}
-inline ProcessError::ProcessError(Arc<ProviderError> error)
-    : ProcessError(from_provider(rstd::move(error))) {}
-inline ProcessError::ProcessError(sqlito::Error error): ProcessError(db(rstd::move(error))) {}
-inline ProcessError::ProcessError(resource_cache::Error error)
-    : ProcessError(from_resource(rstd::move(error))) {}
-inline ProcessError::ProcessError(RadioError error): ProcessError(radio(rstd::move(error))) {}
-inline ProcessError::ProcessError(liorm::BindError<sqlito::Error> error)
-    : ProcessError(binding(rstd::move(error))) {}
-inline ProcessError::ProcessError(QueryError error): ProcessError(query(rstd::move(error))) {}
-inline auto ProcessError::query(QueryError error) -> ProcessError {
-    return Db(error_cause(rstd::move(error)));
-}
-inline auto ProcessError::binding(liorm::BindError<sqlito::Error> error) -> ProcessError {
-    return Db(error_cause(rstd::move(error)));
-}
-inline auto ProcessError::internal(ref<str> message) -> ProcessError {
-    return Internal(error_cause(message));
-}
 template<class E>
     requires rstd::Impled<rstd::mtp::rm_cvf<E>, rstd::error::Error>
 auto ProcessError::internal(E&& error) -> ProcessError {
@@ -158,39 +135,6 @@ template<class E>
 auto ProcessError::db(E&& error) -> ProcessError {
     return Db(error_cause(rstd::forward<E>(error)));
 }
-inline auto ProcessError::resource(resource_cache::Error error) -> ProcessError {
-    return Resource(rstd::move(error));
-}
-inline auto ProcessError::from_provider(ProviderError error) -> ProcessError {
-    return from_provider(Arc<ProviderError>::make(rstd::move(error)));
-}
-inline auto ProcessError::from_provider(Arc<ProviderError> error) -> ProcessError {
-    const auto& root = error->root();
-    if (error->is_WithContext()) {
-        if (root.is_NotFound())
-            rstd::log::debug("{}", *error);
-        else
-            rstd::log::error("{}", *error);
-    }
-    RSTD_MATCH(root) {
-        RSTD_CASE(NotFound) { return NotFound(); }
-        RSTD_CASE(NotAuth) { return NotAuth(); }
-        RSTD_CASE(AuthRequired, message, jump_url) {
-            return AuthRequired(message.clone(), jump_url.clone());
-        }
-        RSTD_CASE(ParseSubtitle, message) { return ParseSubtitle(message.clone()); }
-        RSTD_CASE_DEFAULT { return internal(rstd::move(error)); }
-    }
-}
-inline auto ProcessError::from_resource(resource_cache::Error error) -> ProcessError {
-    return resource(rstd::move(error));
-}
-inline auto ProcessError::radio(RadioError error) -> ProcessError {
-    RSTD_MATCH(error) {
-        RSTD_CASE(Provider, cause) { return from_provider(rstd::move(cause)); }
-        RSTD_CASE_DEFAULT { return Radio(rstd::move(error)); }
-    }
-}
 static_assert(! rstd::mtp::copy<ProcessError>);
 static_assert(! rstd::Impled<ProcessError, rstd::clone::Clone>);
 template<class T>
@@ -201,44 +145,30 @@ export namespace rstd
 {
 template<>
 struct Impl<convert::From<qcm::backend::QueryError>, qcm::backend::ProcessError> {
-    static auto from(qcm::backend::QueryError error) -> qcm::backend::ProcessError {
-        return qcm::backend::ProcessError::query(rstd::move(error));
-    }
+    static auto from(qcm::backend::QueryError error) -> qcm::backend::ProcessError;
 };
 template<>
 struct Impl<convert::From<liorm::BindError<sqlito::Error>>, qcm::backend::ProcessError> {
-    static auto from(liorm::BindError<sqlito::Error> error) -> qcm::backend::ProcessError {
-        return qcm::backend::ProcessError::binding(rstd::move(error));
-    }
+    static auto from(liorm::BindError<sqlito::Error> error) -> qcm::backend::ProcessError;
 };
 template<>
 struct Impl<convert::From<qcm::backend::ProviderError>, qcm::backend::ProcessError> {
-    static auto from(qcm::backend::ProviderError error) -> qcm::backend::ProcessError {
-        return qcm::backend::ProcessError(rstd::move(error));
-    }
+    static auto from(qcm::backend::ProviderError error) -> qcm::backend::ProcessError;
 };
 template<>
 struct Impl<convert::From<sync::Arc<qcm::backend::ProviderError>>, qcm::backend::ProcessError> {
-    static auto from(sync::Arc<qcm::backend::ProviderError> error) -> qcm::backend::ProcessError {
-        return qcm::backend::ProcessError(rstd::move(error));
-    }
+    static auto from(sync::Arc<qcm::backend::ProviderError> error) -> qcm::backend::ProcessError;
 };
 template<>
 struct Impl<convert::From<sqlito::Error>, qcm::backend::ProcessError> {
-    static auto from(sqlito::Error error) -> qcm::backend::ProcessError {
-        return qcm::backend::ProcessError(rstd::move(error));
-    }
+    static auto from(sqlito::Error error) -> qcm::backend::ProcessError;
 };
 template<>
 struct Impl<convert::From<qcm::backend::resource_cache::Error>, qcm::backend::ProcessError> {
-    static auto from(qcm::backend::resource_cache::Error error) -> qcm::backend::ProcessError {
-        return qcm::backend::ProcessError(rstd::move(error));
-    }
+    static auto from(qcm::backend::resource_cache::Error error) -> qcm::backend::ProcessError;
 };
 template<>
 struct Impl<convert::From<qcm::backend::RadioError>, qcm::backend::ProcessError> {
-    static auto from(qcm::backend::RadioError error) -> qcm::backend::ProcessError {
-        return qcm::backend::ProcessError(rstd::move(error));
-    }
+    static auto from(qcm::backend::RadioError error) -> qcm::backend::ProcessError;
 };
 } // namespace rstd

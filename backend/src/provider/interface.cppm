@@ -1,5 +1,3 @@
-module;
-#include <rstd/macro.hpp>
 export module qcm.backend:provider.interface;
 export import :model.home;
 export import :provider.dto;
@@ -33,9 +31,7 @@ public:
     virtual auto set_auth_info(AuthInput) -> ProviderResult<empty>       = 0;
     virtual auto settings_definition() const -> slice<SettingField> { return {}; }
     virtual auto validate_settings(const SettingsValues& values)
-        -> Result<SettingsValues, SettingsError> {
-        return qcm::backend::validate_settings(settings_definition(), values);
-    }
+        -> Result<SettingsValues, SettingsError>;
 };
 
 class ProviderSession {
@@ -48,10 +44,7 @@ public:
     virtual auto session_key() const -> Option<String> { return None(); }
     virtual auto invalidate() -> void = 0;
     virtual auto cancel_streams() -> void {}
-    virtual auto close_async() -> coro<empty> {
-        invalidate();
-        co_return empty {};
-    }
+    virtual auto close_async() -> coro<empty>;
     virtual auto resource_cookie_session() const -> CookieSession    = 0;
     virtual auto session_epoch() const -> Option<u64>                = 0;
     virtual auto lifecycle_epoch() const -> u64                      = 0;
@@ -67,89 +60,38 @@ public:
     virtual auto resource_scope() -> ProviderResult<Option<String>> { return Ok(None()); }
     virtual auto sync_async(ProviderContext, Option<Item>) -> coro<ProviderResult<u32>> = 0;
     virtual auto prepare_playback_resource_async(ref<str>, ref<str>, const lihttpto::Headers&)
-        -> coro<ProviderResult<resource_cache::PreparedResource>> {
-        co_return Err(ProviderError::NotImplemented());
-    }
+        -> coro<ProviderResult<resource_cache::PreparedResource>>;
     virtual auto prepare_resource_async(Resource, const lihttpto::Headers&)
-        -> coro<ProviderResult<resource_cache::PreparedResource>> {
-        co_return Err(ProviderError::NotImplemented());
-    }
-    virtual auto for_you_items_async(ProviderContext) -> coro<ProviderResult<Vec<HomeEntry>>> {
-        co_return Err(ProviderError::NotImplemented());
-    }
-    virtual auto open_playback_async(PlaybackRequest) -> coro<ProviderResult<PreparedPlayback>> {
-        co_return Ok(PreparedPlayback::byte_resource());
-    }
-    virtual auto keep_playback_async(String) -> coro<ProviderResult<empty>> {
-        co_return Ok(empty {});
-    }
-    virtual auto close_playback_async(String) -> coro<ProviderResult<empty>> {
-        co_return Ok(empty {});
-    }
+        -> coro<ProviderResult<resource_cache::PreparedResource>>;
+    virtual auto for_you_items_async(ProviderContext) -> coro<ProviderResult<Vec<HomeEntry>>>;
+    virtual auto open_playback_async(PlaybackRequest) -> coro<ProviderResult<PreparedPlayback>>;
+    virtual auto keep_playback_async(String) -> coro<ProviderResult<empty>>;
+    virtual auto close_playback_async(String) -> coro<ProviderResult<empty>>;
     virtual auto comments_async(ProviderContext, provider_comment::CommentTarget,
                                 provider_comment::CommentPageRequest)
-        -> coro<ProviderResult<Option<provider_comment::CommentPage>>> {
-        co_return Ok(None());
-    }
+        -> coro<ProviderResult<Option<provider_comment::CommentPage>>>;
     virtual auto comment_replies_async(ProviderContext, provider_comment::CommentTarget, String,
                                        provider_comment::CommentPageRequest)
-        -> coro<ProviderResult<Option<provider_comment::CommentPage>>> {
-        co_return Ok(None());
-    }
+        -> coro<ProviderResult<Option<provider_comment::CommentPage>>>;
     virtual auto set_comment_like_async(ProviderContext, provider_comment::CommentTarget, String,
                                         bool)
-        -> coro<ProviderResult<provider_comment::CommentLikeResult>> {
-        co_return Err(ProviderError::NotImplemented());
-    }
-    virtual auto home_blocks_async(ProviderContext) -> coro<ProviderResult<Vec<HomeBlock>>> {
-        co_return Err(ProviderError::NotImplemented());
-    }
+        -> coro<ProviderResult<provider_comment::CommentLikeResult>>;
+    virtual auto home_blocks_async(ProviderContext) -> coro<ProviderResult<Vec<HomeBlock>>>;
     virtual auto home_block_items_async(ProviderContext, String, i32, i32)
-        -> coro<ProviderResult<HomeBlockItems>> {
-        co_return Err(ProviderError::NotImplemented());
-    }
-    virtual auto qr_async() -> coro<ProviderResult<QrInfo>> {
-        co_return Err(ProviderError::NotImplemented());
-    }
+        -> coro<ProviderResult<HomeBlockItems>>;
+    virtual auto qr_async() -> coro<ProviderResult<QrInfo>>;
     virtual auto share_url(ref<str>, ItemType) -> ProviderResult<Option<lihttpto::Url>> {
         return Ok(None());
     }
     virtual auto queue_definition_async(ProviderContext, String)
-        -> coro<ProviderResult<RadioDefinition>> {
-        co_return Ok(RadioDefinition {});
-    }
+        -> coro<ProviderResult<RadioDefinition>>;
     virtual auto open_queue_async(ProviderContext context, String native_id,
-                                  QueueOpenRequest request) -> coro<ProviderResult<RadioBatch>> {
-        if (request.input.is_some()) co_return Err(ProviderError::NotImplemented());
-        auto       state = rstd_co_try(legacy_queue_state(request.configuration));
-        auto       batch = rstd_co_try(co_await legacy_queue_async(
-            rstd::move(context), rstd::move(native_id), {}, request.configuration.clone()));
-        RadioBatch result;
-        result.songs         = rstd::move(batch.songs);
-        result.state         = rstd::move(state);
-        result.configuration = rstd::move(request.configuration);
-        co_return Ok(rstd::move(result));
-    }
+                                  QueueOpenRequest request) -> coro<ProviderResult<RadioBatch>>;
     virtual auto next_queue_async(ProviderContext context, String native_id,
-                                  QueueNextRequest request) -> coro<ProviderResult<RadioBatch>> {
-        auto configuration = rstd_co_try(legacy_queue_configuration(request.state.as_str()));
-        auto batch = rstd_co_try(co_await legacy_queue_async(rstd::move(context),
-                                                             rstd::move(native_id),
-                                                             rstd::move(request.current_native_ids),
-                                                             configuration.clone()));
-        RadioBatch result;
-        result.songs         = rstd::move(batch.songs);
-        result.state         = rstd::move(request.state);
-        result.configuration = rstd::move(configuration);
-        co_return Ok(rstd::move(result));
-    }
+                                  QueueNextRequest request) -> coro<ProviderResult<RadioBatch>>;
     virtual auto legacy_queue_async(ProviderContext, String, Vec<String>, QueueConfiguration)
-        -> coro<ProviderResult<RadioBatch>> {
-        co_return Err(ProviderError::NotImplemented());
-    }
-    virtual auto close_queue_async(ProviderContext, String, String) -> coro<ProviderResult<empty>> {
-        co_return Ok(empty {});
-    }
+        -> coro<ProviderResult<RadioBatch>>;
+    virtual auto close_queue_async(ProviderContext, String, String) -> coro<ProviderResult<empty>>;
     virtual auto subtitle_async(String) -> coro<ProviderResult<SubtitleData>> = 0;
     virtual auto favorite_async(ProviderContext, String, ItemType, bool)
         -> coro<ProviderResult<empty>> = 0;

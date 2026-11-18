@@ -1,12 +1,9 @@
-module;
-#include <rstd/enum.hpp>
 export module qcm.backend:resource.error;
 export import rstd;
 export import sqlito;
 export import lihttpto;
 export import :provider.error;
 using namespace rstd::prelude;
-using namespace rstd::literals;
 using qcm::backend::ProviderError;
 using rstd::sync::Arc;
 
@@ -95,28 +92,6 @@ export namespace qcm::backend::resource_cache
     })]];
 // clang-format on
 
-inline Error::Error(sqlito::Error cause): Error(storage(rstd::move(cause))) {}
-inline Error::Error(rstd::io::Error cause): Error(io(rstd::move(cause))) {}
-inline Error::Error(ProviderError cause): Error(provider(rstd::move(cause))) {}
-inline auto Error::request(lifetchto::Error cause) -> Error {
-    return provider(ProviderError::request(rstd::move(cause)));
-}
-inline auto Error::provider(ProviderError cause) -> Error {
-    return Provider(Arc<ProviderError>::make(rstd::move(cause)));
-}
-inline auto Error::storage(sqlito::Error cause) -> Error {
-    return Storage(Arc<sqlito::Error>::make(rstd::move(cause)));
-}
-inline auto Error::io(rstd::io::Error cause) -> Error {
-    return Io(Arc<rstd::io::Error>::make(rstd::move(cause)));
-}
-inline auto Error::invalidated() -> Error { return Invalidated(); }
-inline auto Error::changed() -> Error { return Changed(); }
-inline auto Error::plain_corrupt() -> Error { return PlainCorrupt(); }
-inline auto Error::upstream(i32 status, lihttpto::Headers headers) -> Error {
-    return Upstream(status, rstd::move(headers));
-}
-inline auto Error::state(ref<str> message) -> Error { return State(String::make(message), None()); }
 template<class E>
     requires rstd::Impled<rstd::mtp::rm_cvf<E>, rstd::error::Error>
 auto Error::state(ref<str> message, E&& cause) -> Error {
@@ -125,35 +100,6 @@ auto Error::state(ref<str> message, E&& cause) -> Error {
                      Cause { Box<dyn<rstd::error::Error>>::make(rstd::forward<E>(cause)) })));
 }
 
-inline auto Error::retryable_request() const -> bool {
-    RSTD_MATCH(*this) {
-        RSTD_CASE(Provider, provider) {
-            const ProviderError& error = *provider;
-            RSTD_MATCH(error) {
-                RSTD_CASE(Request, cause) {
-                    return cause.is_Resolve() || cause.is_Connect() || cause.is_Timeout();
-                }
-                RSTD_CASE_DEFAULT { return false; }
-            }
-        }
-        RSTD_CASE_DEFAULT { return false; }
-    }
-}
-inline auto Error::should_reopen() const -> bool { return is_Changed() || is_PlainCorrupt(); }
-inline auto Error::clone() const -> Error {
-    RSTD_MATCH(*this) {
-        RSTD_CASE(Provider, cause) { return Provider(cause.clone()); }
-        RSTD_CASE(Storage, cause) { return Storage(cause.clone()); }
-        RSTD_CASE(Io, cause) { return Io(cause.clone()); }
-        RSTD_CASE(Invalidated) { return Invalidated(); }
-        RSTD_CASE(Changed) { return Changed(); }
-        RSTD_CASE(PlainCorrupt) { return PlainCorrupt(); }
-        RSTD_CASE(Upstream, status, headers) { return Upstream(status, headers.clone()); }
-        RSTD_CASE(State, message, cause) {
-            return State(message.clone(), cause.is_some() ? Some(cause->clone()) : None());
-        }
-    }
-}
 } // namespace qcm::backend::resource_cache
 
 export namespace rstd

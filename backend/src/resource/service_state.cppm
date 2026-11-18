@@ -22,13 +22,7 @@ struct ResourceCache::ReaderPosition {
 class ResourceCache::Progress {
     RSTD_ENUM(Progress, (Running), (Complete), (Failed, (Error error;)))
 public:
-    auto clone() const -> Progress {
-        RSTD_MATCH(*this) {
-            RSTD_CASE(Running) { return Running(); }
-            RSTD_CASE(Complete) { return Complete(); }
-            RSTD_CASE(Failed, error) { return Failed(error.clone()); }
-        }
-    }
+    auto clone() const -> Progress;
 };
 struct ResourceCache::DownloadState {
     HashMap<u64, Bytes>       blocks;
@@ -42,8 +36,7 @@ struct ResourceCache::Download {
     watch::Sender<Progress>          progress { Progress::Running() };
     rstd::sync::Mutex<DownloadState> state;
     Notify                           readable;
-    Download(i64 provider, i64 version, Range range, Notify readable)
-        : provider(provider), version(version), range(range), readable(rstd::move(readable)) {}
+    Download(i64 provider, i64 version, Range range, Notify readable);
 };
 struct ResourceCache::BlockOutput {
     Bytes                 bytes;
@@ -63,6 +56,6 @@ struct ResourceCache::State {
     rstd::async::Mutex<Vec<rstd::async::JoinHandle<empty>>>              tasks;
     rstd::sync::Mutex<Option<String>>                                    file_client;
 
-    explicit State(Option<Store> store): store(rstd::move(store)) {}
+    explicit State(Option<Store> store);
 };
 } // namespace qcm::backend::resource_cache

@@ -1,5 +1,3 @@
-module;
-#include <rstd/macro.hpp>
 export module qcm.backend:provider.http_bridge;
 export import rstd;
 export import :network;
@@ -7,7 +5,6 @@ using rstd::async::JoinHandle;
 using rstd::async::RuntimeHandle;
 using rstd::time::Duration;
 using namespace rstd::prelude;
-using namespace rstd::literals;
 
 export namespace qcm::backend
 {
@@ -24,13 +21,10 @@ public:
     LuaHttpBridge(LuaHttpBridge&&)                         = default;
     auto operator=(LuaHttpBridge&&) -> LuaHttpBridge&      = default;
 
-    static auto make(RuntimeHandle runtime) -> Result<LuaHttpBridge, lifetchto::Error> {
-        auto client = rstd_try(HttpClient::make(runtime.clone()));
-        return Ok(LuaHttpBridge(rstd::move(runtime), rstd::move(client)));
-    }
-    auto set_scope(Option<i64> scope) -> void { client_.set_scope(scope); }
-    auto request_async(ref<str> method, ref<str> url, lihttpto::Headers headers,
-                       Option<Vec<u8>> body, usize limit, Option<Duration> timeout = None())
+    static auto make(RuntimeHandle runtime) -> Result<LuaHttpBridge, lifetchto::Error>;
+    auto        set_scope(Option<i64> scope) -> void { client_.set_scope(scope); }
+    auto        request_async(ref<str> method, ref<str> url, lihttpto::Headers headers,
+                              Option<Vec<u8>> body, usize limit, Option<Duration> timeout = None())
         -> rstd::async::coro<Result<HttpResponse, lifetchto::Error>> {
         return client_.request(method, url, rstd::move(headers), rstd::move(body), limit, timeout);
     }
@@ -48,21 +42,7 @@ public:
     }
     auto open_session_async(ref<str> method, ref<str> url, lihttpto::Headers headers,
                             Option<Vec<u8>> body, Option<Duration> timeout, CookieSession session)
-        -> rstd::async::coro<Result<HttpResponseStream, lifetchto::Error>> {
-        auto deadline = timeout.is_some() ? *timeout : Duration::from_secs(u64(30));
-        auto opened =
-            rstd_co_try(co_await rstd::async::timeout(
-                            rstd::async::into_future(client_.open_session(method,
-                                                                          url,
-                                                                          rstd::move(headers),
-                                                                          rstd::move(body),
-                                                                          None(),
-                                                                          rstd::move(session),
-                                                                          true)),
-                            deadline),
-                        lifetchto::Error::Timeout());
-        co_return rstd::move(opened);
-    }
+        -> rstd::async::coro<Result<HttpResponseStream, lifetchto::Error>>;
     auto request_prepared_async(lihttpto::RequestParts request, usize limit,
                                 Option<Duration> timeout, CookieSession session)
         -> rstd::async::coro<Result<HttpResponse, lifetchto::Error>> {
@@ -70,16 +50,7 @@ public:
     }
     auto open_prepared_async(lihttpto::RequestParts request, Option<Duration> timeout,
                              CookieSession session)
-        -> rstd::async::coro<Result<HttpResponseStream, lifetchto::Error>> {
-        auto deadline = timeout.is_some() ? *timeout : Duration::from_secs(u64(30));
-        auto opened   = rstd_co_try(
-            co_await rstd::async::timeout(
-                client_.open_session(rstd::move(request), None(), rstd::move(session), true)
-                    .into_future(),
-                deadline),
-            lifetchto::Error::Timeout());
-        co_return rstd::move(opened);
-    }
+        -> rstd::async::coro<Result<HttpResponseStream, lifetchto::Error>>;
     auto cookie_session() const -> CookieSession { return client_.cookie_session(); }
     auto runtime() const -> RuntimeHandle { return runtime_.clone(); }
     auto reset_session() -> lifetchto::Result<empty> { return client_.reset_session(); }
@@ -96,9 +67,6 @@ public:
     auto spawn(A awaitable) -> JoinHandle<rstd::async::await_output_t<A>> {
         return runtime_.spawn(rstd::move(awaitable));
     }
-    auto close() -> rstd::async::coro<empty> {
-        (void)co_await client_.close();
-        co_return empty {};
-    }
+    auto close() -> rstd::async::coro<empty>;
 };
 } // namespace qcm::backend

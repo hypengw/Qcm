@@ -1,4 +1,5 @@
 module;
+#include <rstd/enum.hpp>
 #include <rstd/macro.hpp>
 module qcm.backend;
 import :resource.service;
@@ -15,11 +16,25 @@ using lihttpto::Headers;
 using rstd::tuple;
 using rstd::async::AcquireError;
 using rstd::async::coro;
+using rstd::async::Notify;
 using rstd::json::Value;
 using rstd::sync::Arc;
 
 namespace qcm::backend::resource_cache
 {
+
+auto ResourceCache::Progress::clone() const -> Progress {
+    RSTD_MATCH(*this) {
+        RSTD_CASE(Running) { return Running(); }
+        RSTD_CASE(Complete) { return Complete(); }
+        RSTD_CASE(Failed, error) { return Failed(error.clone()); }
+    }
+}
+
+ResourceCache::Download::Download(i64 provider, i64 version, Range range, Notify readable)
+    : provider(provider), version(version), range(range), readable(rstd::move(readable)) {}
+
+ResourceCache::State::State(Option<Store> store): store(rstd::move(store)) {}
 
 auto ResourceRequest::clone() const -> ResourceRequest {
     return { provider, kind, scope.clone(), prepared.clone(), headers.clone() };
