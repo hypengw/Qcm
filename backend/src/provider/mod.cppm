@@ -7,7 +7,6 @@ export import :provider.factory;
 export import :provider.generation;
 export import :provider.interface;
 export import :provider.item;
-export import :provider.lua;
 export import :provider.lua_plugin;
 export import :provider.playback;
 export import :provider.queue;
