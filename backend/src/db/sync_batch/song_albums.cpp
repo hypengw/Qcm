@@ -1,30 +1,17 @@
 module;
 #include <rstd/macro.hpp>
 #include <rstd/enum.hpp>
-export module qcm.backend:db.sync_batch.song_albums;
-export import :db.sync_batch.songs;
-export import :db.sync_batch.item_reference;
+module qcm.backend;
+import :db.sync_batch;
 import liorm.sqlito;
 import :db.schema;
 using namespace rstd::prelude;
 using namespace rstd::literals;
 namespace q = liorm::query;
 
-export namespace qcm::backend
-{
-struct [[pmacro::derive("serde::derive"), pmacro::helper("serde::derive", decode_only)]]
-SongAlbumInput {
-    ItemRef song;
-    [[pmacro::helper("serde::derive", default)]]
-    Option<ItemRef> album;
-};
-struct LegacySongAlbumInput {
-    String song_native_id;
-    String album_native_id;
-};
-} // namespace qcm::backend
-
 namespace qcm::backend
+{
+namespace
 {
 auto song_album_contains(slice<i64> ids, i64 id) -> bool {
     for (const auto& value : ids)
@@ -52,10 +39,8 @@ auto song_album_update(sqlito::Transaction& tx, i64 id, Option<i64> album_id)
     rstd_try(liorm::sqlito::update<database_tables>(tx, id, rstd::move(changes)));
     return Ok(empty {});
 }
-} // namespace qcm::backend
+} // namespace
 
-export namespace qcm::backend
-{
 auto write_legacy_song_album_ids(sqlito::Transaction& tx, i64 provider, i64 library,
                                  slice<LegacySongAlbumInput> entries)
     -> Result<empty, DbWriteError> {
@@ -105,7 +90,7 @@ auto write_legacy_song_album_ids(sqlito::Transaction& tx, i64 provider, i64 libr
     rstd_try(liorm::sqlito::discard(stmt));
     return Ok(empty {});
 }
-// The caller owns the transaction and the song rows written earlier in the batch.
+
 auto write_song_albums(sqlito::Transaction& tx, i64 provider, slice<SongInput> songs,
                        slice<SongAlbumInput> relations, bool songs_allow_album_id,
                        slice<i64> new_songs) -> DbWriteResult<empty> {

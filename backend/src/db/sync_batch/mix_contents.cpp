@@ -1,8 +1,8 @@
 module;
 #include <rstd/macro.hpp>
 #include <rstd/enum.hpp>
-export module qcm.backend:db.sync_batch.mix_contents;
-export import :db.sync_batch.item_reference;
+module qcm.backend;
+import :db.sync_batch;
 import liorm.sqlito;
 import :db.codec;
 import :model.remote_mix;
@@ -14,23 +14,9 @@ using namespace rstd::prelude;
 using namespace rstd::literals;
 namespace contents_query = liorm::query;
 
-export namespace qcm::backend
-{
-enum class [[pmacro::derive("serde::derive"),
-             pmacro::helper("serde::derive", decode_only)]] RelationMode
-{
-    Merge [[pmacro::helper("serde::derive", rename("merge"))]],
-    Replace [[pmacro::helper("serde::derive", rename("replace"))]],
-};
-struct [[pmacro::derive("serde::derive"), pmacro::helper("serde::derive", decode_only)]]
-MixContents {
-    ItemRef      mix;
-    RelationMode mode;
-    Vec<ItemRef> songs;
-};
-} // namespace qcm::backend
-
 namespace qcm::backend
+{
+namespace
 {
 inline constexpr contents_query::ProjectionLayout<contents_query::ModelGroup<Mix>>
                       contents_cache_projection;
@@ -79,10 +65,8 @@ auto contents_cache(sqlito::Transaction& tx, i64 remote_id) -> DbWriteResult<Mix
     if (found.is_none()) return Err(DbWriteError::Invalid(String::make("missing cache mix"_str)));
     return Ok(rstd::move(found).unwrap());
 }
-} // namespace qcm::backend
+} // namespace
 
-export namespace qcm::backend
-{
 auto write_legacy_mix_songs(sqlito::Transaction& tx, i64 provider, i64 remote_id, slice<i64> songs)
     -> DbWriteResult<empty> {
     using C = liorm::Columns<Mix>;
@@ -109,8 +93,7 @@ auto write_legacy_mix_songs(sqlito::Transaction& tx, i64 provider, i64 remote_id
     }
     return Ok(empty {});
 }
-// This is the ordered-contents apply stage, not the outer SyncBatch owner:
-// budget/generation checks and commit/rollback belong to the caller.
+
 auto write_remote_mix_contents(sqlito::Transaction& tx, i64 provider, slice<MixContents> entries)
     -> DbWriteResult<empty> {
     HashSet<i64>       mixes;

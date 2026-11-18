@@ -21,6 +21,9 @@ namespace q = liorm::query;
 
 export namespace qcm::backend
 {
+auto artist_exists(sqlito::Connection& db, i64 id) -> QueryResult<bool>;
+auto artist_exists(sqlito::Transaction& db, i64 id) -> QueryResult<bool>;
+
 class ArtistFilterExpressions : public FilterExpressions {
 public:
     using FilterExpressions::FilterExpressions;

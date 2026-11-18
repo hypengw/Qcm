@@ -1,42 +1,20 @@
 module;
 #include <rstd/macro.hpp>
 #include <rstd/enum.hpp>
-export module qcm.backend:db.sync_batch.images;
-export import :db.sync_batch.item_reference;
-export import :model.image;
-export import :db.codec;
+module qcm.backend;
+import :db.sync_batch;
 import liorm.sqlito;
 import :db.schema;
 import :db.timestamp;
+import :db.codec;
 using rstd::tuple;
 using namespace rstd::prelude;
 using namespace rstd::literals;
 namespace image_query = liorm::query;
 
-export namespace qcm::backend
-{
-struct [[pmacro::derive("serde::derive"), pmacro::helper("serde::derive", decode_only)]]
-ImageInput {
-    ItemRef   item_id;
-    ImageType image_type;
-    [[pmacro::helper("serde::derive", default)]]
-    Patch<Option<String>> native_id;
-    [[pmacro::helper("serde::derive", default)]]
-    Patch<String> fresh;
-    [[pmacro::helper("serde::derive", default)]]
-    bool remove {};
-};
-struct LegacyImageInput {
-    i64                      item_id;
-    ImageType                image_type;
-    Option<String>           native_id;
-    Option<String>           db;
-    String                   fresh;
-    Option<DatabaseDateTime> timestamp;
-};
-} // namespace qcm::backend
-
 namespace qcm::backend
+{
+namespace
 {
 inline constexpr image_query::ProjectionLayout<image_query::ModelGroup<Image>> image_projection;
 inline constexpr auto image_find   = image_query::compile([](image_query::QueryBuilder& b) {
@@ -81,10 +59,8 @@ auto image_insert(sqlito::Transaction& tx, Image model) -> DbWriteResult<empty> 
     rstd_try(liorm::sqlito::insert<database_tables>(tx, rstd::move(values)));
     return Ok(empty {});
 }
-} // namespace qcm::backend
+} // namespace
 
-export namespace qcm::backend
-{
 auto write_legacy_images(sqlito::Transaction& tx, i64 provider, slice<LegacyImageInput> entries)
     -> DbWriteResult<empty> {
     using C = liorm::Columns<Image>;
@@ -118,7 +94,7 @@ auto write_legacy_images(sqlito::Transaction& tx, i64 provider, slice<LegacyImag
     }
     return Ok(empty {});
 }
-// The caller owns the transaction; item resolution and duplicate checks happen before writes.
+
 auto write_images(sqlito::Transaction& tx, i64 provider, slice<ImageInput> entries)
     -> DbWriteResult<empty> {
     Vec<tuple<i64, ImageType>> seen;

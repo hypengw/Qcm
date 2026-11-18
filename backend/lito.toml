@@ -9,10 +9,25 @@ standard = "c++23"
 name = "qcm-backend"
 module = "qcm.backend"
 archive = "qcm_backend"
-source-groups = ["resource-impl"]
+source-groups = ["resource-impl", "sync-batch-impl"]
 
 [source-groups.resource-impl]
 sources = ["src/resource/download.cpp", "src/resource/object_service.cpp", "src/resource/reader.cpp"]
+
+[source-groups.sync-batch-impl]
+sources = [
+  "src/db/sync_batch/albums.cpp",
+  "src/db/sync_batch/artists.cpp",
+  "src/db/sync_batch/batch.cpp",
+  "src/db/sync_batch/dynamics.cpp",
+  "src/db/sync_batch/images.cpp",
+  "src/db/sync_batch/libraries.cpp",
+  "src/db/sync_batch/mix_contents.cpp",
+  "src/db/sync_batch/relations.cpp",
+  "src/db/sync_batch/remote_mix.cpp",
+  "src/db/sync_batch/song_albums.cpp",
+  "src/db/sync_batch/songs.cpp",
+]
 
 [dependencies]
 qcm-protocol = { workspace = true, pub = true }

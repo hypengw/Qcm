@@ -1,54 +1,29 @@
 module;
 #include <rstd/macro.hpp>
 #include <rstd/enum.hpp>
-export module qcm.backend:db.sync_batch.songs;
-export import :db.sync_batch.item_reference;
-export import :model.song;
-export import :db.codec;
+module qcm.backend;
+import :db.sync_batch;
 import liorm.sqlito;
 import :db.schema;
+import :db.codec;
 using namespace rstd::prelude;
 using namespace rstd::literals;
 
-export namespace qcm::backend
-{
-struct SongTags {
-    static auto convert(const Vec<String>& value) -> rstd::json::Value {
-        rstd::json::Array tags;
-        for (const auto& tag : value.as_slice()) tags.push(rstd::json::Value::String(tag.clone()));
-        return rstd::json::Value::Array(rstd::move(tags));
-    }
-};
-[[pmacro::invoke("qcm::entity_input", SongInput, SongFields, Song, {
-    name: String,
-    sort_name: Option<String>,
-    track_number: i32,
-    disc_number: i32,
-    duration: i64,
-    can_play: bool,
-    popularity: f64,
-    tags: Vec<String>[convert(SongTags)],
-    publish_time: Option<Timestamp>,
-    added_at: Option<Timestamp>,
-},
-                 {
-                     album_id: Patch<Option<ItemRef>>,
-                 })]];
-struct SongWriteOutcome {
-    Vec<Song> rows;
-    Vec<i64>  inserted;
-};
-} // namespace qcm::backend
-
 namespace qcm::backend
+{
+namespace
 {
 auto find_song(sqlito::Transaction& tx, i64 id) -> DbWriteResult<Option<Song>> {
     return Ok(rstd_try((liorm::sqlito::find<database_tables, Song>(tx, id))));
 }
-} // namespace qcm::backend
+} // namespace
 
-export namespace qcm::backend
-{
+auto SongTags::convert(const Vec<String>& value) -> rstd::json::Value {
+    rstd::json::Array tags;
+    for (const auto& tag : value.as_slice()) tags.push(rstd::json::Value::String(tag.clone()));
+    return rstd::json::Value::Array(rstd::move(tags));
+}
+
 auto write_legacy_songs(sqlito::Transaction& tx, i64 provider, slice<Song> entries)
     -> DbWriteResult<Vec<i64>> {
     array<ItemType, 1> song_type { ItemType::Song };
@@ -70,7 +45,7 @@ auto write_legacy_songs(sqlito::Transaction& tx, i64 provider, slice<Song> entri
     }
     return Ok(rstd::move(ids));
 }
-// The caller owns the transaction and the mask prevalidation for empty groups.
+
 auto write_songs(sqlito::Transaction& tx, i64 provider, slice<SongInput> entries, const Mask& mask)
     -> DbWriteResult<SongWriteOutcome> {
     array<ItemType, 1> expected { ItemType::Song };

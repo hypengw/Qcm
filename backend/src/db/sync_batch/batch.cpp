@@ -1,73 +1,15 @@
 module;
 #include <rstd/macro.hpp>
 #include <rstd/enum.hpp>
-export module qcm.backend:db.sync_batch.batch;
-export import :db.sync_batch;
-export import :db.sync.run;
-export import :model.library;
-export import :model.item;
-export import :model.album;
-export import :model.artist;
-export import :model.song;
-export import :model.remote_mix;
-import liorm.sqlito;
-import :db.schema;
+module qcm.backend;
+import :db.sync_batch;
+import :db.sync.run;
 using namespace rstd::prelude;
 using namespace rstd::literals;
 
-export namespace qcm::backend
-{
-struct [[pmacro::derive("serde::derive"), pmacro::helper("serde::derive", decode_only)]]
-BatchOptions {
-    [[pmacro::helper("serde::derive", default)]]
-    Mask albums;
-    [[pmacro::helper("serde::derive", default)]]
-    Mask artists;
-    [[pmacro::helper("serde::derive", default)]]
-    Mask songs;
-    [[pmacro::helper("serde::derive", default)]]
-    Mask remote_mixes;
-    [[pmacro::helper("serde::derive", default)]]
-    Mask dynamics;
-};
-struct [[pmacro::derive("serde::derive"), pmacro::helper("serde::derive", decode_only)]] SyncBatch {
-    [[pmacro::helper("serde::derive", default)]]
-    Vec<LibraryInput> libraries;
-    [[pmacro::helper("serde::derive", default)]]
-    Vec<AlbumInput> albums;
-    [[pmacro::helper("serde::derive", default)]]
-    Vec<ArtistInput> artists;
-    [[pmacro::helper("serde::derive", default)]]
-    Vec<SongInput> songs;
-    [[pmacro::helper("serde::derive", default)]]
-    Vec<RemoteMixInput> remote_mixes;
-    [[pmacro::helper("serde::derive", default)]]
-    Vec<DynamicInput> dynamics;
-    [[pmacro::helper("serde::derive", default)]]
-    Vec<ImageInput> images;
-    [[pmacro::helper("serde::derive", default)]]
-    Vec<SongAlbumInput> song_albums;
-    [[pmacro::helper("serde::derive", default)]]
-    Vec<RelationInput> album_artists;
-    [[pmacro::helper("serde::derive", default)]]
-    Vec<RelationInput> song_artists;
-    [[pmacro::helper("serde::derive", default)]]
-    Vec<MixContents> remote_mix_contents;
-    [[pmacro::helper("serde::derive", default)]]
-    BatchOptions options;
-};
-struct [[pmacro::derive("serde::derive"), pmacro::helper("serde::derive", encode_only)]]
-SyncResult {
-    Vec<Library>   libraries;
-    Vec<Item>      items;
-    Vec<Album>     albums;
-    Vec<Artist>    artists;
-    Vec<Song>      songs;
-    Vec<RemoteMix> remote_mixes;
-};
-} // namespace qcm::backend
-
 namespace qcm::backend
+{
+namespace
 {
 auto batch_invalid(ref<str> message) -> DbWriteError {
     return DbWriteError::Invalid(String::make(message));
@@ -78,11 +20,8 @@ auto batch_add(Vec<i64>& ids, i64 id) -> bool {
     ids.push(i64(id));
     return true;
 }
-} // namespace qcm::backend
+} // namespace
 
-export namespace qcm::backend
-{
-// The caller owns the transaction, coordinator guard and generation checks.
 auto sync_batch(sqlito::Transaction& tx, i64 provider, const SyncBatch& batch,
                 const SyncGuard& guard, usize encoded_bytes) -> DbWriteResult<SyncResult> {
     rstd_try(batch.options.albums.validate<AlbumInput>());

@@ -2,6 +2,8 @@ module;
 #include <rstd/macro.hpp>
 module qcm.backend;
 import :provider.run_codec;
+import :model.rel_album_artist;
+import :model.rel_song_artist;
 using namespace rstd::prelude;
 using namespace rstd::literals;
 

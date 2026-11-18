@@ -6,7 +6,6 @@ export import :model.home;
 export import :model.image;
 export import :model.item;
 export import :model.library;
-export import :model.library_codec;
 export import :model.mix;
 export import :model.mix_model;
 export import :model.radio;

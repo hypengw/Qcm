@@ -1,33 +1,18 @@
 module;
 #include <rstd/macro.hpp>
 #include <rstd/enum.hpp>
-export module qcm.backend:db.sync_batch.libraries;
-export import :db.sync_batch.item_reference;
-export import :model.library_codec;
-export import :db.codec;
+module qcm.backend;
+import :db.sync_batch;
 import :db.schema;
+import :db.codec;
 using rstd::collections::HashSet;
 using namespace rstd::prelude;
 using namespace rstd::literals;
 namespace library_write_query = liorm::query;
 
-export namespace qcm::backend
-{
-struct [[pmacro::derive("serde::derive"), pmacro::helper("serde::derive", decode_only)]]
-LibraryInput {
-    String native_id;
-    String name;
-};
-struct LegacyLibraryInput {
-    i64                      id;
-    String                   name;
-    i64                      provider_id;
-    String                   native_id;
-    Option<DatabaseDateTime> edit_time;
-};
-} // namespace qcm::backend
-
 namespace qcm::backend
+{
+namespace
 {
 inline constexpr library_write_query::ProjectionLayout<library_write_query::ModelGroup<Library>>
                       library_write_projection;
@@ -63,16 +48,15 @@ auto library_write_lookup(sqlito::Transaction& tx, i64 provider, const String& n
         liorm::parameters(liorm::param<"provider">(provider),
                           liorm::param<"native">(native.as_str())))));
 }
-} // namespace qcm::backend
+} // namespace
 
-export namespace qcm::backend
-{
 auto read_libraries(sqlito::Connection& db, i64 provider) -> DbWriteResult<Vec<Library>> {
     return Ok(rstd_try(liorm::sqlito::fetch_all<library_find_provider>(
         db,
         liorm::ModelProjection<Library> {},
         liorm::parameters(liorm::param<"provider">(provider)))));
 }
+
 auto write_legacy_libraries(sqlito::Transaction& tx, i64 provider,
                             slice<LegacyLibraryInput> entries) -> DbWriteResult<Vec<i64>> {
     using C = liorm::Columns<Library>;
@@ -111,8 +95,7 @@ auto write_legacy_libraries(sqlito::Transaction& tx, i64 provider,
     }
     return Ok(rstd::move(ids));
 }
-// This is only the Library apply stage. The caller owns budget/coordinator
-// checks and the transaction, including whether to roll back after an error.
+
 auto write_libraries(sqlito::Transaction& tx, i64 provider, slice<LibraryInput> entries)
     -> DbWriteResult<Vec<Library>> {
     using C = liorm::Columns<Library>;

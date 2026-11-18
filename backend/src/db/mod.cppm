@@ -13,4 +13,3 @@ export import :db.sync.retention;
 export import :db.sync.coordination;
 export import :db.state.playlog;
 export import :db.sync_batch;
-export import :db.sync_batch.batch;

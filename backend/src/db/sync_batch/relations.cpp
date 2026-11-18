@@ -1,35 +1,21 @@
 module;
 #include <rstd/macro.hpp>
 #include <rstd/enum.hpp>
-export module qcm.backend:db.sync_batch.relations;
-export import :db.sync_batch.item_reference;
-export import :db.sync_batch.mix_contents;
-export import :model.rel_album_artist;
-export import :model.rel_song_artist;
+module qcm.backend;
+import :db.sync_batch;
 import liorm.sqlito;
 import :db.codec;
 import :db.schema;
 import :db.timestamp;
+import :model.rel_album_artist;
+import :model.rel_song_artist;
 using namespace rstd::prelude;
 using namespace rstd::literals;
 namespace relation_query = liorm::query;
 
-export namespace qcm::backend
-{
-struct [[pmacro::derive("serde::derive"), pmacro::helper("serde::derive", decode_only)]]
-RelationInput {
-    ItemRef      owner;
-    RelationMode mode;
-    Vec<ItemRef> targets;
-};
-struct LegacyRelationInput {
-    i64       owner_id;
-    i64       artist_id;
-    Timestamp update_at;
-};
-} // namespace qcm::backend
-
 namespace qcm::backend
+{
+namespace
 {
 auto relation_contains(slice<i64> ids, i64 id) -> bool {
     for (const auto& value : ids)
@@ -120,26 +106,26 @@ auto write_relations(sqlito::Transaction& tx, i64 provider, slice<RelationInput>
     }
     return Ok(empty {});
 }
-} // namespace qcm::backend
+} // namespace
 
-export namespace qcm::backend
-{
 auto write_legacy_album_artists(sqlito::Transaction& tx, i64 provider,
                                 slice<LegacyRelationInput> entries) -> DbWriteResult<empty> {
     return write_legacy_relations<RelAlbumArtist, &RelAlbumArtist::album_id, ItemType::Album>(
         tx, provider, entries);
 }
+
 auto write_legacy_song_artists(sqlito::Transaction& tx, i64 provider,
                                slice<LegacyRelationInput> entries) -> DbWriteResult<empty> {
     return write_legacy_relations<RelSongArtist, &RelSongArtist::song_id, ItemType::Song>(
         tx, provider, entries);
 }
-// The caller owns the transaction and runs relations after their owners exist.
+
 auto write_album_artists(sqlito::Transaction& tx, i64 provider, slice<RelationInput> entries)
     -> DbWriteResult<empty> {
     return write_relations<RelAlbumArtist, &RelAlbumArtist::album_id, ItemType::Album>(
         tx, provider, entries);
 }
+
 auto write_song_artists(sqlito::Transaction& tx, i64 provider, slice<RelationInput> entries)
     -> DbWriteResult<empty> {
     return write_relations<RelSongArtist, &RelSongArtist::song_id, ItemType::Song>(

@@ -1,41 +1,23 @@
 module;
 #include <rstd/macro.hpp>
 #include <rstd/enum.hpp>
-export module qcm.backend:db.sync_batch.artists;
-export import :db.sync_batch.item_reference;
-export import :model.artist;
+module qcm.backend;
+import :db.sync_batch;
 import liorm.sqlito;
 import :db.codec;
 import :db.schema;
-import :db.error.query;
 using namespace rstd::prelude;
 using namespace rstd::literals;
 
-export namespace qcm::backend
-{
-[[pmacro::invoke("qcm::entity_input", ArtistInput, ArtistFields, Artist, {
-    name: String,
-    sort_name: Option<String>,
-    description: String,
-    album_count: i32,
-    music_count: i32,
-    added_at: Option<Timestamp>,
-})]];
-} // namespace qcm::backend
-
 namespace qcm::backend
 {
-template<class Database>
-auto artist_exists(Database& db, i64 id) -> QueryResult<bool> {
-    return Ok(rstd_try((liorm::sqlito::exists<database_tables, Artist>(db, id))));
-}
+namespace
+{
 auto find_artist(sqlito::Transaction& tx, i64 id) -> DbWriteResult<Option<Artist>> {
     return Ok(rstd_try((liorm::sqlito::find<database_tables, Artist>(tx, id))));
 }
-} // namespace qcm::backend
+} // namespace
 
-export namespace qcm::backend
-{
 auto write_legacy_artists(sqlito::Transaction& tx, i64 provider, slice<Artist> entries)
     -> DbWriteResult<Vec<i64>> {
     array<ItemType, 1> expected { ItemType::Artist };
@@ -56,7 +38,7 @@ auto write_legacy_artists(sqlito::Transaction& tx, i64 provider, slice<Artist> e
     }
     return Ok(rstd::move(ids));
 }
-// The caller owns the transaction and the mask prevalidation for empty groups.
+
 auto write_artists(sqlito::Transaction& tx, i64 provider, slice<ArtistInput> entries,
                    const Mask& mask) -> DbWriteResult<Vec<Artist>> {
     array<ItemType, 1> expected { ItemType::Artist };

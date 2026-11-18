@@ -19,6 +19,11 @@ namespace q = liorm::query;
 
 export namespace qcm::backend
 {
+auto album_exists(sqlito::Connection& db, i64 id) -> QueryResult<bool>;
+auto album_song_ids(sqlito::Connection& db, i64 id) -> QueryResult<Vec<i64>>;
+auto album_exists(sqlito::Transaction& db, i64 id) -> QueryResult<bool>;
+auto album_song_ids(sqlito::Transaction& db, i64 id) -> QueryResult<Vec<i64>>;
+
 struct AlbumQueryPage {
     Vec<i64> ids;
     i64      total {};
