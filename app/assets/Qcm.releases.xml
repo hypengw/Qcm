@@ -1,4 +1,11 @@
 <releases>
+  <release version="1.4.1" date="2026-11-19">
+    <description>
+      <ul>
+        <li>reduce frontend and backend build times and C++ module size</li>
+      </ul>
+    </description>
+  </release>
   <release version="1.4.0" date="2026-11-17">
     <description>
       <ul>

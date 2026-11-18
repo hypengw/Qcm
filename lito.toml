@@ -14,7 +14,7 @@ members = [
 default-members = ["app", "backend", "player"]
 
 [workspace.package]
-version = "1.4.0"
+version = "1.4.1"
 license = "GPL-2.0-only"
 authors = ["hypengw <hypengwip@gmail.com>"]
 
@@ -41,7 +41,7 @@ rstd-macro = { version = "0.1.12" }
 rstd-serde = { version = "0.1.12" }
 rstd-serde-macro = { version = "0.1.12" }
 liproto = { version = "0.1.0" }
-liproto-codegen = { version = "0.1.0" }
+liproto-codegen = { version = "0.1.1" }
 liserveto = { version = "0.1.0" }
 liwebsocketo = { version = "0.1.1" }
 lifetchto = { version = "0.1.1" }

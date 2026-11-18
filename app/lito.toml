@@ -167,7 +167,7 @@ private-definitions = [
   "APP_AUTHOR=\"hypengw\"",
   "APP_NAME=\"Qcm\"",
   "APP_SUMMARY=\"Quick cloud music player\"",
-  "APP_VERSION=\"1.4.0\"",
+  "APP_VERSION=\"1.4.1\"",
 ]
 threads = true
 
