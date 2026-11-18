@@ -1,8 +1,8 @@
 module;
 #include <rstd/enum.hpp>
 export module qcm.backend:resource.object_fetch;
-export import :resource.service;
-export import :provider.runtime;
+import :resource.service;
+import :provider.runtime;
 using rstd::async::coro;
 using rstd::sync::Arc;
 using namespace rstd::prelude;

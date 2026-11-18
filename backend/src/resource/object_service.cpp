@@ -1,6 +1,6 @@
 module;
 #include <rstd/macro.hpp>
-export module qcm.backend:resource.object_service;
+module qcm.backend;
 import :resource.service;
 import :resource.store;
 import licrypto;

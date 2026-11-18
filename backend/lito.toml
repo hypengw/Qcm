@@ -9,6 +9,10 @@ standard = "c++23"
 name = "qcm-backend"
 module = "qcm.backend"
 archive = "qcm_backend"
+source-groups = ["resource-impl"]
+
+[source-groups.resource-impl]
+sources = ["src/resource/download.cpp", "src/resource/object_service.cpp", "src/resource/reader.cpp"]
 
 [dependencies]
 qcm-protocol = { workspace = true, pub = true }

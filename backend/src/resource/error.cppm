@@ -2,7 +2,6 @@ module;
 #include <rstd/enum.hpp>
 export module qcm.backend:resource.error;
 export import rstd;
-export import lifetchto;
 export import sqlito;
 export import lihttpto;
 export import :provider.error;

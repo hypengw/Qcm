@@ -1,7 +1,7 @@
 module;
 #include <rstd/macro.hpp>
 #include <rstd/enum.hpp>
-export module qcm.backend:resource.download;
+module qcm.backend;
 import :resource.service;
 import :resource.store;
 import :resource.download_key;
