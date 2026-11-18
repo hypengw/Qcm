@@ -1,24 +1,16 @@
-module;
-#include <rstd/macro.hpp>
 export module qcm.backend:resource.storage;
 export import :resource.types;
 export import :resource.sqlite;
-export import :resource.schema;
 export import :resource.segment_key;
-import :resource.pack;
 import :resource.startup;
-import rstd.log;
 using namespace rstd::prelude;
-using namespace rstd::literals;
 using rstd::tuple;
 using rstd::bytes::Bytes;
 using rstd::collections::HashMap;
 using rstd::fs::File;
 using rstd::path::Path;
 using rstd::path::PathBuf;
-using rstd::sync::Arc;
 using rstd::sync::Weak;
-using rstd::sync::atomic::Ordering;
 using rstd::time::Instant;
 
 export namespace qcm::backend::resource_cache
@@ -90,7 +82,7 @@ struct Storage {
     HashMap<String, PendingRemoval>           garbage;
     Option<Instant>                           cleanup_at;
     File                                      owner;
-    Storage(PathBuf path, File lock): root(rstd::move(path)), owner(rstd::move(lock)) {}
+    Storage(PathBuf path, File lock);
     Storage(Storage&&) = default;
     static auto open(sqlito::Connection&, PathBuf, File, StartupTrace&) -> DbResult<Storage>;
     auto        path(ref<str>) const -> PathBuf;
@@ -119,49 +111,37 @@ struct Storage {
     auto        segment_file(const Metadata&, const Segment&) -> DbResult<File>;
     auto        retain_segments(HashMap<String, ResourceKind>&) -> DbResult<empty>;
     auto        repair_segments(i64) -> DbResult<empty>;
-    template<class F>
-    auto publish_segment_index(i64 id, Index index, F operation) -> DbResult<empty> {
-        rstd_try(db.atomic([&]() -> DbResult<empty> {
-            rstd_try(patch_index(id, index));
-            return operation();
-        }));
-        index.committed();
-        auto value = versions.get_mut(id);
-        if (value.is_none()) return Err(Error::state("version not resident"_str));
-        (*value)->index = rstd::move(index);
-        return Ok(empty {});
-    }
-    auto read_segment(i64, u64) -> DbResult<Option<Bytes>>;
-    auto write_segments(i64, const Blocks&) -> DbResult<empty>;
-    auto remove_segment(i64, u64) -> DbResult<empty>;
-    auto delete_all_segments(i64) -> DbResult<empty>;
-    auto evict_segments(u64) -> DbResult<empty>;
-    auto copied_block(i64, u64) -> DbResult<empty>;
-    auto file_path(ref<str>, ref<str>) const -> PathBuf;
-    auto plain(i64) -> DbResult<bool>;
-    auto plain_length(i64) -> DbResult<Option<u64>>;
-    auto next_build() -> DbResult<Option<Ticket>>;
-    auto check_build(i64) -> DbResult<empty>;
-    auto publish_file(Version, array<u8, 32>) -> DbResult<empty>;
-    auto defer_build(i64) -> DbResult<empty>;
-    auto finish_failed(i64) -> DbResult<empty>;
-    void defer_remove(String);
-    auto remove_managed(ref<str>, Instant now = Instant::now()) -> DbResult<empty>;
-    void cleanup_garbage(Instant now = Instant::now(), bool urgent = false);
-    auto cleanup_deadline() -> Option<Instant>;
-    auto retire_corrupt(i64) -> DbResult<empty>;
-    auto lease_now() const -> u64;
-    auto restore_leases() -> DbResult<empty>;
-    auto persist_clock() -> DbResult<empty>;
-    auto expire_leases() -> DbResult<empty>;
-    auto externally_pinned(i64) -> DbResult<bool>;
-    auto acquire_file(i64, ref<str>) -> DbResult<Option<LocalFile>>;
-    auto renew_file(ref<str>, ref<str>) -> DbResult<bool>;
-    auto object(ref<str>) -> DbResult<Option<Object>>;
-    auto put_object(ObjectMetadata, slice<u8>) -> DbResult<empty>;
-    auto delete_pack(ref<str>) -> DbResult<empty>;
-    auto retain_packs(HashMap<String, ResourceKind>&) -> DbResult<empty>;
-    auto evict_packs(u64) -> DbResult<empty>;
-    auto invalidate_packs(i64) -> DbResult<empty>;
+    auto        read_segment(i64, u64) -> DbResult<Option<Bytes>>;
+    auto        write_segments(i64, const Blocks&) -> DbResult<empty>;
+    auto        remove_segment(i64, u64) -> DbResult<empty>;
+    auto        delete_all_segments(i64) -> DbResult<empty>;
+    auto        evict_segments(u64) -> DbResult<empty>;
+    auto        copied_block(i64, u64) -> DbResult<empty>;
+    auto        file_path(ref<str>, ref<str>) const -> PathBuf;
+    auto        plain(i64) -> DbResult<bool>;
+    auto        plain_length(i64) -> DbResult<Option<u64>>;
+    auto        next_build() -> DbResult<Option<Ticket>>;
+    auto        check_build(i64) -> DbResult<empty>;
+    auto        publish_file(Version, array<u8, 32>) -> DbResult<empty>;
+    auto        defer_build(i64) -> DbResult<empty>;
+    auto        finish_failed(i64) -> DbResult<empty>;
+    void        defer_remove(String);
+    auto        remove_managed(ref<str>, Instant now = Instant::now()) -> DbResult<empty>;
+    void        cleanup_garbage(Instant now = Instant::now(), bool urgent = false);
+    auto        cleanup_deadline() -> Option<Instant>;
+    auto        retire_corrupt(i64) -> DbResult<empty>;
+    auto        lease_now() const -> u64;
+    auto        restore_leases() -> DbResult<empty>;
+    auto        persist_clock() -> DbResult<empty>;
+    auto        expire_leases() -> DbResult<empty>;
+    auto        externally_pinned(i64) -> DbResult<bool>;
+    auto        acquire_file(i64, ref<str>) -> DbResult<Option<LocalFile>>;
+    auto        renew_file(ref<str>, ref<str>) -> DbResult<bool>;
+    auto        object(ref<str>) -> DbResult<Option<Object>>;
+    auto        put_object(ObjectMetadata, slice<u8>) -> DbResult<empty>;
+    auto        delete_pack(ref<str>) -> DbResult<empty>;
+    auto        retain_packs(HashMap<String, ResourceKind>&) -> DbResult<empty>;
+    auto        evict_packs(u64) -> DbResult<empty>;
+    auto        invalidate_packs(i64) -> DbResult<empty>;
 };
 } // namespace qcm::backend::resource_cache

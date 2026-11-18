@@ -12,7 +12,17 @@ archive = "qcm_backend"
 source-groups = ["resource-impl", "sync-batch-impl"]
 
 [source-groups.resource-impl]
-sources = ["src/resource/download.cpp", "src/resource/object_service.cpp", "src/resource/reader.cpp"]
+sources = [
+  "src/resource/cleanup.cpp",
+  "src/resource/download.cpp",
+  "src/resource/materialize.cpp",
+  "src/resource/metadata.cpp",
+  "src/resource/object_service.cpp",
+  "src/resource/objects.cpp",
+  "src/resource/reader.cpp",
+  "src/resource/segments.cpp",
+  "src/resource/storage_core.cpp",
+]
 
 [source-groups.sync-batch-impl]
 sources = [

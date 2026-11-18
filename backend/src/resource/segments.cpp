@@ -1,7 +1,8 @@
 module;
 #include <rstd/macro.hpp>
-export module qcm.backend:resource.segments;
+module qcm.backend;
 import :resource.storage;
+import :resource.schema;
 import rstd.log;
 using namespace rstd::prelude;
 using namespace rstd::literals;
@@ -171,6 +172,18 @@ auto block_range(const Metadata& meta, u64 number, u64 size) -> DbResult<Range> 
     return Ok(Range { *start / meta.geometry.block,
                       ceil_div(rstd::cmp::min(start->saturating_add(size), meta.geometry.length),
                                meta.geometry.block) });
+}
+template<class F>
+auto publish_index(Storage& storage, i64 id, Index index, F operation) -> DbResult<empty> {
+    rstd_try(storage.db.atomic([&]() -> DbResult<empty> {
+        rstd_try(storage.patch_index(id, index));
+        return operation();
+    }));
+    index.committed();
+    auto value = storage.versions.get_mut(id);
+    if (value.is_none()) return Err(Error::state("version not resident"_str));
+    (*value)->index = rstd::move(index);
+    return Ok(empty {});
 }
 } // namespace qcm::backend::resource_cache::segments_detail
 
@@ -366,9 +379,10 @@ auto Storage::read_segment(i64 id, u64 block) -> DbResult<Option<Bytes>> {
     if (unreadable || rstd_try(hash(bytes.as_slice())) != digest) {
         auto index = rstd_try(load(id))->index.clone();
         index.remove(block);
-        rstd_try(publish_segment_index(id, rstd::move(index), []() -> DbResult<empty> {
-            return Ok(empty {});
-        }));
+        rstd_try(
+            segments_detail::publish_index(*this, id, rstd::move(index), []() -> DbResult<empty> {
+                return Ok(empty {});
+            }));
         return Ok(None());
     }
     auto touched = segment_tick();
@@ -457,16 +471,17 @@ auto Storage::write_segments(i64 id, const Blocks& blocks) -> DbResult<empty> {
         }
         rstd_try(sync_directory(root.as_path()));
         auto touched = segment_tick();
-        return publish_segment_index(id, rstd::move(index), [&]() -> DbResult<empty> {
-            for (const auto& segment : written)
-                rstd_try(db.execute(segments_detail::write_segment,
-                                    parameter("id"_str, id),
-                                    parameter("number"_str, segment.number),
-                                    parameter("token"_str, segment.token.as_str()),
-                                    parameter("length"_str, segment.length),
-                                    parameter("touched"_str, touched)));
-            return Ok(empty {});
-        });
+        return segments_detail::publish_index(
+            *this, id, rstd::move(index), [&]() -> DbResult<empty> {
+                for (const auto& segment : written)
+                    rstd_try(db.execute(segments_detail::write_segment,
+                                        parameter("id"_str, id),
+                                        parameter("number"_str, segment.number),
+                                        parameter("token"_str, segment.token.as_str()),
+                                        parameter("length"_str, segment.length),
+                                        parameter("touched"_str, touched)));
+                return Ok(empty {});
+            });
     }();
     if (result.is_err())
         for (const auto& name : created) (void)remove_managed(name.as_str());
@@ -481,7 +496,7 @@ auto Storage::remove_segment(i64 id, u64 number) -> DbResult<empty> {
     auto range = rstd_try(segments_detail::block_range(meta, number, *size));
     for (auto block = range.start; block < range.end; ++block)
         if (index.get(block).is_some()) index.remove(block);
-    rstd_try(publish_segment_index(id, rstd::move(index), [&]() -> DbResult<empty> {
+    rstd_try(segments_detail::publish_index(*this, id, rstd::move(index), [&]() -> DbResult<empty> {
         return Ok(rstd_try(db.execute(segments_detail::mark_deleting,
                                       parameter("id"_str, id),
                                       parameter("number"_str, number))));

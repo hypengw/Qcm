@@ -1,6 +1,6 @@
 module;
 #include <rstd/macro.hpp>
-export module qcm.backend:resource.cleanup;
+module qcm.backend;
 import :resource.storage;
 import rstd.log;
 using namespace rstd::prelude;

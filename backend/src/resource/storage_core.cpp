@@ -4,8 +4,9 @@ module;
 #    include <fcntl.h>
 #    include <sys/stat.h>
 #endif
-export module qcm.backend:resource.storage_core;
+module qcm.backend;
 import :resource.storage;
+import :resource.schema;
 import :resource.startup;
 import liuuid;
 import rstd.log;
@@ -214,6 +215,8 @@ auto open_owner(ref<Path> root) -> DbResult<File> {
     rstd_try(private_file(owner));
     return Ok(rstd::move(owner));
 }
+Storage::Storage(PathBuf path, File lock): root(rstd::move(path)), owner(rstd::move(lock)) {}
+
 auto Storage::open(sqlito::Connection& connection, PathBuf root, File owner, StartupTrace& trace)
     -> DbResult<Storage> {
     Storage store(rstd::move(root), rstd::move(owner));

@@ -1,6 +1,6 @@
 module;
 #include <rstd/macro.hpp>
-export module qcm.backend:resource.materialize;
+module qcm.backend;
 import :resource.storage;
 import :resource.schema;
 import liorm.sqlito;

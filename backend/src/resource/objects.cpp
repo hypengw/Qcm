@@ -1,7 +1,8 @@
 module;
 #include <rstd/macro.hpp>
-export module qcm.backend:resource.objects;
+module qcm.backend;
 import :resource.storage;
+import :resource.schema;
 import :resource.pack;
 import rstd.log;
 using namespace rstd::prelude;

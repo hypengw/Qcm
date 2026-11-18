@@ -1,6 +1,6 @@
 module;
 #include <rstd/macro.hpp>
-export module qcm.backend:resource.metadata;
+module qcm.backend;
 import :resource.storage;
 import rstd.json;
 using namespace rstd::prelude;
